@@ -20,51 +20,52 @@ struct BoringNotch: View {
             .frame(width: isExpanded ? 500 : 290, height: isExpanded ? 200: 40)
             .animation(.spring(), value: isExpanded)
             
-            HStack {
-                Image(systemName: musicManager.albumArt)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-                    .foregroundColor(.white)
-                
+            VStack {
                 if isExpanded {
-                    VStack(alignment: .leading) {
-                        Text(musicManager.songTitle)
-                            .font(.caption)
-                            .foregroundColor(.white)
-                        Text(musicManager.artistName)
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                        HStack(spacing: 15) {
-                            Button(action: {
-                                musicManager.previousTrack()
-                            }) {
-                                Image(systemName: "backward.fill")
-                                    .foregroundColor(.white)
-                            }
-                            Button(action: {
-                                musicManager.togglePlayPause()
-                            }) {
-                                Image(systemName: musicManager.isPlaying ? "pause.fill" : "play.fill")
-                                    .foregroundColor(.white)
-                            }
-                            Button(action: {
-                                musicManager.nextTrack()
-                            }) {
-                                Image(systemName: "forward.fill")
-                                    .foregroundColor(.white)
+                    Spacer()
+                }
+                HStack {
+                    AsyncImage(url: URL(string: "https://i.scdn.co/image/ab67616d0000b2737d37ca425dc0d46cd4f79113")).frame(width: isExpanded ? 80: 20, height:isExpanded ?80: 20).scaledToFit().cornerRadius(4)
+                    
+                    if isExpanded {
+                        VStack(alignment: .leading) {
+                            Text(musicManager.songTitle)
+                                .font(.caption)
+                                .foregroundColor(.white)
+                            Text(musicManager.artistName)
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                            HStack(spacing: 15) {
+                                Button(action: {
+                                    musicManager.previousTrack()
+                                }) {
+                                    Image(systemName: "backward.fill")
+                                        .foregroundColor(.white)
+                                }
+                                Button(action: {
+                                    musicManager.togglePlayPause()
+                                }) {
+                                    Image(systemName: musicManager.isPlaying ? "pause.fill" : "play.fill")
+                                        .foregroundColor(.white)
+                                }.tint(.clear)
+                                Button(action: {
+                                    musicManager.nextTrack()
+                                }) {
+                                    Image(systemName: "forward.fill")
+                                        .foregroundColor(.white)
+                                }.tint(.clear)
                             }
                         }
+                        .transition(.opacity)
                     }
-                    .transition(.opacity)
-                }
-                
-                Spacer()
-                
-                MusicVisualizer()
-                    .frame(width: 30)
-            }.frame(width: isExpanded ? 480 : 280)
-                .padding(.horizontal, 10)
+                    
+                    Spacer()
+                    
+                    MusicVisualizer()
+                        .frame(width: 30)
+                }.frame(width: isExpanded ? 480 : 280)
+                    .padding(.horizontal, 10).padding(.vertical, 20)
+            }
         }
         .onHover { hovering in
             withAnimation(.spring()) {
@@ -73,4 +74,10 @@ struct BoringNotch: View {
             }
         }
     }
+}
+
+func onHover(){}
+
+#Preview {
+    ContentView(onHover:onHover )
 }
