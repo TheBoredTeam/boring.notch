@@ -1,21 +1,16 @@
 # Xcode
-*.xcworkspace
 *.xcuserstate
 *.xcuserdata
 *.xcscheme
 *.xcschememanagement.plist
 *.xcuserdatad
 *.pbxuser
-*.pbxproj
 *.xccheckout
 *.xcscheme
-*.xcworkspace
-*.xcshareddata
 *.xcplayground
 *.xcuserdatad
 *.xctest
 *.xcuserdata
-*.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
 *.xcodeproj/xcshareddata/WorkspaceSettings.xcsettings
 
 # CocoaPods
