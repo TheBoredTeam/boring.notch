@@ -1,12 +1,12 @@
 # Boring.Notch: The Notch That Rocks 🎸🎶
 
-<img width="616" alt="image" src="https://github.com/user-attachments/assets/df18e6a5-39f8-45cf-a487-d0103720d8b3">
-<img width="616" alt="Screenshot 2024-08-02 at 12 39 09 PM" src="https://github.com/user-attachments/assets/bd8ee706-88b5-4c6d-baee-6eb9237d6f00">
-
+https://github.com/user-attachments/assets/7c819f63-554a-4fd1-b1c8-1ebb948a1f80
 
 Welcome to **Boring.Notch**, the coolest way to make your MacBook Pro's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen!
 
 ## 🎵 Features That Rock
+
+
 
 - **Dynamic Notch Display**: Transform that boring notch into a live music feed! Show off the current track and album art like a true DJ.
 - **Music Visualizer**: Watch your music come to life with animated bars that dance to the beat. It’s like a rave in your notch!
