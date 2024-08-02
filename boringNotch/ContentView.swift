@@ -41,17 +41,17 @@ class MusicManager: ObservableObject {
     private var player = AVPlayer()
     private var playerItem: AVPlayerItem?
     private var cancellables = Set<AnyCancellable>()
-
+    
     @Published var songTitle: String = "Blinding Lights"
     @Published var artistName: String = "The Weeknd"
     @Published var albumArt: String = "music.note"
     @Published var isPlaying = false
-
+    
     init() {
         setupNowPlayingObserver()
         setupPlaybackStateObserver()
     }
-
+    
     private func setupNowPlayingObserver() {
         NotificationCenter.default.publisher(for: .AVPlayerItemNewAccessLogEntry, object: playerItem)
             .sink { [weak self] _ in
@@ -59,7 +59,7 @@ class MusicManager: ObservableObject {
             }
             .store(in: &cancellables)
     }
-
+    
     private func setupPlaybackStateObserver() {
         player.publisher(for: \.timeControlStatus)
             .sink { [weak self] status in
@@ -67,56 +67,98 @@ class MusicManager: ObservableObject {
             }
             .store(in: &cancellables)
     }
-
+    
     private func updateNowPlayingInfo() {
         // Example: Get metadata from the currently playing AVPlayerItem
         guard let item = player.currentItem else { return }
+        // 'commonMetadata' was deprecated in macOS 13.0: Use load(.commonMetadata) instead
         let metadataList = item.asset.commonMetadata
-
+        
+        
+        print("Metadata: \(metadataList)")
+        
         for metadata in metadataList {
             if metadata.commonKey?.rawValue == "title" {
                 songTitle = metadata.stringValue ?? "Unknown Title"
             } else if metadata.commonKey?.rawValue == "artist" {
                 artistName = metadata.stringValue ?? "Unknown Artist"
             } else if metadata.commonKey?.rawValue == "artwork",
+                      // 'commonMetadata' was deprecated in macOS 13.0: Use load(.commonMetadata) instead
                       let data = metadata.dataValue,
                       let image = NSImage(data: data) {
                 albumArt = image.name() ?? "music.note"
             }
         }
     }
-
+    
     func togglePlayPause() {
         isPlaying ? player.pause() : player.play()
     }
-
+    
     func nextTrack() {
         // Implement next track functionality
     }
-
+    
     func previousTrack() {
         // Implement previous track functionality
+    }
+}
+
+struct BottomRoundedRectangle: Shape {
+    var radius: CGFloat
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        
+        // Top left corner
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        
+        // Top right corner
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        
+        // Bottom right corner (rounded)
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
+        path.addArc(center: CGPoint(x: rect.maxX - radius, y: rect.maxY - radius),
+                    radius: radius,
+                    startAngle: Angle(degrees: 0),
+                    endAngle: Angle(degrees: 90),
+                    clockwise: false)
+        
+        // Bottom left corner (rounded)
+        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+        path.addArc(center: CGPoint(x: rect.minX + radius, y: rect.maxY - radius),
+                    radius: radius,
+                    startAngle: Angle(degrees: 90),
+                    endAngle: Angle(degrees: 180),
+                    clockwise: false)
+        
+        // Back to top left to close the path
+        path.closeSubpath()
+        
+        return path
     }
 }
 
 // MARK: - Dynamic Notch
 
 struct BoringNotch: View {
+    let onHover: () -> Void
     @State private var isExpanded = false
     @StateObject private var musicManager = MusicManager()
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.black)
-                .frame(width: isExpanded ? 400 : 260, height: isExpanded ? 80: 50)
-                .animation(.spring(), value: isExpanded)
+            BottomRoundedRectangle(
+                radius: 12)
+            .fill(Color.black)
+            .frame(width: isExpanded ? 500 : 290, height: isExpanded ? 200: 40)
+            .animation(.spring(), value: isExpanded)
             
             HStack {
                 Image(systemName: musicManager.albumArt)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 30, height: 30)
+                    .frame(width: 20, height: 20)
                     .foregroundColor(.white)
                 
                 if isExpanded {
@@ -128,25 +170,25 @@ struct BoringNotch: View {
                             .font(.caption2)
                             .foregroundColor(.gray)
                         HStack(spacing: 15) {
-                                           Button(action: {
-                                               musicManager.previousTrack()
-                                           }) {
-                                               Image(systemName: "backward.fill")
-                                                   .foregroundColor(.white)
-                                           }
-                                           Button(action: {
-                                               musicManager.togglePlayPause()
-                                           }) {
-                                               Image(systemName: musicManager.isPlaying ? "pause.fill" : "play.fill")
-                                                   .foregroundColor(.white)
-                                           }
-                                           Button(action: {
-                                               musicManager.nextTrack()
-                                           }) {
-                                               Image(systemName: "forward.fill")
-                                                   .foregroundColor(.white)
-                                           }
-                                       }
+                            Button(action: {
+                                musicManager.previousTrack()
+                            }) {
+                                Image(systemName: "backward.fill")
+                                    .foregroundColor(.white)
+                            }
+                            Button(action: {
+                                musicManager.togglePlayPause()
+                            }) {
+                                Image(systemName: musicManager.isPlaying ? "pause.fill" : "play.fill")
+                                    .foregroundColor(.white)
+                            }
+                            Button(action: {
+                                musicManager.nextTrack()
+                            }) {
+                                Image(systemName: "forward.fill")
+                                    .foregroundColor(.white)
+                            }
+                        }
                     }
                     .transition(.opacity)
                 }
@@ -155,29 +197,24 @@ struct BoringNotch: View {
                 
                 MusicVisualizer()
                     .frame(width: 30)
-            }.frame(width: isExpanded ? 380 : 240)
-            .padding(.horizontal, 10)
+            }.frame(width: isExpanded ? 480 : 280)
+                .padding(.horizontal, 10)
         }
         .onHover { hovering in
             withAnimation(.spring()) {
                 isExpanded = hovering
+                onHover()
             }
         }
     }
 }
 
 struct ContentView: View {
+    let onHover: () -> Void
     var body: some View {
-        VStack {
-            BoringNotch()
-                .frame(height: 40)
-                .padding(.top, 20)
-            Spacer()
-        }.frame(minWidth: 500)
-        .background(Color.clear)
+        BoringNotch(onHover: onHover)
+            .frame(maxWidth: .infinity, maxHeight: 200)
+            .background(Color.clear)
+            .edgesIgnoringSafeArea(.top)
     }
-}
-
-#Preview {
-    ContentView()
 }
