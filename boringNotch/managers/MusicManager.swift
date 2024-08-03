@@ -1,3 +1,11 @@
+//
+//  MusicManager.swift
+//  boringNotch
+//
+//  Created by Harsh Vardhan  Goswami  on 03/08/24.
+//
+
+
 import SwiftUI
 import Combine
 import AppKit
@@ -5,123 +13,136 @@ import AppKit
 class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
-    @Published var songTitle: String = "Blinding Lights"
-    @Published var artistName: String = "The Weeknd"
-    @Published var albumArt: String = "music.note"
+    @Published var songTitle: String = "I;m Handome"
+    @Published var artistName: String = "Me"
+    // use default image url for now
+    // i'm getting Value of optional type 'NSImage?' must be unwrapped to a value of type 'NSImage'
+    @Published var albumArt: NSImage = NSImage(
+        systemSymbolName: "music.note",
+        accessibilityDescription: "Album Art"
+    )!
     @Published var isPlaying = false
+    @Published var album: String = "Self Love"
+    @Published var playbackManager = PlaybackManager()
+    @Published var lastUpdated: Date = Date()
     
     init() {
         setupNowPlayingObserver()
         fetchNowPlayingInfo()
     }
     
+    
     private func setupNowPlayingObserver() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(fetchNowPlayingInfo),
-            name: NSNotification.Name("com.apple.iTunes.playerInfo"),
-            object: nil
-        )
-        
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(fetchNowPlayingInfo),
-            name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
-            object: nil
-        )
-    }
-    
-    @objc private func fetchNowPlayingInfo() {
-        let scriptPath = Bundle.main.path(forResource: "NowPlaying", ofType: "scpt")
-        
-        guard let scriptPath = scriptPath else {
-            print("Script path not found.")
-            return
-        }
-        
-        let scriptURL = URL(fileURLWithPath: scriptPath)
-        
-        do {
-            let script = try NSAppleScript(contentsOf: scriptURL, error: nil)
-            var error: NSDictionary?
-            if let output = script?.executeAndReturnError(&error).stringValue {
-                parseNowPlayingInfo(output)
-            } else if let error = error {
-                print("AppleScript Error: \(error)")
+        // every 5 seconds, fetch now playing info
+        Timer.publish(every: 5, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.fetchNowPlayingInfo()
             }
-        } catch {
-            print("Error loading AppleScript: \(error)")
-        }
+            .store(in: &cancellables)
     }
     
-    
-    private func parseNowPlayingInfo(_ info: String) {
-        let components = info.components(separatedBy: "||")
-        print(components)
-        if components.count == 4 {
-            songTitle = components[0]
-            artistName = components[1]
-            albumArt = components[2]
-            isPlaying = (components[3] == "playing")
-        } else {
-            songTitle = "Unknown Title"
-            artistName = "Unknown Artist"
-            albumArt = "music.note"
-            isPlaying = false
+    @objc func fetchNowPlayingInfo() {
+        print("Called fetchNowPlayingInfo")
+        // Load framework
+        guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")) else { return }
+        
+        // Get a Swift function for MRMediaRemoteGetNowPlayingInfo
+        guard let MRMediaRemoteGetNowPlayingInfoPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingInfo" as CFString) else { return }
+        typealias MRMediaRemoteGetNowPlayingInfoFunction = @convention(c) (DispatchQueue, @escaping ([String: Any]) -> Void) -> Void
+        let MRMediaRemoteGetNowPlayingInfo = unsafeBitCast(MRMediaRemoteGetNowPlayingInfoPointer, to: MRMediaRemoteGetNowPlayingInfoFunction.self)
+        
+        // Get a Swift function for MRNowPlayingClientGetBundleIdentifier
+        guard let MRNowPlayingClientGetBundleIdentifierPointer = CFBundleGetFunctionPointerForName(bundle, "MRNowPlayingClientGetBundleIdentifier" as CFString) else { return }
+        typealias MRNowPlayingClientGetBundleIdentifierFunction = @convention(c) (AnyObject?) -> String
+        let MRNowPlayingClientGetBundleIdentifier = unsafeBitCast(MRNowPlayingClientGetBundleIdentifierPointer, to: MRNowPlayingClientGetBundleIdentifierFunction.self)
+        
+        // Get song info
+        MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
+            guard let self = self else { self?.isPlaying = false; return }
+            
+            // check if the song is paused
+            if let state = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int {
+                
+                
+                // don't update lastUpdated if the song is paused and the state is same as the previous one
+                if !self.isPlaying && state == 0 {
+                    return
+                }
+                
+                if state == 0 {
+                    self.lastUpdated = Date()
+                }
+                
+                self.isPlaying = state == 1
+                playbackManager.isPlaying = state == 1
+                
+                
+            }
+            
+            // check if the song is same as the previous one
+            if let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String,
+               title == self.songTitle {
+                return
+            }
+            
+            if let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String {
+                self.artistName = artist
+            }
+            
+            if let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String {
+                self.songTitle = title
+            }
+            
+            if let album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String {
+                print("Album: \(album)")
+                self.album = album
+            }
+            
+            if let duration = information["kMRMediaRemoteNowPlayingInfoDuration"] as? String {
+                print("Duration: \(duration)")
+            }
+            
+            if let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data,
+               let artworkImage = NSImage(data: artworkData) {
+                self.albumArt = artworkImage
+                print("artworkData : \(artworkData)")
+            }
+            
+            // Get bundle identifier
+            let _MRNowPlayingClientProtobuf: AnyClass? = NSClassFromString("MRClient")
+            let handle: UnsafeMutableRawPointer! = dlopen("/usr/lib/libobjc.A.dylib", RTLD_NOW)
+            let object = unsafeBitCast(dlsym(handle, "objc_msgSend"), to: (@convention(c) (AnyClass?, Selector?) -> AnyObject).self)(_MRNowPlayingClientProtobuf, Selector(("alloc")))
+            unsafeBitCast(dlsym(handle, "objc_msgSend"), to: (@convention(c) (AnyObject?, Selector?, Any?) -> Void).self)(object, Selector(("initWithData:")), information["kMRMediaRemoteNowPlayingInfoClientPropertiesData"] as AnyObject?)
+            let bundleIdentifier = MRNowPlayingClientGetBundleIdentifier(object)
+            dlclose(handle)
         }
     }
     
     func togglePlayPause() {
+        // Implement play/pause functionality
+        playbackManager.playPause()
+        isPlaying = playbackManager.isPlaying
+        
         if isPlaying {
-            executeAppleScript(script: "tell application \"System Events\" to tell process \"\(currentPlayerProcess())\" to keystroke space")
-        } else {
-            executeAppleScript(script: "tell application \"System Events\" to tell process \"\(currentPlayerProcess())\" to keystroke space")
+            fetchNowPlayingInfo()
+        }
+        
+        if !isPlaying {
+            lastUpdated = Date()
         }
     }
     
     func nextTrack() {
-        let script = """
-        tell application "System Events"
-            if (exists (processes where name is "Music")) then
-                tell application "Music" to next track
-            else if (exists (processes where name is "Spotify")) then
-                tell application "Spotify" to next track
-            end if
-        end tell
-        """
-        executeAppleScript(script: script)
+        // Implement next track functionality
+        playbackManager.nextTrack()
+        fetchNowPlayingInfo()
     }
     
     func previousTrack() {
-        let script = """
-        tell application "System Events"
-            if (exists (processes where name is "Music")) then
-                tell application "Music" to previous track
-            else if (exists (processes where name is "Spotify")) then
-                tell application "Spotify" to previous track
-            end if
-        end tell
-        """
-        executeAppleScript(script: script)
+        // Implement previous track functionality
+        playbackManager.previousTrack()
+        fetchNowPlayingInfo()
     }
     
-    private func executeAppleScript(script: String) {
-        var error: NSDictionary?
-        if let scriptObject = NSAppleScript(source: script) {
-            scriptObject.executeAndReturnError(&error)
-            if let error = error {
-                print("AppleScript Error: \(error)")
-            }
-        }
-    }
-    
-    private func currentPlayerProcess() -> String {
-        if NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music").count > 0 {
-            return "Music"
-        } else if NSRunningApplication.runningApplications(withBundleIdentifier: "com.spotify.client").count > 0 {
-            return "Spotify"
-        } else {
-            return ""
-        }
-    }
 }

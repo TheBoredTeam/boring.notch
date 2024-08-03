@@ -19,8 +19,9 @@ struct MusicVisualizer: View {
                     .frame(width: 3, height: amplitudes[index])
             }
         }
+        .transition(.scale.animation(.spring(.bouncy(duration: 0.6))))
         .onReceive(timer) { _ in
-            withAnimation(.easeInOut(duration: 0.1)) {
+            withAnimation(.spring(.bouncy(duration: 0.6))) {
                 for i in 0..<5 {
                     amplitudes[i] = CGFloat.random(in: 5...20)
                 }
