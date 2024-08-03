@@ -1,6 +1,8 @@
 # Boring.Notch: The Notch That Rocks 🎸🎶
 
-https://github.com/user-attachments/assets/7c819f63-554a-4fd1-b1c8-1ebb948a1f80
+## Preview
+
+https://imgur.com/QGuDDHD
 
 Welcome to **Boring.Notch**, the coolest way to make your MacBook Pro's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen!
 
