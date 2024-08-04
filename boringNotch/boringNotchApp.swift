@@ -46,7 +46,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Initialize the window
         window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 300, height: 40),
+//            contentRect: NSRect(x: 0, y: 0, width: 300, height: 40),
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 220),
             styleMask: [.borderless],
             backing: .buffered, defer: false)
         window.isOpaque = false
