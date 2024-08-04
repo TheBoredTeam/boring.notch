@@ -35,14 +35,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Set up the menu
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Play/Pause", action: #selector(playPauseAction), keyEquivalent: "p"))
-        menu.addItem(NSMenuItem(title: "Next Track", action: #selector(nextTrackAction), keyEquivalent: "n"))
+//        menu.addItem(NSMenuItem(title: "Play/Pause", action: #selector(playPauseAction), keyEquivalent: "p"))
+//        menu.addItem(NSMenuItem(title: "Next Track", action: #selector(nextTrackAction), keyEquivalent: "n"))
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "q"))
         statusItem?.menu = menu
         
         
         // Create the window content
-        let contentView = ContentView(onHover: adjustWindowPosition)
+        let contentView = ContentView(onHover: adjustWindowPosition, vm: .init(), batteryModel: .init())
         
         // Initialize the window
         window = NSWindow(

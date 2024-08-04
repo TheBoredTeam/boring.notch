@@ -24,7 +24,7 @@ struct MinimalFaceFeatures: View {
                 // Nose
                 RoundedRectangle(cornerRadius: 2)
                     .fill(Color.white)
-                    .frame(width: 3, height: 10)
+                    .frame(width: 3, height: 4)
                 
                 // Mouth (happy)
                 GeometryReader { geometry in
@@ -36,7 +36,7 @@ struct MinimalFaceFeatures: View {
                     }
                     .stroke(Color.white, lineWidth: 2)
                 }
-                .frame(width: 18, height: 10)
+                .frame(width: 14, height: 10)
             }
         }
         .frame(width: self.width, height: self.height) // Maximum size of face
@@ -47,11 +47,11 @@ struct MinimalFaceFeatures: View {
     
     func startBlinking() {
         Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
-            withAnimation(.easeInOut(duration: 0.1)) {
+            withAnimation(.spring(duration: 0.2)) {
                 isBlinking = true
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.easeInOut(duration: 0.1)) {
+                withAnimation(.spring(duration: 0.2)) {
                     isBlinking = false
                 }
             }

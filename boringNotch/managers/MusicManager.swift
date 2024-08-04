@@ -33,8 +33,8 @@ class MusicManager: ObservableObject {
     
     
     private func setupNowPlayingObserver() {
-        // every 5 seconds, fetch now playing info
-        Timer.publish(every: 5, on: .main, in: .common)
+        // every 3 seconds, fetch now playing info
+        Timer.publish(every: 3, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 self?.fetchNowPlayingInfo()
