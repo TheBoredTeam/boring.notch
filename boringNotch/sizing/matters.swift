@@ -23,7 +23,7 @@ struct Sizes {
     var corderRadius: StatesSizes = StatesSizes(opened: Area(inset: 24), closed: Area(inset:10))
     var size: StatesSizes = StatesSizes(
         opened:Area(width: 500, height: 220),
-        closed:Area(width: 300, height: 40)
+        closed:Area(width: 320, height: 40)
     )
 }
 

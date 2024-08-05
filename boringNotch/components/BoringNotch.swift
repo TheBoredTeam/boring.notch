@@ -108,7 +108,7 @@ struct BoringNotch: View {
                         
                     }
                 }
-            }.frame(width: vm.notchState == .open ? 430 : batteryModel.showChargingInfo ? CGFloat(270) + CGFloat(90): 265)
+            }.frame(width: vm.notchState == .open ? 430 : batteryModel.showChargingInfo ? CGFloat(270) + CGFloat(100): 285)
                 .padding(.horizontal, 10).padding(.vertical, vm.notchState == .open ? 10: 20).padding(.bottom, vm.notchState == .open ?5:0).transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
         }.onHover { hovering in
             withAnimation(vm.animation) {
