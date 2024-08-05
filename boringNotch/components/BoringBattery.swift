@@ -8,44 +8,46 @@ struct BatteryView: View {
     var animationStyle: BoringAnimations = BoringAnimations()
     
     var icon: String {
-        if isCharging {
-            return "battery.100percent.bolt"
-        }
-        if percentage.isLessThanOrEqualTo(5.0){
-            return "battery.0"
-        }
-        if percentage.isLessThanOrEqualTo(30) {
-            return "battery.25percent"
-        }
-        if percentage.isLessThanOrEqualTo(60){
-            return "battery.50percent"
-        }
-        if percentage.isLessThanOrEqualTo(90){
-            return "battery.75percent"
-        }
-        if percentage.isLessThanOrEqualTo(100){
-            return isCharging ? "battery.100percent.bolt" : "battery.100percent"
-        }
         return "battery.0"
     }
     
-     var batteryColor: Color {
-        if isCharging {
-            return .white
+    var batteryColor: Color {
+        if percentage.isLessThanOrEqualTo(20) {
+            return .red
         } else {
             return .white
         }
     }
     
     var body: some View {
-        Image(systemName: icon)
-            .resizable()
-            .fontWeight(.thin)
-            .aspectRatio(contentMode: .fit)
-            .foregroundColor(batteryColor).frame(
-                width: batteryWidth,
-                height: batteryHeight
-            )
+        ZStack(alignment: .leading) {
+            
+            Image(systemName: icon)
+                .resizable()
+                .fontWeight(.thin)
+                .aspectRatio(contentMode: .fit)
+                .foregroundColor(batteryColor).frame(
+                    width: batteryWidth,
+                    height: batteryHeight
+                )
+            
+            RoundedRectangle(cornerRadius: 2).fill(batteryColor).frame( width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth-6.5))),
+                                                                        height: batteryHeight - 21).padding(.leading, 1.75)
+            
+            if isCharging {
+                Image(systemName: "bolt.fill").resizable()
+                    .fontWeight(.regular)
+                    .aspectRatio(contentMode: .fit).foregroundColor(
+                        isCharging ? .green : .white
+                    ).frame(
+                        width: batteryWidth - 2.5,
+                        height: 15
+                    )
+                
+            }
+            
+        }
+        
     }
 }
 
@@ -58,5 +60,5 @@ struct BoringBatteryView: View {
 }
 
 #Preview {
-    BatteryView(percentage: 20, isCharging: true)
+    BatteryView(percentage: 100, isCharging: true).frame(width: 100)
 }

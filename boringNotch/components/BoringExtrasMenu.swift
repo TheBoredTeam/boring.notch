@@ -16,7 +16,7 @@ struct BoringLargeButtons: View {
             action:action,
             label: {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 80, height: 80)
+                    RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)
                     VStack(spacing: 8) {
                         icon.resizable()
                             .aspectRatio(contentMode: .fit).frame(width:20)

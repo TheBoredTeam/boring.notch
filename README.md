@@ -4,7 +4,7 @@
 
 https://imgur.com/QGuDDHD
 
-Welcome to **Boring.Notch**, the coolest way to make your MacBook Pro's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen!
+Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen!
 
 ## 🎵 Features That Rock
 
@@ -12,12 +12,13 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook Pro's notch th
 - **Music Visualizer**: Watch your music come to life with animated bars that dance to the beat. It’s like a rave in your notch!
 - **Music Controls**: Play, pause, next, and previous buttons, all in one snazzy notch. No more fumbling for controls—just reach up and tap!
 - **Hover Magic**: Make your notch expand and show off all the details when you hover over it. It’s like magic, but better!
+"- **Battery Drama**: Watch your notch expand and flaunt a battery indicator whenever your MacBook gets a taste of AC power!"
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- **A MacBook Pro**: Because you can't have a notch on a MacBook Air.
+- **A MacBook**: With a boring notch.
 - **macOS 12.0 or later**: If you’re not on the latest macOS, we might need to send a search party.
 - **Xcode 13.0 or later**: This is where the magic happens, so make sure it’s up-to-date.
 
@@ -35,7 +36,7 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook Pro's notch th
    ```
 
 3. **Build and Run**:
-    - Select your target device (MacBook Pro—you do have one, right?).
+    - Select your target device (MacBook—you do have one, right?).
     - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
 
 ## 🎸 Usage
