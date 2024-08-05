@@ -11,7 +11,6 @@
 		147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163972C5D35B70068B555 /* MusicVisualizer.swift */; };
 		1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163992C5D35FF0068B555 /* MusicManager.swift */; };
 		1471639F2C5D368B0068B555 /* BoringNotch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1471639E2C5D368B0068B555 /* BoringNotch.swift */; };
-		147163AE2C5D7A080068B555 /* NowPlaying.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 147163AB2C5D752E0068B555 /* NowPlaying.scpt */; };
 		14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CEF4152C5CAED300855D72 /* boringNotchApp.swift */; };
 		14CEF4182C5CAED300855D72 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CEF4172C5CAED300855D72 /* ContentView.swift */; };
 		14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 14CEF4192C5CAED400855D72 /* Assets.xcassets */; };
@@ -37,7 +36,6 @@
 		147163972C5D35B70068B555 /* MusicVisualizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicVisualizer.swift; sourceTree = "<group>"; };
 		147163992C5D35FF0068B555 /* MusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicManager.swift; sourceTree = "<group>"; };
 		1471639E2C5D368B0068B555 /* BoringNotch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringNotch.swift; sourceTree = "<group>"; };
-		147163AB2C5D752E0068B555 /* NowPlaying.scpt */ = {isa = PBXFileReference; lastKnownFileType = file; path = NowPlaying.scpt; sourceTree = "<group>"; };
 		14CEF4122C5CAED300855D72 /* boringNotch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = boringNotch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		14CEF4152C5CAED300855D72 /* boringNotchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotchApp.swift; sourceTree = "<group>"; };
 		14CEF4172C5CAED300855D72 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -106,7 +104,6 @@
 		14CEF4092C5CAED200855D72 = {
 			isa = PBXGroup;
 			children = (
-				147163AB2C5D752E0068B555 /* NowPlaying.scpt */,
 				14CEF4142C5CAED300855D72 /* boringNotch */,
 				14CEF4132C5CAED300855D72 /* Products */,
 			);
@@ -243,7 +240,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				147163AE2C5D7A080068B555 /* NowPlaying.scpt in Resources */,
 				14CEF41D2C5CAED400855D72 /* Preview Assets.xcassets in Resources */,
 				14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */,
 			);
