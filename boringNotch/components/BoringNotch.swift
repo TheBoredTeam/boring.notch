@@ -19,14 +19,14 @@ struct BoringNotch: View {
         ZStack {
             NotchShape(cornerRadius: vm.notchState == .open ? vm.sizes.corderRadius.opened.inset: vm.sizes.corderRadius.closed.inset)
                 .fill(Color.black)
-                .frame(width: vm.notchState == .open ? vm.sizes.size.opened.width : batteryModel.showChargingInfo ? CGFloat(vm.sizes.size.closed.width!) + CGFloat(70) : vm.sizes.size.closed.width, height: vm.notchState == .open ? vm.sizes.size.opened.height : vm.sizes.size.closed.height)
-                .animation(.spring(), value: vm.notchState == .open)
+                .frame(width: vm.notchState == .open ? vm.sizes.size.opened.width : batteryModel.showChargingInfo ? CGFloat(vm.sizes.size.closed.width!) + CGFloat(100) : vm.sizes.size.closed.width, height: vm.notchState == .open ? vm.sizes.size.opened.height : vm.sizes.size.closed.height)
+                .animation(.spring(response: 0.7, dampingFraction: 0.8, blendDuration: 0.8), value: batteryModel.showChargingInfo)
                 .shadow(color: .black.opacity(0.5), radius: 10)
             
             VStack {
                 if vm.notchState == .open {
                     Spacer()
-                    BoringHeader(vm: vm, percentage: batteryModel.batteryPercentage, isCharging: batteryModel.isPluggedIn).padding(.leading, 6).padding(.trailing, 10)
+                    BoringHeader(vm: vm, percentage: batteryModel.batteryPercentage, isCharging: batteryModel.isPluggedIn).padding(.leading, 6).padding(.trailing, 10).animation(.spring(response: 0.7, dampingFraction: 0.8, blendDuration: 0.8), value: vm.notchState)
                 }
                 
                 HStack(spacing: 10) {
@@ -48,13 +48,13 @@ struct BoringNotch: View {
                         
                         if vm.currentView != .menu {
                             if musicManager.isPlaying == true || musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    VStack(alignment: .leading){
+                                VStack(alignment: .leading, spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2){
                                         Text(musicManager.songTitle)
-                                            .font(.caption)
+                                            .font(.headline).fontWeight(.regular)
                                             .foregroundColor(.white)
                                         Text(musicManager.artistName)
-                                            .font(.caption2)
+                                            .font(.caption)
                                             .foregroundColor(.gray)
                                     }
                                     HStack(spacing: 15) {
@@ -108,8 +108,8 @@ struct BoringNotch: View {
                         
                     }
                 }
-            }.frame(width: vm.notchState == .open ? 430 : batteryModel.showChargingInfo ? CGFloat(270) + CGFloat(60): 280)
-                .padding(.horizontal, 10).padding(.vertical, vm.notchState == .open ? 10: 20).transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
+            }.frame(width: vm.notchState == .open ? 430 : batteryModel.showChargingInfo ? CGFloat(270) + CGFloat(90): 265)
+                .padding(.horizontal, 10).padding(.vertical, vm.notchState == .open ? 10: 20).padding(.bottom, vm.notchState == .open ?5:0).transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
         }.onHover { hovering in
             withAnimation(vm.animation) {
                 if hovering {
@@ -118,11 +118,18 @@ struct BoringNotch: View {
                     vm.close()
                     vm.openMusic()
                 }
-                
                 self.onHover()
             }
-        }
-    
+        }.onChange(of: batteryModel.isPluggedIn, { oldValue, newValue in
+            withAnimation(.spring(response: 1, dampingFraction: 0.8, blendDuration: 0.7)) {
+                if newValue {
+                    batteryModel.showChargingInfo = true
+                } else {
+                    batteryModel.showChargingInfo = false
+                }
+            }
+        })
+        
     }
 }
 

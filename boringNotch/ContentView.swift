@@ -8,8 +8,8 @@ struct ContentView: View {
     @StateObject var batteryModel: BatteryStatusViewModel
     var body: some View {
         BoringNotch(vm: vm, onHover: onHover, batteryModel: batteryModel)
-            .frame(maxWidth: .infinity, maxHeight: 250)
+            .frame(maxWidth: .infinity, maxHeight: Sizes().size.opened.height)
             .background(Color.clear)
-            .edgesIgnoringSafeArea(.top)
+            .edgesIgnoringSafeArea(.top).transition(.slide.animation(vm.animation))
     }
 }

@@ -21,7 +21,11 @@ struct DynamicNotchApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var window: NSWindow!
+    var sizing: Sizes = Sizes()
     
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return false
+    }
     
     
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -35,8 +39,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Set up the menu
         let menu = NSMenu()
-//        menu.addItem(NSMenuItem(title: "Play/Pause", action: #selector(playPauseAction), keyEquivalent: "p"))
-//        menu.addItem(NSMenuItem(title: "Next Track", action: #selector(nextTrackAction), keyEquivalent: "n"))
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "q"))
         statusItem?.menu = menu
         
@@ -46,8 +48,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Initialize the window
         window = NSWindow(
-//            contentRect: NSRect(x: 0, y: 0, width: 300, height: 40),
-            contentRect: NSRect(x: 0, y: 0, width: 500, height: 220),
+            contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width!, height: sizing.size.opened.height!),
             styleMask: [.borderless],
             backing: .buffered, defer: false)
         window.isOpaque = false
@@ -67,21 +68,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let windowWidth = window.frame.width
             let windowHeight = window.frame.height
             let notchCenterX = screenFrame.width / 2
-            let statusBarHeight: CGFloat = 20
+            let statusBarHeight: CGFloat = 18
             let windowX = notchCenterX - windowWidth / 2
             let windowY = screenFrame.height - statusBarHeight - windowHeight / 2
             
             window.setFrame(NSRect(x: windowX, y: windowY, width: windowWidth, height: windowHeight), display: true)
         }
-    }
-    
-    
-    @objc func playPauseAction() {
-        // Implement play/pause action
-    }
-    
-    @objc func nextTrackAction() {
-        // Implement next track action
     }
     
     @objc func quitAction() {

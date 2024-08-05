@@ -9,13 +9,13 @@ class BatteryStatusViewModel: ObservableObject {
     
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
-
+    
     
     init() {
         updateBatteryStatus()
         startMonitoring()
     }
-
+    
     private func updateBatteryStatus() {
         print("updateBatteryStatus")
         if let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
@@ -28,12 +28,14 @@ class BatteryStatusViewModel: ObservableObject {
                     self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
                     
                     if (isCharging && !self.isPluggedIn) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            self.showChargingInfo = true
+                            self.isPluggedIn = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                self.showChargingInfo = false
+                            }
+                        }
                         
-                        self.showChargingInfo = true
-                        self.isPluggedIn = true
-                         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                             self.showChargingInfo = false
-                         }
                     }
                     
                     print(self.isPluggedIn, isCharging)
@@ -45,10 +47,10 @@ class BatteryStatusViewModel: ObservableObject {
             }
         }
     }
-
+    
     private func startMonitoring() {
         let context = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
-
+        
         powerSourceChangedCallback = { context in
             if let context = context {
                 let mySelf = Unmanaged<BatteryStatusViewModel>.fromOpaque(context).takeUnretainedValue()
@@ -57,13 +59,13 @@ class BatteryStatusViewModel: ObservableObject {
                 }
             }
         }
-
+        
         if let runLoopSource = IOPSNotificationCreateRunLoopSource(powerSourceChangedCallback!, context)?.takeRetainedValue() {
             self.runLoopSource = Unmanaged<CFRunLoopSource>.passRetained(runLoopSource)
             CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .defaultMode)
         }
     }
-
+    
     deinit {
         if let runLoopSource = runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource.takeUnretainedValue(), .defaultMode)

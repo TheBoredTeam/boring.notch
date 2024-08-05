@@ -22,7 +22,6 @@ struct BoringHeader: View {
                 if vm.currentView != .menu {
                     Button(
                         action: {
-                            print("Some Editor")
                             vm.openMenu()
                         },
                         label: {
@@ -33,7 +32,7 @@ struct BoringHeader: View {
                     batteryPercentage: percentage,
                     isPluggedIn: isCharging      )
             }
-            .animation(vm.animation?.delay(1), value: vm.contentType)
+            .animation(vm.animation?.delay(0.6), value: vm.notchState)
             .font(.system(.headline, design: .rounded))
         }
     }}
