@@ -1,5 +1,8 @@
 # Boring.Notch: The Notch That Rocks 🎸🎶
 
+## Download
+<a href="https://github.com/iamharshdev/boring.notch/releases" target="_self"><img width="200" src="https://www.adviksoft.com/blog/wp-content/uploads/2023/09/editor_download_mac.png" /></a>
+
 ## Preview
 
 https://imgur.com/QGuDDHD
