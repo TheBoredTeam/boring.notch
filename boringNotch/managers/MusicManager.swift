@@ -77,7 +77,6 @@ class MusicManager: ObservableObject {
                 self.isPlaying = state == 1
                 playbackManager.isPlaying = state == 1
                 
-                
             }
             
             // check if the song is same as the previous one
