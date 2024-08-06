@@ -29,6 +29,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        
         // Create the status bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
@@ -43,19 +44,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem?.menu = menu
         
         
-        // Create the window content
-        let contentView = ContentView(onHover: adjustWindowPosition, vm: .init(), batteryModel: .init())
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(adjustWindowPosition),
+            name: NSApplication.didChangeScreenParametersNotification,
+            object: nil
+        )
         
-        // Initialize the window
-        window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width!, height: sizing.size.opened.height!),
-            styleMask: [.borderless],
-            backing: .buffered, defer: false)
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.level = .statusBar
-        window.isReleasedWhenClosed = false
-        window.contentView = NSHostingView(rootView: contentView)
+        
+        window = BoringNotchWindow(
+            contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width!, height: sizing.size.opened.height!), styleMask: [.borderless], backing: .buffered, defer: false
+        )
+        
+        window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, vm: .init(), batteryModel: .init()))
         
         // Set the initial window position
         adjustWindowPosition()
@@ -63,7 +64,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.orderFrontRegardless()
     }
     
-    func adjustWindowPosition() {
+    func deviceHasNotch() -> Bool {
+        if #available(macOS 12.0, *) {
+            for screen in NSScreen.screens {
+                if screen.safeAreaInsets.top > 0 {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    
+    
+    @objc func adjustWindowPosition() {
         if let screenFrame = NSScreen.main?.frame {
             let windowWidth = window.frame.width
             let windowHeight = window.frame.height
@@ -76,13 +89,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc func quitAction() {
-        NSApplication.shared.terminate(nil)
-    }
-    
-    @objc func showMenu() {
-        statusItem?.menu?.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
-    }
     
     @objc func togglePopover(_ sender: Any?) {
         if window.isVisible {
@@ -91,4 +97,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.orderFrontRegardless()
         }
     }
+    
+    @objc func showMenu() {
+        statusItem!.menu?.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
+    }
+    
+    @objc func quitAction() {
+        NSApplication.shared.terminate(nil)
+    }
+    
+    
+    
 }

@@ -35,7 +35,14 @@ struct BoringNotch: View {
                     }
                     if (musicManager.isPlaying  || musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval) && (!batteryModel.showChargingInfo || vm.notchState == .open) && vm.currentView != .menu  {
                         
-                        Image(nsImage: musicManager.albumArt).frame(width: vm.notchState == .open ? vm.musicPlayerSizes.image.size.opened.width: vm.musicPlayerSizes.image.size.closed.width, height:vm.notchState == .open ?vm.musicPlayerSizes.image.size.opened.height: vm.musicPlayerSizes.image.size.closed.height).cornerRadius(vm.notchState == .open ? vm.musicPlayerSizes.image.corderRadius.opened.inset! : vm.musicPlayerSizes.image.corderRadius.closed.inset!)
+                        Image(nsImage: musicManager.albumArt)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill).frame(
+                                width: vm.notchState == .open ? vm.musicPlayerSizes.image.size.opened.width : vm.musicPlayerSizes.image.size.closed.width,
+                                height: vm.notchState == .open ? vm.musicPlayerSizes.image.size.opened.height : vm.musicPlayerSizes.image.size.closed.height
+                            )
+                            .cornerRadius(vm.notchState == .open ? vm.musicPlayerSizes.image.corderRadius.opened.inset! : vm.musicPlayerSizes.image.corderRadius.closed.inset!)
+                            .scaledToFit()
                         // Fit the image within the frame
                     }
                     
