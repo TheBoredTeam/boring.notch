@@ -1,4 +1,4 @@
-# Boring.Notch: The Notch That Rocks 🎸🎶
+## Boring Notch v not.humans is Here! 🎉
 
 ## Download
 <a href="https://github.com/iamharshdev/boring.notch/releases" target="_self"><img width="200" src="https://www.adviksoft.com/blog/wp-content/uploads/2023/09/editor_download_mac.png" /></a>
@@ -11,17 +11,20 @@
 
 ## Preview
 
-https://imgur.com/QGuDDHD
+https://github.com/user-attachments/assets/34466cbe-4567-46c0-9b27-0cf784ac5872
+
 
 Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen!
 
-## 🎵 Features That Rock
 
-- **Dynamic Notch Display**: Transform that boring notch into a live music feed! Show off the current track and album art like a true DJ.
-- **Music Visualizer**: Watch your music come to life with animated bars that dance to the beat. It’s like a rave in your notch!
-- **Music Controls**: Play, pause, next, and previous buttons, all in one snazzy notch. No more fumbling for controls—just reach up and tap!
-- **Hover Magic**: Make your notch expand and show off all the details when you hover over it. It’s like magic, but better!
-"- **Battery Drama**: Watch your notch expand and flaunt a battery indicator whenever your MacBook gets a taste of AC power!"
+## ⚡ Under the Hood Improvements and New features 🛠️
+
+* **Album Art Perfection:** We've fixed the album art cropping issue, so your music looks as good as it sounds. 🖼️
+* **Notch Behavior:** The notch now behaves better. It only expands when you hover over it, and its size is consistent. 🎯
+* **Multi-Desktop Magic:** Enjoy Boring Notch on all your desktops without a hitch. 🖥️
+* **Battery Buddy:** Keep an eye on your battery level with a new charging animation. ⚡
+* **Music Madness:** We've smoothed out the music layout for a better listening experience. 🎶
+* **Macbook Air Love:** Macbook Air users, rejoice! Boring Notch now supports you. 🍎 
 
 ## 🚀 Getting Started
 
