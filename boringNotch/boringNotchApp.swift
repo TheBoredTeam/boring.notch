@@ -13,7 +13,8 @@ struct DynamicNotchApp: App {
     
     var body: some Scene {
         Settings {
-            EmptyView()
+            SettingsView()
+                .environmentObject(appDelegate.vm)
         }
     }
 }
@@ -22,6 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var window: NSWindow!
     var sizing: Sizes = Sizes()
+    let vm: BoringViewModel = BoringViewModel()
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -56,7 +58,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width!, height: sizing.size.opened.height!), styleMask: [.borderless], backing: .buffered, defer: false
         )
         
-        window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, vm: .init(), batteryModel: .init()))
+        window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, batteryModel: .init()).environmentObject(vm))
         
         // Set the initial window position
         adjustWindowPosition()

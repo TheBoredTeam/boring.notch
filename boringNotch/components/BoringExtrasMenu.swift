@@ -35,6 +35,7 @@ struct BoringExtrasMenu : View {
             HStack(spacing: 20)  {
                 github
                 donate
+                settings
                 close
                 clear
             }
@@ -62,6 +63,20 @@ struct BoringExtrasMenu : View {
         )
     }
     
+    var settings: some View {
+        SettingsLink(label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)
+                VStack(spacing: 8) {
+                    Image(systemName: "gear").resizable()
+                        .aspectRatio(contentMode: .fit).frame(width:20)
+                    Text("Settings").font(.body)
+                }
+            }
+        })
+        .buttonStyle(PlainButtonStyle()).shadow(color: .black.opacity(0.5), radius: 10)
+    }
+    
     var close: some View {
         BoringLargeButtons(
             action: {
@@ -69,8 +84,8 @@ struct BoringExtrasMenu : View {
                     vm.openMusic()
                 }
             },
-            icon: Image(systemName: "xmark"),
-            title: "Close"
+            icon: Image(systemName: "arrow.down.forward.and.arrow.up.backward"),
+            title: "Hide"
         )
     }
     
@@ -83,7 +98,7 @@ struct BoringExtrasMenu : View {
                     }
                 }
             },
-            icon: Image(systemName: "trash"),
+            icon: Image(systemName: "xmark"),
             title: "Exit"
         )
     }
