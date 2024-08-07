@@ -29,20 +29,22 @@ struct BoringNotch: View {
                     BoringHeader(vm: vm, percentage: batteryModel.batteryPercentage, isCharging: batteryModel.isPluggedIn).padding(.leading, 6).padding(.trailing, 10).animation(.spring(response: 0.7, dampingFraction: 0.8, blendDuration: 0.8), value: vm.notchState)
                 }
                 
-                HStack(spacing: 10) {
+                HStack(spacing: 15) {
                     if vm.notchState == .closed && batteryModel.showChargingInfo {
                         Text("Charging")
                     }
-                    if (musicManager.isPlaying  || musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval) && (!batteryModel.showChargingInfo || vm.notchState == .open) && vm.currentView != .menu  {
+                    if (musicManager.isPlaying || musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval) && (!batteryModel.showChargingInfo || vm.notchState == .open) && vm.currentView != .menu  {
                         
                         Image(nsImage: musicManager.albumArt)
                             .resizable()
-                            .aspectRatio(contentMode: .fill).frame(
+                            .aspectRatio(contentMode: .fill)
+                            .frame(
                                 width: vm.notchState == .open ? vm.musicPlayerSizes.image.size.opened.width : vm.musicPlayerSizes.image.size.closed.width,
                                 height: vm.notchState == .open ? vm.musicPlayerSizes.image.size.opened.height : vm.musicPlayerSizes.image.size.closed.height
                             )
                             .cornerRadius(vm.notchState == .open ? vm.musicPlayerSizes.image.corderRadius.opened.inset! : vm.musicPlayerSizes.image.corderRadius.closed.inset!)
                             .scaledToFit()
+                            .padding(.leading, vm.notchState == .open ? 5 : 0)
                         // Fit the image within the frame
                     }
                     
@@ -99,25 +101,21 @@ struct BoringNotch: View {
                     }
                     
                     
-                    if musicManager.isPlaying == false && vm.notchState == .closed && !batteryModel.showChargingInfo {
-                        
-                        MinimalFaceFeatures().transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3))))
-                    }
-                    
                     if vm.notchState == .closed && batteryModel.showChargingInfo {
                         BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn)
                     }
                     
-                    if musicManager.isPlaying && !batteryModel.showChargingInfo && vm.currentView != .menu {
+                    if !batteryModel.showChargingInfo && vm.currentView != .menu {
                         
-                        MusicVisualizer()
+                        MusicVisualizer(avgColor: musicManager.albumArt.averageColor(), isPlaying: musicManager.isPlaying)
                             .frame(width: 30).padding(.horizontal, vm.notchState == .open ? 8 : 2)
                         
                     }
                 }
             }.frame(width: vm.notchState == .open ? 430 : batteryModel.showChargingInfo ? CGFloat(270) + CGFloat(100): 285)
                 .padding(.horizontal, 10).padding(.vertical, vm.notchState == .open ? 10: 20).padding(.bottom, vm.notchState == .open ?5:0).transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
-        }.onHover { hovering in
+        }
+        .onHover { hovering in
             withAnimation(vm.animation) {
                 if hovering {
                     vm.open()
@@ -127,7 +125,8 @@ struct BoringNotch: View {
                 }
                 self.onHover()
             }
-        }.onChange(of: batteryModel.isPluggedIn, { oldValue, newValue in
+        }
+        .onChange(of: batteryModel.isPluggedIn, { oldValue, newValue in
             withAnimation(.spring(response: 1, dampingFraction: 0.8, blendDuration: 0.7)) {
                 if newValue {
                     batteryModel.showChargingInfo = true
@@ -136,7 +135,7 @@ struct BoringNotch: View {
                 }
             }
         })
-        
+        .environmentObject(vm)
     }
 }
 
