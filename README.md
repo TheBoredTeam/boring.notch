@@ -3,6 +3,11 @@
 ## Download
 <a href="https://github.com/iamharshdev/boring.notch/releases" target="_self"><img width="200" src="https://www.adviksoft.com/blog/wp-content/uploads/2023/09/editor_download_mac.png" /></a>
 
+## Join our Community on Discord
+
+<a href="https://discord.gg/fRzYm3jtQY">
+<img src="https://www.kindpng.com/picc/m/221-2215393_discord-human-action-hd-png-download.png" width="200" alt="Discord - Human Action, HD Png Download@kindpng.com" />
+</a>
 ## Preview
 
 https://imgur.com/QGuDDHD
