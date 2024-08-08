@@ -14,6 +14,7 @@ struct BoringNotch: View {
     @State var showEmptyState = false
     @StateObject private var musicManager = MusicManager()
     @StateObject var batteryModel: BatteryStatusViewModel
+    @State private var haptics: Bool = false
     
     var body: some View {
         ZStack {
@@ -73,26 +74,28 @@ struct BoringNotch: View {
                                         Button {
                                             musicManager.previousTrack()
                                         } label: {
-                                            Capsule()
-                                                .fill(.black)
+                                            Rectangle()
+                                                .fill(.clear)
+                                                .contentShape(Rectangle())
                                                 .frame(width: 30, height: 30)
                                                 .overlay {
                                                     Image(systemName: "backward.fill")
-                                                        .foregroundColor(.white)
                                                         .imageScale(.medium)
+                                                        .foregroundStyle(.white)
                                                 }
                                         }
                                         Button {
                                             musicManager.togglePlayPause()
                                         } label: {
-                                            Capsule()
-                                                .fill(.black)
+                                            Rectangle()
+                                                .fill(.clear)
+                                                .contentShape(Rectangle())
                                                 .frame(width: 30, height: 30)
                                                 .overlay {
                                                     Image(systemName: musicManager.isPlaying ? "pause.fill" : "play.fill")
-                                                        .foregroundColor(.white)
-                                                        .contentTransition(.symbolEffect)
                                                         .imageScale(.large)
+                                                        .contentTransition(.symbolEffect)
+                                                        .foregroundStyle(.white)
                                                 }
                                         }
                                         Button {
@@ -102,15 +105,16 @@ struct BoringNotch: View {
                                                 .fill(.black)
                                                 .frame(width: 30, height: 30)
                                                 .overlay {
-                                                    Capsule()
-                                                        .fill(.black)
+                                                    Rectangle()
+                                                        .fill(.clear)
+                                                        .contentShape(Rectangle())
                                                         .frame(width: 30, height: 30)
                                                         .overlay {
                                                             Image(systemName: "forward.fill")
-                                                                .foregroundColor(.white)
                                                                 .imageScale(.medium)
-                                                            
+                                                                .foregroundStyle(.white)
                                                         }
+                                                    
                                                 }
                                         }
                                     }
@@ -152,6 +156,9 @@ struct BoringNotch: View {
             .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
         }
         .onHover { hovering in
+            if ((vm.notchState == .closed) && vm.enableHaptics) {
+                haptics.toggle()
+            }
             withAnimation(vm.animation) {
                 if hovering {
                     vm.open()
@@ -162,6 +169,7 @@ struct BoringNotch: View {
                 self.onHover()
             }
         }
+        .sensoryFeedback(.levelChange, trigger: haptics)
         .onChange(of: batteryModel.isPluggedIn, { oldValue, newValue in
             withAnimation(.spring(response: 1, dampingFraction: 0.8, blendDuration: 0.7)) {
                 if newValue {

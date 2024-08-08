@@ -35,10 +35,14 @@ class PlaybackManager: ObservableObject {
     func playPause() {
         if self.isPlaying {
             MrMediaRemoteSendCommandFunction(2, nil)
-            self.isPlaying = false;
+            withAnimation {
+                self.isPlaying = false;
+            }
         } else {
             MrMediaRemoteSendCommandFunction(0, nil)
-            self.isPlaying = true
+            withAnimation {
+                self.isPlaying = true
+            }
         }
     }
     

@@ -10,11 +10,24 @@ import SwiftUI
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     
     var body: some Scene {
         Settings {
             SettingsView()
                 .environmentObject(appDelegate.vm)
+        }
+        
+        MenuBarExtra("boring.notch", systemImage: "music.note", isInserted: $showMenuBarIcon) {
+            Button("Check for updates") {
+            }
+            .keyboardShortcut(KeyEquivalent("U"), modifiers: .command)
+            .disabled(true)
+            Divider()
+            Button("Quit", role: .destructive) {
+                exit(0)
+            }
+            .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
     }
 }
@@ -31,20 +44,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        
-        // Create the status bar item
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        
-        if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "BoringNotch")
-            button.action = #selector(showMenu)
-        }
-        
-        // Set up the menu
-        let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "q"))
-        statusItem?.menu = menu
-        
         
         NotificationCenter.default.addObserver(
             self,

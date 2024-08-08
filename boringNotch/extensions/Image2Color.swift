@@ -51,7 +51,7 @@ extension NSImage {
         let averageGreen = CGFloat(totalGreen) / CGFloat(totalPixels) / 255.0
         let averageBlue = CGFloat(totalBlue) / CGFloat(totalPixels) / 255.0
         
-        let minBrightness: CGFloat = 0.5
+        let minBrightness: CGFloat = 0.6
         let isNearBlack = averageRed < 0.03 && averageGreen < 0.03 && averageBlue < 0.03
         
         if isNearBlack {

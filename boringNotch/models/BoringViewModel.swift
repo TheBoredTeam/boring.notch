@@ -23,6 +23,11 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var waitInterval: Double = 10
     @Published var releaseName: String = "Beautiful Sheep"
     @Published var coloredSpectrogram: Bool = true
+    @Published var accentColor: Color = .accentColor
+    @Published var selectedDownloadIndicatorStyle: DownloadIndicatorStyle = .progress
+    @Published var selectedDownloadIconStyle: DownloadIconStyle = .onlyAppIcon
+    @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
+    @Published var enableHaptics: Bool = false
     
     deinit {
         destroy()
