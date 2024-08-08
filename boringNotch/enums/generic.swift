@@ -29,3 +29,7 @@ public enum NotchViews {
     case menu
     case weather
 }
+
+enum SettingsEnum {
+    case general
+}

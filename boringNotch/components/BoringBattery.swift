@@ -26,13 +26,16 @@ struct BatteryView: View {
                 .resizable()
                 .fontWeight(.thin)
                 .aspectRatio(contentMode: .fit)
-                .foregroundColor(batteryColor).frame(
+                .foregroundColor(batteryColor)
+                .frame(
                     width: batteryWidth,
                     height: batteryHeight
                 )
             
-            RoundedRectangle(cornerRadius: 2).fill(batteryColor).frame( width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth-6.5))),
-                                                                        height: batteryHeight - 21).padding(.leading, 1.75)
+            RoundedRectangle(cornerRadius: 2)
+                .fill(batteryColor)
+                .frame(width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth - 6.75))), height: batteryHeight - 21.5)
+                .padding(.leading, 1.75)
             
             if isCharging {
                 Image(systemName: "bolt.fill").resizable()
@@ -47,7 +50,6 @@ struct BatteryView: View {
             }
             
         }
-        
     }
 }
 

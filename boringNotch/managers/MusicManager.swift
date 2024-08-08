@@ -95,16 +95,22 @@ class MusicManager: ObservableObject {
             }
             
             if let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String {
-                self.artistName = artist
+                withAnimation {
+                    self.artistName = artist
+                }
             }
             
             if let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String {
-                self.songTitle = title
+                withAnimation {
+                    self.songTitle = title
+                }
             }
             
             if let album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String {
                 print("Album: \(album)")
-                self.album = album
+                withAnimation {
+                    self.album = album
+                }
             }
             
             if let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data,
@@ -138,10 +144,13 @@ class MusicManager: ObservableObject {
     
     
     func updateAlbumArt(newAlbumArt: NSImage) {
-        self.albumArt = newAlbumArt
+        withAnimation {
+                    self.albumArt = newAlbumArt
         if(vm.coloredSpectrogram){
             calculateAverageColor()
         }
+                }
+        
         
     }
     

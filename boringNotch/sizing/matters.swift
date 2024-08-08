@@ -35,8 +35,8 @@ struct MusicPlayerElementSizes {
     var image: Sizes = Sizes(
         corderRadius: StatesSizes(
             opened: Area(inset: 14), closed: Area(inset:4)),
-        size:StatesSizes(
-            opened: Area(width: 70, height: 70), closed: Area(width:20, height: 20)
+        size: StatesSizes(
+            opened: Area(width: 70, height: 70), closed: Area(width: 20, height: 20)
         )
     )
     var player: Sizes = Sizes(

@@ -8,17 +8,13 @@
 import SwiftUI
 import LaunchAtLogin
 
-enum settingsEnum {
-    case general
-}
-
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @State private var selectedTab: settingsEnum = .general
+    @State private var selectedTab: SettingsEnum = .general
     var body: some View {
         TabView(selection: $selectedTab,
                 content:  {
-            GeneralSettings().tabItem { Label("General", systemImage: "gear") }.tag(settingsEnum.general)
+            GeneralSettings().tabItem { Label("General", systemImage: "gear") }.tag(SettingsEnum.general)
         })
     }
     
@@ -28,7 +24,16 @@ struct SettingsView: View {
             Form {
                 Section {
                     Toggle("Enable colored spectrograms", isOn: $vm.coloredSpectrogram.animation())
+                    HStack {
+                    Text("Media inactivity timeout")
+                    Spacer()
                     TextField("Media inactivity timeout", value: $vm.waitInterval, formatter: NumberFormatter())
+                        .labelsHidden()
+                        .frame(width: 25)
+                        .multilineTextAlignment(.trailing)
+                    Text("seconds")
+                        .foregroundStyle(.secondary)
+                }
                 } header: {
                     Text("Media playback live activity")
                 }
