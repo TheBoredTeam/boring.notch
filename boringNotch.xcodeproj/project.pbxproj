@@ -32,6 +32,7 @@
 		B15063522C63D41A00EBB0E3 /* Image2Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15063512C63D41A00EBB0E3 /* Image2Color.swift */; };
 		B15063542C63E18700EBB0E3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15063532C63E18700EBB0E3 /* SettingsView.swift */; };
 		B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17266DE2C64DFA00031BA0D /* BundleInfos.swift */; };
+		B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17266E02C6532560031BA0D /* Localizable.xcstrings */; };
 		B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C974332C642B6D0000E707 /* MarqueeTextView.swift */; };
 /* End PBXBuildFile section */
 
@@ -64,6 +65,7 @@
 		B15063512C63D41A00EBB0E3 /* Image2Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Image2Color.swift; sourceTree = "<group>"; };
 		B15063532C63E18700EBB0E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B17266DE2C64DFA00031BA0D /* BundleInfos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleInfos.swift; sourceTree = "<group>"; };
+		B17266E02C6532560031BA0D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B1C974332C642B6D0000E707 /* MarqueeTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeTextView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -147,6 +149,7 @@
 				14CEF4192C5CAED400855D72 /* Assets.xcassets */,
 				14CEF41E2C5CAED400855D72 /* boringNotch.entitlements */,
 				14CEF41B2C5CAED400855D72 /* Preview Content */,
+				B17266E02C6532560031BA0D /* Localizable.xcstrings */,
 			);
 			path = boringNotch;
 			sourceTree = "<group>";
@@ -265,6 +268,7 @@
 			files = (
 				14CEF41D2C5CAED400855D72 /* Preview Assets.xcassets in Resources */,
 				14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */,
+				B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
