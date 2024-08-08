@@ -32,14 +32,12 @@ class PlaybackManager: ObservableObject {
         MrMediaRemoteSendCommandFunction = unsafeBitCast(MRMediaRemoteSendCommandPointer, to: MRMediaRemoteSendCommandFunction.self)
     }
     
-    
     func playPause() {
         if self.isPlaying {
             MrMediaRemoteSendCommandFunction(2, nil)
             self.isPlaying = false;
         } else {
-            MrMediaRemoteSendCommandFunction(1, nil)
-            MrMediaRemoteSendCommandFunction(16, nil)
+            MrMediaRemoteSendCommandFunction(0, nil)
             self.isPlaying = true
         }
     }
@@ -51,6 +49,6 @@ class PlaybackManager: ObservableObject {
     
     func previousTrack() {
         // Implement previous track action
-        MrMediaRemoteSendCommandFunction(3, nil)
+        MrMediaRemoteSendCommandFunction(5, nil)
     }
 }
