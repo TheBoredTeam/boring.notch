@@ -57,7 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width!, height: sizing.size.opened.height!), styleMask: [.borderless], backing: .buffered, defer: false
         )
         
-        window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, batteryModel: .init()).environmentObject(vm))
+        window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, batteryModel: .init(vm: self.vm)).environmentObject(vm))
         
         // Set the initial window position
         adjustWindowPosition()
@@ -82,7 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let windowWidth = window.frame.width
             let windowHeight = window.frame.height
             let notchCenterX = screenFrame.width / 2
-            let statusBarHeight: CGFloat = 12
+            let statusBarHeight: CGFloat = 17
             let windowX = notchCenterX - windowWidth / 2
             let windowY = screenFrame.height - statusBarHeight - windowHeight / 2
             

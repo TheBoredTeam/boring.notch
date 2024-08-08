@@ -12,6 +12,8 @@
 		1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163992C5D35FF0068B555 /* MusicManager.swift */; };
 		1471639F2C5D368B0068B555 /* BoringNotch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1471639E2C5D368B0068B555 /* BoringNotch.swift */; };
 		1471A8592C6281BD0058408D /* BoringNotchWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1471A8582C6281BD0058408D /* BoringNotchWindow.swift */; };
+		14A7E5862C649381008C1BE9 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 14A7E5852C649381008C1BE9 /* LaunchAtLogin */; };
+		14A7E5882C64A89C008C1BE9 /* HelloAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */; };
 		14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CEF4152C5CAED300855D72 /* boringNotchApp.swift */; };
 		14CEF4182C5CAED300855D72 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CEF4172C5CAED300855D72 /* ContentView.swift */; };
 		14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 14CEF4192C5CAED400855D72 /* Assets.xcassets */; };
@@ -43,6 +45,7 @@
 		147163992C5D35FF0068B555 /* MusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicManager.swift; sourceTree = "<group>"; };
 		1471639E2C5D368B0068B555 /* BoringNotch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringNotch.swift; sourceTree = "<group>"; };
 		1471A8582C6281BD0058408D /* BoringNotchWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringNotchWindow.swift; sourceTree = "<group>"; };
+		14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloAnimation.swift; sourceTree = "<group>"; };
 		14CEF4122C5CAED300855D72 /* boringNotch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = boringNotch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		14CEF4152C5CAED300855D72 /* boringNotchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotchApp.swift; sourceTree = "<group>"; };
 		14CEF4172C5CAED300855D72 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -74,6 +77,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				14A7E5862C649381008C1BE9 /* LaunchAtLogin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,6 +170,7 @@
 			isa = PBXGroup;
 			children = (
 				14D570B82C5E98A20011E668 /* drop.swift */,
+				14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */,
 			);
 			path = animations;
 			sourceTree = "<group>";
@@ -221,6 +226,7 @@
 			);
 			name = boringNotch;
 			packageProductDependencies = (
+				14A7E5852C649381008C1BE9 /* LaunchAtLogin */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -251,6 +257,7 @@
 			);
 			mainGroup = 14CEF4092C5CAED200855D72;
 			packageReferences = (
+				14A7E5842C649381008C1BE9 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -286,6 +293,7 @@
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
 				14D570BE2C5EA0270011E668 /* PlaybackManager.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
+				14A7E5882C64A89C008C1BE9 /* HelloAnimation.swift in Sources */,
 				14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */,
 				14D570BC2C5E98EB0011E668 /* generic.swift in Sources */,
 				14D570C42C5EBE170011E668 /* BuyMeCoffee.swift in Sources */,
@@ -439,7 +447,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
-				DEVELOPMENT_TEAM = 342QMGS27Q;
+				DEVELOPMENT_TEAM = JPWMG84CH8;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -474,7 +482,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
-				DEVELOPMENT_TEAM = 342QMGS27Q;
+				DEVELOPMENT_TEAM = JPWMG84CH8;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -519,6 +527,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		14A7E5842C649381008C1BE9 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		14A7E5852C649381008C1BE9 /* LaunchAtLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 14A7E5842C649381008C1BE9 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
+			productName = LaunchAtLogin;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 14CEF40A2C5CAED200855D72 /* Project object */;
 }

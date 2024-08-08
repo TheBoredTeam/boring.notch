@@ -20,7 +20,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var emptyStateText: String = "Play some jams, ladies, and watch me shine! New features coming soon! 🎶 🚀"
     @Published var sizes : Sizes = Sizes()
     @Published var musicPlayerSizes: MusicPlayerElementSizes = MusicPlayerElementSizes()
-    @Published var waitInterval: Double = 10
+    @Published var waitInterval: Double = 3
     @Published var releaseName: String = "Beautiful Sheep"
     @Published var coloredSpectrogram: Bool = true
     @Published var accentColor: Color = .accentColor
@@ -28,6 +28,10 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var selectedDownloadIconStyle: DownloadIconStyle = .onlyAppIcon
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     @Published var enableHaptics: Bool = false
+    @Published var nothumanface: Bool = true
+    @Published var openAtLogin: Bool = false
+    @Published var showBattery: Bool = false
+    @Published var firstLaunch: Bool = true
     
     deinit {
         destroy()
@@ -63,6 +67,15 @@ class BoringViewModel: NSObject, ObservableObject {
     
     func showEmpty() {
         self.currentView = .empty
+    }
+    
+    func closeHello() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2){
+            self.firstLaunch = false;
+            withAnimation(self.animationLibrary.animation){
+                self.close()
+            }
+        }
     }
 }
 

@@ -7,9 +7,17 @@ struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject var batteryModel: BatteryStatusViewModel
     var body: some View {
-        BoringNotch(vm: vm, onHover: onHover, batteryModel: batteryModel)
-            .frame(maxWidth: .infinity, maxHeight: Sizes().size.opened.height)
+        BoringNotch(vm: vm, batteryModel: batteryModel, onHover: onHover)
+            .frame(maxWidth: .infinity, maxHeight: Sizes().size.opened.height!)
             .background(Color.clear)
-            .edgesIgnoringSafeArea(.top).transition(.slide.animation(vm.animation))
+            .edgesIgnoringSafeArea(.top).transition(.slide.animation(vm.animation)).onAppear(perform: {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+                    withAnimation(vm.animation){
+                        if vm.firstLaunch {
+                            vm.open()
+                        }
+                    }
+                })
+            }).animation(.smooth().delay(0.3), value: vm.firstLaunch)
     }
 }

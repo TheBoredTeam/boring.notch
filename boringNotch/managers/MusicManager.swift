@@ -12,7 +12,7 @@ import AppKit
 
 class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
-    
+    private var vm: BoringViewModel
     @Published var songTitle: String = "I;m Handome"
     @Published var artistName: String = "Me"
     // use default image url for now
@@ -25,8 +25,11 @@ class MusicManager: ObservableObject {
     @Published var album: String = "Self Love"
     @Published var playbackManager = PlaybackManager()
     @Published var lastUpdated: Date = Date()
+    @Published var animations:BoringAnimations = BoringAnimations()
+    @Published var avgColor: NSColor = .white
     
-    init() {
+    init(vm: BoringViewModel) {
+        self.vm = vm;
         setupNowPlayingObserver()
         fetchNowPlayingInfo()
     }
@@ -57,21 +60,19 @@ class MusicManager: ObservableObject {
         typealias MRNowPlayingClientGetBundleIdentifierFunction = @convention(c) (AnyObject?) -> String
         let MRNowPlayingClientGetBundleIdentifier = unsafeBitCast(MRNowPlayingClientGetBundleIdentifierPointer, to: MRNowPlayingClientGetBundleIdentifierFunction.self)
         
+        
         // Get song info
         MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
-            guard let self = self else {
-                withAnimation {
-                    self?.isPlaying = false
-                }
-                return
-            }
+            guard let self = self else { self?.isPlaying = false; return }
+            
+            
             
             // check if the song is paused
             if let state = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int {
                 
-                
                 // don't update lastUpdated if the song is paused and the state is same as the previous one
                 if !self.isPlaying && state == 0 {
+                    print(self.isPlaying ?? "Some not playing");
                     return
                 }
                 
@@ -79,11 +80,12 @@ class MusicManager: ObservableObject {
                     self.lastUpdated = Date()
                 }
                 
-                withAnimation {
-                    self.isPlaying = state == 1
-                    self.playbackManager.isPlaying = state == 1
-                }
+                self.isPlaying = state == 1
+                self.playbackManager.isPlaying = state == 1
                 
+            } else {
+                self.isPlaying = false
+                self.playbackManager.isPlaying = false
             }
             
             // check if the song is same as the previous one
@@ -111,16 +113,9 @@ class MusicManager: ObservableObject {
                 }
             }
             
-            if let duration = information["kMRMediaRemoteNowPlayingInfoDuration"] as? String {
-                print("Duration: \(duration)")
-            }
-            
             if let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data,
                let artworkImage = NSImage(data: artworkData) {
-                withAnimation {
-                    self.albumArt = artworkImage
-                }
-                print("artworkData : \(artworkData)")
+                updateAlbumArt(newAlbumArt: artworkImage)
             }
             
             // Get bundle identifier
@@ -134,12 +129,9 @@ class MusicManager: ObservableObject {
     }
     
     func togglePlayPause() {
-        // Implement play/pause functionality
         playbackManager.playPause()
         
-        withAnimation {
-            isPlaying = playbackManager.isPlaying
-        }
+        isPlaying = playbackManager.isPlaying
         
         if isPlaying {
             fetchNowPlayingInfo()
@@ -147,6 +139,26 @@ class MusicManager: ObservableObject {
         
         if !isPlaying {
             lastUpdated = Date()
+        }
+    }
+    
+    
+    func updateAlbumArt(newAlbumArt: NSImage) {
+        withAnimation {
+                    self.albumArt = newAlbumArt
+        if(vm.coloredSpectrogram){
+            calculateAverageColor()
+        }
+                }
+        
+        
+    }
+    
+    func calculateAverageColor() {
+        albumArt.averageColor { [weak self] color in
+            DispatchQueue.main.async {
+                self?.avgColor = color!
+            }
         }
     }
     

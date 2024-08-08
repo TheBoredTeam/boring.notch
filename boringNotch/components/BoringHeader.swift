@@ -33,9 +33,12 @@ struct BoringHeader: View {
                     })
                     .buttonStyle(PlainButtonStyle())
                 }
-                BoringBatteryView(
-                    batteryPercentage: percentage,
-                    isPluggedIn: isCharging)
+                if(vm.showBattery) {
+                    BoringBatteryView(
+                        batteryPercentage: percentage,
+                        isPluggedIn: isCharging)
+                }
+                
             }
             .animation(vm.animation?.delay(0.6), value: vm.notchState)
             .font(.system(.headline, design: .rounded))

@@ -3,21 +3,23 @@ import SwiftUI
 import IOKit.ps
 
 class BatteryStatusViewModel: ObservableObject {
+    private var vm: BoringViewModel
     @Published var batteryPercentage: Float = 0.0
     @Published var isPluggedIn: Bool = false
     @Published var showChargingInfo: Bool = false
     
+    
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
+    var animations: BoringAnimations = BoringAnimations()
     
-    
-    init() {
+    init(vm: BoringViewModel) {
+        self.vm = vm
         updateBatteryStatus()
         startMonitoring()
     }
     
     private func updateBatteryStatus() {
-        print("updateBatteryStatus")
         if let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
            let sources = IOPSCopyPowerSourcesList(snapshot)?.takeRetainedValue() as? [CFTypeRef] {
             for source in sources {
@@ -28,17 +30,21 @@ class BatteryStatusViewModel: ObservableObject {
                     self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
                     
                     if (isCharging && !self.isPluggedIn) {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            self.showChargingInfo = true
-                            self.isPluggedIn = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                                self.showChargingInfo = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0)) {
+                            withAnimation(self.animations.animation) {
+                                self.showChargingInfo = true
+                                self.isPluggedIn = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                                    withAnimation(self.animations.animation) {
+                                        self.showChargingInfo = false
+                                    }
+                                    
+                                }
                             }
+                            
                         }
                         
                     }
-                    
-                    print(self.isPluggedIn, isCharging)
                     
                     self.isPluggedIn = isCharging
                     
