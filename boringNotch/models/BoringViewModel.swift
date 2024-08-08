@@ -21,7 +21,8 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var sizes : Sizes = Sizes()
     @Published var musicPlayerSizes: MusicPlayerElementSizes = MusicPlayerElementSizes()
     @Published var waitInterval: Double = 10
-    @Published var releaseName:String = "Beautiful Sheep"
+    @Published var releaseName: String = "Beautiful Sheep"
+    @Published var coloredSpectrogram: Bool = true
     
     deinit {
         destroy()

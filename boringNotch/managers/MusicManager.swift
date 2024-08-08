@@ -59,7 +59,12 @@ class MusicManager: ObservableObject {
         
         // Get song info
         MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
-            guard let self = self else { self?.isPlaying = false; return }
+            guard let self = self else {
+                withAnimation {
+                    self?.isPlaying = false
+                }
+                return
+            }
             
             // check if the song is paused
             if let state = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int {
@@ -74,8 +79,10 @@ class MusicManager: ObservableObject {
                     self.lastUpdated = Date()
                 }
                 
-                self.isPlaying = state == 1
-                playbackManager.isPlaying = state == 1
+                withAnimation {
+                    self.isPlaying = state == 1
+                    self.playbackManager.isPlaying = state == 1
+                }
                 
             }
             
@@ -121,7 +128,10 @@ class MusicManager: ObservableObject {
     func togglePlayPause() {
         // Implement play/pause functionality
         playbackManager.playPause()
-        isPlaying = playbackManager.isPlaying
+        
+        withAnimation {
+            isPlaying = playbackManager.isPlaying
+        }
         
         if isPlaying {
             fetchNowPlayingInfo()

@@ -4,7 +4,7 @@ import Combine
 
 struct ContentView: View {
     let onHover: () -> Void
-    @StateObject var vm: BoringViewModel
+    @EnvironmentObject var vm: BoringViewModel
     @StateObject var batteryModel: BatteryStatusViewModel
     var body: some View {
         BoringNotch(vm: vm, onHover: onHover, batteryModel: batteryModel)
