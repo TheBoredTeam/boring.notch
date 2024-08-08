@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import LaunchAtLogin
 
 enum settingsEnum {
     case general
@@ -23,18 +24,34 @@ struct SettingsView: View {
     
     @ViewBuilder
     func GeneralSettings() -> some View {
-        Form {
-            Section {
-                Toggle("Enable colored spectrograms", isOn: $vm.coloredSpectrogram.animation())
-                TextField("Media inactivity timeout", value: $vm.waitInterval, formatter: NumberFormatter())
-            } header: {
-                Text("Media playback live activity")
+        VStack{
+            Form {
+                Section {
+                    Toggle("Enable colored spectrograms", isOn: $vm.coloredSpectrogram.animation())
+                    TextField("Media inactivity timeout", value: $vm.waitInterval, formatter: NumberFormatter())
+                } header: {
+                    Text("Media playback live activity")
+                }
+                boringControls()
             }
+            .formStyle(.grouped)
+            
+            Text(vm.releaseName).font(.title2).padding()
         }
-        .formStyle(.grouped)
+    }
+    
+    @ViewBuilder
+    func boringControls() -> some View {
+        Section {
+            Toggle("Show cool face animation while inactivity", isOn: $vm.nothumanface.animation())
+            Toggle("Show battery indicator", isOn: $vm.showBattery.animation())
+            LaunchAtLogin.Toggle("Launch at login 🦄")
+        } header: {
+            Text("Boring Controls")
+        }
     }
 }
 
 #Preview {
-    SettingsView()
+    SettingsView().environmentObject(BoringViewModel())
 }

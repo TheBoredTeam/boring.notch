@@ -38,7 +38,7 @@ class PlaybackManager: ObservableObject {
             self.isPlaying = false;
         } else {
             MrMediaRemoteSendCommandFunction(0, nil)
-            self.isPlaying = true
+            self.isPlaying = true;
         }
     }
     

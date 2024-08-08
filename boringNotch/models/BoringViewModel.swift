@@ -23,6 +23,10 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var waitInterval: Double = 10
     @Published var releaseName: String = "Beautiful Sheep"
     @Published var coloredSpectrogram: Bool = true
+    @Published var nothumanface: Bool = false
+    @Published var openAtLogin: Bool = false
+    @Published var showBattery: Bool = false
+    @Published var firstLaunch: Bool = true
     
     deinit {
         destroy()
@@ -58,6 +62,15 @@ class BoringViewModel: NSObject, ObservableObject {
     
     func showEmpty() {
         self.currentView = .empty
+    }
+    
+    func closeHello() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2){
+            self.firstLaunch = false;
+            withAnimation(self.animationLibrary.animation){
+                self.close()
+            }
+        }
     }
 }
 

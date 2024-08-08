@@ -15,7 +15,7 @@ struct BoringHeader: View {
         HStack {
             Text(
                 vm.headerTitle
-            )
+            ).fontWeight(.medium)
             .contentTransition(.numericText())
             Spacer()
             HStack(spacing: 8){
@@ -26,11 +26,14 @@ struct BoringHeader: View {
                         },
                         label: {
                             Image(systemName: "ellipsis").foregroundColor(.white)
-                        }).buttonStyle(PlainButtonStyle()).padding().frame(width: 30, height:30).font(.title)
+                        }).buttonStyle(PlainButtonStyle()).padding().frame(width: 30, height:30).font(.title2)
                 }
-                BoringBatteryView(
-                    batteryPercentage: percentage,
-                    isPluggedIn: isCharging)
+                if(vm.showBattery) {
+                    BoringBatteryView(
+                        batteryPercentage: percentage,
+                        isPluggedIn: isCharging)
+                }
+                
             }
             .animation(vm.animation?.delay(0.6), value: vm.notchState)
             .font(.system(.headline, design: .rounded))
