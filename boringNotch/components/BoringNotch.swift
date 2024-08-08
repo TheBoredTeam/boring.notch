@@ -17,7 +17,7 @@ struct BoringNotch: View {
     
     var body: some View {
         ZStack {
-            NotchShape(cornerRadius: vm.notchState == .open ? vm.sizes.corderRadius.opened.inset: vm.sizes.corderRadius.closed.inset)
+            NotchShape(cornerRadius: vm.notchState == .open ? vm.sizes.corderRadius.opened.inset : vm.sizes.corderRadius.closed.inset)
                 .fill(Color.black)
                 .frame(width: vm.notchState == .open ? vm.sizes.size.opened.width : batteryModel.showChargingInfo ? CGFloat(vm.sizes.size.closed.width!) + CGFloat(100) : vm.sizes.size.closed.width, height: vm.notchState == .open ? vm.sizes.size.opened.height : vm.sizes.size.closed.height)
                 .animation(.spring(response: 0.7, dampingFraction: 0.8, blendDuration: 0.8), value: batteryModel.showChargingInfo)
@@ -44,7 +44,7 @@ struct BoringNotch: View {
                             )
                             .cornerRadius(vm.notchState == .open ? vm.musicPlayerSizes.image.corderRadius.opened.inset! : vm.musicPlayerSizes.image.corderRadius.closed.inset!)
                             .scaledToFit()
-                            .padding(.leading, vm.notchState == .open ? 5 : 0)
+                            .padding(.leading, vm.notchState == .open ? 5 : 3)
                         // Fit the image within the frame
                     }
                     
@@ -57,36 +57,66 @@ struct BoringNotch: View {
                         
                         if vm.currentView != .menu {
                             if musicManager.isPlaying == true || musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 2){
+                                VStack(alignment: .leading, spacing: 5) {
+                                    VStack(alignment: .leading, spacing: 3){
                                         Text(musicManager.songTitle)
-                                            .font(.headline).fontWeight(.regular)
+                                            .font(.headline)
+                                            .fontWeight(.regular)
                                             .foregroundColor(.white)
+                                            .lineLimit(1)
                                         Text(musicManager.artistName)
-                                            .font(.caption)
+                                            .font(.subheadline)
                                             .foregroundColor(.gray)
+                                            .lineLimit(1)
                                     }
-                                    HStack(spacing: 15) {
-                                        Button(action: {
+                                    HStack(spacing: 5) {
+                                        Button {
                                             musicManager.previousTrack()
-                                        }) {
-                                            Image(systemName: "backward.fill")
-                                                .foregroundColor(.white).font(.title2)
-                                        }.buttonStyle(PlainButtonStyle())
-                                        Button(action: {
+                                        } label: {
+                                            Capsule()
+                                                .fill(.black)
+                                                .frame(width: 30, height: 30)
+                                                .overlay {
+                                                    Image(systemName: "backward.fill")
+                                                        .foregroundColor(.white)
+                                                        .imageScale(.medium)
+                                                }
+                                        }
+                                        Button {
                                             musicManager.togglePlayPause()
-                                        }) {
-                                            Image(systemName: musicManager.isPlaying ? "pause.fill" : "play.fill")
-                                                .foregroundColor(.white).font(.title)
-                                        }.buttonStyle(PlainButtonStyle())
-                                        Button(action: {
+                                        } label: {
+                                            Capsule()
+                                                .fill(.black)
+                                                .frame(width: 30, height: 30)
+                                                .overlay {
+                                                    Image(systemName: musicManager.isPlaying ? "pause.fill" : "play.fill")
+                                                        .foregroundColor(.white)
+                                                        .contentTransition(.symbolEffect)
+                                                        .imageScale(.large)
+                                                }
+                                        }
+                                        Button {
                                             musicManager.nextTrack()
-                                        }) {
-                                            Image(systemName: "forward.fill")
-                                                .foregroundColor(.white).font(.title2)
-                                        }.buttonStyle(PlainButtonStyle())
+                                        } label: {
+                                            Capsule()
+                                                .fill(.black)
+                                                .frame(width: 30, height: 30)
+                                                .overlay {
+                                                    Capsule()
+                                                        .fill(.black)
+                                                        .frame(width: 30, height: 30)
+                                                        .overlay {
+                                                            Image(systemName: "forward.fill")
+                                                                .foregroundColor(.white)
+                                                                .imageScale(.medium)
+                                                            
+                                                        }
+                                                }
+                                        }
                                     }
-                                }.transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(vm.notchState == .closed ? 0 : 0.1)))
+                                }
+                                .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(vm.notchState == .closed ? 0 : 0.1)))
+                                .buttonStyle(PlainButtonStyle())
                             }
                             
                             if musicManager.isPlaying == false && musicManager.lastUpdated.timeIntervalSinceNow < -vm.waitInterval {
@@ -108,12 +138,18 @@ struct BoringNotch: View {
                     if !batteryModel.showChargingInfo && vm.currentView != .menu {
                         
                         MusicVisualizer(avgColor: musicManager.albumArt.averageColor(), isPlaying: musicManager.isPlaying)
-                            .frame(width: 30).padding(.horizontal, vm.notchState == .open ? 8 : 2)
+                            .frame(width: 30)
+                            .padding(.horizontal, vm.notchState == .open ? 8 : 0)
                         
                     }
                 }
-            }.frame(width: vm.notchState == .open ? 430 : batteryModel.showChargingInfo ? CGFloat(270) + CGFloat(100): 285)
-                .padding(.horizontal, 10).padding(.vertical, vm.notchState == .open ? 10: 20).padding(.bottom, vm.notchState == .open ?5:0).transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
+            }
+            .frame(width: vm.notchState == .open ? 430 : batteryModel.showChargingInfo ? CGFloat(270) + CGFloat(100) : 250)
+            .padding(.horizontal, 10)
+            .padding(.vertical, vm.notchState == .open ? 10 : 20)
+            .padding(.bottom, vm.notchState == .open ? 5 : 0)
+            .padding(.top, vm.notchState == .closed ? 5 : 0)
+            .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
         }
         .onHover { hovering in
             withAnimation(vm.animation) {

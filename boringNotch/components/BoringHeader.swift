@@ -13,20 +13,29 @@ struct BoringHeader: View {
     @State var isCharging: Bool
     var body: some View {
         HStack {
-            Text(
-                vm.headerTitle
-            )
-            .contentTransition(.numericText())
+            Text(vm.headerTitle)
+                .contentTransition(.numericText())
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(.gray)
             Spacer()
-            HStack(spacing: 8){
+            HStack(spacing: 12){
                 if vm.currentView != .menu {
                     Button(
                         action: {
                             vm.openMenu()
                         },
                         label: {
-                            Image(systemName: "ellipsis").foregroundColor(.white)
-                        }).buttonStyle(PlainButtonStyle()).padding().frame(width: 30, height:30).font(.title)
+                            Capsule()
+                                .fill(.black)
+                                .frame(width: 30, height: 30)
+                                .overlay {
+                                    Image(systemName: "ellipsis")
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .imageScale(.large)
+                                }
+                        })
+                    .buttonStyle(PlainButtonStyle())
                 }
                 BoringBatteryView(
                     batteryPercentage: percentage,
