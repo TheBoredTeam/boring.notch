@@ -20,10 +20,10 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var emptyStateText: String = "Play some jams, ladies, and watch me shine! New features coming soon! 🎶 🚀"
     @Published var sizes : Sizes = Sizes()
     @Published var musicPlayerSizes: MusicPlayerElementSizes = MusicPlayerElementSizes()
-    @Published var waitInterval: Double = 10
+    @Published var waitInterval: Double = 3
     @Published var releaseName: String = "Beautiful Sheep"
     @Published var coloredSpectrogram: Bool = true
-    @Published var nothumanface: Bool = false
+    @Published var nothumanface: Bool = true
     @Published var openAtLogin: Bool = false
     @Published var showBattery: Bool = false
     @Published var firstLaunch: Bool = true

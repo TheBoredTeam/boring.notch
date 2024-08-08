@@ -83,7 +83,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let windowWidth = window.frame.width
             let windowHeight = window.frame.height
             let notchCenterX = screenFrame.width / 2
-            let statusBarHeight: CGFloat = 12
+            let statusBarHeight: CGFloat = 17
             let windowX = notchCenterX - windowWidth / 2
             let windowY = screenFrame.height - statusBarHeight - windowHeight / 2
             
