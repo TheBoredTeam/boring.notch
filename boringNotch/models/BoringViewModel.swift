@@ -28,6 +28,8 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var selectedDownloadIconStyle: DownloadIconStyle = .onlyAppIcon
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     @Published var enableHaptics: Bool = false
+    @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
+    @Published var whatsNewOnClose: (() -> Void)?
     
     deinit {
         destroy()

@@ -6,9 +6,12 @@
 //
 
 import SwiftUI
+import Sparkle
 
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
+    let updaterController: SPUStandardUpdaterController
+    
     @State private var selectedTab: SettingsEnum = .general
     @State private var showBuildNumber: Bool = false
     let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
@@ -198,23 +201,7 @@ struct SettingsView: View {
                     Text("Version info")
                 }
                 
-                Section {
-                    Toggle("Automatically check for updates", isOn: .constant(false))
-                        .disabled(true)
-                    Toggle("Install updates automatically", isOn: .constant(false))
-                        .disabled(true)
-                } header: {
-                    HStack {
-                        Text("Software updates")
-                        Text("Coming soon")
-                            .foregroundStyle(.secondary)
-                            .font(.footnote.bold())
-                            .padding(.vertical, 3)
-                            .padding(.horizontal, 6)
-                            .background(Color(nsColor: .secondarySystemFill))
-                            .clipShape(.capsule)
-                    }
-                }
+                UpdaterSettingsView(updater: updaterController.updater)
             }
             Button("Quit boring.notch", role: .destructive) {
                 exit(0)
@@ -252,9 +239,4 @@ struct SettingsView: View {
             }
         }
     }
-}
-
-#Preview {
-    SettingsView()
-        .environmentObject(BoringViewModel())
 }
