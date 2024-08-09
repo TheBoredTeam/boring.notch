@@ -21,17 +21,18 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var sizes : Sizes = Sizes()
     @Published var musicPlayerSizes: MusicPlayerElementSizes = MusicPlayerElementSizes()
     @Published var waitInterval: Double = 3
-    @Published var releaseName: String = "Beautiful Sheep"
+    @Published var releaseName: String = "Epic Potato"
     @Published var coloredSpectrogram: Bool = true
     @Published var accentColor: Color = .accentColor
     @Published var selectedDownloadIndicatorStyle: DownloadIndicatorStyle = .progress
     @Published var selectedDownloadIconStyle: DownloadIconStyle = .onlyAppIcon
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
-    @Published var enableHaptics: Bool = false
-    @Published var nothumanface: Bool = true
-    @Published var openAtLogin: Bool = false
+    @Published var enableHaptics: Bool = true
+    @Published var nothumanface: Bool = false
     @Published var showBattery: Bool = false
     @Published var firstLaunch: Bool = true
+    @Published var showChargingInfo: Bool = true
+    @Published var chargingInfoAllowed: Bool = true
     
     deinit {
         destroy()

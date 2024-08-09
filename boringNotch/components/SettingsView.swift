@@ -24,7 +24,7 @@ struct SettingsView: View {
                 .tabItem { Label("Media", systemImage: "music.note") }
                 .tag(SettingsEnum.mediaPlayback)
             Charge()
-                .tabItem { Label("Charging", systemImage: "battery.100.bolt") }
+                .tabItem { Label("Battery", systemImage: "battery.100.bolt") }
                 .tag(SettingsEnum.charge)
             Downloads()
                 .tabItem { Label("Downloads", systemImage: "square.and.arrow.down") }
@@ -73,21 +73,15 @@ struct SettingsView: View {
                 Text("Accent color")
             }
             
-            Section {
-                Toggle("Menubar icon", isOn: $vm.showMenuBarIcon)
-            }
-            
-            Section {
-                Toggle("Enable haptics", isOn: $vm.enableHaptics)
-            }
+            boringControls()
         }
     }
     
     @ViewBuilder
     func Charge() -> some View {
         Form {
-            Toggle("Show charging indicator", isOn: .constant(true))
-                .disabled(true)
+            Toggle("Show charging indicator", isOn: $vm.chargingInfoAllowed)
+            Toggle("Show battery indicator", isOn: $vm.showBattery.animation())
         }
     }
     
@@ -113,6 +107,12 @@ struct SettingsView: View {
                         .tag(DownloadIconStyle.iconAndAppIcon)
                 }
                 .disabled(true)
+                
+            } header: {
+                HStack {
+                    Text("Download indicators")
+                    comingSoonTag()
+                }
             }
             Section {
                 List {
@@ -145,7 +145,11 @@ struct SettingsView: View {
                     .buttonStyle(PlainButtonStyle())
                 }
             } header: {
-                Text("Exclude apps")
+                HStack (spacing: 4){
+                    Text("Exclude apps")
+                    comingSoonTag()
+                }
+                
             }
         }
     }
@@ -156,11 +160,6 @@ struct SettingsView: View {
             Section {
                 Toggle("Enable colored spectrograms", isOn: $vm.coloredSpectrogram.animation())
                 HStack {
-        VStack{
-            Form {
-                Section {
-                    Toggle("Enable colored spectrograms", isOn: $vm.coloredSpectrogram.animation())
-                    HStack {
                     Text("Media inactivity timeout")
                     Spacer()
                     TextField("Media inactivity timeout", value: $vm.waitInterval, formatter: NumberFormatter())
@@ -170,23 +169,21 @@ struct SettingsView: View {
                     Text("seconds")
                         .foregroundStyle(.secondary)
                 }
-                } header: {
-                    Text("Media playback live activity")
-                }
-                boringControls()
+            } header: {
+                Text("Media playback live activity")
             }
-            .formStyle(.grouped)
-            
-            Text(vm.releaseName).font(.title2).padding()
         }
-    }
+        .formStyle(.grouped)}
     
     @ViewBuilder
     func boringControls() -> some View {
         Section {
+            
             Toggle("Show cool face animation while inactivity", isOn: $vm.nothumanface.animation())
-            Toggle("Show battery indicator", isOn: $vm.showBattery.animation())
             LaunchAtLogin.Toggle("Launch at login 🦄")
+            Toggle("Enable haptics", isOn: $vm.enableHaptics)
+            Toggle("Menubar icon", isOn: $vm.showMenuBarIcon)
+            
         } header: {
             Text("Boring Controls")
         }
@@ -230,13 +227,7 @@ struct SettingsView: View {
                 } header: {
                     HStack {
                         Text("Software updates")
-                        Text("Coming soon")
-                            .foregroundStyle(.secondary)
-                            .font(.footnote.bold())
-                            .padding(.vertical, 3)
-                            .padding(.horizontal, 6)
-                            .background(Color(nsColor: .secondarySystemFill))
-                            .clipShape(.capsule)
+                        comingSoonTag()
                     }
                 }
             }
@@ -275,6 +266,16 @@ struct SettingsView: View {
                     .padding(.bottom)
             }
         }
+    }
+    
+    func comingSoonTag () -> some View {
+        Text("Coming soon")
+            .foregroundStyle(.secondary)
+            .font(.footnote.bold())
+            .padding(.vertical, 3)
+            .padding(.horizontal, 6)
+            .background(Color(nsColor: .secondarySystemFill))
+            .clipShape(.capsule)
     }
 }
 

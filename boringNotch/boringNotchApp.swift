@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 @main
 struct DynamicNotchApp: App {
@@ -59,10 +60,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, batteryModel: .init(vm: self.vm)).environmentObject(vm))
         
-        // Set the initial window position
         adjustWindowPosition()
         
         window.orderFrontRegardless()
+        
+        if(vm.firstLaunch){
+            playWelcomeSound()
+        }
+        
+    }
+    
+    
+    func playWelcomeSound() {
+        let audioPlayer = AudioPlayer()
+        audioPlayer.play(fileName: "boring", fileExtension: "m4a")
     }
     
     func deviceHasNotch() -> Bool {
@@ -106,7 +117,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func quitAction() {
         NSApplication.shared.terminate(nil)
     }
-    
-    
-    
 }

@@ -1,9 +1,9 @@
-//
-//  BoringNotch.swift
-//  boringNotch
-//
-//  Created by Harsh Vardhan  Goswami  on 02/08/24.
-//
+    //
+    //  BoringNotch.swift
+    //  boringNotch
+    //
+    //  Created by Harsh Vardhan  Goswami  on 02/08/24.
+    //
 
 import SwiftUI
 
@@ -26,7 +26,7 @@ struct BoringNotch: View {
     }
     
     func calculateNotchWidth() -> CGFloat {
-        let isFaceVisible = vm.nothumanface || musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval || musicManager.isPlaying
+        let isFaceVisible = (vm.nothumanface && musicManager.isPlayerIdle) || musicManager.isPlaying
         let baseWidth = vm.sizes.size.closed.width ?? 0
         
         let notchWidth: CGFloat = vm.notchState == .open
@@ -46,6 +46,8 @@ struct BoringNotch: View {
                 .frame(width: calculateNotchWidth(), height: vm.notchState == .open ? (vm.sizes.size.opened.height!) : vm.sizes.size.closed.height)
                 .animation(notchAnimation, value: batteryModel.showChargingInfo)
                 .animation(notchAnimation, value: musicManager.isPlaying)
+                .animation(notchAnimation, value: musicManager.lastUpdated)
+                .animation(notchAnimation, value: musicManager.isPlayerIdle)
                 .animation(.smooth, value: vm.firstLaunch)
                 .shadow(color: .black.opacity(0.5), radius: 10)
             
@@ -55,9 +57,9 @@ struct BoringNotch: View {
                     VStack(spacing: 10) {
                         BoringHeader(vm: vm, percentage: batteryModel.batteryPercentage, isCharging: batteryModel.isPluggedIn).padding(.leading, 6).padding(.trailing, 10).animation(.spring(response: 0.7, dampingFraction: 0.8, blendDuration: 0.8), value: vm.notchState)
                         if vm.firstLaunch {
-                            HelloAnimation().frame(width: 200, height: vm.sizes.size.opened.height! - 30 ).onAppear(perform: {
+                            HelloAnimation().frame(width: 180, height: 60).onAppear(perform: {
                                 vm.closeHello()
-                            }).padding(.vertical, 110).padding(.top, 70)
+                            })
                         }
                     }
                 }
@@ -68,7 +70,7 @@ struct BoringNotch: View {
                         if vm.notchState == .closed && batteryModel.showChargingInfo {
                             Text("Charging")
                         }
-                        if (musicManager.isPlaying || musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval) && (!batteryModel.showChargingInfo || vm.notchState == .open) && vm.currentView != .menu  {
+                        if !batteryModel.showChargingInfo && vm.currentView != .menu  {
                             
                             Image(nsImage: musicManager.albumArt)
                                 .resizable()
@@ -88,7 +90,7 @@ struct BoringNotch: View {
                             }
                             
                             if vm.currentView != .menu {
-                                if musicManager.isPlaying == true || musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval {
+                                if true {
                                     VStack(alignment: .leading, spacing: 5) {
                                         VStack(alignment: .leading, spacing: 3){
                                             Text(musicManager.songTitle)
@@ -150,11 +152,6 @@ struct BoringNotch: View {
                                     .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(vm.notchState == .closed ? 0 : 0.1)))
                                     .buttonStyle(PlainButtonStyle())
                                 }
-                                
-                                
-                                if musicManager.isPlaying == false && musicManager.lastUpdated.timeIntervalSinceNow < -vm.waitInterval {
-                                    EmptyStateView(message:vm.emptyStateText )
-                                }
                             }
                         }
                         
@@ -163,12 +160,16 @@ struct BoringNotch: View {
                             Spacer()
                         }
                         
+                        if musicManager.isPlayerIdle == true && vm.notchState == .closed && !batteryModel.showChargingInfo && vm.nothumanface {
+                            MinimalFaceFeatures().transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3))))
+                        }
+                        
                         
                         if vm.currentView != .menu && vm.notchState == .closed && batteryModel.showChargingInfo {
                             BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn)
                         }
                         
-                        if vm.currentView != .menu && !batteryModel.showChargingInfo && (musicManager.isPlaying || musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval) {
+                        if vm.currentView != .menu && !batteryModel.showChargingInfo && (musicManager.isPlaying || !musicManager.isPlayerIdle) {
                             MusicVisualizer(avgColor: musicManager.avgColor, isPlaying: musicManager.isPlaying)
                                 .frame(width: 30).padding(.horizontal, vm.notchState == .open ? 8 : 2)
                         }
@@ -210,15 +211,15 @@ struct BoringNotch: View {
     }
     
     func calculateFrameWidthforNotchContent() -> CGFloat? {
-        // Calculate intermediate values
+            // Calculate intermediate values
         let chargingInfoWidth: CGFloat = batteryModel.showChargingInfo ? 180 : 0
-        let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !batteryModel.showChargingInfo && (musicManager.isPlaying || (musicManager.lastUpdated.timeIntervalSinceNow > -vm.waitInterval || vm.nothumanface))) ? 85 : 0
+        let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !batteryModel.showChargingInfo && (musicManager.isPlaying || (musicManager.isPlayerIdle && vm.nothumanface))) ? 85 : 0
         
         let closedWidth: CGFloat = vm.sizes.size.closed.width! - 20
         
         let dynamicWidth: CGFloat = chargingInfoWidth + musicPlayingWidth + closedWidth
         print(closedWidth, chargingInfoWidth, musicPlayingWidth, dynamicWidth)
-        // Return the appropriate width based on the notch state
+            // Return the appropriate width based on the notch state
         return vm.notchState == .open ? vm.musicPlayerSizes.player.size.opened.width : dynamicWidth
     }
 }

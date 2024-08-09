@@ -7,8 +7,9 @@ struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject var batteryModel: BatteryStatusViewModel
     var body: some View {
+        
         BoringNotch(vm: vm, batteryModel: batteryModel, onHover: onHover)
-            .frame(maxWidth: .infinity, maxHeight: Sizes().size.opened.height!)
+            .frame(maxWidth: .infinity, maxHeight:Sizes().size.opened.height!)
             .background(Color.clear)
             .edgesIgnoringSafeArea(.top).transition(.slide.animation(vm.animation)).onAppear(perform: {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
@@ -18,6 +19,8 @@ struct ContentView: View {
                         }
                     }
                 })
-            }).animation(.smooth().delay(0.3), value: vm.firstLaunch)
+            })
+            .animation(.smooth().delay(0.3), value: vm.firstLaunch)
     }
+    
 }

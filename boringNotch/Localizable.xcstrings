@@ -41,6 +41,26 @@
         }
       }
     },
+    "Battery" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Battery"
+          }
+        }
+      }
+    },
+    "Boring Controls" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Controls"
+          }
+        }
+      }
+    },
     "boring.notch" : {
       "localizations" : {
         "en" : {
@@ -231,6 +251,16 @@
         }
       }
     },
+    "Media playback live activity" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Media playback live activity"
+          }
+        }
+      }
+    },
     "Menubar icon" : {
       "localizations" : {
         "en" : {
@@ -341,12 +371,32 @@
         }
       }
     },
+    "Show battery indicator" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show battery indicator"
+          }
+        }
+      }
+    },
     "Show charging indicator" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show charging indicator"
+          }
+        }
+      }
+    },
+    "Show cool face animation while inactivity" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show cool face animation while inactivity"
           }
         }
       }

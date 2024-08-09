@@ -1,9 +1,9 @@
-//
-//  BoringHeader.swift
-//  boringNotch
-//
-//  Created by Harsh Vardhan  Goswami  on 04/08/24.
-//
+    //
+    //  BoringHeader.swift
+    //  boringNotch
+    //
+    //  Created by Harsh Vardhan  Goswami  on 04/08/24.
+    //
 
 import SwiftUI
 
@@ -25,7 +25,7 @@ struct BoringHeader: View {
                             .fill(.black)
                             .frame(width: 30, height: 30)
                             .overlay {
-                                Image(systemName: "ellipsis")
+                                Image(systemName: "gear")
                                     .foregroundColor(.white)
                                     .padding()
                                     .imageScale(.medium)
