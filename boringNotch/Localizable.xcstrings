@@ -50,6 +50,9 @@
         }
       }
     },
+    "Automatically download updates" : {
+
+    },
     "Battery" : {
       "localizations" : {
         "en" : {
@@ -69,9 +72,6 @@
           }
         }
       }
-    },
-    "Automatically download updates" : {
-
     },
     "boring.notch" : {
       "localizations" : {
@@ -166,6 +166,9 @@
           }
         }
       }
+    },
+    "Download indicators" : {
+
     },
     "Downloads" : {
       "localizations" : {

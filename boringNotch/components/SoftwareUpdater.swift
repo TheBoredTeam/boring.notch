@@ -61,13 +61,6 @@ struct UpdaterSettingsView: View {
         } header: {
             HStack {
                 Text("Software updates")
-                Text("Coming soon")
-                    .foregroundStyle(.secondary)
-                    .font(.footnote.bold())
-                    .padding(.vertical, 3)
-                    .padding(.horizontal, 6)
-                    .background(Color(nsColor: .secondarySystemFill))
-                    .clipShape(.capsule)
             }
         }
     }
