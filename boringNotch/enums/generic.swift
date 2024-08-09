@@ -32,4 +32,19 @@ public enum NotchViews {
 
 enum SettingsEnum {
     case general
+    case about
+    case charge
+    case download
+    case mediaPlayback
+}
+
+enum DownloadIndicatorStyle {
+    case progress
+    case percentage
+}
+
+enum DownloadIconStyle {
+    case onlyAppIcon
+    case onlyIcon
+    case iconAndAppIcon
 }

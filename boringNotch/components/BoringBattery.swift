@@ -3,8 +3,8 @@ import SwiftUI
 struct BatteryView: View {
     @State var percentage: Float
     @State var isCharging: Bool
-    var batteryWidth: CGFloat = 30
-    var batteryHeight: CGFloat = 30
+    var batteryWidth: CGFloat = 26
+    var batteryHeight: CGFloat = 26
     var animationStyle: BoringAnimations = BoringAnimations()
     
     var icon: String {
@@ -20,13 +20,13 @@ struct BatteryView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .leading) {
+        ZStack(alignment: .center) {
             
             Image(systemName: icon)
                 .resizable()
                 .fontWeight(.thin)
                 .aspectRatio(contentMode: .fit)
-                .foregroundColor(batteryColor)
+                .foregroundColor(.gray)
                 .frame(
                     width: batteryWidth,
                     height: batteryHeight
@@ -34,19 +34,13 @@ struct BatteryView: View {
             
             RoundedRectangle(cornerRadius: 2)
                 .fill(batteryColor)
-                .frame(width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth - 6.75))), height: batteryHeight - 21.5)
-                .padding(.leading, 1.75)
+                .frame(width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth - 6.5))), height: batteryHeight - 18.5)
+                .padding(.trailing, 2.25)
             
             if isCharging {
-                Image(systemName: "bolt.fill").resizable()
-                    .fontWeight(.regular)
-                    .aspectRatio(contentMode: .fit).foregroundColor(
-                        isCharging ? .green : .white
-                    ).frame(
-                        width: batteryWidth - 2.5,
-                        height: 15
-                    )
-                
+                Image(systemName: "bolt.fill")
+                    .foregroundColor(isCharging ? .green : .white)
+                    .padding(.trailing, 2)
             }
             
         }
