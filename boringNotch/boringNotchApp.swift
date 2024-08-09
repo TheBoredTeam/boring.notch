@@ -7,23 +7,27 @@
 
 import SwiftUI
 import AVFoundation
+import Combine
+import Sparkle
 
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
+    let updaterController: SPUStandardUpdaterController
+        
+        init() {
+            updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        }
     
     var body: some Scene {
         Settings {
-            SettingsView()
+            SettingsView(updaterController: updaterController)
                 .environmentObject(appDelegate.vm)
         }
         
         MenuBarExtra("boring.notch", systemImage: "music.note", isInserted: $showMenuBarIcon) {
-            Button("Check for updates") {
-            }
-            .keyboardShortcut(KeyEquivalent("U"), modifiers: .command)
-            .disabled(true)
+            CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Quit", role: .destructive) {
                 exit(0)
@@ -38,6 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     var sizing: Sizes = Sizes()
     let vm: BoringViewModel = BoringViewModel()
+    var whatsNewWindow: NSWindow?
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -117,4 +122,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func quitAction() {
         NSApplication.shared.terminate(nil)
     }
+    
 }

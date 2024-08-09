@@ -11,6 +11,15 @@
         }
       }
     },
+    "• Bug fixes" : {
+
+    },
+    "• Improved performance" : {
+
+    },
+    "• New feature 1" : {
+
+    },
     "About" : {
       "localizations" : {
         "en" : {
@@ -61,6 +70,9 @@
         }
       }
     },
+    "Automatically download updates" : {
+
+    },
     "boring.notch" : {
       "localizations" : {
         "en" : {
@@ -102,6 +114,7 @@
       }
     },
     "Check for updates" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -110,6 +123,9 @@
           }
         }
       }
+    },
+    "Check for Updates…" : {
+
     },
     "Coming soon" : {
       "localizations" : {
@@ -211,7 +227,11 @@
         }
       }
     },
+    "Got it!" : {
+
+    },
     "Install updates automatically" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -450,6 +470,9 @@
           }
         }
       }
+    },
+    "What's New" : {
+
     }
   },
   "version" : "1.0"

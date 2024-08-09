@@ -37,7 +37,10 @@
 		B15063542C63E18700EBB0E3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15063532C63E18700EBB0E3 /* SettingsView.swift */; };
 		B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17266DE2C64DFA00031BA0D /* BundleInfos.swift */; };
 		B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17266E02C6532560031BA0D /* Localizable.xcstrings */; };
+		B17266E32C65F7FB0031BA0D /* WhatsNewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */; };
 		B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C974332C642B6D0000E707 /* MarqueeTextView.swift */; };
+		B1D6FD412C6602230015F173 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = B1D6FD402C6602230015F173 /* Sparkle */; };
+		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,7 +76,9 @@
 		B15063532C63E18700EBB0E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B17266DE2C64DFA00031BA0D /* BundleInfos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleInfos.swift; sourceTree = "<group>"; };
 		B17266E02C6532560031BA0D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewView.swift; sourceTree = "<group>"; };
 		B1C974332C642B6D0000E707 /* MarqueeTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeTextView.swift; sourceTree = "<group>"; };
+		B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareUpdater.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +87,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				14A7E5862C649381008C1BE9 /* LaunchAtLogin in Frameworks */,
+				B1D6FD412C6602230015F173 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -111,6 +117,8 @@
 				1471A8582C6281BD0058408D /* BoringNotchWindow.swift */,
 				B15063532C63E18700EBB0E3 /* SettingsView.swift */,
 				B1C974332C642B6D0000E707 /* MarqueeTextView.swift */,
+				B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */,
+				B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */,
 			);
 			path = components;
 			sourceTree = "<group>";
@@ -249,6 +257,7 @@
 			name = boringNotch;
 			packageProductDependencies = (
 				14A7E5852C649381008C1BE9 /* LaunchAtLogin */,
+				B1D6FD402C6602230015F173 /* Sparkle */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -280,6 +289,7 @@
 			mainGroup = 14CEF4092C5CAED200855D72;
 			packageReferences = (
 				14A7E5842C649381008C1BE9 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
+				B1D6FD3F2C6602230015F173 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -311,6 +321,7 @@
 			files = (
 				147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */,
 				14D570C02C5EA5870011E668 /* AnimatedFace.swift in Sources */,
+				B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */,
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
@@ -322,6 +333,7 @@
 				14D570C42C5EBE170011E668 /* BuyMeCoffee.swift in Sources */,
 				14A7E5952C65FA12008C1BE9 /* AudioPlayer.swift in Sources */,
 				14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */,
+				B17266E32C65F7FB0031BA0D /* WhatsNewView.swift in Sources */,
 				14D570CD2C5F4BB70011E668 /* BoringBattery.swift in Sources */,
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
 				14D570D52C5F710B0011E668 /* constants.swift in Sources */,
@@ -559,6 +571,12 @@
 			requirement = {
 				branch = main;
 				kind = branch;
+		B1D6FD3F2C6602230015F173 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -568,6 +586,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 14A7E5842C649381008C1BE9 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
 			productName = LaunchAtLogin;
+		B1D6FD402C6602230015F173 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B1D6FD3F2C6602230015F173 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
