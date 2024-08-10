@@ -8,7 +8,7 @@
             <sparkle:version>1</sparkle:version>
             <sparkle:shortVersionString>1.5</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/tag/epic-potato" length="4880595" type="application/octet-stream" sparkle:edSignature="FqTG0BTaq/mMf3tJoN5M9MhOkWbwFFqF85KeLUx3da0T0St3ZShDuVMivQV7fzMRZeHS29gD8cBZZeKapXDKAw=="/>
+            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/epic-potato/epic.potato.dmg" length="4880595" type="application/octet-stream" sparkle:edSignature="FqTG0BTaq/mMf3tJoN5M9MhOkWbwFFqF85KeLUx3da0T0St3ZShDuVMivQV7fzMRZeHS29gD8cBZZeKapXDKAw=="/>
         </item>
     </channel>
 </rss>
