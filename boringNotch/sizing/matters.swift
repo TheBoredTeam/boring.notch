@@ -7,7 +7,7 @@
 
 import Foundation
 
-var notchClosedWidth: CGFloat = 230
+var notchClosedWidth: CGFloat = 200
 
 struct Area {
     var width: CGFloat?
