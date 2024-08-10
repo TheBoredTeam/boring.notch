@@ -1,4 +1,6 @@
-## Boring Notch v not.humans is Here! 🎉
+## Boring Notch v epic.potato🥔 is Here! 🎉
+
+<img width="150" src="https://github.com/user-attachments/assets/e96f6110-ffad-4d8b-a02d-ead87b7edbe1" />
 
 ## Download
 <a href="https://github.com/iamharshdev/boring.notch/releases" target="_self"><img width="200" src="https://www.adviksoft.com/blog/wp-content/uploads/2023/09/editor_download_mac.png" /></a>
@@ -11,11 +13,12 @@
 
 ## Preview
 
-https://github.com/user-attachments/assets/34466cbe-4567-46c0-9b27-0cf784ac5872
-
+https://github.com/user-attachments/assets/19b87973-4b3a-4853-b532-7e82d1d6b040
 
 Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen!
 
+
+### Icon credits: [@maxtron95](https://github.com/maxtron95)
 
 ## ⚡ Under the Hood Improvements and New features 🛠️
 
