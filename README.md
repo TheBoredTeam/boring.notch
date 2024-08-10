@@ -1,4 +1,4 @@
-## Boring Notch v epic.potato🥔 is Here! 🎉
+## TheBoringNotch v epic.potato🥔 is Here! 🎉
 
 <img width="150" src="https://github.com/user-attachments/assets/e96f6110-ffad-4d8b-a02d-ead87b7edbe1" />
 
