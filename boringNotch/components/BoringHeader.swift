@@ -1,9 +1,9 @@
-//
-//  BoringHeader.swift
-//  boringNotch
-//
-//  Created by Harsh Vardhan  Goswami  on 04/08/24.
-//
+    //
+    //  BoringHeader.swift
+    //  boringNotch
+    //
+    //  Created by Harsh Vardhan  Goswami  on 04/08/24.
+    //
 
 import SwiftUI
 
@@ -18,23 +18,19 @@ struct BoringHeader: View {
                 .font(.system(size: 12, design: .rounded))
                 .foregroundStyle(.gray)
             Spacer()
-            HStack(spacing: 12){
+            HStack(spacing: 5){
                 if vm.currentView != .menu {
-                    Button(
-                        action: {
-                            vm.openMenu()
-                        },
-                        label: {
-                            Capsule()
-                                .fill(.black)
-                                .frame(width: 30, height: 30)
-                                .overlay {
-                                    Image(systemName: "ellipsis")
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .imageScale(.large)
-                                }
-                        })
+                    SettingsLink(label: {
+                        Capsule()
+                            .fill(.black)
+                            .frame(width: 30, height: 30)
+                            .overlay {
+                                Image(systemName: "gear")
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .imageScale(.medium)
+                            }
+                    })
                     .buttonStyle(PlainButtonStyle())
                 }
                 if(vm.showBattery) {

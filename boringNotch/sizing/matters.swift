@@ -7,7 +7,7 @@
 
 import Foundation
 
-var notchClosedWith: CGFloat = 230
+var notchClosedWidth: CGFloat = 230
 
 struct Area {
     var width: CGFloat?
@@ -24,7 +24,7 @@ struct Sizes {
     var corderRadius: StatesSizes = StatesSizes(opened: Area(inset: 24), closed: Area(inset:10))
     var size: StatesSizes = StatesSizes(
         opened:Area(width: 500, height: 220),
-        closed:Area(width: notchClosedWith, height: 40)
+        closed:Area(width: notchClosedWidth, height: 40)
     )
 }
 
@@ -41,7 +41,7 @@ struct MusicPlayerElementSizes {
     )
     var player: Sizes = Sizes(
         size: StatesSizes(
-            opened: Area(width: 430), closed: Area(width: notchClosedWith)
+            opened: Area(width: 430), closed: Area(width: notchClosedWidth)
         )
     )
 }

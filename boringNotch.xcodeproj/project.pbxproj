@@ -8,12 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		1443E7F32C609DCE0027C1FC /* matters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1443E7F22C609DCE0027C1FC /* matters.swift */; };
+		14606AB12C6689980098C478 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 14606AB02C6689980098C478 /* LaunchAtLogin */; };
+		14606AB32C6689A80098C478 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 14606AB22C6689A80098C478 /* Sparkle */; };
 		147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163972C5D35B70068B555 /* MusicVisualizer.swift */; };
 		1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163992C5D35FF0068B555 /* MusicManager.swift */; };
 		1471639F2C5D368B0068B555 /* BoringNotch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1471639E2C5D368B0068B555 /* BoringNotch.swift */; };
 		1471A8592C6281BD0058408D /* BoringNotchWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1471A8582C6281BD0058408D /* BoringNotchWindow.swift */; };
-		14A7E5862C649381008C1BE9 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 14A7E5852C649381008C1BE9 /* LaunchAtLogin */; };
 		14A7E5882C64A89C008C1BE9 /* HelloAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */; };
+		14A7E5952C65FA12008C1BE9 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A7E5942C65FA12008C1BE9 /* AudioPlayer.swift */; };
+		14A7E5972C65FD31008C1BE9 /* boring.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 14A7E5962C65FD31008C1BE9 /* boring.m4a */; };
 		14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CEF4152C5CAED300855D72 /* boringNotchApp.swift */; };
 		14CEF4182C5CAED300855D72 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CEF4172C5CAED300855D72 /* ContentView.swift */; };
 		14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 14CEF4192C5CAED400855D72 /* Assets.xcassets */; };
@@ -33,7 +36,11 @@
 		14D570D52C5F710B0011E668 /* constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570D42C5F710B0011E668 /* constants.swift */; };
 		B15063522C63D41A00EBB0E3 /* Image2Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15063512C63D41A00EBB0E3 /* Image2Color.swift */; };
 		B15063542C63E18700EBB0E3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15063532C63E18700EBB0E3 /* SettingsView.swift */; };
+		B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17266DE2C64DFA00031BA0D /* BundleInfos.swift */; };
+		B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17266E02C6532560031BA0D /* Localizable.xcstrings */; };
+		B17266E32C65F7FB0031BA0D /* WhatsNewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */; };
 		B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C974332C642B6D0000E707 /* MarqueeTextView.swift */; };
+		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +51,8 @@
 		1471639E2C5D368B0068B555 /* BoringNotch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringNotch.swift; sourceTree = "<group>"; };
 		1471A8582C6281BD0058408D /* BoringNotchWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringNotchWindow.swift; sourceTree = "<group>"; };
 		14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloAnimation.swift; sourceTree = "<group>"; };
+		14A7E5942C65FA12008C1BE9 /* AudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
+		14A7E5962C65FD31008C1BE9 /* boring.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = boring.m4a; sourceTree = "<group>"; };
 		14CEF4122C5CAED300855D72 /* boringNotch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = boringNotch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		14CEF4152C5CAED300855D72 /* boringNotchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotchApp.swift; sourceTree = "<group>"; };
 		14CEF4172C5CAED300855D72 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -65,7 +74,11 @@
 		14D570D42C5F710B0011E668 /* constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = constants.swift; sourceTree = "<group>"; };
 		B15063512C63D41A00EBB0E3 /* Image2Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Image2Color.swift; sourceTree = "<group>"; };
 		B15063532C63E18700EBB0E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B17266DE2C64DFA00031BA0D /* BundleInfos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleInfos.swift; sourceTree = "<group>"; };
+		B17266E02C6532560031BA0D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewView.swift; sourceTree = "<group>"; };
 		B1C974332C642B6D0000E707 /* MarqueeTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeTextView.swift; sourceTree = "<group>"; };
+		B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareUpdater.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,7 +86,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				14A7E5862C649381008C1BE9 /* LaunchAtLogin in Frameworks */,
+				14606AB12C6689980098C478 /* LaunchAtLogin in Frameworks */,
+				14606AB32C6689A80098C478 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,6 +117,8 @@
 				1471A8582C6281BD0058408D /* BoringNotchWindow.swift */,
 				B15063532C63E18700EBB0E3 /* SettingsView.swift */,
 				B1C974332C642B6D0000E707 /* MarqueeTextView.swift */,
+				B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */,
+				B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */,
 			);
 			path = components;
 			sourceTree = "<group>";
@@ -114,6 +130,21 @@
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 			);
 			path = managers;
+			sourceTree = "<group>";
+		};
+		14A7E58C2C656A5D008C1BE9 /* observers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = observers;
+			sourceTree = "<group>";
+		};
+		14A7E5932C65FA06008C1BE9 /* helpers */ = {
+			isa = PBXGroup;
+			children = (
+				14A7E5942C65FA12008C1BE9 /* AudioPlayer.swift */,
+			);
+			path = helpers;
 			sourceTree = "<group>";
 		};
 		14CEF4092C5CAED200855D72 = {
@@ -135,6 +166,9 @@
 		14CEF4142C5CAED300855D72 /* boringNotch */ = {
 			isa = PBXGroup;
 			children = (
+				14A7E5962C65FD31008C1BE9 /* boring.m4a */,
+				14A7E5932C65FA06008C1BE9 /* helpers */,
+				14A7E58C2C656A5D008C1BE9 /* observers */,
 				1443E7F42C609E650027C1FC /* Info.plist */,
 				1443E7F12C609DB90027C1FC /* sizing */,
 				14D570D32C5F70FA0011E668 /* strings */,
@@ -149,6 +183,7 @@
 				14CEF4192C5CAED400855D72 /* Assets.xcassets */,
 				14CEF41E2C5CAED400855D72 /* boringNotch.entitlements */,
 				14CEF41B2C5CAED400855D72 /* Preview Content */,
+				B17266E02C6532560031BA0D /* Localizable.xcstrings */,
 			);
 			path = boringNotch;
 			sourceTree = "<group>";
@@ -199,6 +234,7 @@
 			isa = PBXGroup;
 			children = (
 				B15063512C63D41A00EBB0E3 /* Image2Color.swift */,
+				B17266DE2C64DFA00031BA0D /* BundleInfos.swift */,
 			);
 			path = extensions;
 			sourceTree = "<group>";
@@ -220,7 +256,8 @@
 			);
 			name = boringNotch;
 			packageProductDependencies = (
-				14A7E5852C649381008C1BE9 /* LaunchAtLogin */,
+				14606AB02C6689980098C478 /* LaunchAtLogin */,
+				14606AB22C6689A80098C478 /* Sparkle */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -252,6 +289,7 @@
 			mainGroup = 14CEF4092C5CAED200855D72;
 			packageReferences = (
 				14A7E5842C649381008C1BE9 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
+				14606AAF2C66887A0098C478 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -269,6 +307,8 @@
 			files = (
 				14CEF41D2C5CAED400855D72 /* Preview Assets.xcassets in Resources */,
 				14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */,
+				B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */,
+				14A7E5972C65FD31008C1BE9 /* boring.m4a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -281,6 +321,7 @@
 			files = (
 				147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */,
 				14D570C02C5EA5870011E668 /* AnimatedFace.swift in Sources */,
+				B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */,
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
@@ -290,7 +331,9 @@
 				14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */,
 				14D570BC2C5E98EB0011E668 /* generic.swift in Sources */,
 				14D570C42C5EBE170011E668 /* BuyMeCoffee.swift in Sources */,
+				14A7E5952C65FA12008C1BE9 /* AudioPlayer.swift in Sources */,
 				14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */,
+				B17266E32C65F7FB0031BA0D /* WhatsNewView.swift in Sources */,
 				14D570CD2C5F4BB70011E668 /* BoringBattery.swift in Sources */,
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
 				14D570D52C5F710B0011E668 /* constants.swift in Sources */,
@@ -299,6 +342,7 @@
 				14CEF4182C5CAED300855D72 /* ContentView.swift in Sources */,
 				14D570B62C5E961A0011E668 /* NotchShape.swift in Sources */,
 				14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */,
+				B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */,
 				14D570C22C5EAFBF0011E668 /* EmptyState.swift in Sources */,
 				B15063522C63D41A00EBB0E3 /* Image2Color.swift in Sources */,
 				14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */,
@@ -454,7 +498,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = electronlabsdev.boringNotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -489,7 +533,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = electronlabsdev.boringNotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -521,6 +565,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		14606AAF2C66887A0098C478 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.6.4;
+			};
+		};
 		14A7E5842C649381008C1BE9 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
@@ -532,10 +584,15 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		14A7E5852C649381008C1BE9 /* LaunchAtLogin */ = {
+		14606AB02C6689980098C478 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 14A7E5842C649381008C1BE9 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
 			productName = LaunchAtLogin;
+		};
+		14606AB22C6689A80098C478 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 14606AAF2C66887A0098C478 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

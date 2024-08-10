@@ -27,27 +27,37 @@ class BatteryStatusViewModel: ObservableObject {
                    let currentCapacity = info[kIOPSCurrentCapacityKey] as? Int,
                    let maxCapacity = info[kIOPSMaxCapacityKey] as? Int,
                    let isCharging = info["Is Charging"] as? Bool {
-                    self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
                     
-                    if (isCharging && !self.isPluggedIn) {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0)) {
-                            withAnimation(self.animations.animation) {
-                                self.showChargingInfo = true
-                                self.isPluggedIn = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-                                    withAnimation(self.animations.animation) {
-                                        self.showChargingInfo = false
+                    
+                    if(self.vm.chargingInfoAllowed) {
+                        
+                        self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
+                        
+                        if (isCharging && !self.isPluggedIn) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0)) {
+                                withAnimation(self.animations.animation) {
+                                    
+                                    self.showChargingInfo = true
+                                    self.isPluggedIn = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                                        withAnimation(self.animations.animation) {
+                                            self.showChargingInfo = false
+                                        }
+                                        
                                     }
                                     
+                                    
                                 }
+                                
                             }
                             
                         }
                         
+                        
+                        
+                        self.isPluggedIn = isCharging
+                        
                     }
-                    
-                    self.isPluggedIn = isCharging
-                    
                     
                 }
             }

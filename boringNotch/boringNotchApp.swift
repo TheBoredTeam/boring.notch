@@ -6,15 +6,33 @@
 //
 
 import SwiftUI
+import AVFoundation
+import Combine
+import Sparkle
 
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
+    let updaterController: SPUStandardUpdaterController
+        
+        init() {
+            updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        }
     
     var body: some Scene {
         Settings {
-            SettingsView()
+            SettingsView(updaterController: updaterController)
                 .environmentObject(appDelegate.vm)
+        }
+        
+        MenuBarExtra("boring.notch", systemImage: "music.note", isInserted: $showMenuBarIcon) {
+            CheckForUpdatesView(updater: updaterController.updater)
+            Divider()
+            Button("Quit", role: .destructive) {
+                exit(0)
+            }
+            .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
     }
 }
@@ -24,6 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     var sizing: Sizes = Sizes()
     let vm: BoringViewModel = BoringViewModel()
+    var whatsNewWindow: NSWindow?
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -31,20 +50,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        
-        // Create the status bar item
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        
-        if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "BoringNotch")
-            button.action = #selector(showMenu)
-        }
-        
-        // Set up the menu
-        let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "q"))
-        statusItem?.menu = menu
-        
         
         NotificationCenter.default.addObserver(
             self,
@@ -60,10 +65,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, batteryModel: .init(vm: self.vm)).environmentObject(vm))
         
-        // Set the initial window position
         adjustWindowPosition()
         
         window.orderFrontRegardless()
+        
+        if(vm.firstLaunch){
+            playWelcomeSound()
+        }
+        
+    }
+    
+    
+    func playWelcomeSound() {
+        let audioPlayer = AudioPlayer()
+        audioPlayer.play(fileName: "boring", fileExtension: "m4a")
     }
     
     func deviceHasNotch() -> Bool {
@@ -107,7 +122,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func quitAction() {
         NSApplication.shared.terminate(nil)
     }
-    
-    
     
 }

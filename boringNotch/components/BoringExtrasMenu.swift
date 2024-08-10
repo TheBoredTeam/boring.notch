@@ -33,13 +33,10 @@ struct BoringExtrasMenu : View {
     var body: some View {
         VStack{
             HStack(spacing: 20)  {
-                github
-                donate
+                hide
                 settings
                 close
-                clear
             }
-//            Text(vm.releaseName).padding(.top, 4).padding(.bottom, 2)
         }
     }
     
@@ -77,7 +74,7 @@ struct BoringExtrasMenu : View {
         .buttonStyle(PlainButtonStyle()).shadow(color: .black.opacity(0.5), radius: 10)
     }
     
-    var close: some View {
+    var hide: some View {
         BoringLargeButtons(
             action: {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
@@ -89,7 +86,7 @@ struct BoringExtrasMenu : View {
         )
     }
     
-    var clear: some View {
+    var close: some View {
         BoringLargeButtons(
             action: {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {

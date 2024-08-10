@@ -15,16 +15,15 @@ class MusicManager: ObservableObject {
     private var vm: BoringViewModel
     @Published var songTitle: String = "I;m Handome"
     @Published var artistName: String = "Me"
-    // use default image url for now
-    // i'm getting Value of optional type 'NSImage?' must be unwrapped to a value of type 'NSImage'
     @Published var albumArt: NSImage = NSImage(
-        systemSymbolName: "music.note",
+        systemSymbolName: "heart.fill",
         accessibilityDescription: "Album Art"
     )!
     @Published var isPlaying = false
     @Published var album: String = "Self Love"
     @Published var playbackManager = PlaybackManager()
     @Published var lastUpdated: Date = Date()
+    @Published var isPlayerIdle:Bool = true
     @Published var animations:BoringAnimations = BoringAnimations()
     @Published var avgColor: NSColor = .white
     
@@ -36,7 +35,7 @@ class MusicManager: ObservableObject {
     
     
     private func setupNowPlayingObserver() {
-        // every 3 seconds, fetch now playing info
+            // every 3 seconds, fetch now playing info
         Timer.publish(every: 3, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
@@ -47,37 +46,39 @@ class MusicManager: ObservableObject {
     
     @objc func fetchNowPlayingInfo() {
         print("Called fetchNowPlayingInfo")
-        // Load framework
+            // Load framework
         guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")) else { return }
         
-        // Get a Swift function for MRMediaRemoteGetNowPlayingInfo
+            // Get a Swift function for MRMediaRemoteGetNowPlayingInfo
         guard let MRMediaRemoteGetNowPlayingInfoPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingInfo" as CFString) else { return }
         typealias MRMediaRemoteGetNowPlayingInfoFunction = @convention(c) (DispatchQueue, @escaping ([String: Any]) -> Void) -> Void
         let MRMediaRemoteGetNowPlayingInfo = unsafeBitCast(MRMediaRemoteGetNowPlayingInfoPointer, to: MRMediaRemoteGetNowPlayingInfoFunction.self)
         
-        // Get a Swift function for MRNowPlayingClientGetBundleIdentifier
+            // Get a Swift function for MRNowPlayingClientGetBundleIdentifier
         guard let MRNowPlayingClientGetBundleIdentifierPointer = CFBundleGetFunctionPointerForName(bundle, "MRNowPlayingClientGetBundleIdentifier" as CFString) else { return }
         typealias MRNowPlayingClientGetBundleIdentifierFunction = @convention(c) (AnyObject?) -> String
         let MRNowPlayingClientGetBundleIdentifier = unsafeBitCast(MRNowPlayingClientGetBundleIdentifierPointer, to: MRNowPlayingClientGetBundleIdentifierFunction.self)
         
         
-        // Get song info
+            // Get song info
         MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
             guard let self = self else { self?.isPlaying = false; return }
             
             
             
-            // check if the song is paused
+                // check if the song is paused
             if let state = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int {
                 
-                // don't update lastUpdated if the song is paused and the state is same as the previous one
+                    // don't update lastUpdated if the song is paused and the state is same as the previous one
                 if !self.isPlaying && state == 0 {
-                    print(self.isPlaying ?? "Some not playing");
                     return
                 }
                 
                 if state == 0 {
                     self.lastUpdated = Date()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval) {
+                        self.isPlayerIdle = !self.isPlaying
+                    }
                 }
                 
                 self.isPlaying = state == 1
@@ -88,7 +89,13 @@ class MusicManager: ObservableObject {
                 self.playbackManager.isPlaying = false
             }
             
-            // check if the song is same as the previous one
+                // check what app is playing media
+            if let bundleIdentifier = information["kMRMediaRemoteNowPlayingInfoClientIdentifier"] as? String {
+                print("App playing music: \(bundleIdentifier)")
+            }
+            
+            
+                // check if the song is same as the previous one
             if let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String,
                title == self.songTitle {
                 return
@@ -118,7 +125,7 @@ class MusicManager: ObservableObject {
                 updateAlbumArt(newAlbumArt: artworkImage)
             }
             
-            // Get bundle identifier
+                // Get bundle identifier
             let _MRNowPlayingClientProtobuf: AnyClass? = NSClassFromString("MRClient")
             let handle: UnsafeMutableRawPointer! = dlopen("/usr/lib/libobjc.A.dylib", RTLD_NOW)
             let object = unsafeBitCast(dlsym(handle, "objc_msgSend"), to: (@convention(c) (AnyClass?, Selector?) -> AnyObject).self)(_MRNowPlayingClientProtobuf, Selector(("alloc")))
@@ -145,11 +152,11 @@ class MusicManager: ObservableObject {
     
     func updateAlbumArt(newAlbumArt: NSImage) {
         withAnimation {
-                    self.albumArt = newAlbumArt
-        if(vm.coloredSpectrogram){
-            calculateAverageColor()
+            self.albumArt = newAlbumArt
+            if(vm.coloredSpectrogram){
+                calculateAverageColor()
+            }
         }
-                }
         
         
     }
@@ -163,13 +170,11 @@ class MusicManager: ObservableObject {
     }
     
     func nextTrack() {
-        // Implement next track functionality
         playbackManager.nextTrack()
         fetchNowPlayingInfo()
     }
     
     func previousTrack() {
-        // Implement previous track functionality
         playbackManager.previousTrack()
         fetchNowPlayingInfo()
     }

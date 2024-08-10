@@ -7,22 +7,7 @@
 
 import SwiftUI
 
-struct HelloAnimation: View {
-    var body: some View {
-        HellowView()
-            .phaseAnimator([false, true]) { hello, draw in
-                HellowView()
-                    .trim(from: 0.0, to: draw ? 1 : 0.0 )
-                    .stroke(style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
-                    .fill(LinearGradient(gradient: Gradient(colors: [.red, .blue, .green]), startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .padding(.vertical, 60)
-            } animation: { draw in
-                    .spring(duration: 3).repeatForever(autoreverses: true)
-            }
-    }
-}
-
-struct HellowView: Shape {
+struct HelloShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
         let width = rect.size.width
@@ -53,6 +38,111 @@ struct HellowView: Shape {
     }
 }
 
+extension ShapeStyle where Self == AngularGradient {
+    static var hello: some ShapeStyle {
+        LinearGradient(
+            stops: [
+                .init(color: .blue, location: 0.0),
+                .init(color: .purple, location: 0.2),
+                .init(color: .red, location: 0.4),
+                .init(color: .mint, location: 0.5),
+                .init(color: .indigo, location: 0.7),
+                .init(color: .pink, location: 0.9),
+                .init(color: .blue, location: 1.0)
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+}
+
+struct GlowingSnake<
+    Content: Shape,
+    Fill: ShapeStyle
+>: View, Animatable {
+    
+    var progress: Double
+    var delay: Double = 1.0
+    var fill: Fill
+    var lineWidth = 4.0
+    var blurRadius = 8.0
+    
+    @ViewBuilder var shape: Content
+    
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
+    
+    var body: some View {
+        shape
+            .trim(
+                from: {
+                    if progress > 1 - delay {
+                        2 * progress - 1.0
+                    } else if progress > delay {
+                        progress - delay
+                    } else {
+                        .zero
+                    }
+                }(),
+                to: progress
+            )
+            .glow(
+                fill: fill,
+                lineWidth: lineWidth,
+                blurRadius: blurRadius
+            )
+    }
+}
+
+struct HelloAnimation: View {
+    @State private var progress: Double = 0.0
+    
+    var body: some View {
+        GlowingSnake(
+            progress: progress,
+            fill: .hello,
+            lineWidth: 8,
+            blurRadius: 8.0,
+            shape: { HelloShape() }
+        )
+        .onAppear {
+            withAnimation(
+                .easeInOut(duration: 4.0)
+            ) {
+                progress = 1.0
+            }
+        }
+    }
+}
+
+extension View where Self: Shape {
+    func glow(
+        fill: some ShapeStyle,
+        lineWidth: Double,
+        blurRadius: Double = 8.0,
+        lineCap: CGLineCap = .round
+    ) -> some View {
+        self
+            .stroke(style: StrokeStyle(lineWidth: lineWidth / 2, lineCap: lineCap))
+            .fill(fill)
+            .overlay {
+                self
+                    .stroke(style: StrokeStyle(lineWidth: lineWidth, lineCap: lineCap))
+                    .fill(fill)
+                    .blur(radius: blurRadius)
+            }
+            .overlay {
+                self
+                    .stroke(style: StrokeStyle(lineWidth: lineWidth, lineCap: lineCap))
+                    .fill(fill)
+                    .blur(radius: blurRadius / 2)
+            }
+    }
+}
+
 #Preview {
-    HelloAnimation().frame(width: 300, height: 220)
+    HelloAnimation()
+        .frame(width: 300, height: 100)
 }
