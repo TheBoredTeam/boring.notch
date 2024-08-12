@@ -3,10 +3,10 @@
     <channel>
         <title>Romantic Lady</title>
         <item>
-            <title>1.5.1</title>
+            <title>1.6</title>
             <pubDate>Tue, 13 Aug 2024 01:32:06 +0530</pubDate>
             <sparkle:version>1</sparkle:version>
-            <sparkle:shortVersionString>1.5.1</sparkle:shortVersionString>
+            <sparkle:shortVersionString>1.6</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
             <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/romantic-lady/RomanticLady.dmg" length="4917694" type="application/octet-stream" sparkle:edSignature="PaJe3KTgtGAaghVVQ+tGAxXZQVRG08wfWj8RnYWqsSdwwHyb0SxwK06tgKJcHbxmcSx2Dz2sWOYs8kC6PrqLAw=="/>
         </item>
