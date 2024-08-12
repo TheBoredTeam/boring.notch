@@ -32,8 +32,8 @@ struct BoringNotch: View {
         let notchWidth: CGFloat = vm.notchState == .open
         ? vm.sizes.size.opened.width!
         : batteryModel.showChargingInfo
-        ? baseWidth + 200
-        : CGFloat(vm.firstLaunch ? 50 : 0) + baseWidth + (isFaceVisible ? 100 : 0)
+        ? baseWidth + 180
+        : CGFloat(vm.firstLaunch ? 50 : 0) + baseWidth + (isFaceVisible ? 75 : 0)
         
         return notchWidth
     }
@@ -67,7 +67,7 @@ struct BoringNotch: View {
                             
                             HStack(spacing: 15) {
                                 if vm.notchState == .closed && batteryModel.showChargingInfo {
-                                    Text("Charging")
+                                    Text("Charging").foregroundStyle(.white).padding(.leading, 4)
                                 }
                                 if !batteryModel.showChargingInfo && vm.currentView != .menu  {
                                     
@@ -165,13 +165,14 @@ struct BoringNotch: View {
                                 
                                 
                                 if vm.currentView != .menu && vm.notchState == .closed && batteryModel.showChargingInfo {
-                                    BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn)
-                                }
+                                    HStack {
+                                        Text("\(Int32(batteryModel.batteryPercentage))%").font(.callout)
+                                        BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30)
+                                    }}
                                 
                                 if vm.currentView != .menu && !batteryModel.showChargingInfo && (musicManager.isPlaying || !musicManager.isPlayerIdle) {
                                     MusicVisualizer(avgColor: musicManager.avgColor, isPlaying: musicManager.isPlaying)
                                         .frame(width: 30)
-                                        .padding(.horizontal, vm.notchState == .open ? 8 : 2)
                                 }
                             }
                         }
@@ -186,9 +187,6 @@ struct BoringNotch: View {
             
         }
         .onHover { hovering in
-            if ((vm.notchState == .closed) && vm.enableHaptics) {
-                haptics.toggle()
-            }
             withAnimation(vm.animation) {
                 if hovering {
                     vm.open()
@@ -213,15 +211,15 @@ struct BoringNotch: View {
     }
     
     func calculateFrameWidthforNotchContent() -> CGFloat? {
-        // Calculate intermediate values
-        let chargingInfoWidth: CGFloat = batteryModel.showChargingInfo ? 180 : 0
-        let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !batteryModel.showChargingInfo && (musicManager.isPlaying || (musicManager.isPlayerIdle && vm.nothumanface))) ? 85 : 0
+            // Calculate intermediate values
+        let chargingInfoWidth: CGFloat = batteryModel.showChargingInfo ? 160 : 0
+        let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !batteryModel.showChargingInfo && (musicManager.isPlaying || (musicManager.isPlayerIdle && vm.nothumanface))) ? 60 : -15
         
-        let closedWidth: CGFloat = vm.sizes.size.closed.width! - 20
+        let closedWidth: CGFloat = vm.sizes.size.closed.width! - 10
         
         let dynamicWidth: CGFloat = chargingInfoWidth + musicPlayingWidth + closedWidth
         print(closedWidth, chargingInfoWidth, musicPlayingWidth, dynamicWidth)
-        // Return the appropriate width based on the notch state
+            // Return the appropriate width based on the notch state
         return vm.notchState == .open ? vm.musicPlayerSizes.player.size.opened.width : dynamicWidth
     }
 }
@@ -230,5 +228,5 @@ struct BoringNotch: View {
 func onHover(){}
 
 #Preview {
-    ContentView(onHover:onHover, vm:.init(), batteryModel: .init(vm: BoringViewModel())).environmentObject(BoringViewModel())
+    BoringNotch(vm: BoringViewModel(), batteryModel: BatteryStatusViewModel(vm: .init()), onHover: onHover)
 }

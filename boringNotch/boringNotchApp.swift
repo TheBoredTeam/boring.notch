@@ -1,9 +1,9 @@
-//
-//  boringNotchApp.swift
-//  boringNotchApp
-//
-//  Created by Harsh Vardhan  Goswami  on 02/08/24.
-//
+    //
+    //  boringNotchApp.swift
+    //  boringNotchApp
+    //
+    //  Created by Harsh Vardhan  Goswami  on 02/08/24.
+    //
 
 import SwiftUI
 import AVFoundation
@@ -15,10 +15,10 @@ struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     let updaterController: SPUStandardUpdaterController
-        
-        init() {
-            updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-        }
+    
+    init() {
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+    }
     
     var body: some Scene {
         Settings {
@@ -26,7 +26,7 @@ struct DynamicNotchApp: App {
                 .environmentObject(appDelegate.vm)
         }
         
-        MenuBarExtra("boring.notch", systemImage: "music.note", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("boring.notch", systemImage: "music.note" , isInserted: $showMenuBarIcon) {
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Quit", role: .destructive) {
@@ -50,7 +50,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(adjustWindowPosition),
@@ -60,7 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         
         window = BoringNotchWindow(
-            contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width!, height: sizing.size.closed.height!), styleMask: [.borderless], backing: .buffered, defer: false
+            contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width!, height: sizing.size.opened.height!), styleMask: [.borderless], backing: .buffered, defer: false
         )
         
         window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, batteryModel: .init(vm: self.vm)).environmentObject(vm))
@@ -95,14 +94,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     @objc func adjustWindowPosition() {
-        if let screenFrame = NSScreen.main {
+        if let screenFrame = window.screen ?? NSScreen.main {
             let windowWidth = window.frame.width
-            let windowHeight = window.frame.height
             let notchCenterX = screenFrame.frame.width / 2
-            let statusBarHeight: CGFloat = screenFrame.frame.maxY - screenFrame.visibleFrame.maxY
             let windowX = notchCenterX - windowWidth / 2
             let windowY = screenFrame.frame.height
-            print(windowY)
 
             window.setFrameTopLeftPoint(NSPoint(x: windowX, y: windowY))
         }

@@ -19,11 +19,17 @@ class MusicManager: ObservableObject {
         systemSymbolName: "heart.fill",
         accessibilityDescription: "Album Art"
     )!
-    @Published var isPlaying = false
+    @Published var isPlaying = false {
+        didSet {
+            DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval) {
+                self.isPlayerIdle = !self.isPlaying
+            }
+        }
+    }
     @Published var album: String = "Self Love"
     @Published var playbackManager = PlaybackManager()
     @Published var lastUpdated: Date = Date()
-    @Published var isPlayerIdle:Bool = true
+    @Published var isPlayerIdle:Bool = false
     @Published var animations:BoringAnimations = BoringAnimations()
     @Published var avgColor: NSColor = .white
     
@@ -80,21 +86,17 @@ class MusicManager: ObservableObject {
         MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
             guard let self = self else { self?.isPlaying = false; return }
             
-            
-            
             // check if the song is paused
             if let state = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int {
                 
                 // don't update lastUpdated if the song is paused and the state is same as the previous one
                 if !self.isPlaying && state == 0 {
+                    self.isPlayerIdle = true
                     return
                 }
                 
                 if state == 0 {
                     self.lastUpdated = Date()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval) {
-                        self.isPlayerIdle = !self.isPlaying
-                    }
                 }
                 
                 withAnimation {

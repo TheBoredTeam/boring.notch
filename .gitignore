@@ -2,7 +2,6 @@
 *.xcuserstate
 *.xcuserdata
 *.xcscheme
-*.xcschememanagement.plist
 *.xcuserdatad
 *.pbxuser
 *.xccheckout
@@ -46,7 +45,6 @@ build/
 # User-specific files
 *.xcuserdatad/
 *.xcscheme
-*.xcschememanagement.plist
 *.xcodeproj/xcuserdata
 *.xcodeproj/project.xcuserdata
 
