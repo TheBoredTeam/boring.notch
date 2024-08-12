@@ -175,6 +175,25 @@ struct BoringNotch: View {
                                 }
                             }
                         }
+                        
+                        
+                        if vm.currentView != .menu {
+                            Spacer()
+                        }
+                        
+                        if musicManager.isPlayerIdle == true && vm.notchState == .closed && !batteryModel.showChargingInfo && vm.nothumanface {
+                            MinimalFaceFeatures().transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3))))
+                        }
+                        
+                        
+                        if vm.currentView != .menu && vm.notchState == .closed && batteryModel.showChargingInfo {
+                            BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn)
+                        }
+                        
+                        if vm.currentView != .menu && !batteryModel.showChargingInfo && (musicManager.isPlaying || !musicManager.isPlayerIdle) {
+                            MusicVisualizer(avgColor: musicManager.avgColor, isPlaying: musicManager.isPlaying)
+                                .frame(width: 30)
+                        }
                     }
                     .frame(width: calculateFrameWidthforNotchContent())
                     .padding(.horizontal, 10)
@@ -217,7 +236,7 @@ struct BoringNotch: View {
         let chargingInfoWidth: CGFloat = batteryModel.showChargingInfo ? 180 : 0
         let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !batteryModel.showChargingInfo && (musicManager.isPlaying || (musicManager.isPlayerIdle && vm.nothumanface))) ? 85 : 0
         
-        let closedWidth: CGFloat = vm.sizes.size.closed.width! - 20
+        let closedWidth: CGFloat = vm.sizes.size.closed.width! - 10
         
         let dynamicWidth: CGFloat = chargingInfoWidth + musicPlayingWidth + closedWidth
         print(closedWidth, chargingInfoWidth, musicPlayingWidth, dynamicWidth)
