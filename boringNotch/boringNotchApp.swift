@@ -1,9 +1,9 @@
-//
-//  boringNotchApp.swift
-//  boringNotchApp
-//
-//  Created by Harsh Vardhan  Goswami  on 02/08/24.
-//
+    //
+    //  boringNotchApp.swift
+    //  boringNotchApp
+    //
+    //  Created by Harsh Vardhan  Goswami  on 02/08/24.
+    //
 
 import SwiftUI
 import AVFoundation
@@ -15,10 +15,10 @@ struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     let updaterController: SPUStandardUpdaterController
-        
-        init() {
-            updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-        }
+    
+    init() {
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+    }
     
     var body: some Scene {
         Settings {
@@ -26,7 +26,7 @@ struct DynamicNotchApp: App {
                 .environmentObject(appDelegate.vm)
         }
         
-        MenuBarExtra("boring.notch", systemImage: "music.note", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("boring.notch", systemImage: "music.note" , isInserted: $showMenuBarIcon) {
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Quit", role: .destructive) {
@@ -50,7 +50,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(adjustWindowPosition),
@@ -66,6 +65,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, batteryModel: .init(vm: self.vm)).environmentObject(vm))
         
         adjustWindowPosition()
+        
         
         window.orderFrontRegardless()
         
@@ -94,16 +94,39 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     @objc func adjustWindowPosition() {
-        if let screenFrame = NSScreen.main?.frame {
+        if let screenFrame = window.screen ?? NSScreen.main {
             let windowWidth = window.frame.width
-            let windowHeight = window.frame.height
-            let notchCenterX = screenFrame.width / 2
-            let statusBarHeight: CGFloat = 17
+            let notchCenterX = screenFrame.frame.width / 2
             let windowX = notchCenterX - windowWidth / 2
-            let windowY = screenFrame.height - statusBarHeight - windowHeight / 2
-            
-            window.setFrame(NSRect(x: windowX, y: windowY, width: windowWidth, height: windowHeight), display: true)
+            let windowY = screenFrame.frame.height
+
+            window.setFrameTopLeftPoint(NSPoint(x: windowX, y: windowY))
         }
+    }
+    
+    func setNotchSize() -> CGSize {
+        // Default notch size, to avoid using optionals
+        var notchHeight: CGFloat = 32
+        var notchWidth: CGFloat = 185
+        
+        // Check if the screen is available
+        if let screen = NSScreen.main {
+            // Calculate and set the exact width of the notch
+            if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
+               let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
+                notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 10
+            }
+            
+            // Use MenuBar height as notch height if there is no notch
+            notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+            
+            // Check if the Mac has a notch
+            if screen.safeAreaInsets.top > 0 {
+                notchHeight = screen.safeAreaInsets.top
+            }
+        }
+        
+        return .init(width: notchWidth, height: notchHeight)
     }
     
     

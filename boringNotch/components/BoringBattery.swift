@@ -4,7 +4,6 @@ struct BatteryView: View {
     @State var percentage: Float
     @State var isCharging: Bool
     var batteryWidth: CGFloat = 26
-    var batteryHeight: CGFloat = 26
     var animationStyle: BoringAnimations = BoringAnimations()
     
     var icon: String {
@@ -20,27 +19,21 @@ struct BatteryView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .center) {
-            
+        ZStack(alignment: .leading) {
             Image(systemName: icon)
                 .resizable()
                 .fontWeight(.thin)
                 .aspectRatio(contentMode: .fit)
                 .foregroundColor(.gray)
                 .frame(
-                    width: batteryWidth,
-                    height: batteryHeight
+                    width: batteryWidth + 1
                 )
             
             RoundedRectangle(cornerRadius: 2)
                 .fill(batteryColor)
-                .frame(width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth - 6.5))), height: batteryHeight - 18.5)
-                .padding(.trailing, 2.25)
-            
+                .frame(width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth - 6))), height: (batteryWidth - 2.5) - 18).padding(.leading, 2).padding(.top, -0.5)
             if isCharging {
-                Image(systemName: "bolt.fill")
-                    .foregroundColor(isCharging ? .green : .white)
-                    .padding(.trailing, 2)
+                Image(.bolt).resizable().aspectRatio(contentMode: .fit).foregroundColor(.yellow).frame(width: 16, height: 16).padding(.leading, 7).offset(y: -1)
             }
             
         }
@@ -50,11 +43,13 @@ struct BatteryView: View {
 struct BoringBatteryView: View {
     @State var batteryPercentage: Float = 0
     @State var isPluggedIn:Bool = false
+    @State var batteryWidth: CGFloat = 26
     
     var body: some View {
-        BatteryView(percentage: batteryPercentage, isCharging: isPluggedIn)}
+        BatteryView(percentage: batteryPercentage, isCharging: isPluggedIn, batteryWidth: batteryWidth)
+    }
 }
 
 #Preview {
-    BatteryView(percentage: 70, isCharging: true).frame(width: 100)
+    BatteryView(percentage: 100, isCharging: true, batteryWidth: 30)
 }

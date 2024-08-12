@@ -36,7 +36,7 @@ struct BoringHeader: View {
                 if(vm.showBattery) {
                     BoringBatteryView(
                         batteryPercentage: percentage,
-                        isPluggedIn: isCharging)
+                        isPluggedIn: isCharging, batteryWidth: 30)
                 }
                 
             }
