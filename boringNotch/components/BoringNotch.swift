@@ -171,7 +171,7 @@ struct BoringNotch: View {
                         
                         if vm.currentView != .menu && !batteryModel.showChargingInfo && (musicManager.isPlaying || !musicManager.isPlayerIdle) {
                             MusicVisualizer(avgColor: musicManager.avgColor, isPlaying: musicManager.isPlaying)
-                                .frame(width: 30).padding(.horizontal, vm.notchState == .open ? 8 : 2)
+                                .frame(width: 30)
                         }
                     }
                 }
@@ -215,7 +215,7 @@ struct BoringNotch: View {
         let chargingInfoWidth: CGFloat = batteryModel.showChargingInfo ? 180 : 0
         let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !batteryModel.showChargingInfo && (musicManager.isPlaying || (musicManager.isPlayerIdle && vm.nothumanface))) ? 85 : 0
         
-        let closedWidth: CGFloat = vm.sizes.size.closed.width! - 20
+        let closedWidth: CGFloat = vm.sizes.size.closed.width! - 10
         
         let dynamicWidth: CGFloat = chargingInfoWidth + musicPlayingWidth + closedWidth
         print(closedWidth, chargingInfoWidth, musicPlayingWidth, dynamicWidth)
