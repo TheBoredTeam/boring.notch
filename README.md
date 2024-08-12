@@ -5,6 +5,10 @@
 ## Download
 <a href="https://github.com/iamharshdev/boring.notch/releases" target="_self"><img width="200" src="https://www.adviksoft.com/blog/wp-content/uploads/2023/09/editor_download_mac.png" /></a>
 
+## Buy us coffee
+
+<a href="https://www.buymeacoffee.com/jfxh67wvfxq" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
 ## Join our Community on Discord
 
 <a href="https://discord.gg/fRzYm3jtQY">
