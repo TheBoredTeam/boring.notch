@@ -94,7 +94,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     @objc func adjustWindowPosition() {
-        if let screenFrame = NSScreen.main?.frame {
+        if let screen = window.screen ?? NSScreen.main {
+            let screenFrame = screen.frame
             let windowWidth = window.frame.width
             let windowHeight = window.frame.height
             let notchCenterX = screenFrame.width / 2
