@@ -34,7 +34,7 @@ class BoringNotchWindow: NSWindow {
             .ignoresCycle,
         ]
         isReleasedWhenClosed = false
-        level = .mainMenu + 1
+        level = .mainMenu + 2
         hasShadow = true
     }
     

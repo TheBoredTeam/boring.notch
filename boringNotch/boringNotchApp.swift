@@ -60,12 +60,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         
         window = BoringNotchWindow(
-            contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width!, height: sizing.size.opened.height!), styleMask: [.borderless], backing: .buffered, defer: false
+            contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width!, height: sizing.size.closed.height!), styleMask: [.borderless], backing: .buffered, defer: false
         )
         
         window.contentView = NSHostingView(rootView: ContentView(onHover: adjustWindowPosition, batteryModel: .init(vm: self.vm)).environmentObject(vm))
         
         adjustWindowPosition()
+        
         
         window.orderFrontRegardless()
         
@@ -94,16 +95,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     @objc func adjustWindowPosition() {
-        if let screenFrame = NSScreen.main?.frame {
+        if let screenFrame = NSScreen.main {
             let windowWidth = window.frame.width
             let windowHeight = window.frame.height
-            let notchCenterX = screenFrame.width / 2
-            let statusBarHeight: CGFloat = 17
+            let notchCenterX = screenFrame.frame.width / 2
+            let statusBarHeight: CGFloat = screenFrame.frame.maxY - screenFrame.visibleFrame.maxY
             let windowX = notchCenterX - windowWidth / 2
-            let windowY = screenFrame.height - statusBarHeight - windowHeight / 2
-            
-            window.setFrame(NSRect(x: windowX, y: windowY, width: windowWidth, height: windowHeight), display: true)
+            let windowY = screenFrame.frame.height
+            print(windowY)
+
+            window.setFrameTopLeftPoint(NSPoint(x: windowX, y: windowY))
         }
+    }
+    
+    func setNotchSize() -> CGSize {
+        // Default notch size, to avoid using optionals
+        var notchHeight: CGFloat = 32
+        var notchWidth: CGFloat = 185
+        
+        // Check if the screen is available
+        if let screen = NSScreen.main {
+            // Calculate and set the exact width of the notch
+            if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
+               let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
+                notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 10
+            }
+            
+            // Use MenuBar height as notch height if there is no notch
+            notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+            
+            // Check if the Mac has a notch
+            if screen.safeAreaInsets.top > 0 {
+                notchHeight = screen.safeAreaInsets.top
+            }
+        }
+        
+        return .init(width: notchWidth, height: notchHeight)
     }
     
     

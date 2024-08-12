@@ -127,6 +127,9 @@
     "Check for Updates…" : {
 
     },
+    "Close" : {
+
+    },
     "Coming soon" : {
       "localizations" : {
         "en" : {
@@ -179,6 +182,12 @@
           }
         }
       }
+    },
+    "Edit" : {
+
+    },
+    "Edit layout" : {
+
     },
     "Enable colored spectrograms" : {
       "localizations" : {
