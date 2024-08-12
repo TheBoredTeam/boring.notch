@@ -22,9 +22,9 @@ struct ContentView: View {
             })
             .animation(.smooth().delay(0.3), value: vm.firstLaunch)
             .contextMenu {
-                Button("Edit") {
-                    let dn = DynamicNotch(content: EditPanelView())
-                    dn.toggle()
+                Button("Coming soon") {
+//                    let dn = DynamicNotch(content: EditPanelView())
+//                    dn.toggle()
                 }
                 .keyboardShortcut("E", modifiers: .command)
             }
