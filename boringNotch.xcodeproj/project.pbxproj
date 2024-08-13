@@ -46,6 +46,8 @@
 		B1B112912C6A572100093D8F /* EditPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B112902C6A572100093D8F /* EditPanelView.swift */; };
 		B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B112922C6A577E00093D8F /* MouseTracker.swift */; };
 		B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C974332C642B6D0000E707 /* MarqueeTextView.swift */; };
+		B1D365CE2C6A979C0047BDBC /* LiveActivityModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D365CD2C6A979C0047BDBC /* LiveActivityModifier.swift */; };
+		B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D365CF2C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift */; };
 		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 /* End PBXBuildFile section */
 
@@ -91,6 +93,8 @@
 		B1B112902C6A572100093D8F /* EditPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPanelView.swift; sourceTree = "<group>"; };
 		B1B112922C6A577E00093D8F /* MouseTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MouseTracker.swift; sourceTree = "<group>"; };
 		B1C974332C642B6D0000E707 /* MarqueeTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeTextView.swift; sourceTree = "<group>"; };
+		B1D365CD2C6A979C0047BDBC /* LiveActivityModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityModifier.swift; sourceTree = "<group>"; };
+		B1D365CF2C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemEventIndicatorModifier.swift; sourceTree = "<group>"; };
 		B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareUpdater.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -136,6 +140,8 @@
 				B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */,
 				B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */,
 				B1B112902C6A572100093D8F /* EditPanelView.swift */,
+				B1D365CD2C6A979C0047BDBC /* LiveActivityModifier.swift */,
+				B1D365CF2C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift */,
 			);
 			path = components;
 			sourceTree = "<group>";
@@ -352,8 +358,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */,
+				B1D365CE2C6A979C0047BDBC /* LiveActivityModifier.swift in Sources */,
 				14D570C02C5EA5870011E668 /* AnimatedFace.swift in Sources */,
 				B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */,
+				B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */,
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
