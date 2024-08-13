@@ -5,7 +5,6 @@
 //  Created by Harsh Vardhan  Goswami  on 03/08/24.
 //
 
-
 import SwiftUI
 import Combine
 import AppKit
@@ -13,7 +12,7 @@ import AppKit
 class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var vm: BoringViewModel
-    @Published var songTitle: String = "I;m Handome"
+    @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
     @Published var albumArt: NSImage = NSImage(
         systemSymbolName: "heart.fill",
@@ -29,16 +28,15 @@ class MusicManager: ObservableObject {
     @Published var album: String = "Self Love"
     @Published var playbackManager = PlaybackManager()
     @Published var lastUpdated: Date = Date()
-    @Published var isPlayerIdle:Bool = false
-    @Published var animations:BoringAnimations = BoringAnimations()
+    @Published var isPlayerIdle: Bool = false
+    @Published var animations: BoringAnimations = BoringAnimations()
     @Published var avgColor: NSColor = .white
     
     init(vm: BoringViewModel) {
-        self.vm = vm;
+        self.vm = vm
         setupNowPlayingObserver()
         fetchNowPlayingInfo()
     }
-    
     
     private func setupNowPlayingObserver() {
         // every 3 seconds, fetch now playing info
@@ -81,15 +79,14 @@ class MusicManager: ObservableObject {
         typealias MRNowPlayingClientGetBundleIdentifierFunction = @convention(c) (AnyObject?) -> String
         let MRNowPlayingClientGetBundleIdentifier = unsafeBitCast(MRNowPlayingClientGetBundleIdentifierPointer, to: MRNowPlayingClientGetBundleIdentifierFunction.self)
         
-        
         // Get song info
         MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
             guard let self = self else { self?.isPlaying = false; return }
             
-            // check if the song is paused
+            // Check if the song is paused
             if let state = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int {
                 
-                // don't update lastUpdated if the song is paused and the state is same as the previous one
+                // Don't update lastUpdated if the song is paused and the state is the same as the previous one
                 if !self.isPlaying && state == 0 {
                     self.isPlayerIdle = true
                     return
@@ -109,13 +106,12 @@ class MusicManager: ObservableObject {
                 self.playbackManager.isPlaying = false
             }
             
-            // check what app is playing media
+            // Check what app is playing media
             if let bundleIdentifier = information["kMRMediaRemoteNowPlayingInfoClientIdentifier"] as? String {
                 print("App playing music: \(bundleIdentifier)")
             }
             
-            
-            // check if the song is same as the previous one
+            // Check if the song is the same as the previous one
             if let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String,
                title == self.songTitle {
                 return
@@ -148,8 +144,10 @@ class MusicManager: ObservableObject {
             // Get bundle identifier
             let _MRNowPlayingClientProtobuf: AnyClass? = NSClassFromString("MRClient")
             let handle: UnsafeMutableRawPointer! = dlopen("/usr/lib/libobjc.A.dylib", RTLD_NOW)
-            let object = unsafeBitCast(dlsym(handle, "objc_msgSend"), to: (@convention(c) (AnyClass?, Selector?) -> AnyObject).self)(_MRNowPlayingClientProtobuf, Selector(("alloc")))
-            unsafeBitCast(dlsym(handle, "objc_msgSend"), to: (@convention(c) (AnyObject?, Selector?, Any?) -> Void).self)(object, Selector(("initWithData:")), information["kMRMediaRemoteNowPlayingInfoClientPropertiesData"] as AnyObject?)
+            let allocSelector = NSSelectorFromString("alloc")
+            let initSelector = NSSelectorFromString("init")
+            let object = unsafeBitCast(dlsym(handle, "objc_msgSend"), to: (@convention(c) (AnyClass?, Selector?) -> AnyObject).self)(_MRNowPlayingClientProtobuf, allocSelector)
+            unsafeBitCast(dlsym(handle, "objc_msgSend"), to: (@convention(c) (AnyObject?, Selector?, Any?) -> Void).self)(object, initSelector, information["kMRMediaRemoteNowPlayingInfoClientPropertiesData"] as AnyObject?)
             let bundleIdentifier = MRNowPlayingClientGetBundleIdentifier(object)
             dlclose(handle)
         }
@@ -171,7 +169,6 @@ class MusicManager: ObservableObject {
         }
     }
     
-    
     func updateAlbumArt(newAlbumArt: NSImage) {
         withAnimation {
             self.albumArt = newAlbumArt
@@ -179,8 +176,6 @@ class MusicManager: ObservableObject {
                 calculateAverageColor()
             }
         }
-        
-        
     }
     
     func calculateAverageColor() {
@@ -200,5 +195,4 @@ class MusicManager: ObservableObject {
         playbackManager.previousTrack()
         fetchNowPlayingInfo()
     }
-    
 }
