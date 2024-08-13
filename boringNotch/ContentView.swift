@@ -11,7 +11,9 @@ struct ContentView: View {
         BoringNotch(vm: vm, batteryModel: batteryModel, onHover: onHover)
             .frame(maxWidth: .infinity, maxHeight: Sizes().size.opened.height!, alignment: .top)
             .background(Color.clear)
-            .edgesIgnoringSafeArea(.top).transition(.slide.animation(vm.animation)).onAppear(perform: {
+            .edgesIgnoringSafeArea(.top)
+            .transition(.slide.animation(vm.animation))
+            .onAppear(perform: {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
                     withAnimation(vm.animation){
                         if vm.firstLaunch {
@@ -27,9 +29,6 @@ struct ContentView: View {
 //                    dn.toggle()
                 }
                 .keyboardShortcut("E", modifiers: .command)
-            }
-            .onAppear {
-                print(NSWorkspace.shared.desktopImageURL(for: NSScreen.main!)!)
             }
     }
     
