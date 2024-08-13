@@ -20,6 +20,7 @@ class MusicManager: ObservableObject {
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
     @Published var albumArt: NSImage = defaultImage
+    var albumArtData: Data?
     @Published var isPlaying = false {
         didSet {
             print("Will set isPlayerIdle")
@@ -69,7 +70,7 @@ class MusicManager: ObservableObject {
     
     @objc func fetchNowPlayingInfo(bypass: Bool = false) {
         
-        if(self.musicToggledManually) {
+        if(musicToggledManually) {
             return
         }
         
@@ -98,10 +99,18 @@ class MusicManager: ObservableObject {
                 musicIsPaused(state: state == 1)
             } else {musicIsPaused(state: false)}
             
+            let albumArtData: Data? = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
+            
+            if albumArtData == nil {
+                return
+            }
+            
                 // check if the song is same as the previous one
             if let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String,
-               title == self.songTitle {
+               title == self.songTitle && albumArtData == nil {
                 return
+            } else if(albumArtData == self.albumArtData) {
+                return;
             }
             
             if let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String {
@@ -116,11 +125,10 @@ class MusicManager: ObservableObject {
                 self.album = album
             }
             
-            if let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data,
-               let artworkImage = NSImage(data: artworkData) {
-                updateAlbumArt(newAlbumArt: artworkImage)
-            } else {
-                updateAlbumArt(newAlbumArt: defaultImage)
+            if albumArtData != nil,
+                let artworkImage = NSImage(data: albumArtData!) {
+                    self.albumArtData = albumArtData
+                    updateAlbumArt(newAlbumArt: artworkImage)
             }
             
                 // Get bundle identifier
@@ -134,20 +142,25 @@ class MusicManager: ObservableObject {
         }
     }
     
-    func musicIsPaused(state: Bool) {
-        if(self.musicToggledManually) {
+    func musicIsPaused(state: Bool, bypass:Bool = false) {
+        if(self.musicToggledManually && !bypass) {
             return
         }
-        self.isPlaying = state
-        self.playbackManager.isPlaying = state
+        withAnimation {
+            self.isPlaying = state
+            self.playbackManager.isPlaying = state
+        }
+        
     }
     
     func togglePlayPause() {
+        
         musicToggledManually = true
         
         let playState: Bool = playbackManager.playPause()
-        self.isPlaying = playState
-        self.playbackManager.isPlaying = playState
+        
+        
+        musicIsPaused(state: playState, bypass: true)
         
         if playState {
             fetchNowPlayingInfo(bypass: true)
@@ -186,9 +199,5 @@ class MusicManager: ObservableObject {
     func previousTrack() {
         playbackManager.previousTrack()
         fetchNowPlayingInfo(bypass: true)
-    }
-    
-    deinit {
-        cancellables.forEach { $0.cancel() }
     }
 }
