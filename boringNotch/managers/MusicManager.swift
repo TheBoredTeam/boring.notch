@@ -1,30 +1,34 @@
-//
-//  MusicManager.swift
-//  boringNotch
-//
-//  Created by Harsh Vardhan  Goswami  on 03/08/24.
-//
+    //
+    //  MusicManager.swift
+    //  boringNotch
+    //
+    //  Created by Harsh Vardhan  Goswami  on 03/08/24.
+    //
 
 import SwiftUI
 import Combine
 import AppKit
+
+var defaultImage:NSImage = NSImage(
+    systemSymbolName: "heart.fill",
+    accessibilityDescription: "Album Art"
+)!
 
 class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var vm: BoringViewModel
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
-    @Published var albumArt: NSImage = NSImage(
-        systemSymbolName: "heart.fill",
-        accessibilityDescription: "Album Art"
-    )!
+    @Published var albumArt: NSImage = defaultImage
     @Published var isPlaying = false {
         didSet {
+            print("Will set isPlayerIdle")
             DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval) {
                 self.isPlayerIdle = !self.isPlaying
             }
         }
     }
+    @Published var musicToggledManually: Bool = false
     @Published var album: String = "Self Love"
     @Published var playbackManager = PlaybackManager()
     @Published var lastUpdated: Date = Date()
@@ -39,8 +43,7 @@ class MusicManager: ObservableObject {
     }
     
     private func setupNowPlayingObserver() {
-        // every 3 seconds, fetch now playing info
-        Timer.publish(every: 3, on: .main, in: .common)
+        Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 self?.fetchNowPlayingInfo()
@@ -64,113 +67,102 @@ class MusicManager: ObservableObject {
         }
     }
     
-    @objc func fetchNowPlayingInfo() {
-        print("Called fetchNowPlayingInfo")
-        // Load framework
+    @objc func fetchNowPlayingInfo(bypass: Bool = false) {
+        
+        if(self.musicToggledManually) {
+            return
+        }
+        
+            // Load framework
         guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")) else { return }
         
-        // Get a Swift function for MRMediaRemoteGetNowPlayingInfo
+            // Get a Swift function for MRMediaRemoteGetNowPlayingInfo
         guard let MRMediaRemoteGetNowPlayingInfoPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingInfo" as CFString) else { return }
         typealias MRMediaRemoteGetNowPlayingInfoFunction = @convention(c) (DispatchQueue, @escaping ([String: Any]) -> Void) -> Void
         let MRMediaRemoteGetNowPlayingInfo = unsafeBitCast(MRMediaRemoteGetNowPlayingInfoPointer, to: MRMediaRemoteGetNowPlayingInfoFunction.self)
         
-        // Get a Swift function for MRNowPlayingClientGetBundleIdentifier
-        guard let MRNowPlayingClientGetBundleIdentifierPointer = CFBundleGetFunctionPointerForName(bundle, "MRNowPlayingClientGetBundleIdentifier" as CFString) else { return }
         typealias MRNowPlayingClientGetBundleIdentifierFunction = @convention(c) (AnyObject?) -> String
-        let MRNowPlayingClientGetBundleIdentifier = unsafeBitCast(MRNowPlayingClientGetBundleIdentifierPointer, to: MRNowPlayingClientGetBundleIdentifierFunction.self)
         
-        // Get song info
+            // Get song info
         MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
             guard let self = self else { self?.isPlaying = false; return }
             
-            // Check if the song is paused
+                // Check if the song is paused
             if let state = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int {
                 
-                // Don't update lastUpdated if the song is paused and the state is the same as the previous one
+                    // Don't update lastUpdated if the song is paused and the state is the same as the previous one
                 if !self.isPlaying && state == 0 {
                     self.isPlayerIdle = true
                     return
                 }
-                
-                if state == 0 {
-                    self.lastUpdated = Date()
-                }
-                
-                withAnimation {
-                    self.isPlaying = state == 1
-                    self.playbackManager.isPlaying = state == 1
-                }
-                
-            } else {
-                self.isPlaying = false
-                self.playbackManager.isPlaying = false
-            }
+                musicIsPaused(state: state == 1)
+            } else {musicIsPaused(state: false)}
             
-            // Check what app is playing media
-            if let bundleIdentifier = information["kMRMediaRemoteNowPlayingInfoClientIdentifier"] as? String {
-                print("App playing music: \(bundleIdentifier)")
-            }
-            
-            // Check if the song is the same as the previous one
+                // check if the song is same as the previous one
             if let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String,
                title == self.songTitle {
                 return
             }
             
             if let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String {
-                withAnimation {
-                    self.artistName = artist
-                }
+                self.artistName = artist
             }
             
             if let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String {
-                withAnimation {
-                    self.songTitle = title
-                }
+                self.songTitle = title
             }
             
             if let album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String {
-                print("Album: \(album)")
-                withAnimation {
-                    self.album = album
-                }
+                self.album = album
             }
             
             if let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data,
                let artworkImage = NSImage(data: artworkData) {
                 updateAlbumArt(newAlbumArt: artworkImage)
+            } else {
+                updateAlbumArt(newAlbumArt: defaultImage)
             }
             
-            // Get bundle identifier
+                // Get bundle identifier
             let _MRNowPlayingClientProtobuf: AnyClass? = NSClassFromString("MRClient")
             let handle: UnsafeMutableRawPointer! = dlopen("/usr/lib/libobjc.A.dylib", RTLD_NOW)
             let allocSelector = NSSelectorFromString("alloc")
             let initSelector = NSSelectorFromString("init")
             let object = unsafeBitCast(dlsym(handle, "objc_msgSend"), to: (@convention(c) (AnyClass?, Selector?) -> AnyObject).self)(_MRNowPlayingClientProtobuf, allocSelector)
             unsafeBitCast(dlsym(handle, "objc_msgSend"), to: (@convention(c) (AnyObject?, Selector?, Any?) -> Void).self)(object, initSelector, information["kMRMediaRemoteNowPlayingInfoClientPropertiesData"] as AnyObject?)
-            let bundleIdentifier = MRNowPlayingClientGetBundleIdentifier(object)
             dlclose(handle)
         }
     }
     
+    func musicIsPaused(state: Bool) {
+        if(self.musicToggledManually) {
+            return
+        }
+        self.isPlaying = state
+        self.playbackManager.isPlaying = state
+    }
+    
     func togglePlayPause() {
-        playbackManager.playPause()
+        musicToggledManually = true
         
-        withAnimation {
-            isPlaying = playbackManager.isPlaying
-        }
+        let playState: Bool = playbackManager.playPause()
+        self.isPlaying = playState
+        self.playbackManager.isPlaying = playState
         
-        if isPlaying {
-            fetchNowPlayingInfo()
-        }
-        
-        if !isPlaying {
+        if playState {
+            fetchNowPlayingInfo(bypass: true)
+        } else {
             lastUpdated = Date()
+        }
+        
+            // Reset the manual toggle flag after 1 second
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            self?.musicToggledManually = false
         }
     }
     
     func updateAlbumArt(newAlbumArt: NSImage) {
-        withAnimation {
+        withAnimation(vm.animation) {
             self.albumArt = newAlbumArt
             if(vm.coloredSpectrogram) {
                 calculateAverageColor()
@@ -188,11 +180,15 @@ class MusicManager: ObservableObject {
     
     func nextTrack() {
         playbackManager.nextTrack()
-        fetchNowPlayingInfo()
+        fetchNowPlayingInfo(bypass: true)
     }
     
     func previousTrack() {
         playbackManager.previousTrack()
-        fetchNowPlayingInfo()
+        fetchNowPlayingInfo(bypass: true)
+    }
+    
+    deinit {
+        cancellables.forEach { $0.cancel() }
     }
 }

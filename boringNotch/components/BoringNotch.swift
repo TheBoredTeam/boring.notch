@@ -29,8 +29,8 @@ struct BoringNotch: View {
         let notchWidth: CGFloat = vm.notchState == .open
         ? vm.sizes.size.opened.width!
         : batteryModel.showChargingInfo
-        ? baseWidth + 180
-        : CGFloat(vm.firstLaunch ? 50 : 0) + baseWidth + (isFaceVisible ? 75 : 0)
+        ? baseWidth + 160
+        : CGFloat(vm.firstLaunch ? 50 : 0) + baseWidth + (isFaceVisible ? 65 : 0)
         
         return notchWidth + (hoverAnimation ? 16 : 0)
     }
@@ -118,5 +118,5 @@ struct BoringNotch: View {
 func onHover(){}
 
 #Preview {
-    BoringNotch(vm: BoringViewModel(), batteryModel: BatteryStatusViewModel(vm: .init()), onHover: onHover)
+    BoringNotch(vm: BoringViewModel(), batteryModel: BatteryStatusViewModel(vm: .init()), onHover: onHover).frame(width: 600, height: 500)
 }

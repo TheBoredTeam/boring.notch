@@ -32,17 +32,15 @@ class PlaybackManager: ObservableObject {
         MrMediaRemoteSendCommandFunction = unsafeBitCast(MRMediaRemoteSendCommandPointer, to: MRMediaRemoteSendCommandFunction.self)
     }
     
-    func playPause() {
+    func playPause() -> Bool {
         if self.isPlaying {
             MrMediaRemoteSendCommandFunction(2, nil)
-            withAnimation {
-                self.isPlaying = false;
-            }
+            self.isPlaying = false;
+            return false;
         } else {
             MrMediaRemoteSendCommandFunction(0, nil)
-            withAnimation {
-                self.isPlaying = true
-            }
+            self.isPlaying = true
+            return true;
         }
     }
     
