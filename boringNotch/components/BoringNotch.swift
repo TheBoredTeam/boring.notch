@@ -49,7 +49,6 @@ struct BoringNotch: View {
                 .animation(notchAnimation, value: musicManager.lastUpdated)
                 .animation(notchAnimation, value: musicManager.isPlayerIdle)
                 .animation(.smooth, value: vm.firstLaunch)
-                .shadow(color: .black.opacity(vm.notchState == .open ? 0.5 : 0), radius: 10)
                 .overlay {
                     VStack {
                         if vm.notchState == .open {
@@ -223,7 +222,6 @@ struct BoringNotch: View {
         return vm.notchState == .open ? vm.musicPlayerSizes.player.size.opened.width : dynamicWidth
     }
 }
-
 
 func onHover(){}
 
