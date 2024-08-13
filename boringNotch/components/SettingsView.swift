@@ -165,14 +165,14 @@ struct SettingsView: View {
             Section {
                 Toggle("Enable colored spectrograms", isOn: $vm.coloredSpectrogram.animation())
                 HStack {
-                    Text("Media inactivity timeout")
-                    Spacer()
-                    TextField("Media inactivity timeout", value: $vm.waitInterval, formatter: NumberFormatter())
-                        .labelsHidden()
-                        .frame(width: 25)
-                        .multilineTextAlignment(.trailing)
-                    Text("seconds")
-                        .foregroundStyle(.secondary)
+                    Stepper(value: $vm.waitInterval, in: 0...10, step: 1) {
+                        HStack {
+                            Text("Media inactivity timeout")
+                            Spacer()
+                            Text("\(vm.waitInterval, specifier: "%.0f") seconds")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
             } header: {
                 Text("Media playback live activity")

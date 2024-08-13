@@ -11,6 +11,9 @@
         }
       }
     },
+    "%.0f seconds" : {
+
+    },
     "%.1fs" : {
 
     },
@@ -402,6 +405,7 @@
       }
     },
     "seconds" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
