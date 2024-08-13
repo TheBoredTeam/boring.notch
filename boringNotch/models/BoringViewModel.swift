@@ -11,7 +11,7 @@ import Combine
 class BoringViewModel: NSObject, ObservableObject {
     var cancellables: Set<AnyCancellable> = []
     
-    let animationLibrary:BoringAnimations = BoringAnimations()
+    let animationLibrary: BoringAnimations = BoringAnimations()
     let animation: Animation?
     @Published var contentType: ContentType = .normal
     @Published var notchState: NotchState = .closed
