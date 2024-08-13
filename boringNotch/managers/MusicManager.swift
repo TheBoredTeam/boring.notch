@@ -21,14 +21,7 @@ class MusicManager: ObservableObject {
     @Published var artistName: String = "Me"
     @Published var albumArt: NSImage = defaultImage
     var albumArtData: Data?
-    @Published var isPlaying = false {
-        didSet {
-            print("Will set isPlayerIdle")
-            DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval) {
-                self.isPlayerIdle = !self.isPlaying
-            }
-        }
-    }
+    @Published var isPlaying = false
     @Published var musicToggledManually: Bool = false
     @Published var album: String = "Self Love"
     @Published var playbackManager = PlaybackManager()
@@ -42,6 +35,7 @@ class MusicManager: ObservableObject {
         setupNowPlayingObserver()
         fetchNowPlayingInfo()
     }
+    
     
     private func setupNowPlayingObserver() {
         Timer.publish(every: 1, on: .main, in: .common)
@@ -90,14 +84,15 @@ class MusicManager: ObservableObject {
             
                 // Check if the song is paused
             if let state = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int {
-                
-                    // Don't update lastUpdated if the song is paused and the state is the same as the previous one
                 if !self.isPlaying && state == 0 {
-                    self.isPlayerIdle = true
                     return
                 }
+                
                 musicIsPaused(state: state == 1)
-            } else {musicIsPaused(state: false)}
+                
+            } else {
+                musicIsPaused(state: false)
+            }
             
             let albumArtData: Data? = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
             
@@ -126,9 +121,9 @@ class MusicManager: ObservableObject {
             }
             
             if albumArtData != nil,
-                let artworkImage = NSImage(data: albumArtData!) {
-                    self.albumArtData = albumArtData
-                    updateAlbumArt(newAlbumArt: artworkImage)
+               let artworkImage = NSImage(data: albumArtData!) {
+                self.albumArtData = albumArtData
+                updateAlbumArt(newAlbumArt: artworkImage)
             }
             
                 // Get bundle identifier
@@ -146,8 +141,18 @@ class MusicManager: ObservableObject {
         if(self.musicToggledManually && !bypass) {
             return
         }
+        
         withAnimation {
             self.isPlaying = state
+            
+            if(!state) {
+                print(self.isPlayerIdle, ":")
+                DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval) {
+                    print("handleIdleState DispatchQueue.main")
+                    self.isPlayerIdle = !self.isPlaying
+                }
+            }
+            
             self.playbackManager.isPlaying = state
         }
         
