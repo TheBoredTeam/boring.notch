@@ -11,6 +11,9 @@
         }
       }
     },
+    "%.1fs" : {
+
+    },
     "%d%%" : {
 
     },
@@ -21,6 +24,12 @@
 
     },
     "• New feature 1" : {
+
+    },
+    "0" : {
+
+    },
+    "1" : {
 
     },
     "About" : {
@@ -186,6 +195,9 @@
         }
       }
     },
+    "Edit" : {
+
+    },
     "Edit layout" : {
 
     },
@@ -303,6 +315,9 @@
         }
       }
     },
+    "Minimum hover duration" : {
+
+    },
     "No excludes" : {
       "localizations" : {
         "en" : {
@@ -312,6 +327,9 @@
           }
         }
       }
+    },
+    "Notch behavior" : {
+
     },
     "Only app icon" : {
       "localizations" : {

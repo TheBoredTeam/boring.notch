@@ -35,6 +35,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var chargingInfoAllowed: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @Published var whatsNewOnClose: (() -> Void)?
+    @Published var minimumHoverDuration: TimeInterval = 0.3
     
     deinit {
         destroy()
