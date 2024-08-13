@@ -7,10 +7,8 @@ struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject var batteryModel: BatteryStatusViewModel
     var body: some View {
-        
         BoringNotch(vm: vm, batteryModel: batteryModel, onHover: onHover)
             .frame(maxWidth: .infinity, maxHeight: Sizes().size.opened.height!, alignment: .top)
-            .background(Color.clear)
             .edgesIgnoringSafeArea(.top)
             .transition(.slide.animation(vm.animation))
             .onAppear(perform: {
@@ -24,10 +22,11 @@ struct ContentView: View {
             })
             .animation(.smooth().delay(0.3), value: vm.firstLaunch)
             .contextMenu {
-                Button("Coming soon") {
-//                    let dn = DynamicNotch(content: EditPanelView())
-//                    dn.toggle()
+                Button("Edit") {
+                    let dn = DynamicNotch(content: EditPanelView())
+                    dn.toggle()
                 }
+                .disabled(true)
                 .keyboardShortcut("E", modifiers: .command)
             }
     }
