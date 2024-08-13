@@ -20,7 +20,6 @@ struct ContentView: View {
                     }
                 })
             })
-            .shadow(color: vm.notchState == .open ? .black : .clear, radius: 10)
             .animation(.smooth().delay(0.3), value: vm.firstLaunch)
             .contextMenu {
                 Button("Edit") {
