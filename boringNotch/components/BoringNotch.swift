@@ -60,7 +60,7 @@ struct BoringNotch: View {
                 } else {
                     cancelHoverTimer()
                     if vm.notchState == .open {
-                        withAnimation(vm.animation) {
+                        withAnimation(.smooth) {
                             vm.close()
                             vm.openMusic()
                         }
