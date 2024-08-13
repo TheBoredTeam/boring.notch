@@ -22,11 +22,11 @@ class BoringNotchWindow: NSWindow {
         )
         
         isOpaque = false
-        alphaValue = 1
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
         backgroundColor = .clear
         isMovable = false
+        
         collectionBehavior = [
             .fullScreenAuxiliary,
             .stationary,
@@ -35,7 +35,7 @@ class BoringNotchWindow: NSWindow {
         ]
         isReleasedWhenClosed = false
         level = .mainMenu + 2
-        hasShadow = true
+        hasShadow = false
     }
     
     override var canBecomeKey: Bool {
