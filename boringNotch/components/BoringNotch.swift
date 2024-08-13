@@ -13,6 +13,7 @@ struct BoringNotch: View {
     
     @State private var hoverStartTime: Date?
     @State private var hoverTimer: Timer?
+    @State private var hoverAnimation: Bool = false
     
     init(vm: BoringViewModel, batteryModel: BatteryStatusViewModel, onHover: @escaping () -> Void) {
         _vm = StateObject(wrappedValue: vm)
@@ -31,14 +32,14 @@ struct BoringNotch: View {
         ? baseWidth + 180
         : CGFloat(vm.firstLaunch ? 50 : 0) + baseWidth + (isFaceVisible ? 75 : 0)
         
-        return notchWidth
+        return notchWidth + (hoverAnimation ? 16 : 0)
     }
     
     var body: some View {
         Rectangle()
             .foregroundColor(.black)
             .mask(NotchShape(cornerRadius: vm.notchState == .open ? vm.sizes.cornerRadius.opened.inset : vm.sizes.cornerRadius.closed.inset))
-            .frame(width: calculateNotchWidth(), height: vm.notchState == .open ? (vm.sizes.size.opened.height!) : vm.sizes.size.closed.height)
+            .frame(width: calculateNotchWidth(), height: vm.notchState == .open ? (vm.sizes.size.opened.height!) : vm.sizes.size.closed.height! + (hoverAnimation ? 8 : 0))
             .animation(notchAnimation, value: batteryModel.showChargingInfo)
             .animation(notchAnimation, value: musicManager.isPlaying)
             .animation(notchAnimation, value: musicManager.lastUpdated)
@@ -67,6 +68,7 @@ struct BoringNotch: View {
                     }
                 }
             }
+            .shadow(color: vm.notchState == .open ? .black : hoverAnimation ? .black.opacity(0.5) : .clear, radius: 10)
             .sensoryFeedback(.levelChange, trigger: haptics)
             .onChange(of: batteryModel.isPluggedIn, { oldValue, newValue in
                 withAnimation(.spring(response: 1, dampingFraction: 0.8, blendDuration: 0.7)) {
@@ -84,6 +86,9 @@ struct BoringNotch: View {
     private func startHoverTimer() {
         hoverStartTime = Date()
         hoverTimer?.invalidate()
+        withAnimation(vm.animation) {
+            hoverAnimation = true
+        }
         hoverTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             checkHoverDuration()
         }
@@ -93,7 +98,7 @@ struct BoringNotch: View {
         guard let startTime = hoverStartTime else { return }
         let hoverDuration = Date().timeIntervalSince(startTime)
         if hoverDuration >= vm.minimumHoverDuration {
-            withAnimation(vm.animation) {
+            withAnimation() {
                 vm.open()
             }
             cancelHoverTimer()
@@ -104,6 +109,9 @@ struct BoringNotch: View {
         hoverTimer?.invalidate()
         hoverTimer = nil
         hoverStartTime = nil
+        withAnimation(vm.animation) {
+            hoverAnimation = false
+        }
     }
 }
 
