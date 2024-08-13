@@ -35,8 +35,9 @@ struct BoringNotch: View {
     }
     
     var body: some View {
-        Color.black
-            .mask(NotchShape(cornerRadius: vm.notchState == .open ? vm.sizes.corderRadius.opened.inset : vm.sizes.corderRadius.closed.inset))
+        Rectangle()
+            .foregroundColor(.black)
+            .mask(NotchShape(cornerRadius: vm.notchState == .open ? vm.sizes.cornerRadius.opened.inset : vm.sizes.cornerRadius.closed.inset))
             .frame(width: calculateNotchWidth(), height: vm.notchState == .open ? (vm.sizes.size.opened.height!) : vm.sizes.size.closed.height)
             .animation(notchAnimation, value: batteryModel.showChargingInfo)
             .animation(notchAnimation, value: musicManager.isPlaying)
