@@ -4,11 +4,12 @@
         <title>boringNotch</title>
         <item>
             <title>Dancing Snake</title>
-            <pubDate>Tue, 13 Aug 2024 19:34:06 +0530</pubDate>
-            <sparkle:version>1.6.1+1</sparkle:version>
-            <sparkle:shortVersionString>1.6.1</sparkle:shortVersionString>
+            <pubDate>Tue, 13 Aug 2024 21:52:13 +0530</pubDate>
+            <sparkle:version>1.7+1</sparkle:version>
+            <sparkle:shortVersionString>1.7</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/dancing-snake/DancingSnake.dmg" length="4927573" type="application/octet-stream" sparkle:edSignature="uoXCF6OjJ6LQL103VGCMStzYYrD9HIfK/wO7vfa5n5c5+w6n1t+139Q+bnZm+CCbQwoMBuUkl8E5clv3NWlQBA=="/>
+            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/dancing-snake/DancingSnake.dmg" length="4927003" type="application/octet-stream" sparkle:edSignature="MZh1f4TsiceXgNryXTNbN17vUHXnqIvL9UnSpDE96HvTK74PN5Q6uyHeEaZ2VS3/phyTafcQzd0gOC9+FW3BAg=="/>
         </item>
     </channel>
 </rss>
+
