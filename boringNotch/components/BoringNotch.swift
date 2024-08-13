@@ -59,6 +59,7 @@ struct BoringNotch: View {
                     }
                     startHoverTimer()
                 } else {
+                    vm.notchMetastability = true
                     cancelHoverTimer()
                     if vm.notchState == .open {
                         withAnimation(.smooth) {
@@ -100,6 +101,7 @@ struct BoringNotch: View {
         if hoverDuration >= vm.minimumHoverDuration {
             withAnimation() {
                 vm.open()
+                vm.notchMetastability = false
             }
             cancelHoverTimer()
         }
