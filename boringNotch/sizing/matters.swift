@@ -47,7 +47,7 @@ struct StatesSizes {
 }
 
 struct Sizes {
-    var corderRadius: StatesSizes = StatesSizes(opened: Area(inset: 24), closed: Area(inset:10))
+    var cornerRadius: StatesSizes = StatesSizes(opened: Area(inset: 24), closed: Area(inset: 10))
     var size: StatesSizes = StatesSizes(
         opened: Area(width: 500, height: 130),
         closed: Area(width: closedNotchSize.width, height: closedNotchSize.height)
@@ -59,7 +59,7 @@ struct MusicPlayerElementSizes {
     var baseSize: Sizes = Sizes()
     
     var image: Sizes = Sizes(
-        corderRadius: StatesSizes(
+        cornerRadius: StatesSizes(
             opened: Area(inset: 14), closed: Area(inset:4)),
         size: StatesSizes(
             opened: Area(width: 70, height: 70), closed: Area(width: 20, height: 20)
