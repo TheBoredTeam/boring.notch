@@ -21,7 +21,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var sizes : Sizes = Sizes()
     @Published var musicPlayerSizes: MusicPlayerElementSizes = MusicPlayerElementSizes()
     @Published var waitInterval: Double = 3
-    @Published var releaseName: String = "Romantic Lady"
+    @Published var releaseName: String = "Dancing Snake 🐍"
     @Published var coloredSpectrogram: Bool = true
     @Published var accentColor: Color = .accentColor
     @Published var selectedDownloadIndicatorStyle: DownloadIndicatorStyle = .progress
