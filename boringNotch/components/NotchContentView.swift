@@ -148,12 +148,11 @@ struct NotchContentView: View {
     func calculateFrameWidthforNotchContent() -> CGFloat? {
             // Calculate intermediate values
         let chargingInfoWidth: CGFloat = batteryModel.showChargingInfo ? 160 : 0
-        let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !batteryModel.showChargingInfo && (musicManager.isPlaying || (musicManager.isPlayerIdle && vm.nothumanface))) ? 60 : -15
+        let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !batteryModel.showChargingInfo && (musicManager.isPlaying || (musicManager.isPlayerIdle ? vm.nothumanface : true))) ? 60 : -15
         
         let closedWidth: CGFloat = vm.sizes.size.closed.width! - 10
         
         let dynamicWidth: CGFloat = chargingInfoWidth + musicPlayingWidth + closedWidth
-        print(closedWidth, chargingInfoWidth, musicPlayingWidth, dynamicWidth)
             // Return the appropriate width based on the notch state
         return vm.notchState == .open ? vm.musicPlayerSizes.player.size.opened.width : dynamicWidth
     }

@@ -16,6 +16,7 @@ var defaultImage:NSImage = NSImage(
 
 class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
+    private var currentWorkItem: DispatchWorkItem?
     private var vm: BoringViewModel
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
@@ -26,9 +27,10 @@ class MusicManager: ObservableObject {
     @Published var album: String = "Self Love"
     @Published var playbackManager = PlaybackManager()
     @Published var lastUpdated: Date = Date()
-    @Published var isPlayerIdle: Bool = false
+    @Published var isPlayerIdle: Bool = true
     @Published var animations: BoringAnimations = BoringAnimations()
     @Published var avgColor: NSColor = .white
+    
     
     init(vm: BoringViewModel) {
         self.vm = vm
@@ -84,14 +86,15 @@ class MusicManager: ObservableObject {
             
                 // Check if the song is paused
             if let state = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int {
+                
                 if !self.isPlaying && state == 0 {
                     return
                 }
                 
-                musicIsPaused(state: state == 1)
+                musicIsPaused(state: state == 1, setIdle: true)
                 
             } else {
-                musicIsPaused(state: false)
+                musicIsPaused(state: false, setIdle: false)
             }
             
             let albumArtData: Data? = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
@@ -137,23 +140,20 @@ class MusicManager: ObservableObject {
         }
     }
     
-    func musicIsPaused(state: Bool, bypass:Bool = false) {
+    func musicIsPaused(state: Bool, bypass:Bool = false, setIdle:Bool = false) {
         if(self.musicToggledManually && !bypass) {
             return
         }
         
         withAnimation {
             self.isPlaying = state
+            self.playbackManager.isPlaying = state
             
-            if(!state) {
-                print(self.isPlayerIdle, ":")
-                DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval) {
-                    print("handleIdleState DispatchQueue.main")
+            DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval, execute: {
+                withAnimation {
                     self.isPlayerIdle = !self.isPlaying
                 }
-            }
-            
-            self.playbackManager.isPlaying = state
+            })
         }
         
     }
@@ -164,8 +164,7 @@ class MusicManager: ObservableObject {
         
         let playState: Bool = playbackManager.playPause()
         
-        
-        musicIsPaused(state: playState, bypass: true)
+        musicIsPaused(state: playState, bypass: true, setIdle: true)
         
         if playState {
             fetchNowPlayingInfo(bypass: true)
