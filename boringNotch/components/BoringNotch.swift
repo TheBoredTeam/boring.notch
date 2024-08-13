@@ -23,7 +23,7 @@ struct BoringNotch: View {
     }
     
     func calculateNotchWidth() -> CGFloat {
-        let isFaceVisible = (vm.nothumanface && musicManager.isPlayerIdle) || musicManager.isPlaying
+        let isFaceVisible = (musicManager.isPlayerIdle ? vm.nothumanface: true) || musicManager.isPlaying
         let baseWidth = vm.sizes.size.closed.width ?? 0
         
         let notchWidth: CGFloat = vm.notchState == .open
