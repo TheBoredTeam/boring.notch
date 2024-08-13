@@ -96,7 +96,7 @@ We’re all about good vibes and awesome contributions! Here’s how you can joi
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. Share the love, keep it free!
+This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/.
 
 ## 🎉 Acknowledgments
 
