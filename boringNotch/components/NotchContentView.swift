@@ -112,7 +112,9 @@ struct NotchContentView: View {
                                                         }
                                                 }
                                         }
-                                    }                                            }
+                                    }
+                                }
+                                .allowsHitTesting(!vm.notchMetastability)
                                 .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(vm.notchState == .closed ? 0 : 0.1)))
                                 .buttonStyle(PlainButtonStyle())
                             }

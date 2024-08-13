@@ -36,6 +36,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @Published var whatsNewOnClose: (() -> Void)?
     @Published var minimumHoverDuration: TimeInterval = 0.3
+    @Published var notchMetastability: Bool = true // True if notch not open
     
     deinit {
         destroy()
