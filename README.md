@@ -23,7 +23,7 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 
 
 ### Icon credits: [@maxtron95](https://github.com/maxtron95)
-### Website credits: [@himanshu]
+### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
 
 ## ⚡ Under the Hood Improvements and New features 🛠️
 
