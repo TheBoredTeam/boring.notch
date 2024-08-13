@@ -1,9 +1,9 @@
-//
-//  NotchContentView.swift
-//  boringNotch
-//
-//  Created by Richard Kunkli on 13/08/2024.
-//
+    //
+    //  NotchContentView.swift
+    //  boringNotch
+    //
+    //  Created by Richard Kunkli on 13/08/2024.
+    //
 
 import SwiftUI
 
@@ -12,23 +12,11 @@ struct NotchContentView: View {
     @EnvironmentObject var musicManager: MusicManager
     @EnvironmentObject var batteryModel: BatteryStatusViewModel
     
-    func calculateNotchWidth() -> CGFloat {
-        let isFaceVisible = (vm.nothumanface && musicManager.isPlayerIdle) || musicManager.isPlaying
-        let baseWidth = vm.sizes.size.closed.width ?? 0
-        
-        let notchWidth: CGFloat = vm.notchState == .open
-        ? vm.sizes.size.opened.width!
-        : batteryModel.showChargingInfo
-        ? baseWidth + 180
-        : CGFloat(vm.firstLaunch ? 50 : 0) + baseWidth + (isFaceVisible ? 75 : 0)
-        
-        return notchWidth
-    }
     var body: some View {
         VStack {
             if vm.notchState == .open {
                 VStack(spacing: 10) {
-                    BoringHeader(vm: vm, percentage: batteryModel.batteryPercentage, isCharging: batteryModel.isPluggedIn).padding(.leading, 6).padding(.trailing, 10).animation(.spring(response: 0.7, dampingFraction: 0.8, blendDuration: 0.8), value: vm.notchState)
+                    BoringHeader(vm: vm, percentage: batteryModel.batteryPercentage, isCharging: batteryModel.isPluggedIn).padding(.leading, 6).padding(.trailing, 6).animation(.spring(response: 0.7, dampingFraction: 0.8, blendDuration: 0.8), value: vm.notchState)
                     if vm.firstLaunch {
                         HelloAnimation().frame(width: 180, height: 60).onAppear(perform: {
                             vm.closeHello()
@@ -91,6 +79,7 @@ struct NotchContentView: View {
                                                 }
                                         }
                                         Button {
+                                            print("tapped")
                                             musicManager.togglePlayPause()
                                         } label: {
                                             Rectangle()
@@ -141,10 +130,7 @@ struct NotchContentView: View {
                     
                     
                     if vm.currentView != .menu && vm.notchState == .closed && batteryModel.showChargingInfo {
-                        HStack {
-                            Text("\(Int32(batteryModel.batteryPercentage))%").font(.callout)
-                            BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30)
-                        }}
+                        BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30)}
                     
                     if vm.currentView != .menu && !batteryModel.showChargingInfo && (musicManager.isPlaying || !musicManager.isPlayerIdle) {
                         MusicVisualizer(avgColor: musicManager.avgColor, isPlaying: musicManager.isPlaying)
@@ -154,14 +140,11 @@ struct NotchContentView: View {
             }
         }
         .frame(width: calculateFrameWidthforNotchContent())
-        .padding(.horizontal, 10)
-        .padding(.vertical, vm.notchState == .open ? 10 : 5)
-        .padding(.bottom, vm.notchState == .open ? 10 : 0)
         .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
     }
     
     func calculateFrameWidthforNotchContent() -> CGFloat? {
-        // Calculate intermediate values
+            // Calculate intermediate values
         let chargingInfoWidth: CGFloat = batteryModel.showChargingInfo ? 160 : 0
         let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !batteryModel.showChargingInfo && (musicManager.isPlaying || (musicManager.isPlayerIdle && vm.nothumanface))) ? 60 : -15
         
@@ -169,7 +152,7 @@ struct NotchContentView: View {
         
         let dynamicWidth: CGFloat = chargingInfoWidth + musicPlayingWidth + closedWidth
         print(closedWidth, chargingInfoWidth, musicPlayingWidth, dynamicWidth)
-        // Return the appropriate width based on the notch state
+            // Return the appropriate width based on the notch state
         return vm.notchState == .open ? vm.musicPlayerSizes.player.size.opened.width : dynamicWidth
     }
 }

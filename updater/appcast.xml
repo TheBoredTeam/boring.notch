@@ -3,12 +3,12 @@
     <channel>
         <title>boringNotch</title>
         <item>
-            <title>Romantic Lady</title>
-            <pubDate>Tue, 13 Aug 2024 02:43:10 +0530</pubDate>
-            <sparkle:version>1.6.0+1</sparkle:version>
-            <sparkle:shortVersionString>1.6.0</sparkle:shortVersionString>
+            <title>Dancing Snake</title>
+            <pubDate>Tue, 13 Aug 2024 19:34:06 +0530</pubDate>
+            <sparkle:version>1.6.1+1</sparkle:version>
+            <sparkle:shortVersionString>1.6.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/romantic-lady/RomanticLady.dmg" length="4917014" type="application/octet-stream" sparkle:edSignature="qx6rkZcCSUtYNql50JvBbgY+k3pzgp8yfd7aN2LEOFn51Wr9lmPa0VaMRl2n3XO6FvWHo3U4N2Htj2y/c70sBw=="/>
+            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/dancing-snake/DancingSnake.dmg" length="4927573" type="application/octet-stream" sparkle:edSignature="uoXCF6OjJ6LQL103VGCMStzYYrD9HIfK/wO7vfa5n5c5+w6n1t+139Q+bnZm+CCbQwoMBuUkl8E5clv3NWlQBA=="/>
         </item>
     </channel>
 </rss>

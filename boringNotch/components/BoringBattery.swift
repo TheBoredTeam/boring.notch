@@ -46,10 +46,14 @@ struct BoringBatteryView: View {
     @State var batteryWidth: CGFloat = 26
     
     var body: some View {
-        BatteryView(percentage: batteryPercentage, isCharging: isPluggedIn, batteryWidth: batteryWidth)
+        HStack{
+            Text("\(Int32(batteryPercentage))%").font(.callout)
+            BatteryView(percentage: batteryPercentage, isCharging: isPluggedIn, batteryWidth: batteryWidth)
+        }
+        
     }
 }
 
 #Preview {
-    BatteryView(percentage: 100, isCharging: true, batteryWidth: 30)
+    BatteryView(percentage: 100, isCharging: true, batteryWidth: 30).frame(width: 200, height: 200)
 }

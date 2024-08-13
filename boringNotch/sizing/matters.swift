@@ -67,7 +67,7 @@ struct MusicPlayerElementSizes {
     )
     var player: Sizes = Sizes(
         size: StatesSizes(
-            opened: Area(width: 430), closed: Area(width: closedNotchSize.width)
+            opened: Area(width: 440), closed: Area(width: closedNotchSize.width)
         )
     )
 }
