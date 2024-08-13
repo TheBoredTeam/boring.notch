@@ -37,7 +37,7 @@ struct SettingsView: View {
                 .tag(SettingsEnum.about)
         })
         .formStyle(.grouped)
-        .frame(width: 500, height: 500)
+        .frame(width: 600, height: 500)
         .tint(vm.accentColor)
     }
     
@@ -77,6 +77,8 @@ struct SettingsView: View {
             }
             
             boringControls()
+            
+            NotchBehaviour()
         }
     }
     
@@ -189,6 +191,21 @@ struct SettingsView: View {
             
         } header: {
             Text("Boring Controls")
+        }
+    }
+    
+    @ViewBuilder
+    func NotchBehaviour() -> some View {
+        Section {
+            Slider(value: $vm.minimumHoverDuration, in: 0...1, step: 0.1, minimumValueLabel: Text("0"), maximumValueLabel: Text("1")) {
+                HStack {
+                    Text("Minimum hover duration")
+                    Text("\(vm.minimumHoverDuration, specifier: "%.1f")s")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("Notch behavior")
         }
     }
     

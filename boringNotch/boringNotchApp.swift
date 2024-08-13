@@ -27,6 +27,10 @@ struct DynamicNotchApp: App {
         }
         
         MenuBarExtra("boring.notch", systemImage: "music.note" , isInserted: $showMenuBarIcon) {
+            SettingsLink(label: {
+                Text("Settings")
+            })
+            .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Quit", role: .destructive) {

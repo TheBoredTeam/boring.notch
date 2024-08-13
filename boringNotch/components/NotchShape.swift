@@ -8,7 +8,7 @@ import SwiftUI
 
 struct NotchShape: Shape {
     var topCornerRadius: CGFloat {
-        bottomCornerRadius
+        bottomCornerRadius - 5
     }
     
     var bottomCornerRadius: CGFloat
@@ -19,6 +19,11 @@ struct NotchShape: Shape {
         } else {
             self.bottomCornerRadius = cornerRadius!
         }
+    }
+    
+    var animatableData: CGFloat {
+        get { bottomCornerRadius }
+        set { bottomCornerRadius = newValue }
     }
     
     func path(in rect: CGRect) -> Path {
