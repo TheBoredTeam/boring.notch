@@ -31,31 +31,28 @@ class BatteryStatusViewModel: ObservableObject {
                     
                     if(self.vm.chargingInfoAllowed) {
                         
-                        self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
+                        withAnimation {
+                            self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
+                        }
                         
                         if (isCharging && !self.isPluggedIn) {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0)) {
-                                withAnimation(self.animations.animation) {
-                                    
+                            DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0.2)) {
+                                withAnimation {
                                     self.showChargingInfo = true
                                     self.isPluggedIn = true
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-                                        withAnimation(self.animations.animation) {
+                                        withAnimation {
                                             self.showChargingInfo = false
                                         }
-                                        
                                     }
-                                    
-                                    
                                 }
                                 
                             }
                             
                         }
-                        
-                        
-                        
-                        self.isPluggedIn = isCharging
+                        withAnimation {
+                            self.isPluggedIn = isCharging
+                        }
                         
                     }
                     
