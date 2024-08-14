@@ -1,3 +1,10 @@
+    //
+    //  BoringViewModel.swift
+    //  boringNotch
+    //
+    //  Created by Harsh Vardhan  Goswami  on 04/08/24.
+    //
+
 import SwiftUI
 
 var notchAnimation = Animation.spring(response: 0.7, dampingFraction: 0.8, blendDuration: 0.8)
@@ -38,13 +45,14 @@ struct BoringNotch: View {
     var body: some View {
         Rectangle()
             .foregroundColor(.black)
-            .mask(NotchShape(cornerRadius: vm.notchState == .open ? vm.sizes.cornerRadius.opened.inset : vm.sizes.cornerRadius.closed.inset))
-            .frame(width: calculateNotchWidth(), height: vm.notchState == .open ? (vm.sizes.size.opened.height!) : vm.sizes.size.closed.height! + (hoverAnimation ? 8 : 0))
+            .mask(NotchShape(cornerRadius: vm.notchState == .open ? vm.sizes.cornerRadius.opened.inset : (vm.sneakPeak.show ? 4 : 0) + vm.sizes.cornerRadius.closed.inset!))
+            .frame(width: calculateNotchWidth(), height: vm.notchState == .open ? (vm.sizes.size.opened.height!) : vm.sizes.size.closed.height! + (hoverAnimation ? 8 : !batteryModel.showChargingInfo && vm.sneakPeak.show ? 25 : 0))
             .animation(notchAnimation, value: batteryModel.showChargingInfo)
             .animation(notchAnimation, value: musicManager.isPlaying)
             .animation(notchAnimation, value: musicManager.lastUpdated)
             .animation(notchAnimation, value: musicManager.isPlayerIdle)
             .animation(.smooth, value: vm.firstLaunch)
+            .animation(notchAnimation, value: vm.sneakPeak.show)
             .overlay {
                 NotchContentView()
                     .environmentObject(vm)

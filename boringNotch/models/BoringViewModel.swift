@@ -8,6 +8,18 @@
 import SwiftUI
 import Combine
 
+enum SneakContentType {
+    case brightness
+    case volume
+    case backlight
+    case music
+}
+
+struct SneakPeak {
+    var show: Bool = false
+    var type: SneakContentType = .music
+}
+
 class BoringViewModel: NSObject, ObservableObject {
     var cancellables: Set<AnyCancellable> = []
     
@@ -38,50 +50,72 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var minimumHoverDuration: TimeInterval = 0.3
     @Published var notchMetastability: Bool = true // True if notch not open
     @Published var settingsIconInNotch: Bool = true
-    
-    deinit {
-        destroy()
-    }
-    
-    func destroy() {
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
-    }
-    
-    
-    override
-    init() {
-        self.animation = self.animationLibrary.animation
-        super.init()
-    }
-    
-    func open(){
-        self.notchState = .open
-    }
-    
-    func close(){
-        self.notchState = .closed
-    }
-    
-    func openMenu(){
-        self.currentView = .menu
-    }
-    
-    func openMusic(){
-        self.currentView = .music
-    }
-    
-    func showEmpty() {
-        self.currentView = .empty
-    }
-    
-    func closeHello() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2){
-            self.firstLaunch = false;
-            withAnimation(self.animationLibrary.animation){
-                self.close()
+    private var sneakPeakDispatch: DispatchWorkItem?
+    @Published var sneakPeak: SneakPeak = SneakPeak() {
+        didSet {
+            if sneakPeak.show {
+                sneakPeakDispatch?.cancel()
+                
+                sneakPeakDispatch = DispatchWorkItem { [weak self] in
+                    guard let self = self else { return }
+                    withAnimation {
+                        self.toggleSneakPeak(status: false, type: SneakContentType.music)
+                    }
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: sneakPeakDispatch!)
             }
         }
     }
-}
-
+        
+        deinit {
+            destroy()
+        }
+        
+        func destroy() {
+            cancellables.forEach { $0.cancel() }
+            cancellables.removeAll()
+        }
+        
+        
+        override
+        init() {
+            self.animation = self.animationLibrary.animation
+            super.init()
+        }
+        
+        func open(){
+            self.notchState = .open
+        }
+        
+        func toggleSneakPeak(status:Bool, type: SneakContentType){
+            self.sneakPeak.show = status
+            self.sneakPeak.type = type
+        }
+        
+        func close(){
+            self.notchState = .closed
+        }
+        
+        func openMenu(){
+            self.currentView = .menu
+        }
+        
+        func openMusic(){
+            self.currentView = .music
+        }
+        
+        func showEmpty() {
+            self.currentView = .empty
+        }
+        
+        func closeHello() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.2){
+                self.firstLaunch = false;
+                withAnimation(self.animationLibrary.animation){
+                    self.close()
+                }
+            }
+        }
+    }
+    

@@ -17,6 +17,7 @@ var defaultImage: NSImage = NSImage(
 class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var debounceToggle: DispatchWorkItem?
+    private var musicSneakPeakDispatch: DispatchWorkItem?
     private var vm: BoringViewModel
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
@@ -71,7 +72,7 @@ class MusicManager: ObservableObject {
             }
             .store(in: &cancellables)
         
-        // Keep existing observers for Spotify and Apple Music
+            // Keep existing observers for Spotify and Apple Music
         DistributedNotificationCenter.default().addObserver(
             forName: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
             object: nil,
@@ -150,6 +151,10 @@ class MusicManager: ObservableObject {
             
             if !state {
                 self.lastUpdated = Date()
+            }
+            
+            if self.isPlaying && self.albumArtData != nil {
+                self.vm.toggleSneakPeak(status: true, type: SneakContentType.music)
             }
             
             if setIdle && state {

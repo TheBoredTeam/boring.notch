@@ -140,6 +140,24 @@ struct NotchContentView: View {
                     }
                 }
             }
+            
+            if vm.notchState == .closed &&  vm.sneakPeak.show && !batteryModel.showChargingInfo {
+                switch vm.sneakPeak.type {
+                    case .music:
+                        HStack() {
+                            Image(systemName: "music.note").padding(.leading, 4)
+                            Text(musicManager.songTitle)
+                                .font(.headline)
+                                .fontWeight(.regular)
+                                .foregroundColor(.gray)
+                                .lineLimit(1)
+                            
+                            Spacer()
+                        }.foregroundStyle(.gray, .gray).transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(0.1))).padding(.horizontal, 4).padding(.vertical, 2)
+                    default:
+                        Text("")
+                }
+            }
         }
         .frame(width: calculateFrameWidthforNotchContent())
         .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
@@ -154,6 +172,10 @@ struct NotchContentView: View {
         
         let dynamicWidth: CGFloat = chargingInfoWidth + musicPlayingWidth + closedWidth
             // Return the appropriate width based on the notch state
-        return vm.notchState == .open ? vm.musicPlayerSizes.player.size.opened.width : dynamicWidth
+        return vm.notchState == .open ? vm.musicPlayerSizes.player.size.opened.width : dynamicWidth + (vm.sneakPeak.show ? -12 : 0)
     }
+}
+
+#Preview {
+    BoringNotch(vm: BoringViewModel(), batteryModel: BatteryStatusViewModel(vm: .init()), onHover: onHover).frame(width: 600, height: 500)
 }
