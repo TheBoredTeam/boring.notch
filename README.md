@@ -71,7 +71,7 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - [x] Charging indicator and current percentage 🔋
 - [x] Playback live activity 🎧
 - [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
-- [ ] Download indicator from different browsers (Safari, Chromium browsers, Firefox) 🌍
+- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍
 - [ ] Shelf functionality with AirDrop 📚
 - [ ] Layout customization options 🛠️
 - [ ] Notch sizing customization, finetuning on different display sizes 🖥️
