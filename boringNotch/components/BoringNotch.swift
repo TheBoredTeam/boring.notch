@@ -17,7 +17,7 @@ struct BoringNotch: View {
     
     init(vm: BoringViewModel, batteryModel: BatteryStatusViewModel, onHover: @escaping () -> Void) {
         _vm = StateObject(wrappedValue: vm)
-        _musicManager = StateObject(wrappedValue: MusicManager(vm: vm))
+        _musicManager = StateObject(wrappedValue: MusicManager(vm: vm)!)
         _batteryModel = StateObject(wrappedValue: batteryModel)
         self.onHover = onHover
     }

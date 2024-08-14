@@ -1,9 +1,9 @@
-//
-//  SettingsView.swift
-//  boringNotch
-//
-//  Created by Richard Kunkli on 07/08/2024.
-//
+    //
+    //  SettingsView.swift
+    //  boringNotch
+    //
+    //  Created by Richard Kunkli on 07/08/2024.
+    //
 
 import SwiftUI
 import LaunchAtLogin
@@ -212,6 +212,7 @@ struct SettingsView: View {
             LaunchAtLogin.Toggle("Launch at login 🦄")
             Toggle("Enable haptics", isOn: $vm.enableHaptics)
             Toggle("Menubar icon", isOn: $vm.showMenuBarIcon)
+            Toggle("Settings icon in notch", isOn: $vm.settingsIconInNotch)
             
         } header: {
             Text("Boring Controls")

@@ -21,7 +21,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var sizes : Sizes = Sizes()
     @Published var musicPlayerSizes: MusicPlayerElementSizes = MusicPlayerElementSizes()
     @Published var waitInterval: Double = 3
-    @Published var releaseName: String = "Dancing Snake 🐍"
+    @Published var releaseName: String = "Sleeping Snail 🐌"
     @Published var coloredSpectrogram: Bool = true
     @Published var accentColor: Color = .accentColor
     @Published var selectedDownloadIndicatorStyle: DownloadIndicatorStyle = .progress
@@ -37,6 +37,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var whatsNewOnClose: (() -> Void)?
     @Published var minimumHoverDuration: TimeInterval = 0.3
     @Published var notchMetastability: Bool = true // True if notch not open
+    @Published var settingsIconInNotch: Bool = true
     
     deinit {
         destroy()
