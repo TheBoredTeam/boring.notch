@@ -165,6 +165,9 @@
         }
       }
     },
+    "Customization" : {
+
+    },
     "Download icon style" : {
       "localizations" : {
         "en" : {
@@ -214,6 +217,9 @@
         }
       }
     },
+    "Enable glowing effect" : {
+
+    },
     "Enable haptics" : {
       "localizations" : {
         "en" : {
@@ -223,6 +229,12 @@
           }
         }
       }
+    },
+    "Enable HUD replacement" : {
+
+    },
+    "Enable shelf" : {
+
     },
     "Exclude apps" : {
       "localizations" : {
@@ -255,6 +267,9 @@
       }
     },
     "Got it!" : {
+
+    },
+    "HUDs" : {
 
     },
     "Install updates automatically" : {
@@ -425,6 +440,9 @@
         }
       }
     },
+    "Shelf" : {
+
+    },
     "Show battery indicator" : {
       "localizations" : {
         "en" : {
@@ -484,6 +502,12 @@
           }
         }
       }
+    },
+    "Use accent color" : {
+
+    },
+    "Use album art color during playback" : {
+
     },
     "Version" : {
       "localizations" : {

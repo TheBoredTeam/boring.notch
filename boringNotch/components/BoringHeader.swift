@@ -19,20 +19,6 @@ struct BoringHeader: View {
                 .foregroundStyle(.gray)
             Spacer()
             HStack(spacing: 5){
-                if vm.currentView != .menu {
-                    SettingsLink(label: {
-                        Capsule()
-                            .fill(.black)
-                            .frame(width: 30, height: 30)
-                            .overlay {
-                                Image(systemName: "gear")
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .imageScale(.medium)
-                            }
-                    })
-                    .buttonStyle(PlainButtonStyle())
-                }
                 if(vm.showBattery) {
                     BoringBatteryView(
                         batteryPercentage: percentage,

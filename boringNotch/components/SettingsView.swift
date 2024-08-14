@@ -24,14 +24,20 @@ struct SettingsView: View {
                 .tabItem { Label("General", systemImage: "gear") }
                 .tag(SettingsEnum.general)
             Media()
-                .tabItem { Label("Media", systemImage: "music.note") }
+                .tabItem { Label("Media", systemImage: "play.laptopcomputer") }
                 .tag(SettingsEnum.mediaPlayback)
+            HUD()
+                .tabItem { Label("HUDs", systemImage: "dial.medium.fill") }
+                .tag(SettingsEnum.hud)
             Charge()
                 .tabItem { Label("Battery", systemImage: "battery.100.bolt") }
                 .tag(SettingsEnum.charge)
             Downloads()
                 .tabItem { Label("Downloads", systemImage: "square.and.arrow.down") }
                 .tag(SettingsEnum.download)
+            Shelf()
+                .tabItem { Label("Shelf", systemImage: "books.vertical") }
+                .tag(SettingsEnum.shelf)
             About()
                 .tabItem { Label("About", systemImage: "info.circle") }
                 .tag(SettingsEnum.about)
@@ -160,6 +166,24 @@ struct SettingsView: View {
     }
     
     @ViewBuilder
+    func HUD() -> some View {
+        Form {
+            Section {
+                Toggle("Enable HUD replacement", isOn: .constant(false))
+                Toggle("Enable glowing effect", isOn: .constant(true))
+                Toggle("Use accent color", isOn: .constant(false))
+                Toggle("Use album art color during playback", isOn: .constant(false))
+            } header: {
+                HStack {
+                    Text("Customization")
+                    comingSoonTag()
+                }
+            }
+            .disabled(true)
+        }
+    }
+    
+    @ViewBuilder
     func Media() -> some View {
         Form {
             Section {
@@ -256,7 +280,9 @@ struct SettingsView: View {
                             Text("Support Us")
                                 .foregroundStyle(.blue)
                         }
+                        .contentShape(Rectangle())
                     }
+                    
                     Button {
                         NSWorkspace.shared.open(productPage)
                     } label: {
@@ -268,6 +294,7 @@ struct SettingsView: View {
                             Text("GitHub")
                                 .foregroundStyle(.blue)
                         }
+                        .contentShape(Rectangle())
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -275,6 +302,18 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .padding(.bottom)
             }
+        }
+    }
+    
+    @ViewBuilder
+    func Shelf() -> some View {
+        Form {
+            Section {
+                Toggle("Enable shelf", isOn: .constant(false))
+            } header: {
+                comingSoonTag()
+            }
+            .disabled(true)
         }
     }
     

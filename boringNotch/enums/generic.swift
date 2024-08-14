@@ -36,6 +36,8 @@ enum SettingsEnum {
     case charge
     case download
     case mediaPlayback
+    case hud
+    case shelf
 }
 
 enum DownloadIndicatorStyle {
