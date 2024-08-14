@@ -1,3 +1,11 @@
+    //
+    //  BoringViewModel.swift
+    //  boringNotch
+    //
+    //  Created by Harsh Vardhan  Goswami  on 04/08/24.
+    //
+
+
 import Cocoa
 import SwiftUI
 import IOKit.ps
@@ -7,7 +15,6 @@ class BatteryStatusViewModel: ObservableObject {
     @Published var batteryPercentage: Float = 0.0
     @Published var isPluggedIn: Bool = false
     @Published var showChargingInfo: Bool = false
-    
     
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
@@ -36,11 +43,11 @@ class BatteryStatusViewModel: ObservableObject {
                         }
                         
                         if (isCharging && !self.isPluggedIn) {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0.2)) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0)) {
                                 withAnimation {
                                     self.showChargingInfo = true
                                     self.isPluggedIn = true
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                         withAnimation {
                                             self.showChargingInfo = false
                                         }

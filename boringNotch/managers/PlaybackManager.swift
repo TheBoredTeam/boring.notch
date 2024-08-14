@@ -1,9 +1,9 @@
-//
-//  PlaybackManager.swift
-//  boringNotch
-//
-//  Created by Harsh Vardhan  Goswami  on  04/08/24.
-//
+    //
+    //  PlaybackManager.swift
+    //  boringNotch
+    //
+    //  Created by Harsh Vardhan  Goswami  on  04/08/24.
+    //
 
 
 import SwiftUI
@@ -21,15 +21,19 @@ class PlaybackManager: ObservableObject {
     }
     
     private func handleLoadMediaHandlerApis(){
-        // Load framework
+            // Load framework
         guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")) else { return }
         
-        // Get a Swift function for MRMediaRemoteSendCommand
+            // Get a Swift function for MRMediaRemoteSendCommand
         guard let MRMediaRemoteSendCommandPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteSendCommand" as CFString) else { return }
         
         typealias MRMediaRemoteSendCommandFunction = @convention(c) (Int, AnyObject?) -> Void
         
         MrMediaRemoteSendCommandFunction = unsafeBitCast(MRMediaRemoteSendCommandPointer, to: MRMediaRemoteSendCommandFunction.self)
+    }
+    
+    deinit {
+        self.MrMediaRemoteSendCommandFunction = {_,_ in }
     }
     
     func playPause() -> Bool {
@@ -45,12 +49,12 @@ class PlaybackManager: ObservableObject {
     }
     
     func nextTrack() {
-        // Implement next track action
+            // Implement next track action
         MrMediaRemoteSendCommandFunction(4, nil)
     }
     
     func previousTrack() {
-        // Implement previous track action
+            // Implement previous track action
         MrMediaRemoteSendCommandFunction(5, nil)
     }
 }
