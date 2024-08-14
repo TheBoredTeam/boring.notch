@@ -1,9 +1,9 @@
-//
-//  MusicVisualizer.swift
-//  boringNotch
-//
-//  Created by Harsh Vardhan  Goswami  on 02/08/24.
-//
+    //
+    //  MusicVisualizer.swift
+    //  boringNotch
+    //
+    //  Created by Harsh Vardhan  Goswami  on 02/08/24.
+    //
 
 import SwiftUI
 
@@ -19,16 +19,19 @@ struct MusicVisualizer: View {
             ForEach(0..<4) { index in
                 Capsule()
                     .fill(vm.coloredSpectrogram ? Color(nsColor: avgColor ?? .white) : .white)
-                    .frame(width: 1.5, height: isPlaying ? amplitudes[index] : 2)
+                    .frame(width: 2, height: isPlaying ? amplitudes[index] : 2)
             }
         }
         .transition(.scale.animation(.spring(.bouncy(duration: 0.6))))
         .onReceive(timer) { _ in
             withAnimation(.spring(.bouncy(duration: 0.6))) {
-                for i in 0..<5 {
-                    amplitudes[i] = CGFloat.random(in: 3...12)
+                for i in 0..<4 {
+                    amplitudes[i] = CGFloat.random(in: 4...12)
                 }
             }
-        }
+        }.onDisappear(perform: {
+            amplitudes = Array(repeating: 0, count: 4)
+            self.timer.upstream.connect().cancel()
+        })
     }
 }
