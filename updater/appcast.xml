@@ -8,7 +8,7 @@
             <sparkle:version>1.8+1</sparkle:version>
             <sparkle:shortVersionString>1.8</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/sleeping-snail/SleepingSnail.dmg" length="4939934" type="application/octet-stream" sparkle:edSignature="/fSW6tJZBlNWfmYoKFqm4y4yCyPtBgLSVfKrp5QKjYCB4h6JGatKK9frNM576bDBfh3xDV5zJcbkgLcGjYlPDQ=="/>
+            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/sleeping-snail/SleepingSnail.dmg" length="4951241" type="application/octet-stream" sparkle:edSignature="teYsNYQElSClIy/nSeXAv1x64myOq2svVs2cbPmhKgcODUU7x/qaoIRywuTEbkw/8kW17lwk/fHIpSPo3NPMBQ=="/>
         </item>
     </channel>
 </rss>
