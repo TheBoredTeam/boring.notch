@@ -22,11 +22,19 @@ struct ContentView: View {
             })
             .animation(.smooth().delay(0.3), value: vm.firstLaunch)
             .contextMenu {
+                SettingsLink(label: {
+                    Text("Settings")
+                })
+                .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
                 Button("Edit") {
                     let dn = DynamicNotch(content: EditPanelView())
                     dn.toggle()
                 }
+                #if DEBUG
+                .disabled(false)
+                #else
                 .disabled(true)
+                #endif
                 .keyboardShortcut("E", modifiers: .command)
             }
     }
