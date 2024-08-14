@@ -65,6 +65,22 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - Hover over the notch to see it expand and reveal all its secrets.
 - Use the controls to manage your music like a rockstar.
 
+## 📋 Roadmap
+- [x] Proper notch sizing and animations 📐
+- [x] Delayed notch opening ⏲️
+- [x] Charging indicator and current percentage 🔋
+- [x] Playback live activity 🎧
+- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
+- [ ] Download indicator from different browsers (Safari, Chromium browsers, Firefox) 🌍
+- [ ] Shelf functionality with AirDrop 📚
+- [ ] Layout customization options 🛠️
+- [ ] Notch sizing customization, finetuning on different display sizes 🖥️
+- [ ] Calendar integration 📆
+- [ ] App switcher 🪄
+- [ ] Customizable function buttons 🎛️
+- [ ] Notifications (need further info if can be achieved) 🔔
+- [ ] Clipboard history manager 📌
+
 ## 🤝 Contributing
 
 We’re all about good vibes and awesome contributions! Here’s how you can join the fun:
@@ -88,12 +104,6 @@ We’re all about good vibes and awesome contributions! Here’s how you can joi
    git push origin feature/YourFeatureName
    ```
 7. **Create a Pull Request**: Head to the original repo and click "New Pull Request". Show us what you’ve got!
-
-## 🗺️ Roadmap
-
-- **v1.0**: Launch party with the basic notch features and music integrations.
-- **v1.1**: Bug fixes and feature tweaks. Because even the coolest notches need some love.
-- **Future**: We’re dreaming big—how about a notch that can make coffee?
 
 ## 📝 License
 
