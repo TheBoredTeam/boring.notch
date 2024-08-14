@@ -3,12 +3,12 @@
     <channel>
         <title>boringNotch</title>
         <item>
-            <title>Dancing Snake</title>
-            <pubDate>Tue, 13 Aug 2024 22:55:33 +0530</pubDate>
-            <sparkle:version>1.7+2</sparkle:version>
-            <sparkle:shortVersionString>1.7</sparkle:shortVersionString>
+            <title>Sleeping Snail 🐌</title>
+            <pubDate>Thu, 15 Aug 2024 00:46:46 +0530</pubDate>
+            <sparkle:version>1.8+1</sparkle:version>
+            <sparkle:shortVersionString>1.8</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/dancing-snake/DancingSnake.dmg" length="4928169" type="application/octet-stream" sparkle:edSignature="j345mRhM1rcqrWz6RXJnSNjrRPJXLpiuIfQ4stodwUd+inkqD9jNyd3YoHrgCNCoVCgHzoh+cFYhtkrbtJbSBg=="/>
+            <enclosure url="https://github.com/iamharshdev/boring.notch/releases/download/sleeping-snail/SleepingSnail.dmg" length="4939934" type="application/octet-stream" sparkle:edSignature="/fSW6tJZBlNWfmYoKFqm4y4yCyPtBgLSVfKrp5QKjYCB4h6JGatKK9frNM576bDBfh3xDV5zJcbkgLcGjYlPDQ=="/>
         </item>
     </channel>
 </rss>
