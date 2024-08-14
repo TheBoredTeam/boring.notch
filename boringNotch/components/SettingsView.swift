@@ -18,34 +18,39 @@ struct SettingsView: View {
     let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
     
     var body: some View {
-        TabView(selection: $selectedTab,
-                content:  {
+        TabView(selection: $selectedTab) {
             GeneralSettings()
                 .tabItem { Label("General", systemImage: "gear") }
                 .tag(SettingsEnum.general)
             Media()
                 .tabItem { Label("Media", systemImage: "music.note") }
                 .tag(SettingsEnum.mediaPlayback)
-            Charge()
-                .tabItem { Label("Battery", systemImage: "battery.100.bolt") }
-                .tag(SettingsEnum.charge)
+            if shouldShowBatteryTab() {
+                Charge()
+                    .tabItem { Label("Battery", systemImage: "battery.100.bolt") }
+                    .tag(SettingsEnum.charge)
+            }
             Downloads()
                 .tabItem { Label("Downloads", systemImage: "square.and.arrow.down") }
                 .tag(SettingsEnum.download)
             About()
                 .tabItem { Label("About", systemImage: "info.circle") }
                 .tag(SettingsEnum.about)
-        })
+        }
         .formStyle(.grouped)
         .frame(width: 600, height: 500)
         .tint(vm.accentColor)
+    }
+    
+    private func shouldShowBatteryTab() -> Bool {
+        return vm.showBattery && vm.chargingInfoAllowed && (vm.hasBattery || vm.isPluggedIn)
     }
     
     @ViewBuilder
     func GeneralSettings() -> some View {
         Form {
             Section {
-                HStack() {
+                HStack {
                     ForEach(accentColors, id: \.self) { color in
                         Button(action: {
                             withAnimation {
@@ -178,7 +183,8 @@ struct SettingsView: View {
                 Text("Media playback live activity")
             }
         }
-        .formStyle(.grouped)}
+        .formStyle(.grouped)
+    }
     
     @ViewBuilder
     func boringControls() -> some View {
@@ -227,7 +233,7 @@ struct SettingsView: View {
                             Text("(\(Bundle.main.buildVersionNumber ?? ""))")
                                 .foregroundStyle(.secondary)
                         }
-                        Text(Bundle.main.releaseVersionNumber ?? "unkown")
+                        Text(Bundle.main.releaseVersionNumber ?? "unknown")
                             .foregroundStyle(.secondary)
                             .onTapGesture {
                                 withAnimation {
