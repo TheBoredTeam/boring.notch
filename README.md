@@ -70,16 +70,16 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - [x] Delayed notch opening ⏲️
 - [x] Charging indicator and current percentage 🔋
 - [x] Playback live activity 🎧
-- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
-- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍
-- [ ] Shelf functionality with AirDrop 📚
+- [ ] Clipboard history manager 📌 `Coming soon`
+- [ ] Customizable function buttons 🎛️ `Coming soon`
+- [ ] Shelf functionality with AirDrop 📚 `Coming soon`
+- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Coming soon`
+- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Coming soon`
 - [ ] Layout customization options 🛠️
 - [ ] Notch sizing customization, finetuning on different display sizes 🖥️
 - [ ] Calendar integration 📆
 - [ ] App switcher 🪄
-- [ ] Customizable function buttons 🎛️
 - [ ] Notifications (need further info if can be achieved) 🔔
-- [ ] Clipboard history manager 📌
 
 ## 🤝 Contributing
 
