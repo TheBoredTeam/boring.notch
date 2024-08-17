@@ -79,7 +79,8 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - [ ] Notch sizing customization, finetuning on different display sizes 🖥️
 - [ ] Calendar integration 📆
 - [ ] App switcher 🪄
-- [ ] Notifications (need further info if can be achieved) 🔔
+- [ ] Customizable gesture control 👆🏻
+- [ ] Notifications (under consideration) 🔔
 
 ## 🤝 Contributing
 
