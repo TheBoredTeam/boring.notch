@@ -40,7 +40,7 @@ struct BatteryView: View {
     }
 }
 
-struct BoringBatteryView: View { 
+struct BoringBatteryView: View {
     @State var batteryPercentage: Float = 0
     @State var isPluggedIn:Bool = false
     @State var batteryWidth: CGFloat = 26
