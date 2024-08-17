@@ -40,18 +40,20 @@ struct BatteryView: View {
     }
 }
 
-struct BoringBatteryView: View {
+struct BoringBatteryView: View { 
     @State var batteryPercentage: Float = 0
     @State var isPluggedIn:Bool = false
     @State var batteryWidth: CGFloat = 26
     
     var body: some View {
-        HStack{
-            Text("\(Int32(batteryPercentage))%").font(.callout)
-            BatteryView(percentage: batteryPercentage, isCharging: isPluggedIn, batteryWidth: batteryWidth)
-        }
-        
-    }
+           if hasBattery() {
+               HStack {
+                   Text("\(Int32(batteryPercentage))%")
+                       .font(.callout)
+                   BatteryView(percentage: batteryPercentage, isCharging: isPluggedIn, batteryWidth: batteryWidth)
+               }
+           }
+       }
 }
 
 #Preview {
