@@ -55,5 +55,9 @@ struct BoringBatteryView: View {
 }
 
 #Preview {
-    BatteryView(percentage: 100, isCharging: true, batteryWidth: 30).frame(width: 200, height: 200)
+    BoringBatteryView(
+        batteryPercentage: 40,
+        isPluggedIn: true,
+        batteryWidth: 30
+    ).frame(width: 200, height: 200)
 }

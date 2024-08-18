@@ -16,7 +16,6 @@ struct BoringHeader: View {
             Text(vm.headerTitle)
                 .contentTransition(.numericText())
                 .font(.system(size: 12, design: .rounded))
-                .foregroundStyle(.gray)
             Spacer()
             HStack(spacing: 4){
                 if(vm.settingsIconInNotch) {
@@ -42,7 +41,7 @@ struct BoringHeader: View {
             }
             .animation(vm.animation?.delay(0.6), value: vm.notchState)
             .font(.system(.headline, design: .rounded))
-        }
+        }.foregroundColor(.gray)
     }}
 
 #Preview {
