@@ -31,7 +31,7 @@ struct NotchContentView: View {
                     if vm.notchState == .closed && batteryModel.showChargingInfo {
                         Text("Charging").foregroundStyle(.white).padding(.leading, 4)
                     }
-                    if !batteryModel.showChargingInfo && vm.currentView != .menu  {
+                    if !batteryModel.showChargingInfo && vm.currentView != .menu && !(vm.notchState == .closed && musicManager.isPlayerIdle)  {
                         
                         Image(nsImage: musicManager.albumArt)
                             .resizable()
