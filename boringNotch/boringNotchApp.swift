@@ -105,6 +105,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let windowY = screenFrame.frame.height
 
             window.setFrameTopLeftPoint(NSPoint(x: windowX, y: windowY))
+            let notchSize = setNotchSize()
+            self.vm.sizes.size.closed.height = notchSize.height
+            self.vm.sizes.size.closed.width = notchSize.width
         }
     }
     
