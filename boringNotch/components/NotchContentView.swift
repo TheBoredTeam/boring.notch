@@ -65,52 +65,15 @@ struct NotchContentView: View {
                                             .lineLimit(1)
                                     }
                                     HStack(spacing: 5) {
-                                        Button {
+                                        HoverButton(icon: "backward.fill") {
                                             musicManager.previousTrack()
-                                        } label: {
-                                            Rectangle()
-                                                .fill(.clear)
-                                                .contentShape(Rectangle())
-                                                .frame(width: 30, height: 30)
-                                                .overlay {
-                                                    Image(systemName: "backward.fill")
-                                                        .foregroundColor(.white)
-                                                        .imageScale(.medium)
-                                                }
                                         }
-                                        Button {
+                                        HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill") {
                                             print("tapped")
                                             musicManager.togglePlayPause()
-                                        } label: {
-                                            Rectangle()
-                                                .fill(.clear)
-                                                .contentShape(Rectangle())
-                                                .frame(width: 30, height: 30)
-                                                .overlay {
-                                                    Image(systemName: musicManager.isPlaying ? "pause.fill" : "play.fill")
-                                                        .foregroundColor(.white)
-                                                        .contentTransition(.symbolEffect)
-                                                        .imageScale(.large)
-                                                }
                                         }
-                                        Button {
+                                        HoverButton(icon: "forward.fill") {
                                             musicManager.nextTrack()
-                                        } label: {
-                                            Rectangle()
-                                                .fill(.clear)
-                                                .contentShape(Rectangle())
-                                                .frame(width: 30, height: 30)
-                                                .overlay {
-                                                    Capsule()
-                                                        .fill(.black)
-                                                        .frame(width: 30, height: 30)
-                                                        .overlay {
-                                                            Image(systemName: "forward.fill")
-                                                                .foregroundColor(.white)
-                                                                .imageScale(.medium)
-                                                            
-                                                        }
-                                                }
                                         }
                                     }
                                 }
