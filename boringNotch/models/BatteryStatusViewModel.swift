@@ -44,16 +44,9 @@ class BatteryStatusViewModel: ObservableObject {
                         
                         if (isCharging && !self.isPluggedIn) {
                             DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0)) {
-                                withAnimation {
-                                    self.showChargingInfo = true
-                                    self.isPluggedIn = true
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                        withAnimation {
-                                            self.showChargingInfo = false
-                                        }
-                                    }
-                                }
-                                
+                                self.vm.toggleExpandingView(status: true, type: .battery)
+                                self.showChargingInfo = true
+                                self.isPluggedIn = true
                             }
                             
                         }

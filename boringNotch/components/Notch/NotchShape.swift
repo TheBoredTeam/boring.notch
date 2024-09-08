@@ -8,7 +8,11 @@ import SwiftUI
 
 struct NotchShape: Shape {
     var topCornerRadius: CGFloat {
-        bottomCornerRadius - 5
+        if bottomCornerRadius > 15 {
+            bottomCornerRadius - 5
+        } else {
+            5
+        }
     }
     
     var bottomCornerRadius: CGFloat

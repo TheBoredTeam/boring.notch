@@ -27,22 +27,6 @@ struct EditPanelView: View {
             .padding()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background {
-            ZStack {
-                if let wallpaper = NSWorkspace.shared.desktopImageURL(for: NSScreen.main!) {
-                    if let wallpaperImage = NSImage(contentsOf: wallpaper) {
-                        Image(nsImage: wallpaperImage)
-                            .resizable()
-                            .scaledToFill()
-                            .blur(radius: 30, opaque: true)
-                            .clipped()
-                    }
-                }
-                
-                Rectangle()
-                    .fill(.black.opacity(0.2))
-            }
-        }
     }
 }
 

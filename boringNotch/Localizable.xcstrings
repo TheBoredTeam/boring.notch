@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
     "(%@)" : {
       "localizations" : {
         "en" : {
@@ -20,7 +17,23 @@
     "%.1fs" : {
 
     },
+    "%@" : {
+
+    },
+    "%@ - %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ - %2$@"
+          }
+        }
+      }
+    },
     "%d%%" : {
+
+    },
+    "%lld%%" : {
 
     },
     "• Bug fixes" : {
@@ -30,12 +43,6 @@
 
     },
     "• New feature 1" : {
-
-    },
-    "0" : {
-
-    },
-    "1" : {
 
     },
     "About" : {
@@ -57,6 +64,18 @@
           }
         }
       }
+    },
+    "AirDrop" : {
+
+    },
+    "AirDrop service not available" : {
+
+    },
+    "Always show tabs" : {
+
+    },
+    "Autohide BoringNotch in fullscreen" : {
+
     },
     "Automatically check for updates" : {
       "localizations" : {
@@ -111,7 +130,11 @@
         }
       }
     },
+    "Button icon style" : {
+
+    },
     "Buy Me a Coffee" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -145,7 +168,19 @@
     "Check for Updates…" : {
 
     },
+    "Circle" : {
+
+    },
+    "Clipboard history" : {
+
+    },
+    "Clipboard history panel shortcut" : {
+
+    },
     "Close" : {
+
+    },
+    "Close gesture" : {
 
     },
     "Coming soon" : {
@@ -158,6 +193,9 @@
         }
       }
     },
+    "Corner radius scaling" : {
+
+    },
     "Custom color" : {
       "localizations" : {
         "en" : {
@@ -169,6 +207,9 @@
       }
     },
     "Customization" : {
+
+    },
+    "Download" : {
 
     },
     "Download icon style" : {
@@ -204,10 +245,19 @@
         }
       }
     },
+    "Drop files here" : {
+
+    },
     "Edit" : {
 
     },
     "Edit layout" : {
+
+    },
+    "Emoji" : {
+
+    },
+    "Enable boring mirror" : {
 
     },
     "Enable colored spectrograms" : {
@@ -219,6 +269,9 @@
           }
         }
       }
+    },
+    "Enable gestures" : {
+
     },
     "Enable glowing effect" : {
 
@@ -236,7 +289,25 @@
     "Enable HUD replacement" : {
 
     },
+    "Enable Safari Downloads" : {
+
+    },
+    "Enable shadow" : {
+
+    },
     "Enable shelf" : {
+
+    },
+    "Enable sneak peek" : {
+
+    },
+    "Enjoy your free time!" : {
+
+    },
+    "Error" : {
+
+    },
+    "ERROR: VIEW NOT DEFINED" : {
 
     },
     "Exclude apps" : {
@@ -249,6 +320,15 @@
         }
       }
     },
+    "Exit" : {
+
+    },
+    "Extensions" : {
+
+    },
+    "Fullscreen media playback detection" : {
+
+    },
     "General" : {
       "localizations" : {
         "en" : {
@@ -258,6 +338,12 @@
           }
         }
       }
+    },
+    "Gesture control" : {
+
+    },
+    "Gesture sensitivity" : {
+
     },
     "GitHub" : {
       "localizations" : {
@@ -272,7 +358,19 @@
     "Got it!" : {
 
     },
+    "Gradient" : {
+
+    },
+    "Hierarchical" : {
+
+    },
+    "High" : {
+
+    },
     "HUDs" : {
+
+    },
+    "In progress" : {
 
     },
     "Install updates automatically" : {
@@ -285,6 +383,12 @@
           }
         }
       }
+    },
+    "Later" : {
+
+    },
+    "Low" : {
+
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
@@ -306,6 +410,9 @@
         }
       }
     },
+    "Media change with horizontal gestures" : {
+
+    },
     "Media inactivity timeout" : {
       "localizations" : {
         "en" : {
@@ -326,6 +433,9 @@
         }
       }
     },
+    "Medium" : {
+
+    },
     "Menubar icon" : {
       "localizations" : {
         "en" : {
@@ -336,7 +446,22 @@
         }
       }
     },
+    "Mic %@" : {
+
+    },
     "Minimum hover duration" : {
+
+    },
+    "Mirror" : {
+
+    },
+    "Mirror shape" : {
+
+    },
+    "Need Restart" : {
+
+    },
+    "No events today" : {
 
     },
     "No excludes" : {
@@ -350,6 +475,12 @@
       }
     },
     "Notch behavior" : {
+
+    },
+    "OK" : {
+
+    },
+    "One or more files failed to load" : {
 
     },
     "Only app icon" : {
@@ -372,6 +503,12 @@
         }
       }
     },
+    "Open notch on hover" : {
+
+    },
+    "Open shelf tab by default if items added" : {
+
+    },
     "Percentage" : {
       "localizations" : {
         "en" : {
@@ -391,6 +528,9 @@
           }
         }
       }
+    },
+    "Progressbar style" : {
+
     },
     "Quit" : {
       "localizations" : {
@@ -421,6 +561,9 @@
           }
         }
       }
+    },
+    "Restart Boring Notch" : {
+
     },
     "seconds" : {
       "extractionState" : "stale",
@@ -499,6 +642,9 @@
         }
       }
     },
+    "Square" : {
+
+    },
     "Support Us" : {
       "localizations" : {
         "en" : {
@@ -509,10 +655,16 @@
         }
       }
     },
-    "Use accent color" : {
+    "Symbols" : {
 
     },
-    "Use album art color during playback" : {
+    "System features" : {
+
+    },
+    "Upgrade to Pro" : {
+
+    },
+    "Use accent color" : {
 
     },
     "Version" : {

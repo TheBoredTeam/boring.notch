@@ -1,9 +1,12 @@
-## TheBoringNotch v Dancing Snake 🐍 is Here! 🎉
+## TheBoringNotch v Sleeping Snail 🐌 is Here! 🎉
 
 <img width="150" src="https://github.com/user-attachments/assets/e96f6110-ffad-4d8b-a02d-ead87b7edbe1" />
 
 ## Download
 <a href="https://github.com/iamharshdev/boring.notch/releases" target="_self"><img width="200" src="https://www.adviksoft.com/blog/wp-content/uploads/2023/09/editor_download_mac.png" /></a>
+
+> [!WARNING]
+> We don't have Apple Developer account yet. The applications will show a popup on first start. Click **Okay**, then go to **Settings / Privacy & Security** and scroll down until you see a button **Open anyway**. You'll have to do this once.
 
 ## Buy us coffee
 
@@ -11,7 +14,7 @@
 
 ## Join our Community on Discord
 
-<a href="https://discord.gg/fRzYm3jtQY">
+<a href="https://discord.gg/GvYcYpAKTu" target="_blank">
 <img src="https://www.kindpng.com/picc/m/221-2215393_discord-human-action-hd-png-download.png" width="200" alt="Discord - Human Action, HD Png Download@kindpng.com" />
 </a>
 
@@ -39,8 +42,8 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 ### Prerequisites
 
 - **A MacBook**: With a boring notch.
-- **macOS 12.0 or later**: If you’re not on the latest macOS, we might need to send a search party.
-- **Xcode 13.0 or later**: This is where the magic happens, so make sure it’s up-to-date.
+- **macOS 14.2 or later**: If you’re not on the latest macOS, we might need to send a search party.
+- **Xcode 15.0 or later**: This is where the magic happens, so make sure it’s up-to-date.
 
 ### Installation
 
@@ -70,16 +73,17 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - [x] Delayed notch opening ⏲️
 - [x] Charging indicator and current percentage 🔋
 - [x] Playback live activity 🎧
-- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
-- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍
-- [ ] Shelf functionality with AirDrop 📚
+- [ ] Clipboard history manager 📌 `Coming soon`
+- [ ] Customizable function buttons 🎛️ `Coming soon`
+- [ ] Shelf functionality with AirDrop 📚 `Coming soon`
+- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Coming soon`
+- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Coming soon`
 - [ ] Layout customization options 🛠️
 - [ ] Notch sizing customization, finetuning on different display sizes 🖥️
 - [ ] Calendar integration 📆
 - [ ] App switcher 🪄
-- [ ] Customizable function buttons 🎛️
-- [ ] Notifications (need further info if can be achieved) 🔔
-- [ ] Clipboard history manager 📌
+- [ ] Customizable gesture control 👆🏻 `Coming soon`
+- [ ] Notifications (under consideration) 🔔
 
 ## 🤝 Contributing
 

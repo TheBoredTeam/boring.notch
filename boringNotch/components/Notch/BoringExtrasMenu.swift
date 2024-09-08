@@ -78,7 +78,7 @@ struct BoringExtrasMenu : View {
         BoringLargeButtons(
             action: {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    vm.openMusic()
+                    //vm.openMusic()
                 }
             },
             icon: Image(systemName: "arrow.down.forward.and.arrow.up.backward"),

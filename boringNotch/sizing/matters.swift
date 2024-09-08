@@ -1,32 +1,35 @@
-//
-//  sizeMatters.swift
-//  boringNotch
-//
-//  Created by Harsh Vardhan  Goswami  on 05/08/24.
-//
+    //
+    //  sizeMatters.swift
+    //  boringNotch
+    //
+    //  Created by Harsh Vardhan  Goswami  on 05/08/24.
+    //
 
 import SwiftUI
 import Foundation
 
 var closedNotchSize: CGSize = setNotchSize()
 
+var downloadSneakSize: CGSize = .init(width: 65, height: 1)
+var batterySenakSize: CGSize = .init(width: 160, height: 1)
+
 func setNotchSize() -> CGSize {
     
     var notchHeight: CGFloat = 32
     var notchWidth: CGFloat = 185
     
-    // Check if the screen is available
+        // Check if the screen is available
     if let screen = NSScreen.main {
-        // Calculate and set the exact width of the notch
+            // Calculate and set the exact width of the notch
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
            let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
             notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 10
         }
         
-        // Use MenuBar height as notch height if there is no notch
+            // Use MenuBar height as notch height if there is no notch
         notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
         
-        // Check if the Mac has a notch
+            // Check if the Mac has a notch
         if screen.safeAreaInsets.top > 0 {
             notchHeight = screen.safeAreaInsets.top
         }
@@ -49,7 +52,7 @@ struct StatesSizes {
 struct Sizes {
     var cornerRadius: StatesSizes = StatesSizes(opened: Area(inset: 24), closed: Area(inset: 10))
     var size: StatesSizes = StatesSizes(
-        opened: Area(width: 500, height: 130),
+        opened: Area(width: 530, height: 150),
         closed: Area(width: closedNotchSize.width, height: closedNotchSize.height)
     )
 }
@@ -60,9 +63,9 @@ struct MusicPlayerElementSizes {
     
     var image: Sizes = Sizes(
         cornerRadius: StatesSizes(
-            opened: Area(inset: 14), closed: Area(inset:4)),
+            opened: Area(inset: 16), closed: Area(inset: 4)),
         size: StatesSizes(
-            opened: Area(width: 70, height: 70), closed: Area(width: 20, height: 20)
+            opened: Area(width: 90, height: 90), closed: Area(width: 20, height: 20)
         )
     )
     var player: Sizes = Sizes(

@@ -24,10 +24,8 @@ public enum NotchState {
 }
 
 public enum NotchViews {
-    case empty
-    case music
-    case menu
-    case weather
+    case home
+    case shelf
 }
 
 enum SettingsEnum {
@@ -38,6 +36,7 @@ enum SettingsEnum {
     case mediaPlayback
     case hud
     case shelf
+    case extensions
 }
 
 enum DownloadIndicatorStyle {
@@ -49,4 +48,9 @@ enum DownloadIconStyle {
     case onlyAppIcon
     case onlyIcon
     case iconAndAppIcon
+}
+
+enum MirrorShapeEnum {
+    case rectangle
+    case circle
 }

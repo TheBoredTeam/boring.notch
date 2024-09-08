@@ -8,9 +8,11 @@
 import SwiftUI
 import LaunchAtLogin
 import Sparkle
+import KeyboardShortcuts
 
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
+    
     let updaterController: SPUStandardUpdaterController
     
     @State private var selectedTab: SettingsEnum = .general
@@ -38,18 +40,22 @@ struct SettingsView: View {
             Shelf()
                 .tabItem { Label("Shelf", systemImage: "books.vertical") }
                 .tag(SettingsEnum.shelf)
+            Extensions()
+                .tabItem { Label("Extensions", systemImage: "clipboard") }
+                .tag(SettingsEnum.extensions)
             About()
                 .tabItem { Label("About", systemImage: "info.circle") }
                 .tag(SettingsEnum.about)
         })
         .formStyle(.grouped)
-        .frame(width: 600, height: 500)
         .tint(vm.accentColor)
     }
     
     @ViewBuilder
     func GeneralSettings() -> some View {
         Form {
+            warningBadge("Your settings will not be restored on restart", "By doing this, we can quickly address global bugs. It will be enabled later on.")
+            
             Section {
                 HStack() {
                     ForEach(accentColors, id: \.self) { color in
@@ -82,33 +88,47 @@ struct SettingsView: View {
                 Text("Accent color")
             }
             
+            Section {
+                Toggle("Menubar icon", isOn: $vm.showMenuBarIcon)
+                LaunchAtLogin.Toggle("Launch at login")
+            } header: {
+                Text("System features")
+            }
+            
             boringControls()
             
             NotchBehaviour()
+            
+            gestureControls()
         }
+        
     }
     
     @ViewBuilder
     func Charge() -> some View {
         Form {
-            Toggle("Show charging indicator", isOn: $vm.chargingInfoAllowed)
-            Toggle("Show battery indicator", isOn: $vm.showBattery.animation())
+            Section {
+                Toggle("Show charging indicator", isOn: $vm.chargingInfoAllowed)
+                Toggle("Show battery indicator", isOn: $vm.showBattery.animation())
+            } header: {
+                Text("General")
+            }
         }
     }
     
     @ViewBuilder
     func Downloads() -> some View {
         Form {
+            warningBadge("We don't support downloads yet", "It will be supported later on.")
             Section {
-                Toggle("Show download progress", isOn: .constant(false))
-                    .disabled(true)
+                Toggle("Show download progress", isOn: $vm.enableDownloadListener).disabled(true)
+                Toggle("Enable Safari Downloads", isOn: $vm.enableSafariDownloads).disabled(!vm.enableDownloadListener)
                 Picker("Download indicator style", selection: $vm.selectedDownloadIndicatorStyle) {
                     Text("Progress bar")
                         .tag(DownloadIndicatorStyle.progress)
                     Text("Percentage")
                         .tag(DownloadIndicatorStyle.percentage)
                 }
-                .disabled(true)
                 Picker("Download icon style", selection: $vm.selectedDownloadIconStyle) {
                     Text("Only app icon")
                         .tag(DownloadIconStyle.onlyAppIcon)
@@ -117,7 +137,6 @@ struct SettingsView: View {
                     Text("Both")
                         .tag(DownloadIconStyle.iconAndAppIcon)
                 }
-                .disabled(true)
                 
             } header: {
                 HStack {
@@ -169,18 +188,23 @@ struct SettingsView: View {
     func HUD() -> some View {
         Form {
             Section {
-                Toggle("Enable HUD replacement", isOn: .constant(false))
-                Toggle("Enable glowing effect", isOn: .constant(true))
-                Toggle("Use accent color", isOn: .constant(false))
-                Toggle("Use album art color during playback", isOn: .constant(false))
+                Toggle("Enable HUD replacement", isOn: $vm.hudReplacement)
+                Toggle("Enable glowing effect", isOn: $vm.systemEventIndicatorShadow.animation())
+                Picker("Progressbar style", selection: $vm.enableGradient) {
+                    Text("Hierarchical")
+                        .tag(false)
+                    Text("Gradient")
+                        .tag(true)
+                }
+                Toggle("Use accent color", isOn: $vm.systemEventIndicatorUseAccent.animation())
             } header: {
                 HStack {
                     Text("Customization")
-                    comingSoonTag()
                 }
             }
-            .disabled(true)
-        }
+        }.disabled(
+            !BoringExtensionManager.shared.installedExtensions.contains(hudExtension)
+        )
     }
     
     @ViewBuilder
@@ -188,6 +212,7 @@ struct SettingsView: View {
         Form {
             Section {
                 Toggle("Enable colored spectrograms", isOn: $vm.coloredSpectrogram.animation())
+                Toggle("Enable sneak peek", isOn: $vm.enableSneakPeek)
                 HStack {
                     Stepper(value: $vm.waitInterval, in: 0...10, step: 1) {
                         HStack {
@@ -201,32 +226,88 @@ struct SettingsView: View {
             } header: {
                 Text("Media playback live activity")
             }
+            
+            Section {
+                Toggle("Autohide BoringNotch in fullscreen", isOn: $vm.enableFullscreenMediaDetection)
+            } header: {
+                HStack {
+                    Text("Fullscreen media playback detection")
+                    customBadge(text: "Beta")
+                }
+            }
         }
-        .formStyle(.grouped)}
+    }
     
     @ViewBuilder
     func boringControls() -> some View {
         Section {
-            
+            Picker("Button icon style", selection: $vm.showEmojis) {
+                Text("Emoji")
+                    .tag(true)
+                Text("Symbols")
+                    .tag(false)
+            }
             Toggle("Show cool face animation while inactivity", isOn: $vm.nothumanface.animation())
-            LaunchAtLogin.Toggle("Launch at login 🦄")
-            Toggle("Enable haptics", isOn: $vm.enableHaptics)
-            Toggle("Menubar icon", isOn: $vm.showMenuBarIcon)
+            Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
+            Toggle("Enable boring mirror", isOn: $vm.showMirror)
+            Picker("Mirror shape", selection: $vm.mirrorShape) {
+                Text("Circle")
+                    .tag(MirrorShapeEnum.circle)
+                Text("Square")
+                    .tag(MirrorShapeEnum.rectangle)
+            }
             Toggle("Settings icon in notch", isOn: $vm.settingsIconInNotch)
-            
         } header: {
             Text("Boring Controls")
         }
     }
     
     @ViewBuilder
+    func gestureControls() -> some View {
+        Section {
+            Toggle("Enable gestures", isOn: $vm.enableGestures.animation())
+                .disabled(!vm.openNotchOnHover)
+            if vm.enableGestures {
+                Toggle("Media change with horizontal gestures", isOn: .constant(false))
+                    .disabled(true)
+                Toggle("Close gesture", isOn: $vm.closeGestureEnabled)
+                Slider(value: $vm.gestureSensitivity, in: 100...300, step: 100) {
+                    HStack {
+                        Text("Gesture sensitivity")
+                        Spacer()
+                        Text(vm.gestureSensitivity == 100 ? "High" : vm.gestureSensitivity == 200 ? "Medium" : "Low")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } header: {
+            HStack {
+                Text("Gesture control")
+                customBadge(text: "Beta")
+            }
+        }
+    }
+    
+    @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-            Slider(value: $vm.minimumHoverDuration, in: 0...1, step: 0.1, minimumValueLabel: Text("0"), maximumValueLabel: Text("1")) {
-                HStack {
-                    Text("Minimum hover duration")
-                    Text("\(vm.minimumHoverDuration, specifier: "%.1f")s")
-                        .foregroundStyle(.secondary)
+            Toggle("Enable haptics", isOn: $vm.enableHaptics)
+            Toggle("Enable shadow", isOn: $vm.enableShadow)
+            Toggle("Corner radius scaling", isOn: $vm.cornerRadiusScaling)
+            Toggle("Open notch on hover", isOn: $vm.openNotchOnHover.animation())
+                .onChange(of: vm.openNotchOnHover) { old, new in
+                    if !new {
+                        vm.enableGestures = true
+                    }
+                }
+            if vm.openNotchOnHover {
+                Slider(value: $vm.minimumHoverDuration, in: 0...1, step: 0.1) {
+                    HStack {
+                        Text("Minimum hover duration")
+                        Spacer()
+                        Text("\(vm.minimumHoverDuration, specifier: "%.1f")s")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         } header: {
@@ -310,12 +391,40 @@ struct SettingsView: View {
     func Shelf() -> some View {
         Form {
             Section {
-                Toggle("Enable shelf", isOn: .constant(false))
+                Toggle("Enable shelf", isOn: $vm.boringShelf)
+                Toggle("Open shelf tab by default if items added", isOn: $vm.openShelfByDefault)
             } header: {
-                comingSoonTag()
+                HStack {
+                    Text("General")
+                }
             }
-            .disabled(true)
         }
+    }
+    
+    @ViewBuilder
+    func Extensions() -> some View {
+        Form {
+            
+            Section {
+                KeyboardShortcuts.Recorder("Clipboard history panel shortcut", name: .clipboardHistoryPanel)
+            } header: {
+                HStack {
+                    Text("Clipboard history")
+                    proFeatureBadge()
+                }
+            }.disabled(
+                !BoringExtensionManager.shared.installedExtensions.contains(clipboardExtension)
+            )
+        }
+    }
+    
+    func proFeatureBadge () -> some View {
+        Text("Upgrade to Pro")
+            .foregroundStyle(Color(red: 0.545, green: 0.196, blue: 0.98))
+            .font(.footnote.bold())
+            .padding(.vertical, 3)
+            .padding(.horizontal, 6)
+            .background(RoundedRectangle(cornerRadius: 4).stroke(Color(red: 0.545, green: 0.196, blue: 0.98), lineWidth: 1))
     }
     
     func comingSoonTag () -> some View {
@@ -326,5 +435,32 @@ struct SettingsView: View {
             .padding(.horizontal, 6)
             .background(Color(nsColor: .secondarySystemFill))
             .clipShape(.capsule)
+    }
+    
+    func customBadge (text: String) -> some View {
+        Text(text)
+            .foregroundStyle(.secondary)
+            .font(.footnote.bold())
+            .padding(.vertical, 3)
+            .padding(.horizontal, 6)
+            .background(Color(nsColor: .secondarySystemFill))
+            .clipShape(.capsule)
+    }
+    
+    func warningBadge(_ text: String, _ description: String) -> some View {
+        Section {
+            HStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(.yellow)
+                VStack(alignment: .leading) {
+                    Text(text)
+                        .font(.headline)
+                    Text(description)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+        }
     }
 }
