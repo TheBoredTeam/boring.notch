@@ -69,9 +69,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(sneakPeakEvent), name: .init("theboringteam.workers.sneakPeak"), object: nil)
         
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(initialMicStatus), name: .init("theboringteam.theboringworker.micstatus"), object: nil)
+        
+        vm.setupWorkersNotificationObservers();
+    
         
         NotificationCenter.default.addObserver(
             self,
@@ -92,24 +93,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if vm.firstLaunch {
             playWelcomeSound()
-        }
-    }
-    
-    @objc func initialMicStatus(_ notification: Notification) {
-        vm.currentMicStatus = notification.userInfo?.first?.value as! Bool
-    }
-    
-    @objc func sneakPeakEvent(_ notification: Notification) {
-        let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(SharedSneakPeack.self, from: notification.userInfo?.first?.value as! Data) {
-            let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
-            
-            let value = Float(decodedData.value) ?? 0.0
-            
-            vm.toggleSneakPeak(status: decodedData.show, type: contentType, value: CGFloat(value))
-            
-        } else {
-            print("Failed to decode JSON data")
         }
     }
     

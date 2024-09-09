@@ -1,5 +1,5 @@
 {
-  "originHash" : "291223c3f235a45ac5cebb6c291b49443342ca9dde0fafceeadda8fdd7fa1021",
+  "originHash" : "32867465dbb54d447b899e3c6f52e13ed6e098bfeabfeeda66cf5518cd392d73",
   "pins" : [
     {
       "identity" : "keyboardshortcuts",
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "9bf03ff58ce34478e66aaee630e491823326fd06",
         "version" : "1.1.3"
+      }
+    },
+    {
+      "identity" : "theboringworkernotifier",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/TheBoredTeam/TheBoringWorkerNotifier.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "1d01f2c3bb4e7aa569adf4e079882ad465e0cda0"
       }
     }
   ],
