@@ -17,6 +17,7 @@
 		1471A8592C6281BD0058408D /* BoringNotchWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1471A8582C6281BD0058408D /* BoringNotchWindow.swift */; };
 		147CB9432C8C42240094C254 /* NowPlaying.m in Sources */ = {isa = PBXBuildFile; fileRef = 147CB9422C8C42240094C254 /* NowPlaying.m */; };
 		147CB9572C8CCC980094C254 /* BoringExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147CB9562C8CCC980094C254 /* BoringExtensionManager.swift */; };
+		1485442F2C8F049C00943381 /* TheBoringWorkerNotifier in Frameworks */ = {isa = PBXBuildFile; productRef = 1485442E2C8F049C00943381 /* TheBoringWorkerNotifier */; };
 		149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149E0B962C737D00006418B1 /* WebcamManager.swift */; };
 		149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149E0B992C737D40006418B1 /* WebcamView.swift */; };
 		14A7E5882C64A89C008C1BE9 /* HelloAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */; };
@@ -189,6 +190,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
+				1485442F2C8F049C00943381 /* TheBoringWorkerNotifier in Frameworks */,
 				14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */,
 				14D0321A2C68F32E0096E6A1 /* LaunchAtLogin in Frameworks */,
 				B1A78C842C8C65ED00BD51B0 /* MediaRemote.framework in Frameworks */,
@@ -503,6 +505,7 @@
 				14D0321C2C68F3350096E6A1 /* Sparkle */,
 				B18654382C6F4990000B926A /* KeyboardShortcuts */,
 				9A987A0F2C73CA8D005CA465 /* Collections */,
+				1485442E2C8F049C00943381 /* TheBoringWorkerNotifier */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -539,6 +542,7 @@
 				B18654372C6F4990000B926A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 				9A987A0E2C73CA8D005CA465 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				9A987A112C73CAA1005CA465 /* XCRemoteSwiftPackageReference "Pow" */,
+				1485442D2C8F049C00943381 /* XCRemoteSwiftPackageReference "TheBoringWorkerNotifier" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -767,6 +771,10 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = boringNotch/boringNotch.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+<<<<<<< HEAD
+=======
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+>>>>>>> panda-glows
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = "1.91+2";
@@ -814,6 +822,10 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = boringNotch/boringNotch.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+<<<<<<< HEAD
+=======
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+>>>>>>> panda-glows
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = "1.91+2";
@@ -875,6 +887,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		1485442D2C8F049C00943381 /* XCRemoteSwiftPackageReference "TheBoringWorkerNotifier" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/TheBoredTeam/TheBoringWorkerNotifier.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
@@ -918,6 +938,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1485442E2C8F049C00943381 /* TheBoringWorkerNotifier */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1485442D2C8F049C00943381 /* XCRemoteSwiftPackageReference "TheBoringWorkerNotifier" */;
+			productName = TheBoringWorkerNotifier;
+		};
 		14D032192C68F32E0096E6A1 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;

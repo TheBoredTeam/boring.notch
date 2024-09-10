@@ -7,6 +7,7 @@
 
 import Combine
 import SwiftUI
+import TheBoringWorkerNotifier
 
 private let availableDirectories = FileManager
     .default
@@ -142,7 +143,7 @@ class BoringViewModel: NSObject, ObservableObject {
             toggleHudReplacement()
         }
     }
-
+    
     @Published var maxClipboardRecords: Int = 1000
     @Published var sizeOfClipbordCache: String = "0 MB"
     @Published var showMirror: Bool = false
@@ -164,15 +165,12 @@ class BoringViewModel: NSObject, ObservableObject {
     }
     
     @AppStorage("enableDownloadListener") var enableSafariDownloads: Bool = false {
-        didSet {
-            //            if enableSafariDownloads {
-            //                checkSafariDownloadAccess()
-            //            }
-        }
+        didSet {}
     }
     
     @ObservedObject var boringExtensionManager: BoringExtensionManager
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
+    var notifier: TheBoringWorkerNotifier = .init()
     
     deinit {
         destroy()
@@ -185,13 +183,10 @@ class BoringViewModel: NSObject, ObservableObject {
     
     override
     init() {
-        self.animation = animationLibrary.animation
+        animation = animationLibrary.animation
         _boringExtensionManager = ObservedObject(wrappedValue: BoringExtensionManager.shared)
+        notifier = TheBoringWorkerNotifier()
         super.init()
-        
-        //        if(self.enableSafariDownloads){
-        //            checkSafariDownloadAccess()
-        //        }
         
         Publishers.CombineLatest($dropZoneTargeting, $dragDetectorTargeting)
             .map { value1, value2 in
@@ -209,6 +204,30 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
     
+    func setupWorkersNotificationObservers() {
+        notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeakEvent)
+        
+        notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
+    }
+    
+    @objc func initialMicStatus(_ notification: Notification) {
+        currentMicStatus = notification.userInfo?.first?.value as! Bool
+    }
+    
+    @objc func sneakPeakEvent(_ notification: Notification) {
+        let decoder = JSONDecoder()
+        if let decodedData = try? decoder.decode(SharedSneakPeack.self, from: notification.userInfo?.first?.value as! Data) {
+            let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
+            
+            let value = Float(decodedData.value) ?? 0.0
+            
+            toggleSneakPeak(status: decodedData.show, type: contentType, value: CGFloat(value))
+            
+        } else {
+            print("Failed to decode JSON data")
+        }
+    }
+    
     @Published var notchSize: CGSize = .init(width: Sizes().size.closed.width!, height: Sizes().size.closed.height!)
     
     func toggleMusicLiveActivity(status: Bool) {
@@ -218,7 +237,7 @@ class BoringViewModel: NSObject, ObservableObject {
     }
     
     func toggleMic() {
-        DistributedNotificationCenter.default().postNotificationName(NSNotification.Name(rawValue: "theboringteam.theboringworker.togglemic"), object: nil, userInfo: nil, deliverImmediately: true)
+        notifier.postNotification(name: notifier.toggleMicNotification.name, userInfo: nil)
     }
     
     func toggleSneakPeak(status: Bool, type: SneakContentType, value: CGFloat = 0) {
@@ -242,7 +261,7 @@ class BoringViewModel: NSObject, ObservableObject {
     }
     
     func toggleHudReplacement() {
-        DistributedNotificationCenter.default().postNotificationName(NSNotification.Name(rawValue: "theboringteam.theboringworker.togglehudreplacement"), object: nil, userInfo: nil, deliverImmediately: true)
+        notifier.postNotification(name: notifier.toggleHudReplacementNotification.name, userInfo: nil)
     }
     
     func toggleExpandingView(status: Bool, type: SneakContentType, value: CGFloat = 0, browser: BrowserType = .chromium) {
@@ -279,7 +298,7 @@ class BoringViewModel: NSObject, ObservableObject {
     }
     
     func openClipboard() {
-        DistributedNotificationCenter.default().postNotificationName(NSNotification.Name(rawValue: "theboringteam.theboringnotch.showclipboard"), object: nil, userInfo: nil, deliverImmediately: true)
+        notifier.postNotification(name: notifier.showClipboardNotification.name, userInfo: nil)
     }
     
     func toggleClipboard() {

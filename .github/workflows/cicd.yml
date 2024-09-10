@@ -1,0 +1,48 @@
+name: Build for macos  platform
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+# https://stackoverflow.com/a/72408109/6942800
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build boringNotch
+    strategy:
+      matrix:
+        platform:
+          - macOS
+        scheme:
+          - boringNotch
+    runs-on: macos-latest
+    steps:
+    - name: Switch xcode to latest-stable
+      uses: maxim-lobanov/setup-xcode@v1.2.3
+      with:
+        xcode-version: latest-stable
+    - name: Code Checkout
+      uses: actions/checkout@v2
+    - name: Check xcodebuild version
+      run: xcodebuild -version
+    - name: Check xcode embedded SDKs
+      run: xcodebuild -showsdks
+    - name: Show buildable schemes
+      run: xcodebuild -list
+    - name: Show eligible build destinations for ${{ matrix.scheme }}
+      run: xcodebuild -showdestinations -scheme ${{ matrix.scheme }}
+    - uses: mxcl/xcodebuild@v3
+      with:
+        platform: ${{ matrix.platform }}
+        scheme: ${{ matrix.scheme }}
+        action: build
+        verbosity: xcpretty
+        upload-logs: always
+        configuration: release
