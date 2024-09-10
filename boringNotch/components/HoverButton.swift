@@ -11,6 +11,7 @@ struct HoverButton: View {
     var icon: String
     var iconColor: Color = .white;
     var action: () -> Void
+    var contentTransition: ContentTransition = .symbolEffect;
     
     @State private var isHovering = false
 
@@ -27,6 +28,7 @@ struct HoverButton: View {
                         .overlay {
                             Image(systemName: icon)
                                 .foregroundColor(iconColor)
+                                .contentTransition(contentTransition)
                                 .imageScale(.medium)
                         }
                 }
