@@ -20,16 +20,6 @@
     "%@" : {
 
     },
-    "%@ - %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ - %2$@"
-          }
-        }
-      }
-    },
     "%d%%" : {
 
     },
@@ -69,6 +59,9 @@
 
     },
     "AirDrop service not available" : {
+
+    },
+    "All-day" : {
 
     },
     "Always show tabs" : {
