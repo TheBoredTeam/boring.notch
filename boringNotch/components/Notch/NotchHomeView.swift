@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-private var appIcons: AppIcons = AppIcons()
-
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
     @EnvironmentObject var musicManager: MusicManager
@@ -34,7 +32,7 @@ struct NotchHomeView: View {
                     
                     
                     if vm.notchState == .open {
-                         Image(nsImage: appIcons.getIcon(bundleID: musicManager.bundleIdentifier)!)
+                        AppIcon(for: musicManager.bundleIdentifier)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 30, height: 30)

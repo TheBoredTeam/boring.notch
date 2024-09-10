@@ -1,10 +1,11 @@
-    //
-    //  AppIcons.swift
-    //  boringNotch
-    //
-    //  Created by Harsh Vardhan  Goswami  on 16/08/24.
-    //
+//
+//  AppIcons.swift
+//  boringNotch
+//
+//  Created by Harsh Vardhan  Goswami  on 16/08/24.
+//
 
+import SwiftUI
 import AppKit
 
 struct AppIcons {
@@ -38,4 +39,15 @@ struct AppIcons {
         return Bundle(url: url)
     }
     
+}
+
+func AppIcon(for bundleID: String) -> Image {
+    let workspace = NSWorkspace.shared
+    
+    if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
+        let appIcon = workspace.icon(forFile: appURL.path)
+        return Image(nsImage: appIcon)
+    }
+    
+    return Image(nsImage: workspace.icon(for: .applicationBundle))
 }

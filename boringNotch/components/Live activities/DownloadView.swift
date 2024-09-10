@@ -8,8 +8,6 @@
 import Foundation
 import SwiftUI
 
-private var appIcons: AppIcons = .init()
-
 enum Browser {
     case safari
     case chrome
@@ -33,7 +31,7 @@ struct DownloadArea: View {
         HStack(alignment: .center) {
             HStack {
                 if watcher.downloadFiles.first!.browser == .safari {
-                    Image(nsImage: appIcons.getIcon(bundleID: "com.apple.safari")!)
+                    AppIcon(for: "com.apple.safari")
                 } else {
                     Image(.chrome).resizable().scaledToFit().frame(width: 30, height: 30)
                 }

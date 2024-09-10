@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-private var appIcons: AppIcons = AppIcons()
-
 struct NotchContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @EnvironmentObject var musicManager: MusicManager
@@ -38,7 +36,7 @@ struct NotchContentView: View {
                         }
                         else {
                             if vm.expandingView.browser == .safari {
-                                Image(nsImage: appIcons.getIcon(bundleID: "com.apple.safari")!)
+                                AppIcon(for: "com.apple.safari")
                             } else {
                                 Image(.chrome).resizable().scaledToFit().frame(width: 30, height: 30)
                             }
@@ -60,7 +58,7 @@ struct NotchContentView: View {
                                         .scaledToFit()
                                         .padding(.leading, vm.notchState == .open ? 0 : 3)
                                     if vm.notchState == .open  {
-                                        Image(nsImage: appIcons.getIcon(bundleID: musicManager.bundleIdentifier)!)
+                                        AppIcon(for: musicManager.bundleIdentifier)
                                             .resizable()
                                             .aspectRatio(contentMode: .fill)
                                             .frame(width: vm.notchState == .open ? 30 : 10, height: vm.notchState == .open ? 30 : 10)
