@@ -34,7 +34,7 @@ struct NotchHomeView: View {
                     
                     
                     if vm.notchState == .open {
-not                         Image(nsImage: appIcons.getIcon(bundleID: musicManager.bundleIdentifier)!)
+                         Image(nsImage: appIcons.getIcon(bundleID: musicManager.bundleIdentifier)!)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 30, height: 30)
