@@ -1,9 +1,9 @@
-    //
-    //  NotchHomeView.swift
-    //  boringNotch
-    //
-    //  Created by Hugo Persson on 2024-08-18.
-    //
+//
+//  NotchHomeView.swift
+//  boringNotch
+//
+//  Created by Hugo Persson on 2024-08-18.
+//
 
 import SwiftUI
 
@@ -19,7 +19,7 @@ struct NotchHomeView: View {
     
     var body: some View {
         if !vm.firstLaunch {
-            HStack(spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
                 ZStack(alignment: .bottomTrailing) {
                     Color.clear
                         .aspectRatio(1, contentMode: .fit)
@@ -34,7 +34,7 @@ struct NotchHomeView: View {
                     
                     
                     if vm.notchState == .open {
-                        Image(nsImage: appIcons.getIcon(bundleID: musicManager.bundleIdentifier)!)
+not                         Image(nsImage: appIcons.getIcon(bundleID: musicManager.bundleIdentifier)!)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 30, height: 30)
@@ -70,10 +70,17 @@ struct NotchHomeView: View {
                 .opacity(vm.notchState == .closed ? 0 : 1)
                 .blur(radius: vm.notchState == .closed ? 20 : 0)
                 
-                CalenderView().frame(
-                    width: 220,
-                    height: 100
-                )
+                CalendarView()
+                    .onContinuousHover { phase in
+                        if vm.closeGestureEnabled {
+                            switch phase {
+                                case .active:
+                                    vm.closeGestureEnabled = false
+                                case .ended:
+                                    vm.closeGestureEnabled = false
+                            }
+                        }
+                    }
                 
                 if vm.showMirror {
                     CircularPreviewView(webcamManager: webcamManager)
