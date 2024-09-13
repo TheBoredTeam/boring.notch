@@ -1,5 +1,4 @@
-## TheBoringNotch v Sleeping Snail 🐌 is Here! 🎉
-
+## TheBoringNotch
 ![TheBoringNotch Build & Test](https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg)
 
 <img width="150" src="https://github.com/user-attachments/assets/e96f6110-ffad-4d8b-a02d-ead87b7edbe1" />
@@ -75,16 +74,16 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - [x] Delayed notch opening ⏲️
 - [x] Charging indicator and current percentage 🔋
 - [x] Playback live activity 🎧
+- [ ] Calendar integration 📆 `Coming soon`
 - [ ] Clipboard history manager 📌 `Coming soon`
+- [ ] Customizable gesture control 👆🏻 `Coming soon`
 - [ ] Customizable function buttons 🎛️ `Coming soon`
 - [ ] Shelf functionality with AirDrop 📚 `Coming soon`
 - [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Coming soon`
 - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Coming soon`
 - [ ] Layout customization options 🛠️
 - [ ] Notch sizing customization, finetuning on different display sizes 🖥️
-- [ ] Calendar integration 📆
 - [ ] App switcher 🪄
-- [ ] Customizable gesture control 👆🏻 `Coming soon`
 - [ ] Notifications (under consideration) 🔔
 
 ## 🤝 Contributing
