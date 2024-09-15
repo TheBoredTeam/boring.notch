@@ -16,32 +16,34 @@ struct InlineHUD: View {
     var body: some View {
         HStack {
             HStack(spacing: 5) {
-                switch (type) {
-                    case .volume:
-                        Image(systemName: SpeakerSymbol(value))
-                            .contentTransition(.opacity)
-                            .frame(width: 20, height: 15, alignment: .leading)
-                            .foregroundStyle(.white)
-                    case .brightness:
-                        Image(systemName: "sun.max.fill")
-                            .contentTransition(.symbolEffect)
-                            .frame(width: 20, height: 15)
-                            .foregroundStyle(.white)
-                    case .backlight:
-                        Image(systemName: "keyboard")
-                            .contentTransition(.symbolEffect)
-                            .frame(width: 20, height: 15)
-                            .foregroundStyle(.white)
-                    case .mic:
-                        Image(systemName: "mic")
-                            .symbolRenderingMode(.hierarchical)
-                            .symbolVariant(value > 0 ? .none : .slash)
-                            .contentTransition(.interpolate)
-                            .frame(width: 20, height: 15)
-                            .foregroundStyle(.white)
-                    default:
-                        EmptyView()
+                Group {
+                    switch (type) {
+                        case .volume:
+                            Image(systemName: SpeakerSymbol(value))
+                                .contentTransition(.interpolate)
+                                .symbolVariant(value > 0 ? .none : .slash)
+                                .frame(width: 20, height: 15, alignment: .leading)
+                        case .brightness:
+                            Image(systemName: BrightnessSymbol(value))
+                                .contentTransition(.interpolate)
+                                .frame(width: 20, height: 15, alignment: .center)
+                        case .backlight:
+                            Image(systemName: "keyboard")
+                                .contentTransition(.interpolate)
+                                .frame(width: 20, height: 15, alignment: .center)
+                        case .mic:
+                            Image(systemName: "mic")
+                                .symbolRenderingMode(.hierarchical)
+                                .symbolVariant(value > 0 ? .none : .slash)
+                                .contentTransition(.interpolate)
+                                .frame(width: 20, height: 15, alignment: .center)
+                        default:
+                            EmptyView()
+                    }
                 }
+                .foregroundStyle(.white)
+                .symbolVariant(.fill)
+                
                 Text(Type2Name(type))
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -49,7 +51,6 @@ struct InlineHUD: View {
                     .allowsTightening(true)
                     .contentTransition(.numericText())
             }
-            .symbolVariant(.fill)
             .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.sizes.size.closed.height! - (hoverAnimation ? 0 : 12), alignment: .leading)
             
             Rectangle()
@@ -66,6 +67,7 @@ struct InlineHUD: View {
                         .allowsTightening(true)
                         .multilineTextAlignment(.trailing)
                         .frame(maxWidth: .infinity, alignment: .trailing)
+                        .contentTransition(.interpolate)
                 }
             }
             .padding(.trailing, 4)
@@ -77,7 +79,7 @@ struct InlineHUD: View {
     func SpeakerSymbol(_ value: CGFloat) -> String {
         switch(value) {
             case 0:
-                return "speaker.slash"
+                return "speaker"
             case 0...0.3:
                 return "speaker.wave.1"
             case 0.3...0.8:
@@ -86,6 +88,17 @@ struct InlineHUD: View {
                 return "speaker.wave.3"
             default:
                 return "speaker.wave.2"
+        }
+    }
+    
+    func BrightnessSymbol(_ value: CGFloat) -> String {
+        switch(value) {
+            case 0...0.6:
+                return "sun.min"
+            case 0.6...1:
+                return "sun.max"
+            default:
+                return "sun.min"
         }
     }
     
