@@ -37,9 +37,8 @@ struct DynamicNotchApp: App {
             Button("Clipboard history") {
                 self.appDelegate.vm.openClipboard()
             }
-            .keyboardShortcut(KeyboardShortcuts.Name("clipboardHistoryPanel")).disabled(
-                !BoringExtensionManager.shared.installedExtensions.contains(clipboardExtension)
-            )
+            .keyboardShortcut(KeyboardShortcuts.Name("clipboardHistoryPanel"))
+            .disabled(appDelegate.vm.extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(clipboardExtension))
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Restart Boring Notch") {}

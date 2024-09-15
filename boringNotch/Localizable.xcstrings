@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    " – %lld" : {
+
+    },
     "(%@)" : {
       "localizations" : {
         "en" : {
@@ -21,6 +24,9 @@
 
     },
     "%d%%" : {
+
+    },
+    "%lld" : {
 
     },
     "%lld%%" : {
@@ -54,6 +60,9 @@
           }
         }
       }
+    },
+    "Add manually" : {
+
     },
     "AirDrop" : {
 
@@ -95,6 +104,9 @@
           }
         }
       }
+    },
+    "Boost your productivity with Clipboard Manager" : {
+
     },
     "Boring Controls" : {
       "localizations" : {
@@ -205,6 +217,15 @@
     "Default" : {
 
     },
+    "Description" : {
+
+    },
+    "Disable" : {
+
+    },
+    "Disabled" : {
+
+    },
     "Download" : {
 
     },
@@ -242,6 +263,9 @@
       }
     },
     "Drop files here" : {
+
+    },
+    "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
 
     },
     "Edit" : {
@@ -295,6 +319,9 @@
 
     },
     "Enable sneak peek" : {
+
+    },
+    "Enhance your experience with HUDs" : {
 
     },
     "Enjoy your free time!" : {
@@ -386,6 +413,9 @@
         }
       }
     },
+    "Installed extensions" : {
+
+    },
     "Later" : {
 
     },
@@ -460,6 +490,9 @@
     "Mirror shape" : {
 
     },
+    "More" : {
+
+    },
     "muted" : {
 
     },
@@ -469,7 +502,11 @@
     "No events today" : {
 
     },
+    "No excluded apps" : {
+
+    },
     "No excludes" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -478,6 +515,9 @@
           }
         }
       }
+    },
+    "No extension installed" : {
+
     },
     "Notch behavior" : {
 
@@ -567,7 +607,13 @@
         }
       }
     },
+    "Restart" : {
+
+    },
     "Restart Boring Notch" : {
+
+    },
+    "Running" : {
 
     },
     "seconds" : {
@@ -650,6 +696,9 @@
     "Square" : {
 
     },
+    "Stopped" : {
+
+    },
     "Support Us" : {
       "localizations" : {
         "en" : {
@@ -664,6 +713,12 @@
 
     },
     "System features" : {
+
+    },
+    "Uninstall" : {
+
+    },
+    "Unlock advanced features and improve your experience. Upgrade now for more customizations!" : {
 
     },
     "unmuted" : {

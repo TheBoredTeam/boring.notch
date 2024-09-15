@@ -1,9 +1,9 @@
-    //
-    //  SettingsView.swift
-    //  boringNotch
-    //
-    //  Created by Richard Kunkli on 07/08/2024.
-    //
+//
+//  SettingsView.swift
+//  boringNotch
+//
+//  Created by Richard Kunkli on 07/08/2024.
+//
 
 import SwiftUI
 import LaunchAtLogin
@@ -18,6 +18,7 @@ struct SettingsView: View {
     
     @State private var selectedTab: SettingsEnum = .general
     @State private var showBuildNumber: Bool = false
+    @State private var effectTrigger: Bool = false
     let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
     
     var body: some View {
@@ -42,7 +43,7 @@ struct SettingsView: View {
                 .tabItem { Label("Shelf", systemImage: "books.vertical") }
                 .tag(SettingsEnum.shelf)
             Extensions()
-                .tabItem { Label("Extensions", systemImage: "clipboard") }
+                .tabItem { Label("Extensions", systemImage: "puzzlepiece.extension") }
                 .tag(SettingsEnum.extensions)
             About()
                 .tabItem { Label("About", systemImage: "info.circle") }
@@ -57,8 +58,10 @@ struct SettingsView: View {
                     NSApp.activate(ignoringOtherApps: true)
                 case .background, .inactive:
                     NSApp.setActivationPolicy(.accessory)
+                    NSApp.deactivate()
                 @unknown default:
                     NSApp.setActivationPolicy(.accessory)
+                    NSApp.deactivate()
             }
         }
     }
@@ -157,33 +160,37 @@ struct SettingsView: View {
             }
             Section {
                 List {
-                    ForEach(0..<1) { _ in
-                        Text("No excludes")
-                            .foregroundStyle(.secondary)
+                    ForEach([].indices, id: \.self) { index in
+                        Text("\(index)")
                     }
-                    HStack(spacing: 0) {
-                        Button {} label: {
-                            Rectangle()
-                                .fill(.clear)
-                                .contentShape(Rectangle())
-                                .frame(width: 20, height: 20)
-                                .overlay {
-                                    Image(systemName: "plus").imageScale(.small)
-                                }
-                        }
-                        Divider()
-                        Button {} label: {
-                            Rectangle()
-                                .fill(.clear)
-                                .contentShape(Rectangle())
-                                .frame(width: 20, height: 20)
-                                .overlay {
-                                    Image(systemName: "minus").imageScale(.small)
-                                }
-                        }
+                }
+                .frame(minHeight: 96)
+                .overlay {
+                    if true {
+                        Text("No excluded apps")
+                            .foregroundStyle(Color(.secondaryLabelColor))
                     }
-                    .disabled(true)
-                    .buttonStyle(PlainButtonStyle())
+                }
+                .actionBar {
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "plus")
+                            .frame(width: 20, height: 15, alignment: .center)
+                            .contentShape(Rectangle())
+                    }
+                    
+                    Divider()
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "minus")
+                            .frame(width: 20, height: 15, alignment: .center)
+                            .contentShape(Rectangle())
+                    }
+                }
+                .onDeleteCommand {
+                    //
                 }
             } header: {
                 HStack (spacing: 4){
@@ -232,7 +239,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .disabled(!BoringExtensionManager.shared.installedExtensions.contains(hudExtension))
+        .disabled(vm.extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(hudExtension))
     }
     
     @ViewBuilder
@@ -431,22 +438,135 @@ struct SettingsView: View {
     
     @ViewBuilder
     func Extensions() -> some View {
-        Form {
-            
-            Section {
-                KeyboardShortcuts.Recorder("Clipboard history panel shortcut", name: .clipboardHistoryPanel)
-            } header: {
-                HStack {
-                    Text("Clipboard history")
-                    proFeatureBadge()
+        ScrollView {
+            Form {
+                Section {
+                    List {
+                        ForEach(vm.extensionManager.installedExtensions.indices, id: \.self) { index in
+                            let item = vm.extensionManager.installedExtensions[index]
+                            HStack {
+                                AppIcon(for: item.bundleIdentifier)
+                                    .resizable()
+                                    .frame(width: 24, height: 24)
+                                Text(item.name)
+                                ListItemPopover {
+                                    Text("Description")
+                                }
+                                Spacer(minLength: 0)
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .frame(width: 6, height: 6)
+                                        .foregroundColor(isExtensionRunning(item.bundleIdentifier) ? .green : item.status == .disabled ? .gray : .red)
+                                        .conditionalModifier(isExtensionRunning(item.bundleIdentifier)) { view in
+                                            view
+                                                .shadow(color: .green, radius: 3)
+                                        }
+                                    Text(isExtensionRunning(item.bundleIdentifier) ? "Running" : item.status == .disabled ? "Disabled" : "Stopped")
+                                        .foregroundStyle(.secondary)
+                                        .font(.footnote)
+                                }
+                                .frame(width: 60, alignment: .leading)
+                                
+                                Menu(content: {
+                                    Button("Restart") {
+                                        let ws = NSWorkspace.shared
+                                        
+                                        if let ext = ws.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
+                                            ext.terminate()
+                                        }
+                                        
+                                        if let appURL = ws.urlForApplication(withBundleIdentifier: item.bundleIdentifier) {
+                                            ws.openApplication(at: appURL, configuration: .init(), completionHandler: nil)
+                                        }
+                                    }
+                                    .keyboardShortcut("R", modifiers: .command)
+                                    Button("Disable") {
+                                        if let ext = NSWorkspace.shared.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
+                                            ext.terminate()
+                                        }
+                                        vm.extensionManager.installedExtensions[index].status = .disabled
+                                    }
+                                    .keyboardShortcut("D", modifiers: .command)
+                                    Divider()
+                                    Button("Uninstall", role: .destructive) {
+                                        //
+                                    }
+                                }, label: {
+                                    Image(systemName: "ellipsis.circle")
+                                        .foregroundStyle(.secondary)
+                                })
+                                .controlSize(.regular)
+                                
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 5)
+                        }
+                    }
+                    .frame(minHeight: 120)
+                    .actionBar {
+                        Button {
+                            
+                        } label: {
+                            HStack(spacing: 3) {
+                                Image(systemName: "plus")
+                                Text("Add manually")
+                            }
+                            .foregroundStyle(.secondary)
+                        }
+                        .disabled(true)
+                        Spacer()
+                        Button {
+                            withAnimation(.linear(duration: 1)) {
+                                effectTrigger.toggle()
+                            } completion: {
+                                effectTrigger.toggle()
+                            }
+                            vm.extensionManager.checkIfExtensionsAreInstalled()
+                        } label: {
+                            HStack(spacing: 3) {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .rotationEffect(effectTrigger ? .degrees(360) : .zero)
+                            }
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                    .controlSize(.small)
+                    .buttonStyle(PlainButtonStyle())
+                    .overlay {
+                        if vm.extensionManager.installedExtensions.isEmpty {
+                            Text("No extension installed")
+                                .foregroundStyle(Color(.secondaryLabelColor))
+                        }
+                    }
+                } header: {
+                    HStack(spacing: 0) {
+                        Text("Installed extensions")
+                        if !vm.extensionManager.installedExtensions.isEmpty {
+                            Text(" – \(vm.extensionManager.installedExtensions.count)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
-            }.disabled(
-                !BoringExtensionManager.shared.installedExtensions.contains(clipboardExtension)
-            )
+            }
+            
+            //TipsView()
+                //.padding(.horizontal, 19)
+            
+            Form {
+                Section {
+                    KeyboardShortcuts.Recorder("Clipboard history panel shortcut", name: .clipboardHistoryPanel)
+                } header: {
+                    HStack {
+                        Text("Clipboard history")
+                        proFeatureBadge()
+                    }
+                }
+                .disabled(!vm.extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(clipboardExtension))
+            }
         }
     }
     
-    func proFeatureBadge () -> some View {
+    func proFeatureBadge() -> some View {
         Text("Upgrade to Pro")
             .foregroundStyle(Color(red: 0.545, green: 0.196, blue: 0.98))
             .font(.footnote.bold())
@@ -455,7 +575,7 @@ struct SettingsView: View {
             .background(RoundedRectangle(cornerRadius: 4).stroke(Color(red: 0.545, green: 0.196, blue: 0.98), lineWidth: 1))
     }
     
-    func comingSoonTag () -> some View {
+    func comingSoonTag() -> some View {
         Text("Coming soon")
             .foregroundStyle(.secondary)
             .font(.footnote.bold())
@@ -465,7 +585,7 @@ struct SettingsView: View {
             .clipShape(.capsule)
     }
     
-    func customBadge (text: String) -> some View {
+    func customBadge(text: String) -> some View {
         Text(text)
             .foregroundStyle(.secondary)
             .font(.footnote.bold())

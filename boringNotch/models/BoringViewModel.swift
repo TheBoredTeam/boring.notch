@@ -57,6 +57,9 @@ class BoringViewModel: NSObject, ObservableObject {
     
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
+    
+    @ObservedObject var extensionManager: BoringExtensionManager = BoringExtensionManager()
+    
     @Published var contentType: ContentType = .normal
     @Published private(set) var notchState: NotchState = .closed
     @Published var currentView: NotchViews = .home
@@ -170,7 +173,6 @@ class BoringViewModel: NSObject, ObservableObject {
         didSet {}
     }
     
-    @ObservedObject var boringExtensionManager: BoringExtensionManager
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
     var notifier: TheBoringWorkerNotifier = .init()
     
@@ -186,7 +188,6 @@ class BoringViewModel: NSObject, ObservableObject {
     override
     init() {
         animation = animationLibrary.animation
-        _boringExtensionManager = ObservedObject(wrappedValue: BoringExtensionManager.shared)
         notifier = TheBoringWorkerNotifier()
         super.init()
         

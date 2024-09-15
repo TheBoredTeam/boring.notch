@@ -6,23 +6,35 @@
 //
 
 import Foundation
+import SwiftUI
 
-var clipboardExtension: String = "theboringteam.boringClipboard"
-var hudExtension: String = "theboringteam.TheBoringHuds"
+var clipboardExtension: String = "theboringteam.TheBoringClipboard"
+var hudExtension: String = "theboringteam.TheBoringHUDs"
+
+struct Extension: Identifiable, Hashable {
+    var id = UUID()
+    var name: String
+    var bundleIdentifier: String
+    var status: StatusModel = .enabled
+}
+
+enum StatusModel {
+    case disabled
+    case enabled
+}
 
 class BoringExtensionManager: ObservableObject {
-    static let shared = BoringExtensionManager()
-
-    var extensions = [
-        clipboardExtension,
-        hudExtension
-    ]
-
-    @Published var installedExtensions: [String] = [] {
+    
+    @Published var installedExtensions: [Extension] = [] {
         didSet {
             print("Extensions installed: \(installedExtensions)")
         }
     }
+    
+    var extensions = [
+        clipboardExtension,
+        hudExtension
+    ]
 
     init() {
         checkIfExtensionsAreInstalled()
@@ -31,9 +43,11 @@ class BoringExtensionManager: ObservableObject {
     }
 
     @objc func checkIfExtensionsAreInstalled() {
+        installedExtensions = []
         for extensionName in extensions {
             if NSWorkspace.shared.urlForApplication(withBundleIdentifier: extensionName) != nil {
-                installedExtensions.append(extensionName)
+                let ext = Extension(name: extensionName.components(separatedBy: ".").last ?? extensionName, bundleIdentifier: extensionName)
+                installedExtensions.append(ext)
             }
         }
     }

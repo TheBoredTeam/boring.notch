@@ -148,7 +148,7 @@ class MusicManager: ObservableObject {
             
             self.lastMusicItem = (newSongTitle, newArtistName, newAlbumName, newArtworkData)
             
-            print(bundleIdentifier)
+            print("Media source:", bundleIdentifier)
             
             if newArtworkData == nil && state == 1 {
                 newArtworkData = AppIcons().getIcon(bundleID: bundleIdentifier)?.tiffRepresentation!
