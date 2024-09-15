@@ -221,9 +221,9 @@ class BoringViewModel: NSObject, ObservableObject {
         if let decodedData = try? decoder.decode(SharedSneakPeack.self, from: notification.userInfo?.first?.value as! Data) {
             let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
             
-            let value = Float(decodedData.value) ?? 0.0
+            let value = CGFloat((NumberFormatter().number(from: decodedData.value) ?? 0.0).floatValue)
             
-            toggleSneakPeak(status: decodedData.show, type: contentType, value: CGFloat(value))
+            toggleSneakPeak(status: decodedData.show, type: contentType, value: value)
             
         } else {
             print("Failed to decode JSON data")

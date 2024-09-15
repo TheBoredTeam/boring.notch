@@ -9,7 +9,7 @@ import SwiftUI
 
 struct InlineHUD: View {
     @EnvironmentObject var vm: BoringViewModel
-    @State var type: SneakContentType
+    @Binding var type: SneakContentType
     @Binding var value: CGFloat
     @Binding var hoverAnimation: Bool
     @Binding var gestureProgress: CGFloat
@@ -19,7 +19,7 @@ struct InlineHUD: View {
                 switch (type) {
                     case .volume:
                         Image(systemName: SpeakerSymbol(value))
-                            .contentTransition(.symbolEffect)
+                            .contentTransition(.opacity)
                             .frame(width: 20, height: 15, alignment: .leading)
                             .foregroundStyle(.white)
                     case .brightness:
@@ -36,7 +36,7 @@ struct InlineHUD: View {
                         Image(systemName: "mic")
                             .symbolRenderingMode(.hierarchical)
                             .symbolVariant(value > 0 ? .none : .slash)
-                            .contentTransition(.symbolEffect)
+                            .contentTransition(.interpolate)
                             .frame(width: 20, height: 15)
                             .foregroundStyle(.white)
                     default:
@@ -106,7 +106,7 @@ struct InlineHUD: View {
 }
 
 #Preview {
-    InlineHUD(type: .brightness, value: .constant(0.4), hoverAnimation: .constant(false), gestureProgress: .constant(0))
+    InlineHUD(type: .constant(.brightness), value: .constant(0.4), hoverAnimation: .constant(false), gestureProgress: .constant(0))
         .padding(.horizontal, 8)
         .background(Color.black)
         .padding()

@@ -26,7 +26,7 @@ struct SystemEventIndicatorModifier: View {
             switch (eventType) {
                 case .volume:
                     Image(systemName: SpeakerSymbol(value))
-                        .contentTransition(.symbolEffect)
+                        .contentTransition(.opacity)
                         .frame(width: 20, height: 15, alignment: .leading)
                         .foregroundStyle(.white)
                 case .brightness:
@@ -42,7 +42,7 @@ struct SystemEventIndicatorModifier: View {
                 case .mic:
                     Image(systemName: "mic")
                         .symbolVariant(value > 0 ? .none : .slash)
-                        .contentTransition(.symbolEffect)
+                        .contentTransition(.interpolate)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 default:
