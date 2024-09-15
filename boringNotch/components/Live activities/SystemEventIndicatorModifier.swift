@@ -26,23 +26,23 @@ struct SystemEventIndicatorModifier: View {
             switch (eventType) {
                 case .volume:
                     Image(systemName: SpeakerSymbol(value))
-                        .contentTransition(.interpolate)
+                        .contentTransition(.symbolEffect)
                         .frame(width: 20, height: 15, alignment: .leading)
                         .foregroundStyle(.white)
                 case .brightness:
                     Image(systemName: "sun.max.fill")
-                        .contentTransition(.interpolate)
+                        .contentTransition(.symbolEffect)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .backlight:
                     Image(systemName: "keyboard")
-                        .contentTransition(.interpolate)
+                        .contentTransition(.symbolEffect)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .mic:
                     Image(systemName: "mic")
                         .symbolVariant(value > 0 ? .none : .slash)
-                        .contentTransition(.interpolate)
+                        .contentTransition(.symbolEffect)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 default:
@@ -118,7 +118,7 @@ struct DraggableProgressBar: View {
                         }
                 )
             }
-            .frame(height: isDragging ? 9 : 6)
+            .frame(height: vm.inlineHUD ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
         }
     }
     

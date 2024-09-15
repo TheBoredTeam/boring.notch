@@ -35,7 +35,9 @@ struct HoverButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .onHover { hovering in
-            isHovering = hovering
+            withAnimation(.smooth(duration: 0.3)) {
+                isHovering = hovering
+            }
         }
     }
 }

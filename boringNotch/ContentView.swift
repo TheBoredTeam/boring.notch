@@ -35,12 +35,12 @@ struct ContentView: View {
             NotchLayout()
                 .padding(.horizontal, vm.notchState == .open ? vm.cornerRadiusScaling ? (vm.sizes.cornerRadius.opened.inset! - 5) : (vm.sizes.cornerRadius.closed.inset! - 5) : 12)
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery))) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((vm.sneakPeak.show && vm.sneakPeak.type != .music) || (vm.sneakPeak.show && vm.sneakPeak.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
+                .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || vm.inlineHUD) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((vm.sneakPeak.show && vm.sneakPeak.type != .music) || (vm.sneakPeak.show && vm.sneakPeak.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
                 .background(.black)
                 .mask {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && vm.cornerRadiusScaling) ? vm.sizes.cornerRadius.opened.inset : vm.sizes.cornerRadius.closed.inset)
                 }
-                .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery))) ? nil : Sizes().size.closed.width! + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? Sizes().size.closed.height! + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
+                .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (vm.inlineHUD && vm.sneakPeak.show && vm.sneakPeak.type != .music)) ? nil : Sizes().size.closed.width! + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? Sizes().size.closed.height! + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
                 .conditionalModifier(vm.openNotchOnHover) { view in
                     view
                         .onHover { hovering in
@@ -211,6 +211,9 @@ struct ContentView: View {
                             .frame(width: 70, alignment: .trailing)
                         }
                         .frame(height: Sizes().size.closed.height! + (hoverAnimation ? 8 : 0), alignment: .center)
+                    } else if vm.sneakPeak.show && vm.inlineHUD && (vm.sneakPeak.type != .music) && (vm.sneakPeak.type != .battery) {
+                        InlineHUD(type: vm.sneakPeak.type, value: $vm.sneakPeak.value, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
+                            .transition(.opacity)
                     } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed {
                         MusicLiveActivity()
                     } else {
@@ -218,7 +221,7 @@ struct ContentView: View {
                             .frame(height: Sizes().size.closed.height!)
                     }
                     
-                    if vm.sneakPeak.show {
+                    if vm.sneakPeak.show && !vm.inlineHUD {
                         if (vm.sneakPeak.type != .music) && (vm.sneakPeak.type != .battery) {
                             SystemEventIndicatorModifier(eventType: $vm.sneakPeak.type, value: $vm.sneakPeak.value, sendEventBack: { _ in
                                 //

@@ -12,6 +12,7 @@ import KeyboardShortcuts
 
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
+    @Environment(\.scenePhase) private var scenePhase
     
     let updaterController: SPUStandardUpdaterController
     
@@ -49,15 +50,25 @@ struct SettingsView: View {
         })
         .formStyle(.grouped)
         .tint(vm.accentColor)
+        .onChange(of: scenePhase) { _, phase in
+            switch phase {
+                case .active:
+                    NSApp.setActivationPolicy(.regular)
+                    NSApp.activate(ignoringOtherApps: true)
+                case .background, .inactive:
+                    NSApp.setActivationPolicy(.accessory)
+                @unknown default:
+                    NSApp.setActivationPolicy(.accessory)
+            }
+        }
     }
     
     @ViewBuilder
     func GeneralSettings() -> some View {
         Form {
             warningBadge("Your settings will not be restored on restart", "By doing this, we can quickly address global bugs. It will be enabled later on.")
-            
             Section {
-                HStack() {
+                HStack {
                     ForEach(accentColors, id: \.self) { color in
                         Button(action: {
                             withAnimation {
@@ -189,22 +200,39 @@ struct SettingsView: View {
         Form {
             Section {
                 Toggle("Enable HUD replacement", isOn: $vm.hudReplacement)
-                Toggle("Enable glowing effect", isOn: $vm.systemEventIndicatorShadow.animation())
-                Picker("Progressbar style", selection: $vm.enableGradient) {
+            } header: {
+                Text("General")
+            }
+            Section {
+                Picker("HUD style", selection: $vm.inlineHUD.animation()) {
+                    Text("Default")
+                        .tag(false)
+                    Text("Inline")
+                        .tag(true)
+                }
+                .onChange(of: vm.inlineHUD) { _, newValue in
+                    if newValue {
+                        withAnimation {
+                            vm.systemEventIndicatorShadow = false
+                            vm.enableGradient = false
+                        }
+                    }
+                }
+                Picker("Progressbar style", selection: $vm.enableGradient.animation()) {
                     Text("Hierarchical")
                         .tag(false)
                     Text("Gradient")
                         .tag(true)
                 }
+                Toggle("Enable glowing effect", isOn: $vm.systemEventIndicatorShadow.animation())
                 Toggle("Use accent color", isOn: $vm.systemEventIndicatorUseAccent.animation())
             } header: {
                 HStack {
-                    Text("Customization")
+                    Text("Appearance")
                 }
             }
-        }.disabled(
-            !BoringExtensionManager.shared.installedExtensions.contains(hudExtension)
-        )
+        }
+        .disabled(!BoringExtensionManager.shared.installedExtensions.contains(hudExtension))
     }
     
     @ViewBuilder

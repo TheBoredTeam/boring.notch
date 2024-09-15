@@ -67,6 +67,9 @@
     "Always show tabs" : {
 
     },
+    "Appearance" : {
+
+    },
     "Autohide BoringNotch in fullscreen" : {
 
     },
@@ -199,7 +202,7 @@
         }
       }
     },
-    "Customization" : {
+    "Default" : {
 
     },
     "Download" : {
@@ -360,10 +363,16 @@
     "High" : {
 
     },
+    "HUD style" : {
+
+    },
     "HUDs" : {
 
     },
     "In progress" : {
+
+    },
+    "Inline" : {
 
     },
     "Install updates automatically" : {
@@ -449,6 +458,9 @@
 
     },
     "Mirror shape" : {
+
+    },
+    "muted" : {
 
     },
     "Need Restart" : {
@@ -652,6 +664,9 @@
 
     },
     "System features" : {
+
+    },
+    "unmuted" : {
 
     },
     "Upgrade to Pro" : {

@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class BoringNotchWindow: NSWindow {
+class BoringNotchWindow: NSPanel {
     override init(
         contentRect: NSRect,
         styleMask: NSWindow.StyleMask,
@@ -21,6 +21,7 @@ class BoringNotchWindow: NSWindow {
             defer: flag
         )
         
+        isFloatingPanel = true
         isOpaque = false
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
@@ -33,6 +34,7 @@ class BoringNotchWindow: NSWindow {
             .canJoinAllSpaces,
             .ignoresCycle,
         ]
+        
         isReleasedWhenClosed = false
         level = .mainMenu + 3
         hasShadow = false

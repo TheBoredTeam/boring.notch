@@ -87,7 +87,7 @@ class BoringViewModel: NSObject, ObservableObject {
     private var expandingViewDispatch: DispatchWorkItem?
     @Published var enableSneakPeek: Bool = true
     @Published var showCHPanel: Bool = false
-    @Published var systemEventIndicatorShadow: Bool = true
+    @Published var systemEventIndicatorShadow: Bool = false
     @Published var systemEventIndicatorUseAccent: Bool = false
     @Published var clipboardHistoryHideScrollbar: Bool = true
     @Published var clipboardHistoryPreserveScrollPosition: Bool = false
@@ -155,9 +155,11 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var openShelfByDefault: Bool = true
     @Published var enableShadow: Bool = true
     @Published var enableGestures: Bool = true
-    @Published var enableGradient: Bool = true
+    @Published var enableGradient: Bool = false
     @Published var alwaysShowTabs: Bool = false
     @Published var enableFullscreenMediaDetection: Bool = true
+    @Published var inlineHUD: Bool = true
+    
     @AppStorage("enableDownloadListener") var enableDownloadListener: Bool = false {
         didSet {
             objectWillChange.send()
