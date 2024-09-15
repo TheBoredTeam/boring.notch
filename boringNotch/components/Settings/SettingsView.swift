@@ -13,6 +13,7 @@ import KeyboardShortcuts
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
     @Environment(\.scenePhase) private var scenePhase
+    @StateObject var extensionManager = BoringExtensionManager()
     
     let updaterController: SPUStandardUpdaterController
     
@@ -239,7 +240,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .disabled(vm.extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(hudExtension))
+        .disabled(extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(hudExtension))
     }
     
     @ViewBuilder
@@ -442,8 +443,8 @@ struct SettingsView: View {
             Form {
                 Section {
                     List {
-                        ForEach(vm.extensionManager.installedExtensions.indices, id: \.self) { index in
-                            let item = vm.extensionManager.installedExtensions[index]
+                        ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
+                            let item = extensionManager.installedExtensions[index]
                             HStack {
                                 AppIcon(for: item.bundleIdentifier)
                                     .resizable()
@@ -462,6 +463,7 @@ struct SettingsView: View {
                                                 .shadow(color: .green, radius: 3)
                                         }
                                     Text(isExtensionRunning(item.bundleIdentifier) ? "Running" : item.status == .disabled ? "Disabled" : "Stopped")
+                                        .contentTransition(.numericText())
                                         .foregroundStyle(.secondary)
                                         .font(.footnote)
                                 }
@@ -484,7 +486,7 @@ struct SettingsView: View {
                                         if let ext = NSWorkspace.shared.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
                                             ext.terminate()
                                         }
-                                        vm.extensionManager.installedExtensions[index].status = .disabled
+                                        extensionManager.installedExtensions[index].status = .disabled
                                     }
                                     .keyboardShortcut("D", modifiers: .command)
                                     Divider()
@@ -521,7 +523,7 @@ struct SettingsView: View {
                             } completion: {
                                 effectTrigger.toggle()
                             }
-                            vm.extensionManager.checkIfExtensionsAreInstalled()
+                            extensionManager.checkIfExtensionsAreInstalled()
                         } label: {
                             HStack(spacing: 3) {
                                 Image(systemName: "arrow.triangle.2.circlepath")
@@ -533,7 +535,7 @@ struct SettingsView: View {
                     .controlSize(.small)
                     .buttonStyle(PlainButtonStyle())
                     .overlay {
-                        if vm.extensionManager.installedExtensions.isEmpty {
+                        if extensionManager.installedExtensions.isEmpty {
                             Text("No extension installed")
                                 .foregroundStyle(Color(.secondaryLabelColor))
                         }
@@ -541,8 +543,8 @@ struct SettingsView: View {
                 } header: {
                     HStack(spacing: 0) {
                         Text("Installed extensions")
-                        if !vm.extensionManager.installedExtensions.isEmpty {
-                            Text(" – \(vm.extensionManager.installedExtensions.count)")
+                        if !extensionManager.installedExtensions.isEmpty {
+                            Text(" – \(extensionManager.installedExtensions.count)")
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -561,7 +563,7 @@ struct SettingsView: View {
                         proFeatureBadge()
                     }
                 }
-                .disabled(!vm.extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(clipboardExtension))
+                .disabled(extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(clipboardExtension))
             }
         }
     }

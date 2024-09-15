@@ -58,8 +58,6 @@ class BoringViewModel: NSObject, ObservableObject {
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
     
-    @ObservedObject var extensionManager: BoringExtensionManager = BoringExtensionManager()
-    
     @Published var contentType: ContentType = .normal
     @Published private(set) var notchState: NotchState = .closed
     @Published var currentView: NotchViews = .home
