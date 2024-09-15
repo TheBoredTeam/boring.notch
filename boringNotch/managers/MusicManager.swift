@@ -152,16 +152,16 @@ class MusicManager: ObservableObject {
             
             if newArtworkData == nil && state == 1 {
                 newArtworkData = AppIcons().getIcon(bundleID: bundleIdentifier)?.tiffRepresentation!
+            } else if let newArtworkData {
+                if let artworkImage = NSImage(data: newArtworkData) {
+                    self.updateAlbumArt(newAlbumArt: artworkImage)
+                }
             }
             
             if let state = state {
                 self.musicIsPaused(state: state == 1, setIdle: true)
             } else if self.isPlaying {
                 self.musicIsPaused(state: false, setIdle: true)
-            }
-            
-            if let albumArtData = newArtworkData, let artworkImage = NSImage(data: albumArtData) {
-                self.updateAlbumArt(newAlbumArt: artworkImage)
             }
             
             if !self.isPlaying {
@@ -234,7 +234,7 @@ class MusicManager: ObservableObject {
     }
     
     func updateAlbumArt(newAlbumArt: NSImage) {
-        withAnimation(vm.animation) {
+        withAnimation(.smooth) {
             self.albumArt = newAlbumArt
             if vm.coloredSpectrogram {
                 calculateAverageColor()
@@ -246,7 +246,9 @@ class MusicManager: ObservableObject {
     func calculateAverageColor() {
         albumArt.averageColor { [weak self] color in
             DispatchQueue.main.async {
-                self?.avgColor = color ?? .white
+                withAnimation(.smooth) {
+                    self?.avgColor = color ?? .white
+                }
             }
         }
     }
