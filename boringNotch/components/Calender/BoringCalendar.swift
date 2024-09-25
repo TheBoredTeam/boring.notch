@@ -5,7 +5,6 @@
 //  Created by Harsh Vardhan  Goswami  on 08/09/24.
 //
 
-import AppKit
 import EventKit
 import SwiftUI
 
@@ -20,6 +19,7 @@ struct WheelPicker: View {
     @EnvironmentObject var vm: BoringViewModel
     @Binding var selectedDate: Date
     @State private var scrollPosition: Int = 0
+    @State private var haptics: Bool = false
     let config: Config
 
     var body: some View {
@@ -69,15 +69,12 @@ struct WheelPicker: View {
                         selectedDate =
                             Calendar.current.date(byAdding: .day, value: newValue - 3, to: Date())
                             ?? Date()
-                        vm.enableHaptics ? performHapticFeedback() : nil
+                        vm.enableHaptics ? haptics.toggle() : nil
                     }
                 })
         )
         .safeAreaPadding(.horizontal)
-    }
-
-    private func performHapticFeedback() {
-        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+        .sensoryFeedback(.alignment, trigger: haptics)
     }
 
     private func getCurrentDay() -> Int {
