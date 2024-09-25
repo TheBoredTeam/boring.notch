@@ -120,7 +120,6 @@ struct CalendarView: View {
                     .fontWeight(.semibold)
                 ZStack {
                     WheelPicker(selectedDate: $selectedDate, config: Config())
-                        .environmentObject(vm)
                     HStack {
                         LinearGradient(
                             colors: [.black, .clear], startPoint: .leading, endPoint: .trailing
