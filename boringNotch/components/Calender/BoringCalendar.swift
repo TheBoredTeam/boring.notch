@@ -17,6 +17,7 @@ struct Config: Equatable {
 }
 
 struct WheelPicker: View {
+    @EnvironmentObject var vm: BoringViewModel
     @Binding var selectedDate: Date
     @State private var scrollPosition: Int = 0
     let config: Config
@@ -68,7 +69,7 @@ struct WheelPicker: View {
                         selectedDate =
                             Calendar.current.date(byAdding: .day, value: newValue - 3, to: Date())
                             ?? Date()
-                        performHapticFeedback()
+                        vm.enableHaptics ? performHapticFeedback() : nil
                     }
                 })
         )
@@ -119,6 +120,7 @@ struct CalendarView: View {
                     .fontWeight(.semibold)
                 ZStack {
                     WheelPicker(selectedDate: $selectedDate, config: Config())
+                        .environmentObject(vm)
                     HStack {
                         LinearGradient(
                             colors: [.black, .clear], startPoint: .leading, endPoint: .trailing
