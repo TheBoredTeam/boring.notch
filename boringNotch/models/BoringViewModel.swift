@@ -287,14 +287,10 @@ class BoringViewModel: NSObject, ObservableObject {
             self.notchState = .closed
             self.notchMetastability = false
         }
-        if TrayDrop.shared.isEmpty {
-            currentView = .home
-        } else {
-            if openShelfByDefault {
-                currentView = .shelf
-            } else {
-                currentView = .home
-            }
+        
+        // Set the current view to shelf if it contains files and the user enables openShelfByDefault
+        if !TrayDrop.shared.isEmpty && openShelfByDefault {
+            currentView = .shelf
         }
     }
     
