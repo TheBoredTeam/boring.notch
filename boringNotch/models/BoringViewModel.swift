@@ -154,7 +154,13 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var closeGestureEnabled: Bool = true
     @Published var cornerRadiusScaling: Bool = true
     @Published var openShelfByDefault: Bool = true
-    @Published var openLastTabByDefault: Bool = false
+    @Published var openLastTabByDefault: Bool = false {
+        didSet {
+            if openLastTabByDefault {
+                alwaysShowTabs = true
+            }
+        }
+    }
     @Published var enableShadow: Bool = true
     @Published var enableGestures: Bool = true
     @Published var enableGradient: Bool = false
@@ -162,6 +168,9 @@ class BoringViewModel: NSObject, ObservableObject {
         didSet {
             if !alwaysShowTabs {
                 openLastTabByDefault = false
+                if TrayDrop.shared.isEmpty || !openShelfByDefault {
+                    currentView = .home
+                }
             }
         }
     }

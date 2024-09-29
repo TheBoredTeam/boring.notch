@@ -293,7 +293,6 @@ struct SettingsView: View {
                          """)
                 }
             }
-            .disabled(!vm.alwaysShowTabs)
             Toggle("Enable boring mirror", isOn: $vm.showMirror)
             Picker("Mirror shape", selection: $vm.mirrorShape) {
                 Text("Circle")
