@@ -285,6 +285,14 @@ struct SettingsView: View {
             }
             Toggle("Show cool face animation while inactivity", isOn: $vm.nothumanface.animation())
             Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
+            Toggle(isOn: $vm.openLastTabByDefault) {
+                Text("Remember last tab")
+                if vm.openShelfByDefault && vm.openLastTabByDefault {
+                    Text("""
+                         Note: If files are in the shelf, the shelf will always be opened by default because "Open shelf tab by default if items added" is enabled. You can change this in the shelf settings.
+                         """)
+                }
+            }
             Toggle("Enable boring mirror", isOn: $vm.showMirror)
             Picker("Mirror shape", selection: $vm.mirrorShape) {
                 Text("Circle")

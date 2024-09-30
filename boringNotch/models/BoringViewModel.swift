@@ -54,10 +54,10 @@ struct ExpandedItem {
 
 class BoringViewModel: NSObject, ObservableObject {
     var cancellables: Set<AnyCancellable> = []
-    
+
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
-    
+
     @Published var contentType: ContentType = .normal
     @Published private(set) var notchState: NotchState = .closed
     @Published var currentView: NotchViews = .home
@@ -96,13 +96,13 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var spacing: CGFloat = 16
     @Published var boringShelf: Bool = true
     @Published var showMusicLiveActivityOnClosed: Bool = true
-    
+
     @Published var dragDetectorTargeting: Bool = false
     @Published var dropZoneTargeting: Bool = false
     @Published var dropEvent: Bool = false
-    
+
     @Published var anyDropZoneTargeting: Bool = false
-    
+
     @Published var clipboardHistoryAlwaysShowIcons: Bool = true
     @Published var clipboardHistoryAutoFocusSearch: Bool = false
     @Published var clipboardHistoryCloseAfterCopy: Bool = false
@@ -112,7 +112,7 @@ class BoringViewModel: NSObject, ObservableObject {
         didSet {
             if sneakPeak.show {
                 sneakPeakDispatch?.cancel()
-                
+
                 sneakPeakDispatch = DispatchWorkItem { [weak self] in
                     guard let self = self else { return }
                     withAnimation {
@@ -123,28 +123,28 @@ class BoringViewModel: NSObject, ObservableObject {
             }
         }
     }
-    
+
     @Published var expandingView: ExpandedItem = .init() {
         didSet {
             if expandingView.show {
                 expandingViewDispatch?.cancel()
-                
+
                 expandingViewDispatch = DispatchWorkItem { [weak self] in
                     guard let self = self else { return }
                     self.toggleExpandingView(status: false, type: SneakContentType.battery)
                 }
-                
+
                 DispatchQueue.main.asyncAfter(deadline: .now() + (expandingView.type == .download ? 2 : 3), execute: expandingViewDispatch!)
             }
         }
     }
-    
+
     @AppStorage("hudReplacement") var hudReplacement: Bool = true {
         didSet {
             toggleHudReplacement()
         }
     }
-    
+
     @Published var maxClipboardRecords: Int = 1000
     @Published var sizeOfClipbordCache: String = "0 MB"
     @Published var showMirror: Bool = false
@@ -154,41 +154,57 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var closeGestureEnabled: Bool = true
     @Published var cornerRadiusScaling: Bool = true
     @Published var openShelfByDefault: Bool = true
+    @Published var openLastTabByDefault: Bool = false {
+        didSet {
+            if openLastTabByDefault {
+                alwaysShowTabs = true
+            }
+        }
+    }
     @Published var enableShadow: Bool = true
     @Published var enableGestures: Bool = true
     @Published var enableGradient: Bool = false
-    @Published var alwaysShowTabs: Bool = false
+    @Published var alwaysShowTabs: Bool = false {
+        didSet {
+            if !alwaysShowTabs {
+                openLastTabByDefault = false
+                if TrayDrop.shared.isEmpty || !openShelfByDefault {
+                    currentView = .home
+                }
+            }
+        }
+    }
     @Published var enableFullscreenMediaDetection: Bool = true
     @Published var inlineHUD: Bool = true
-    
+
     @AppStorage("enableDownloadListener") var enableDownloadListener: Bool = false {
         didSet {
             objectWillChange.send()
         }
     }
-    
+
     @AppStorage("enableDownloadListener") var enableSafariDownloads: Bool = false {
         didSet {}
     }
-    
+
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
     var notifier: TheBoringWorkerNotifier = .init()
-    
+
     deinit {
         destroy()
     }
-    
+
     func destroy() {
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
     }
-    
+
     override
     init() {
         animation = animationLibrary.animation
         notifier = TheBoringWorkerNotifier()
         super.init()
-        
+
         Publishers.CombineLatest($dropZoneTargeting, $dragDetectorTargeting)
             .map { value1, value2 in
                 value1 || value2
@@ -196,7 +212,7 @@ class BoringViewModel: NSObject, ObservableObject {
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
     }
-    
+
     func open() {
         withAnimation(.bouncy) {
             self.notchSize = .init(width: Sizes().size.opened.width!, height: Sizes().size.opened.height!)
@@ -204,43 +220,43 @@ class BoringViewModel: NSObject, ObservableObject {
             self.notchState = .open
         }
     }
-    
+
     func setupWorkersNotificationObservers() {
         notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeakEvent)
-        
+
         notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
     }
-    
+
     @objc func initialMicStatus(_ notification: Notification) {
         currentMicStatus = notification.userInfo?.first?.value as! Bool
     }
-    
+
     @objc func sneakPeakEvent(_ notification: Notification) {
         let decoder = JSONDecoder()
         if let decodedData = try? decoder.decode(SharedSneakPeack.self, from: notification.userInfo?.first?.value as! Data) {
             let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
-            
+
             let value = CGFloat((NumberFormatter().number(from: decodedData.value) ?? 0.0).floatValue)
-            
+
             toggleSneakPeak(status: decodedData.show, type: contentType, value: value)
-            
+
         } else {
             print("Failed to decode JSON data")
         }
     }
-    
+
     @Published var notchSize: CGSize = .init(width: Sizes().size.closed.width!, height: Sizes().size.closed.height!)
-    
+
     func toggleMusicLiveActivity(status: Bool) {
         withAnimation(.smooth) {
             self.showMusicLiveActivityOnClosed = status
         }
     }
-    
+
     func toggleMic() {
         notifier.postNotification(name: notifier.toggleMicNotification.name, userInfo: nil)
     }
-    
+
     func toggleSneakPeak(status: Bool, type: SneakContentType, value: CGFloat = 0) {
         if type != .music {
             close()
@@ -255,16 +271,16 @@ class BoringViewModel: NSObject, ObservableObject {
                 self.sneakPeak.value = value
             }
         }
-        
+
         if type == .mic {
             currentMicStatus = value == 1
         }
     }
-    
+
     func toggleHudReplacement() {
         notifier.postNotification(name: notifier.toggleHudReplacementNotification.name, userInfo: nil)
     }
-    
+
     func toggleExpandingView(status: Bool, type: SneakContentType, value: CGFloat = 0, browser: BrowserType = .chromium) {
         if expandingView.show {
             withAnimation(.smooth) {
@@ -280,36 +296,35 @@ class BoringViewModel: NSObject, ObservableObject {
             }
         }
     }
-    
+
     func close() {
         withAnimation(.smooth) {
             self.notchSize = .init(width: Sizes().size.closed.width!, height: Sizes().size.closed.height!)
             self.notchState = .closed
             self.notchMetastability = false
         }
-        if TrayDrop.shared.isEmpty {
+
+        // Set the current view to shelf if it contains files and the user enables openShelfByDefault
+        // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
+        if !TrayDrop.shared.isEmpty && openShelfByDefault {
+            currentView = .shelf
+        } else if !openLastTabByDefault {
             currentView = .home
-        } else {
-            if openShelfByDefault {
-                currentView = .shelf
-            } else {
-                currentView = .home
-            }
         }
     }
-    
+
     func openClipboard() {
         notifier.postNotification(name: notifier.showClipboardNotification.name, userInfo: nil)
     }
-    
+
     func toggleClipboard() {
         openClipboard()
     }
-    
+
     func showEmpty() {
         currentView = .home
     }
-    
+
     func closeHello() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
             self.firstLaunch = false
