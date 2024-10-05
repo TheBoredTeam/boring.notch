@@ -61,6 +61,18 @@
         }
       }
     },
+    "Activate" : {
+
+    },
+    "Activate License" : {
+
+    },
+    "Activate your license" : {
+
+    },
+    "Activation" : {
+
+    },
     "Add manually" : {
 
     },
@@ -151,6 +163,9 @@
           }
         }
       }
+    },
+    "Cancel" : {
+
     },
     "Charging" : {
       "localizations" : {
@@ -274,6 +289,9 @@
     "Edit layout" : {
 
     },
+    "Email address" : {
+
+    },
     "Emoji" : {
 
     },
@@ -368,6 +386,9 @@
     "Gesture sensitivity" : {
 
     },
+    "Get started" : {
+
+    },
     "GitHub" : {
       "localizations" : {
         "en" : {
@@ -417,6 +438,9 @@
 
     },
     "Later" : {
+
+    },
+    "License key" : {
 
     },
     "Low" : {
@@ -525,6 +549,9 @@
     "OK" : {
 
     },
+    "Onboarding" : {
+
+    },
     "One or more files failed to load" : {
 
     },
@@ -563,6 +590,9 @@
           }
         }
       }
+    },
+    "PRO" : {
+
     },
     "Progress bar" : {
       "localizations" : {
@@ -715,6 +745,12 @@
     "System features" : {
 
     },
+    "TheBoringNotch" : {
+
+    },
+    "Transform your notch truly yours" : {
+
+    },
     "Uninstall" : {
 
     },
@@ -749,6 +785,9 @@
           }
         }
       }
+    },
+    "Welcome to" : {
+
     },
     "What's New" : {
 

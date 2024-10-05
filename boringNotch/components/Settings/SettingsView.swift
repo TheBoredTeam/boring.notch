@@ -31,9 +31,11 @@ struct SettingsView: View {
             Media()
                 .tabItem { Label("Media", systemImage: "play.laptopcomputer") }
                 .tag(SettingsEnum.mediaPlayback)
-            HUD()
-                .tabItem { Label("HUDs", systemImage: "dial.medium.fill") }
-                .tag(SettingsEnum.hud)
+            if extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(hudExtension) {
+                HUD()
+                    .tabItem { Label("HUDs", systemImage: "dial.medium.fill") }
+                    .tag(SettingsEnum.hud)
+            }
             Charge()
                 .tabItem { Label("Battery", systemImage: "battery.100.bolt") }
                 .tag(SettingsEnum.charge)
@@ -53,17 +55,14 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .tint(vm.accentColor)
         .onChange(of: scenePhase) { _, phase in
-            switch phase {
-                case .active:
-                    NSApp.setActivationPolicy(.regular)
-                    NSApp.activate(ignoringOtherApps: true)
-                case .background, .inactive:
-                    NSApp.setActivationPolicy(.accessory)
-                    NSApp.deactivate()
-                @unknown default:
-                    NSApp.setActivationPolicy(.accessory)
-                    NSApp.deactivate()
+            if phase == .active {
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
+            NSApp.setActivationPolicy(.accessory)
+            NSApp.deactivate()
         }
     }
     
@@ -172,26 +171,27 @@ struct SettingsView: View {
                             .foregroundStyle(Color(.secondaryLabelColor))
                     }
                 }
-                .actionBar {
-                    Button {
+                .actionBar(padding: 0) {
+                    Group {
+                        Button {
+                            
+                        } label: {
+                            Image(systemName: "plus")
+                                .frame(width: 25, height: 16, alignment: .center)
+                                .contentShape(Rectangle())
+                                .foregroundStyle(.secondary)
+                        }
                         
-                    } label: {
-                        Image(systemName: "plus")
-                            .frame(width: 20, height: 15, alignment: .center)
-                            .contentShape(Rectangle())
+                        Divider()
+                        Button {
+                            
+                        } label: {
+                            Image(systemName: "minus")
+                                .frame(width: 20, height: 16, alignment: .center)
+                                .contentShape(Rectangle())
+                                .foregroundStyle(.secondary)
+                        }
                     }
-                    
-                    Divider()
-                    Button {
-                        
-                    } label: {
-                        Image(systemName: "minus")
-                            .frame(width: 20, height: 15, alignment: .center)
-                            .contentShape(Rectangle())
-                    }
-                }
-                .onDeleteCommand {
-                    //
                 }
             } header: {
                 HStack (spacing: 4){
@@ -240,7 +240,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .disabled(extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(hudExtension))
     }
     
     @ViewBuilder
@@ -546,6 +545,7 @@ struct SettingsView: View {
                         if extensionManager.installedExtensions.isEmpty {
                             Text("No extension installed")
                                 .foregroundStyle(Color(.secondaryLabelColor))
+                                .padding(.bottom, 22)
                         }
                     }
                 } header: {

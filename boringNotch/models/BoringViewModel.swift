@@ -32,12 +32,14 @@ struct SneakPeak {
     var show: Bool = false
     var type: SneakContentType = .music
     var value: CGFloat = 0
+    var icon: String = ""
 }
 
-struct SharedSneakPeack: Codable {
+struct SharedSneakPeek: Codable {
     var show: Bool
     var type: String
     var value: String
+    var icon: String
 }
 
 enum BrowserType {
@@ -233,13 +235,16 @@ class BoringViewModel: NSObject, ObservableObject {
 
     @objc func sneakPeakEvent(_ notification: Notification) {
         let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(SharedSneakPeack.self, from: notification.userInfo?.first?.value as! Data) {
+        if let decodedData = try? decoder.decode(SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data) {
             let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
 
             let value = CGFloat((NumberFormatter().number(from: decodedData.value) ?? 0.0).floatValue)
-
-            toggleSneakPeak(status: decodedData.show, type: contentType, value: value)
-
+            let icon = decodedData.icon
+            
+            print(decodedData)
+            
+            toggleSneakPeak(status: decodedData.show, type: contentType, value: value, icon: icon)
+            
         } else {
             print("Failed to decode JSON data")
         }
@@ -256,8 +261,8 @@ class BoringViewModel: NSObject, ObservableObject {
     func toggleMic() {
         notifier.postNotification(name: notifier.toggleMicNotification.name, userInfo: nil)
     }
-
-    func toggleSneakPeak(status: Bool, type: SneakContentType, value: CGFloat = 0) {
+    
+    func toggleSneakPeak(status: Bool, type: SneakContentType, value: CGFloat = 0, icon: String = "") {
         if type != .music {
             close()
             if !hudReplacement {
@@ -269,6 +274,7 @@ class BoringViewModel: NSObject, ObservableObject {
                 self.sneakPeak.show = status
                 self.sneakPeak.type = type
                 self.sneakPeak.value = value
+                self.sneakPeak.icon = icon
             }
         }
 

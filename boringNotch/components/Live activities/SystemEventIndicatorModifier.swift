@@ -18,6 +18,7 @@ struct SystemEventIndicatorModifier: View {
             }
         }
     }
+    @Binding var icon: String
     let showSlider: Bool = false
     var sendEventBack: (CGFloat) -> Void
     
@@ -25,10 +26,18 @@ struct SystemEventIndicatorModifier: View {
         HStack(spacing: 14) {
             switch (eventType) {
                 case .volume:
-                    Image(systemName: SpeakerSymbol(value))
-                        .contentTransition(.opacity)
-                        .frame(width: 20, height: 15, alignment: .leading)
-                        .foregroundStyle(.white)
+                    if icon.isEmpty {
+                        Image(systemName: SpeakerSymbol(value))
+                            .contentTransition(.interpolate)
+                            .symbolVariant(value > 0 ? .none : .slash)
+                            .frame(width: 20, height: 15, alignment: .leading)
+                    } else {
+                        Image(systemName: icon)
+                            .contentTransition(.interpolate)
+                            .opacity(value.isZero ? 0.6 : 1)
+                            .scaleEffect(value.isZero ? 0.85 : 1)
+                            .frame(width: 20, height: 15, alignment: .leading)
+                    }
                 case .brightness:
                     Image(systemName: "sun.max.fill")
                         .contentTransition(.symbolEffect)
@@ -91,17 +100,20 @@ struct DraggableProgressBar: View {
                 ZStack(alignment: .leading) {
                     Capsule()
                         .fill(.tertiary)
-                    if vm.enableGradient {
-                        Capsule()
-                            .fill(LinearGradient(colors: vm.systemEventIndicatorUseAccent ? [vm.accentColor, vm.accentColor.ensureMinimumBrightness(factor: 0.2)] : [.white, .white.opacity(0.2)], startPoint: .trailing, endPoint: .leading))
-                            .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
-                            .shadow(color: vm.systemEventIndicatorShadow ? vm.systemEventIndicatorUseAccent ? vm.accentColor.ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
-                    } else {
-                        Capsule()
-                            .fill(vm.systemEventIndicatorUseAccent ? vm.accentColor : .white)
-                            .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
-                            .shadow(color: vm.systemEventIndicatorShadow ? vm.systemEventIndicatorUseAccent ? vm.accentColor.ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
+                    Group {
+                        if vm.enableGradient {
+                            Capsule()
+                                .fill(LinearGradient(colors: vm.systemEventIndicatorUseAccent ? [vm.accentColor, vm.accentColor.ensureMinimumBrightness(factor: 0.2)] : [.white, .white.opacity(0.2)], startPoint: .trailing, endPoint: .leading))
+                                .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
+                                .shadow(color: vm.systemEventIndicatorShadow ? vm.systemEventIndicatorUseAccent ? vm.accentColor.ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
+                        } else {
+                            Capsule()
+                                .fill(vm.systemEventIndicatorUseAccent ? vm.accentColor : .white)
+                                .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
+                                .shadow(color: vm.systemEventIndicatorShadow ? vm.systemEventIndicatorUseAccent ? vm.accentColor.ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
+                        }
                     }
+                    .opacity(value.isZero ? 0 : 1)
                 }
                 .gesture(
                     DragGesture(minimumDistance: 0)

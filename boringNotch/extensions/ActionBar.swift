@@ -8,7 +8,7 @@
 import SwiftUI
 
 extension View {
-    func actionBar<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    func actionBar<Content: View>(padding: CGFloat = 10, @ViewBuilder content: () -> Content) -> some View {
         self
             .padding(.bottom, 24)
             .overlay(alignment: .bottom) {
@@ -20,7 +20,7 @@ extension View {
                     }
                     .frame(height: 16)
                     .padding(.vertical, 4)
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, padding)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(height: 24)

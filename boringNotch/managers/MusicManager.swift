@@ -124,7 +124,11 @@ class MusicManager: ObservableObject {
         }
         
         if let bundle = bundle as String? {
-            bundleIdentifier = bundle
+            if bundle == "com.apple.WebKit.GPU" {
+                bundleIdentifier = "com.apple.Safari"
+            } else {
+                bundleIdentifier = bundle
+            }
         }
         
         MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in

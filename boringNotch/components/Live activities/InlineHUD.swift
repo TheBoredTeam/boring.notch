@@ -11,6 +11,7 @@ struct InlineHUD: View {
     @EnvironmentObject var vm: BoringViewModel
     @Binding var type: SneakContentType
     @Binding var value: CGFloat
+    @Binding var icon: String
     @Binding var hoverAnimation: Bool
     @Binding var gestureProgress: CGFloat
     var body: some View {
@@ -19,10 +20,18 @@ struct InlineHUD: View {
                 Group {
                     switch (type) {
                         case .volume:
-                            Image(systemName: SpeakerSymbol(value))
-                                .contentTransition(.interpolate)
-                                .symbolVariant(value > 0 ? .none : .slash)
-                                .frame(width: 20, height: 15, alignment: .leading)
+                            if icon.isEmpty {
+                                Image(systemName: SpeakerSymbol(value))
+                                    .contentTransition(.interpolate)
+                                    .symbolVariant(value > 0 ? .none : .slash)
+                                    .frame(width: 20, height: 15, alignment: .leading)
+                            } else {
+                                Image(systemName: icon)
+                                    .contentTransition(.interpolate)
+                                    .opacity(value.isZero ? 0.6 : 1)
+                                    .scaleEffect(value.isZero ? 0.85 : 1)
+                                    .frame(width: 20, height: 15, alignment: .leading)
+                            }
                         case .brightness:
                             Image(systemName: BrightnessSymbol(value))
                                 .contentTransition(.interpolate)
@@ -58,16 +67,27 @@ struct InlineHUD: View {
                 .frame(width: vm.sizes.size.closed.width! - 20)
             
             HStack {
-                if (type != .mic) {
-                    DraggableProgressBar(value: $value)
-                } else {
-                    Text(value > 0 ? "unmuted" : "muted")
+                if (type == .mic) {
+                    Text(value.isZero ? "muted" : "unmuted")
                         .foregroundStyle(.gray)
                         .lineLimit(1)
                         .allowsTightening(true)
                         .multilineTextAlignment(.trailing)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .contentTransition(.interpolate)
+                } else {
+                    HStack {
+                        DraggableProgressBar(value: $value)
+                        if (type == .volume && value.isZero) {
+                            Text("muted")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.gray)
+                                .lineLimit(1)
+                                .allowsTightening(true)
+                                .multilineTextAlignment(.trailing)
+                        }
+                    }
                 }
             }
             .padding(.trailing, 4)
@@ -119,7 +139,7 @@ struct InlineHUD: View {
 }
 
 #Preview {
-    InlineHUD(type: .constant(.brightness), value: .constant(0.4), hoverAnimation: .constant(false), gestureProgress: .constant(0))
+    InlineHUD(type: .constant(.brightness), value: .constant(0.4), icon: .constant(""), hoverAnimation: .constant(false), gestureProgress: .constant(0))
         .padding(.horizontal, 8)
         .background(Color.black)
         .padding()

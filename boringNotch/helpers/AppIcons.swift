@@ -51,3 +51,4 @@ func AppIcon(for bundleID: String) -> Image {
     
     return Image(nsImage: workspace.icon(for: .applicationBundle))
 }
+

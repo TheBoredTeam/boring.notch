@@ -15,6 +15,7 @@ import SwiftUI
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
+    @Environment(\.openWindow) var openWindow
     let updaterController: SPUStandardUpdaterController
     
     init() {
@@ -26,8 +27,18 @@ struct DynamicNotchApp: App {
             SettingsView(updaterController: updaterController)
                 .environmentObject(appDelegate.vm)
         }
-        .windowResizability(.contentSize)
+        //.windowResizability(.contentSize)
         .defaultSize(width: 500, height: 600)
+        
+        Window("Onboarding", id: "onboarding") {
+            ProOnboard()
+        }
+        
+        Window("Activation", id: "activation") {
+            ActivationWindow()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
         
         MenuBarExtra("boring.notch", systemImage: "music.note", isInserted: $showMenuBarIcon) {
             SettingsLink(label: {
@@ -39,6 +50,9 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyboardShortcuts.Name("clipboardHistoryPanel"))
             .disabled(BoringExtensionManager().installedExtensions.map({$0.bundleIdentifier}).contains(clipboardExtension))
+            Button("Activate License") {
+                openWindow(id: "activation")
+            }
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Restart Boring Notch") {}

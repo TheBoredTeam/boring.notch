@@ -208,11 +208,11 @@ struct ContentView: View {
                                     batteryWidth: 30
                                 )
                             }
-                            .frame(width: 70, alignment: .trailing)
+                            .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: Sizes().size.closed.height! + (hoverAnimation ? 8 : 0), alignment: .center)
                     } else if vm.sneakPeak.show && vm.inlineHUD && (vm.sneakPeak.type != .music) && (vm.sneakPeak.type != .battery) {
-                        InlineHUD(type: $vm.sneakPeak.type, value: $vm.sneakPeak.value, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
+                        InlineHUD(type: $vm.sneakPeak.type, value: $vm.sneakPeak.value, icon: $vm.sneakPeak.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                             .transition(.opacity)
                     } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed {
                         MusicLiveActivity()
@@ -223,7 +223,7 @@ struct ContentView: View {
                     
                     if vm.sneakPeak.show && !vm.inlineHUD {
                         if (vm.sneakPeak.type != .music) && (vm.sneakPeak.type != .battery) {
-                            SystemEventIndicatorModifier(eventType: $vm.sneakPeak.type, value: $vm.sneakPeak.value, sendEventBack: { _ in
+                            SystemEventIndicatorModifier(eventType: $vm.sneakPeak.type, value: $vm.sneakPeak.value, icon: $vm.sneakPeak.icon, sendEventBack: { _ in
                                 //
                             })
                             .padding(.bottom, 10)
