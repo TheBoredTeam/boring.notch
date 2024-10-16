@@ -19,17 +19,21 @@ struct NotchHomeView: View {
         if !vm.firstLaunch {
             HStack(alignment: .top, spacing: 10) {
                 ZStack(alignment: .bottomTrailing) {
-                    Color.clear
-                        .aspectRatio(1, contentMode: .fit)
-                        .background(
-                            Image(nsImage: musicManager.albumArt)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        )
-                        .clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadiusScaling ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
-                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                    
+                    Button(action: {
+                        musicManager.openMusicApp()
+                    }) {
+                        Color.clear
+                            .aspectRatio(1, contentMode: .fit)
+                            .background(
+                                Image(nsImage: musicManager.albumArt)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            )
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadiusScaling ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                    }
+                    .buttonStyle(PlainButtonStyle()) // Ensures the button retains the album art style
                     
                     if vm.notchState == .open {
                         AppIcon(for: musicManager.bundleIdentifier)

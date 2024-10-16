@@ -115,7 +115,12 @@ class MusicManager: ObservableObject {
     }
     
     @objc func updateApp() {
-        self.bundleIdentifier = nowPlaying.appBundleIdentifier
+        if let appBundleID = nowPlaying.appBundleIdentifier {
+            self.bundleIdentifier = appBundleID
+        } else {
+            print("Error: appBundleIdentifier is nil")
+            self.bundleIdentifier = "com.apple.Music" // Default value or any other logic, replace this if it isn't good...?
+        }
     }
     
     @objc func fetchNowPlayingInfo(bypass: Bool = false, bundle: String? = nil) {
@@ -265,5 +270,19 @@ class MusicManager: ObservableObject {
     func previousTrack() {
         playbackManager.previousTrack()
         fetchNowPlayingInfo(bypass: true)
+    }
+    
+    func openMusicApp() {
+        guard let bundleID = nowPlaying.appBundleIdentifier else {
+            print("Error: appBundleIdentifier is nil")
+            return
+        }
+
+        let workspace = NSWorkspace.shared
+        if workspace.launchApplication(withBundleIdentifier: bundleID, options: [], additionalEventParamDescriptor: nil, launchIdentifier: nil) {
+            print("Launched app with bundle ID: \(bundleID)")
+        } else {
+            print("Failed to launch app with bundle ID: \(bundleID)")
+        }
     }
 }
