@@ -105,6 +105,11 @@ struct SettingsView: View {
             Section {
                 Toggle("Menubar icon", isOn: $vm.showMenuBarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
+                Picker("Show on a specific display", selection: $vm.selectedScreen) {
+                    ForEach($vm.screens, id: \.self) { screen in
+                        Text(screen.wrappedValue)
+                    }
+                }
             } header: {
                 Text("System features")
             }
