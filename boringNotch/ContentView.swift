@@ -277,9 +277,9 @@ struct ContentView: View {
                     .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
                     .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                    .frame(width: vm.sizes.size.closed.height! - 12, height: vm.sizes.size.closed.height! - 12)
+                    .frame(width: Sizes().size.closed.height! - 12, height: Sizes().size.closed.height! - 12)
             }
-            .frame(width: vm.sizes.size.closed.height! - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.sizes.size.closed.height! - (hoverAnimation ? 0 : 12))
+            .frame(width: Sizes().size.closed.height! - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: Sizes().size.closed.height! - (hoverAnimation ? 0 : 12))
             
             Rectangle()
                 .fill(.black)
@@ -295,7 +295,7 @@ struct ContentView: View {
                         .frame(width: 16, height: 12)
                     }
             }
-            .frame(width: vm.sizes.size.closed.height! - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.sizes.size.closed.height! - (hoverAnimation ? 0 : 12), alignment: .center)
+            .frame(width: Sizes().size.closed.height! - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: Sizes().size.closed.height! - (hoverAnimation ? 0 : 12), alignment: .center)
         }
         .frame(height: Sizes().size.closed.height! + (hoverAnimation ? 8 : 0), alignment: .center)
     }

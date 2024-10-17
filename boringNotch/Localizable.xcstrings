@@ -295,6 +295,9 @@
     "Emoji" : {
 
     },
+    "Enable blur effect behind albumart" : {
+
+    },
     "Enable boring mirror" : {
 
     },
@@ -546,6 +549,9 @@
     "Notch behavior" : {
 
     },
+    "Note: If files are in the shelf, the shelf will always be opened by default because \"Open shelf tab by default if items added\" is enabled. You can change this in the shelf settings." : {
+
+    },
     "OK" : {
 
     },
@@ -637,6 +643,9 @@
         }
       }
     },
+    "Remember last tab" : {
+
+    },
     "Restart" : {
 
     },
@@ -712,6 +721,9 @@
           }
         }
       }
+    },
+    "Show on a specific display" : {
+
     },
     "Software updates" : {
       "localizations" : {

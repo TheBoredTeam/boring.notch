@@ -178,6 +178,13 @@ class BoringViewModel: NSObject, ObservableObject {
     }
     @Published var enableFullscreenMediaDetection: Bool = true
     @Published var inlineHUD: Bool = true
+    @AppStorage("selected_screen") var selectedScreen = NSScreen.main?.localizedName ?? "Unknown" {
+        didSet {
+            NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
+        }
+    }
+    
+    @Published var lightingEffect: Bool = true
 
     @AppStorage("enableDownloadListener") var enableDownloadListener: Bool = false {
         didSet {

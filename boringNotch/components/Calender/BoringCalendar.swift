@@ -231,8 +231,10 @@ struct EventListView: View {
 
 // Keep the CalendarManager, EmptyEventsView, and EventListView as they were in the previous implementation
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        CalendarView().frame(width: 250)
-    }
+#Preview {
+    CalendarView()
+        .frame(width: 250)
+        .padding(.horizontal)
+        .background(.black)
+        .environmentObject(BoringViewModel())
 }

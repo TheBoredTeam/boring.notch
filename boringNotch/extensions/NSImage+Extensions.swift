@@ -1,9 +1,9 @@
-    //
-    //  Image2Color.swift
-    //  boringNotch
-    //
-    //  Created by Richard Kunkli on 07/08/2024.
-    //
+//
+//  Image2Color.swift
+//  boringNotch
+//
+//  Created by Richard Kunkli on 07/08/2024.
+//
 
 import SwiftUI
 import AppKit
@@ -11,6 +11,7 @@ import Cocoa
 import Foundation
 import CoreImage
 import CoreGraphics
+import CoreImage.CIFilterBuiltins
 
 extension NSImage {
     func averageColor(completion: @escaping (NSColor?) -> Void) {
@@ -71,7 +72,7 @@ extension NSImage {
             var finalColor: NSColor
             
             if isNearBlack {
-                    // If it's near black, just return a gray color with the minimum brightness
+                // If it's near black, just return a gray color with the minimum brightness
                 finalColor = NSColor(white: minBrightness, alpha: 1.0)
             } else {
                 var color = NSColor(red: averageRed, green: averageGreen, blue: averageBlue, alpha: 1.0)
@@ -84,7 +85,7 @@ extension NSImage {
                 color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
                 
                 if brightness < minBrightness {
-                        // Increase brightness while maintaining hue and reducing saturation
+                    // Increase brightness while maintaining hue and reducing saturation
                     let saturationScale = brightness / minBrightness
                     color = NSColor(hue: hue,
                                     saturation: saturation * saturationScale,
@@ -102,6 +103,35 @@ extension NSImage {
         
     }
     
+    func getBrightness() -> CGFloat {
+        guard let cgImage = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return 0
+        }
+        
+        let inputImage = CIImage(cgImage: cgImage)
+        
+        let filter = CIFilter.areaAverage()
+        filter.inputImage = inputImage
+        filter.extent = inputImage.extent
+        
+        guard let outputImage = filter.outputImage else {
+            return 0
+        }
+        
+        let context = CIContext(options: nil)
+        
+        var bitmap = [UInt8](repeating: 0, count: 4)
+        context.render(outputImage,
+                       toBitmap: &bitmap,
+                       rowBytes: 4,
+                       bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
+                       format: .RGBA8,
+                       colorSpace: CGColorSpaceCreateDeviceRGB())
+        
+        let brightness = (0.2126 * CGFloat(bitmap[0]) + 0.7152 * CGFloat(bitmap[1]) + 0.0722 * CGFloat(bitmap[2])) / 255.0
+        
+        return brightness
+    }
 }
 
 extension Color {
@@ -112,7 +142,7 @@ extension Color {
         
         let nsColor = NSColor(self)
         
-            // Convert to RGB color space
+        // Convert to RGB color space
         guard let rgbColor = nsColor.usingColorSpace(.sRGB) else {
             return self // Return original color if conversion fails
         }
@@ -124,8 +154,8 @@ extension Color {
         
         rgbColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
         
-            // Calculate perceived brightness using the formula: (0.299*R + 0.587*G + 0.114*B)
-        let perceivedBrightness = (0.299 * red + 0.587 * green + 0.114 * blue)
+        // Calculate perceived brightness using the formula: (0.299*R + 0.587*G + 0.114*B)
+        let perceivedBrightness = (0.2126 * red + 0.7152 * green + 0.0722 * blue)
         
         let scale = factor / perceivedBrightness
         red = min(red * scale, 1.0)
