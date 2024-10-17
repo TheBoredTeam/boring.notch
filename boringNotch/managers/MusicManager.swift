@@ -1,9 +1,9 @@
-    //
-    //  MusicManager.swift
-    //  boringNotch
-    //
-    //  Created by Harsh Vardhan  Goswami  on 03/08/24.
-    //
+//
+//  MusicManager.swift
+//  boringNotch
+//
+//  Created by Harsh Vardhan  Goswami  on 03/08/24.
+//
 import AppKit
 import Combine
 import SwiftUI
@@ -283,7 +283,7 @@ class MusicManager: ObservableObject {
             print("Error: appBundleIdentifier is nil")
             return
         }
-
+        
         let workspace = NSWorkspace.shared
         if workspace.launchApplication(withBundleIdentifier: bundleID, options: [], additionalEventParamDescriptor: nil, launchIdentifier: nil) {
             print("Launched app with bundle ID: \(bundleID)")
