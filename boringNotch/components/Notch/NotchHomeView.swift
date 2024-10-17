@@ -111,10 +111,10 @@ struct NotchHomeView: View {
                         .opacity(vm.notchState == .closed ? 0 : 1)
                         .blur(radius: vm.notchState == .closed ? 20 : 0)
                 }
-                BoringSystemTiles()
-                    .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(0.1)))
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
+//                BoringSystemTiles()
+//                    .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(0.1)))
+//                    .opacity(vm.notchState == .closed ? 0 : 1)
+//                    .blur(radius: vm.notchState == .closed ? 20 : 0)
             }
         }
     }
