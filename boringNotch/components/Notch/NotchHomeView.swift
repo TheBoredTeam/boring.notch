@@ -19,7 +19,7 @@ struct NotchHomeView: View {
         if !vm.firstLaunch {
             HStack(alignment: .top, spacing: 10) {
                 ZStack(alignment: .bottomTrailing) {
-                    if vm.lightingEffect {
+                     if vm.lightingEffect {
                         Color.clear
                             .aspectRatio(1, contentMode: .fit)
                             .background(
@@ -37,18 +37,22 @@ struct NotchHomeView: View {
                                 print(musicManager.albumArt.getBrightness())
                             }
                     }
-                    
-                    Color.clear
-                        .aspectRatio(1, contentMode: .fit)
-                        .background(
-                            Image(nsImage: musicManager.albumArt)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        )
-                        .clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadiusScaling ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
-                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                    
+                  
+                    Button {
+                        musicManager.openMusicApp()
+                    } label: {
+                        Color.clear
+                            .aspectRatio(1, contentMode: .fit)
+                            .background(
+                                Image(nsImage: musicManager.albumArt)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            )
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadiusScaling ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                     
                     if vm.notchState == .open {
                         AppIcon(for: musicManager.bundleIdentifier)
