@@ -1,9 +1,9 @@
-    //
-    //  FullscreenMediaDetection.swift
-    //  boringNotch
-    //
-    //  Created by Richard Kunkli on 06/09/2024.
-    //
+//
+//  FullscreenMediaDetection.swift
+//  boringNotch
+//
+//  Created by Richard Kunkli on 06/09/2024.
+//
 
 import Accessibility
 import Cocoa
@@ -20,51 +20,62 @@ class FullscreenMediaDetector: ObservableObject {
     var nowPlaying: NowPlaying = .init()
     
     init() {
-        NSWorkspace.shared.notificationCenter.addObserver(self,
-                                                          selector: #selector(self.applicationDidActivate(_:)),
-                                                          name: NSWorkspace.activeSpaceDidChangeNotification,
-                                                          object: nil)
+        setupNotificationObservers()
     }
     
-    @objc func switchedToFullScreenApp(_ notification: Notification) {
-        self.currentAppInFullScreen = true
-    }
-    
-    @objc func applicationDidActivate(_ notification: Notification) {
-        if self.nowPlaying.playing {
-            NSLog(NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "")
-            
-            self.currentAppInFullScreen = self.isFrontmostAppFullscreen(bundleIUn: NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "")
-            NSLog("currentAppInFullScreen: \(self.currentAppInFullScreen)")
+    private func setupNotificationObservers() {
+        let notificationCenter = NSWorkspace.shared.notificationCenter
+        let notifications: [(Notification.Name, Selector)] = [
+            (NSWorkspace.activeSpaceDidChangeNotification, #selector(activeSpaceDidChange(_:))),
+            (NSApplication.didChangeScreenParametersNotification, #selector(applicationDidChangeScreenMode(_:))),
+            (NSWorkspace.didActivateApplicationNotification, #selector(applicationDidChangeScreenMode(_:)))
+        ]
+        
+        for (name, selector) in notifications {
+            notificationCenter.addObserver(self, selector: selector, name: name, object: nil)
         }
     }
     
-    func isFrontmostAppFullscreen(bundleIUn: String) -> Bool {
-        return !self.isMenuBarVisible()
+    @objc func activeSpaceDidChange(_ notification: Notification) {
+        checkFullScreenStatus()
     }
     
-    func isMenuBarVisible() -> Bool {
-        guard let windows = CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID) else {
+    @objc func applicationDidChangeScreenMode(_ notification: Notification) {
+        checkFullScreenStatus()
+    }
+    
+    func checkFullScreenStatus() {
+        DispatchQueue.main.async {
+            if let frontmostApp = NSWorkspace.shared.frontmostApplication {
+                self.currentAppInFullScreen = self.isAppFullScreen(frontmostApp)
+                self.logFullScreenStatus(frontmostApp)
+            }
+        }
+    }
+    
+    private func logFullScreenStatus(_ app: NSRunningApplication) {
+        NSLog("Current app in full screen: \(currentAppInFullScreen)")
+        NSLog("App name: \(app.localizedName ?? "Unknown")")
+    }
+    
+    func isAppFullScreen(_ app: NSRunningApplication) -> Bool {
+        guard let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
             return false
         }
         
-        for window in windows as NSArray {
-            guard let winInfo = window as? NSDictionary else { continue }
+        let appWindows = windows.filter { ($0[kCGWindowOwnerPID as String] as? Int32) == app.processIdentifier }
+        
+        return appWindows.contains { window in
+            guard let bounds = window[kCGWindowBounds as String] as? [String: CGFloat],
+                  let isOnScreen = window[kCGWindowIsOnscreen as String] as? Bool,
+                  isOnScreen else {
+                return false
+            }
             
-            NSLog(
-                "kCGWindowOwnerName: \(winInfo["kCGWindowOwnerName"] as? String ?? "")\n" +
-                "kCGWindowName: \(winInfo["kCGWindowName"] as? String ?? "")"
-            )
-            
-            
-            if winInfo["kCGWindowOwnerName"] as? String == "Window Server" &&
-                winInfo["kCGWindowName"] as? String == "Menubar"
-            {
-                
-                return true
+            let windowFrame = CGRect(x: bounds["X"] ?? 0, y: bounds["Y"] ?? 0, width: bounds["Width"] ?? 0, height: bounds["Height"] ?? 0)
+            return NSScreen.screens.contains { screen in
+                windowFrame.equalTo(screen.frame)
             }
         }
-        
-        return false
     }
 }
