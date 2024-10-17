@@ -9,7 +9,7 @@ import EventKit
 import SwiftUI
 
 struct Config: Equatable {
-    var count: Int = 14  // Two weeks
+    var count: Int = 10  // 3 days past + today + 7 days future
     var steps: Int = 1  // Each step is one day
     var spacing: CGFloat = 1
     var showsText: Bool = true
@@ -82,15 +82,22 @@ struct WheelPicker: View {
     
     private func scrollToToday() {
         let today = Date()
-        let middleIndex = config.count / 2
-        scrollPosition = middleIndex
+        let todayIndex = indexForDate(today)
+        scrollPosition = todayIndex
         selectedDate = today
+    }
+    
+    private func indexForDate(_ date: Date) -> Int {
+        let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -3, to: Date()) ?? Date())
+        let targetDate = calendar.startOfDay(for: date)
+        let daysDifference = calendar.dateComponents([.day], from: startDate, to: targetDate).day ?? 0
+        return daysDifference
     }
 
     private func dateForIndex(_ index: Int) -> Date {
-        let startDate = Calendar.current.startOfDay(for: Date())
-        let middleIndex = config.count / 2
-        return Calendar.current.date(byAdding: .day, value: index - middleIndex, to: startDate) ?? Date()
+        let startDate = Calendar.current.date(byAdding: .day, value: -3, to: Date()) ?? Date()
+        return Calendar.current.date(byAdding: .day, value: index, to: startDate) ?? Date()
     }
 
     private func dayForIndex(_ index: Int) -> String {
