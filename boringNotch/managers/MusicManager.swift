@@ -19,7 +19,6 @@ class MusicManager: ObservableObject {
     private var vm: BoringViewModel
     private var lastMusicItem: (title: String, artist: String, album: String, artworkData: Data?)?
     private var isCurrentlyPlaying: Bool = false
-    private var updateQueue = DispatchQueue(label: "com.boringNotch.MusicManager.updateQueue", qos: .userInitiated)
     
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
@@ -77,6 +76,7 @@ class MusicManager: ObservableObject {
         }
     }
     
+    
     deinit {
         debounceToggle?.cancel()
         cancellables.removeAll()
@@ -86,7 +86,6 @@ class MusicManager: ObservableObject {
         MRMediaRemoteRegisterForNowPlayingNotifications(DispatchQueue.main)
         
         NotificationCenter.default.publisher(for: NSNotification.Name("kMRMediaRemoteNowPlayingInfoDidChangeNotification"))
-            .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
             .sink { [weak self] _ in
                 self?.fetchNowPlayingInfo(bundle: self?.nowPlaying.appBundleIdentifier ?? nil)
             }
@@ -116,163 +115,142 @@ class MusicManager: ObservableObject {
     }
     
     @objc func updateApp() {
-        updateQueue.async { [weak self] in
-            guard let self = self else { return }
-            if let appBundleID = self.nowPlaying.appBundleIdentifier {
-                DispatchQueue.main.async {
-                    self.bundleIdentifier = appBundleID
-                }
-            } else {
-                print("Error: appBundleIdentifier is nil")
-                DispatchQueue.main.async {
-                    self.bundleIdentifier = "com.apple.Music"
-                }
-            }
+        if let appBundleID = nowPlaying.appBundleIdentifier {
+            self.bundleIdentifier = appBundleID
+        } else {
+            print("Error: appBundleIdentifier is nil")
+            self.bundleIdentifier = "com.apple.Music" // Default value or any other logic, replace this if it isn't good...?
         }
     }
     
     @objc func fetchNowPlayingInfo(bypass: Bool = false, bundle: String? = nil) {
-        updateQueue.async { [weak self] in
+        if musicToggledManually && !bypass {
+            return
+        }
+        
+        if let bundle = bundle as String? {
+            if bundle == "com.apple.WebKit.GPU" {
+                bundleIdentifier = "com.apple.Safari"
+            } else {
+                bundleIdentifier = bundle
+            }
+        }
+        
+        MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
             guard let self = self else { return }
             
-            if self.musicToggledManually && !bypass {
+                // Check if the music has changed
+            let newSongTitle = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String ?? ""
+            let newArtistName = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
+            let newAlbumName = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
+            var newArtworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
+            
+            let state: Int? = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int
+            
+            
+                //            if self.lastMusicItem?.title == newSongTitle &&
+                //                self.lastMusicItem?.artist == newArtistName &&
+                //                self.lastMusicItem?.album == newAlbumName && state == 1 && self.isPlaying && self.lastMusicItem?.artworkData != nil
+                //            {
+                //                return // No need to update if nothing has changed
+                //            }
+            
+            self.lastMusicItem = (newSongTitle, newArtistName, newAlbumName, newArtworkData)
+            
+            print("Media source:", bundleIdentifier)
+            
+            if newArtworkData == nil && state == 1 {
+                newArtworkData = AppIcons().getIcon(bundleID: bundleIdentifier)?.tiffRepresentation!
+            } else if let newArtworkData {
+                if let artworkImage = NSImage(data: newArtworkData) {
+                    self.updateAlbumArt(newAlbumArt: artworkImage)
+                }
+            }
+            
+            if let state = state {
+                self.musicIsPaused(state: state == 1, setIdle: true)
+            } else if self.isPlaying {
+                self.musicIsPaused(state: false, setIdle: true)
+            }
+            
+            if !self.isPlaying {
                 return
             }
             
-            if let bundle = bundle as String? {
-                DispatchQueue.main.async {
-                    self.bundleIdentifier = bundle == "com.apple.WebKit.GPU" ? "com.apple.Safari" : bundle
-                }
-            }
-            
-            self.MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
-                guard let self = self else { return }
-                
-                let newSongTitle = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String ?? ""
-                let newArtistName = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
-                let newAlbumName = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
-                var newArtworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
-                
-                let state: Int? = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int
-                
-                let isNewTrack = self.lastMusicItem?.title != newSongTitle ||
-                                 self.lastMusicItem?.artist != newArtistName ||
-                                 self.lastMusicItem?.album != newAlbumName
-                
-                self.lastMusicItem = (newSongTitle, newArtistName, newAlbumName, newArtworkData)
-                
-                print("Media source:", self.bundleIdentifier)
-                
-                if newArtworkData == nil && state == 1 {
-                    newArtworkData = AppIcons().getIcon(bundleID: self.bundleIdentifier)?.tiffRepresentation!
-                }
-                
-                if let newArtworkData = newArtworkData, let artworkImage = NSImage(data: newArtworkData) {
-                    self.updateAlbumArt(newAlbumArt: artworkImage)
-                }
-                
-                if let state = state {
-                    self.musicIsPaused(state: state == 1, setIdle: true)
-                } else {
-                    // If state is nil, check if there's any content
-                    let hasContent = !newSongTitle.isEmpty || !newArtistName.isEmpty || !newAlbumName.isEmpty
-                    self.musicIsPaused(state: hasContent, setIdle: true)
-                }
-                
-                if self.isPlaying || isNewTrack {
-                    DispatchQueue.main.async {
-                        self.artistName = newArtistName
-                        self.songTitle = newSongTitle
-                        self.album = newAlbumName
-                    }
-                }
-            }
+            self.artistName = newArtistName
+            self.songTitle = newSongTitle
+            self.album = newAlbumName
         }
     }
     
     func musicIsPaused(state: Bool, bypass: Bool = false, setIdle: Bool = false) {
-        updateQueue.async { [weak self] in
-            guard let self = self else { return }
+        if musicToggledManually && !bypass {
+            return
+        }
+        
+        withAnimation(.smooth) {
+            self.isPlaying = state
+            self.playbackManager.isPlaying = state
             
-            if self.musicToggledManually && !bypass {
-                return
+            if !state {
+                self.lastUpdated = Date()
             }
             
             DispatchQueue.main.async {
-                withAnimation(.smooth) {
-                    self.isPlaying = state
-                    self.playbackManager.isPlaying = state
-                    
-                    if !state {
-                        self.lastUpdated = Date()
-                    }
-                    
-                    if self.vm.enableFullscreenMediaDetection {
-                        self.vm.toggleMusicLiveActivity(status: !self.detector.currentAppInFullScreen)
-                    }
-                    
-                    if self.isPlaying && self.vm.enableSneakPeek && !self.detector.currentAppInFullScreen {
-                        self.vm.toggleSneakPeak(status: true, type: SneakContentType.music)
-                    }
-                    
-                    if setIdle {
-                        if state {
-                            self.isPlayerIdle = false
-                            self.debounceToggle?.cancel()
-                        } else {
-                            self.debounceToggle = DispatchWorkItem { [weak self] in
-                                guard let self = self else { return }
-                                if self.lastUpdated.timeIntervalSinceNow < -self.vm.waitInterval {
-                                    withAnimation {
-                                        self.isPlayerIdle = !self.isPlaying
-                                    }
-                                }
-                            }
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval, execute: self.debounceToggle!)
+                if self.vm.enableFullscreenMediaDetection {
+                    self.vm.toggleMusicLiveActivity(status: !self.detector.currentAppInFullScreen)
+                }
+            }
+            
+            if self.isPlaying && vm.enableSneakPeek && !self.detector.currentAppInFullScreen {
+                self.vm.toggleSneakPeak(status: true, type: SneakContentType.music)
+            }
+            
+            if setIdle && state {
+                self.isPlayerIdle = false
+                debounceToggle?.cancel()
+            } else if setIdle && !state {
+                debounceToggle = DispatchWorkItem { [weak self] in
+                    guard let self = self else { return }
+                    if self.lastUpdated.timeIntervalSinceNow < -self.vm.waitInterval {
+                        withAnimation {
+                            self.isPlayerIdle = !self.isPlaying
                         }
                     }
                 }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval, execute: debounceToggle!)
             }
         }
     }
     
     func togglePlayPause() {
-        updateQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            DispatchQueue.main.async {
-                self.musicToggledManually = true
-            }
-            
-            let playState: Bool = self.playbackManager.playPause()
-            
-            self.musicIsPaused(state: playState, bypass: true, setIdle: true)
-            
-            DispatchQueue.main.async {
-                if playState {
-                    self.fetchNowPlayingInfo(bypass: true)
-                } else {
-                    self.lastUpdated = Date()
-                }
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                self.musicToggledManually = false
-            }
+        musicToggledManually = true
+        
+        let playState: Bool = playbackManager.playPause()
+        
+        musicIsPaused(state: playState, bypass: true, setIdle: true)
+        
+        if playState {
+            fetchNowPlayingInfo(bypass: true)
+        } else {
+            lastUpdated = Date()
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            self?.musicToggledManually = false
         }
     }
     
     func updateAlbumArt(newAlbumArt: NSImage) {
-        DispatchQueue.main.async {
-            withAnimation(.smooth) {
-                self.albumArt = newAlbumArt
-                if self.vm.coloredSpectrogram {
-                    self.calculateAverageColor()
-                }
+        withAnimation(.smooth) {
+            self.albumArt = newAlbumArt
+            if vm.coloredSpectrogram {
+                calculateAverageColor()
             }
         }
     }
+    
     
     func calculateAverageColor() {
         albumArt.averageColor { [weak self] color in
@@ -285,33 +263,26 @@ class MusicManager: ObservableObject {
     }
     
     func nextTrack() {
-        updateQueue.async { [weak self] in
-            self?.playbackManager.nextTrack()
-            self?.fetchNowPlayingInfo(bypass: true)
-        }
+        playbackManager.nextTrack()
+        fetchNowPlayingInfo(bypass: true)
     }
     
     func previousTrack() {
-        updateQueue.async { [weak self] in
-            self?.playbackManager.previousTrack()
-            self?.fetchNowPlayingInfo(bypass: true)
-        }
+        playbackManager.previousTrack()
+        fetchNowPlayingInfo(bypass: true)
     }
     
     func openMusicApp() {
-        updateQueue.async { [weak self] in
-            guard let self = self, let bundleID = self.nowPlaying.appBundleIdentifier else {
-                print("Error: appBundleIdentifier is nil")
-                return
-            }
+        guard let bundleID = nowPlaying.appBundleIdentifier else {
+            print("Error: appBundleIdentifier is nil")
+            return
+        }
 
-            let workspace = NSWorkspace.shared
-            if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID),
-               let _ = try? workspace.openApplication(at: appURL, configuration: NSWorkspace.OpenConfiguration()) {
-                print("Launched app with bundle ID: \(bundleID)")
-            } else {
-                print("Failed to launch app with bundle ID: \(bundleID)")
-            }
+        let workspace = NSWorkspace.shared
+        if workspace.launchApplication(withBundleIdentifier: bundleID, options: [], additionalEventParamDescriptor: nil, launchIdentifier: nil) {
+            print("Launched app with bundle ID: \(bundleID)")
+        } else {
+            print("Failed to launch app with bundle ID: \(bundleID)")
         }
     }
 }
