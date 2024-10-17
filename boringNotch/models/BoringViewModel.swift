@@ -166,7 +166,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var enableShadow: Bool = true
     @Published var enableGestures: Bool = true
     @Published var enableGradient: Bool = false
-    @Published var alwaysShowTabs: Bool = false {
+    @Published var alwaysShowTabs: Bool = true {
         didSet {
             if !alwaysShowTabs {
                 openLastTabByDefault = false

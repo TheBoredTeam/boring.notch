@@ -41,27 +41,29 @@ struct NotchHomeView: View {
                     Button {
                         musicManager.openMusicApp()
                     } label: {
-                        Color.clear
-                            .aspectRatio(1, contentMode: .fit)
-                            .background(
-                                Image(nsImage: musicManager.albumArt)
+                        ZStack(alignment: .bottomTrailing) {
+                            Color.clear
+                                .aspectRatio(1, contentMode: .fit)
+                                .background(
+                                    Image(nsImage: musicManager.albumArt)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                )
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadiusScaling ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                            
+                            if vm.notchState == .open {
+                                AppIcon(for: musicManager.bundleIdentifier)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                            )
-                            .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadiusScaling ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
-                            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                                    .frame(width: 30, height: 30)
+                                    .offset(x: 10, y: 10)
+                                    .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
+                            }
+                        }
                     }
                     .buttonStyle(PlainButtonStyle())
-                    
-                    if vm.notchState == .open {
-                        AppIcon(for: musicManager.bundleIdentifier)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 30, height: 30)
-                            .offset(x: 10, y: 10)
-                            .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
-                    }
                 }
                 
                 VStack(alignment: .leading) {
