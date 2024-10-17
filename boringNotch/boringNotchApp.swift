@@ -85,10 +85,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         
         vm.setupWorkersNotificationObservers();
-        
-        if !NSScreen.screens.contains(where: {$0.localizedName == vm.selectedScreen}) {
-            vm.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
-        }
     
         NotificationCenter.default.addObserver(
             self,
@@ -136,6 +132,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func adjustWindowPosition() {
+        if !NSScreen.screens.contains(where: {$0.localizedName == vm.selectedScreen}) {
+            vm.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
+        }
+        
         let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == vm.selectedScreen})
         closedNotchSize = setNotchSize(screen: selectedScreen?.localizedName)
         
