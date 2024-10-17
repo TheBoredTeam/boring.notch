@@ -8,18 +8,18 @@ import AppKit
 import Combine
 import SwiftUI
 
-var defaultImage: NSImage = .init(
+let defaultImage: NSImage = .init(
     systemSymbolName: "heart.fill",
     accessibilityDescription: "Album Art"
 )!
 
 class MusicManager: ObservableObject {
+    // MARK: - Properties
     private var cancellables = Set<AnyCancellable>()
     private var debounceToggle: DispatchWorkItem?
     private var vm: BoringViewModel
     private var lastMusicItem: (title: String, artist: String, album: String, artworkData: Data?)?
     private var isCurrentlyPlaying: Bool = false
-    private var updateQueue = DispatchQueue(label: "com.boringNotch.MusicManager.updateQueue", qos: .userInitiated)
     
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
@@ -40,39 +40,30 @@ class MusicManager: ObservableObject {
     private let MRMediaRemoteGetNowPlayingInfo: @convention(c) (DispatchQueue, @escaping ([String: Any]) -> Void) -> Void
     private let MRMediaRemoteRegisterForNowPlayingNotifications: @convention(c) (DispatchQueue) -> Void
     
+    // MARK: - Initialization
     init?(vm: BoringViewModel) {
         self.vm = vm
-        
         _detector = ObservedObject(wrappedValue: FullscreenMediaDetector())
-        
         nowPlaying = NowPlaying()
         
-        guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")) else {
-            print("Failed to load MediaRemote.framework")
-            return nil
-        }
-        self.mediaRemoteBundle = bundle
-        
-        guard let MRMediaRemoteGetNowPlayingInfoPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingInfo" as CFString),
+        guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")),
+              let MRMediaRemoteGetNowPlayingInfoPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingInfo" as CFString),
               let MRMediaRemoteRegisterForNowPlayingNotificationsPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteRegisterForNowPlayingNotifications" as CFString)
         else {
-            print("Failed to get function pointers")
+            print("Failed to load MediaRemote.framework or get function pointers")
             return nil
         }
         
+        self.mediaRemoteBundle = bundle
         self.MRMediaRemoteGetNowPlayingInfo = unsafeBitCast(MRMediaRemoteGetNowPlayingInfoPointer, to: (@convention(c) (DispatchQueue, @escaping ([String: Any]) -> Void) -> Void).self)
         self.MRMediaRemoteRegisterForNowPlayingNotifications = unsafeBitCast(MRMediaRemoteRegisterForNowPlayingNotificationsPointer, to: (@convention(c) (DispatchQueue) -> Void).self)
         
         setupNowPlayingObserver()
         fetchNowPlayingInfo()
         
-        self.detector.$currentAppInFullScreen
-            .sink { [weak self] newValue in
-                self?.fetchNowPlayingInfo(bypass: true, bundle: self?.nowPlaying.appBundleIdentifier ?? nil)
-            }
-            .store(in: &cancellables)
+        setupDetectorObserver()
         
-        if(nowPlaying.playing) {
+        if nowPlaying.playing {
             self.fetchNowPlayingInfo()
         }
     }
@@ -82,194 +73,186 @@ class MusicManager: ObservableObject {
         cancellables.removeAll()
     }
     
+    // MARK: - Setup Methods
     private func setupNowPlayingObserver() {
         MRMediaRemoteRegisterForNowPlayingNotifications(DispatchQueue.main)
         
-        NotificationCenter.default.publisher(for: NSNotification.Name("kMRMediaRemoteNowPlayingInfoDidChangeNotification"))
-            .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.fetchNowPlayingInfo(bundle: self?.nowPlaying.appBundleIdentifier ?? nil)
-            }
-            .store(in: &cancellables)
+        observeNotification(name: "kMRMediaRemoteNowPlayingInfoDidChangeNotification") { [weak self] in
+            self?.fetchNowPlayingInfo(bundle: self?.nowPlaying.appBundleIdentifier ?? nil)
+        }
         
-        NotificationCenter.default.publisher(for: NSNotification.Name("kMRMediaRemoteNowPlayingApplicationDidChangeNotification"))
-            .sink { [weak self] _ in
-                self?.updateApp()
-            }
-            .store(in: &cancellables)
+        observeNotification(name: "kMRMediaRemoteNowPlayingApplicationDidChangeNotification") { [weak self] in
+            self?.updateApp()
+        }
         
-        DistributedNotificationCenter.default().addObserver(
-            forName: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
+        observeDistributedNotification(name: "com.spotify.client.PlaybackStateChanged") { [weak self] in
             self?.fetchNowPlayingInfo(bundle: "com.spotify.client")
         }
         
-        DistributedNotificationCenter.default().addObserver(
-            forName: NSNotification.Name("com.apple.Music.playerInfo"),
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
+        observeDistributedNotification(name: "com.apple.Music.playerInfo") { [weak self] in
             self?.fetchNowPlayingInfo(bundle: "com.apple.Music")
         }
     }
     
-    @objc func updateApp() {
-        updateQueue.async { [weak self] in
-            guard let self = self else { return }
-            if let appBundleID = self.nowPlaying.appBundleIdentifier {
-                DispatchQueue.main.async {
-                    self.bundleIdentifier = appBundleID
-                }
-            } else {
-                print("Error: appBundleIdentifier is nil")
-                DispatchQueue.main.async {
-                    self.bundleIdentifier = "com.apple.Music"
-                }
+    private func setupDetectorObserver() {
+        detector.$currentAppInFullScreen
+            .sink { [weak self] _ in
+                self?.fetchNowPlayingInfo(bypass: true, bundle: self?.nowPlaying.appBundleIdentifier ?? nil)
             }
-        }
+            .store(in: &cancellables)
+    }
+    
+    private func observeNotification(name: String, handler: @escaping () -> Void) {
+        NotificationCenter.default.publisher(for: NSNotification.Name(name))
+            .sink { _ in handler() }
+            .store(in: &cancellables)
+    }
+    
+    private func observeDistributedNotification(name: String, handler: @escaping () -> Void) {
+        DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name(name),
+            object: nil,
+            queue: .main
+        ) { _ in handler() }
+    }
+    
+    // MARK: - Update Methods
+    @objc func updateApp() {
+        self.bundleIdentifier = nowPlaying.appBundleIdentifier ?? "com.apple.Music"
     }
     
     @objc func fetchNowPlayingInfo(bypass: Bool = false, bundle: String? = nil) {
-        updateQueue.async { [weak self] in
+        if musicToggledManually && !bypass { return }
+        
+        updateBundleIdentifier(bundle)
+        
+        MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
             guard let self = self else { return }
             
-            if self.musicToggledManually && !bypass {
-                return
-            }
+            let newInfo = self.extractMusicInfo(from: information)
+            let state: Int? = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int
             
-            if let bundle = bundle as String? {
-                DispatchQueue.main.async {
-                    self.bundleIdentifier = bundle == "com.apple.WebKit.GPU" ? "com.apple.Safari" : bundle
-                }
-            }
-            
-            self.MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
-                guard let self = self else { return }
-                
-                let newSongTitle = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String ?? ""
-                let newArtistName = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
-                let newAlbumName = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
-                var newArtworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
-                
-                let state: Int? = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int
-                
-                let isNewTrack = self.lastMusicItem?.title != newSongTitle ||
-                                 self.lastMusicItem?.artist != newArtistName ||
-                                 self.lastMusicItem?.album != newAlbumName
-                
-                self.lastMusicItem = (newSongTitle, newArtistName, newAlbumName, newArtworkData)
-                
-                print("Media source:", self.bundleIdentifier)
-                
-                if newArtworkData == nil && state == 1 {
-                    newArtworkData = AppIcons().getIcon(bundleID: self.bundleIdentifier)?.tiffRepresentation!
-                }
-                
-                if let newArtworkData = newArtworkData, let artworkImage = NSImage(data: newArtworkData) {
-                    self.updateAlbumArt(newAlbumArt: artworkImage)
-                }
-                
-                if let state = state {
-                    self.musicIsPaused(state: state == 1, setIdle: true)
-                } else {
-                    // If state is nil, check if there's any content
-                    let hasContent = !newSongTitle.isEmpty || !newArtistName.isEmpty || !newAlbumName.isEmpty
-                    self.musicIsPaused(state: hasContent, setIdle: true)
-                }
-                
-                if self.isPlaying || isNewTrack {
-                    DispatchQueue.main.async {
-                        self.artistName = newArtistName
-                        self.songTitle = newSongTitle
-                        self.album = newAlbumName
-                    }
-                }
-            }
+            self.updateMusicState(newInfo: newInfo, state: state)
+        }
+    }
+    
+    // MARK: - Helper Methods
+    private func updateBundleIdentifier(_ bundle: String?) {
+        if let bundle = bundle {
+            self.bundleIdentifier = bundle == "com.apple.WebKit.GPU" ? "com.apple.Safari" : bundle
+        }
+    }
+    
+    private func extractMusicInfo(from information: [String: Any]) -> (title: String, artist: String, album: String, artworkData: Data?) {
+        let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String ?? ""
+        let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
+        let album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
+        let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
+        return (title, artist, album, artworkData)
+    }
+    
+    private func updateMusicState(newInfo: (title: String, artist: String, album: String, artworkData: Data?), state: Int?) {
+        self.lastMusicItem = newInfo
+        
+        print("Media source:", bundleIdentifier)
+        
+        updateArtwork(newInfo.artworkData, state: state)
+        updatePlaybackState(state)
+        
+        if !self.isPlaying { return }
+        
+        self.artistName = newInfo.artist
+        self.songTitle = newInfo.title
+        self.album = newInfo.album
+    }
+    
+    private func updateArtwork(_ artworkData: Data?, state: Int?) {
+        if let artworkData = artworkData ?? (state == 1 ? AppIcons().getIcon(bundleID: bundleIdentifier)?.tiffRepresentation : nil),
+           let artworkImage = NSImage(data: artworkData) {
+            self.updateAlbumArt(newAlbumArt: artworkImage)
+        }
+    }
+    
+    private func updatePlaybackState(_ state: Int?) {
+        if let state = state {
+            self.musicIsPaused(state: state == 1, setIdle: true)
+        } else if self.isPlaying {
+            self.musicIsPaused(state: false, setIdle: true)
         }
     }
     
     func musicIsPaused(state: Bool, bypass: Bool = false, setIdle: Bool = false) {
-        updateQueue.async { [weak self] in
-            guard let self = self else { return }
+        if musicToggledManually && !bypass { return }
+        
+        withAnimation(.smooth) {
+            self.isPlaying = state
+            self.playbackManager.isPlaying = state
             
-            if self.musicToggledManually && !bypass {
-                return
+            if !state {
+                self.lastUpdated = Date()
             }
             
-            DispatchQueue.main.async {
-                withAnimation(.smooth) {
-                    self.isPlaying = state
-                    self.playbackManager.isPlaying = state
-                    
-                    if !state {
-                        self.lastUpdated = Date()
-                    }
-                    
-                    if self.vm.enableFullscreenMediaDetection {
-                        self.vm.toggleMusicLiveActivity(status: !self.detector.currentAppInFullScreen)
-                    }
-                    
-                    if self.isPlaying && self.vm.enableSneakPeek && !self.detector.currentAppInFullScreen {
-                        self.vm.toggleSneakPeak(status: true, type: SneakContentType.music)
-                    }
-                    
-                    if setIdle {
-                        if state {
-                            self.isPlayerIdle = false
-                            self.debounceToggle?.cancel()
-                        } else {
-                            self.debounceToggle = DispatchWorkItem { [weak self] in
-                                guard let self = self else { return }
-                                if self.lastUpdated.timeIntervalSinceNow < -self.vm.waitInterval {
-                                    withAnimation {
-                                        self.isPlayerIdle = !self.isPlaying
-                                    }
-                                }
-                            }
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval, execute: self.debounceToggle!)
-                        }
+            updateFullscreenMediaDetection()
+            updateSneakPeek()
+            updateIdleState(setIdle: setIdle, state: state)
+        }
+    }
+    
+    private func updateFullscreenMediaDetection() {
+        DispatchQueue.main.async {
+            if self.vm.enableFullscreenMediaDetection {
+                self.vm.toggleMusicLiveActivity(status: !self.detector.currentAppInFullScreen)
+            }
+        }
+    }
+    
+    private func updateSneakPeek() {
+        if self.isPlaying && vm.enableSneakPeek && !self.detector.currentAppInFullScreen {
+            self.vm.toggleSneakPeak(status: true, type: SneakContentType.music)
+        }
+    }
+    
+    private func updateIdleState(setIdle: Bool, state: Bool) {
+        if setIdle && state {
+            self.isPlayerIdle = false
+            debounceToggle?.cancel()
+        } else if setIdle && !state {
+            debounceToggle = DispatchWorkItem { [weak self] in
+                guard let self = self else { return }
+                if self.lastUpdated.timeIntervalSinceNow < -self.vm.waitInterval {
+                    withAnimation {
+                        self.isPlayerIdle = !self.isPlaying
                     }
                 }
             }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval, execute: debounceToggle!)
         }
     }
     
     func togglePlayPause() {
-        updateQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            DispatchQueue.main.async {
-                self.musicToggledManually = true
-            }
-            
-            let playState: Bool = self.playbackManager.playPause()
-            
-            self.musicIsPaused(state: playState, bypass: true, setIdle: true)
-            
-            DispatchQueue.main.async {
-                if playState {
-                    self.fetchNowPlayingInfo(bypass: true)
-                } else {
-                    self.lastUpdated = Date()
-                }
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                self.musicToggledManually = false
-            }
+        musicToggledManually = true
+        
+        let playState = playbackManager.playPause()
+        
+        musicIsPaused(state: playState, bypass: true, setIdle: true)
+        
+        if playState {
+            fetchNowPlayingInfo(bypass: true)
+        } else {
+            lastUpdated = Date()
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            self?.musicToggledManually = false
         }
     }
     
     func updateAlbumArt(newAlbumArt: NSImage) {
-        DispatchQueue.main.async {
-            withAnimation(.smooth) {
-                self.albumArt = newAlbumArt
-                if self.vm.coloredSpectrogram {
-                    self.calculateAverageColor()
-                }
+        withAnimation(.smooth) {
+            self.albumArt = newAlbumArt
+            if vm.coloredSpectrogram {
+                calculateAverageColor()
             }
         }
     }
@@ -285,33 +268,26 @@ class MusicManager: ObservableObject {
     }
     
     func nextTrack() {
-        updateQueue.async { [weak self] in
-            self?.playbackManager.nextTrack()
-            self?.fetchNowPlayingInfo(bypass: true)
-        }
+        playbackManager.nextTrack()
+        fetchNowPlayingInfo(bypass: true)
     }
     
     func previousTrack() {
-        updateQueue.async { [weak self] in
-            self?.playbackManager.previousTrack()
-            self?.fetchNowPlayingInfo(bypass: true)
-        }
+        playbackManager.previousTrack()
+        fetchNowPlayingInfo(bypass: true)
     }
     
     func openMusicApp() {
-        updateQueue.async { [weak self] in
-            guard let self = self, let bundleID = self.nowPlaying.appBundleIdentifier else {
-                print("Error: appBundleIdentifier is nil")
-                return
-            }
+        guard let bundleID = nowPlaying.appBundleIdentifier else {
+            print("Error: appBundleIdentifier is nil")
+            return
+        }
 
-            let workspace = NSWorkspace.shared
-            if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID),
-               let _ = try? workspace.openApplication(at: appURL, configuration: NSWorkspace.OpenConfiguration()) {
-                print("Launched app with bundle ID: \(bundleID)")
-            } else {
-                print("Failed to launch app with bundle ID: \(bundleID)")
-            }
+        let workspace = NSWorkspace.shared
+        if workspace.launchApplication(withBundleIdentifier: bundleID, options: [], additionalEventParamDescriptor: nil, launchIdentifier: nil) {
+            print("Launched app with bundle ID: \(bundleID)")
+        } else {
+            print("Failed to launch app with bundle ID: \(bundleID)")
         }
     }
 }
