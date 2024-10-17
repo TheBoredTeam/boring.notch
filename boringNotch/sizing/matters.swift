@@ -13,23 +13,30 @@ var closedNotchSize: CGSize = setNotchSize()
 var downloadSneakSize: CGSize = .init(width: 65, height: 1)
 var batterySenakSize: CGSize = .init(width: 160, height: 1)
 
-func setNotchSize() -> CGSize {
-    
+func setNotchSize(screen: String? = nil) -> CGSize {
+    // Default notch size, to avoid using optionals
     var notchHeight: CGFloat = 32
     var notchWidth: CGFloat = 185
     
-        // Check if the screen is available
-    if let screen = NSScreen.main {
-            // Calculate and set the exact width of the notch
+    var selectedScreen = NSScreen.main
+    
+    if let customScreen = screen {
+        selectedScreen = NSScreen.screens.first(where: {$0.localizedName == customScreen})
+    }
+    
+    // Check if the screen is available
+    if let screen = selectedScreen {
+        // Calculate and set the exact width of the notch
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
-           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
+           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width
+        {
             notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 10
         }
         
-            // Use MenuBar height as notch height if there is no notch
-        notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+        // Use MenuBar height as notch height if there is no notch
+        notchHeight = screen.frame.maxY - screen.visibleFrame.maxY - 4
         
-            // Check if the Mac has a notch
+        // Check if the Mac has a notch
         if screen.safeAreaInsets.top > 0 {
             notchHeight = screen.safeAreaInsets.top
         }

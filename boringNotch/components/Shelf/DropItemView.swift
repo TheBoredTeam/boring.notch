@@ -36,15 +36,6 @@ struct DropItemView: View {
                     .allowsTightening(true)
             }
             .contentShape(Rectangle())
-            .onHover { hovering in
-                withAnimation(.smooth) {
-                    if hovering {
-                        hover.toggle()
-                    } else {
-                        hover.toggle()
-                    }
-                }
-            }
             .onDrag { NSItemProvider(contentsOf: item.storageURL) ?? .init() }
             .frame(width: 64, height: 64)
             
@@ -59,6 +50,15 @@ struct DropItemView: View {
                     .offset(x: vm.spacing / 2, y: -vm.spacing / 2)
                     .onTapGesture { tvm.delete(item.id) }
                     .shadow(color: .black, radius: 3)
+            }
+        }
+        .onHover { hovering in
+            withAnimation(.smooth) {
+                if hovering {
+                    hover.toggle()
+                } else {
+                    hover.toggle()
+                }
             }
         }
     }

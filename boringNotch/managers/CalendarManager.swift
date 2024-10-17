@@ -80,7 +80,10 @@ class CalendarManager: ObservableObject {
     }
     
     static func startOfWeek(_ date: Date) -> Date {
-        return Calendar.current.date(from: Calendar.current.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date))!
+        let firstWeekday = Calendar.current.firstWeekday - 1
+        let start = Calendar.current.date(from: Calendar.current.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date))!
+        print(Calendar.current.date(byAdding: .day, value: firstWeekday,to: start)!)
+        return Calendar.current.date(byAdding: .day, value: firstWeekday,to: start)!
     }
     
     func updateCurrentDate(_ date: Date) {

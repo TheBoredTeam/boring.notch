@@ -86,13 +86,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         vm.setupWorkersNotificationObservers();
     
-        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(adjustWindowPosition),
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
+        
+        NotificationCenter.default.addObserver(forName: Notification.Name.selectedScreenChanged, object: nil, queue: nil) { [weak self] _ in
+            self?.adjustWindowPosition()
+        }
         
         window = BoringNotchWindow(
             contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width! + 20, height: sizing.size.opened.height! + 30),
@@ -129,40 +132,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func adjustWindowPosition() {
-        if let screenFrame = window.screen ?? NSScreen.main {
-            let windowWidth = window.frame.width
-            let notchCenterX = screenFrame.frame.width / 2
-            let windowX = notchCenterX - windowWidth / 2
-            let windowY = screenFrame.frame.height
-            
-            window.setFrameTopLeftPoint(NSPoint(x: windowX, y: windowY))
-        }
-    }
-    
-    func setNotchSize() -> CGSize {
-        // Default notch size, to avoid using optionals
-        var notchHeight: CGFloat = 32
-        var notchWidth: CGFloat = 185
-        
-        // Check if the screen is available
-        if let screen = NSScreen.main {
-            // Calculate and set the exact width of the notch
-            if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
-               let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width
-            {
-                notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 10
-            }
-            
-            // Use MenuBar height as notch height if there is no notch
-            notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
-            
-            // Check if the Mac has a notch
-            if screen.safeAreaInsets.top > 0 {
-                notchHeight = screen.safeAreaInsets.top
-            }
+        if !NSScreen.screens.contains(where: {$0.localizedName == vm.selectedScreen}) {
+            vm.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
         }
         
-        return .init(width: notchWidth, height: notchHeight)
+        let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == vm.selectedScreen})
+        closedNotchSize = setNotchSize(screen: selectedScreen?.localizedName)
+        
+        if let screenFrame = selectedScreen {
+            window.alphaValue = 0
+            window.makeKeyAndOrderFront(nil)
+            
+            DispatchQueue.main.async {[weak self] in
+                self!.window.setFrameOrigin(screenFrame.frame.origin.applying(CGAffineTransform(translationX: (screenFrame.frame.width / 2) - self!.window.frame.width / 2, y: screenFrame.frame.height - self!.window.frame.height)))
+                self!.window.alphaValue = 1
+            }
+        }
     }
     
     @objc func togglePopover(_ sender: Any?) {
@@ -180,4 +165,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func quitAction() {
         NSApplication.shared.terminate(nil)
     }
+}
+
+extension Notification.Name {
+    static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
 }

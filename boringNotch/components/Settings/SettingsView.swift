@@ -20,6 +20,7 @@ struct SettingsView: View {
     @State private var selectedTab: SettingsEnum = .general
     @State private var showBuildNumber: Bool = false
     @State private var effectTrigger: Bool = false
+    @State private var screens: [String] = NSScreen.screens.compactMap({$0.localizedName})
     let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
     
     var body: some View {
@@ -69,7 +70,6 @@ struct SettingsView: View {
     @ViewBuilder
     func GeneralSettings() -> some View {
         Form {
-            warningBadge("Your settings will not be restored on restart", "By doing this, we can quickly address global bugs. It will be enabled later on.")
             Section {
                 HStack {
                     ForEach(accentColors, id: \.self) { color in
@@ -105,6 +105,14 @@ struct SettingsView: View {
             Section {
                 Toggle("Menubar icon", isOn: $vm.showMenuBarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
+                Picker("Show on a specific display", selection: $vm.selectedScreen) {
+                    ForEach(screens, id: \.self) { screen in
+                        Text(screen)
+                    }
+                }
+                .onChange(of: NSScreen.screens) { old, new in
+                    screens = new.compactMap({$0.localizedName})
+                }
             } header: {
                 Text("System features")
             }
@@ -300,6 +308,7 @@ struct SettingsView: View {
                     .tag(MirrorShapeEnum.rectangle)
             }
             Toggle("Settings icon in notch", isOn: $vm.settingsIconInNotch)
+            Toggle("Enable blur effect behind album art", isOn: $vm.lightingEffect.animation())
         } header: {
             Text("Boring Controls")
         }

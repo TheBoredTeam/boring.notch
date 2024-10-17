@@ -31,6 +31,7 @@ struct BoringHeader: View {
                 Rectangle()
                     .fill(.black)
                     .frame(width: vm.sizes.size.closed.width! - 5)
+                    .shadow(color: .black, radius: 30, x: -25, y: 10)
             }
             
             HStack(spacing: 4) {
