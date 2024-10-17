@@ -9,6 +9,7 @@ import SwiftUI
 import LaunchAtLogin
 import Sparkle
 import KeyboardShortcuts
+import Defaults
 
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -22,6 +23,16 @@ struct SettingsView: View {
     @State private var effectTrigger: Bool = false
     @State private var screens: [String] = NSScreen.screens.compactMap({$0.localizedName})
     let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
+    
+    @Default(.gestureSensitivity) var gestureSensitivity
+    @Default(.minimumHoverDuration) var minimumHoverDuration
+    @Default(.mirrorShape) var mirrorShape
+    @Default(.showEmojis) var showEmojis
+    @Default(.accentColor) var accentColor
+    @Default(.waitInterval) var waitInterval
+    @Default(.selectedScreen) var selectedScreen
+    @Default(.selectedDownloadIndicatorStyle) var selectedDownloadIndicatorStyle
+    @Default(.selectedDownloadIconStyle) var selectedDownloadIconStyle
     
     var body: some View {
         TabView(selection: $selectedTab,
@@ -75,7 +86,7 @@ struct SettingsView: View {
                     ForEach(accentColors, id: \.self) { color in
                         Button(action: {
                             withAnimation {
-                                vm.accentColor = color
+                                Defaults[.accentColor] = color
                             }
                         }) {
                             Circle()
@@ -83,19 +94,19 @@ struct SettingsView: View {
                                 .frame(width: 20, height: 20)
                                 .overlay(
                                     Circle()
-                                        .stroke(Color.white, lineWidth: vm.accentColor == color ? 2 : 0)
+                                        .stroke(Color.white, lineWidth: Defaults[.accentColor] == color ? 2 : 0)
                                         .overlay {
                                             Circle()
                                                 .fill(.white)
                                                 .frame(width: 7, height: 7)
-                                                .opacity(vm.accentColor == color ? 1 : 0)
+                                                .opacity(Defaults[.accentColor] == color ? 1 : 0)
                                         }
                                 )
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
                     Spacer()
-                    ColorPicker("Custom color", selection: $vm.accentColor)
+                    ColorPicker("Custom color", selection: $accentColor)
                         .labelsHidden()
                 }
             } header: {
@@ -103,9 +114,9 @@ struct SettingsView: View {
             }
             
             Section {
-                Toggle("Menubar icon", isOn: $vm.showMenuBarIcon)
+                Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
-                Picker("Show on a specific display", selection: $vm.selectedScreen) {
+                Picker("Show on a specific display", selection: $selectedScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
@@ -130,8 +141,8 @@ struct SettingsView: View {
     func Charge() -> some View {
         Form {
             Section {
-                Toggle("Show charging indicator", isOn: $vm.chargingInfoAllowed)
-                Toggle("Show battery indicator", isOn: $vm.showBattery.animation())
+                Defaults.Toggle("Show charging indicator", key: .chargingInfoAllowed)
+                Defaults.Toggle("Show battery indicator", key: .showBattery)
             } header: {
                 Text("General")
             }
@@ -143,15 +154,17 @@ struct SettingsView: View {
         Form {
             warningBadge("We don't support downloads yet", "It will be supported later on.")
             Section {
-                Toggle("Show download progress", isOn: $vm.enableDownloadListener).disabled(true)
-                Toggle("Enable Safari Downloads", isOn: $vm.enableSafariDownloads).disabled(!vm.enableDownloadListener)
-                Picker("Download indicator style", selection: $vm.selectedDownloadIndicatorStyle) {
+                Defaults.Toggle("Show download progress", key: .enableDownloadListener)
+                    .disabled(true)
+                Defaults.Toggle("Enable Safari Downloads", key: .enableSafariDownloads)
+                    .disabled(!Defaults[.enableDownloadListener])
+                Picker("Download indicator style", selection: $selectedDownloadIndicatorStyle) {
                     Text("Progress bar")
                         .tag(DownloadIndicatorStyle.progress)
                     Text("Percentage")
                         .tag(DownloadIndicatorStyle.percentage)
                 }
-                Picker("Download icon style", selection: $vm.selectedDownloadIconStyle) {
+                Picker("Download icon style", selection: $selectedDownloadIconStyle) {
                     Text("Only app icon")
                         .tag(DownloadIconStyle.onlyAppIcon)
                     Text("Only download icon")
@@ -254,14 +267,14 @@ struct SettingsView: View {
     func Media() -> some View {
         Form {
             Section {
-                Toggle("Enable colored spectrograms", isOn: $vm.coloredSpectrogram.animation())
-                Toggle("Enable sneak peek", isOn: $vm.enableSneakPeek)
+                Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
+                Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
                 HStack {
-                    Stepper(value: $vm.waitInterval, in: 0...10, step: 1) {
+                    Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {
                             Text("Media inactivity timeout")
                             Spacer()
-                            Text("\(vm.waitInterval, specifier: "%.0f") seconds")
+                            Text("\(Defaults[.waitInterval], specifier: "%.0f") seconds")
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -271,7 +284,7 @@ struct SettingsView: View {
             }
             
             Section {
-                Toggle("Autohide BoringNotch in fullscreen", isOn: $vm.enableFullscreenMediaDetection)
+                Defaults.Toggle("Autohide BoringNotch in fullscreen", key: .enableFullscreenMediaDetection)
             } header: {
                 HStack {
                     Text("Fullscreen media playback detection")
@@ -284,31 +297,24 @@ struct SettingsView: View {
     @ViewBuilder
     func boringControls() -> some View {
         Section {
-            Picker("Button icon style", selection: $vm.showEmojis) {
+            Picker("Button icon style", selection: $showEmojis) {
                 Text("Emoji")
                     .tag(true)
                 Text("Symbols")
                     .tag(false)
             }
-            Toggle("Show cool face animation while inactivity", isOn: $vm.nothumanface.animation())
-            Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
-            Toggle(isOn: $vm.openLastTabByDefault) {
-                Text("Remember last tab")
-                if vm.openShelfByDefault && vm.openLastTabByDefault {
-                    Text("""
-                         Note: If files are in the shelf, the shelf will always be opened by default because "Open shelf tab by default if items added" is enabled. You can change this in the shelf settings.
-                         """)
-                }
-            }
-            Toggle("Enable boring mirror", isOn: $vm.showMirror)
-            Picker("Mirror shape", selection: $vm.mirrorShape) {
+            Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
+            Defaults.Toggle("Always show tabs", key: .alwaysShowTabs)
+            Defaults.Toggle("Remember last tab", key: .openLastTabByDefault)
+            Defaults.Toggle("Enable boring mirror", key: .showMirror)
+            Picker("Mirror shape", selection: $mirrorShape) {
                 Text("Circle")
                     .tag(MirrorShapeEnum.circle)
                 Text("Square")
                     .tag(MirrorShapeEnum.rectangle)
             }
-            Toggle("Settings icon in notch", isOn: $vm.settingsIconInNotch)
-            Toggle("Enable blur effect behind album art", isOn: $vm.lightingEffect.animation())
+            Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
+            Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
         } header: {
             Text("Boring Controls")
         }
@@ -317,17 +323,17 @@ struct SettingsView: View {
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
-            Toggle("Enable gestures", isOn: $vm.enableGestures.animation())
-                .disabled(!vm.openNotchOnHover)
-            if vm.enableGestures {
+            Defaults.Toggle("Enable gestures", key: .enableGestures)
+                .disabled(!Defaults[.openNotchOnHover])
+            if Defaults[.enableGestures] {
                 Toggle("Media change with horizontal gestures", isOn: .constant(false))
                     .disabled(true)
-                Toggle("Close gesture", isOn: $vm.closeGestureEnabled)
-                Slider(value: $vm.gestureSensitivity, in: 100...300, step: 100) {
+                Defaults.Toggle("Close gesture", key: .closeGestureEnabled)
+                Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
                     HStack {
                         Text("Gesture sensitivity")
                         Spacer()
-                        Text(vm.gestureSensitivity == 100 ? "High" : vm.gestureSensitivity == 200 ? "Medium" : "Low")
+                        Text(Defaults[.gestureSensitivity] == 100 ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -343,21 +349,16 @@ struct SettingsView: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-            Toggle("Enable haptics", isOn: $vm.enableHaptics)
-            Toggle("Enable shadow", isOn: $vm.enableShadow)
-            Toggle("Corner radius scaling", isOn: $vm.cornerRadiusScaling)
-            Toggle("Open notch on hover", isOn: $vm.openNotchOnHover.animation())
-                .onChange(of: vm.openNotchOnHover) { old, new in
-                    if !new {
-                        vm.enableGestures = true
-                    }
-                }
-            if vm.openNotchOnHover {
-                Slider(value: $vm.minimumHoverDuration, in: 0...1, step: 0.1) {
+            Defaults.Toggle("Enable haptics", key: .enableHaptics)
+            Defaults.Toggle("Enable shadow", key: .enableShadow)
+            Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
+            Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
+            if Defaults[.openNotchOnHover] {
+                Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
                         Text("Minimum hover duration")
                         Spacer()
-                        Text("\(vm.minimumHoverDuration, specifier: "%.1f")s")
+                        Text("\(Defaults[.minimumHoverDuration], specifier: "%.1f")s")
                             .foregroundStyle(.secondary)
                     }
                 }
