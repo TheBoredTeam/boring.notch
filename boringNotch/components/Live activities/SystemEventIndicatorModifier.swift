@@ -6,6 +6,7 @@
     //
 
 import SwiftUI
+import Defaults
 
 struct SystemEventIndicatorModifier: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -101,16 +102,16 @@ struct DraggableProgressBar: View {
                     Capsule()
                         .fill(.tertiary)
                     Group {
-                        if vm.enableGradient {
+                        if Defaults[.enableGradient] {
                             Capsule()
-                                .fill(LinearGradient(colors: vm.systemEventIndicatorUseAccent ? [vm.accentColor, vm.accentColor.ensureMinimumBrightness(factor: 0.2)] : [.white, .white.opacity(0.2)], startPoint: .trailing, endPoint: .leading))
+                                .fill(LinearGradient(colors: Defaults[.systemEventIndicatorUseAccent] ? [Defaults[.accentColor], Defaults[.accentColor].ensureMinimumBrightness(factor: 0.2)] : [.white, .white.opacity(0.2)], startPoint: .trailing, endPoint: .leading))
                                 .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
-                                .shadow(color: vm.systemEventIndicatorShadow ? vm.systemEventIndicatorUseAccent ? vm.accentColor.ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
+                                .shadow(color: Defaults[.systemEventIndicatorShadow] ? Defaults[.systemEventIndicatorUseAccent] ? Defaults[.accentColor].ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
                         } else {
                             Capsule()
-                                .fill(vm.systemEventIndicatorUseAccent ? vm.accentColor : .white)
+                                .fill(Defaults[.systemEventIndicatorUseAccent] ? Defaults[.accentColor] : .white)
                                 .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
-                                .shadow(color: vm.systemEventIndicatorShadow ? vm.systemEventIndicatorUseAccent ? vm.accentColor.ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
+                                .shadow(color: Defaults[.systemEventIndicatorShadow] ? Defaults[.systemEventIndicatorUseAccent] ? Defaults[.accentColor].ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
                         }
                     }
                     .opacity(value.isZero ? 0 : 1)
@@ -130,7 +131,7 @@ struct DraggableProgressBar: View {
                         }
                 )
             }
-            .frame(height: vm.inlineHUD ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
+            .frame(height: Defaults[.inlineHUD] ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
         }
     }
     

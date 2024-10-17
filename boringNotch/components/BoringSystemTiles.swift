@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Defaults
 
 struct SystemItemButton: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -18,7 +19,7 @@ struct SystemItemButton: View {
 
     var body: some View {
         Button(action: onTap) {
-            if vm.tilesShowLabels {
+            if Defaults[.tileShowLabels] {
                 HStack {
                     if !showEmojis {
                         Image(systemName: icon)
@@ -79,7 +80,7 @@ struct BoringSystemTiles: View {
             GridRow {
                 SystemItemButton(icon: "clipboard", onTap: {
                     vm.openClipboard()
-                }, label: "Clipboard History", showEmojis: vm.showEmojis, emoji: "✨")
+                }, label: "Clipboard History", showEmojis: Defaults[.showEmojis], emoji: "✨")
                 //                SystemItemButton(icon: "keyboard", onTap: {
                 //                    vm?.close()
                 //                    vm?.toggleSneakPeak(status: true, type: .backlight, value: 1)
@@ -89,7 +90,7 @@ struct BoringSystemTiles: View {
                 SystemItemButton(icon: vm.currentMicStatus ? "mic" : "mic.slash", onTap: {
                     vm.toggleMic()
                     vm.close()
-                }, label: "Toggle Microphone", showEmojis: vm.showEmojis, emoji: vm.currentMicStatus ? "😀" : "🤫")
+                }, label: "Toggle Microphone", showEmojis: Defaults[.showEmojis], emoji: vm.currentMicStatus ? "😀" : "🤫")
                 //                SystemItemButton(icon: "lock", onTap: {
                 //                    logout()
                 //                }, label: "🔒 Lock My Device")

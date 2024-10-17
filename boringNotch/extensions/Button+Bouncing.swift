@@ -5,6 +5,7 @@
 //  Created by Harsh Vardhan  Goswami  on 19/08/24.
 //
 import SwiftUI
+import Defaults
 
 struct BouncingButtonStyle: ButtonStyle {
     let vm: BoringViewModel
@@ -14,7 +15,7 @@ struct BouncingButtonStyle: ButtonStyle {
         configuration.label
             .padding(12)
             .background(
-                RoundedRectangle(cornerRadius: vm.cornerRadiusScaling ? Sizes().cornerRadius.opened.inset! - 14 : vm.musicPlayerSizes.image.cornerRadius.closed.inset!)
+                RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? Sizes().cornerRadius.opened.inset! - 14 : vm.musicPlayerSizes.image.cornerRadius.closed.inset!)
                     .fill(Color(red: 20/255, green: 20/255, blue: 20/255))
                     .strokeBorder(.white.opacity(0.04), lineWidth: 1)
             )

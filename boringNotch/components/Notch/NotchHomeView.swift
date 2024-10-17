@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Defaults
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -19,7 +20,7 @@ struct NotchHomeView: View {
         if !vm.firstLaunch {
             HStack(alignment: .top, spacing: 10) {
                 ZStack(alignment: .bottomTrailing) {
-                     if vm.lightingEffect {
+                    if Defaults[.lightingEffect] {
                         Color.clear
                             .aspectRatio(1, contentMode: .fit)
                             .background(
@@ -28,7 +29,7 @@ struct NotchHomeView: View {
                                     .aspectRatio(contentMode: .fill)
                             )
                             .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadiusScaling ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                            .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
                             .scaleEffect(x: 1.3, y: 2.8)
                             .rotationEffect(.degrees(92))
                             .blur(radius: 35)
@@ -50,7 +51,7 @@ struct NotchHomeView: View {
                                         .aspectRatio(contentMode: .fill)
                                 )
                                 .clipped()
-                                .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadiusScaling ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                                .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
                                 .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                             
                             if vm.notchState == .open {
@@ -95,17 +96,17 @@ struct NotchHomeView: View {
                 
                 CalendarView()
                     .onContinuousHover { phase in
-                        if vm.closeGestureEnabled {
+                        if Defaults[.closeGestureEnabled] {
                             switch phase {
                                 case .active:
-                                    vm.closeGestureEnabled = false
+                                    Defaults[.closeGestureEnabled] = false
                                 case .ended:
-                                    vm.closeGestureEnabled = false
+                                    Defaults[.closeGestureEnabled] = false
                             }
                         }
                     }
                 
-                if vm.showMirror {
+                if Defaults[.showMirror] {
                     CircularPreviewView(webcamManager: webcamManager)
                         .scaledToFit()
                         .opacity(vm.notchState == .closed ? 0 : 1)

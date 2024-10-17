@@ -91,9 +91,6 @@
     "Appearance" : {
 
     },
-    "Autohide BoringNotch in fullscreen" : {
-
-    },
     "Automatically check for updates" : {
       "localizations" : {
         "en" : {
@@ -203,9 +200,6 @@
     "Close" : {
 
     },
-    "Close gesture" : {
-
-    },
     "Coming soon" : {
       "localizations" : {
         "en" : {
@@ -215,9 +209,6 @@
           }
         }
       }
-    },
-    "Corner radius scaling" : {
-
     },
     "Custom color" : {
       "localizations" : {
@@ -295,13 +286,8 @@
     "Emoji" : {
 
     },
-    "Enable blur effect behind album art" : {
-
-    },
-    "Enable boring mirror" : {
-
-    },
     "Enable colored spectrograms" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -311,13 +297,8 @@
         }
       }
     },
-    "Enable gestures" : {
-
-    },
-    "Enable glowing effect" : {
-
-    },
     "Enable haptics" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -328,18 +309,6 @@
       }
     },
     "Enable HUD replacement" : {
-
-    },
-    "Enable Safari Downloads" : {
-
-    },
-    "Enable shadow" : {
-
-    },
-    "Enable shelf" : {
-
-    },
-    "Enable sneak peek" : {
 
     },
     "Enhance your experience with HUDs" : {
@@ -496,6 +465,7 @@
 
     },
     "Menubar icon" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -549,9 +519,6 @@
     "Notch behavior" : {
 
     },
-    "Note: If files are in the shelf, the shelf will always be opened by default because \"Open shelf tab by default if items added\" is enabled. You can change this in the shelf settings." : {
-
-    },
     "OK" : {
 
     },
@@ -580,12 +547,6 @@
           }
         }
       }
-    },
-    "Open notch on hover" : {
-
-    },
-    "Open shelf tab by default if items added" : {
-
     },
     "Percentage" : {
       "localizations" : {
@@ -676,13 +637,11 @@
         }
       }
     },
-    "Settings icon in notch" : {
-
-    },
     "Shelf" : {
 
     },
     "Show battery indicator" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -693,6 +652,7 @@
       }
     },
     "Show charging indicator" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -703,6 +663,7 @@
       }
     },
     "Show cool face animation while inactivity" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -713,6 +674,7 @@
       }
     },
     "Show download progress" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -773,9 +735,6 @@
 
     },
     "Upgrade to Pro" : {
-
-    },
-    "Use accent color" : {
 
     },
     "Version" : {

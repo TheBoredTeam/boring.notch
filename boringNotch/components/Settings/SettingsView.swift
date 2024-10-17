@@ -30,9 +30,10 @@ struct SettingsView: View {
     @Default(.showEmojis) var showEmojis
     @Default(.accentColor) var accentColor
     @Default(.waitInterval) var waitInterval
-    @Default(.selectedScreen) var selectedScreen
     @Default(.selectedDownloadIndicatorStyle) var selectedDownloadIndicatorStyle
     @Default(.selectedDownloadIconStyle) var selectedDownloadIconStyle
+    @Default(.inlineHUD) var inlineHUD
+    @Default(.enableGradient) var enableGradient
     
     var body: some View {
         TabView(selection: $selectedTab,
@@ -65,7 +66,7 @@ struct SettingsView: View {
                 .tag(SettingsEnum.about)
         })
         .formStyle(.grouped)
-        .tint(vm.accentColor)
+        .tint(Defaults[.accentColor])
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 NSApp.setActivationPolicy(.regular)
@@ -116,7 +117,7 @@ struct SettingsView: View {
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
-                Picker("Show on a specific display", selection: $selectedScreen) {
+                Picker("Show on a specific display", selection: $vm.selectedScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
@@ -233,28 +234,28 @@ struct SettingsView: View {
                 Text("General")
             }
             Section {
-                Picker("HUD style", selection: $vm.inlineHUD.animation()) {
+                Picker("HUD style", selection: $inlineHUD) {
                     Text("Default")
                         .tag(false)
                     Text("Inline")
                         .tag(true)
                 }
-                .onChange(of: vm.inlineHUD) { _, newValue in
+                .onChange(of: Defaults[.inlineHUD]) { _, newValue in
                     if newValue {
                         withAnimation {
-                            vm.systemEventIndicatorShadow = false
-                            vm.enableGradient = false
+                            Defaults[.systemEventIndicatorShadow] = false
+                            Defaults[.enableGradient] = false
                         }
                     }
                 }
-                Picker("Progressbar style", selection: $vm.enableGradient.animation()) {
+                Picker("Progressbar style", selection: $enableGradient) {
                     Text("Hierarchical")
                         .tag(false)
                     Text("Gradient")
                         .tag(true)
                 }
-                Toggle("Enable glowing effect", isOn: $vm.systemEventIndicatorShadow.animation())
-                Toggle("Use accent color", isOn: $vm.systemEventIndicatorUseAccent.animation())
+                Defaults.Toggle("Enable glowing effect", key: .systemEventIndicatorShadow)
+                Defaults.Toggle("Use accent color", key: .systemEventIndicatorUseAccent)
             } header: {
                 HStack {
                     Text("Appearance")
@@ -304,8 +305,8 @@ struct SettingsView: View {
                     .tag(false)
             }
             Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
-            Defaults.Toggle("Always show tabs", key: .alwaysShowTabs)
-            Defaults.Toggle("Remember last tab", key: .openLastTabByDefault)
+            Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
+            Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
             Defaults.Toggle("Enable boring mirror", key: .showMirror)
             Picker("Mirror shape", selection: $mirrorShape) {
                 Text("Circle")
@@ -376,7 +377,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Release name")
                         Spacer()
-                        Text(vm.releaseName)
+                        Text(Defaults[.releaseName])
                             .foregroundStyle(.secondary)
                     }
                     HStack {
@@ -388,11 +389,11 @@ struct SettingsView: View {
                         }
                         Text(Bundle.main.releaseVersionNumber ?? "unkown")
                             .foregroundStyle(.secondary)
-                            .onTapGesture {
-                                withAnimation {
-                                    showBuildNumber.toggle()
-                                }
-                            }
+                    }
+                    .onTapGesture {
+                        withAnimation {
+                            showBuildNumber.toggle()
+                        }
                     }
                 } header: {
                     Text("Version info")
@@ -444,8 +445,8 @@ struct SettingsView: View {
     func Shelf() -> some View {
         Form {
             Section {
-                Toggle("Enable shelf", isOn: $vm.boringShelf)
-                Toggle("Open shelf tab by default if items added", isOn: $vm.openShelfByDefault)
+                Defaults.Toggle("Enable shelf", key: .boringShelf)
+                Defaults.Toggle("Open shelf tab by default if items added", key: .openShelfByDefault)
             } header: {
                 HStack {
                     Text("General")

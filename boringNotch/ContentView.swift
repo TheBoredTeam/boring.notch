@@ -10,6 +10,7 @@ import AVFoundation
 import Combine
 import KeyboardShortcuts
 import SwiftUI
+import Defaults
 
 struct ContentView: View {
     let onHover: () -> Void
@@ -33,15 +34,15 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             NotchLayout()
-                .padding(.horizontal, vm.notchState == .open ? vm.cornerRadiusScaling ? (vm.sizes.cornerRadius.opened.inset! - 5) : (vm.sizes.cornerRadius.closed.inset! - 5) : 12)
+                .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (vm.sizes.cornerRadius.opened.inset! - 5) : (vm.sizes.cornerRadius.closed.inset! - 5) : 12)
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || vm.inlineHUD) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((vm.sneakPeak.show && vm.sneakPeak.type != .music) || (vm.sneakPeak.show && vm.sneakPeak.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
+                .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || Defaults[.inlineHUD]) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((vm.sneakPeak.show && vm.sneakPeak.type != .music) || (vm.sneakPeak.show && vm.sneakPeak.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
                 .background(.black)
                 .mask {
-                    NotchShape(cornerRadius: ((vm.notchState == .open) && vm.cornerRadiusScaling) ? vm.sizes.cornerRadius.opened.inset : vm.sizes.cornerRadius.closed.inset)
+                    NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? vm.sizes.cornerRadius.opened.inset : vm.sizes.cornerRadius.closed.inset)
                 }
-                .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (vm.inlineHUD && vm.sneakPeak.show && vm.sneakPeak.type != .music)) ? nil : Sizes().size.closed.width! + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? Sizes().size.closed.height! + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
-                .conditionalModifier(vm.openNotchOnHover) { view in
+                .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (Defaults[.inlineHUD] && vm.sneakPeak.show && vm.sneakPeak.type != .music)) ? nil : Sizes().size.closed.width! + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? Sizes().size.closed.height! + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
+                .conditionalModifier(Defaults[.openNotchOnHover]) { view in
                     view
                         .onHover { hovering in
                             if hovering {
@@ -49,7 +50,7 @@ struct ContentView: View {
                                     hoverAnimation = true
                                 }
                                 
-                                if (vm.notchState == .closed) && vm.enableHaptics {
+                                if (vm.notchState == .closed) && Defaults[.enableHaptics] {
                                     haptics.toggle()
                                 }
                                 
@@ -70,7 +71,7 @@ struct ContentView: View {
                             }
                         }
                 }
-                .conditionalModifier(!vm.openNotchOnHover) { view in
+                .conditionalModifier(!Defaults[.openNotchOnHover]) { view in
                     view
                         .onHover { hovering in
                             if hovering {
@@ -87,17 +88,17 @@ struct ContentView: View {
                             }
                         }
                         .onTapGesture {
-                            if (vm.notchState == .closed) && vm.enableHaptics {
+                            if (vm.notchState == .closed) && Defaults[.enableHaptics] {
                                 haptics.toggle()
                             }
                             doOpen()
                         }
-                        .conditionalModifier(vm.enableGestures) { view in
+                        .conditionalModifier(Defaults[.enableGestures]) { view in
                             view
                                 .panGesture(direction: .down) { translation, phase in
                                     if vm.notchState == .closed {
                                         withAnimation(.smooth) {
-                                            gestureProgress = (translation / vm.gestureSensitivity) * 20
+                                            gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
                                         }
                                         
                                         if phase == .ended {
@@ -106,8 +107,8 @@ struct ContentView: View {
                                             }
                                         }
                                     }
-                                    if translation > vm.gestureSensitivity {
-                                        if (vm.notchState == .closed) && vm.enableHaptics {
+                                    if translation > Defaults[.gestureSensitivity] {
+                                        if (vm.notchState == .closed) && Defaults[.enableHaptics] {
                                             haptics.toggle()
                                         }
                                         withAnimation(.smooth) {
@@ -118,25 +119,25 @@ struct ContentView: View {
                                 }
                         }
                 }
-                .conditionalModifier(vm.closeGestureEnabled && vm.enableGestures) { view in
+                .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
                     view
                         .panGesture(direction: .up) { translation, phase in
                             if vm.notchState == .open {
                                 withAnimation(.smooth) {
-                                    gestureProgress = (translation / vm.gestureSensitivity) * -20
+                                    gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
                                 }
                                 if phase == .ended {
                                     withAnimation(.smooth) {
                                         gestureProgress = .zero
                                     }
                                 }
-                                if translation > vm.gestureSensitivity {
+                                if translation > Defaults[.gestureSensitivity] {
                                     withAnimation(.smooth) {
                                         gestureProgress = .zero
                                         hoverAnimation = false
                                     }
                                     vm.close()
-                                    if (vm.notchState == .closed) && vm.enableHaptics {
+                                    if (vm.notchState == .closed) && Defaults[.enableHaptics] {
                                         haptics.toggle()
                                     }
                                 }
@@ -172,7 +173,7 @@ struct ContentView: View {
                 }
         }
         .frame(maxWidth: Sizes().size.opened.width! + 40, maxHeight: Sizes().size.opened.height! + 20, alignment: .top)
-        .shadow(color: ((vm.notchState == .open || hoverAnimation) && vm.enableShadow) ? .black.opacity(0.6) : .clear, radius: vm.cornerRadiusScaling ? 10 : 5)
+        .shadow(color: ((vm.notchState == .open || hoverAnimation) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear, radius: Defaults[.cornerRadiusScaling] ? 10 : 5)
         .environmentObject(vm)
         .environmentObject(batteryModel)
         .environmentObject(musicManager)
@@ -211,7 +212,7 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: Sizes().size.closed.height! + (hoverAnimation ? 8 : 0), alignment: .center)
-                    } else if vm.sneakPeak.show && vm.inlineHUD && (vm.sneakPeak.type != .music) && (vm.sneakPeak.type != .battery) {
+                    } else if vm.sneakPeak.show && Defaults[.inlineHUD] && (vm.sneakPeak.type != .music) && (vm.sneakPeak.type != .battery) {
                         InlineHUD(type: $vm.sneakPeak.type, value: $vm.sneakPeak.value, icon: $vm.sneakPeak.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                             .transition(.opacity)
                     } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed {
@@ -221,7 +222,7 @@ struct ContentView: View {
                             .frame(height: Sizes().size.closed.height!)
                     }
                     
-                    if vm.sneakPeak.show && !vm.inlineHUD {
+                    if vm.sneakPeak.show && !Defaults[.inlineHUD] {
                         if (vm.sneakPeak.type != .music) && (vm.sneakPeak.type != .battery) {
                             SystemEventIndicatorModifier(eventType: $vm.sneakPeak.type, value: $vm.sneakPeak.value, icon: $vm.sneakPeak.icon, sendEventBack: { _ in
                                 //
@@ -287,7 +288,7 @@ struct ContentView: View {
             
             HStack {
                 Rectangle()
-                    .fill(Color(nsColor: musicManager.avgColor).gradient)
+                    .fill(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor).gradient : Color.gray.gradient)
                     .mask {
                         AudioSpectrumView(
                             isPlaying: $musicManager.isPlaying
@@ -302,7 +303,7 @@ struct ContentView: View {
     
     @ViewBuilder
     var dragDetector: some View {
-        if vm.boringShelf {
+        if Defaults[.boringShelf] {
             Rectangle()
                 .fill(.clear)
                 .contentShape(Rectangle())
@@ -347,7 +348,7 @@ struct ContentView: View {
     private func checkHoverDuration() {
         guard let startTime = hoverStartTime else { return }
         let hoverDuration = Date().timeIntervalSince(startTime)
-        if hoverDuration >= vm.minimumHoverDuration {
+        if hoverDuration >= Defaults[.minimumHoverDuration] {
             doOpen()
         }
     }

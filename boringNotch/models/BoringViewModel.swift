@@ -8,6 +8,7 @@
 import Combine
 import SwiftUI
 import TheBoringWorkerNotifier
+import Defaults
 
 private let availableDirectories = FileManager
     .default
@@ -67,49 +68,41 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var emptyStateText: String = "Play some jams, ladies, and watch me shine! New features coming soon! 🎶 🚀"
     @Published var sizes: Sizes = .init()
     @Published var musicPlayerSizes: MusicPlayerElementSizes = .init()
-    @Published var waitInterval: Double = 3
-    @Published var releaseName: String = "Glowing Panda 🐼 (Snooty)"
-    @Published var coloredSpectrogram: Bool = true
-    @Published var accentColor: Color = .accentColor
-    @Published var selectedDownloadIndicatorStyle: DownloadIndicatorStyle = .progress
-    @Published var selectedDownloadIconStyle: DownloadIconStyle = .onlyAppIcon
-    @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
-    @Published var enableHaptics: Bool = true
-    @Published var nothumanface: Bool = false
-    @Published var showBattery: Bool = true
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
-    @Published var showChargingInfo: Bool = true
-    @Published var chargingInfoAllowed: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @Published var whatsNewOnClose: (() -> Void)?
-    @Published var minimumHoverDuration: TimeInterval = 0.3
     @Published var notchMetastability: Bool = true // True if notch not open
-    @Published var settingsIconInNotch: Bool = false
-    @Published var openNotchOnHover: Bool = true // TODO: Change this
     private var sneakPeakDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
-    @Published var enableSneakPeek: Bool = true
     @Published var showCHPanel: Bool = false
-    @Published var systemEventIndicatorShadow: Bool = false
-    @Published var systemEventIndicatorUseAccent: Bool = false
-    @Published var clipboardHistoryHideScrollbar: Bool = true
-    @Published var clipboardHistoryPreserveScrollPosition: Bool = false
     @Published var optionKeyPressed: Bool = true
-    @Published var spacing: CGFloat = 16
-    @Published var boringShelf: Bool = true
     @Published var showMusicLiveActivityOnClosed: Bool = true
-
+    @Published var spacing: CGFloat = 16
+    
     @Published var dragDetectorTargeting: Bool = false
     @Published var dropZoneTargeting: Bool = false
     @Published var dropEvent: Bool = false
-
     @Published var anyDropZoneTargeting: Bool = false
-
-    @Published var clipboardHistoryAlwaysShowIcons: Bool = true
-    @Published var clipboardHistoryAutoFocusSearch: Bool = false
-    @Published var clipboardHistoryCloseAfterCopy: Bool = false
-    @Published var showEmojis: Bool = false
-    @Published var clipboardHistoryVisibleTilesCount: CGFloat = 5
+    
+    @Published var alwaysShowTabs: Bool = true {
+        didSet {
+            if !alwaysShowTabs {
+                openLastTabByDefault = false
+                if TrayDrop.shared.isEmpty || !Defaults[.openShelfByDefault] {
+                    currentView = .home
+                }
+            }
+        }
+    }
+    
+    @Published var openLastTabByDefault: Bool = false {
+        didSet {
+            if openLastTabByDefault {
+                alwaysShowTabs = true
+            }
+        }
+    }
+    
     @Published var sneakPeak: SneakPeak = .init() {
         didSet {
             if sneakPeak.show {
@@ -147,53 +140,10 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
 
-    @Published var maxClipboardRecords: Int = 1000
-    @Published var sizeOfClipbordCache: String = "0 MB"
-    @Published var showMirror: Bool = false
-    @Published var mirrorShape: MirrorShapeEnum = .rectangle
-    @Published var tilesShowLabels: Bool = false
-    @Published var gestureSensitivity: CGFloat = 200
-    @Published var closeGestureEnabled: Bool = true
-    @Published var cornerRadiusScaling: Bool = true
-    @Published var openShelfByDefault: Bool = true
-    @Published var openLastTabByDefault: Bool = false {
-        didSet {
-            if openLastTabByDefault {
-                alwaysShowTabs = true
-            }
-        }
-    }
-    @Published var enableShadow: Bool = true
-    @Published var enableGestures: Bool = true
-    @Published var enableGradient: Bool = false
-    @Published var alwaysShowTabs: Bool = true {
-        didSet {
-            if !alwaysShowTabs {
-                openLastTabByDefault = false
-                if TrayDrop.shared.isEmpty || !openShelfByDefault {
-                    currentView = .home
-                }
-            }
-        }
-    }
-    @Published var enableFullscreenMediaDetection: Bool = true
-    @Published var inlineHUD: Bool = true
     @AppStorage("selected_screen") var selectedScreen = NSScreen.main?.localizedName ?? "Unknown" {
         didSet {
             NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
         }
-    }
-    
-    @Published var lightingEffect: Bool = true
-
-    @AppStorage("enableDownloadListener") var enableDownloadListener: Bool = false {
-        didSet {
-            objectWillChange.send()
-        }
-    }
-
-    @AppStorage("enableDownloadListener") var enableSafariDownloads: Bool = false {
-        didSet {}
     }
 
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
@@ -319,7 +269,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-        if !TrayDrop.shared.isEmpty && openShelfByDefault {
+        if !TrayDrop.shared.isEmpty && Defaults[.openShelfByDefault] {
             currentView = .shelf
         } else if !openLastTabByDefault {
             currentView = .home

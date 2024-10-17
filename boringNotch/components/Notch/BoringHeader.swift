@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Defaults
 
 struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -14,7 +15,7 @@ struct BoringHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if !tvm.isEmpty || vm.alwaysShowTabs {
+                if (!tvm.isEmpty || vm.alwaysShowTabs) && Defaults[.boringShelf] {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     Text(vm.headerTitle)
@@ -36,7 +37,7 @@ struct BoringHeader: View {
             
             HStack(spacing: 4) {
                 if vm.notchState == .open {
-                    if vm.settingsIconInNotch {
+                    if Defaults[.settingsIconInNotch] {
                         SettingsLink(label: {
                             Capsule()
                                 .fill(.black)
@@ -50,7 +51,7 @@ struct BoringHeader: View {
                         })
                         .buttonStyle(PlainButtonStyle())
                     }
-                    if vm.showBattery {
+                    if Defaults[.showBattery] {
                         BoringBatteryView(
                             batteryPercentage: batteryModel.batteryPercentage,
                             isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30)

@@ -7,6 +7,7 @@
 import AppKit
 import Combine
 import SwiftUI
+import Defaults
 
 let defaultImage: NSImage = .init(
     systemSymbolName: "heart.fill",
@@ -200,14 +201,14 @@ class MusicManager: ObservableObject {
     
     private func updateFullscreenMediaDetection() {
         DispatchQueue.main.async {
-            if self.vm.enableFullscreenMediaDetection {
+            if Defaults[.enableFullscreenMediaDetection] {
                 self.vm.toggleMusicLiveActivity(status: !self.detector.currentAppInFullScreen)
             }
         }
     }
     
     private func updateSneakPeek() {
-        if self.isPlaying && vm.enableSneakPeek && !self.detector.currentAppInFullScreen {
+        if self.isPlaying && Defaults[.enableSneakPeek] && !self.detector.currentAppInFullScreen {
             self.vm.toggleSneakPeak(status: true, type: SneakContentType.music)
         }
     }
@@ -219,14 +220,14 @@ class MusicManager: ObservableObject {
         } else if setIdle && !state {
             debounceToggle = DispatchWorkItem { [weak self] in
                 guard let self = self else { return }
-                if self.lastUpdated.timeIntervalSinceNow < -self.vm.waitInterval {
+                if self.lastUpdated.timeIntervalSinceNow < -Defaults[.waitInterval] {
                     withAnimation {
                         self.isPlayerIdle = !self.isPlaying
                     }
                 }
             }
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + self.vm.waitInterval, execute: debounceToggle!)
+            DispatchQueue.main.asyncAfter(deadline: .now() + Defaults[.waitInterval], execute: debounceToggle!)
         }
     }
     
@@ -251,7 +252,7 @@ class MusicManager: ObservableObject {
     func updateAlbumArt(newAlbumArt: NSImage) {
         withAnimation(.smooth) {
             self.albumArt = newAlbumArt
-            if vm.coloredSpectrogram {
+            if Defaults[.coloredSpectrogram] {
                 calculateAverageColor()
             }
         }

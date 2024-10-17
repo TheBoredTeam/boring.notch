@@ -11,17 +11,17 @@ import Defaults
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
-    static let selectedScreen = Key<String>("selectedScreen", default: NSScreen.main?.localizedName ?? "Unknown")
+    static let releaseName = Key<String>("releaseName", default: "Glowing Panda 🐼 (Snooty)")
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
     static let enableHaptics = Key<Bool>("enableHaptics", default: true)
     static let openNotchOnHover = Key<Bool>("openNotchOnHover", default: true)
-    static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
+    //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     
     // MARK: Appearance
     static let showEmojis = Key<Bool>("showEmojis", default: false)
-    static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
+    //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: false)
@@ -30,6 +30,7 @@ extension Defaults.Keys {
     static let enableShadow = Key<Bool>("enableShadow", default: true)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
+    static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
@@ -51,4 +52,14 @@ extension Defaults.Keys {
     static let enableSafariDownloads = Key<Bool>("enableSafariDownloads", default: true)
     static let selectedDownloadIndicatorStyle = Key<DownloadIndicatorStyle>("selectedDownloadIndicatorStyle", default: DownloadIndicatorStyle.progress)
     static let selectedDownloadIconStyle = Key<DownloadIconStyle>("selectedDownloadIconStyle", default: DownloadIconStyle.onlyAppIcon)
+    
+    // MARK: HUD
+    static let inlineHUD = Key<Bool>("inlineHUD", default: true)
+    static let enableGradient = Key<Bool>("enableGradient", default: false)
+    static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
+    static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
+    
+    // MARK: Shelf
+    static let boringShelf = Key<Bool>("boringShelf", default: true)
+    static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
 }

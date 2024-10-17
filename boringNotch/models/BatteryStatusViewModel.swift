@@ -9,6 +9,7 @@
 import Cocoa
 import SwiftUI
 import IOKit.ps
+import Defaults
 
 class BatteryStatusViewModel: ObservableObject {
     private var vm: BoringViewModel
@@ -36,7 +37,7 @@ class BatteryStatusViewModel: ObservableObject {
                    let isCharging = info["Is Charging"] as? Bool {
                     
                     
-                    if(self.vm.chargingInfoAllowed) {
+                    if(Defaults[.chargingInfoAllowed]) {
                         
                         withAnimation {
                             self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
