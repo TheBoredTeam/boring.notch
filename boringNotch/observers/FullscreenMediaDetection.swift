@@ -72,9 +72,16 @@ class FullscreenMediaDetector: ObservableObject {
                 return false
             }
             
+            
+            
             let windowFrame = CGRect(x: bounds["X"] ?? 0, y: bounds["Y"] ?? 0, width: bounds["Width"] ?? 0, height: bounds["Height"] ?? 0)
+            
             return NSScreen.screens.contains { screen in
-                windowFrame.equalTo(screen.frame)
+                let isFullScreen = windowFrame.equalTo(screen.frame)
+                
+                let isSafariFullScreen = windowFrame.size.width == screen.frame.size.width
+                
+                return isFullScreen || isSafariFullScreen
             }
         }
     }
