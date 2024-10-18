@@ -2,13 +2,26 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>boringNotch</title>
-        <item>
-            <title>Sleeping Snail 🐌</title>
-            <pubDate>Thu, 15 Aug 2024 00:46:46 +0530</pubDate>
-            <sparkle:version>1.8+1</sparkle:version>
-            <sparkle:shortVersionString>1.8</sparkle:shortVersionString>
+<item>  
+    <title>Glowing Panda v2.0 🐼</title>
+    <link>https://theboring.name</link>
+            <pubDate>Fri, 18 Oct 2024 22:19:14 +0530</pubDate>
+            <sparkle:version>2.0+1</sparkle:version>
+            <sparkle:shortVersionString>2.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/sleeping-snail/SleepingSnail.dmg" length="4951241" type="application/octet-stream" sparkle:edSignature="teYsNYQElSClIy/nSeXAv1x64myOq2svVs2cbPmhKgcODUU7x/qaoIRywuTEbkw/8kW17lwk/fHIpSPo3NPMBQ=="/>
-        </item>
+    <description><![CDATA[
+        <h2>New Features 🐼</h2>
+        • Rewritten layout 📈 for improved performance
+        • Polished managers for playback 💻 to ensure a smooth experience
+        • Calendar 📆 with fancy blur background behind music activity
+        • More customization options 🎨 to personalize your glow
+        • New and improved settings that actually save changes 🔄
+        • Resource management optimizations ⚙️ for a faster app
+    ]]>
+    </description>
+    <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10394737" type="application/octet-stream" sparkle:edSignature="JIRL6nhpT6tVzHPO8ST/gpnsFrIhIVH54cvPy6F+9k0m8UF8CrV18Gp5tq0auISQnveOF8S6vuF6JmXx1tMKDw=="/>
+</item>
     </channel>
 </rss>
+
+
