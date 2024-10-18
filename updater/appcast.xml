@@ -11,12 +11,12 @@
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
     <description><![CDATA[
         <h2>New Features 🐼</h2>
-        • Rewritten layout 📈 for improved performance
-        • Polished managers for playback 💻 to ensure a smooth experience
-        • Calendar 📆 with fancy blur background behind music activity
-        • More customization options 🎨 to personalize your glow
-        • New and improved settings that actually save changes 🔄
-        • Resource management optimizations ⚙️ for a faster app
+        <ul><li>• Rewritten layout 📈 for improved performance</li>
+        <li>• Polished managers for playback 💻 to ensure a smooth experience</li>
+        <li>• Calendar 📆 with fancy blur background behind music activity</li>
+        <li>• More customization options 🎨 to personalize your glow</li>
+        <li>• New and improved settings that actually save changes 🔄</li>
+        <li>• Resource management optimizations ⚙️ for a faster app</li>
     ]]>
     </description>
     <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10394737" type="application/octet-stream" sparkle:edSignature="JIRL6nhpT6tVzHPO8ST/gpnsFrIhIVH54cvPy6F+9k0m8UF8CrV18Gp5tq0auISQnveOF8S6vuF6JmXx1tMKDw=="/>
