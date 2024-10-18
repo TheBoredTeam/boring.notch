@@ -390,6 +390,7 @@ struct Media: View {
 struct About: View {
     @State private var showBuildNumber: Bool = false
     let updaterController: SPUStandardUpdaterController
+    @Environment(\.openWindow) var openWindow
     var body: some View {
         VStack {
             Form {
@@ -421,8 +422,8 @@ struct About: View {
                 
                 UpdaterSettingsView(updater: updaterController.updater)
             }
-            Button("Quit boring.notch", role: .destructive) {
-                exit(0)
+            Button("Open welcome window") {
+                openWindow(id: "onboarding")
             }
             .padding()
             VStack(spacing: 15) {

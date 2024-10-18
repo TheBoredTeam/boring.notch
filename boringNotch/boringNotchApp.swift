@@ -32,6 +32,8 @@ struct DynamicNotchApp: App {
         Window("Onboarding", id: "onboarding") {
             ProOnboard()
         }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
         
         Window("Activation", id: "activation") {
             ActivationWindow()
@@ -39,7 +41,7 @@ struct DynamicNotchApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         
-        MenuBarExtra("boring.notch", systemImage: "music.note", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             SettingsLink(label: {
                 Text("Settings")
             })
@@ -49,8 +51,10 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyboardShortcuts.Name("clipboardHistoryPanel"))
             .disabled(BoringExtensionManager().installedExtensions.map({$0.bundleIdentifier}).contains(clipboardExtension))
-            Button("Activate License") {
-                openWindow(id: "activation")
+            if false {
+                Button("Activate License") {
+                    openWindow(id: "activation")
+                }
             }
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()

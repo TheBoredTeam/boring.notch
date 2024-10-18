@@ -33,7 +33,7 @@ struct WheelPicker: View {
             .frame(height: 50)
             .scrollTargetLayout()
         }
-        .scrollIndicators(.hidden)
+        .scrollIndicators(.never)
         .scrollPosition(id: $scrollPosition)
         .safeAreaPadding(.horizontal)
         .sensoryFeedback(.alignment, trigger: haptics)
@@ -215,6 +215,7 @@ struct EventListView: View {
                 }
             }
         }
+        .scrollIndicators(.never)
         .scrollTargetBehavior(.viewAligned)
     }
 

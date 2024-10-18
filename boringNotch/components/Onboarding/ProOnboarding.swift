@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftUIIntrospect
 
 struct ProOnboard: View {
     var body: some View {
@@ -26,25 +27,28 @@ struct ProOnboard: View {
                         .padding(.bottom, 8)
                     Text("TheBoringNotch")
                         .font(.system(.largeTitle, design: .serif))
-                    Text("Welcome to")
+                    Text("Welcome")
                         .font(.title)
                         .foregroundStyle(.secondary)
-                        .padding(.bottom, 3)
-                    Text("PRO")
-                        .font(.system(size: 18, design: .rounded))
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 3)
-                        .background(
-                            Capsule()
-                                .fill(LinearGradient(colors: [.white.opacity(0.7), .white.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                .strokeBorder(LinearGradient(stops: [.init(color: .white.opacity(0.7), location: 0.3), .init(color: .clear, location: 0.6)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                .blendMode(.overlay)
-                        )
                         .padding(.bottom, 30)
-                    
-                    Button {} label: {
+                    if false {
+                        Text("PRO")
+                            .font(.system(size: 18, design: .rounded))
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(LinearGradient(colors: [.white.opacity(0.7), .white.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .strokeBorder(LinearGradient(stops: [.init(color: .white.opacity(0.7), location: 0.3), .init(color: .clear, location: 0.6)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .blendMode(.overlay)
+                            )
+                            .padding(.bottom, 30)
+                    }
+                    Button {
+                        NSApp.keyWindow?.close()
+                    } label: {
                         Text("Get started")
                             .padding(.horizontal, 20)
                             .padding(.vertical, 6)
@@ -74,6 +78,12 @@ struct ProOnboard: View {
             NSApp.mainWindow?.standardWindowButton(.closeButton)?.isHidden = true
             NSApp.mainWindow?.standardWindowButton(.miniaturizeButton)?.isHidden = true
             NSApp.mainWindow?.styleMask.remove(.resizable)
+        }
+        .frame(width: 350, height: 500)
+        .introspect(.window, on: .macOS(.v14, .v15)) { window in
+            window.titlebarAppearsTransparent = true
+            window.titleVisibility = .hidden
+            window.center()
         }
     }
 }

@@ -64,9 +64,6 @@
     "Activate" : {
 
     },
-    "Activate License" : {
-
-    },
     "Activate your license" : {
 
     },
@@ -545,6 +542,9 @@
         }
       }
     },
+    "Open welcome window" : {
+
+    },
     "Percentage" : {
       "localizations" : {
         "en" : {
@@ -554,9 +554,6 @@
           }
         }
       }
-    },
-    "PRO" : {
-
     },
     "Progress bar" : {
       "localizations" : {
@@ -585,6 +582,7 @@
 
     },
     "Quit boring.notch" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -757,7 +755,7 @@
         }
       }
     },
-    "Welcome to" : {
+    "Welcome" : {
 
     },
     "What's New" : {
