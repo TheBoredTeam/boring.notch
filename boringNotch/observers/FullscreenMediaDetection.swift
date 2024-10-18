@@ -81,7 +81,7 @@ class FullscreenMediaDetector: ObservableObject {
                 
                 let isSafariFullScreen = windowFrame.size.width == screen.frame.size.width
                 
-                return isFullScreen || isSafariFullScreen
+                return isFullScreen || app.localizedName == "Safari" && isSafariFullScreen
             }
         }
     }
