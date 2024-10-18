@@ -134,7 +134,11 @@ extern NSString *kMRMediaRemoteNowPlayingInfoTitle;
             self.appName != appName ||
             self.appIcon != appIcon)
         {
-            self.appBundleIdentifier = appBundleIdentifier;
+            if([appBundleIdentifier isEqual: @"com.apple.WebKit.GPU"]){
+                self.appBundleIdentifier = @"com.apple.Safari";
+            } else {
+                self.appBundleIdentifier = appBundleIdentifier;
+            }
             self.appName = appName;
             self.appIcon = appIcon;
             

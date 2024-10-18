@@ -47,7 +47,7 @@ class FullscreenMediaDetector: ObservableObject {
     func checkFullScreenStatus() {
         DispatchQueue.main.async {
             if let frontmostApp = NSWorkspace.shared.frontmostApplication {
-                self.currentAppInFullScreen = self.isAppFullScreen(frontmostApp)
+                self.currentAppInFullScreen = self.isAppFullScreen(frontmostApp) && frontmostApp.bundleIdentifier == self.nowPlaying.appBundleIdentifier
                 self.logFullScreenStatus(frontmostApp)
             }
         }
