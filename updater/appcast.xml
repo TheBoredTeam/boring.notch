@@ -5,11 +5,12 @@
 <item>  
     <title>🎉 v2.0 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</title>
     <link>https://theboring.name</link>
-            <pubDate>Fri, 18 Oct 2024 22:19:14 +0530</pubDate>
-            <sparkle:version>2.0+1</sparkle:version>
+                        <pubDate>Sat, 19 Oct 2024 00:26:08 +0530</pubDate>
+            <sparkle:version>2.0+2</sparkle:version>
             <sparkle:shortVersionString>2.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
     <description><![CDATA[
+        <h1>🎉 v2.0 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</h1>
         <p>We're thrilled to announce the release of Glowing Panda version 2.0! 🎊 This major update brings numerous improvements and new features that will make your app-building experience even more enjoyable.</p><br />
         <h2>🤔 What's New? 🤓</h2>
         <ul><li>Rewritten Layout: The Speed Demon 🏃‍♂️ Our layout has been reworked for better performance, making it faster and smoother. We've also added some fancy animations to keep things interesting 😎</li>
@@ -21,7 +22,7 @@
     </ul>
     ]]>
     </description>
-    <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10394737" type="application/octet-stream" sparkle:edSignature="JIRL6nhpT6tVzHPO8ST/gpnsFrIhIVH54cvPy6F+9k0m8UF8CrV18Gp5tq0auISQnveOF8S6vuF6JmXx1tMKDw=="/>
+    <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10394737" type="application/octet-stream" sparkle:edSignature="APEYg7RlTnPwskbYbp0PTbNnu1gOZlnaAoSujlsoQg609YBLYw73aAR9iAqS43SC4us9eIeJhinEVO7y9FuKAA=="/>
 </item>
     </channel>
 </rss>
