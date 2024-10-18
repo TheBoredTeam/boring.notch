@@ -25,31 +25,24 @@ struct SettingsView: View {
                 NavigationLink(destination: GeneralSettings(), isActive: .constant(selectedTab == "General")) {
                     Label("General", systemImage: "gear")
                 }
-                .navigationTitle("General")
                 NavigationLink(destination: Media()) {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
-                .navigationTitle("Media")
                 NavigationLink(destination: HUD()) {
                     Label("HUDs", systemImage: "dial.medium.fill")
                 }
-                .navigationTitle("HUDs")
                 NavigationLink(destination: Charge()) {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
-                .navigationTitle("Battery")
                 NavigationLink(destination: Downloads()) {
                     Label("Downloads", systemImage: "square.and.arrow.down")
                 }
-                .navigationTitle("Downloads")
                 NavigationLink(destination: Shelf()) {
                     Label("Shelf", systemImage: "books.vertical")
                 }
-                .navigationTitle("Shelf")
                 NavigationLink(destination: Extensions()) {
                     Label("Extensions", systemImage: "puzzlepiece.extension")
                 }
-                .navigationTitle("Extensions")
                 NavigationLink(
                     destination: About(updaterController: updaterController)
                 ) {
@@ -140,6 +133,7 @@ struct GeneralSettings: View {
             }
             .controlSize(.extraLarge)
         }
+        .navigationTitle("General")
     }
     
     @ViewBuilder
@@ -229,6 +223,7 @@ struct Charge: View {
             }
         }
         .tint(Defaults[.accentColor])
+        .navigationTitle("Battery")
     }
 }
 
@@ -308,6 +303,7 @@ struct Downloads: View {
             }
         }
         .tint(Defaults[.accentColor])
+        .navigationTitle("Downloads")
     }
 }
 
@@ -352,6 +348,7 @@ struct HUD: View {
             }
         }
         .tint(Defaults[.accentColor])
+        .navigationTitle("HUDs")
     }
 }
 
@@ -386,6 +383,7 @@ struct Media: View {
             }
         }
         .tint(Defaults[.accentColor])
+        .navigationTitle("Media")
     }
 }
 
@@ -462,6 +460,7 @@ struct About: View {
             }
         }
         .tint(Defaults[.accentColor])
+        .navigationTitle("About")
     }
 }
 
@@ -478,6 +477,7 @@ struct Shelf: View {
             }
         }
         .tint(Defaults[.accentColor])
+        .navigationTitle("Shelf")
     }
 }
 
@@ -485,135 +485,121 @@ struct Extensions: View {
     @StateObject var extensionManager = BoringExtensionManager()
     @State private var effectTrigger: Bool = false
     var body: some View {
-        ScrollView {
-            Form {
-                Section {
-                    List {
-                        ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
-                            let item = extensionManager.installedExtensions[index]
-                            HStack {
-                                AppIcon(for: item.bundleIdentifier)
-                                    .resizable()
-                                    .frame(width: 24, height: 24)
-                                Text(item.name)
-                                ListItemPopover {
-                                    Text("Description")
-                                }
-                                Spacer(minLength: 0)
-                                HStack(spacing: 6) {
-                                    Circle()
-                                        .frame(width: 6, height: 6)
-                                        .foregroundColor(isExtensionRunning(item.bundleIdentifier) ? .green : item.status == .disabled ? .gray : .red)
-                                        .conditionalModifier(isExtensionRunning(item.bundleIdentifier)) { view in
-                                            view
-                                                .shadow(color: .green, radius: 3)
-                                        }
-                                    Text(isExtensionRunning(item.bundleIdentifier) ? "Running" : item.status == .disabled ? "Disabled" : "Stopped")
-                                        .contentTransition(.numericText())
-                                        .foregroundStyle(.secondary)
-                                        .font(.footnote)
-                                }
-                                .frame(width: 60, alignment: .leading)
-                                
-                                Menu(content: {
-                                    Button("Restart") {
-                                        let ws = NSWorkspace.shared
-                                        
-                                        if let ext = ws.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
-                                            ext.terminate()
-                                        }
-                                        
-                                        if let appURL = ws.urlForApplication(withBundleIdentifier: item.bundleIdentifier) {
-                                            ws.openApplication(at: appURL, configuration: .init(), completionHandler: nil)
-                                        }
-                                    }
-                                    .keyboardShortcut("R", modifiers: .command)
-                                    Button("Disable") {
-                                        if let ext = NSWorkspace.shared.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
-                                            ext.terminate()
-                                        }
-                                        extensionManager.installedExtensions[index].status = .disabled
-                                    }
-                                    .keyboardShortcut("D", modifiers: .command)
-                                    Divider()
-                                    Button("Uninstall", role: .destructive) {
-                                        //
-                                    }
-                                }, label: {
-                                    Image(systemName: "ellipsis.circle")
-                                        .foregroundStyle(.secondary)
-                                })
-                                .controlSize(.regular)
-                                
+        Form {
+            Section {
+                List {
+                    ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
+                        let item = extensionManager.installedExtensions[index]
+                        HStack {
+                            AppIcon(for: item.bundleIdentifier)
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                            Text(item.name)
+                            ListItemPopover {
+                                Text("Description")
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            .padding(.vertical, 5)
-                        }
-                    }
-                    .frame(minHeight: 120)
-                    .actionBar {
-                        Button {
+                            Spacer(minLength: 0)
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .frame(width: 6, height: 6)
+                                    .foregroundColor(isExtensionRunning(item.bundleIdentifier) ? .green : item.status == .disabled ? .gray : .red)
+                                    .conditionalModifier(isExtensionRunning(item.bundleIdentifier)) { view in
+                                        view
+                                            .shadow(color: .green, radius: 3)
+                                    }
+                                Text(isExtensionRunning(item.bundleIdentifier) ? "Running" : item.status == .disabled ? "Disabled" : "Stopped")
+                                    .contentTransition(.numericText())
+                                    .foregroundStyle(.secondary)
+                                    .font(.footnote)
+                            }
+                            .frame(width: 60, alignment: .leading)
                             
-                        } label: {
-                            HStack(spacing: 3) {
-                                Image(systemName: "plus")
-                                Text("Add manually")
-                            }
-                            .foregroundStyle(.secondary)
+                            Menu(content: {
+                                Button("Restart") {
+                                    let ws = NSWorkspace.shared
+                                    
+                                    if let ext = ws.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
+                                        ext.terminate()
+                                    }
+                                    
+                                    if let appURL = ws.urlForApplication(withBundleIdentifier: item.bundleIdentifier) {
+                                        ws.openApplication(at: appURL, configuration: .init(), completionHandler: nil)
+                                    }
+                                }
+                                .keyboardShortcut("R", modifiers: .command)
+                                Button("Disable") {
+                                    if let ext = NSWorkspace.shared.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
+                                        ext.terminate()
+                                    }
+                                    extensionManager.installedExtensions[index].status = .disabled
+                                }
+                                .keyboardShortcut("D", modifiers: .command)
+                                Divider()
+                                Button("Uninstall", role: .destructive) {
+                                    //
+                                }
+                            }, label: {
+                                Image(systemName: "ellipsis.circle")
+                                    .foregroundStyle(.secondary)
+                            })
+                            .controlSize(.regular)
+                            
                         }
-                        .disabled(true)
-                        Spacer()
-                        Button {
-                            withAnimation(.linear(duration: 1)) {
-                                effectTrigger.toggle()
-                            } completion: {
-                                effectTrigger.toggle()
-                            }
-                            extensionManager.checkIfExtensionsAreInstalled()
-                        } label: {
-                            HStack(spacing: 3) {
-                                Image(systemName: "arrow.triangle.2.circlepath")
-                                    .rotationEffect(effectTrigger ? .degrees(360) : .zero)
-                            }
-                            .foregroundStyle(.secondary)
-                        }
-                    }
-                    .controlSize(.small)
-                    .buttonStyle(PlainButtonStyle())
-                    .overlay {
-                        if extensionManager.installedExtensions.isEmpty {
-                            Text("No extension installed")
-                                .foregroundStyle(Color(.secondaryLabelColor))
-                                .padding(.bottom, 22)
-                        }
-                    }
-                } header: {
-                    HStack(spacing: 0) {
-                        Text("Installed extensions")
-                        if !extensionManager.installedExtensions.isEmpty {
-                            Text(" – \(extensionManager.installedExtensions.count)")
-                                .foregroundStyle(.secondary)
-                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.vertical, 5)
                     }
                 }
-            }
-            
-            //TipsView()
-            //.padding(.horizontal, 19)
-            
-            Form {
-                Section {
-                    KeyboardShortcuts.Recorder("Clipboard history panel shortcut", name: .clipboardHistoryPanel)
-                } header: {
-                    HStack {
-                        Text("Clipboard history")
-                        proFeatureBadge()
+                .frame(minHeight: 120)
+                .actionBar {
+                    Button {
+                        
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "plus")
+                            Text("Add manually")
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+                    .disabled(true)
+                    Spacer()
+                    Button {
+                        withAnimation(.linear(duration: 1)) {
+                            effectTrigger.toggle()
+                        } completion: {
+                            effectTrigger.toggle()
+                        }
+                        extensionManager.checkIfExtensionsAreInstalled()
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .rotationEffect(effectTrigger ? .degrees(360) : .zero)
+                        }
+                        .foregroundStyle(.secondary)
                     }
                 }
-                .disabled(extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(clipboardExtension))
+                .controlSize(.small)
+                .buttonStyle(PlainButtonStyle())
+                .overlay {
+                    if extensionManager.installedExtensions.isEmpty {
+                        Text("No extension installed")
+                            .foregroundStyle(Color(.secondaryLabelColor))
+                            .padding(.bottom, 22)
+                    }
+                }
+            } header: {
+                HStack(spacing: 0) {
+                    Text("Installed extensions")
+                    if !extensionManager.installedExtensions.isEmpty {
+                        Text(" – \(extensionManager.installedExtensions.count)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .tint(Defaults[.accentColor])
+        .navigationTitle("Extensions")
+        //TipsView()
+        //.padding(.horizontal, 19)
     }
 }
 
@@ -661,4 +647,4 @@ func warningBadge(_ text: String, _ description: String) -> some View {
             Spacer()
         }
     }
-    }
+}
