@@ -33,15 +33,6 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 ### Icon credits: [@maxtron95](https://github.com/maxtron95)
 ### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
 
-## ⚡ Under the Hood Improvements and New features 🛠️
-
-* **Album Art Perfection:** We've fixed the album art cropping issue, so your music looks as good as it sounds. 🖼️
-* **Notch Behavior:** The notch now behaves better. It only expands when you hover over it, and its size is consistent. 🎯
-* **Multi-Desktop Magic:** Enjoy Boring Notch on all your desktops without a hitch. 🖥️
-* **Battery Buddy:** Keep an eye on your battery level with a new charging animation. ⚡
-* **Music Madness:** We've smoothed out the music layout for a better listening experience. 🎶
-* **Macbook Air Love:** Macbook Air users, rejoice! Boring Notch now supports you. 🍎 
-
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -78,17 +69,22 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - [x] Delayed notch opening ⏲️
 - [x] Charging indicator and current percentage 🔋
 - [x] Playback live activity 🎧
-- [ ] Calendar integration 📆 `Coming soon`
-- [ ] Clipboard history manager 📌 `Coming soon`
-- [ ] Customizable gesture control 👆🏻 `Coming soon`
-- [ ] Customizable function buttons 🎛️ `Coming soon`
-- [ ] Shelf functionality with AirDrop 📚 `Coming soon`
-- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Coming soon`
-- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Coming soon`
+- [x] Calendar integration 📆
+- [x] Customizable gesture control 👆🏻
+- [x] Shelf functionality with AirDrop 📚
+- [x] Extension system with [starter template](https://github.com/TheBoredTeam/TheBoringWorker) 🧩
+- [x] Clipboard history manager 📌 `Extension`
+- [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Extension`
+- [x] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`
+- [ ] Customizable function buttons 🎛️
 - [ ] Layout customization options 🛠️
 - [ ] Notch sizing customization, finetuning on different display sizes 🖥️
 - [ ] App switcher 🪄
 - [ ] Notifications (under consideration) 🔔
+
+## 🧩 Extensions
+> [!NOTE]
+> We’re hard at work on some awesome extensions! Stay tuned, and we’ll keep you updated as soon as they’re released.
 
 ## 🤝 Contributing
 

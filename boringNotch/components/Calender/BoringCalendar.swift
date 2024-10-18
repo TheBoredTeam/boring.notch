@@ -23,7 +23,7 @@ struct WheelPicker: View {
     let config: Config
     
     var body: some View {
-        ScrollView(.horizontal) {
+        ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: config.spacing) {
                 let totalSteps = config.steps * config.count
                 ForEach(0..<totalSteps, id: \.self) { index in
@@ -173,7 +173,7 @@ struct EventListView: View {
     let events: [EKEvent]
 
     var body: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(spacing: 5) {
                 ForEach(events.indices, id: \.self) { index in
                     HStack(alignment: .top) {
