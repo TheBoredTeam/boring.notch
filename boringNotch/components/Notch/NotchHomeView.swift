@@ -94,23 +94,37 @@ struct NotchHomeView: View {
                 .opacity(vm.notchState == .closed ? 0 : 1)
                 .blur(radius: vm.notchState == .closed ? 20 : 0)
                 
-                CalendarView()
-                    .onContinuousHover { phase in
-                        if Defaults[.closeGestureEnabled] {
-                            switch phase {
-                                case .active:
-                                    Defaults[.closeGestureEnabled] = false
-                                case .ended:
-                                    Defaults[.closeGestureEnabled] = false
+                if Defaults[.showCalendar] {
+                    CalendarView()
+                        .onContinuousHover { phase in
+                            if Defaults[.closeGestureEnabled] {
+                                switch phase {
+                                    case .active:
+                                        Defaults[.closeGestureEnabled] = false
+                                    case .ended:
+                                        Defaults[.closeGestureEnabled] = false
+                                }
                             }
                         }
-                    }
+                }
                 
                 if Defaults[.showMirror] {
                     CircularPreviewView(webcamManager: webcamManager)
                         .scaledToFit()
                         .opacity(vm.notchState == .closed ? 0 : 1)
                         .blur(radius: vm.notchState == .closed ? 20 : 0)
+                }
+                
+                if !Defaults[.showMirror] && !Defaults[.showCalendar] {
+                    Rectangle()
+                        .fill(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor).gradient : Color.gray.gradient)
+                        .mask {
+                            AudioSpectrumView(
+                                isPlaying: $musicManager.isPlaying
+                            )
+                            .frame(width: 16, height: 12)
+                        }
+                        .frame(width: 50, alignment: .center)
                 }
 //                BoringSystemTiles()
 //                    .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(0.1)))

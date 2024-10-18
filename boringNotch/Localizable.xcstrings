@@ -194,9 +194,6 @@
     "Clipboard history" : {
 
     },
-    "Clipboard history panel shortcut" : {
-
-    },
     "Close" : {
 
     },
@@ -583,6 +580,9 @@
           }
         }
       }
+    },
+    "Quit app" : {
+
     },
     "Quit boring.notch" : {
       "localizations" : {
