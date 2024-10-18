@@ -10,11 +10,12 @@ import Combine
 import KeyboardShortcuts
 import Sparkle
 import SwiftUI
+import Defaults
 
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
+    @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
     let updaterController: SPUStandardUpdaterController
     
