@@ -10,77 +10,75 @@ import LaunchAtLogin
 import Sparkle
 import KeyboardShortcuts
 import Defaults
+import SwiftUIIntrospect
 
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject var extensionManager = BoringExtensionManager()
-    
     let updaterController: SPUStandardUpdaterController
     
-    @State private var selectedTab: SettingsEnum = .general
-    @State private var showBuildNumber: Bool = false
-    @State private var effectTrigger: Bool = false
-    @State private var screens: [String] = NSScreen.screens.compactMap({$0.localizedName})
-    let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
-    
-    @Default(.gestureSensitivity) var gestureSensitivity
-    @Default(.minimumHoverDuration) var minimumHoverDuration
-    @Default(.mirrorShape) var mirrorShape
-    @Default(.showEmojis) var showEmojis
-    @Default(.accentColor) var accentColor
-    @Default(.waitInterval) var waitInterval
-    @Default(.selectedDownloadIndicatorStyle) var selectedDownloadIndicatorStyle
-    @Default(.selectedDownloadIconStyle) var selectedDownloadIconStyle
-    @Default(.inlineHUD) var inlineHUD
-    @Default(.enableGradient) var enableGradient
+    @State private var selectedTab = "General"
     
     var body: some View {
-        TabView(selection: $selectedTab,
-                content:  {
+        NavigationSplitView {
+            List(selection: $selectedTab) {
+                NavigationLink(destination: GeneralSettings(), isActive: .constant(selectedTab == "General")) {
+                    Label("General", systemImage: "gear")
+                }
+                .navigationTitle("General")
+                NavigationLink(destination: Media()) {
+                    Label("Media", systemImage: "play.laptopcomputer")
+                }
+                .navigationTitle("Media")
+                NavigationLink(destination: HUD()) {
+                    Label("HUDs", systemImage: "dial.medium.fill")
+                }
+                .navigationTitle("HUDs")
+                NavigationLink(destination: Charge()) {
+                    Label("Battery", systemImage: "battery.100.bolt")
+                }
+                .navigationTitle("Battery")
+                NavigationLink(destination: Downloads()) {
+                    Label("Downloads", systemImage: "square.and.arrow.down")
+                }
+                .navigationTitle("Downloads")
+                NavigationLink(destination: Shelf()) {
+                    Label("Shelf", systemImage: "books.vertical")
+                }
+                .navigationTitle("Shelf")
+                NavigationLink(destination: Extensions()) {
+                    Label("Extensions", systemImage: "puzzlepiece.extension")
+                }
+                .navigationTitle("Extensions")
+                NavigationLink(
+                    destination: About(updaterController: updaterController)
+                ) {
+                    Label("About", systemImage: "info.circle")
+                }
+            }
+            .tint(Defaults[.accentColor])
+        } detail: {
             GeneralSettings()
-                .tabItem { Label("General", systemImage: "gear") }
-                .tag(SettingsEnum.general)
-            Media()
-                .tabItem { Label("Media", systemImage: "play.laptopcomputer") }
-                .tag(SettingsEnum.mediaPlayback)
-            if extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(hudExtension) {
-                HUD()
-                    .tabItem { Label("HUDs", systemImage: "dial.medium.fill") }
-                    .tag(SettingsEnum.hud)
-            }
-            Charge()
-                .tabItem { Label("Battery", systemImage: "battery.100.bolt") }
-                .tag(SettingsEnum.charge)
-            Downloads()
-                .tabItem { Label("Downloads", systemImage: "square.and.arrow.down") }
-                .tag(SettingsEnum.download)
-            Shelf()
-                .tabItem { Label("Shelf", systemImage: "books.vertical") }
-                .tag(SettingsEnum.shelf)
-            Extensions()
-                .tabItem { Label("Extensions", systemImage: "puzzlepiece.extension") }
-                .tag(SettingsEnum.extensions)
-            About()
-                .tabItem { Label("About", systemImage: "info.circle") }
-                .tag(SettingsEnum.about)
-        })
-        .formStyle(.grouped)
-        .tint(Defaults[.accentColor])
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
-                NSApp.setActivationPolicy(.regular)
-                NSApp.activate(ignoringOtherApps: true)
-            }
+                .navigationSplitViewColumnWidth(500)
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
-            NSApp.setActivationPolicy(.accessory)
-            NSApp.deactivate()
+        .formStyle(.grouped)
+        .introspect(.window, on: .macOS(.v14, .v15)) { window in
+            window.toolbarStyle = .unified
         }
     }
+}
+
+struct GeneralSettings: View {
+    @State private var screens: [String] = NSScreen.screens.compactMap({$0.localizedName})
+    let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
+    @EnvironmentObject var vm: BoringViewModel
+    @Default(.accentColor) var accentColor
+    @Default(.mirrorShape) var mirrorShape
+    @Default(.showEmojis) var showEmojis
+    @Default(.gestureSensitivity) var gestureSensitivity
+    @Default(.minimumHoverDuration) var minimumHoverDuration
     
-    @ViewBuilder
-    func GeneralSettings() -> some View {
+    var body: some View {
         Form {
             Section {
                 HStack {
@@ -135,11 +133,93 @@ struct SettingsView: View {
             
             gestureControls()
         }
-        
+        .tint(Defaults[.accentColor])
+        .toolbar {
+            Button("Quit app") {
+                NSApp.terminate(self)
+            }
+            .controlSize(.extraLarge)
+        }
     }
     
     @ViewBuilder
-    func Charge() -> some View {
+    func boringControls() -> some View {
+        Section {
+            Picker("Button icon style", selection: $showEmojis) {
+                Text("Emoji")
+                    .tag(true)
+                Text("Symbols")
+                    .tag(false)
+            }
+            Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
+            Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
+            Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
+            Defaults.Toggle("Enable boring mirror", key: .showMirror)
+            Picker("Mirror shape", selection: $mirrorShape) {
+                Text("Circle")
+                    .tag(MirrorShapeEnum.circle)
+                Text("Square")
+                    .tag(MirrorShapeEnum.rectangle)
+            }
+            Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
+            Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
+            Defaults.Toggle("Show calendar", key: .showCalendar)
+        } header: {
+            Text("Boring Controls")
+        }
+    }
+    
+    @ViewBuilder
+    func gestureControls() -> some View {
+        Section {
+            Defaults.Toggle("Enable gestures", key: .enableGestures)
+                .disabled(!Defaults[.openNotchOnHover])
+            if Defaults[.enableGestures] {
+                Toggle("Media change with horizontal gestures", isOn: .constant(false))
+                    .disabled(true)
+                Defaults.Toggle("Close gesture", key: .closeGestureEnabled)
+                Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
+                    HStack {
+                        Text("Gesture sensitivity")
+                        Spacer()
+                        Text(Defaults[.gestureSensitivity] == 100 ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } header: {
+            HStack {
+                Text("Gesture control")
+                customBadge(text: "Beta")
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func NotchBehaviour() -> some View {
+        Section {
+            Defaults.Toggle("Enable haptics", key: .enableHaptics)
+            Defaults.Toggle("Enable shadow", key: .enableShadow)
+            Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
+            Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
+            if Defaults[.openNotchOnHover] {
+                Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
+                    HStack {
+                        Text("Minimum hover duration")
+                        Spacer()
+                        Text("\(Defaults[.minimumHoverDuration], specifier: "%.1f")s")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } header: {
+            Text("Notch behavior")
+        }
+    }
+}
+
+struct Charge: View {
+    var body: some View {
         Form {
             Section {
                 Defaults.Toggle("Show charging indicator", key: .chargingInfoAllowed)
@@ -148,10 +228,14 @@ struct SettingsView: View {
                 Text("General")
             }
         }
+        .tint(Defaults[.accentColor])
     }
-    
-    @ViewBuilder
-    func Downloads() -> some View {
+}
+
+struct Downloads: View {
+    @Default(.selectedDownloadIndicatorStyle) var selectedDownloadIndicatorStyle
+    @Default(.selectedDownloadIconStyle) var selectedDownloadIconStyle
+    var body: some View {
         Form {
             warningBadge("We don't support downloads yet", "It will be supported later on.")
             Section {
@@ -223,10 +307,15 @@ struct SettingsView: View {
                 
             }
         }
+        .tint(Defaults[.accentColor])
     }
-    
-    @ViewBuilder
-    func HUD() -> some View {
+}
+
+struct HUD: View {
+    @EnvironmentObject var vm: BoringViewModel
+    @Default(.inlineHUD) var inlineHUD
+    @Default(.enableGradient) var enableGradient
+    var body: some View {
         Form {
             Section {
                 Toggle("Enable HUD replacement", isOn: $vm.hudReplacement)
@@ -262,10 +351,13 @@ struct SettingsView: View {
                 }
             }
         }
+        .tint(Defaults[.accentColor])
     }
-    
-    @ViewBuilder
-    func Media() -> some View {
+}
+
+struct Media: View {
+    @Default(.waitInterval) var waitInterval
+    var body: some View {
         Form {
             Section {
                 Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
@@ -293,84 +385,14 @@ struct SettingsView: View {
                 }
             }
         }
+        .tint(Defaults[.accentColor])
     }
-    
-    @ViewBuilder
-    func boringControls() -> some View {
-        Section {
-            Picker("Button icon style", selection: $showEmojis) {
-                Text("Emoji")
-                    .tag(true)
-                Text("Symbols")
-                    .tag(false)
-            }
-            Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
-            Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
-            Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
-            Defaults.Toggle("Enable boring mirror", key: .showMirror)
-            Picker("Mirror shape", selection: $mirrorShape) {
-                Text("Circle")
-                    .tag(MirrorShapeEnum.circle)
-                Text("Square")
-                    .tag(MirrorShapeEnum.rectangle)
-            }
-            Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
-            Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
-        } header: {
-            Text("Boring Controls")
-        }
-    }
-    
-    @ViewBuilder
-    func gestureControls() -> some View {
-        Section {
-            Defaults.Toggle("Enable gestures", key: .enableGestures)
-                .disabled(!Defaults[.openNotchOnHover])
-            if Defaults[.enableGestures] {
-                Toggle("Media change with horizontal gestures", isOn: .constant(false))
-                    .disabled(true)
-                Defaults.Toggle("Close gesture", key: .closeGestureEnabled)
-                Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
-                    HStack {
-                        Text("Gesture sensitivity")
-                        Spacer()
-                        Text(Defaults[.gestureSensitivity] == 100 ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        } header: {
-            HStack {
-                Text("Gesture control")
-                customBadge(text: "Beta")
-            }
-        }
-    }
-    
-    @ViewBuilder
-    func NotchBehaviour() -> some View {
-        Section {
-            Defaults.Toggle("Enable haptics", key: .enableHaptics)
-            Defaults.Toggle("Enable shadow", key: .enableShadow)
-            Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
-            Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
-            if Defaults[.openNotchOnHover] {
-                Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
-                    HStack {
-                        Text("Minimum hover duration")
-                        Spacer()
-                        Text("\(Defaults[.minimumHoverDuration], specifier: "%.1f")s")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        } header: {
-            Text("Notch behavior")
-        }
-    }
-    
-    @ViewBuilder
-    func About() -> some View {
+}
+
+struct About: View {
+    @State private var showBuildNumber: Bool = false
+    let updaterController: SPUStandardUpdaterController
+    var body: some View {
         VStack {
             Form {
                 Section {
@@ -439,10 +461,12 @@ struct SettingsView: View {
                     .padding(.bottom)
             }
         }
+        .tint(Defaults[.accentColor])
     }
-    
-    @ViewBuilder
-    func Shelf() -> some View {
+}
+
+struct Shelf: View {
+    var body: some View {
         Form {
             Section {
                 Defaults.Toggle("Enable shelf", key: .boringShelf)
@@ -453,10 +477,14 @@ struct SettingsView: View {
                 }
             }
         }
+        .tint(Defaults[.accentColor])
     }
-    
-    @ViewBuilder
-    func Extensions() -> some View {
+}
+
+struct Extensions: View {
+    @StateObject var extensionManager = BoringExtensionManager()
+    @State private var effectTrigger: Bool = false
+    var body: some View {
         ScrollView {
             Form {
                 Section {
@@ -571,7 +599,7 @@ struct SettingsView: View {
             }
             
             //TipsView()
-                //.padding(.horizontal, 19)
+            //.padding(.horizontal, 19)
             
             Form {
                 Section {
@@ -585,51 +613,52 @@ struct SettingsView: View {
                 .disabled(extensionManager.installedExtensions.map({$0.bundleIdentifier}).contains(clipboardExtension))
             }
         }
-    }
-    
-    func proFeatureBadge() -> some View {
-        Text("Upgrade to Pro")
-            .foregroundStyle(Color(red: 0.545, green: 0.196, blue: 0.98))
-            .font(.footnote.bold())
-            .padding(.vertical, 3)
-            .padding(.horizontal, 6)
-            .background(RoundedRectangle(cornerRadius: 4).stroke(Color(red: 0.545, green: 0.196, blue: 0.98), lineWidth: 1))
-    }
-    
-    func comingSoonTag() -> some View {
-        Text("Coming soon")
-            .foregroundStyle(.secondary)
-            .font(.footnote.bold())
-            .padding(.vertical, 3)
-            .padding(.horizontal, 6)
-            .background(Color(nsColor: .secondarySystemFill))
-            .clipShape(.capsule)
-    }
-    
-    func customBadge(text: String) -> some View {
-        Text(text)
-            .foregroundStyle(.secondary)
-            .font(.footnote.bold())
-            .padding(.vertical, 3)
-            .padding(.horizontal, 6)
-            .background(Color(nsColor: .secondarySystemFill))
-            .clipShape(.capsule)
-    }
-    
-    func warningBadge(_ text: String, _ description: String) -> some View {
-        Section {
-            HStack(spacing: 12) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 22))
-                    .foregroundStyle(.yellow)
-                VStack(alignment: .leading) {
-                    Text(text)
-                        .font(.headline)
-                    Text(description)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-            }
-        }
+        .tint(Defaults[.accentColor])
     }
 }
+
+func proFeatureBadge() -> some View {
+    Text("Upgrade to Pro")
+        .foregroundStyle(Color(red: 0.545, green: 0.196, blue: 0.98))
+        .font(.footnote.bold())
+        .padding(.vertical, 3)
+        .padding(.horizontal, 6)
+        .background(RoundedRectangle(cornerRadius: 4).stroke(Color(red: 0.545, green: 0.196, blue: 0.98), lineWidth: 1))
+}
+
+func comingSoonTag() -> some View {
+    Text("Coming soon")
+        .foregroundStyle(.secondary)
+        .font(.footnote.bold())
+        .padding(.vertical, 3)
+        .padding(.horizontal, 6)
+        .background(Color(nsColor: .secondarySystemFill))
+        .clipShape(.capsule)
+}
+
+func customBadge(text: String) -> some View {
+    Text(text)
+        .foregroundStyle(.secondary)
+        .font(.footnote.bold())
+        .padding(.vertical, 3)
+        .padding(.horizontal, 6)
+        .background(Color(nsColor: .secondarySystemFill))
+        .clipShape(.capsule)
+}
+
+func warningBadge(_ text: String, _ description: String) -> some View {
+    Section {
+        HStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(.yellow)
+            VStack(alignment: .leading) {
+                Text(text)
+                    .font(.headline)
+                Text(description)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+        }
+    }
+    }

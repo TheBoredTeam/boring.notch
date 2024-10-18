@@ -584,6 +584,9 @@
         }
       }
     },
+    "Quit app" : {
+
+    },
     "Quit boring.notch" : {
       "localizations" : {
         "en" : {
