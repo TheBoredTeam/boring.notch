@@ -542,9 +542,6 @@
         }
       }
     },
-    "Open welcome window" : {
-
-    },
     "Percentage" : {
       "localizations" : {
         "en" : {
@@ -756,6 +753,9 @@
       }
     },
     "Welcome" : {
+
+    },
+    "Welcome window" : {
 
     },
     "What's New" : {

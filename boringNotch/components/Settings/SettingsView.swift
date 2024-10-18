@@ -22,7 +22,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
-                NavigationLink(destination: GeneralSettings(), isActive: .constant(selectedTab == "General")) {
+                NavigationLink(destination: GeneralSettings()) {
                     Label("General", systemImage: "gear")
                 }
                 NavigationLink(destination: Media()) {
@@ -55,6 +55,16 @@ struct SettingsView: View {
                 .navigationSplitViewColumnWidth(500)
         }
         .formStyle(.grouped)
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
+            NSApp.setActivationPolicy(.accessory)
+            NSApp.deactivate()
+        }
         .introspect(.window, on: .macOS(.v14, .v15)) { window in
             window.toolbarStyle = .unified
         }
@@ -421,13 +431,9 @@ struct About: View {
                 }
                 
                 UpdaterSettingsView(updater: updaterController.updater)
-            }
-            Button("Open welcome window") {
-                openWindow(id: "onboarding")
-            }
-            .padding()
-            VStack(spacing: 15) {
+                
                 HStack(spacing: 30) {
+                    Spacer(minLength: 0)
                     Button {
                         NSWorkspace.shared.open(sponsorPage)
                     } label: {
@@ -435,11 +441,11 @@ struct About: View {
                             Image(systemName: "cup.and.saucer.fill")
                                 .imageScale(.large)
                             Text("Support Us")
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(.white)
                         }
                         .contentShape(Rectangle())
                     }
-                    
+                    Spacer(minLength: 0)
                     Button {
                         NSWorkspace.shared.open(productPage)
                     } label: {
@@ -449,16 +455,30 @@ struct About: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 18)
                             Text("GitHub")
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(.white)
                         }
                         .contentShape(Rectangle())
                     }
+                    Spacer(minLength: 0)
                 }
                 .buttonStyle(PlainButtonStyle())
-                Text("Made with 🫶🏻 by not so boring not.people")
-                    .foregroundStyle(.secondary)
-                    .padding(.bottom)
             }
+            VStack(spacing: 0) {
+                Divider()
+                    Text("Made with 🫶🏻 by not so boring not.people")
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 5)
+                        .padding(.bottom, 7)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 10)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .toolbar {
+            Button("Welcome window") {
+                openWindow(id: "onboarding")
+            }
+            .controlSize(.extraLarge)
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("About")
