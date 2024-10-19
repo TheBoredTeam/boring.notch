@@ -115,6 +115,7 @@
 
     },
     "Boring Controls" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -143,9 +144,6 @@
           }
         }
       }
-    },
-    "Button icon style" : {
-
     },
     "Buy Me a Coffee" : {
       "extractionState" : "stale",
@@ -275,9 +273,6 @@
 
     },
     "Email address" : {
-
-    },
-    "Emoji" : {
 
     },
     "Enable colored spectrograms" : {
@@ -708,9 +703,6 @@
         }
       }
     },
-    "Symbols" : {
-
-    },
     "System features" : {
 
     },
@@ -718,6 +710,9 @@
 
     },
     "Transform your notch truly yours" : {
+
+    },
+    "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when Open notch on hover option is disabled" : {
 
     },
     "Uninstall" : {

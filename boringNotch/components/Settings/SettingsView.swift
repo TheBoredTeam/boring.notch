@@ -15,6 +15,7 @@ import SwiftUIIntrospect
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
     @Environment(\.scenePhase) private var scenePhase
+    @StateObject var extensionManager = BoringExtensionManager()
     let updaterController: SPUStandardUpdaterController
     
     @State private var selectedTab = "General"
@@ -28,14 +29,24 @@ struct SettingsView: View {
                 NavigationLink(destination: Media()) {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
-                NavigationLink(destination: HUD()) {
-                    Label("HUDs", systemImage: "dial.medium.fill")
+                if extensionManager.installedExtensions
+                    .contains(
+                        where: { $0.bundleIdentifier == hudExtension
+                        }) {
+                    NavigationLink(destination: HUD()) {
+                        Label("HUDs", systemImage: "dial.medium.fill")
+                    }
                 }
                 NavigationLink(destination: Charge()) {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
-                NavigationLink(destination: Downloads()) {
-                    Label("Downloads", systemImage: "square.and.arrow.down")
+                if extensionManager.installedExtensions
+                    .contains(
+                        where: { $0.bundleIdentifier == downloadManagerExtension
+                        }) {
+                    NavigationLink(destination: Downloads()) {
+                        Label("Downloads", systemImage: "square.and.arrow.down")
+                    }
                 }
                 NavigationLink(destination: Shelf()) {
                     Label("Shelf", systemImage: "books.vertical")
@@ -54,6 +65,7 @@ struct SettingsView: View {
             GeneralSettings()
                 .navigationSplitViewColumnWidth(500)
         }
+        .environmentObject(extensionManager)
         .formStyle(.grouped)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
@@ -149,15 +161,7 @@ struct GeneralSettings: View {
     @ViewBuilder
     func boringControls() -> some View {
         Section {
-            Picker("Button icon style", selection: $showEmojis) {
-                Text("Emoji")
-                    .tag(true)
-                Text("Symbols")
-                    .tag(false)
-            }
-            Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
             Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
-            Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
             Defaults.Toggle("Enable boring mirror", key: .showMirror)
             Picker("Mirror shape", selection: $mirrorShape) {
                 Text("Circle")
@@ -166,10 +170,12 @@ struct GeneralSettings: View {
                     .tag(MirrorShapeEnum.rectangle)
             }
             Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
-            Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
             Defaults.Toggle("Show calendar", key: .showCalendar)
+            Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
+            Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
+                .disabled(true)
         } header: {
-            Text("Boring Controls")
+            Text("Appearance")
         }
     }
     
@@ -196,6 +202,11 @@ struct GeneralSettings: View {
                 Text("Gesture control")
                 customBadge(text: "Beta")
             }
+        } footer: {
+            Text("Two-finger swipe up on notch to close, two-finger swipe down on notch to open when Open notch on hover option is disabled")
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+                .font(.caption)
         }
     }
     
@@ -206,6 +217,7 @@ struct GeneralSettings: View {
             Defaults.Toggle("Enable shadow", key: .enableShadow)
             Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
+            Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
             if Defaults[.openNotchOnHover] {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
@@ -504,7 +516,7 @@ struct Shelf: View {
 }
 
 struct Extensions: View {
-    @StateObject var extensionManager = BoringExtensionManager()
+    @EnvironmentObject var extensionManager: BoringExtensionManager
     @State private var effectTrigger: Bool = false
     var body: some View {
         Form {

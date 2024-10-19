@@ -10,6 +10,7 @@ import SwiftUI
 
 var clipboardExtension: String = "theboringteam.TheBoringClipboard"
 var hudExtension: String = "theboringteam.TheBoringHUDs"
+var downloadManagerExtension: String = "theboringteam.TheBoringDownloadManager"
 
 struct Extension: Identifiable, Hashable {
     var id = UUID()

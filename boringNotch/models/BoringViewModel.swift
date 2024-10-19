@@ -84,7 +84,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var dropEvent: Bool = false
     @Published var anyDropZoneTargeting: Bool = false
     
-    @Published var alwaysShowTabs: Bool = true {
+    @AppStorage("alwaysShowTabs") var alwaysShowTabs: Bool = true {
         didSet {
             if !alwaysShowTabs {
                 openLastTabByDefault = false
@@ -95,7 +95,7 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
     
-    @Published var openLastTabByDefault: Bool = false {
+    @AppStorage("openLastTabByDefault") var openLastTabByDefault: Bool = false {
         didSet {
             if openLastTabByDefault {
                 alwaysShowTabs = true
