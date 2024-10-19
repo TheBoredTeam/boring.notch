@@ -3,11 +3,11 @@
     <channel>
         <title>boringNotch</title>
 <item>  
-    <title>🎉 v2.0 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</title>
+    <title>🎉 v2.1 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</title>
     <link>https://theboring.name</link>
-                        <pubDate>Sat, 19 Oct 2024 00:26:08 +0530</pubDate>
-            <sparkle:version>2.0+2</sparkle:version>
-            <sparkle:shortVersionString>2.0</sparkle:shortVersionString>
+            <pubDate>Sat, 19 Oct 2024 17:38:33 +0530</pubDate>
+            <sparkle:version>2.1+1</sparkle:version>
+            <sparkle:shortVersionString>2.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
     <description><![CDATA[
         <h1>🎉 v2.0 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</h1>
@@ -19,11 +19,15 @@
 <li>Customization Options: Make it Yours (Sort Of) 🎨 More customization options have been introduced to personalize your glow. We've also added some new emojis to make things more fun 🤪</li>
 <li>Improved Settings: Don't Lose Your Stuff 🗂️ New and improved settings that actually save changes 🔄. No more wondering where you put that pesky setting 🔍</li>
 <li>Resource Management Optimizations: The Secret Sauce ⚙️ Our resource management has been optimized for a faster app. We've also added some secret sauce (just kidding, it's just good old-fashioned coding magic ✨)</li>
+<li>Bug Fixes: 🚫 We've squashed some pesky bugs that caused issues with HUDs and Download Manager settings, shelf icon responsiveness, and General tab in Settings.</li>
+<li>Update Check: 🔄 A new feature to check for updates in the Settings / About section has been added.</li>
+<li>Non-Notch Display Customization: 🖥️ Customization options for non-notch displays have been introduced to ensure a seamless experience for all users.</li>
+<li>GitHub Link Update: 🔄 The GitHub link in the settings has been updated to ensure easy access to the latest updates.</li>
     </ul>
     ]]>
     </description>
-    <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10394737" type="application/octet-stream" sparkle:edSignature="APEYg7RlTnPwskbYbp0PTbNnu1gOZlnaAoSujlsoQg609YBLYw73aAR9iAqS43SC4us9eIeJhinEVO7y9FuKAA=="/>
-</item>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10421537" type="application/octet-stream" sparkle:edSignature="kSiedq7sbGkmTy5Vcxf2UhQxlPoVT2jBj3HTXhSEtsoguZIDdxrzFtQ808t1nZP050kIwbQu9pyY6XucRjclDw=="/>
+            </item>
     </channel>
 </rss>
 
