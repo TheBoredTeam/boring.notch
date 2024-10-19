@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Foundation
+import Defaults
 
 var closedNotchSize: CGSize = setNotchSize()
 
@@ -15,7 +16,7 @@ var batterySenakSize: CGSize = .init(width: 160, height: 1)
 
 func setNotchSize(screen: String? = nil) -> CGSize {
     // Default notch size, to avoid using optionals
-    var notchHeight: CGFloat = 32
+    var notchHeight: CGFloat = Defaults[.nonNotchHeight]
     var notchWidth: CGFloat = 185
     
     var selectedScreen = NSScreen.main
@@ -34,12 +35,16 @@ func setNotchSize(screen: String? = nil) -> CGSize {
         }
         
         // Use MenuBar height as notch height if there is no notch
-        // notchHeight = screen.frame.maxY - screen.visibleFrame.maxY + 10
+        if Defaults[.nonNotchHeightMode] == .matchMenuBar {
+            notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+        }
         
         // Check if the Mac has a notch
         if screen.safeAreaInsets.top > 0 {
+            print("has notch")
             notchHeight = screen.safeAreaInsets.top
         }
+        print("height", notchHeight)
     }
     
     return .init(width: notchWidth, height: notchHeight)

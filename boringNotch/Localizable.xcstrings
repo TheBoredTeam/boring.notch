@@ -41,6 +41,9 @@
     "• New feature 1" : {
 
     },
+    "⚠️ Important" : {
+
+    },
     "About" : {
       "localizations" : {
         "en" : {
@@ -212,6 +215,12 @@
         }
       }
     },
+    "Custom height" : {
+
+    },
+    "Custom notch size - %.0f" : {
+
+    },
     "Default" : {
 
     },
@@ -372,6 +381,9 @@
     "High" : {
 
     },
+    "Hover over the notch after changing the height to see the effect." : {
+
+    },
     "HUD style" : {
 
     },
@@ -416,6 +428,12 @@
           }
         }
       }
+    },
+    "Match menubar height" : {
+
+    },
+    "Match real notch size" : {
+
     },
     "Media" : {
       "localizations" : {
@@ -503,6 +521,12 @@
       }
     },
     "No extension installed" : {
+
+    },
+    "Non-notch displays" : {
+
+    },
+    "Non-notch screen height" : {
 
     },
     "Notch behavior" : {

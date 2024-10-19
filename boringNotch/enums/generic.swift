@@ -55,3 +55,9 @@ enum MirrorShapeEnum: String, Defaults.Serializable {
     case rectangle = "Rectangular"
     case circle = "Circular"
 }
+
+enum NonNotchHeightMode: String, Defaults.Serializable {
+    case matchMenuBar = "Match menubar height"
+    case matchRealNotchSize = "Match real notch height"
+    case custom = "Custom height"
+}

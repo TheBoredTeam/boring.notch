@@ -140,7 +140,7 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
 
-    @AppStorage("selected_screen") var selectedScreen = NSScreen.main?.localizedName ?? "Unknown" {
+    @AppStorage("selected_screen_name") var selectedScreen = NSScreen.main?.localizedName ?? "Unknown" {
         didSet {
             NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
         }

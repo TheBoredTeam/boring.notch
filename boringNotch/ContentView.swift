@@ -249,6 +249,7 @@ struct ContentView: View {
                 view
                     .fixedSize()
             }
+            .zIndex(2)
             
             ZStack {
                 if vm.notchState == .open {
@@ -260,6 +261,7 @@ struct ContentView: View {
                     }
                 }
             }
+            .zIndex(1)
             .allowsHitTesting(vm.notchState == .open)
         }
     }

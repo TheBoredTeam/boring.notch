@@ -27,12 +27,14 @@ struct BoringHeader: View {
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
             .animation(.smooth.delay(0.2), value: vm.notchState)
+            .zIndex(2)
             
             if vm.notchState == .open {
                 Rectangle()
                     .fill(.black)
                     .frame(width: vm.sizes.size.closed.width! - 5)
                     .shadow(color: .black, radius: 30, x: -25, y: 10)
+                    .zIndex(1)
             }
             
             HStack(spacing: 4) {
@@ -63,6 +65,7 @@ struct BoringHeader: View {
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
             .animation(.smooth.delay(0.2), value: vm.notchState)
+            .zIndex(2)
         }
         .foregroundColor(.gray)
         .environmentObject(vm)

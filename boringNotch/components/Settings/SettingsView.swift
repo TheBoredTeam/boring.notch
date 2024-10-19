@@ -92,6 +92,9 @@ struct GeneralSettings: View {
     @Default(.showEmojis) var showEmojis
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
+    //@State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
+    @Default(.nonNotchHeight) var nonNotchHeight
+    @Default(.nonNotchHeightMode) var nonNotchHeightMode
     
     var body: some View {
         Form {
@@ -140,6 +143,46 @@ struct GeneralSettings: View {
                 }
             } header: {
                 Text("System features")
+            }
+            
+            Section {
+                Picker("Non-notch screen height", selection: $nonNotchHeightMode) {
+                    Text("Match menubar height")
+                        .tag(NonNotchHeightMode.matchMenuBar)
+                    Text("Match real notch size")
+                        .tag(NonNotchHeightMode.matchRealNotchSize)
+                    Text("Custom height")
+                        .tag(NonNotchHeightMode.custom)
+                }
+                .onChange(of: nonNotchHeightMode) {
+                    _,
+                    new in
+                    switch new {
+                        case .matchMenuBar:
+                            nonNotchHeight = 24
+                        case .matchRealNotchSize:
+                            nonNotchHeight = 32
+                        case .custom:
+                            nonNotchHeight = 32
+                    }
+                    NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
+                }
+                if nonNotchHeightMode == .custom {
+                    Slider(value: $nonNotchHeight, in: 10...40, step: 1) {
+                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                    }
+                    .onChange(of: nonNotchHeight) { _, new in
+                        NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
+                    }
+                    VStack(alignment: .leading) {
+                        Text("⚠️ Important")
+                            .font(.headline)
+                        Text("Hover over the notch after changing the height to see the effect.")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } header: {
+                Text("Non-notch displays")
             }
             
             boringControls()
@@ -477,12 +520,12 @@ struct About: View {
             }
             VStack(spacing: 0) {
                 Divider()
-                    Text("Made with 🫶🏻 by not so boring not.people")
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 5)
-                        .padding(.bottom, 7)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 10)
+                Text("Made with 🫶🏻 by not so boring not.people")
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 5)
+                    .padding(.bottom, 7)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 10)
             }
             .frame(maxWidth: .infinity, alignment: .center)
         }
