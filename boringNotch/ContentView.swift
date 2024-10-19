@@ -37,12 +37,12 @@ struct ContentView: View {
             NotchLayout()
                 .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (vm.sizes.cornerRadius.opened.inset! - 5) : (vm.sizes.cornerRadius.closed.inset! - 5) : 12)
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || Defaults[.inlineHUD]) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((vm.sneakPeak.show && vm.sneakPeak.type != .music) || (vm.sneakPeak.show && vm.sneakPeak.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
+                .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || Defaults[.inlineHUD]) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((vm.sneakPeek.show && vm.sneakPeek.type != .music) || (vm.sneakPeek.show && vm.sneakPeek.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
                 .background(.black)
                 .mask {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? vm.sizes.cornerRadius.opened.inset : vm.sizes.cornerRadius.closed.inset)
                 }
-                .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (Defaults[.inlineHUD] && vm.sneakPeak.show && vm.sneakPeak.type != .music)) ? nil : Sizes().size.closed.width! + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? Sizes().size.closed.height! + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
+                .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (Defaults[.inlineHUD] && vm.sneakPeek.show && vm.sneakPeek.type != .music)) ? nil : Sizes().size.closed.width! + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? Sizes().size.closed.height! + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
                     view
                         .onHover { hovering in
@@ -55,7 +55,7 @@ struct ContentView: View {
                                     haptics.toggle()
                                 }
                                 
-                                if vm.sneakPeak.show {
+                                if vm.sneakPeek.show {
                                     return
                                 }
                                 
@@ -213,8 +213,8 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: Sizes().size.closed.height! + (hoverAnimation ? 8 : 0), alignment: .center)
-                    } else if vm.sneakPeak.show && Defaults[.inlineHUD] && (vm.sneakPeak.type != .music) && (vm.sneakPeak.type != .battery) {
-                        InlineHUD(type: $vm.sneakPeak.type, value: $vm.sneakPeak.value, icon: $vm.sneakPeak.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
+                    } else if vm.sneakPeek.show && Defaults[.inlineHUD] && (vm.sneakPeek.type != .music) && (vm.sneakPeek.type != .battery) {
+                        InlineHUD(type: $vm.sneakPeek.type, value: $vm.sneakPeek.value, icon: $vm.sneakPeek.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                             .transition(.opacity)
                     } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed {
                         MusicLiveActivity()
@@ -224,15 +224,15 @@ struct ContentView: View {
                             .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
                     }
                     
-                    if vm.sneakPeak.show && !Defaults[.inlineHUD] {
-                        if (vm.sneakPeak.type != .music) && (vm.sneakPeak.type != .battery) {
-                            SystemEventIndicatorModifier(eventType: $vm.sneakPeak.type, value: $vm.sneakPeak.value, icon: $vm.sneakPeak.icon, sendEventBack: { _ in
+                    if vm.sneakPeek.show && !Defaults[.inlineHUD] {
+                        if (vm.sneakPeek.type != .music) && (vm.sneakPeek.type != .battery) {
+                            SystemEventIndicatorModifier(eventType: $vm.sneakPeek.type, value: $vm.sneakPeek.value, icon: $vm.sneakPeek.icon, sendEventBack: { _ in
                                 //
                             })
                             .padding(.bottom, 10)
                             .padding(.leading, 4)
                             .padding(.trailing, 8)
-                        } else if vm.sneakPeak.type != .battery {
+                        } else if vm.sneakPeek.type != .battery {
                             if vm.notchState == .closed {
                                 HStack(alignment: .center) {
                                     Image(systemName: "music.note")
@@ -247,7 +247,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .conditionalModifier((vm.sneakPeak.show && (vm.sneakPeak.type == .music) && vm.notchState == .closed) || (vm.sneakPeak.show && (vm.sneakPeak.type != .music) && (musicManager.isPlaying || !musicManager.isPlayerIdle))) { view in
+            .conditionalModifier((vm.sneakPeek.show && (vm.sneakPeek.type == .music) && vm.notchState == .closed) || (vm.sneakPeek.show && (vm.sneakPeek.type != .music) && (musicManager.isPlaying || !musicManager.isPlayerIdle))) { view in
                 view
                     .fixedSize()
             }

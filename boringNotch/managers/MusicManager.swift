@@ -185,6 +185,8 @@ class MusicManager: ObservableObject {
     func musicIsPaused(state: Bool, bypass: Bool = false, setIdle: Bool = false) {
         if musicToggledManually && !bypass { return }
         
+        let previousState = self.isPlaying
+        
         withAnimation(.smooth) {
             self.isPlaying = state
             self.playbackManager.isPlaying = state
@@ -194,7 +196,12 @@ class MusicManager: ObservableObject {
             }
             
             updateFullscreenMediaDetection()
-            updateSneakPeek()
+            
+            // Only update sneak peek if the state has actually changed
+            if previousState != state {
+                updateSneakPeek()
+            }
+            
             updateIdleState(setIdle: setIdle, state: state)
         }
     }
@@ -209,7 +216,7 @@ class MusicManager: ObservableObject {
     
     private func updateSneakPeek() {
         if self.isPlaying && Defaults[.enableSneakPeek] && !self.detector.currentAppInFullScreen {
-            self.vm.toggleSneakPeak(status: true, type: SneakContentType.music)
+            self.vm.togglesneakPeek(status: true, type: SneakContentType.music)
         }
     }
     
