@@ -220,6 +220,7 @@ struct ContentView: View {
                     } else {
                         BoringHeader()
                             .frame(height: Sizes().size.closed.height!)
+                            .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
                     }
                     
                     if vm.sneakPeak.show && !Defaults[.inlineHUD] {
@@ -263,6 +264,7 @@ struct ContentView: View {
             }
             .zIndex(1)
             .allowsHitTesting(vm.notchState == .open)
+            .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
         }
     }
     
