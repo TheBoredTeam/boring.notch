@@ -33,6 +33,9 @@ struct BoringHeader: View {
                 Rectangle()
                     .fill(.black)
                     .frame(width: vm.sizes.size.closed.width! - 5)
+                    .mask {
+                        NotchShape()
+                    }
                     .shadow(color: .black, radius: 30, x: -25, y: 10)
                     .zIndex(1)
             }
