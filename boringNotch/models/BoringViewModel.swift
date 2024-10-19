@@ -181,7 +181,7 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func setupWorkersNotificationObservers() {
-        notifier.setupObserver(notification: notifier.sneakPeekNotification, handler: sneakPeekEvent)
+        notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeekEvent)
 
         notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
     }
