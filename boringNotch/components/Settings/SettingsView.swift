@@ -141,6 +141,12 @@ struct GeneralSettings: View {
                 .onChange(of: NSScreen.screens) { old, new in
                     screens = new.compactMap({$0.localizedName})
                 }
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("⚠️ Important")
+                        .font(.headline)
+                    Text("Hover over the notch after changing the screen to adapt the new size")
+                        .foregroundStyle(.secondary)
+                }
             } header: {
                 Text("System features")
             }
@@ -174,7 +180,7 @@ struct GeneralSettings: View {
                     .onChange(of: nonNotchHeight) { _, new in
                         NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
                     }
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 5) {
                         Text("⚠️ Important")
                             .font(.headline)
                         Text("Hover over the notch after changing the height to see the effect.")
