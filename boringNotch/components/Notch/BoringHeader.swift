@@ -18,9 +18,7 @@ struct BoringHeader: View {
                 if (!tvm.isEmpty || vm.alwaysShowTabs) && Defaults[.boringShelf] {
                     TabSelectionView()
                 } else if vm.notchState == .open {
-                    Text(vm.headerTitle)
-                        .contentTransition(.numericText())
-                        .font(.system(size: 12, design: .rounded))
+                    EmptyView()
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
