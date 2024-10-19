@@ -75,6 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     let calenderManager = CalendarManager()
+    @Environment(\.openWindow) var openWindow
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -114,6 +115,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.orderFrontRegardless()
         
         if vm.firstLaunch {
+            DispatchQueue.main.async {
+                self.openWindow(id: "onboarding")
+            }
             playWelcomeSound()
         }
     }
