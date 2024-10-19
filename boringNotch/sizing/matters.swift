@@ -34,7 +34,7 @@ func setNotchSize(screen: String? = nil) -> CGSize {
         }
         
         // Use MenuBar height as notch height if there is no notch
-        notchHeight = screen.frame.maxY - screen.visibleFrame.maxY + 10
+        // notchHeight = screen.frame.maxY - screen.visibleFrame.maxY + 10
         
         // Check if the Mac has a notch
         if screen.safeAreaInsets.top > 0 {
