@@ -29,10 +29,10 @@ struct BoringHeader: View {
             .animation(.smooth.delay(0.2), value: vm.notchState)
             .zIndex(2)
             
-            if vm.notchState == .open && NSScreen.screens
-                .first(where: {$0.localizedName == vm.selectedScreen})?.safeAreaInsets.top ?? 0 > 0 {
+            if vm.notchState == .open {
                 Rectangle()
-                    .fill(.black)
+                    .fill(NSScreen.screens
+                        .first(where: {$0.localizedName == vm.selectedScreen})?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
                     .frame(width: vm.sizes.size.closed.width! - 5)
                     .mask {
                         NotchShape()
