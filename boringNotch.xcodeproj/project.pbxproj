@@ -69,6 +69,8 @@
 		B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */; };
 		B15063542C63E18700EBB0E3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15063532C63E18700EBB0E3 /* SettingsView.swift */; };
 		B1628B922CC260C0003D8DF3 /* SwiftUIIntrospect in Frameworks */ = {isa = PBXBuildFile; productRef = B1628B912CC260C0003D8DF3 /* SwiftUIIntrospect */; };
+		B1628BA82CC40C4F003D8DF3 /* DragDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1628BA72CC40C4F003D8DF3 /* DragDropView.swift */; };
+		B1628BAA2CC40EB0003D8DF3 /* NotchOutline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1628BA92CC40EAC003D8DF3 /* NotchOutline.swift */; };
 		B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17266DE2C64DFA00031BA0D /* BundleInfos.swift */; };
 		B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17266E02C6532560031BA0D /* Localizable.xcstrings */; };
 		B17266E32C65F7FB0031BA0D /* WhatsNewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */; };
@@ -179,6 +181,8 @@
 		B141C23E2CA5F51A00AC8CC8 /* ProOnboarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProOnboarding.swift; sourceTree = "<group>"; };
 		B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleView.swift; sourceTree = "<group>"; };
 		B15063532C63E18700EBB0E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B1628BA72CC40C4F003D8DF3 /* DragDropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragDropView.swift; sourceTree = "<group>"; };
+		B1628BA92CC40EAC003D8DF3 /* NotchOutline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchOutline.swift; sourceTree = "<group>"; };
 		B17266DE2C64DFA00031BA0D /* BundleInfos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleInfos.swift; sourceTree = "<group>"; };
 		B17266E02C6532560031BA0D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewView.swift; sourceTree = "<group>"; };
@@ -429,6 +433,7 @@
 		9A987A042C73CA66005CA465 /* Shelf */ = {
 			isa = PBXGroup;
 			children = (
+				B1628BA72CC40C4F003D8DF3 /* DragDropView.swift */,
 				9A9879FB2C73CA66005CA465 /* Ext+FileProvider.swift */,
 				9A9879FC2C73CA66005CA465 /* Ext+NSAlert.swift */,
 				9A9879FD2C73CA66005CA465 /* Ext+NSImage.swift */,
@@ -479,6 +484,7 @@
 		B186542F2C6F455E000B926A /* Notch */ = {
 			isa = PBXGroup;
 			children = (
+				B1628BA92CC40EAC003D8DF3 /* NotchOutline.swift */,
 				9A987A032C73CA66005CA465 /* NotchShelfView.swift */,
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
 				14D570B52C5E961A0011E668 /* NotchShape.swift */,
@@ -671,6 +677,7 @@
 				B10F84A32C6C9596009F3026 /* TestView.swift in Sources */,
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
 				14D570D52C5F710B0011E668 /* constants.swift in Sources */,
+				B1628BA82CC40C4F003D8DF3 /* DragDropView.swift in Sources */,
 				9A987A0B2C73CA66005CA465 /* DropItem.swift in Sources */,
 				507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */,
 				1471A8592C6281BD0058408D /* BoringNotchWindow.swift in Sources */,
@@ -689,6 +696,7 @@
 				14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */,
 				14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */,
 				B15063542C63E18700EBB0E3 /* SettingsView.swift in Sources */,
+				B1628BAA2CC40EB0003D8DF3 /* NotchOutline.swift in Sources */,
 				B141C23D2CA5F51200AC8CC8 /* ActivationView.swift in Sources */,
 				14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */,
 				149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */,

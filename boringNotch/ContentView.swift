@@ -11,6 +11,7 @@ import Combine
 import KeyboardShortcuts
 import SwiftUI
 import Defaults
+import SwiftUIIntrospect
 
 struct ContentView: View {
     let onHover: () -> Void
@@ -32,7 +33,7 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             NotchLayout()
                 .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (vm.sizes.cornerRadius.opened.inset! - 5) : (vm.sizes.cornerRadius.closed.inset! - 5) : 12)
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
@@ -153,7 +154,6 @@ struct ContentView: View {
                         }
                     }
                 })
-                .background(dragDetector)
                 .sensoryFeedback(.alignment, trigger: haptics)
                 .contextMenu {
                     SettingsLink(label: {
@@ -174,6 +174,7 @@ struct ContentView: View {
         }
         .frame(maxWidth: Sizes().size.opened.width! + 40, maxHeight: Sizes().size.opened.height! + 20, alignment: .top)
         .shadow(color: ((vm.notchState == .open || hoverAnimation) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear, radius: Defaults[.cornerRadiusScaling] ? 10 : 5)
+        .background(dragDetector)
         .environmentObject(vm)
         .environmentObject(batteryModel)
         .environmentObject(musicManager)
@@ -308,8 +309,8 @@ struct ContentView: View {
     @ViewBuilder
     var dragDetector: some View {
         if Defaults[.boringShelf] {
-            Rectangle()
-                .fill(.clear)
+            Color.clear
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .onDrop(of: [.data], isTargeted: $vm.dragDetectorTargeting) { _ in true }
                 .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
@@ -327,7 +328,6 @@ struct ContentView: View {
                         vm.close()
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         } else {
             EmptyView()
         }
@@ -364,5 +364,24 @@ struct ContentView: View {
         withAnimation(vm.animation) {
             hoverAnimation = false
         }
+    }
+}
+
+struct FullScreenDropDelegate: DropDelegate {
+    @Binding var isTargeted: Bool
+    let onDrop: () -> Void
+    
+    func dropEntered(info: DropInfo) {
+        isTargeted = true
+    }
+    
+    func dropExited(info: DropInfo) {
+        isTargeted = false
+    }
+    
+    func performDrop(info: DropInfo) -> Bool {
+        isTargeted = false
+        onDrop()
+        return true
     }
 }

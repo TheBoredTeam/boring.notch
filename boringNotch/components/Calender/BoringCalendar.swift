@@ -7,6 +7,7 @@
 
 import EventKit
 import SwiftUI
+import Defaults
 
 struct Config: Equatable {
     var count: Int = 10  // 3 days past + today + 7 days future
@@ -66,13 +67,15 @@ struct WheelPicker: View {
     private func dayText(for index: Int) -> some View {
         Text(dayForIndex(index))
             .font(.caption2)
-            .foregroundStyle(isDateSelected(index) ? Color.accentColor : .gray)
+            .foregroundStyle(
+                isDateSelected(index) ? Defaults[.accentColor] : .gray
+            )
     }
     
     private func dateCircle(for index: Int) -> some View {
         ZStack {
             Circle()
-                .fill(isDateSelected(index) ? Color.accentColor : .clear)
+                .fill(isDateSelected(index) ? Defaults[.accentColor] : .clear)
                 .frame(width: 24, height: 24)
             Text("\(dateForIndex(index).date)")
                 .font(.title3)
@@ -162,6 +165,7 @@ struct EmptyEventsView: View {
         ScrollView {
             Text("No events today")
                 .font(.headline)
+                .foregroundStyle(.white)
             Text("Enjoy your free time!")
                 .font(.subheadline)
                 .foregroundColor(.gray)
