@@ -216,7 +216,7 @@ class MusicManager: ObservableObject {
     
     private func updateSneakPeek() {
         if self.isPlaying && Defaults[.enableSneakPeek] && !self.detector.currentAppInFullScreen {
-            self.vm.toggleSneakPeak(status: true, type: SneakContentType.music)
+            self.vm.togglesneakPeek(status: true, type: SneakContentType.music)
         }
     }
     

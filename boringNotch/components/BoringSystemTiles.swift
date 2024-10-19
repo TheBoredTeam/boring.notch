@@ -83,7 +83,7 @@ struct BoringSystemTiles: View {
                 }, label: "Clipboard History", showEmojis: Defaults[.showEmojis], emoji: "✨")
                 //                SystemItemButton(icon: "keyboard", onTap: {
                 //                    vm?.close()
-                //                    vm?.toggleSneakPeak(status: true, type: .backlight, value: 1)
+                //                    vm?.togglesneakPeek(status: true, type: .backlight, value: 1)
                 //                }, label: "💡 Keyboard Backlight")
             }
             GridRow {

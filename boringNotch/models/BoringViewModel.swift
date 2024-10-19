@@ -29,7 +29,7 @@ enum SneakContentType {
     case download
 }
 
-struct SneakPeak {
+struct sneakPeek {
     var show: Bool = false
     var type: SneakContentType = .music
     var value: CGFloat = 0
@@ -72,7 +72,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @Published var whatsNewOnClose: (() -> Void)?
     @Published var notchMetastability: Bool = true // True if notch not open
-    private var sneakPeakDispatch: DispatchWorkItem?
+    private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
     @Published var showCHPanel: Bool = false
     @Published var optionKeyPressed: Bool = true
@@ -103,18 +103,18 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
     
-    @Published var sneakPeak: SneakPeak = .init() {
+    @Published var sneakPeek: sneakPeek = .init() {
         didSet {
-            if sneakPeak.show {
-                sneakPeakDispatch?.cancel()
+            if sneakPeek.show {
+                sneakPeekDispatch?.cancel()
 
-                sneakPeakDispatch = DispatchWorkItem { [weak self] in
+                sneakPeekDispatch = DispatchWorkItem { [weak self] in
                     guard let self = self else { return }
                     withAnimation {
-                        self.toggleSneakPeak(status: false, type: SneakContentType.music)
+                        self.togglesneakPeek(status: false, type: SneakContentType.music)
                     }
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: sneakPeakDispatch!)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: sneakPeekDispatch!)
             }
         }
     }
@@ -181,7 +181,7 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func setupWorkersNotificationObservers() {
-        notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeakEvent)
+        notifier.setupObserver(notification: notifier.sneakPeekNotification, handler: sneakPeekEvent)
 
         notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
     }
@@ -190,7 +190,7 @@ class BoringViewModel: NSObject, ObservableObject {
         currentMicStatus = notification.userInfo?.first?.value as! Bool
     }
 
-    @objc func sneakPeakEvent(_ notification: Notification) {
+    @objc func sneakPeekEvent(_ notification: Notification) {
         let decoder = JSONDecoder()
         if let decodedData = try? decoder.decode(SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data) {
             let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
@@ -200,7 +200,7 @@ class BoringViewModel: NSObject, ObservableObject {
             
             print(decodedData)
             
-            toggleSneakPeak(status: decodedData.show, type: contentType, value: value, icon: icon)
+            togglesneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
             
         } else {
             print("Failed to decode JSON data")
@@ -219,7 +219,7 @@ class BoringViewModel: NSObject, ObservableObject {
         notifier.postNotification(name: notifier.toggleMicNotification.name, userInfo: nil)
     }
     
-    func toggleSneakPeak(status: Bool, type: SneakContentType, value: CGFloat = 0, icon: String = "") {
+    func togglesneakPeek(status: Bool, type: SneakContentType, value: CGFloat = 0, icon: String = "") {
         if type != .music {
             close()
             if !hudReplacement {
@@ -228,10 +228,10 @@ class BoringViewModel: NSObject, ObservableObject {
         }
         DispatchQueue.main.async {
             withAnimation(.smooth) {
-                self.sneakPeak.show = status
-                self.sneakPeak.type = type
-                self.sneakPeak.value = value
-                self.sneakPeak.icon = icon
+                self.sneakPeek.show = status
+                self.sneakPeek.type = type
+                self.sneakPeek.value = value
+                self.sneakPeek.icon = icon
             }
         }
 

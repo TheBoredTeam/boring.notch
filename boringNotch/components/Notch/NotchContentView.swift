@@ -129,7 +129,7 @@ struct NotchContentView: View {
         
         let dynamicWidth: CGFloat = chargingInfoWidth + musicPlayingWidth + closedWidth
             // Return the appropriate width based on the notch state
-        return vm.notchState == .open ? vm.musicPlayerSizes.player.size.opened.width! + 30 : dynamicWidth + (vm.sneakPeak.show ? -12 : 0)
+        return vm.notchState == .open ? vm.musicPlayerSizes.player.size.opened.width! + 30 : dynamicWidth + (vm.sneakPeek.show ? -12 : 0)
     }
 
 
