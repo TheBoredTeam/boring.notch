@@ -175,7 +175,7 @@ class MusicManager: ObservableObject {
             updateArtwork(newInfo.artworkData, state: state)
             self.lastMusicItem?.artworkData = newInfo.artworkData
         }
-        self.lastMusicItem = (title: newInfo.title, artist: newInfo.artist, album: newInfo.album, artworkData: lastMusicItem?.artworkData)
+        self.lastMusicItem = (title: newInfo.title, artist: newInfo.artist, album: newInfo.album, duration: newInfo.duration, artworkData: lastMusicItem?.artworkData)
         updatePlaybackState(state)
         
         if !self.isPlaying { return }
