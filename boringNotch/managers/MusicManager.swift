@@ -153,11 +153,12 @@ class MusicManager: ObservableObject {
     }
     
     private func updateMusicState(newInfo: (title: String, artist: String, album: String, artworkData: Data?), state: Int?) {
-        self.lastMusicItem = newInfo
-        
         print("Media source:", bundleIdentifier)
-        
-        updateArtwork(newInfo.artworkData, state: state)
+        if(newInfo.artworkData != nil && newInfo.artworkData != lastMusicItem?.artworkData) {
+            updateArtwork(newInfo.artworkData, state: state)
+            self.lastMusicItem?.artworkData = newInfo.artworkData
+        }
+        self.lastMusicItem = (title: newInfo.title, artist: newInfo.artist, album: newInfo.album, artworkData: lastMusicItem?.artworkData)
         updatePlaybackState(state)
         
         if !self.isPlaying { return }
