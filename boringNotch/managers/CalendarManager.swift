@@ -87,7 +87,7 @@ class CalendarManager: ObservableObject {
     }
     
     func updateCurrentDate(_ date: Date) {
-        currentWeekStartDate = date
+        currentWeekStartDate = Calendar.current.startOfDay(for: date)
         fetchEvents()
     }
 }
