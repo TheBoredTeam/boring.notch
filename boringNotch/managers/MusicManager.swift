@@ -169,7 +169,7 @@ class MusicManager: ObservableObject {
         return (title, artist, album, duration, artworkData)
     }
     
-    private func updateMusicState(newInfo: (title: String, artist: String, album: String, artworkData: Data?), state: Int?) {
+    private func updateMusicState(newInfo: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?), state: Int?) {
         self.lastMusicItem = newInfo
         
         print("Media source:", bundleIdentifier)
