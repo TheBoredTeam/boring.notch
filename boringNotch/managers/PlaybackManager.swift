@@ -13,10 +13,12 @@ import Combine
 class PlaybackManager: ObservableObject {
     @Published var isPlaying = false
     @Published var MrMediaRemoteSendCommandFunction:@convention(c) (Int, AnyObject?) -> Void
-    
+    @Published var MrMediaRemoteSetElapsedTimeFunction: @convention(c) (Double) -> Void
+
     init() {
         self.isPlaying = false;
         self.MrMediaRemoteSendCommandFunction = {_,_ in }
+        self.MrMediaRemoteSetElapsedTimeFunction = { _ in }
         handleLoadMediaHandlerApis()
     }
     
@@ -30,10 +32,16 @@ class PlaybackManager: ObservableObject {
         typealias MRMediaRemoteSendCommandFunction = @convention(c) (Int, AnyObject?) -> Void
         
         MrMediaRemoteSendCommandFunction = unsafeBitCast(MRMediaRemoteSendCommandPointer, to: MRMediaRemoteSendCommandFunction.self)
+
+        guard let MRMediaRemoteSetElapsedTimePointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteSetElapsedTime" as CFString) else { return }
+
+        typealias MRMediaRemoteSetElapsedTimeFunction = @convention(c) (Double) -> Void
+        MrMediaRemoteSetElapsedTimeFunction = unsafeBitCast(MRMediaRemoteSetElapsedTimePointer, to: MRMediaRemoteSetElapsedTimeFunction.self)
     }
     
     deinit {
         self.MrMediaRemoteSendCommandFunction = {_,_ in }
+        self.MrMediaRemoteSetElapsedTimeFunction = { _ in }
     }
     
     func playPause() -> Bool {
@@ -56,5 +64,10 @@ class PlaybackManager: ObservableObject {
     func previousTrack() {
             // Implement previous track action
         MrMediaRemoteSendCommandFunction(5, nil)
+    }
+
+    func seekTrack(to time: TimeInterval) {
+        print("Seeking to \(time) seconds")
+        MrMediaRemoteSetElapsedTimeFunction(time)
     }
 }

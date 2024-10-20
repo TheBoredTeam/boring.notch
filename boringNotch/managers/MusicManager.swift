@@ -19,7 +19,7 @@ class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var debounceToggle: DispatchWorkItem?
     private var vm: BoringViewModel
-    private var lastMusicItem: (title: String, artist: String, album: String, artworkData: Data?)?
+    private var lastMusicItem: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
     private var isCurrentlyPlaying: Bool = false
     
     @Published var songTitle: String = "I'm Handsome"
@@ -34,6 +34,10 @@ class MusicManager: ObservableObject {
     @Published var animations: BoringAnimations = .init()
     @Published var avgColor: NSColor = .white
     @Published var bundleIdentifier: String = "com.apple.Music"
+    @Published var songDuration: TimeInterval = 0
+    @Published var elapsedTime: TimeInterval = 0
+    @Published var timestampDate: Date = Date()
+    @Published var playbackRate: Double = 0
     @ObservedObject var detector: FullscreenMediaDetector
     var nowPlaying: NowPlaying
     
@@ -134,6 +138,18 @@ class MusicManager: ObservableObject {
             let state: Int? = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Int
             
             self.updateMusicState(newInfo: newInfo, state: state)
+            
+            guard let elapsedTime = information["kMRMediaRemoteNowPlayingInfoElapsedTime"] as? TimeInterval,
+                  let timestampDate = information["kMRMediaRemoteNowPlayingInfoTimestamp"] as? Date,
+                  let playbackRate = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Double else {
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.elapsedTime = elapsedTime
+                self.timestampDate = timestampDate
+                self.playbackRate = playbackRate
+            }
         }
     }
     
@@ -144,12 +160,13 @@ class MusicManager: ObservableObject {
         }
     }
     
-    private func extractMusicInfo(from information: [String: Any]) -> (title: String, artist: String, album: String, artworkData: Data?) {
+    private func extractMusicInfo(from information: [String: Any]) -> (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?) {
         let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String ?? ""
         let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
         let album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
+        let duration = information["kMRMediaRemoteNowPlayingInfoDuration"] as? TimeInterval ?? 0
         let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
-        return (title, artist, album, artworkData)
+        return (title, artist, album, duration, artworkData)
     }
     
     private func updateMusicState(newInfo: (title: String, artist: String, album: String, artworkData: Data?), state: Int?) {
@@ -165,6 +182,7 @@ class MusicManager: ObservableObject {
         self.artistName = newInfo.artist
         self.songTitle = newInfo.title
         self.album = newInfo.album
+        self.songDuration = newInfo.duration
     }
     
     private func updateArtwork(_ artworkData: Data?, state: Int?) {
@@ -283,6 +301,10 @@ class MusicManager: ObservableObject {
     func previousTrack() {
         playbackManager.previousTrack()
         fetchNowPlayingInfo(bypass: true)
+    }
+    
+    func seekTrack(to time: TimeInterval) {
+        playbackManager.seekTrack(to: time)
     }
     
     func openMusicApp() {
