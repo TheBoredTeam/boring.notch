@@ -64,7 +64,7 @@ struct StatesSizes {
 struct Sizes {
     var cornerRadius: StatesSizes = StatesSizes(opened: Area(inset: 24), closed: Area(inset: 10))
     var size: StatesSizes = StatesSizes(
-        opened: Area(width: 580, height: 150),
+        opened: Area(width: 580, height: 175),
         closed: Area(width: closedNotchSize.width, height: closedNotchSize.height)
     )
 }
