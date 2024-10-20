@@ -26,6 +26,9 @@ struct SettingsView: View {
                 NavigationLink(destination: GeneralSettings()) {
                     Label("General", systemImage: "gear")
                 }
+                NavigationLink(destination: Appearance()) {
+                    Label("Appearance", systemImage: "eye")
+                }
                 NavigationLink(destination: Media()) {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
@@ -191,8 +194,6 @@ struct GeneralSettings: View {
                 Text("Non-notch displays")
             }
             
-            boringControls()
-            
             NotchBehaviour()
             
             gestureControls()
@@ -205,27 +206,6 @@ struct GeneralSettings: View {
             .controlSize(.extraLarge)
         }
         .navigationTitle("General")
-    }
-    
-    @ViewBuilder
-    func boringControls() -> some View {
-        Section {
-            Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
-            Defaults.Toggle("Enable boring mirror", key: .showMirror)
-            Picker("Mirror shape", selection: $mirrorShape) {
-                Text("Circle")
-                    .tag(MirrorShapeEnum.circle)
-                Text("Square")
-                    .tag(MirrorShapeEnum.rectangle)
-            }
-            Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
-            Defaults.Toggle("Show calendar", key: .showCalendar)
-            Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
-            Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
-                .disabled(true)
-        } header: {
-            Text("Appearance")
-        }
     }
     
     @ViewBuilder
@@ -683,6 +663,78 @@ struct Extensions: View {
         .navigationTitle("Extensions")
         //TipsView()
         //.padding(.horizontal, 19)
+    }
+}
+
+struct Appearance: View {
+    @EnvironmentObject var vm: BoringViewModel
+    @Default(.mirrorShape) var mirrorShape
+    @Default(.sliderColor) var sliderColor
+    let icons: [String] = ["logo", "logo2"]
+    @State private var selectedIcon: String = "logo"
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
+                Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
+                Picker("Slider color", selection: $sliderColor) {
+                    ForEach(SliderColorEnum.allCases, id: \.self) { option in
+                        Text(option.rawValue)
+                    }
+                }
+                Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
+            } header: {
+                Text("General")
+            }
+            
+            Section {
+                Defaults.Toggle("Enable boring mirror", key: .showMirror)
+                Picker("Mirror shape", selection: $mirrorShape) {
+                    Text("Circle")
+                        .tag(MirrorShapeEnum.circle)
+                    Text("Square")
+                        .tag(MirrorShapeEnum.rectangle)
+                }
+                Defaults.Toggle("Show calendar", key: .showCalendar)
+                Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
+                    .disabled(true)
+            } header: {
+                Text("Additional features")
+            }
+            
+            Section {
+                HStack {
+                    ForEach(icons, id: \.self) { icon in
+                        Spacer()
+                        VStack {
+                            Image(icon)
+                                .resizable()
+                                .frame(width: 80, height: 80)
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 20, style: .circular)
+                                .strokeBorder(icon == selectedIcon ? Defaults[.accentColor] : .clear, lineWidth: 2.5)
+                        )
+                        .onTapGesture {
+                            withAnimation {
+                                selectedIcon = icon
+                            }
+                            //NSWorkspace.shared.setIcon(NSImage(named: icon), forFile: Bundle.main.bundleIdentifier!)
+                            NSApp.applicationIconImage = NSImage(named: icon)
+                        }
+                        Spacer()
+                    }
+                }
+                .disabled(true)
+            } header: {
+                HStack {
+                    Text("App icon")
+                    customBadge(text: "Beta")
+                }
+            }
+        }
+        .tint(Defaults[.accentColor])
+        .navigationTitle("Appearance")
     }
 }
 

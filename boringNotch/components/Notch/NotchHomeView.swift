@@ -14,7 +14,7 @@ struct NotchHomeView: View {
     @EnvironmentObject var musicManager: MusicManager
     @EnvironmentObject var batteryModel: BatteryStatusViewModel
     @EnvironmentObject var webcamManager: WebcamManager
-
+    
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var timer: AnyCancellable?
@@ -43,7 +43,7 @@ struct NotchHomeView: View {
                                 print(musicManager.albumArt.getBrightness())
                             }
                     }
-                  
+                    
                     Button {
                         musicManager.openMusicApp()
                     } label: {
@@ -78,15 +78,15 @@ struct NotchHomeView: View {
                             MarqueeText(musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: geo.size.width)
                             MarqueeText(musicManager.artistName, font: .headline, nsFont: .headline, textColor: .gray, frameWidth: geo.size.width)
                                 .fontWeight(.medium)
-
+                            
                             MusicSliderView(sliderValue: $sliderValue,
                                             duration: $musicManager.songDuration,
                                             color: musicManager.avgColor,
                                             dragging: $dragging) { newValue in
                                 musicManager.seekTrack(to: newValue)
                             }
-                            .padding(.top, 5)
-                            .frame(height: 36)
+                                            .padding(.top, 5)
+                                            .frame(height: 36)
                         }
                     }
                     .padding(.top, 10)
@@ -140,10 +140,10 @@ struct NotchHomeView: View {
                         }
                         .frame(width: 50, alignment: .center)
                 }
-//                BoringSystemTiles()
-//                    .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(0.1)))
-//                    .opacity(vm.notchState == .closed ? 0 : 1)
-//                    .blur(radius: vm.notchState == .closed ? 20 : 0)
+                //                BoringSystemTiles()
+                //                    .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(0.1)))
+                //                    .opacity(vm.notchState == .closed ? 0 : 1)
+                //                    .blur(radius: vm.notchState == .closed ? 20 : 0)
             }
             .onAppear {
                 // Initialize the slider value and start the timer
@@ -156,7 +156,7 @@ struct NotchHomeView: View {
             }
         }
     }
-
+    
     private func startTimer() {
         timer = Timer.publish(every: 0.1, on: .main, in: .common)
             .autoconnect()
@@ -164,7 +164,7 @@ struct NotchHomeView: View {
                 self.updateSliderValue()
             }
     }
-
+    
     private func updateSliderValue() {
         guard !dragging else { return } // Only update if not dragging
         guard musicManager.isPlaying else { return }
@@ -185,21 +185,24 @@ struct MusicSliderView: View {
     
     var body: some View {
         VStack {
-            CustomSlider(value: $sliderValue,
-                         range: 0...duration,
-                         color: Color(nsColor: color),
-                         dragging: $dragging,
-                         onValueChange: onValueChange)
-                .accentColor(.white)
+            CustomSlider(
+                value: $sliderValue,
+                range: 0...duration,
+                color: Defaults[.sliderColor] == SliderColorEnum.albumArt ? Color(
+                    nsColor: color
+                ) : Defaults[.sliderColor] == SliderColorEnum.accent ? Defaults[.accentColor] : .white,
+                dragging: $dragging,
+                onValueChange: onValueChange
+            )
+            .frame(height: 10, alignment: .center)
             HStack {
                 Text(timeString(from: sliderValue))
-                    .foregroundColor(.white)
-                    .font(.caption)
                 Spacer()
                 Text(timeString(from: duration))
-                    .foregroundColor(.white)
-                    .font(.caption)
             }
+            .fontWeight(.medium)
+            .foregroundColor(.gray)
+            .font(.caption)
         }
     }
     
@@ -217,7 +220,8 @@ struct CustomSlider: View {
     @Binding var dragging: Bool
     var onValueChange: ((Double) -> Void)?
     var thumbSize: CGFloat = 12
-
+    @State private var hovered: Bool = false
+    
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
@@ -230,35 +234,46 @@ struct CustomSlider: View {
                 // Background track
                 Capsule()
                     .fill(Color.gray.opacity(0.3))
-                    .frame(height: height / 3) // Track height
-
+                    .frame(height: height) // Track height
+                
                 // Filled track
                 Capsule()
                     .fill(color)
-                    .frame(width: filledTrackWidth, height: height / 3)
-
-                // Thumb
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: thumbSize, height: thumbSize)
-                    .offset(x: min(max(((value - range.lowerBound) / rangeSpan) * width - thumbSize / 2, 0), width - thumbSize)) // Center thumb on the current value and clamp it within bounds
+                    .frame(width: filledTrackWidth, height: height)
             }
             .contentShape(Rectangle())
             .highPriorityGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { gesture in
-                        dragging = true
+                        withAnimation {
+                            dragging = true
+                        }
                         let newValue = range.lowerBound + Double(gesture.location.x / width) * rangeSpan
                         value = min(max(newValue, range.lowerBound), range.upperBound)
                     }
                     .onEnded { _ in
                         onValueChange?(value)
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            dragging = false
+                            withAnimation {
+                                dragging = false
+                            }
                         }
                     }
             )
+            .onContinuousHover { phase in
+                switch phase {
+                    case .active:
+                        withAnimation {
+                            hovered = true
+                        }
+                    case .ended:
+                        withAnimation {
+                            hovered = false
+                        }
+                }
+            }
         }
+        .frame(height: dragging || hovered ? 8 : 5)
     }
 }
 
