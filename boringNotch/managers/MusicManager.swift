@@ -269,8 +269,9 @@ class MusicManager: ObservableObject {
             lastUpdated = Date()
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.musicToggledManually = false
+            self?.fetchNowPlayingInfo()
         }
     }
     
