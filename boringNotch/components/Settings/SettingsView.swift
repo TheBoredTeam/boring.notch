@@ -243,8 +243,6 @@ struct GeneralSettings: View {
     func NotchBehaviour() -> some View {
         Section {
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
-            Defaults.Toggle("Enable shadow", key: .enableShadow)
-            Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
             Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
             if Defaults[.openNotchOnHover] {
@@ -677,6 +675,8 @@ struct Appearance: View {
             Section {
                 Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
                 Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
+                Defaults.Toggle("Enable window shadow", key: .enableShadow)
+                Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
                         Text(option.rawValue)

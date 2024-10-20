@@ -18,6 +18,7 @@ struct NotchHomeView: View {
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var timer: AnyCancellable?
+    @State private var lastDragged: Date = .distantPast
     @State private var previousBundleIdentifier: String = "com.apple.Music"
     let albumArtNamespace: Namespace.ID
     
@@ -81,6 +82,7 @@ struct NotchHomeView: View {
                             
                             MusicSliderView(sliderValue: $sliderValue,
                                             duration: $musicManager.songDuration,
+                                            lastDragged: $lastDragged,
                                             color: musicManager.avgColor,
                                             dragging: $dragging) { newValue in
                                 musicManager.seekTrack(to: newValue)
@@ -91,7 +93,7 @@ struct NotchHomeView: View {
                     }
                     .padding(.top, 10)
                     .padding(.leading, 5)
-                    HStack(spacing: 0) {
+                    HStack(spacing: 8) {
                         HoverButton(icon: "backward.fill") {
                             musicManager.previousTrack()
                         }
@@ -103,6 +105,7 @@ struct NotchHomeView: View {
                             musicManager.nextTrack()
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .buttonStyle(PlainButtonStyle())
                 .opacity(vm.notchState == .closed ? 0 : 1)
@@ -166,19 +169,19 @@ struct NotchHomeView: View {
     }
     
     private func updateSliderValue() {
-        guard !dragging else { return } // Only update if not dragging
-        guard musicManager.isPlaying else { return }
+        guard !dragging, musicManager.isPlaying, musicManager.timestampDate > lastDragged else { return }
         let currentTime = Date()
         let timeDifference = currentTime.timeIntervalSince(musicManager.timestampDate)
         // Calculate the real-time elapsed time
         let currentElapsedTime = musicManager.elapsedTime + (timeDifference * musicManager.playbackRate)
-        sliderValue = min(currentElapsedTime, musicManager.songDuration) // Clamp to song duration
+        sliderValue = min(currentElapsedTime, musicManager.songDuration)
     }
 }
 
 struct MusicSliderView: View {
     @Binding var sliderValue: Double
     @Binding var duration: Double
+    @Binding var lastDragged: Date
     var color: NSColor
     @Binding var dragging: Bool
     var onValueChange: ((Double) -> Void)
@@ -192,6 +195,7 @@ struct MusicSliderView: View {
                     nsColor: color
                 ) : Defaults[.sliderColor] == SliderColorEnum.accent ? Defaults[.accentColor] : .white,
                 dragging: $dragging,
+                lastDragged: $lastDragged,
                 onValueChange: onValueChange
             )
             .frame(height: 10, alignment: .center)
@@ -218,6 +222,7 @@ struct CustomSlider: View {
     var range: ClosedRange<Double>
     var color: Color = .white
     @Binding var dragging: Bool
+    @Binding var lastDragged: Date
     var onValueChange: ((Double) -> Void)?
     var thumbSize: CGFloat = 12
     @State private var hovered: Bool = false
@@ -228,7 +233,7 @@ struct CustomSlider: View {
             let height = geometry.size.height
             let rangeSpan = range.upperBound - range.lowerBound
             
-            let filledTrackWidth = rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width
+            let filledTrackWidth = min(rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width, width)
             
             ZStack(alignment: .leading) {
                 // Background track
@@ -253,11 +258,8 @@ struct CustomSlider: View {
                     }
                     .onEnded { _ in
                         onValueChange?(value)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            withAnimation {
-                                dragging = false
-                            }
-                        }
+                        dragging = false
+                        lastDragged = Date()
                     }
             )
             .onContinuousHover { phase in

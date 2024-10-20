@@ -35,8 +35,6 @@ struct BoringHeader: View {
                     .mask {
                         NotchShape()
                     }
-                    .shadow(color: .black, radius: 30, x: -25, y: 10)
-                    .zIndex(1)
             }
             
             HStack(spacing: 4) {
