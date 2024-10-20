@@ -80,7 +80,7 @@ struct NotchHomeView: View {
                                 .fontWeight(.medium)
 
                             MusicSliderView(sliderValue: $sliderValue,
-                                            duration: musicManager.songDuration,
+                                            duration: $musicManager.songDuration,
                                             color: musicManager.avgColor,
                                             dragging: $dragging) { newValue in
                                 musicManager.seekTrack(to: newValue)
@@ -178,7 +178,7 @@ struct NotchHomeView: View {
 
 struct MusicSliderView: View {
     @Binding var sliderValue: Double
-    var duration: Double
+    @Binding var duration: Double
     var color: NSColor
     @Binding var dragging: Bool
     var onValueChange: ((Double) -> Void)
