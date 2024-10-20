@@ -97,19 +97,18 @@ struct ContentView: View {
                         .conditionalModifier(Defaults[.enableGestures]) { view in
                             view
                                 .panGesture(direction: .down) { translation, phase in
-                                    if vm.notchState == .closed {
+                                    guard vm.notchState == .closed else { return }
+                                    withAnimation(.smooth) {
+                                        gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
+                                    }
+                                    
+                                    if phase == .ended {
                                         withAnimation(.smooth) {
-                                            gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
-                                        }
-                                        
-                                        if phase == .ended {
-                                            withAnimation(.smooth) {
-                                                gestureProgress = .zero
-                                            }
+                                            gestureProgress = .zero
                                         }
                                     }
                                     if translation > Defaults[.gestureSensitivity] {
-                                        if (vm.notchState == .closed) && Defaults[.enableHaptics] {
+                                        if Defaults[.enableHaptics] {
                                             haptics.toggle()
                                         }
                                         withAnimation(.smooth) {
