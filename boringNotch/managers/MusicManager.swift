@@ -164,7 +164,7 @@ class MusicManager: ObservableObject {
         let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String ?? ""
         let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
         let album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
-        let duration = information["kMRMediaRemoteNowPlayingInfoDuration"] as? TimeInterval ?? 0
+        let duration = information["kMRMediaRemoteNowPlayingInfoDuration"] as? TimeInterval ?? lastMusicItem?.duration ?? 0
         let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
         return (title, artist, album, duration, artworkData)
     }

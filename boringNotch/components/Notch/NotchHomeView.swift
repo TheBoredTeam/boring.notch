@@ -232,7 +232,7 @@ struct CustomSlider: View {
             let height = geometry.size.height
             let rangeSpan = range.upperBound - range.lowerBound
             
-            let filledTrackWidth = rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width
+            let filledTrackWidth = min(rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width, width)
             
             ZStack(alignment: .leading) {
                 // Background track
