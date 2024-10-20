@@ -61,3 +61,9 @@ enum NonNotchHeightMode: String, Defaults.Serializable {
     case matchRealNotchSize = "Match real notch height"
     case custom = "Custom height"
 }
+
+enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
+    case white = "White"
+    case albumArt = "Match album art"
+    case accent = "Accent color"
+}
