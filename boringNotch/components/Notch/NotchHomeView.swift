@@ -180,7 +180,7 @@ struct MusicSliderView: View {
     @Binding var sliderValue: Double
     var duration: Double
     var color: NSColor
-    @Binding var dragging: Bool // Add this binding
+    @Binding var dragging: Bool
     var onValueChange: ((Double) -> Void)
     
     var body: some View {
@@ -214,40 +214,41 @@ struct CustomSlider: View {
     @Binding var value: Double
     var range: ClosedRange<Double>
     var color: Color = .white
-    @Binding var dragging: Bool // Add this binding
+    @Binding var dragging: Bool
     var onValueChange: ((Double) -> Void)?
-    var thumbSize: CGFloat = 12 // Size of the thumb
+    var thumbSize: CGFloat = 12
 
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
             let height = geometry.size.height
+            let rangeSpan = range.upperBound - range.lowerBound
+            
+            let filledTrackWidth = rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width
             
             ZStack(alignment: .leading) {
                 // Background track
-                Rectangle()
+                Capsule()
                     .fill(Color.gray.opacity(0.3))
                     .frame(height: height / 3) // Track height
-                    .cornerRadius(height / 6)
 
                 // Filled track
-                Rectangle()
+                Capsule()
                     .fill(color)
-                    .frame(width: (CGFloat(value - range.lowerBound) / CGFloat(range.upperBound - range.lowerBound)) * width, height: height / 3)
-                    .cornerRadius(height / 6)
+                    .frame(width: filledTrackWidth, height: height / 3)
 
                 // Thumb
                 Circle()
                     .fill(Color.white)
                     .frame(width: thumbSize, height: thumbSize)
-                    .offset(x: min(max((CGFloat(value - range.lowerBound) / CGFloat(range.upperBound - range.lowerBound)) * width - thumbSize / 2, 0), width - thumbSize)) // Center thumb on the current value and clamp it within bounds
+                    .offset(x: min(max(((value - range.lowerBound) / rangeSpan) * width - thumbSize / 2, 0), width - thumbSize)) // Center thumb on the current value and clamp it within bounds
             }
-            .contentShape(Rectangle()) // Make the entire area tappable
+            .contentShape(Rectangle())
             .highPriorityGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { gesture in
                         dragging = true
-                        let newValue = range.lowerBound + Double(gesture.location.x / width) * (range.upperBound - range.lowerBound)
+                        let newValue = range.lowerBound + Double(gesture.location.x / width) * rangeSpan
                         value = min(max(newValue, range.lowerBound), range.upperBound)
                     }
                     .onEnded { _ in
