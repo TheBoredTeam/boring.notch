@@ -18,6 +18,7 @@ struct NotchHomeView: View {
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var timer: AnyCancellable?
+    @State private var lastDragged: Date = .distantPast
     @State private var previousBundleIdentifier: String = "com.apple.Music"
     let albumArtNamespace: Namespace.ID
     
@@ -81,6 +82,7 @@ struct NotchHomeView: View {
 
                             MusicSliderView(sliderValue: $sliderValue,
                                             duration: $musicManager.songDuration,
+                                            lastDragged: $lastDragged,
                                             color: musicManager.avgColor,
                                             dragging: $dragging) { newValue in
                                 musicManager.seekTrack(to: newValue)
@@ -166,19 +168,19 @@ struct NotchHomeView: View {
     }
 
     private func updateSliderValue() {
-        guard !dragging else { return } // Only update if not dragging
-        guard musicManager.isPlaying else { return }
+        guard !dragging, musicManager.isPlaying, musicManager.timestampDate > lastDragged else { return }
         let currentTime = Date()
         let timeDifference = currentTime.timeIntervalSince(musicManager.timestampDate)
         // Calculate the real-time elapsed time
         let currentElapsedTime = musicManager.elapsedTime + (timeDifference * musicManager.playbackRate)
-        sliderValue = min(currentElapsedTime, musicManager.songDuration) // Clamp to song duration
+        sliderValue = min(currentElapsedTime, musicManager.songDuration)
     }
 }
 
 struct MusicSliderView: View {
     @Binding var sliderValue: Double
     @Binding var duration: Double
+    @Binding var lastDragged: Date
     var color: NSColor
     @Binding var dragging: Bool
     var onValueChange: ((Double) -> Void)
@@ -189,6 +191,7 @@ struct MusicSliderView: View {
                          range: 0...duration,
                          color: Color(nsColor: color),
                          dragging: $dragging,
+                         lastDragged: $lastDragged,
                          onValueChange: onValueChange)
                 .accentColor(.white)
             HStack {
@@ -215,6 +218,7 @@ struct CustomSlider: View {
     var range: ClosedRange<Double>
     var color: Color = .white
     @Binding var dragging: Bool
+    @Binding var lastDragged: Date
     var onValueChange: ((Double) -> Void)?
     var thumbSize: CGFloat = 12
 
@@ -253,9 +257,8 @@ struct CustomSlider: View {
                     }
                     .onEnded { _ in
                         onValueChange?(value)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            dragging = false
-                        }
+                        dragging = false
+                        lastDragged = Date()
                     }
             )
         }
