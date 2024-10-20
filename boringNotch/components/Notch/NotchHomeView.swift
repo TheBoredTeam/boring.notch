@@ -91,7 +91,7 @@ struct NotchHomeView: View {
                     }
                     .padding(.top, 10)
                     .padding(.leading, 5)
-                    HStack(spacing: 0) {
+                    HStack(spacing: 8) {
                         HoverButton(icon: "backward.fill") {
                             musicManager.previousTrack()
                         }
@@ -103,6 +103,7 @@ struct NotchHomeView: View {
                             musicManager.nextTrack()
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .buttonStyle(PlainButtonStyle())
                 .opacity(vm.notchState == .closed ? 0 : 1)
