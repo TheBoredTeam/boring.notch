@@ -75,7 +75,7 @@ struct NotchHomeView: View {
                                 .fontWeight(.medium)
                         }
                     }
-                    .padding(.top)
+                    .padding(.top, 10)
                     .padding(.leading, 5)
                     HStack(spacing: 0) {
                         HoverButton(icon: "backward.fill") {
