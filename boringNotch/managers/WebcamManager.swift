@@ -20,6 +20,7 @@ class WebcamManager: NSObject, ObservableObject {
             objectWillChange.send()
         }
     }
+    private let sessionQueue = DispatchQueue(label: "BoringNotch.WebcamManager.SessionQueue", qos: .userInitiated)
     
     override init() {
         super.init()
@@ -27,47 +28,67 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     private func setupCaptureSession() {
-        captureSession = AVCaptureSession()
-        guard let session = captureSession else { return }
-        
-        session.beginConfiguration()
-        session.sessionPreset = .high
-        
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .unspecified),
-              let videoInput = try? AVCaptureDeviceInput(device: videoDevice)
-        else {
-            return
+        sessionQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.captureSession = AVCaptureSession()
+            guard let session = self.captureSession else { return }
+            
+            session.beginConfiguration()
+            session.sessionPreset = .high
+            
+            guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .unspecified),
+                  let videoInput = try? AVCaptureDeviceInput(device: videoDevice)
+            else {
+                return
+            }
+            
+            if session.canAddInput(videoInput) {
+                session.addInput(videoInput)
+            }
+            
+            let videoOutput = AVCaptureVideoDataOutput()
+            if session.canAddOutput(videoOutput) {
+                session.addOutput(videoOutput)
+            }
+            
+            session.commitConfiguration()
+            
+            DispatchQueue.main.async {
+                let previewLayer = AVCaptureVideoPreviewLayer(session: session)
+                previewLayer.videoGravity = .resizeAspectFill
+                self.previewLayer = previewLayer
+            }
         }
-        
-        if session.canAddInput(videoInput) {
-            session.addInput(videoInput)
-        }
-        
-        let videoOutput = AVCaptureVideoDataOutput()
-        if session.canAddOutput(videoOutput) {
-            session.addOutput(videoOutput)
-        }
-        
-        session.commitConfiguration()
-        
-        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.videoGravity = .resizeAspectFill
-        self.previewLayer = previewLayer
     }
     
     func checkSessionState() {
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             self.isSessionRunning = self.captureSession?.isRunning ?? false
         }
     }
     
     func startSession() {
-        captureSession?.startRunning()
-        checkSessionState()
+        sessionQueue.async { [weak self] in
+            guard let self = self else { return }
+            if !(self.captureSession?.isRunning ?? false) {
+                self.captureSession?.startRunning()
+                DispatchQueue.main.async {
+                    self.checkSessionState()
+                }
+            }
+        }
     }
     
     func stopSession() {
-        captureSession?.stopRunning()
-        checkSessionState()
+        sessionQueue.async { [weak self] in
+            guard let self = self else { return }
+            if self.captureSession?.isRunning == true {
+                self.captureSession?.stopRunning()
+                DispatchQueue.main.async {
+                    self.checkSessionState()
+                }
+            }
+        }
     }
 }
