@@ -26,14 +26,14 @@ struct BatteryView: View {
                 .resizable()
                 .fontWeight(.thin)
                 .aspectRatio(contentMode: .fit)
-                .foregroundColor(.gray)
+                .foregroundColor(.white.opacity(0.5))
                 .frame(
                     width: batteryWidth + 1
                 )
             
-            RoundedRectangle(cornerRadius: 2)
+            RoundedRectangle(cornerRadius: 2.5)
                 .fill(batteryColor)
-                .frame(width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth - 6))), height: (batteryWidth - 2.5) - 18).padding(.leading, 2).padding(.top, -0.5)
+                .frame(width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth - 6))), height: (batteryWidth - 2.75) - 18).padding(.leading, 2)
             if isCharging {
                 Image(.bolt)
                     .resizable()
