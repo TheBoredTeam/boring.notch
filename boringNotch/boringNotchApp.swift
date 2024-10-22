@@ -113,6 +113,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         adjustWindowPosition()
         
         window.orderFrontRegardless()
+        window.level = NSWindow.Level.screenSaver
         
         if vm.firstLaunch {
             DispatchQueue.main.async {
