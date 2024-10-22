@@ -41,6 +41,7 @@ extension Defaults.Keys {
         "sliderUseAlbumArtColor",
         default: SliderColorEnum.white
     )
+    static let playerColorTinting = Key<Bool>("playerColorTinting", default: true)
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)

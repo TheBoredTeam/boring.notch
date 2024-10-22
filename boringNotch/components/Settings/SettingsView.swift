@@ -682,6 +682,8 @@ struct Appearance: View {
                         Text(option.rawValue)
                     }
                 }
+                Defaults
+                    .Toggle("Player tinting", key: .playerColorTinting)
                 Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
             } header: {
                 Text("General")
