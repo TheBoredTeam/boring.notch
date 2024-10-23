@@ -101,6 +101,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.adjustWindowPosition()
         }
         
+        KeyboardShortcuts.onKeyUp(for: .toggleSneakPeek) { [weak self] in
+            guard let self = self else { return }
+            
+            self.vm.togglesneakPeek(
+                status: !self.vm.sneakPeek.show,
+                type: .music
+            )
+        }
+        
         window = BoringNotchWindow(
             contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width! + 20, height: sizing.size.opened.height! + 30),
             styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
