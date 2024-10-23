@@ -21,27 +21,35 @@ struct WheelPicker: View {
     @Binding var selectedDate: Date
     @State private var scrollPosition: Int?
     @State private var haptics: Bool = false
+    @State private var byClick: Bool = false
     let config: Config
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: config.spacing) {
                 let totalSteps = config.steps * config.count
-                ForEach(0..<totalSteps, id: \.self) { index in
-                    dateButton(for: index)
+                ForEach(0..<totalSteps + 6, id: \.self) { index in
+                    if(index < 3 || index > totalSteps + 2){
+                        Spacer().frame(width: 24, height: 24).id(index)
+                    } else {
+                        let date = dateForIndex(index)
+                        let isSelected = isDateSelected(index)
+                        dateButton(date: date, isSelected: isSelected)
+                    }
                 }
             }
             .frame(height: 50)
             .scrollTargetLayout()
         }
         .scrollIndicators(.never)
-        .scrollPosition(id: $scrollPosition)
+        .scrollPosition(id: $scrollPosition,anchor: .top)
         .safeAreaPadding(.horizontal)
         .sensoryFeedback(.alignment, trigger: haptics)
         .onChange(of: scrollPosition) { oldValue, newValue in
-            if let newIndex = newValue {
-                selectedDate = dateForIndex(newIndex)
-                haptics.toggle()
+            if(!byClick){
+                handleScrollChange(oldValue: oldValue, newValue: newValue)
+            }else{
+                byClick = false
             }
         }
         .onAppear {
@@ -49,38 +57,49 @@ struct WheelPicker: View {
         }
     }
     
-    private func dateButton(for index: Int) -> some View {
+    private func dateButton(date: Date, isSelected: Bool) -> some View {
         Button(action: {
-            selectedDate = dateForIndex(index)
-            scrollPosition = index
+            selectedDate = date
+            byClick = true
+            withAnimation{
+                scrollPosition = indexForDate(date)
+            }
             haptics.toggle()
         }) {
             VStack(spacing: 2) {
-                dayText(for: index)
-                dateCircle(for: index)
+                dayText(date: dateToString(for: date), isSelected: isSelected)
+                dateCircle(date: date, isSelected: isSelected)
             }
         }
         .buttonStyle(PlainButtonStyle())
-        .id(index)
+        .id(indexForDate(date))
     }
     
-    private func dayText(for index: Int) -> some View {
-        Text(dayForIndex(index))
+    private func dayText(date: String, isSelected: Bool) -> some View {
+        Text(date)
             .font(.caption2)
             .foregroundStyle(
-                isDateSelected(index) ? Defaults[.accentColor] : .gray
+                isSelected ? Defaults[.accentColor] : .gray
             )
     }
     
-    private func dateCircle(for index: Int) -> some View {
+    private func dateCircle(date: Date, isSelected: Bool) -> some View {
         ZStack {
             Circle()
-                .fill(isDateSelected(index) ? Defaults[.accentColor] : .clear)
+                .fill(isSelected ? Defaults[.accentColor] : .clear)
                 .frame(width: 24, height: 24)
-            Text("\(dateForIndex(index).date)")
+            Text("\(date.date)")
                 .font(.title3)
-                .foregroundStyle(isDateSelected(index) ? .white : .gray)
+                .foregroundStyle(isSelected ? .white : .gray)
         }
+    }
+    
+    func handleScrollChange(oldValue: Int?, newValue: Int?) {
+        var selectedDateIndex = indexForDate(selectedDate)
+        guard let oldIndex = oldValue, let newIndex = newValue else { return }
+        selectedDateIndex += newIndex - oldIndex
+        selectedDate = dateForIndex(selectedDateIndex)
+        haptics.toggle()
     }
     
     private func scrollToToday() {
@@ -92,24 +111,28 @@ struct WheelPicker: View {
     
     private func indexForDate(_ date: Date) -> Int {
         let calendar = Calendar.current
-        let startDate = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -3, to: Date()) ?? Date())
+        let startDate = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -6, to: Date()) ?? Date())
         let targetDate = calendar.startOfDay(for: date)
         let daysDifference = calendar.dateComponents([.day], from: startDate, to: targetDate).day ?? 0
         return daysDifference
     }
-
+    
     private func dateForIndex(_ index: Int) -> Date {
-        let startDate = Calendar.current.date(byAdding: .day, value: -3, to: Date()) ?? Date()
+        let startDate = Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date()
         return Calendar.current.date(byAdding: .day, value: index, to: startDate) ?? Date()
     }
-
+    
     private func dayForIndex(_ index: Int) -> String {
         let date = dateForIndex(index)
+        return dateToString(for: date)
+    }
+    
+    private func dateToString(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "E"
         return formatter.string(from: date)
     }
-
+    
     private func isDateSelected(_ index: Int) -> Bool {
         Calendar.current.isDate(dateForIndex(index), inSameDayAs: selectedDate)
     }
