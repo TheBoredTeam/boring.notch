@@ -16,7 +16,7 @@ struct Config: Equatable {
     var steps: Int = 1  // Each step is one day
     var spacing: CGFloat = 1
     var showsText: Bool = true
-    var offset: Int = 3 // Number of dates to the left of the selected date
+    var offset: Int = 2 // Number of dates to the left of the selected date
 }
 
 struct WheelPicker: View {
@@ -39,7 +39,14 @@ struct WheelPicker: View {
                         let offset = -config.offset - config.past
                         let date = dateForIndex(index, offset: offset)
                         let isSelected = isDateSelected(index, offset: offset)
-                        dateButton(date: date, isSelected: isSelected, offset: offset)
+                        dateButton(date: date, isSelected: isSelected, offset: offset){
+                            selectedDate = date
+                            byClick = true
+                            withAnimation{
+                                scrollPosition = indexForDate(date, offset: offset) - config.offset
+                            }
+                            haptics.toggle()
+                        }
                     }
                 }
             }
@@ -47,12 +54,12 @@ struct WheelPicker: View {
             .scrollTargetLayout()
         }
         .scrollIndicators(.never)
-        .scrollPosition(id: $scrollPosition,anchor: .top)
+        .scrollPosition(id: $scrollPosition, anchor: .leading)
         .safeAreaPadding(.horizontal)
         .sensoryFeedback(.alignment, trigger: haptics)
         .onChange(of: scrollPosition) { oldValue, newValue in
             if(!byClick){
-                handleScrollChange(oldValue: oldValue, newValue: newValue, config: config)
+                handleScrollChange(newValue: newValue, config: config)
             }else{
                 byClick = false
             }
@@ -62,15 +69,8 @@ struct WheelPicker: View {
         }
     }
     
-    private func dateButton(date: Date, isSelected: Bool, offset: Int) -> some View {
-        Button(action: {
-            selectedDate = date
-            byClick = true
-            withAnimation{
-                scrollPosition = indexForDate(date, offset: offset)
-            }
-            haptics.toggle()
-        }) {
+    private func dateButton(date: Date, isSelected: Bool, offset: Int, onClick:@escaping()->Void) -> some View {
+        Button(action: onClick) {
             VStack(spacing: 2) {
                 dayText(date: dateToString(for: date), isSelected: isSelected)
                 dateCircle(date: date, isSelected: isSelected)
@@ -99,25 +99,25 @@ struct WheelPicker: View {
         }
     }
     
-    func handleScrollChange(oldValue: Int?, newValue: Int?, config: Config) {
+    func handleScrollChange(newValue: Int?, config: Config) {
         let offset = -config.offset - config.past
         let todayIndex = indexForDate(Date(), offset: offset)
-        guard let oldIndex = oldValue, let newIndex = newValue else { return }
-        let targetDateIndex = newIndex + config.offset - config.past
+        guard let newIndex = newValue else { return }
+        let targetDateIndex = newIndex + config.offset
         switch targetDateIndex{
         case todayIndex-config.past..<todayIndex+config.future:
             selectedDate = dateForIndex(targetDateIndex, offset: offset)
             haptics.toggle()
         default:
-            scrollPosition = oldIndex
+            return
         }
-        
     }
     
     private func scrollToToday(config: Config) {
         let today = Date()
         let todayIndex = indexForDate(today, offset: -config.offset - config.past)
-        scrollPosition = todayIndex - config.offset + config.past
+        byClick = true
+        scrollPosition = todayIndex - config.offset
         selectedDate = today
     }
     
