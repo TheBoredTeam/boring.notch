@@ -101,7 +101,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.adjustWindowPosition()
         }
         
-        KeyboardShortcuts.onKeyUp(for: .toggleSneakPeek) { [weak self] in
+        KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
             
             self.vm.togglesneakPeek(
