@@ -663,6 +663,9 @@
     "Shelf" : {
 
     },
+    "Shortcuts" : {
+
+    },
     "Show battery indicator" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -743,6 +746,9 @@
 
     },
     "TheBoringNotch" : {
+
+    },
+    "Toggle Sneak Peek:" : {
 
     },
     "Transform your notch truly yours" : {

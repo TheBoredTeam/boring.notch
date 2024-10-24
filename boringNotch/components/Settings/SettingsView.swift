@@ -54,6 +54,9 @@ struct SettingsView: View {
                 NavigationLink(destination: Shelf()) {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(destination: Shortcuts()) {
+                    Label("Shortcuts", systemImage: "keyboard")
+                }
                 NavigationLink(destination: Extensions()) {
                     Label("Extensions", systemImage: "puzzlepiece.extension")
                 }
@@ -737,6 +740,16 @@ struct Appearance: View {
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Appearance")
+    }
+}
+
+struct Shortcuts: View {
+    var body: some View {
+        Form {
+            KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
+        }
+        .tint(Defaults[.accentColor])
+        .navigationTitle("Shelf")
     }
 }
 
