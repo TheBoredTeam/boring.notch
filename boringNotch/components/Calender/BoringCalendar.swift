@@ -10,10 +10,13 @@ import SwiftUI
 import Defaults
 
 struct Config: Equatable {
-    var count: Int = 10  // 3 days past + today + 7 days future
+//    var count: Int = 10  // 3 days past + today + 7 days future
+    var past: Int = 3
+    var future: Int = 7
     var steps: Int = 1  // Each step is one day
     var spacing: CGFloat = 1
     var showsText: Bool = true
+    var offset: Int = 3 // Number of dates to the left of the selected date
 }
 
 struct WheelPicker: View {
@@ -27,14 +30,16 @@ struct WheelPicker: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: config.spacing) {
-                let totalSteps = config.steps * config.count
-                ForEach(0..<totalSteps + 6, id: \.self) { index in
-                    if(index < 3 || index > totalSteps + 2){
+                let totalSteps = config.steps * (config.past + config.future)
+                let spacerNum = config.offset
+                ForEach(0..<totalSteps + 2 * spacerNum, id: \.self) { index in
+                    if(index < spacerNum || index > totalSteps + spacerNum - 1){
                         Spacer().frame(width: 24, height: 24).id(index)
                     } else {
-                        let date = dateForIndex(index)
-                        let isSelected = isDateSelected(index)
-                        dateButton(date: date, isSelected: isSelected)
+                        let offset = -config.offset - config.past
+                        let date = dateForIndex(index, offset: offset)
+                        let isSelected = isDateSelected(index, offset: offset)
+                        dateButton(date: date, isSelected: isSelected, offset: offset)
                     }
                 }
             }
@@ -47,22 +52,22 @@ struct WheelPicker: View {
         .sensoryFeedback(.alignment, trigger: haptics)
         .onChange(of: scrollPosition) { oldValue, newValue in
             if(!byClick){
-                handleScrollChange(oldValue: oldValue, newValue: newValue)
+                handleScrollChange(oldValue: oldValue, newValue: newValue, config: config)
             }else{
                 byClick = false
             }
         }
         .onAppear {
-            scrollToToday()
+            scrollToToday(config: config)
         }
     }
     
-    private func dateButton(date: Date, isSelected: Bool) -> some View {
+    private func dateButton(date: Date, isSelected: Bool, offset: Int) -> some View {
         Button(action: {
             selectedDate = date
             byClick = true
             withAnimation{
-                scrollPosition = indexForDate(date)
+                scrollPosition = indexForDate(date, offset: offset)
             }
             haptics.toggle()
         }) {
@@ -72,7 +77,7 @@ struct WheelPicker: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-        .id(indexForDate(date))
+        .id(indexForDate(date, offset: offset))
     }
     
     private func dayText(date: String, isSelected: Bool) -> some View {
@@ -94,36 +99,43 @@ struct WheelPicker: View {
         }
     }
     
-    func handleScrollChange(oldValue: Int?, newValue: Int?) {
-        var selectedDateIndex = indexForDate(selectedDate)
+    func handleScrollChange(oldValue: Int?, newValue: Int?, config: Config) {
+        let offset = -config.offset - config.past
+        let todayIndex = indexForDate(Date(), offset: offset)
         guard let oldIndex = oldValue, let newIndex = newValue else { return }
-        selectedDateIndex += newIndex - oldIndex
-        selectedDate = dateForIndex(selectedDateIndex)
-        haptics.toggle()
+        let targetDateIndex = newIndex + config.offset - config.past
+        switch targetDateIndex{
+        case todayIndex-config.past..<todayIndex+config.future:
+            selectedDate = dateForIndex(targetDateIndex, offset: offset)
+            haptics.toggle()
+        default:
+            scrollPosition = oldIndex
+        }
+        
     }
     
-    private func scrollToToday() {
+    private func scrollToToday(config: Config) {
         let today = Date()
-        let todayIndex = indexForDate(today)
-        scrollPosition = todayIndex
+        let todayIndex = indexForDate(today, offset: -config.offset - config.past)
+        scrollPosition = todayIndex - config.offset + config.past
         selectedDate = today
     }
     
-    private func indexForDate(_ date: Date) -> Int {
+    private func indexForDate(_ date: Date, offset: Int) -> Int {
         let calendar = Calendar.current
-        let startDate = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -6, to: Date()) ?? Date())
+        let startDate = calendar.startOfDay(for: calendar.date(byAdding: .day, value: offset, to: Date()) ?? Date())
         let targetDate = calendar.startOfDay(for: date)
         let daysDifference = calendar.dateComponents([.day], from: startDate, to: targetDate).day ?? 0
         return daysDifference
     }
     
-    private func dateForIndex(_ index: Int) -> Date {
-        let startDate = Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date()
+    private func dateForIndex(_ index: Int, offset: Int) -> Date {
+        let startDate = Calendar.current.date(byAdding: .day, value: offset, to: Date()) ?? Date()
         return Calendar.current.date(byAdding: .day, value: index, to: startDate) ?? Date()
     }
     
-    private func dayForIndex(_ index: Int) -> String {
-        let date = dateForIndex(index)
+    private func dayForIndex(_ index: Int, offset: Int) -> String {
+        let date = dateForIndex(index, offset: offset)
         return dateToString(for: date)
     }
     
@@ -133,8 +145,8 @@ struct WheelPicker: View {
         return formatter.string(from: date)
     }
     
-    private func isDateSelected(_ index: Int) -> Bool {
-        Calendar.current.isDate(dateForIndex(index), inSameDayAs: selectedDate)
+    private func isDateSelected(_ index: Int, offset: Int) -> Bool {
+        Calendar.current.isDate(dateForIndex(index, offset: offset), inSameDayAs: selectedDate)
     }
 }
 
