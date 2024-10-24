@@ -32,7 +32,7 @@ struct WheelPicker: View {
             HStack(spacing: config.spacing) {
                 let totalSteps = config.steps * (config.past + config.future)
                 let spacerNum = config.offset
-                ForEach(0..<totalSteps + 2 * spacerNum, id: \.self) { index in
+                ForEach(0..<totalSteps + 2 * spacerNum + 1, id: \.self) { index in
                     if(index < spacerNum || index > totalSteps + spacerNum - 1){
                         Spacer().frame(width: 24, height: 24).id(index)
                     } else {
