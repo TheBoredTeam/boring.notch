@@ -288,7 +288,7 @@ struct ContentView: View {
             
             Rectangle()
                 .fill(.black)
-                .frame(width: vm.sizes.size.closed.width! - 20)
+                .frame(width: Sizes().size.closed.width! - 20)
             
             HStack {
                 Rectangle()
