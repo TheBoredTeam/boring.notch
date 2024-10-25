@@ -58,7 +58,21 @@ struct DynamicNotchApp: App {
             }
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
-            Button("Restart Boring Notch") {}
+            Button("Restart Boring Notch") {
+                    guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
+                    
+                    let workspace = NSWorkspace.shared
+                    
+                    if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleIdentifier) {
+                        
+                        let configuration = NSWorkspace.OpenConfiguration()
+                        configuration.createsNewApplicationInstance = true
+                        
+                        workspace.openApplication(at: appURL, configuration: configuration)
+                    }
+                
+                   NSApplication.shared.terminate(nil)
+            }
             Button("Quit", role: .destructive) {
                 NSApp.terminate(nil)
             }
@@ -122,6 +136,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         adjustWindowPosition()
         
         window.orderFrontRegardless()
+        window.level = NSWindow.Level.screenSaver
         
         if vm.firstLaunch {
             DispatchQueue.main.async {
