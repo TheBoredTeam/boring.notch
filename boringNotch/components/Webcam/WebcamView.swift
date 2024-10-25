@@ -51,8 +51,16 @@ struct CircularPreviewView: View {
             .onDisappear {
                 webcamManager.stopSession()
             }
+            .disabled(!checkVideoInput())
         }
         .aspectRatio(1, contentMode: .fit)
+    }
+    func checkVideoInput() -> Bool {
+        if let cam = AVCaptureDevice.default(for: .video) {
+            return true
+        }
+        
+        return false
     }
 }
 

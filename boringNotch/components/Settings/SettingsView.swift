@@ -11,6 +11,7 @@ import Sparkle
 import KeyboardShortcuts
 import Defaults
 import SwiftUIIntrospect
+import AVFoundation
 
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -699,6 +700,7 @@ struct Appearance: View {
             
             Section {
                 Defaults.Toggle("Enable boring mirror", key: .showMirror)
+                    .disabled(!checkVideoInput())
                 Picker("Mirror shape", selection: $mirrorShape) {
                     Text("Circle")
                         .tag(MirrorShapeEnum.circle)
@@ -709,7 +711,9 @@ struct Appearance: View {
                 Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
                     .disabled(true)
             } header: {
-                Text("Additional features")
+                HStack {
+                    Text("Additional features")
+                }
             }
             
             Section {
@@ -745,6 +749,14 @@ struct Appearance: View {
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Appearance")
+    }
+    
+    func checkVideoInput() -> Bool {
+        if let cam = AVCaptureDevice.default(for: .video) {
+            return true
+        }
+        
+        return false
     }
 }
 

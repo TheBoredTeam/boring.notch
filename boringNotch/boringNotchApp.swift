@@ -46,11 +46,6 @@ struct DynamicNotchApp: App {
                 Text("Settings")
             })
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-            Button("Clipboard history") {
-                self.appDelegate.vm.openClipboard()
-            }
-            .keyboardShortcut(KeyboardShortcuts.Name("clipboardHistoryPanel"))
-            .disabled(BoringExtensionManager().installedExtensions.map({$0.bundleIdentifier}).contains(clipboardExtension))
             if false {
                 Button("Activate License") {
                     openWindow(id: "activation")
@@ -123,6 +118,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 type: .music,
                 duration: 3.0
             )
+        }
+        
+        if let cam = AVCaptureDevice.default(for: .video) {
+            //
+        } else {
+            Defaults[.showMirror] = false
         }
         
         window = BoringNotchWindow(
