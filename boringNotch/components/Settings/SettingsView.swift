@@ -405,10 +405,15 @@ struct HUD: View {
 }
 
 struct Media: View {
+    @EnvironmentObject var vm: BoringViewModel
     @Default(.waitInterval) var waitInterval
     var body: some View {
         Form {
             Section {
+                Toggle(
+                    "Enable music live activity",
+                    isOn: $vm.showMusicLiveActivityOnClosed.animation()
+                )
                 Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
                 Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
                 HStack {

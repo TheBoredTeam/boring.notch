@@ -246,15 +246,16 @@ struct CustomSlider: View {
             
             ZStack(alignment: .leading) {
                 // Background track
-                Capsule()
+                Rectangle()
                     .fill(.gray.opacity(0.3))
-                    .frame(height: height) // Track height
+                    .frame(height: height)
                 
                 // Filled track
-                Capsule()
+                Rectangle()
                     .fill(color)
                     .frame(width: filledTrackWidth, height: height)
             }
+            .cornerRadius(height / 2)
             .highPriorityGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { gesture in
@@ -288,5 +289,9 @@ struct CustomSlider: View {
 }
 
 #Preview {
-    NotchHomeView(albumArtNamespace: Namespace().wrappedValue).environmentObject(MusicManager(vm: BoringViewModel())!).environmentObject(BoringViewModel()).environmentObject(BatteryStatusViewModel(vm: BoringViewModel())).environmentObject(WebcamManager())
+    NotchHomeView(albumArtNamespace: Namespace().wrappedValue)
+        .environmentObject(MusicManager(vm: BoringViewModel())!)
+        .environmentObject(BoringViewModel())
+        .environmentObject(BatteryStatusViewModel(vm: BoringViewModel()))
+        .environmentObject(WebcamManager())
 }

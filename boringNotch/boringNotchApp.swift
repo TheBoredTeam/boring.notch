@@ -118,9 +118,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
             
-            self.vm.togglesneakPeek(
+            self.vm.toggleSneakPeek(
                 status: !self.vm.sneakPeek.show,
-                type: .music
+                type: .music,
+                duration: 3.0
             )
         }
         
