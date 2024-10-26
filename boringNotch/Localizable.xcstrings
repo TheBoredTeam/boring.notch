@@ -195,9 +195,6 @@
     "Circle" : {
 
     },
-    "Clipboard history" : {
-
-    },
     "Close" : {
 
     },
@@ -313,6 +310,9 @@
       }
     },
     "Enable HUD replacement" : {
+
+    },
+    "Enable music live activity" : {
 
     },
     "Enhance your experience with HUDs" : {
@@ -710,13 +710,13 @@
         }
       }
     },
-    "Show music live activity" : {
-
-    },
     "Show on a specific display" : {
 
     },
     "Slider color" : {
+
+    },
+    "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
 
     },
     "Software updates" : {
@@ -757,7 +757,7 @@
     "Transform your notch truly yours" : {
 
     },
-    "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when Open notch on hover option is disabled" : {
+    "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
 
     },
     "Uninstall" : {

@@ -236,7 +236,7 @@ struct GeneralSettings: View {
                 customBadge(text: "Beta")
             }
         } footer: {
-            Text("Two-finger swipe up on notch to close, two-finger swipe down on notch to open when Open notch on hover option is disabled")
+            Text("Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled")
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(.secondary)
                 .font(.caption)
@@ -677,8 +677,8 @@ struct Appearance: View {
     @EnvironmentObject var vm: BoringViewModel
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
-    let icons: [String] = ["logo", "logo2"]
-    @State private var selectedIcon: String = "logo"
+    let icons: [String] = ["logo2"]
+    @State private var selectedIcon: String = "logo2"
     var body: some View {
         Form {
             Section {
@@ -727,13 +727,15 @@ struct Appearance: View {
                         }
                         .background(
                             RoundedRectangle(cornerRadius: 20, style: .circular)
-                                .strokeBorder(icon == selectedIcon ? Defaults[.accentColor] : .clear, lineWidth: 2.5)
+                                .strokeBorder(
+                                    icon == selectedIcon ? Defaults[.accentColor] : .clear,
+                                    lineWidth: 2.5
+                                )
                         )
                         .onTapGesture {
                             withAnimation {
                                 selectedIcon = icon
                             }
-                            //NSWorkspace.shared.setIcon(NSImage(named: icon), forFile: Bundle.main.bundleIdentifier!)
                             NSApp.applicationIconImage = NSImage(named: icon)
                         }
                         Spacer()
@@ -743,7 +745,7 @@ struct Appearance: View {
             } header: {
                 HStack {
                     Text("App icon")
-                    customBadge(text: "Beta")
+                    customBadge(text: "Coming soon")
                 }
             }
         }
@@ -752,7 +754,7 @@ struct Appearance: View {
     }
     
     func checkVideoInput() -> Bool {
-        if let cam = AVCaptureDevice.default(for: .video) {
+        if let _ = AVCaptureDevice.default(for: .video) {
             return true
         }
         
@@ -763,10 +765,19 @@ struct Appearance: View {
 struct Shortcuts: View {
     var body: some View {
         Form {
-            KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
+            Section {
+                KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
+            } header: {
+                Text("Media")
+            } footer: {
+                Text("Sneak Peek shows the media title and artist under the notch for a few seconds.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("Shelf")
+        .navigationTitle("Shortcuts")
     }
 }
 
