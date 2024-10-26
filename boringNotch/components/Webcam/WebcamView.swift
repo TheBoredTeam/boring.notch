@@ -9,7 +9,7 @@ import AVFoundation
 import SwiftUI
 import Defaults
 
-struct CircularPreviewView: View {
+struct CameraPreviewView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager: WebcamManager
 
@@ -51,16 +51,8 @@ struct CircularPreviewView: View {
             .onDisappear {
                 webcamManager.stopSession()
             }
-            .disabled(!checkVideoInput())
         }
         .aspectRatio(1, contentMode: .fit)
-    }
-    func checkVideoInput() -> Bool {
-        if let cam = AVCaptureDevice.default(for: .video) {
-            return true
-        }
-        
-        return false
     }
 }
 
@@ -81,5 +73,5 @@ struct CameraPreviewLayerView: NSViewRepresentable {
 }
 
 #Preview {
-    CircularPreviewView(webcamManager: WebcamManager())
+    CameraPreviewView(webcamManager: WebcamManager())
 }

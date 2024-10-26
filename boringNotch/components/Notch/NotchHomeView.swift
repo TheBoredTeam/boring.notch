@@ -133,14 +133,14 @@ struct NotchHomeView: View {
                         }
                 }
                 
-                if Defaults[.showMirror] {
-                    CircularPreviewView(webcamManager: webcamManager)
+                if Defaults[.showMirror] && webcamManager.cameraAvailable && webcamManager.authorizationStatus != .denied {
+                    CameraPreviewView(webcamManager: webcamManager)
                         .scaledToFit()
                         .opacity(vm.notchState == .closed ? 0 : 1)
                         .blur(radius: vm.notchState == .closed ? 20 : 0)
                 }
                 
-                if !Defaults[.showMirror] && !Defaults[.showCalendar] {
+                if (!Defaults[.showMirror] || !webcamManager.cameraAvailable || webcamManager.authorizationStatus == .denied) && !Defaults[.showCalendar] {
                     Rectangle()
                         .fill(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor).gradient : Color.gray.gradient)
                         .mask {
