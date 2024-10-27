@@ -219,7 +219,7 @@ struct ContentView: View {
                         MusicLiveActivity()
                     } else {
                         BoringHeader()
-                            .frame(height: Sizes().size.closed.height!)
+                            .frame(height: max(24, Sizes().size.closed.height!))
                             .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
                     }
                     
