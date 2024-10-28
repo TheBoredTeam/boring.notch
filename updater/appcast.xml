@@ -2,32 +2,58 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>boringNotch</title>
-<item>  
-    <title>🎉 v2.1 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</title>
-    <link>https://theboring.name</link>
-            <pubDate>Sat, 19 Oct 2024 17:38:33 +0530</pubDate>
-            <sparkle:version>2.1+1</sparkle:version>
-            <sparkle:shortVersionString>2.1</sparkle:shortVersionString>
+        <item>  
+            <title>🎉 v2.2 🚀 New release with bug fixes and great additions</title>
+            <link>https://theboring.name</link>
+            <pubDate>Tue, 29 Oct 2024 01:48:10 +0530</pubDate>
+            <sparkle:version>2.2+1</sparkle:version>
+            <sparkle:shortVersionString>2.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-    <description><![CDATA[
-        <h1>🎉 v2.0 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</h1>
-        <p>We're thrilled to announce the release of Glowing Panda version 2.0! 🎊 This major update brings numerous improvements and new features that will make your app-building experience even more enjoyable.</p><br />
-        <h2>🤔 What's New? 🤓</h2>
-        <ul><li>Rewritten Layout: The Speed Demon 🏃‍♂️ Our layout has been reworked for better performance, making it faster and smoother. We've also added some fancy animations to keep things interesting 😎</li>
-<li>Polished Managers: The Playback Pro 🎵 Playback managers have been revamped to ensure a seamless experience. No more buffering or crashes – we've got this covered 💪</li>
-<li>Calendar & Music Activity: The Visual Showstopper 📆 A fancy blur background behind music activity has been added to enhance the app's visual appeal. It's like a mini-movie in your app 🍿</li>
-<li>Customization Options: Make it Yours (Sort Of) 🎨 More customization options have been introduced to personalize your glow. We've also added some new emojis to make things more fun 🤪</li>
-<li>Improved Settings: Don't Lose Your Stuff 🗂️ New and improved settings that actually save changes 🔄. No more wondering where you put that pesky setting 🔍</li>
-<li>Resource Management Optimizations: The Secret Sauce ⚙️ Our resource management has been optimized for a faster app. We've also added some secret sauce (just kidding, it's just good old-fashioned coding magic ✨)</li>
-<li>Bug Fixes: 🚫 We've squashed some pesky bugs that caused issues with HUDs and Download Manager settings, shelf icon responsiveness, and General tab in Settings.</li>
-<li>Update Check: 🔄 A new feature to check for updates in the Settings / About section has been added.</li>
-<li>Non-Notch Display Customization: 🖥️ Customization options for non-notch displays have been introduced to ensure a seamless experience for all users.</li>
-<li>GitHub Link Update: 🔄 The GitHub link in the settings has been updated to ensure easy access to the latest updates.</li>
-    </ul>
-    ]]>
-    </description>
+            <description><![CDATA[
+            <h1>🎉 v2.2 🚀 New release with bug fixes and great additions</h1>
+            <p>We're thrilled to announce the release of Glowing Panda version 2.2! 🎊 This major update brings numerous improvements and new features that will make your app-building experience even more enjoyable.</p><br />
+            <h2>🤔 What's Changed? 🤓</h2>
+            <ul>
+                <li>Calendar & Behavior: 📅 Fixed calendar data handling and behavior issues (Thanks @LostCause!)</li>
+                <li>Music Features: 🎵 Added keyboard shortcut for music sneakPeek (Thanks @freepicheep!) and improved Mirror logic (Thanks @LostCause!)</li>
+                <li>App Management: 🔄 Implemented app restart functionality (Thanks @LostCause!)</li>
+                <li>Media Player: 🎬 New timeline slider and centered controls with tinting options (Based on @LostCause's work)</li>
+                <li>Live Activity: 📱 Added option to disable music live activity</li>
+                <li>UI Improvements: 🎨 Fixed sizing and spacing issues, especially notch content overlap</li>
+                <li>Gesture System: 🤚 Improved gesture logic (Thanks @LostCause!)</li>
+                <li>Header Update: 🔄 Removed "Glowing 🐼" text from header</li>
+                <li>Settings Enhancement: ⚙️ Added new Appearance and Shortcuts tabs</li>
+            </ul>
+            ]]>
+            </description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="7127871" type="application/octet-stream" sparkle:edSignature="ACOUBGdj/+iaWWDE8YetJVZp6UhTEqWWZPilGrUOo6ccwHCHMHaFo9Ppx+/Xq1iguS4NuOOyfVF55SQAWl4dCw=="/>
+        </item>
+        <item>  
+            <title>🎉 v2.1 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</title>
+            <link>https://theboring.name</link>
+                    <pubDate>Sat, 19 Oct 2024 17:38:33 +0530</pubDate>
+                    <sparkle:version>2.1+1</sparkle:version>
+                    <sparkle:shortVersionString>2.1</sparkle:shortVersionString>
+                    <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h1>🎉 v2.0 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</h1>
+                <p>We're thrilled to announce the release of Glowing Panda version 2.0! 🎊 This major update brings numerous improvements and new features that will make your app-building experience even more enjoyable.</p><br />
+                <h2>🤔 What's New? 🤓</h2>
+                <ul><li>Rewritten Layout: The Speed Demon 🏃‍♂️ Our layout has been reworked for better performance, making it faster and smoother. We've also added some fancy animations to keep things interesting 😎</li>
+        <li>Polished Managers: The Playback Pro 🎵 Playback managers have been revamped to ensure a seamless experience. No more buffering or crashes – we've got this covered 💪</li>
+        <li>Calendar & Music Activity: The Visual Showstopper 📆 A fancy blur background behind music activity has been added to enhance the app's visual appeal. It's like a mini-movie in your app 🍿</li>
+        <li>Customization Options: Make it Yours (Sort Of) 🎨 More customization options have been introduced to personalize your glow. We've also added some new emojis to make things more fun 🤪</li>
+        <li>Improved Settings: Don't Lose Your Stuff 🗂️ New and improved settings that actually save changes 🔄. No more wondering where you put that pesky setting 🔍</li>
+        <li>Resource Management Optimizations: The Secret Sauce ⚙️ Our resource management has been optimized for a faster app. We've also added some secret sauce (just kidding, it's just good old-fashioned coding magic ✨)</li>
+        <li>Bug Fixes: 🚫 We've squashed some pesky bugs that caused issues with HUDs and Download Manager settings, shelf icon responsiveness, and General tab in Settings.</li>
+        <li>Update Check: 🔄 A new feature to check for updates in the Settings / About section has been added.</li>
+        <li>Non-Notch Display Customization: 🖥️ Customization options for non-notch displays have been introduced to ensure a seamless experience for all users.</li>
+        <li>GitHub Link Update: 🔄 The GitHub link in the settings has been updated to ensure easy access to the latest updates.</li>
+            </ul>
+            ]]>
+            </description>
             <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10428612" type="application/octet-stream" sparkle:edSignature="x6+BvmZZjnDg/CBMoEMaXMLzQtsW8Hi1Speba/I+KUCbqXgj2pRAo+ATo9m5pqedVmWmAqqEYxSY82u2TK3ZCw=="/>
-            </item>
+        </item>
     </channel>
 </rss>
 
