@@ -1,0 +1,16 @@
+//
+//  NotchSpaceManager.swift
+//  boringNotch
+//
+//  Created by Alexander Greco on 2024-10-27.
+//
+
+
+class NotchSpaceManager {
+    static let shared = NotchSpaceManager()
+    let notchSpace: CGSSpace
+    
+    private init() {
+        notchSpace = CGSSpace(level: 2147483647) //Max level
+    }
+}
