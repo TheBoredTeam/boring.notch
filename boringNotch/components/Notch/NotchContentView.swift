@@ -100,7 +100,7 @@ struct NotchContentView: View {
                         
                         if vm.notchState == .closed && vm.expandingView.show  {
                             if vm.expandingView.type == .battery {
-                                BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30)
+                                BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30, isInLowPowerMode: batteryModel.isInLowPowerMode)
                             } else {
                                 ProgressIndicator(type: .text, progress: 0.01, color: Defaults[.accentColor]).padding(.trailing, 4)
                             }
