@@ -84,6 +84,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     let calenderManager = CalendarManager()
+    private var previousScreens: [NSScreen]?
     @Environment(\.openWindow) var openWindow
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -162,6 +163,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if !NSScreen.screens.contains(where: {$0.localizedName == vm.selectedScreen}) {
             vm.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
         }
+            
+        let currentScreens = NSScreen.screens
+        guard currentScreens.count != previousScreens?.count else { return }
+        previousScreens = currentScreens
         
         let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == vm.selectedScreen})
         closedNotchSize = setNotchSize(screen: selectedScreen?.localizedName)
