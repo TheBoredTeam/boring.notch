@@ -25,23 +25,6 @@ struct DynamicNotchApp: App {
     }
     
     var body: some Scene {
-        Settings {
-            SettingsView(updaterController: updaterController)
-                .environmentObject(appDelegate.vm)
-        }
-        
-        Window("Onboarding", id: "onboarding") {
-            ProOnboard()
-        }
-        .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
-        
-        Window("Activation", id: "activation") {
-            ActivationWindow()
-        }
-        .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
-        
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             SettingsLink(label: {
                 Text("Settings")
@@ -74,6 +57,23 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
+        
+        Settings {
+            SettingsView(updaterController: updaterController)
+                .environmentObject(appDelegate.vm)
+        }
+        
+        Window("Onboarding", id: "onboarding") {
+            ProOnboard()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        
+        Window("Activation", id: "activation") {
+            ActivationWindow()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
     }
 }
 
