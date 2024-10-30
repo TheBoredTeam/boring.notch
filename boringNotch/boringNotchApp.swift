@@ -18,6 +18,7 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
     let updaterController: SPUStandardUpdaterController
+    let notchSpace = NotchSpaceManager.shared.notchSpace
     
     init() {
         updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
@@ -133,7 +134,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         adjustWindowPosition()
         
         window.orderFrontRegardless()
-        window.level = NSWindow.Level.screenSaver
+        
+        NotchSpaceManager.shared.notchSpace.windows.insert(window)
         
         if vm.firstLaunch {
             DispatchQueue.main.async {
