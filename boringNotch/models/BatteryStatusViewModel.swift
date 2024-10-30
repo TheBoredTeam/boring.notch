@@ -26,16 +26,12 @@ class BatteryStatusViewModel: ObservableObject {
         self.vm = vm
         updateBatteryStatus()
         startMonitoring()
+        // get the system power mode and setup an observer
+        self.isInLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
         NotificationCenter.default.addObserver(self, selector: #selector(powerStateChanged), name: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil)
     }
 
     private func updateBatteryStatus() {
-        if ProcessInfo.processInfo.isLowPowerModeEnabled == true {
-            self.isInLowPowerMode = true
-        } else {
-            self.isInLowPowerMode = false
-        }
-        
         if let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
            let sources = IOPSCopyPowerSourcesList(snapshot)?.takeRetainedValue() as? [CFTypeRef] {
             for source in sources {
@@ -84,6 +80,7 @@ class BatteryStatusViewModel: ObservableObject {
         }
     }
     
+    // function to update battery model if system low power mode changes
     @objc func powerStateChanged(_ notification: Notification) {
         DispatchQueue.main.async {
             self.isInLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
