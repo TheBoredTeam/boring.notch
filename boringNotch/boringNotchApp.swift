@@ -103,12 +103,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(adjustWindowPosition),
+            selector: #selector(screenConfigurationDidChange),
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
         
         NotificationCenter.default.addObserver(forName: Notification.Name.selectedScreenChanged, object: nil, queue: nil) { [weak self] _ in
+            self?.adjustWindowPosition(changeAlpha: true)
+        }
+        
+        NotificationCenter.default.addObserver(forName: Notification.Name.notchHeightChanged, object: nil, queue: nil) { [weak self] _ in
             self?.adjustWindowPosition()
         }
         
@@ -131,7 +135,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self.vm)).environmentObject(vm).environmentObject(MusicManager(vm: vm)!))
         
-        adjustWindowPosition()
+        adjustWindowPosition(changeAlpha: true)
         
         window.orderFrontRegardless()
         
@@ -161,26 +165,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
     
-    @objc func adjustWindowPosition() {
-        if !NSScreen.screens.contains(where: {$0.localizedName == vm.selectedScreen}) {
-            vm.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
-        }
-            
+    @objc func screenConfigurationDidChange() {
+        
         let currentScreens = NSScreen.screens
         guard currentScreens.count != previousScreens?.count else { return }
         previousScreens = currentScreens
+        adjustWindowPosition(changeAlpha: true)
+    }
+    
+    @objc func adjustWindowPosition(changeAlpha: Bool = false) {
+        if !NSScreen.screens.contains(where: {$0.localizedName == vm.selectedScreen}) {
+            vm.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
+        }
         
         let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == vm.selectedScreen})
         closedNotchSize = setNotchSize(screen: selectedScreen?.localizedName)
         
         if let screenFrame = selectedScreen {
-            window.alphaValue = 0
+            window.alphaValue = changeAlpha ? 0 : 1
             window.makeKeyAndOrderFront(nil)
             
             DispatchQueue.main.async {[weak self] in
                 self!.window.setFrameOrigin(screenFrame.frame.origin.applying(CGAffineTransform(translationX: (screenFrame.frame.width / 2) - self!.window.frame.width / 2, y: screenFrame.frame.height - self!.window.frame.height)))
                 self!.window.alphaValue = 1
             }
+        }
+        //TODO: Improve animation here, especially for custom height slider
+        if vm.notchState == .closed {
+            vm.close()
         }
     }
     
@@ -203,4 +215,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 extension Notification.Name {
     static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
+    static let notchHeightChanged = Notification.Name("NotchHeightChanged")
 }
