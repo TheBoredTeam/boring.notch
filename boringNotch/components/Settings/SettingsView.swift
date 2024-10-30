@@ -724,14 +724,25 @@ struct Appearance: View {
                             Image(icon)
                                 .resizable()
                                 .frame(width: 80, height: 80)
-                        }
-                        .background(
-                            RoundedRectangle(cornerRadius: 20, style: .circular)
-                                .strokeBorder(
-                                    icon == selectedIcon ? Defaults[.accentColor] : .clear,
-                                    lineWidth: 2.5
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20, style: .circular)
+                                        .strokeBorder(
+                                            icon == selectedIcon ? Defaults[.accentColor] : .clear,
+                                            lineWidth: 2.5
+                                        )
                                 )
-                        )
+                            
+                            Text("Default")
+                                .fontWeight(.medium)
+                                .font(.caption)
+                                .foregroundStyle(icon == selectedIcon ? .white : .secondary)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 3)
+                                .background(
+                                    Capsule()
+                                        .fill(icon == selectedIcon ? Defaults[.accentColor] : .clear)
+                                )
+                        }
                         .onTapGesture {
                             withAnimation {
                                 selectedIcon = icon
