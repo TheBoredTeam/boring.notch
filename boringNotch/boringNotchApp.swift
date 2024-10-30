@@ -187,6 +187,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             DispatchQueue.main.async {[weak self] in
                 self!.window.setFrameOrigin(screenFrame.frame.origin.applying(CGAffineTransform(translationX: (screenFrame.frame.width / 2) - self!.window.frame.width / 2, y: screenFrame.frame.height - self!.window.frame.height)))
+                self!.window.alphaValue = 1
             }
         }
         //TODO: optimize animation here, especially for custom height slider
