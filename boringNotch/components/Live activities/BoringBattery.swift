@@ -3,6 +3,7 @@ import SwiftUI
 struct BatteryView: View {
     @State var percentage: Float
     @State var isCharging: Bool
+    @State var isInLowPowerMode: Bool
     var batteryWidth: CGFloat = 26
     var animationStyle: BoringAnimations = BoringAnimations()
     
@@ -11,7 +12,9 @@ struct BatteryView: View {
     }
     
     var batteryColor: Color {
-        if percentage.isLessThanOrEqualTo(20) {
+        if isInLowPowerMode {
+            return .yellow
+        } else if percentage.isLessThanOrEqualTo(20) {
             return .red
         } else if isCharging {
             return .green
@@ -52,13 +55,14 @@ struct BoringBatteryView: View {
     @State var batteryPercentage: Float = 0
     @State var isPluggedIn:Bool = false
     @State var batteryWidth: CGFloat = 26
+    @State var isInLowPowerMode: Bool
     
     var body: some View {
         HStack {
             Text("\(Int32(batteryPercentage))%")
                 .font(.callout)
                 .foregroundStyle(.white)
-            BatteryView(percentage: batteryPercentage, isCharging: isPluggedIn, batteryWidth: batteryWidth)
+            BatteryView(percentage: batteryPercentage, isCharging: isPluggedIn, isInLowPowerMode: isInLowPowerMode, batteryWidth: batteryWidth)
         }
         
     }
@@ -68,6 +72,7 @@ struct BoringBatteryView: View {
     BoringBatteryView(
         batteryPercentage: 40,
         isPluggedIn: true,
-        batteryWidth: 30
+        batteryWidth: 30,
+        isInLowPowerMode: false
     ).frame(width: 200, height: 200)
 }
