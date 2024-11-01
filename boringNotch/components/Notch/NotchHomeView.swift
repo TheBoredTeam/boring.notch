@@ -77,9 +77,9 @@ struct NotchHomeView: View {
                     VStack(alignment: .leading) {
                         GeometryReader { geo in
                             VStack(alignment: .leading, spacing: 4){
-                                MarqueeText(musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: geo.size.width)
+                                MarqueeText($musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: geo.size.width)
                                 MarqueeText(
-                                    musicManager.artistName,
+                                    $musicManager.artistName,
                                     font: .headline,
                                     nsFont: .headline,
                                     textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor)

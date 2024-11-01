@@ -30,10 +30,12 @@ struct ContentView: View {
     
     @Namespace var albumArtNamespace
     
+    @Default(.useMusicVisualizer) var useMusicVisualizer
+    
     var body: some View {
         ZStack(alignment: .top) {
             NotchLayout()
-                .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (vm.sizes.cornerRadius.opened.inset! - 5) : (vm.sizes.cornerRadius.closed.inset! - 5) : 12)
+                .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (vm.sizes.cornerRadius.opened.inset!) : (vm.sizes.cornerRadius.closed.inset! - 5) : 12)
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                 .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || Defaults[.inlineHUD]) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((vm.sneakPeek.show && vm.sneakPeek.type != .music) || (vm.sneakPeek.show && vm.sneakPeek.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
                 .background(.black)
@@ -234,7 +236,7 @@ struct ContentView: View {
                                 HStack(alignment: .center) {
                                     Image(systemName: "music.note")
                                     GeometryReader { geo in
-                                        MarqueeText(musicManager.songTitle + " - " + musicManager.artistName, textColor: .gray, minDuration: 1, frameWidth: geo.size.width)
+                                        MarqueeText(.constant(musicManager.songTitle + " - " + musicManager.artistName), textColor: .gray, minDuration: 1, frameWidth: geo.size.width)
                                     }
                                 }
                                 .foregroundStyle(.gray)
@@ -263,6 +265,7 @@ struct ContentView: View {
             .zIndex(1)
             .allowsHitTesting(vm.notchState == .open)
             .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
+            .opacity(abs(gestureProgress) > 0.3 ? min(abs(gestureProgress * 2), 0.8) : 1)
         }
     }
     
@@ -289,14 +292,19 @@ struct ContentView: View {
                 .frame(width: Sizes().size.closed.width! - 20)
             
             HStack {
-                Rectangle()
-                    .fill(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor).gradient : Color.gray.gradient)
-                    .mask {
-                        AudioSpectrumView(
-                            isPlaying: $musicManager.isPlaying
-                        )
-                        .frame(width: 16, height: 12)
-                    }
+                if useMusicVisualizer {
+                    Rectangle()
+                        .fill(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor).gradient : Color.gray.gradient)
+                        .mask {
+                            AudioSpectrumView(
+                                isPlaying: $musicManager.isPlaying
+                            )
+                            .frame(width: 16, height: 12)
+                        }
+                } else {
+                    LottieAnimationView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
             .frame(width: max(0, Sizes().size.closed.height! - (hoverAnimation ? 0 : 12) + gestureProgress / 2),
                    height:  max(0,Sizes().size.closed.height! - (hoverAnimation ? 0 : 12)), alignment: .center)

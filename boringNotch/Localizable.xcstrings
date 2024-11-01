@@ -41,9 +41,6 @@
     "• New feature 1" : {
 
     },
-    "⚠️ Important" : {
-
-    },
     "About" : {
       "localizations" : {
         "en" : {
@@ -73,7 +70,13 @@
     "Activation" : {
 
     },
+    "Add" : {
+
+    },
     "Add manually" : {
+
+    },
+    "Add new visualizer" : {
 
     },
     "Additional features" : {
@@ -221,7 +224,13 @@
     "Custom height" : {
 
     },
+    "Custom music live activity animation" : {
+
+    },
     "Custom notch size - %.0f" : {
+
+    },
+    "Custom vizualizers (Lottie)" : {
 
     },
     "Default" : {
@@ -387,12 +396,6 @@
     "High" : {
 
     },
-    "Hover over the notch after changing the height to see the effect." : {
-
-    },
-    "Hover over the notch after changing the screen to adapt the new size" : {
-
-    },
     "HUD style" : {
 
     },
@@ -423,6 +426,9 @@
 
     },
     "License key" : {
+
+    },
+    "Lottie JSON URL" : {
 
     },
     "Low" : {
@@ -509,7 +515,16 @@
     "muted" : {
 
     },
+    "Name" : {
+
+    },
     "Need Restart" : {
+
+    },
+    "No custom animation available" : {
+
+    },
+    "No custom visualizer" : {
 
     },
     "No events today" : {
@@ -650,6 +665,12 @@
         }
       }
     },
+    "selected" : {
+
+    },
+    "Selected animation" : {
+
+    },
     "Settings" : {
       "localizations" : {
         "en" : {
@@ -729,6 +750,9 @@
         }
       }
     },
+    "Speed" : {
+
+    },
     "Square" : {
 
     },
@@ -770,6 +794,9 @@
 
     },
     "Upgrade to Pro" : {
+
+    },
+    "Use music visualizer spectrogram" : {
 
     },
     "Version" : {

@@ -216,7 +216,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
     func toggleMusicLiveActivity(status: Bool) {
         withAnimation(.smooth) {
-            self.showMusicLiveActivityOnClosed = status
+            // self.showMusicLiveActivityOnClosed = status
         }
     }
 

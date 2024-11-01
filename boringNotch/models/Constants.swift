@@ -8,6 +8,13 @@
 import SwiftUI
 import Defaults
 
+struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
+    let UUID: UUID
+    var name: String
+    var url: URL
+    var speed: CGFloat = 1.0
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -42,6 +49,9 @@ extension Defaults.Keys {
         default: SliderColorEnum.white
     )
     static let playerColorTinting = Key<Bool>("playerColorTinting", default: true)
+    static let useMusicVisualizer = Key<Bool>("useMusicVisualizer", default: true)
+    static let customVisualizers = Key<[CustomVisualizer]>("customVisualizers", default: [])
+    static let selectedVisualizer = Key<CustomVisualizer?>("selectedVisualizer", default: nil)
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
