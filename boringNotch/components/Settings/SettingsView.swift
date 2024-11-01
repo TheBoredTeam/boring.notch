@@ -148,12 +148,6 @@ struct GeneralSettings: View {
                 .onChange(of: NSScreen.screens) { old, new in
                     screens = new.compactMap({$0.localizedName})
                 }
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("⚠️ Important")
-                        .font(.headline)
-                    Text("Hover over the notch after changing the screen to adapt the new size")
-                        .foregroundStyle(.secondary)
-                }
             } header: {
                 Text("System features")
             }
@@ -178,20 +172,14 @@ struct GeneralSettings: View {
                         case .custom:
                             nonNotchHeight = 32
                     }
-                    NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
+                    NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                 }
                 if nonNotchHeightMode == .custom {
                     Slider(value: $nonNotchHeight, in: 10...40, step: 1) {
                         Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: nonNotchHeight) { _, new in
-                        NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
-                    }
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("⚠️ Important")
-                            .font(.headline)
-                        Text("Hover over the notch after changing the height to see the effect.")
-                            .foregroundStyle(.secondary)
+                        NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
             } header: {

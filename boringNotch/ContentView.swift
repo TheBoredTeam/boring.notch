@@ -13,9 +13,7 @@ import SwiftUI
 import Defaults
 import SwiftUIIntrospect
 
-struct ContentView: View {
-    let onHover: () -> Void
-    
+struct ContentView: View {    
     @EnvironmentObject var vm: BoringViewModel
     @StateObject var batteryModel: BatteryStatusViewModel
     @EnvironmentObject var musicManager: MusicManager
