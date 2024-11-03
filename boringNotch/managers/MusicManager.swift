@@ -15,6 +15,7 @@ let defaultImage: NSImage = .init(
 )!
 
 class MusicManager: ObservableObject {
+
     // MARK: - Properties
     private var cancellables = Set<AnyCancellable>()
     private var debounceToggle: DispatchWorkItem?
@@ -165,7 +166,14 @@ class MusicManager: ObservableObject {
         let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
         let album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
         let duration = information["kMRMediaRemoteNowPlayingInfoDuration"] as? TimeInterval ?? lastMusicItem?.duration ?? 0
-        let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
+        
+        
+        guard let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data else {
+            let placeholder = AppIconAsNSImage(for: bundleIdentifier)?.pngRepresentation
+            return (title, artist, album, duration, placeholder)
+        }
+        
+       
         return (title, artist, album, duration, artworkData)
     }
     
@@ -184,6 +192,8 @@ class MusicManager: ObservableObject {
         self.songTitle = newInfo.title
         self.album = newInfo.album
         self.songDuration = newInfo.duration
+        print(newInfo.duration)
+
     }
     
     private func updateArtwork(_ artworkData: Data?, state: Int?) {
