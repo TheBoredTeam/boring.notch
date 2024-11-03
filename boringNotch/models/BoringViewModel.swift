@@ -76,7 +76,7 @@ class BoringViewModel: NSObject, ObservableObject {
     private var expandingViewDispatch: DispatchWorkItem?
     @Published var showCHPanel: Bool = false
     @Published var optionKeyPressed: Bool = true
-    @Published var showMusicLiveActivityOnClosed: Bool = true
+    @AppStorage("musicLiveActivity") var showMusicLiveActivityOnClosed: Bool = true
     @Published var spacing: CGFloat = 16
     
     @Published var dragDetectorTargeting: Bool = false
@@ -102,7 +102,7 @@ class BoringViewModel: NSObject, ObservableObject {
             }
         }
     }
-    
+    private var sneakPeekDuration: TimeInterval = 1.5
     @Published var sneakPeek: sneakPeek = .init() {
         didSet {
             if sneakPeek.show {
@@ -111,10 +111,15 @@ class BoringViewModel: NSObject, ObservableObject {
                 sneakPeekDispatch = DispatchWorkItem { [weak self] in
                     guard let self = self else { return }
                     withAnimation {
-                        self.togglesneakPeek(status: false, type: SneakContentType.music)
+                        self.toggleSneakPeek(status: false, type: SneakContentType.music)
+                        self.sneakPeekDuration = 1.5
                     }
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: sneakPeekDispatch!)
+                DispatchQueue.main
+                    .asyncAfter(
+                        deadline: .now() + self.sneakPeekDuration,
+                        execute: sneakPeekDispatch!
+                    )
             }
         }
     }
@@ -200,7 +205,7 @@ class BoringViewModel: NSObject, ObservableObject {
             
             print(decodedData)
             
-            togglesneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
+            toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
             
         } else {
             print("Failed to decode JSON data")
@@ -211,7 +216,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
     func toggleMusicLiveActivity(status: Bool) {
         withAnimation(.smooth) {
-            self.showMusicLiveActivityOnClosed = status
+            // self.showMusicLiveActivityOnClosed = status
         }
     }
 
@@ -219,7 +224,8 @@ class BoringViewModel: NSObject, ObservableObject {
         notifier.postNotification(name: notifier.toggleMicNotification.name, userInfo: nil)
     }
     
-    func togglesneakPeek(status: Bool, type: SneakContentType, value: CGFloat = 0, icon: String = "") {
+    func toggleSneakPeek(status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0, icon: String = "") {
+        self.sneakPeekDuration = duration
         if type != .music {
             close()
             if !hudReplacement {

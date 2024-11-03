@@ -9,7 +9,7 @@ import AVFoundation
 import SwiftUI
 import Defaults
 
-struct CircularPreviewView: View {
+struct CameraPreviewView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager: WebcamManager
 
@@ -73,5 +73,5 @@ struct CameraPreviewLayerView: NSViewRepresentable {
 }
 
 #Preview {
-    CircularPreviewView(webcamManager: WebcamManager())
+    CameraPreviewView(webcamManager: WebcamManager())
 }

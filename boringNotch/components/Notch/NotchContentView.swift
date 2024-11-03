@@ -100,7 +100,7 @@ struct NotchContentView: View {
                         
                         if vm.notchState == .closed && vm.expandingView.show  {
                             if vm.expandingView.type == .battery {
-                                BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30)
+                                BoringBatteryView(batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30, isInLowPowerMode: batteryModel.isInLowPowerMode)
                             } else {
                                 ProgressIndicator(type: .text, progress: 0.01, color: Defaults[.accentColor]).padding(.trailing, 4)
                             }
@@ -122,7 +122,7 @@ struct NotchContentView: View {
     
     func calculateFrameWidthforNotchContent() -> CGFloat? {
             // Calculate intermediate values
-        let chargingInfoWidth: CGFloat = vm.expandingView.show ? ((vm.expandingView.type == .download ? downloadSneakSize.width : batterySenakSize.width) + 10) : 0
+        let chargingInfoWidth: CGFloat = vm.expandingView.show ? ((vm.expandingView.type == .download ? downloadSneakSize.width : batterySneakSize.width) + 10) : 0
         let musicPlayingWidth: CGFloat = (!vm.firstLaunch && !vm.expandingView.show && (musicManager.isPlaying || (musicManager.isPlayerIdle ? Defaults[.showNotHumanFace] : true))) ? 60 : -15
         
         let closedWidth: CGFloat = vm.sizes.size.closed.width! - 5

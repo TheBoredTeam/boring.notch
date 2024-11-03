@@ -16,17 +16,21 @@ class BatteryStatusViewModel: ObservableObject {
     @Published var batteryPercentage: Float = 0.0
     @Published var isPluggedIn: Bool = false
     @Published var showChargingInfo: Bool = false
-    
+    @Published var isInLowPowerMode: Bool = false
+
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
     var animations: BoringAnimations = BoringAnimations()
-    
+
     init(vm: BoringViewModel) {
         self.vm = vm
         updateBatteryStatus()
         startMonitoring()
+        // get the system power mode and setup an observer
+        self.isInLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
+        NotificationCenter.default.addObserver(self, selector: #selector(powerStateChanged), name: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil)
     }
-    
+
     private func updateBatteryStatus() {
         if let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
            let sources = IOPSCopyPowerSourcesList(snapshot)?.takeRetainedValue() as? [CFTypeRef] {
@@ -35,36 +39,32 @@ class BatteryStatusViewModel: ObservableObject {
                    let currentCapacity = info[kIOPSCurrentCapacityKey] as? Int,
                    let maxCapacity = info[kIOPSMaxCapacityKey] as? Int,
                    let isCharging = info["Is Charging"] as? Bool {
-                    
-                    
                     if(Defaults[.chargingInfoAllowed]) {
-                        
+
                         withAnimation {
                             self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
                         }
-                        
+
                         if (isCharging && !self.isPluggedIn) {
                             DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0)) {
                                 self.vm.toggleExpandingView(status: true, type: .battery)
                                 self.showChargingInfo = true
                                 self.isPluggedIn = true
                             }
-                            
+
                         }
                         withAnimation {
                             self.isPluggedIn = isCharging
                         }
-                        
                     }
-                    
                 }
             }
         }
     }
-    
+
     private func startMonitoring() {
         let context = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
-        
+
         powerSourceChangedCallback = { context in
             if let context = context {
                 let mySelf = Unmanaged<BatteryStatusViewModel>.fromOpaque(context).takeUnretainedValue()
@@ -73,13 +73,20 @@ class BatteryStatusViewModel: ObservableObject {
                 }
             }
         }
-        
+
         if let runLoopSource = IOPSNotificationCreateRunLoopSource(powerSourceChangedCallback!, context)?.takeRetainedValue() {
             self.runLoopSource = Unmanaged<CFRunLoopSource>.passRetained(runLoopSource)
             CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .defaultMode)
         }
     }
     
+    // function to update battery model if system low power mode changes
+    @objc func powerStateChanged(_ notification: Notification) {
+        DispatchQueue.main.async {
+            self.isInLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
+        }
+    }
+
     deinit {
         if let runLoopSource = runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource.takeUnretainedValue(), .defaultMode)

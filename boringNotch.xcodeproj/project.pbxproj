@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		112FB7352CCF16F70015238C /* NotchSpaceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112FB7342CCF16F70015238C /* NotchSpaceManager.swift */; };
 		14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DD62C6E015000B9F80C /* AudioPlayer.swift */; };
 		14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */; };
 		14288DFE2C6E9A4700B9F80C /* BoringSystemTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DFD2C6E9A4700B9F80C /* BoringSystemTiles.swift */; };
@@ -79,9 +80,10 @@
 		B186543C2C6F49AE000B926A /* ShortcutConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B186543B2C6F49AE000B926A /* ShortcutConstants.swift */; };
 		B19016222CC15B3D00E3F12E /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = B19016212CC15B3D00E3F12E /* Defaults */; };
 		B19016242CC15B5000E3F12E /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19016232CC15B4D00E3F12E /* Constants.swift */; };
+		B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19424082CD0FEFE003E5DC2 /* LottieAnimationView.swift */; };
+		B194240B2CD10017003E5DC2 /* LottieUI in Frameworks */ = {isa = PBXBuildFile; productRef = B194240A2CD10017003E5DC2 /* LottieUI */; };
 		B1A78C822C8BA08100BD51B0 /* FullscreenMediaDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */; };
 		B1A78C842C8C65ED00BD51B0 /* MediaRemote.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1A78C832C8C65ED00BD51B0 /* MediaRemote.framework */; };
-		B1A78C852C8C65ED00BD51B0 /* MediaRemote.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B1A78C832C8C65ED00BD51B0 /* MediaRemote.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B1B1128F2C6A56E800093D8F /* DynamicNotch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B1128E2C6A56E800093D8F /* DynamicNotch.swift */; };
 		B1B112912C6A572100093D8F /* EditPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B112902C6A572100093D8F /* EditPanelView.swift */; };
 		B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B112922C6A577E00093D8F /* MouseTracker.swift */; };
@@ -103,7 +105,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				B1A78C852C8C65ED00BD51B0 /* MediaRemote.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -111,6 +112,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		112FB7342CCF16F70015238C /* NotchSpaceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchSpaceManager.swift; sourceTree = "<group>"; };
 		14288DD62C6E015000B9F80C /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		14288DD72C6E015000B9F80C /* boringNotch-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "boringNotch-Bridging-Header.h"; sourceTree = "<group>"; };
 		14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressIndicator.swift; sourceTree = "<group>"; };
@@ -191,6 +193,7 @@
 		B17C3C242C7DAD0C0082390A /* OSD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OSD.framework; path = ../../../../../System/Library/PrivateFrameworks/OSD.framework; sourceTree = "<group>"; };
 		B186543B2C6F49AE000B926A /* ShortcutConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutConstants.swift; sourceTree = "<group>"; };
 		B19016232CC15B4D00E3F12E /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		B19424082CD0FEFE003E5DC2 /* LottieAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieAnimationView.swift; sourceTree = "<group>"; };
 		B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenMediaDetection.swift; sourceTree = "<group>"; };
 		B1A78C832C8C65ED00BD51B0 /* MediaRemote.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaRemote.framework; path = ../../../../../System/Library/PrivateFrameworks/MediaRemote.framework; sourceTree = "<group>"; };
 		B1B1128E2C6A56E800093D8F /* DynamicNotch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicNotch.swift; sourceTree = "<group>"; };
@@ -208,6 +211,10 @@
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		112FB72F2CCF12CC0015238C /* private */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = private; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		14CEF40F2C5CAED300855D72 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -216,6 +223,7 @@
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1485442F2C8F049C00943381 /* TheBoringWorkerNotifier in Frameworks */,
 				14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */,
+				B194240B2CD10017003E5DC2 /* LottieUI in Frameworks */,
 				14D0321A2C68F32E0096E6A1 /* LaunchAtLogin in Frameworks */,
 				B1A78C842C8C65ED00BD51B0 /* MediaRemote.framework in Frameworks */,
 				B18654392C6F4990000B926A /* KeyboardShortcuts in Frameworks */,
@@ -282,6 +290,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				14D570BD2C5EA0270011E668 /* PlaybackManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
@@ -354,6 +363,7 @@
 				1443E7F42C609E650027C1FC /* Info.plist */,
 				14CEF41E2C5CAED400855D72 /* boringNotch.entitlements */,
 				14CEF41B2C5CAED400855D72 /* Preview Content */,
+				112FB72F2CCF12CC0015238C /* private */,
 			);
 			path = boringNotch;
 			sourceTree = "<group>";
@@ -476,6 +486,7 @@
 		B186542E2C6F453B000B926A /* Music */ = {
 			isa = PBXGroup;
 			children = (
+				B19424082CD0FEFE003E5DC2 /* LottieAnimationView.swift */,
 				147163972C5D35B70068B555 /* MusicVisualizer.swift */,
 			);
 			path = Music;
@@ -552,6 +563,9 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				112FB72F2CCF12CC0015238C /* private */,
+			);
 			name = boringNotch;
 			packageProductDependencies = (
 				14D032192C68F32E0096E6A1 /* LaunchAtLogin */,
@@ -561,6 +575,7 @@
 				1485442E2C8F049C00943381 /* TheBoringWorkerNotifier */,
 				B19016212CC15B3D00E3F12E /* Defaults */,
 				B1628B912CC260C0003D8DF3 /* SwiftUIIntrospect */,
+				B194240A2CD10017003E5DC2 /* LottieUI */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -600,6 +615,7 @@
 				1485442D2C8F049C00943381 /* XCRemoteSwiftPackageReference "TheBoringWorkerNotifier" */,
 				B19016202CC15B3D00E3F12E /* XCRemoteSwiftPackageReference "Defaults" */,
 				B1628B902CC260C0003D8DF3 /* XCRemoteSwiftPackageReference "swiftui-introspect" */,
+				B19424072CD0DB52003E5DC2 /* XCRemoteSwiftPackageReference "LottieUI" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -642,6 +658,7 @@
 				B141C23F2CA5F51E00AC8CC8 /* ProOnboarding.swift in Sources */,
 				B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
+				B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */,
 				9A987A072C73CA66005CA465 /* Ext+NSImage.swift in Sources */,
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
 				9A987A052C73CA66005CA465 /* Ext+FileProvider.swift in Sources */,
@@ -693,6 +710,7 @@
 				14D570C22C5EAFBF0011E668 /* EmptyState.swift in Sources */,
 				B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */,
 				9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */,
+				112FB7352CCF16F70015238C /* NotchSpaceManager.swift in Sources */,
 				14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */,
 				14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */,
 				B15063542C63E18700EBB0E3 /* SettingsView.swift in Sources */,
@@ -842,7 +860,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = "2.1+1";
+				CURRENT_PROJECT_VERSION = "2.2+1";
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -863,7 +881,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -890,7 +908,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = "2.1+1";
+				CURRENT_PROJECT_VERSION = "2.2+1";
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -911,7 +929,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1013,6 +1031,14 @@
 				kind = branch;
 			};
 		};
+		B19424072CD0DB52003E5DC2 /* XCRemoteSwiftPackageReference "LottieUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jasudev/LottieUI.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1050,6 +1076,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B19016202CC15B3D00E3F12E /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
+		};
+		B194240A2CD10017003E5DC2 /* LottieUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B19424072CD0DB52003E5DC2 /* XCRemoteSwiftPackageReference "LottieUI" */;
+			productName = LottieUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

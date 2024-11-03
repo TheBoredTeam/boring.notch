@@ -12,7 +12,7 @@ import Defaults
 var closedNotchSize: CGSize = setNotchSize()
 
 var downloadSneakSize: CGSize = .init(width: 65, height: 1)
-var batterySenakSize: CGSize = .init(width: 160, height: 1)
+var batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 func setNotchSize(screen: String? = nil) -> CGSize {
     // Default notch size, to avoid using optionals

@@ -11,6 +11,8 @@ import Sparkle
 import KeyboardShortcuts
 import Defaults
 import SwiftUIIntrospect
+import AVFoundation
+import LottieUI
 
 struct SettingsView: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -53,6 +55,9 @@ struct SettingsView: View {
                 }
                 NavigationLink(destination: Shelf()) {
                     Label("Shelf", systemImage: "books.vertical")
+                }
+                NavigationLink(destination: Shortcuts()) {
+                    Label("Shortcuts", systemImage: "keyboard")
                 }
                 NavigationLink(destination: Extensions()) {
                     Label("Extensions", systemImage: "puzzlepiece.extension")
@@ -144,12 +149,6 @@ struct GeneralSettings: View {
                 .onChange(of: NSScreen.screens) { old, new in
                     screens = new.compactMap({$0.localizedName})
                 }
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("⚠️ Important")
-                        .font(.headline)
-                    Text("Hover over the notch after changing the screen to adapt the new size")
-                        .foregroundStyle(.secondary)
-                }
             } header: {
                 Text("System features")
             }
@@ -174,20 +173,14 @@ struct GeneralSettings: View {
                         case .custom:
                             nonNotchHeight = 32
                     }
-                    NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
+                    NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                 }
                 if nonNotchHeightMode == .custom {
                     Slider(value: $nonNotchHeight, in: 10...40, step: 1) {
                         Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: nonNotchHeight) { _, new in
-                        NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
-                    }
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("⚠️ Important")
-                            .font(.headline)
-                        Text("Hover over the notch after changing the height to see the effect.")
-                            .foregroundStyle(.secondary)
+                        NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
             } header: {
@@ -232,7 +225,7 @@ struct GeneralSettings: View {
                 customBadge(text: "Beta")
             }
         } footer: {
-            Text("Two-finger swipe up on notch to close, two-finger swipe down on notch to open when Open notch on hover option is disabled")
+            Text("Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled")
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(.secondary)
                 .font(.caption)
@@ -402,11 +395,15 @@ struct HUD: View {
 }
 
 struct Media: View {
+    @EnvironmentObject var vm: BoringViewModel
     @Default(.waitInterval) var waitInterval
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
+                Toggle(
+                    "Enable music live activity",
+                    isOn: $vm.showMusicLiveActivityOnClosed.animation()
+                )
                 Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
@@ -668,8 +665,17 @@ struct Appearance: View {
     @EnvironmentObject var vm: BoringViewModel
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
-    let icons: [String] = ["logo", "logo2"]
-    @State private var selectedIcon: String = "logo"
+    @Default(.useMusicVisualizer) var useMusicVisualizer
+    @Default(.customVisualizers) var customVisualizers
+    @Default(.selectedVisualizer) var selectedVisualizer
+    let icons: [String] = ["logo2"]
+    @State private var selectedIcon: String = "logo2"
+    @State private var selectedListVisualizer: CustomVisualizer? = nil
+    
+    @State private var isPresented: Bool = false
+    @State private var name: String = ""
+    @State private var url: String = ""
+    @State private var speed: CGFloat = 1.0
     var body: some View {
         Form {
             Section {
@@ -677,18 +683,195 @@ struct Appearance: View {
                 Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
                 Defaults.Toggle("Enable window shadow", key: .enableShadow)
                 Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
-                Picker("Slider color", selection: $sliderColor) {
-                    ForEach(SliderColorEnum.allCases, id: \.self) { option in
-                        Text(option.rawValue)
-                    }
-                }
-                Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
             } header: {
                 Text("General")
             }
             
             Section {
+                Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
+                Defaults
+                    .Toggle("Player tinting", key: .playerColorTinting)
+                Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
+                Picker("Slider color", selection: $sliderColor) {
+                    ForEach(SliderColorEnum.allCases, id: \.self) { option in
+                        Text(option.rawValue)
+                    }
+                }
+            } header: {
+                Text("Media")
+            }
+            
+            Section {
+                Toggle(
+                    "Use music visualizer spectrogram",
+                    isOn: $useMusicVisualizer.animation()
+                )
+                .disabled(true)
+                if !useMusicVisualizer {
+                    if customVisualizers.count > 0 {
+                        Picker(
+                            "Selected animation",
+                            selection: $selectedVisualizer
+                        ) {
+                            ForEach(
+                                customVisualizers,
+                                id: \.self
+                            ) { visualizer in
+                                Text(visualizer.name)
+                                    .tag(visualizer)
+                            }
+                        }
+                    } else {
+                        HStack {
+                            Text("Selected animation")
+                            Spacer()
+                            Text("No custom animation available")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            } header: {
+                HStack {
+                    Text("Custom music live activity animation")
+                    customBadge(text: "Coming soon")
+                }
+            }
+            
+            Section {
+                List {
+                    ForEach(customVisualizers, id: \.self) { visualizer in
+                        HStack {
+                            LottieView(state: LUStateData(type: .loadedFrom(visualizer.url), speed: visualizer.speed, loopMode: .loop))
+                                .frame(width: 30, height: 30, alignment: .center)
+                            Text(visualizer.name)
+                            Spacer(minLength: 0)
+                            if selectedVisualizer == visualizer {
+                                Text("selected")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.trailing, 8)
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.vertical, 2)
+                        .background(
+                            selectedListVisualizer != nil ? selectedListVisualizer == visualizer ? Defaults[.accentColor] : Color.clear : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 5)
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if selectedListVisualizer == visualizer {
+                                selectedListVisualizer = nil
+                                return
+                            }
+                            selectedListVisualizer = visualizer
+                        }
+                    }
+                }
+                .safeAreaPadding(
+                    EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0)
+                )
+                .frame(minHeight: 120)
+                .actionBar {
+                    HStack(spacing: 5) {
+                        Button {
+                            name = ""
+                            url = ""
+                            speed = 1.0
+                            isPresented.toggle()
+                        } label: {
+                            Image(systemName: "plus")
+                                .foregroundStyle(.secondary)
+                                .contentShape(Rectangle())
+                        }
+                        Divider()
+                        Button {
+                            if selectedListVisualizer != nil {
+                                let visualizer = selectedListVisualizer!
+                                selectedListVisualizer = nil
+                                customVisualizers.remove(at: customVisualizers.firstIndex(of: visualizer)!)
+                                if visualizer == selectedVisualizer && customVisualizers.count > 0 {
+                                    selectedVisualizer = customVisualizers[0]
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "minus")
+                                .foregroundStyle(.secondary)
+                                .contentShape(Rectangle())
+                        }
+                    }
+                }
+                .controlSize(.small)
+                .buttonStyle(PlainButtonStyle())
+                .overlay {
+                    if customVisualizers.isEmpty {
+                        Text("No custom visualizer")
+                            .foregroundStyle(Color(.secondaryLabelColor))
+                            .padding(.bottom, 22)
+                    }
+                }
+                .sheet(isPresented: $isPresented) {
+                    VStack(alignment: .leading) {
+                        Text("Add new visualizer")
+                            .font(.largeTitle.bold())
+                            .padding(.vertical)
+                        TextField("Name", text: $name)
+                        TextField("Lottie JSON URL", text: $url)
+                        HStack {
+                            Text("Speed")
+                            Spacer(minLength: 80)
+                            Text("\(speed, specifier: "%.1f")s")
+                                .multilineTextAlignment(.trailing)
+                                .foregroundStyle(.secondary)
+                            Slider(value: $speed, in: 0...2, step: 0.1)
+                        }
+                        .padding(.vertical)
+                        HStack {
+                            Button {
+                                isPresented.toggle()
+                            } label: {
+                                Text("Cancel")
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                            
+                            Button {
+                                let visualizer: CustomVisualizer = .init(
+                                    UUID: UUID(),
+                                    name: name,
+                                    url: URL(string: url)!,
+                                    speed: speed
+                                )
+                                
+                                if !customVisualizers.contains(visualizer) {
+                                    customVisualizers.append(visualizer)
+                                }
+                                
+                                isPresented.toggle()
+                            } label: {
+                                Text("Add")
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                            .buttonStyle(BorderedProminentButtonStyle())
+                        }
+                    }
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .controlSize(.extraLarge)
+                    .padding()
+                }
+            } header: {
+                HStack(spacing: 0) {
+                    Text("Custom vizualizers (Lottie)")
+                    if !Defaults[.customVisualizers].isEmpty {
+                        Text(" – \(Defaults[.customVisualizers].count)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
+            Section {
                 Defaults.Toggle("Enable boring mirror", key: .showMirror)
+                    .disabled(!checkVideoInput())
                 Picker("Mirror shape", selection: $mirrorShape) {
                     Text("Circle")
                         .tag(MirrorShapeEnum.circle)
@@ -699,7 +882,9 @@ struct Appearance: View {
                 Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
                     .disabled(true)
             } header: {
-                Text("Additional features")
+                HStack {
+                    Text("Additional features")
+                }
             }
             
             Section {
@@ -710,16 +895,29 @@ struct Appearance: View {
                             Image(icon)
                                 .resizable()
                                 .frame(width: 80, height: 80)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20, style: .circular)
+                                        .strokeBorder(
+                                            icon == selectedIcon ? Defaults[.accentColor] : .clear,
+                                            lineWidth: 2.5
+                                        )
+                                )
+                            
+                            Text("Default")
+                                .fontWeight(.medium)
+                                .font(.caption)
+                                .foregroundStyle(icon == selectedIcon ? .white : .secondary)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 3)
+                                .background(
+                                    Capsule()
+                                        .fill(icon == selectedIcon ? Defaults[.accentColor] : .clear)
+                                )
                         }
-                        .background(
-                            RoundedRectangle(cornerRadius: 20, style: .circular)
-                                .strokeBorder(icon == selectedIcon ? Defaults[.accentColor] : .clear, lineWidth: 2.5)
-                        )
                         .onTapGesture {
                             withAnimation {
                                 selectedIcon = icon
                             }
-                            //NSWorkspace.shared.setIcon(NSImage(named: icon), forFile: Bundle.main.bundleIdentifier!)
                             NSApp.applicationIconImage = NSImage(named: icon)
                         }
                         Spacer()
@@ -729,12 +927,39 @@ struct Appearance: View {
             } header: {
                 HStack {
                     Text("App icon")
-                    customBadge(text: "Beta")
+                    customBadge(text: "Coming soon")
                 }
             }
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Appearance")
+    }
+    
+    func checkVideoInput() -> Bool {
+        if let _ = AVCaptureDevice.default(for: .video) {
+            return true
+        }
+        
+        return false
+    }
+}
+
+struct Shortcuts: View {
+    var body: some View {
+        Form {
+            Section {
+                KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
+            } header: {
+                Text("Media")
+            } footer: {
+                Text("Sneak Peek shows the media title and artist under the notch for a few seconds.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+        }
+        .tint(Defaults[.accentColor])
+        .navigationTitle("Shortcuts")
     }
 }
 

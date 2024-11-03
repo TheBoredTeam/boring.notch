@@ -31,7 +31,7 @@ struct BoringHeader: View {
                 Rectangle()
                     .fill(NSScreen.screens
                         .first(where: {$0.localizedName == vm.selectedScreen})?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
-                    .frame(width: vm.sizes.size.closed.width! - 5)
+                    .frame(width: Sizes().size.closed.width! - 5)
                     .mask {
                         NotchShape()
                     }
@@ -56,7 +56,9 @@ struct BoringHeader: View {
                     if Defaults[.showBattery] {
                         BoringBatteryView(
                             batteryPercentage: batteryModel.batteryPercentage,
-                            isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30)
+                            isPluggedIn: batteryModel.isPluggedIn, batteryWidth: 30,
+                            isInLowPowerMode: batteryModel.isInLowPowerMode
+                        )
                     }
                 }
             }
