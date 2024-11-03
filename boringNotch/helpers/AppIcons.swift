@@ -54,3 +54,14 @@ func AppIcon(for bundleID: String) -> Image {
     return Image(nsImage: workspace.icon(for: .applicationBundle))
 }
 
+
+func AppIconAsNSImage(for bundleID: String) -> NSImage? {
+    let workspace = NSWorkspace.shared
+    
+    if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
+        let appIcon = workspace.icon(forFile: appURL.path)
+        return appIcon
+    }
+    return nil
+}
+
