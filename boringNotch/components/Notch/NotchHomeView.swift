@@ -62,7 +62,7 @@ struct NotchHomeView: View {
                                     .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                                 
                                 if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
-                                    AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
+                                    AppIcon(for: musicManager.bundleIdentifier)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
                                         .frame(width: 30, height: 30)
