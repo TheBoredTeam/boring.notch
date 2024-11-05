@@ -233,9 +233,6 @@ struct MusicSliderView: View {
     }
     
     func timeString(from seconds: Double) -> String {
-        if seconds.isNaN || seconds.isInfinite {
-            return "--:--"
-        }
         let totalMinutes = Int(seconds) / 60
         let remainingSeconds = Int(seconds) % 60
         let hours = totalMinutes / 60
