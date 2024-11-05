@@ -61,7 +61,7 @@ struct NotchHomeView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
                                     .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                                 
-                                if vm.notchState == .open {
+                                if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
                                     AppIcon(for: musicManager.bundleIdentifier)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
