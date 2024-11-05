@@ -173,18 +173,13 @@ class MusicManager: ObservableObject {
         let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
         let album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
         let duration = information["kMRMediaRemoteNowPlayingInfoDuration"] as? TimeInterval ?? lastMusicItem?.duration ?? 0
-        
-        
-        guard let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data else {
-            let placeholder = AppIconAsNSImage(for: bundleIdentifier)?.pngRepresentation
-            return (title, artist, album, duration, placeholder)
-        }
-        
+        let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
        
         return (title, artist, album, duration, artworkData)
     }
     
     private func updateMusicState(newInfo: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?), state: Int?) {
+        print((newInfo.title, newInfo.artist, newInfo.album) != (lastMusicItem?.title, lastMusicItem?.artist, lastMusicItem?.album))
         if((newInfo.artworkData != nil && newInfo.artworkData != lastMusicItem?.artworkData) || (newInfo.title, newInfo.artist, newInfo.album) != (lastMusicItem?.title, lastMusicItem?.artist, lastMusicItem?.album)) {
             updateArtwork(newInfo.artworkData)
             self.lastMusicItem?.artworkData = newInfo.artworkData
@@ -201,12 +196,10 @@ class MusicManager: ObservableObject {
         self.songTitle = newInfo.title
         self.album = newInfo.album
         self.songDuration = newInfo.duration
-        print(newInfo.duration)
-
     }
     
     private func updateArtwork(_ artworkData: Data?) {
-        if let artworkData = artworkData,
+        if let artworkData = artworkData ?? AppIconAsNSImage(for: bundleIdentifier)?.tiffRepresentation,
            let artworkImage = NSImage(data: artworkData) {
             self.usingAppIconForArtwork = false
             self.updateAlbumArt(newAlbumArt: artworkImage)
