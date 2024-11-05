@@ -114,9 +114,9 @@ extern NSString *kMRMediaRemoteNowPlayingInfoTitle;
         
         if (nil != clientObj)
         {
-            appBundleIdentifier = MRNowPlayingClientGetBundleIdentifier(clientObj);
+            appBundleIdentifier = MRNowPlayingClientGetParentAppBundleIdentifier(clientObj);
             if (nil == appBundleIdentifier)
-                appBundleIdentifier = MRNowPlayingClientGetParentAppBundleIdentifier(clientObj);
+                appBundleIdentifier = MRNowPlayingClientGetBundleIdentifier(clientObj);
             
             if (nil != appBundleIdentifier)
             {
