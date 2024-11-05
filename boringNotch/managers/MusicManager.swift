@@ -163,7 +163,7 @@ class MusicManager: ObservableObject {
     // MARK: - Helper Methods
     private func updateBundleIdentifier(_ bundle: String?) {
         if let bundle = bundle {
-            self.bundleIdentifier = bundle
+            self.bundleIdentifier = bundle == "com.apple.WebKit.GPU" ? "com.apple.Safari" : bundle
             
         }
     }
@@ -198,13 +198,21 @@ class MusicManager: ObservableObject {
     }
     
     private func updateArtwork(_ artworkData: Data?) {
-        if let artworkData = artworkData ?? AppIconAsNSImage(for: bundleIdentifier)?.tiffRepresentation,
+        if let artworkData = artworkData,
            let artworkImage = NSImage(data: artworkData) {
             self.usingAppIconForArtwork = false
             self.updateAlbumArt(newAlbumArt: artworkImage)
-        } else if let appIconImage = AppIconAsNSImage(for: bundleIdentifier ?? nowPlaying.appBundleIdentifier ?? "") {
+        } else if let appIconImage = AppIconAsNSImage(for: bundleIdentifier) {
             self.usingAppIconForArtwork = true
             self.updateAlbumArt(newAlbumArt: appIconImage)
+        }
+    }
+    
+    private func updatePlaybackState(_ state: Int?) {
+        if let state = state {
+            self.musicIsPaused(state: state == 1, setIdle: true)
+        } else if self.isPlaying {
+            self.musicIsPaused(state: false, setIdle: true)
         }
     }
     
