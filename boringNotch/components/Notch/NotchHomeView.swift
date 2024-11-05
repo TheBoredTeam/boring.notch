@@ -38,39 +38,15 @@ struct NotchHomeView: View {
                                     )
                                     .clipped()
                                     .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
-                                    .scaleEffect(x: 1.4, y: 1.4)
-                                    .rotationEffect(.degrees(92))
-                                    .blur(radius: 35)
-                                    .opacity(min(0.6, 1 - max(musicManager.albumArt.getBrightness(), 0.3)))
-                                    .onAppear {
-                                        print(musicManager.albumArt.getBrightness())
-                                    }
-                            }
-                            
-                            Button {
-                                musicManager.openMusicApp()
-                            } label: {
-                                ZStack(alignment: .bottomTrailing) {
-                                    Color.clear
-                                        .aspectRatio(1, contentMode: .fit)
-                                        .background(
-                                            Image(nsImage: musicManager.albumArt)
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                        )
-                                        .clipped()
-                                        .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
-                                        .opacity(musicManager.isPlaying ? 1 : 0.4)
-                                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                                    
-                                    if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
-                                        AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 30, height: 30)
-                                            .offset(x: 10, y: 10)
-                                            .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
-                                    }
+                                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                                
+                                if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
+                                    AppIcon(for: musicManager.bundleIdentifier)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 30, height: 30)
+                                        .offset(x: 10, y: 10)
+                                        .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
                                 }
                                 .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
                             }
