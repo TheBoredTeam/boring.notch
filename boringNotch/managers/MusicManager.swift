@@ -189,14 +189,14 @@ class MusicManager: ObservableObject {
         self.lastMusicItem = (title: newInfo.title, artist: newInfo.artist, album: newInfo.album, duration: newInfo.duration, artworkData: lastMusicItem?.artworkData)
         MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
             self?.musicIsPaused(state: isPlaying, setIdle: true)
+            
+            guard isPlaying else { return }
+            
+            self?.artistName = newInfo.artist
+            self?.songTitle = newInfo.title
+            self?.album = newInfo.album
+            self?.songDuration = newInfo.duration
         }
-        
-        if !self.isPlaying { return }
-        
-        self.artistName = newInfo.artist
-        self.songTitle = newInfo.title
-        self.album = newInfo.album
-        self.songDuration = newInfo.duration
     }
     
     private func updateArtwork(_ artworkData: Data?) {
