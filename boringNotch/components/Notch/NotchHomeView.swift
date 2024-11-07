@@ -19,7 +19,6 @@ struct NotchHomeView: View {
     @State private var dragging: Bool = false
     @State private var timer: AnyCancellable?
     @State private var lastDragged: Date = .distantPast
-    @State private var previousBundleIdentifier: String = "com.apple.Music"
     let albumArtNamespace: Namespace.ID
     
     var body: some View {
@@ -62,7 +61,7 @@ struct NotchHomeView: View {
                                     .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                                 
                                 if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
-                                    AppIcon(for: musicManager.bundleIdentifier)
+                                    AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
                                         .frame(width: 30, height: 30)
