@@ -46,6 +46,7 @@ class MusicManager: ObservableObject {
     private let mediaRemoteBundle: CFBundle
     private let MRMediaRemoteGetNowPlayingInfo: @convention(c) (DispatchQueue, @escaping ([String: Any]) -> Void) -> Void
     private let MRMediaRemoteRegisterForNowPlayingNotifications: @convention(c) (DispatchQueue) -> Void
+    private let MRMediaRemoteGetNowPlayingApplicationIsPlaying: @convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void
     
     // MARK: - Initialization
     init?(vm: BoringViewModel) {
@@ -55,7 +56,8 @@ class MusicManager: ObservableObject {
         
         guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")),
               let MRMediaRemoteGetNowPlayingInfoPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingInfo" as CFString),
-              let MRMediaRemoteRegisterForNowPlayingNotificationsPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteRegisterForNowPlayingNotifications" as CFString)
+              let MRMediaRemoteRegisterForNowPlayingNotificationsPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteRegisterForNowPlayingNotifications" as CFString),
+              let MRMediaRemoteGetNowPlayingApplicationIsPlayingPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingApplicationIsPlaying" as CFString)
         else {
             print("Failed to load MediaRemote.framework or get function pointers")
             return nil
@@ -64,6 +66,8 @@ class MusicManager: ObservableObject {
         self.mediaRemoteBundle = bundle
         self.MRMediaRemoteGetNowPlayingInfo = unsafeBitCast(MRMediaRemoteGetNowPlayingInfoPointer, to: (@convention(c) (DispatchQueue, @escaping ([String: Any]) -> Void) -> Void).self)
         self.MRMediaRemoteRegisterForNowPlayingNotifications = unsafeBitCast(MRMediaRemoteRegisterForNowPlayingNotificationsPointer, to: (@convention(c) (DispatchQueue) -> Void).self)
+        self.MRMediaRemoteGetNowPlayingApplicationIsPlaying = unsafeBitCast(MRMediaRemoteGetNowPlayingApplicationIsPlayingPointer, to: (@convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void).self)
+        
         
         setupNowPlayingObserver()
         fetchNowPlayingInfo()
@@ -180,7 +184,9 @@ class MusicManager: ObservableObject {
             self.lastMusicItem?.artworkData = newInfo.artworkData
         }
         self.lastMusicItem = (title: newInfo.title, artist: newInfo.artist, album: newInfo.album, duration: newInfo.duration, artworkData: lastMusicItem?.artworkData)
-        updatePlaybackState(state)
+        MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
+            self?.musicIsPaused(state: isPlaying, setIdle: true)
+        }
         
         if !self.isPlaying { return }
         
@@ -198,14 +204,6 @@ class MusicManager: ObservableObject {
         } else if let appIconImage = AppIconAsNSImage(for: bundleIdentifier) {
             self.usingAppIconForArtwork = true
             self.updateAlbumArt(newAlbumArt: appIconImage)
-        }
-    }
-    
-    private func updatePlaybackState(_ state: Int?) {
-        if let state = state {
-            self.musicIsPaused(state: state == 1, setIdle: true)
-        } else if self.isPlaying {
-            self.musicIsPaused(state: false, setIdle: true)
         }
     }
     
