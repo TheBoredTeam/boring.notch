@@ -134,7 +134,8 @@ struct NotchHomeView: View {
     }
     
     private func updateSliderValue() {
-        guard !dragging, musicManager.timestampDate > lastDragged else { return }
+        guard !dragging, musicManager.timestampDate > lastDragged,
+              musicManager.timestampDate > musicManager.lastUpdated else { return }
         let currentTime = Date()
         let timeDifference = (musicManager.isPlaying ? currentTime.timeIntervalSince(musicManager.timestampDate) : musicManager.lastUpdated.timeIntervalSince(musicManager.timestampDate))
         // Calculate the real-time elapsed time
