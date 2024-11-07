@@ -153,12 +153,10 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     func startSession() {
-        print("here")
         sessionQueue.async { [weak self] in
             guard let self = self, let session = self.captureSession, !session.isRunning else { return }
             session.startRunning()
             self.updateSessionState()
-            print("there")
         }
     }
     

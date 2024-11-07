@@ -106,7 +106,6 @@ struct NotchHomeView: View {
                                 musicManager.previousTrack()
                             }
                             HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill") {
-                                print("tapped")
                                 musicManager.togglePlayPause()
                             }
                             HoverButton(icon: "forward.fill") {
