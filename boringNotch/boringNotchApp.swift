@@ -198,24 +198,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
-        if !Defaults[.showOnAllDisplays] {
-            window = BoringNotchWindow(
-                contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width + 20, height: openNotchSize.height + 30),
-                styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
-                backing: .buffered,
-                defer: false
-            )
-            
-            window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self.vm)).environmentObject(vm).environmentObject(MusicManager(vm: vm)!))
-            
-            adjustWindowPosition(changeAlpha: true)
-            
-            window.orderFrontRegardless()
-            
-            NotchSpaceManager.shared.notchSpace.windows.insert(window)
-        } else {
-            adjustWindowPosition()
+        KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
+            guard let self = self else { return }
+            switch self.vm.notchState {
+                case .closed:
+                    self.vm.open()
+                    self.closeNotchWorkItem?.cancel()
+                    
+                    let workItem = DispatchWorkItem {
+                        self.vm.close()
+                    }
+                    self.closeNotchWorkItem = workItem
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: workItem)
+                case .open:
+                    self.closeNotchWorkItem?.cancel()
+                    self.closeNotchWorkItem = nil
+                    self.vm.close()
+            }
         }
+        
+        window = BoringNotchWindow(
+            contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width! + 20, height: sizing.size.opened.height! + 30),
+            styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
+            backing: .buffered,
+            defer: false
+        )
         
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
