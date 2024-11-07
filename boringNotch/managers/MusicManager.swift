@@ -186,6 +186,9 @@ class MusicManager: ObservableObject {
         MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
             self?.musicIsPaused(state: isPlaying, setIdle: true)
         }
+        
+        if !self.isPlaying { return }
+        
         self.artistName = newInfo.artist
         self.songTitle = newInfo.title
         self.album = newInfo.album
@@ -200,14 +203,6 @@ class MusicManager: ObservableObject {
         } else if let appIconImage = AppIconAsNSImage(for: bundleIdentifier) {
             self.usingAppIconForArtwork = true
             self.updateAlbumArt(newAlbumArt: appIconImage)
-        }
-    }
-    
-    private func updatePlaybackState(_ state: Int?) {
-        if let state = state {
-            self.musicIsPaused(state: state == 1, setIdle: true)
-        } else if self.isPlaying {
-            self.musicIsPaused(state: false, setIdle: true)
         }
     }
     
