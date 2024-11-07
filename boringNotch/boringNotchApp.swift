@@ -85,6 +85,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     let calenderManager = CalendarManager()
+    var closeNotchWorkItem: DispatchWorkItem?
     private var previousScreens: [NSScreen]?
     @Environment(\.openWindow) var openWindow
     
@@ -124,6 +125,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 type: .music,
                 duration: 3.0
             )
+        }
+        
+        KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
+            guard let self = self else { return }
+            switch self.vm.notchState {
+                case .closed:
+                    self.vm.open()
+                    self.closeNotchWorkItem?.cancel()
+                    
+                    let workItem = DispatchWorkItem {
+                        self.vm.close()
+                    }
+                    self.closeNotchWorkItem = workItem
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: workItem)
+                case .open:
+                    self.closeNotchWorkItem?.cancel()
+                    self.closeNotchWorkItem = nil
+                    self.vm.close()
+            }
         }
         
         window = BoringNotchWindow(

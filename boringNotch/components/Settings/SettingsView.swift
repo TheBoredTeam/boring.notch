@@ -957,6 +957,9 @@ struct Shortcuts: View {
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
+            Section {
+                KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+            }
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Shortcuts")
