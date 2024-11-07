@@ -178,7 +178,6 @@ class MusicManager: ObservableObject {
     }
     
     private func updateMusicState(newInfo: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?), state: Int?) {
-        print((newInfo.title, newInfo.artist, newInfo.album) != (lastMusicItem?.title, lastMusicItem?.artist, lastMusicItem?.album))
         if((newInfo.artworkData != nil && newInfo.artworkData != lastMusicItem?.artworkData) || (newInfo.title, newInfo.artist, newInfo.album) != (lastMusicItem?.title, lastMusicItem?.artist, lastMusicItem?.album)) {
             updateArtwork(newInfo.artworkData)
             self.lastMusicItem?.artworkData = newInfo.artworkData

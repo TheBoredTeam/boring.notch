@@ -67,7 +67,6 @@ class PlaybackManager: ObservableObject {
     }
 
     func seekTrack(to time: TimeInterval) {
-        print("Seeking to \(time) seconds")
         MrMediaRemoteSetElapsedTimeFunction(time)
     }
 }
