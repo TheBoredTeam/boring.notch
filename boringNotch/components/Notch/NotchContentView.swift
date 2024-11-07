@@ -59,7 +59,7 @@ struct NotchContentView: View {
                                         .scaledToFit()
                                         .padding(.leading, vm.notchState == .open ? 0 : 3)
                                     if vm.notchState == .open  {
-                                        AppIcon(for: musicManager.bundleIdentifier)
+                                        AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.music")
                                             .resizable()
                                             .aspectRatio(contentMode: .fill)
                                             .frame(width: vm.notchState == .open ? 30 : 10, height: vm.notchState == .open ? 30 : 10)

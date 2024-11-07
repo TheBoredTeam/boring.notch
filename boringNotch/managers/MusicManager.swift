@@ -34,7 +34,7 @@ class MusicManager: ObservableObject {
     @Published var isPlayerIdle: Bool = true
     @Published var animations: BoringAnimations = .init()
     @Published var avgColor: NSColor = .white
-    @Published var bundleIdentifier: String = "com.apple.Music"
+    @Published var bundleIdentifier: String? = nil
     @Published var songDuration: TimeInterval = 0
     @Published var elapsedTime: TimeInterval = 0
     @Published var timestampDate: Date = Date()
@@ -162,7 +162,7 @@ class MusicManager: ObservableObject {
     // MARK: - Helper Methods
     private func updateBundleIdentifier(_ bundle: String?) {
         if let bundle = bundle {
-            self.bundleIdentifier = bundle == "com.apple.WebKit.GPU" ? "com.apple.Safari" : bundle
+            self.bundleIdentifier = bundle
             
         }
     }
@@ -200,7 +200,7 @@ class MusicManager: ObservableObject {
            let artworkImage = NSImage(data: artworkData) {
             self.usingAppIconForArtwork = false
             self.updateAlbumArt(newAlbumArt: artworkImage)
-        } else if let appIconImage = AppIconAsNSImage(for: bundleIdentifier) {
+        } else if let appIconImage = AppIconAsNSImage(for: bundleIdentifier ?? nowPlaying.appBundleIdentifier ?? "") {
             self.usingAppIconForArtwork = true
             self.updateAlbumArt(newAlbumArt: appIconImage)
         }
