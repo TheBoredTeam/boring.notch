@@ -45,7 +45,7 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/iamharshdev/boring.notch.git
+   git clone https://github.com/TheBoredTeam/boring.notch.git
    cd boring.notch
    ```
 
@@ -93,22 +93,27 @@ We’re all about good vibes and awesome contributions! Here’s how you can joi
 1. **Fork the Repo**: Click that shiny "Fork" button and make your own version.
 2. **Clone Your Fork**:
    ```bash
-   git clone https://github.com/iamharshdev/boring.notch.git
+   git clone https://github.com/{your-name}/boring.notch.git
+   # Replace {your-name} with your GitHub username
    ```
 3. **Create a New Branch**:
    ```bash
-   git checkout -b feature/YourFeatureName
+   git checkout -b feature/{your-feature-name}
+   # Replace {your-feature-name} with a descriptive and concise name for your branch
+   # It is best practice to use only alphanumeric characters, write words in lowercase
+   # and seperate words with a single hyphen
    ```
 4. **Make Your Changes**: Add that feature or fix that bug. Make sure it’s awesome.
 5. **Commit Your Changes**:
    ```bash
-   git commit -m "Added a super cool feature!"
+   git commit -m "insert descriptive message here"
    ```
 6. **Push to Your Fork**:
    ```bash
-   git push origin feature/YourFeatureName
+   git push origin feature/{your-feature-name}
+   # Remember to replace {your-feature-name} with the name you chose
    ```
-7. **Create a Pull Request**: Head to the original repo and click "New Pull Request". Show us what you’ve got!
+7. **Create a Pull Request**: Head to the original repository and click on "New Pull Request." Fill in the required details, **make sure the base branch is set to `dev`**, and submit your PR. Let’s see what you’ve got!
 
 ## 📝 License
 
