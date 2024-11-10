@@ -213,9 +213,9 @@ struct EventListView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 5) {
-                ForEach(events.indices, id: \.self) { index in
-                    HStack(alignment: .top) {
+            HStack(alignment: .top) {
+                VStack(alignment: .trailing, spacing: 5) {
+                    ForEach(events.indices, id: \.self) { index in
                         VStack(alignment: .trailing) {
                             if isAllDayEvent(
                                 start: events[index].startDate, end: events[index].endDate)
@@ -229,28 +229,34 @@ struct EventListView: View {
                         .multilineTextAlignment(.trailing)
                         .padding(.bottom, 8)
                         .font(.caption2)
-
-                        VStack(spacing: 5) {
-                            Image(
-                                systemName: isEventEnded(events[index].endDate)
-                                    ? "checkmark.circle" : "circle"
-                            )
-                            .foregroundColor(isEventEnded(events[index].endDate) ? .green : .gray)
-                            .font(.footnote)
-                            Rectangle()
-                                .frame(width: 1)
-                                .foregroundStyle(.gray.opacity(0.5))
-                                .opacity(index == events.count - 1 ? 0 : 1)
-                        }
-                        .padding(.top, 1)
-
-                        Text(events[index].title)
-                            .font(.footnote)
-                            .foregroundStyle(.gray)
-
-                        Spacer(minLength: 0)
                     }
-                    .opacity(isEventEnded(events[index].endDate) ? 0.6 : 1)
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    ForEach(events.indices, id: \.self) { index in
+                        HStack(alignment: .top) {
+                            VStack(spacing: 5) {
+                                Image(
+                                    systemName: isEventEnded(events[index].endDate)
+                                        ? "checkmark.circle" : "circle"
+                                )
+                                .foregroundColor(isEventEnded(events[index].endDate) ? .green : .gray)
+                                .font(.footnote)
+                                Rectangle()
+                                    .frame(width: 1)
+                                    .foregroundStyle(.gray.opacity(0.5))
+                                    .opacity(index == events.count - 1 ? 0 : 1)
+                            }
+                            .padding(.top, 1)
+
+                            Text(events[index].title)
+                                .font(.footnote)
+                                .foregroundStyle(.gray)
+
+                            Spacer(minLength: 0)
+                        }
+                        .opacity(isEventEnded(events[index].endDate) ? 0.6 : 1)
+                    }
                 }
             }
         }
@@ -260,10 +266,6 @@ struct EventListView: View {
 
     private func isAllDayEvent(start: Date, end: Date) -> Bool {
         let calendar = Calendar.current
-
-        guard calendar.isDate(start, inSameDayAs: end) else {
-            return false
-        }
 
         let startComponents = calendar.dateComponents([.hour, .minute], from: start)
         let endComponents = calendar.dateComponents([.hour, .minute], from: end)
