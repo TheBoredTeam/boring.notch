@@ -19,7 +19,6 @@ struct NotchHomeView: View {
     @State private var dragging: Bool = false
     @State private var timer: AnyCancellable?
     @State private var lastDragged: Date = .distantPast
-    @State private var previousBundleIdentifier: String = "com.apple.Music"
     let albumArtNamespace: Namespace.ID
     
     var body: some View {
@@ -61,8 +60,8 @@ struct NotchHomeView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
                                     .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                                 
-                                if vm.notchState == .open {
-                                    AppIcon(for: musicManager.bundleIdentifier)
+                                if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
+                                    AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
                                         .frame(width: 30, height: 30)
@@ -106,7 +105,6 @@ struct NotchHomeView: View {
                                 musicManager.previousTrack()
                             }
                             HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill") {
-                                print("tapped")
                                 musicManager.togglePlayPause()
                             }
                             HoverButton(icon: "forward.fill") {
@@ -177,7 +175,7 @@ struct NotchHomeView: View {
     }
     
     private func updateSliderValue() {
-        guard !dragging, musicManager.isPlaying, musicManager.timestampDate > lastDragged else { return }
+        guard !dragging, musicManager.timestampDate > lastDragged else { return }
         let currentTime = Date()
         let timeDifference = currentTime.timeIntervalSince(musicManager.timestampDate)
         // Calculate the real-time elapsed time
@@ -220,9 +218,19 @@ struct MusicSliderView: View {
     }
     
     func timeString(from seconds: Double) -> String {
-        let minutes = Int(seconds) / 60
-        let seconds = Int(seconds) % 60
-        return String(format: "%d:%02d", minutes, seconds)
+        if seconds.isNaN || seconds.isInfinite {
+            return "--:--"
+        }
+        let totalMinutes = Int(seconds) / 60
+        let remainingSeconds = Int(seconds) % 60
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, remainingSeconds)
+        } else {
+            return String(format: "%d:%02d", minutes, remainingSeconds)
+        }
     }
 }
 
