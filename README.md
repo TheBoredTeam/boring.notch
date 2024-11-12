@@ -73,9 +73,9 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - [x] Customizable gesture control 👆🏻
 - [x] Shelf functionality with AirDrop 📚
 - [x] Extension system with [starter template](https://github.com/TheBoredTeam/TheBoringWorker) 🧩
-- [x] Clipboard history manager 📌 `Extension`
-- [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Extension`
-- [x] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`
+- [ ] Clipboard history manager 📌 `Extension`
+- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Extension`
+- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`
 - [ ] Customizable function buttons 🎛️
 - [ ] Layout customization options 🛠️
 - [ ] Notch sizing customization, finetuning on different display sizes 🖥️
