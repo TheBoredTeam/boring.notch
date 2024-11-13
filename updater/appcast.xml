@@ -22,8 +22,9 @@
                 </li>
                 <li>Settings window won't open on start @Alexander 🛠️</li>
                 <li>New feature for battery that reflects low-power mode by @freepicheep 🔋</li>
-                <li>Preparing for custom animations in the live activity 🎉
-                </li>
+                <li>Preparing for custom animations in the live activity 🎉</li>
+                 <li>Boring notch now stays centered around the notch when changing virtual desktops. 🌟</li>
+                 <li>Keyboard shortcut I added to toggle the entire notch. @freepicheep 📝 </li>
                 </ul>
             ]]></description>
             <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="9059580" type="application/octet-stream" sparkle:edSignature="NZcPHtGmR+zPIRSTwOrbTV5or6GoieQhdtnFcdhJdt3Gg5Z83A5tG/th/Ekb6DbbnMbCT3z7ckQfZn44mZ3aAQ=="/>
