@@ -23,15 +23,15 @@
                 <li>Settings window won't open on start @Alexander 🛠️</li>
                 <li>New feature for battery that reflects low-power mode by @freepicheep 🔋</li>
                 <li>Preparing for custom animations in the live activity 🎉
-            </li>
+                </li>
                 </ul>
             ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="9058397" type="application/octet-stream" sparkle:edSignature="6dcyn8pzSrIpaAIwIrMJHPuJfYcZzdLe+mDNjQbJAx46ZrDm6+mX27evwsjtt+WD3xBjx3DjntaRG9zIrSN6AA=="/>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="9059580" type="application/octet-stream" sparkle:edSignature="NZcPHtGmR+zPIRSTwOrbTV5or6GoieQhdtnFcdhJdt3Gg5Z83A5tG/th/Ekb6DbbnMbCT3z7ckQfZn44mZ3aAQ=="/>
         </item>
         <item>
             <title>🎉 v2.2 🚀 New release with bug fixes and great additions</title>
             <link>https://theboring.name</link>
-            <pubDate>Tue, 29 Oct 2024 01:48:10 +0530</pubDate>
+            <pubDate>Wed, 13 Nov 2024 21:44:25 +0530</pubDate>
             <sparkle:version>2.2+1</sparkle:version>
             <sparkle:shortVersionString>2.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
@@ -51,7 +51,7 @@
                 <li>Settings Enhancement: ⚙️ Added new Appearance and Shortcuts tabs</li>
             </ul>
             ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="7127871" type="application/octet-stream" sparkle:edSignature="ACOUBGdj/+iaWWDE8YetJVZp6UhTEqWWZPilGrUOo6ccwHCHMHaFo9Ppx+/Xq1iguS4NuOOyfVF55SQAWl4dCw=="/>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="9059580" type="application/octet-stream" sparkle:edSignature="NZcPHtGmR+zPIRSTwOrbTV5or6GoieQhdtnFcdhJdt3Gg5Z83A5tG/th/Ekb6DbbnMbCT3z7ckQfZn44mZ3aAQ=="/>
         </item>
         <item>
             <title>🎉 v2.1 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</title>
