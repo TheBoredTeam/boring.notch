@@ -108,8 +108,9 @@ struct GeneralSettings: View {
     //@State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
-    @Default(.showOnAllDisplays) var showOnAllDisplays
-    
+    @Default(.enableGestures) var enableGestures
+    @Default(.openNotchOnHover) var openNotchOnHover
+
     var body: some View {
         Form {
             Section {
@@ -161,9 +162,8 @@ struct GeneralSettings: View {
                         Text(screen)
                     }
                 }
-                .disabled(showOnAllDisplays)
-                .onChange(of: NSScreen.screens) { old, new in
-                    screens = new.compactMap({$0.localizedName})
+                .onChange(of: NSScreen.screens) {
+                    screens =  NSScreen.screens.compactMap({$0.localizedName})
                 }
             } header: {
                 Text("System features")
@@ -287,7 +287,7 @@ struct GeneralSettings: View {
         Section {
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
-            Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
+            Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
