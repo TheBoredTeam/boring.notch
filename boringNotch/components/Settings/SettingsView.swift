@@ -75,8 +75,8 @@ struct SettingsView: View {
         }
         .environmentObject(extensionManager)
         .formStyle(.grouped)
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
+        .onChange(of: scenePhase) {
+            if scenePhase == .active {
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
             }
@@ -103,8 +103,9 @@ struct GeneralSettings: View {
     //@State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
-    @Default(.showOnAllDisplays) var showOnAllDisplays
-    
+    @Default(.enableGestures) var enableGestures
+    @Default(.openNotchOnHover) var openNotchOnHover
+
     var body: some View {
         Form {
             Section {
@@ -156,9 +157,8 @@ struct GeneralSettings: View {
                         Text(screen)
                     }
                 }
-                .disabled(showOnAllDisplays)
-                .onChange(of: NSScreen.screens) { old, new in
-                    screens = new.compactMap({$0.localizedName})
+                .onChange(of: NSScreen.screens) {
+                    screens =  NSScreen.screens.compactMap({$0.localizedName})
                 }
             } header: {
                 Text("System features")
@@ -174,9 +174,7 @@ struct GeneralSettings: View {
                         .tag(NonNotchHeightMode.custom)
                 }
                 .onChange(of: nonNotchHeightMode) {
-                    _,
-                    new in
-                    switch new {
+                    switch nonNotchHeightMode {
                         case .matchMenuBar:
                             nonNotchHeight = 24
                         case .matchRealNotchSize:
@@ -190,7 +188,7 @@ struct GeneralSettings: View {
                     Slider(value: $nonNotchHeight, in: 10...40, step: 1) {
                         Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
                     }
-                    .onChange(of: nonNotchHeight) { _, new in
+                    .onChange(of: nonNotchHeight) {
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
@@ -210,14 +208,19 @@ struct GeneralSettings: View {
             .controlSize(.extraLarge)
         }
         .navigationTitle("General")
+        .onChange(of: openNotchOnHover) {
+            if !openNotchOnHover {
+                enableGestures = true
+            }
+        }
     }
     
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
             Defaults.Toggle("Enable gestures", key: .enableGestures)
-                .disabled(!Defaults[.openNotchOnHover])
-            if Defaults[.enableGestures] {
+                .disabled(!openNotchOnHover)
+            if enableGestures {
                 Toggle("Media change with horizontal gestures", isOn: .constant(false))
                     .disabled(true)
                 Defaults.Toggle("Close gesture", key: .closeGestureEnabled)
@@ -249,14 +252,17 @@ struct GeneralSettings: View {
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
             Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
-            if Defaults[.openNotchOnHover] {
+            if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
                         Text("Minimum hover duration")
                         Spacer()
-                        Text("\(Defaults[.minimumHoverDuration], specifier: "%.1f")s")
+                        Text("\(minimumHoverDuration, specifier: "%.1f")s")
                             .foregroundStyle(.secondary)
                     }
+                }
+                .onChange(of: minimumHoverDuration) {
+                    NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                 }
             }
         } header: {
@@ -378,8 +384,8 @@ struct HUD: View {
                     Text("Inline")
                         .tag(true)
                 }
-                .onChange(of: Defaults[.inlineHUD]) { _, newValue in
-                    if newValue {
+                .onChange(of: Defaults[.inlineHUD]) {
+                    if Defaults[.inlineHUD] {
                         withAnimation {
                             Defaults[.systemEventIndicatorShadow] = false
                             Defaults[.enableGradient] = false
