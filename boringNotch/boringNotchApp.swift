@@ -123,39 +123,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(forName: Notification.Name.notchHeightChanged, object: nil, queue: nil) { [weak self] _ in
             self?.adjustWindowPosition()
         }
-
-        NotificationCenter.default.addObserver(forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil) { [weak self] _ in
-            if(!Defaults[.showOnAllDisplays]) {
-                self?.window = BoringNotchWindow(
-                    contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width + 20, height: openNotchSize.height + 30),
-                    styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
-                    backing: .buffered,
-                    defer: false
-                )
-
-                if let windowValues = self?.windows.values {
-                    for window in windowValues {
-                        window.close()
-                    }
-                }
-
-                self?.window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self!.vm)).environmentObject(self!.vm).environmentObject(MusicManager(vm: self!.vm)!))
-
-                self?.adjustWindowPosition(changeAlpha: true)
-
-                self?.window.orderFrontRegardless()
-
-                NotchSpaceManager.shared.notchSpace.windows.insert(self!.window)
-            } else {
-                self?.window.close()
-                self?.windows = [:]
-                self?.adjustWindowPosition()
-            }
-        }
-
+        
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(onScreenLocked(_:)), name: NSNotification.Name(rawValue: "com.apple.screenIsLocked"), object: nil)
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(onScreenUnlocked(_:)), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
-
+        
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
 
