@@ -103,6 +103,7 @@ struct GeneralSettings: View {
     //@State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
+    @Default(.showOnAllDisplays) var showOnAllDisplays
     
     var body: some View {
         Form {
@@ -141,11 +142,13 @@ struct GeneralSettings: View {
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
+                Defaults.Toggle("Show on all displays", key: .showOnAllDisplays)
                 Picker("Show on a specific display", selection: $vm.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
                 }
+                .disabled(showOnAllDisplays)
                 .onChange(of: NSScreen.screens) { old, new in
                     screens = new.compactMap({$0.localizedName})
                 }
