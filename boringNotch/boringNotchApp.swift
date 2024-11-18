@@ -229,58 +229,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func adjustWindowPosition(changeAlpha: Bool = false) {
-        if Defaults[.showOnAllDisplays] {
-            for screen in NSScreen.screens {
-                if windows[screen] == nil {
-                    let viewModel: BoringViewModel = .init(screen: screen.localizedName)
-                    let window = BoringNotchWindow(
-                        contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width + 20, height: openNotchSize.height + 30),
-                        styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
-                        backing: .buffered,
-                        defer: false
-                    )
-                    window.contentView = NSHostingView(
-                        rootView: ContentView(batteryModel: .init(vm: viewModel))
-                            .environmentObject(viewModel)
-                            .environmentObject(MusicManager(vm: viewModel)!)
-                    )
-                    windows[screen] = window
-                    viewModels[screen] = viewModel
-                    window.orderFrontRegardless()
-                    NotchSpaceManager.shared.notchSpace.windows.insert(window)
-                }
-                if let window = windows[screen] {
-                    window.alphaValue = changeAlpha ? 0 : 1
-                    DispatchQueue.main.async {
-                        window.setFrameOrigin(screen.frame.origin.applying(CGAffineTransform(translationX: (screen.frame.width / 2) - window.frame.width / 2, y: screen.frame.height - window.frame.height)))
-                        window.alphaValue = 1
-                    }
-                }
-                if let viewModel = viewModels[screen] {
-                    if viewModel.notchState == .closed {
-                        viewModel.close()
-                    }
-                }
-            }
-        } else {
-            if !NSScreen.screens.contains(where: {$0.localizedName == coordinator.preferredScreen}) {
-                coordinator.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
-            }
+        if !NSScreen.screens.contains(where: {$0.localizedName == vm.preferredScreen}) {
+            vm.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
+        }
+        
+        let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == vm.selectedScreen})
+        closedNotchSize = setNotchSize(screen: selectedScreen?.localizedName)
+        
+        if let screenFrame = selectedScreen {
+            window.alphaValue = changeAlpha ? 0 : 1
+            window.makeKeyAndOrderFront(nil)
             
-            let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == coordinator.selectedScreen})
-            vm.notchSize = getClosedNotchSize(screen: selectedScreen?.localizedName)
-     
-            if let screenFrame = selectedScreen {
-                window.alphaValue = changeAlpha ? 0 : 1
-                window.makeKeyAndOrderFront(nil)
-
-                DispatchQueue.main.async {[weak self] in
-                    self!.window.setFrameOrigin(screenFrame.frame.origin.applying(CGAffineTransform(translationX: (screenFrame.frame.width / 2) - self!.window.frame.width / 2, y: screenFrame.frame.height - self!.window.frame.height)))
-                    self!.window.alphaValue = 1
-                }
-            }
-            if vm.notchState == .closed {
-                vm.close()
+            DispatchQueue.main.async {[weak self] in
+                self!.window.setFrameOrigin(screenFrame.frame.origin.applying(CGAffineTransform(translationX: (screenFrame.frame.width / 2) - self!.window.frame.width / 2, y: screenFrame.frame.height - self!.window.frame.height)))
+                self!.window.alphaValue = 1
             }
         }
     }
