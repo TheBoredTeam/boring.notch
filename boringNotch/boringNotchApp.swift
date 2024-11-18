@@ -18,7 +18,6 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
     let updaterController: SPUStandardUpdaterController
-    let notchSpace = NotchSpaceManager.shared.notchSpace
     
     init() {
         updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
@@ -97,6 +96,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.removeObserver(self)
     }
     
+    @objc func onScreenLocked(_: Notification) {
+        print("Screen locked")
+    }
+    
+    @objc func onScreenUnlocked(_: Notification) {
+        print("Screen unlocked")
+    }
+    
     func applicationDidFinishLaunching(_ notification: Notification) {
         
         
@@ -116,6 +123,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(forName: Notification.Name.notchHeightChanged, object: nil, queue: nil) { [weak self] _ in
             self?.adjustWindowPosition()
         }
+        
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(onScreenLocked(_:)), name: NSNotification.Name(rawValue: "com.apple.screenIsLocked"), object: nil)
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(onScreenUnlocked(_:)), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
         
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
