@@ -205,7 +205,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func adjustWindowPosition(changeAlpha: Bool = false) {
-        if !NSScreen.screens.contains(where: {$0.localizedName == vm.selectedScreen}) {
+        if !NSScreen.screens.contains(where: {$0.localizedName == vm.preferredScreen}) {
             vm.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
         }
         

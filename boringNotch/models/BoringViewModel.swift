@@ -144,12 +144,15 @@ class BoringViewModel: NSObject, ObservableObject {
             toggleHudReplacement()
         }
     }
-
-    @AppStorage("selected_screen_name") var selectedScreen = NSScreen.main?.localizedName ?? "Unknown" {
+    
+    @AppStorage("preferred_screen_name") var preferredScreen = NSScreen.main?.localizedName ?? "Unknown" {
         didSet {
+            selectedScreen = preferredScreen
             NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
         }
     }
+    
+    @Published var selectedScreen: String = NSScreen.main?.localizedName ?? "Unknown"
 
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
     var notifier: TheBoringWorkerNotifier = .init()
@@ -175,6 +178,7 @@ class BoringViewModel: NSObject, ObservableObject {
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
+        self.selectedScreen = preferredScreen
     }
 
     func open() {
