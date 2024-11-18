@@ -199,9 +199,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func screenConfigurationDidChange() {
         
         let currentScreens = NSScreen.screens
-        guard currentScreens.count != previousScreens?.count else { return }
+        //guard currentScreens.count != previousScreens?.count || previousScreens?.first(where: {$0.localizedName == vm.selectedScreen})?.backingScaleFactor == currentScreens.first(where: {$0.localizedName == vm.selectedScreen})?.backingScaleFactor else { return }
         previousScreens = currentScreens
-        adjustWindowPosition(changeAlpha: true)
+        adjustWindowPosition()
     }
     
     @objc func adjustWindowPosition(changeAlpha: Bool = false) {
