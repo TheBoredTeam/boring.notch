@@ -160,8 +160,9 @@ struct GeneralSettings: View {
                         Text(screen)
                     }
                 }
-                .onChange(of: NSScreen.screens) {
-                    screens =  NSScreen.screens.compactMap({$0.localizedName})
+                .disabled(showOnAllDisplays)
+                .onChange(of: NSScreen.screens) { old, new in
+                    screens = new.compactMap({$0.localizedName})
                 }
             } header: {
                 Text("System features")
