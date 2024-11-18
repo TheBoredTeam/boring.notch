@@ -108,12 +108,8 @@ struct GeneralSettings: View {
     //@State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
-    @Default(.notchHeight) var notchHeight
-    @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
-    @Default(.enableGestures) var enableGestures
-    @Default(.openNotchOnHover) var openNotchOnHover
-
+    
     var body: some View {
         Form {
             Section {
@@ -151,13 +147,15 @@ struct GeneralSettings: View {
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
+                Defaults.Toggle("Show on all displays", key: .showOnAllDisplays)
                 Picker("Show on a specific display", selection: $vm.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
                 }
-                .onChange(of: NSScreen.screens) {
-                    screens =  NSScreen.screens.compactMap({$0.localizedName})
+                .disabled(showOnAllDisplays)
+                .onChange(of: NSScreen.screens) { old, new in
+                    screens = new.compactMap({$0.localizedName})
                 }
             } header: {
                 Text("System features")
