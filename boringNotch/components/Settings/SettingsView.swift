@@ -141,7 +141,7 @@ struct GeneralSettings: View {
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
-                Picker("Show on a specific display", selection: $vm.selectedScreen) {
+                Picker("Show on a specific display", selection: $vm.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
