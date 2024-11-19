@@ -147,7 +147,15 @@ struct GeneralSettings: View {
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
-                Defaults.Toggle("Show on all displays", key: .showOnAllDisplays)
+                Defaults.Toggle(key: .showOnAllDisplays) {
+                    HStack {
+                        Text("Show on all displays")
+                        customBadge(text: "Beta")
+                    }
+                }
+                .onChange(of: showOnAllDisplays) {
+                    NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
+                }
                 Picker("Show on a specific display", selection: $vm.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
