@@ -182,6 +182,10 @@ class MusicManager: ObservableObject {
             updateArtwork(newInfo.artworkData)
             self.lastMusicItem?.artworkData = newInfo.artworkData
         }
+        // Only update sneak peek if the music info has changed
+        if((newInfo.title, newInfo.artist, newInfo.album) != (lastMusicItem?.title, lastMusicItem?.artist, lastMusicItem?.album) && (newInfo.title, newInfo.artist) != ("", "")) {
+            updateSneakPeek()
+        }
         self.lastMusicItem = (title: newInfo.title, artist: newInfo.artist, album: newInfo.album, duration: newInfo.duration, artworkData: lastMusicItem?.artworkData)
         MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
             self?.musicIsPaused(state: isPlaying, setIdle: true)
@@ -219,7 +223,7 @@ class MusicManager: ObservableObject {
             updateFullscreenMediaDetection()
             
             // Only update sneak peek if the state has actually changed
-            if previousState != state {
+            if previousState != state && (songTitle, artistName) != ("", "") {
                 updateSneakPeek()
             }
             
