@@ -60,11 +60,11 @@ struct InlineHUD: View {
                     .allowsTightening(true)
                     .contentTransition(.numericText())
             }
-            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.sizes.size.closed.height! - (hoverAnimation ? 0 : 12), alignment: .leading)
+            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.notchSize.height - (hoverAnimation ? 0 : 12), alignment: .leading)
             
             Rectangle()
                 .fill(.black)
-                .frame(width: vm.sizes.size.closed.width! - 20)
+                .frame(width: vm.closedNotchSize.width - 20)
             
             HStack {
                 if (type == .mic) {
@@ -91,9 +91,9 @@ struct InlineHUD: View {
                 }
             }
             .padding(.trailing, 4)
-            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.sizes.size.closed.height! - (hoverAnimation ? 0 : 12), alignment: .center)
+            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.closedNotchSize.height - (hoverAnimation ? 0 : 12), alignment: .center)
         }
-        .frame(height: Sizes().size.closed.height! + (hoverAnimation ? 8 : 0), alignment: .center)
+        .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
     }
     
     func SpeakerSymbol(_ value: CGFloat) -> String {

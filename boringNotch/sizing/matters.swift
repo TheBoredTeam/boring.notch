@@ -9,12 +9,20 @@ import SwiftUI
 import Foundation
 import Defaults
 
-var closedNotchSize: CGSize = setNotchSize()
+let playerWidth: CGFloat = 440
 
-var downloadSneakSize: CGSize = .init(width: 65, height: 1)
-var batterySneakSize: CGSize = .init(width: 160, height: 1)
+let downloadSneakSize: CGSize = .init(width: 65, height: 1)
+let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
-func setNotchSize(screen: String? = nil) -> CGSize {
+let openNotchSize: CGSize = .init(width: 580, height: 175)
+let cornerRadiusInsets:  (opened: CGFloat, closed: CGFloat) = (opened: 24, closed: 10)
+
+struct MusicPlayerImageSizes {
+    static let cornerRadiusInset: (opened: CGFloat, closed: CGFloat) = (opened: 13.0, closed: 4.0)
+    static let size = (opened: CGSize(width: 90, height: 90), closed: CGSize(width: 20, height: 20))
+}
+
+func getClosedNotchSize(screen: String? = nil) -> CGSize {
     // Default notch size, to avoid using optionals
     var notchHeight: CGFloat = Defaults[.nonNotchHeight]
     var notchWidth: CGFloat = 185
@@ -48,41 +56,4 @@ func setNotchSize(screen: String? = nil) -> CGSize {
     }
     
     return .init(width: notchWidth, height: notchHeight)
-}
-
-struct Area {
-    var width: CGFloat?
-    var height: CGFloat?
-    var inset: CGFloat?
-}
-
-struct StatesSizes {
-    var opened: Area
-    var closed: Area
-}
-
-struct Sizes {
-    var cornerRadius: StatesSizes = StatesSizes(opened: Area(inset: 24), closed: Area(inset: 10))
-    var size: StatesSizes = StatesSizes(
-        opened: Area(width: 580, height: 175),
-        closed: Area(width: closedNotchSize.width, height: closedNotchSize.height)
-    )
-}
-
-struct MusicPlayerElementSizes {
-    
-    var baseSize: Sizes = Sizes()
-    
-    var image: Sizes = Sizes(
-        cornerRadius: StatesSizes(
-            opened: Area(inset: 13), closed: Area(inset: 4)),
-        size: StatesSizes(
-            opened: Area(width: 90, height: 90), closed: Area(width: 20, height: 20)
-        )
-    )
-    var player: Sizes = Sizes(
-        size: StatesSizes(
-            opened: Area(width: 440), closed: Area(width: closedNotchSize.width)
-        )
-    )
 }

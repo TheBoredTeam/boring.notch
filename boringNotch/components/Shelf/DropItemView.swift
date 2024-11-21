@@ -12,6 +12,7 @@ import UniformTypeIdentifiers
 struct DropItemView: View {
     let item: TrayDrop.DropItem
     @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = TrayDrop.shared
 
     @State var hover = false
@@ -43,11 +44,11 @@ struct DropItemView: View {
                 Circle()
                     .fill(.white)
                     .overlay(Image(systemName: "xmark").foregroundStyle(.black).font(.system(size: 7)).fontWeight(.semibold))
-                    .frame(width: vm.spacing, height: vm.spacing)
+                    .frame(width: spacing, height: spacing)
                     .opacity(hover ? 1 : 0) // TODO: Use option key pressed to show delete
-                    .scaleEffect(vm.optionKeyPressed ? 1 : 0.5)
+                    .scaleEffect(coordinator.optionKeyPressed ? 1 : 0.5)
                     .transition(.blurReplace.combined(with: .scale))
-                    .offset(x: vm.spacing / 2, y: -vm.spacing / 2)
+                    .offset(x: spacing / 2, y: -spacing / 2)
                     .onTapGesture { tvm.delete(item.id) }
                     .shadow(color: .black, radius: 3)
             }

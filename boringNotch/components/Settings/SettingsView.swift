@@ -15,7 +15,6 @@ import AVFoundation
 import LottieUI
 
 struct SettingsView: View {
-    @EnvironmentObject var vm: BoringViewModel
     @Environment(\.scenePhase) private var scenePhase
     @StateObject var extensionManager = BoringExtensionManager()
     let updaterController: SPUStandardUpdaterController
@@ -95,6 +94,7 @@ struct GeneralSettings: View {
     @State private var screens: [String] = NSScreen.screens.compactMap({$0.localizedName})
     let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
     @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.accentColor) var accentColor
     @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
@@ -153,7 +153,7 @@ struct GeneralSettings: View {
                 .onChange(of: showOnAllDisplays) {
                     NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
-                Picker("Show on a specific display", selection: $vm.preferredScreen) {
+                Picker("Show on a specific display", selection: $coordinator.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
@@ -253,7 +253,7 @@ struct GeneralSettings: View {
         Section {
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
-            Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
+            Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
@@ -372,10 +372,11 @@ struct HUD: View {
     @EnvironmentObject var vm: BoringViewModel
     @Default(.inlineHUD) var inlineHUD
     @Default(.enableGradient) var enableGradient
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     var body: some View {
         Form {
             Section {
-                Toggle("Enable HUD replacement", isOn: $vm.hudReplacement)
+                Toggle("Enable HUD replacement", isOn: $coordinator.hudReplacement)
             } header: {
                 Text("General")
             }
@@ -414,14 +415,14 @@ struct HUD: View {
 }
 
 struct Media: View {
-    @EnvironmentObject var vm: BoringViewModel
     @Default(.waitInterval) var waitInterval
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     var body: some View {
         Form {
             Section {
                 Toggle(
                     "Enable music live activity",
-                    isOn: $vm.showMusicLiveActivityOnClosed.animation()
+                    isOn: $coordinator.showMusicLiveActivityOnClosed.animation()
                 )
                 Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
                 HStack {
@@ -681,7 +682,7 @@ struct Extensions: View {
 }
 
 struct Appearance: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
     @Default(.useMusicVisualizer) var useMusicVisualizer
@@ -698,7 +699,7 @@ struct Appearance: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
+                Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
                 Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
                 Defaults.Toggle("Enable window shadow", key: .enableShadow)
                 Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)

@@ -40,6 +40,7 @@ class MusicManager: ObservableObject {
     @Published var timestampDate: Date = Date()
     @Published var playbackRate: Double = 0
     @ObservedObject var detector: FullscreenMediaDetector
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     var nowPlaying: NowPlaying
     
@@ -241,7 +242,7 @@ class MusicManager: ObservableObject {
     
     private func updateSneakPeek() {
         if self.isPlaying && Defaults[.enableSneakPeek] && !self.detector.currentAppInFullScreen {
-            self.vm.toggleSneakPeek(status: true, type: SneakContentType.music)
+            coordinator.toggleSneakPeek(status: true, type: SneakContentType.music)
         }
     }
     
