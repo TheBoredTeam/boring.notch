@@ -197,6 +197,7 @@ struct NotchHomeView: View {
             if !coordinator.firstLaunch {
                 mainContent
             }
+            .transition(.opacity.combined(with: .blurReplace))
         }
         .transition(.opacity.combined(with: .blurReplace))
     }
