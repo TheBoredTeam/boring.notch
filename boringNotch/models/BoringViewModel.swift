@@ -82,6 +82,11 @@ class BoringViewModel: NSObject, ObservableObject {
         animation = animationLibrary.animation
 
         super.init()
+        
+        notifier = coordinator.notifier
+        self.screen = screen
+        self.notchSize = getClosedNotchSize(screen: screen)
+        self.closedNotchSize = notchSize
 
         notifier = coordinator.notifier
         self.screen = screen
@@ -94,7 +99,6 @@ class BoringViewModel: NSObject, ObservableObject {
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
-        self.selectedScreen = preferredScreen
     }
     
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
@@ -154,7 +158,7 @@ class BoringViewModel: NSObject, ObservableObject {
             coordinator.currentView = .home
         }
     }
-
+    
     func openClipboard() {
         notifier.postNotification(name: notifier.showClipboardNotification.name, userInfo: nil)
     }
