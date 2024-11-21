@@ -328,7 +328,6 @@
 		14CEF4092C5CAED200855D72 = {
 			isa = PBXGroup;
 			children = (
-				11CC44A12CEE614100C7244B /* BoringViewCoordinator.swift */,
 				14CEF4142C5CAED300855D72 /* boringNotch */,
 				14CEF4132C5CAED300855D72 /* Products */,
 				14D031EC2C689DB70096E6A1 /* Frameworks */,
