@@ -60,25 +60,7 @@ class BoringViewModel: NSObject, ObservableObject {
             }
         }
     }
-
-    @AppStorage("hudReplacement") var hudReplacement: Bool = true {
-        didSet {
-            toggleHudReplacement()
-        }
-    }
     
-    @AppStorage("preferred_screen_name") var preferredScreen = NSScreen.main?.localizedName ?? "Unknown" {
-        didSet {
-            selectedScreen = preferredScreen
-            NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
-        }
-    }
-    
-    @Published var selectedScreen: String = NSScreen.main?.localizedName ?? "Unknown"
-
-    @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
-    var notifier: TheBoringWorkerNotifier = .init()
-
     deinit {
         destroy()
     }
@@ -104,13 +86,11 @@ class BoringViewModel: NSObject, ObservableObject {
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
-        self.selectedScreen = preferredScreen
     }
 
     func open() {
-        withAnimation(.smooth.speed(2)) {
-            self.notchSize = .init(width: Sizes().size.opened.width!, height: Sizes().size.opened.height!)
-            self.notchMetastability = true
+        withAnimation(.bouncy) {
+            self.notchSize = CGSize(width: openNotchSize.width, height: openNotchSize.height)
             self.notchState = .open
         }
     }
