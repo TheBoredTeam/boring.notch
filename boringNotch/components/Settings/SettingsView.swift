@@ -103,6 +103,9 @@ struct GeneralSettings: View {
     //@State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
+    @Default(.notchHeight) var notchHeight
+    @Default(.notchHeightMode) var notchHeightMode
+    @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
 
