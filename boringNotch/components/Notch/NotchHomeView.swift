@@ -23,12 +23,33 @@ struct NotchHomeView: View {
     let albumArtNamespace: Namespace.ID
     
     var body: some View {
-        Group {
-            if !vm.firstLaunch {
-                HStack(alignment: .top, spacing: 30) {
-                    HStack {
-                        ZStack(alignment: .bottomTrailing) {
-                            if Defaults[.lightingEffect] {
+        if !coordinator.firstLaunch {
+            HStack(alignment: .top, spacing: 30) {
+                HStack {
+                    ZStack(alignment: .bottomTrailing) {
+                        if Defaults[.lightingEffect] {
+                            Color.clear
+                                .aspectRatio(1, contentMode: .fit)
+                                .background(
+                                    Image(nsImage: musicManager.albumArt)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                )
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
+                                .scaleEffect(x: 1.3, y: 2.8)
+                                .rotationEffect(.degrees(92))
+                                .blur(radius: 35)
+                                .opacity(min(0.6, 1 - max(musicManager.albumArt.getBrightness(), 0.3)))
+                                .onAppear {
+                                    print(musicManager.albumArt.getBrightness())
+                                }
+                        }
+                        
+                        Button {
+                            musicManager.openMusicApp()
+                        } label: {
+                            ZStack(alignment: .bottomTrailing) {
                                 Color.clear
                                     .aspectRatio(1, contentMode: .fit)
                                     .background(
@@ -37,7 +58,7 @@ struct NotchHomeView: View {
                                             .aspectRatio(contentMode: .fill)
                                     )
                                     .clipped()
-                                    .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                                    .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
                                     .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                                 
                                 if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
