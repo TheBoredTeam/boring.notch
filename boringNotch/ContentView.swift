@@ -36,15 +36,14 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             NotchLayout()
-                .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (vm.sizes.cornerRadius.opened.inset! - 5) : (vm.sizes.cornerRadius.closed.inset! - 5) : 12)
+                .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (cornerRadiusInsets.opened) : (cornerRadiusInsets.closed - 5) : 12)
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                 .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && coordinator.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || Defaults[.inlineHUD]) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((coordinator.sneakPeek.show && coordinator.sneakPeek.type != .music) || (coordinator.sneakPeek.show && coordinator.sneakPeek.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
                 .background(.black)
                 .mask {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? cornerRadiusInsets.opened : cornerRadiusInsets.closed)
                 }
-                .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (Defaults[.inlineHUD] && vm.sneakPeek.show && vm.sneakPeek.type != .music)) ? nil : Sizes().size.closed.width! + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? Sizes().size.closed.height! + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
-                .padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
+                .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (Defaults[.inlineHUD] && coordinator.sneakPeek.show && coordinator.sneakPeek.type != .music)) ? nil : vm.closedNotchSize.width + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? vm.closedNotchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
                     view
                         .onHover { hovering in
@@ -284,8 +283,7 @@ struct ContentView: View {
                             .aspectRatio(contentMode: .fill)
                     )
                     .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
-                    .opacity(musicManager.isPlaying ? 1 : 0.4)
+                    .clipShape(RoundedRectangle(cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed))
                     .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                     .frame(width: max(0, vm.closedNotchSize.height - 12), height: max(0, vm.closedNotchSize.height - 12))
             }
