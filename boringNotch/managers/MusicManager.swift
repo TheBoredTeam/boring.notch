@@ -40,6 +40,7 @@ class MusicManager: ObservableObject {
     @Published var timestampDate: Date = Date()
     @Published var playbackRate: Double = 0
     @ObservedObject var detector: FullscreenMediaDetector
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     var nowPlaying: NowPlaying
     
