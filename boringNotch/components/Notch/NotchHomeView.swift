@@ -14,6 +14,7 @@ struct NotchHomeView: View {
     @EnvironmentObject var musicManager: MusicManager
     @EnvironmentObject var batteryModel: BatteryStatusViewModel
     @EnvironmentObject var webcamManager: WebcamManager
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
@@ -22,7 +23,7 @@ struct NotchHomeView: View {
     let albumArtNamespace: Namespace.ID
     
     var body: some View {
-        if !vm.firstLaunch {
+        if !coordinator.firstLaunch {
             HStack(alignment: .top, spacing: 30) {
                 HStack {
                     ZStack(alignment: .bottomTrailing) {
@@ -35,7 +36,7 @@ struct NotchHomeView: View {
                                         .aspectRatio(contentMode: .fill)
                                 )
                                 .clipped()
-                                .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                                .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
                                 .scaleEffect(x: 1.3, y: 2.8)
                                 .rotationEffect(.degrees(92))
                                 .blur(radius: 35)
@@ -57,7 +58,7 @@ struct NotchHomeView: View {
                                             .aspectRatio(contentMode: .fill)
                                     )
                                     .clipped()
-                                    .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                                    .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
                                     .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                                 
                                 if vm.notchState == .open && !musicManager.usingAppIconForArtwork {

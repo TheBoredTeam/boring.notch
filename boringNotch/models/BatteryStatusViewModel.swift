@@ -13,6 +13,7 @@ import Defaults
 
 class BatteryStatusViewModel: ObservableObject {
     private var vm: BoringViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var batteryPercentage: Float = 0.0
     @Published var isPluggedIn: Bool = false
     @Published var showChargingInfo: Bool = false
@@ -46,7 +47,7 @@ class BatteryStatusViewModel: ObservableObject {
                         }
 
                         if (isCharging && !self.isPluggedIn) {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + (vm.firstLaunch ? 6 : 0)) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + (coordinator.firstLaunch ? 6 : 0)) {
                                 self.vm.toggleExpandingView(status: true, type: .battery)
                                 self.showChargingInfo = true
                                 self.isPluggedIn = true
