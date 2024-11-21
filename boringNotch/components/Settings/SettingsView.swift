@@ -70,7 +70,6 @@ struct SettingsView: View {
             .tint(Defaults[.accentColor])
         } detail: {
             GeneralSettings()
-                .navigationSplitViewColumnWidth(500)
         }
         .environmentObject(extensionManager)
         .formStyle(.grouped)
@@ -86,6 +85,7 @@ struct SettingsView: View {
         }
         .introspect(.window, on: .macOS(.v14, .v15)) { window in
             window.toolbarStyle = .unified
+            window.styleMask.update(with: .resizable)
         }
     }
 }
