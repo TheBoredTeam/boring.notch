@@ -164,6 +164,7 @@ struct NotchHomeView: View {
                 // Stop the timer when the view disappears
                 timer?.cancel()
             }
+            .transition(.opacity.combined(with: .blurReplace))
         }
     }
     
