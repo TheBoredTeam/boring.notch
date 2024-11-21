@@ -152,7 +152,7 @@ struct GeneralSettings: View {
                 .onChange(of: showOnAllDisplays) {
                     NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
-                Picker("Show on a specific display", selection: $vm.preferredScreen) {
+                Picker("Show on a specific display", selection: $coordinator.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
@@ -282,7 +282,7 @@ struct GeneralSettings: View {
         Section {
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
-            Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
+            Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
