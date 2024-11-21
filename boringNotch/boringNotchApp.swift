@@ -78,6 +78,7 @@ struct DynamicNotchApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var windows: [NSScreen: NSWindow] = [:]
+    var viewModels: [NSScreen: BoringViewModel] = [:]
     var window: NSWindow!
     let vm: BoringViewModel = .init()
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -126,7 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil) { [weak self] _ in
             if(!Defaults[.showOnAllDisplays]) {
                 self?.window = BoringNotchWindow(
-                    contentRect: NSRect(x: 0, y: 0, width: self!.sizing.size.opened.width! + 20, height: self!.sizing.size.opened.height! + 30),
+                    contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width + 20, height: openNotchSize.height + 30),
                     styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
                     backing: .buffered,
                     defer: false
@@ -158,8 +159,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
 
-            self.vm.toggleSneakPeek(
-                status: !self.vm.sneakPeek.show,
+            self.coordinator.toggleSneakPeek(
+                status: !self.coordinator.sneakPeek.show,
                 type: .music,
                 duration: 3.0
             )
@@ -167,13 +168,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
             guard let self = self else { return }
-            switch self.vm.notchState {
+            
+            let mouseLocation = NSEvent.mouseLocation
+            
+            var viewModel = self.vm;
+            
+            if(Defaults[.showOnAllDisplays]) {
+                for screen in NSScreen.screens {
+                    if screen.frame.contains(mouseLocation) {
+                        viewModel = viewModels[screen] ?? viewModel
+                    }
+                }
+            }
+            switch viewModel.notchState {
             case .closed:
-                self.vm.open()
+                viewModel.open()
                 self.closeNotchWorkItem?.cancel()
                 
                 let workItem = DispatchWorkItem {
-                    self.vm.close()
+                    viewModel.close()
                 }
                 self.closeNotchWorkItem = workItem
                 
@@ -181,13 +194,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             case .open:
                 self.closeNotchWorkItem?.cancel()
                 self.closeNotchWorkItem = nil
-                self.vm.close()
+                viewModel.close()
             }
         }
         
         if !Defaults[.showOnAllDisplays] {
             window = BoringNotchWindow(
-                contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width! + 20, height: sizing.size.opened.height! + 30),
+                contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width + 20, height: openNotchSize.height + 30),
                 styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
                 backing: .buffered,
                 defer: false
@@ -204,7 +217,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             adjustWindowPosition()
         }
         
-        if vm.firstLaunch {
+        if coordinator.firstLaunch {
             DispatchQueue.main.async {
                 self.openWindow(id: "onboarding")
             }
@@ -240,18 +253,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if Defaults[.showOnAllDisplays] {
             for screen in NSScreen.screens {
                 if windows[screen] == nil {
+                    let viewModel: BoringViewModel = .init(screen: screen.localizedName)
                     let window = BoringNotchWindow(
-                        contentRect: NSRect(x: 0, y: 0, width: sizing.size.opened.width! + 20, height: sizing.size.opened.height! + 30),
+                        contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width + 20, height: openNotchSize.height + 30),
                         styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
                         backing: .buffered,
                         defer: false
                     )
                     window.contentView = NSHostingView(
-                        rootView: ContentView(batteryModel: .init(vm: self.vm))
-                            .environmentObject(vm)
-                            .environmentObject(MusicManager(vm: vm)!)
+                        rootView: ContentView(batteryModel: .init(vm: viewModel))
+                            .environmentObject(viewModel)
+                            .environmentObject(MusicManager(vm: viewModel)!)
                     )
                     windows[screen] = window
+                    viewModels[screen] = viewModel
                     window.orderFrontRegardless()
                     NotchSpaceManager.shared.notchSpace.windows.insert(window)
                 }
@@ -262,14 +277,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         window.alphaValue = 1
                     }
                 }
+                if let viewModel = viewModels[screen] {
+                    if viewModel.notchState == .closed {
+                        viewModel.close()
+                    }
+                }
             }
         } else {
-            if !NSScreen.screens.contains(where: {$0.localizedName == vm.preferredScreen}) {
-                vm.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
+            if !NSScreen.screens.contains(where: {$0.localizedName == coordinator.preferredScreen}) {
+                coordinator.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
             }
             
-            let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == vm.selectedScreen})
-            closedNotchSize = setNotchSize(screen: selectedScreen?.localizedName)
+            let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == coordinator.selectedScreen})
+            vm.notchSize = getClosedNotchSize(screen: selectedScreen?.localizedName)
      
             if let screenFrame = selectedScreen {
                 window.alphaValue = changeAlpha ? 0 : 1
@@ -280,8 +300,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     self!.window.alphaValue = 1
                 }
             }
-            // TODO: optimize animation here, especially for custom height slider
-            // TODO: don't animate if the window is changing screens
             if vm.notchState == .closed {
                 vm.close()
             }
