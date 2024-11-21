@@ -15,7 +15,6 @@ import AVFoundation
 import LottieUI
 
 struct SettingsView: View {
-    @EnvironmentObject var vm: BoringViewModel
     @Environment(\.scenePhase) private var scenePhase
     @StateObject var extensionManager = BoringExtensionManager()
     let updaterController: SPUStandardUpdaterController
@@ -71,7 +70,6 @@ struct SettingsView: View {
             .tint(Defaults[.accentColor])
         } detail: {
             GeneralSettings()
-                .navigationSplitViewColumnWidth(500)
         }
         .environmentObject(extensionManager)
         .formStyle(.grouped)
@@ -87,6 +85,7 @@ struct SettingsView: View {
         }
         .introspect(.window, on: .macOS(.v14, .v15)) { window in
             window.toolbarStyle = .unified
+            window.styleMask.update(with: .resizable)
         }
     }
 }
@@ -95,6 +94,7 @@ struct GeneralSettings: View {
     @State private var screens: [String] = NSScreen.screens.compactMap({$0.localizedName})
     let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
     @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.accentColor) var accentColor
     @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
@@ -103,6 +103,9 @@ struct GeneralSettings: View {
     //@State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
+    @Default(.notchHeight) var notchHeight
+    @Default(.notchHeightMode) var notchHeightMode
+    @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
 
@@ -139,15 +142,25 @@ struct GeneralSettings: View {
             } header: {
                 Text("Accent color")
             }
-            
+
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
-                Picker("Show on a specific display", selection: $vm.selectedScreen) {
+                Defaults.Toggle(key: .showOnAllDisplays) {
+                    HStack {
+                        Text("Show on all displays")
+                        customBadge(text: "Beta")
+                    }
+                }
+                .onChange(of: showOnAllDisplays) {
+                    NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
+                }
+                Picker("Show on a specific display", selection: $coordinator.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
                 }
+                .disabled(showOnAllDisplays)
                 .onChange(of: NSScreen.screens) {
                     screens =  NSScreen.screens.compactMap({$0.localizedName})
                 }
@@ -156,13 +169,44 @@ struct GeneralSettings: View {
             }
             
             Section {
-                Picker("Non-notch screen height", selection: $nonNotchHeightMode) {
-                    Text("Match menubar height")
-                        .tag(NonNotchHeightMode.matchMenuBar)
+                Picker(selection: $notchHeightMode, label:
+                HStack {
+                    Text("Notch display height")
+                    customBadge(text: "Beta")
+                }) {
                     Text("Match real notch size")
-                        .tag(NonNotchHeightMode.matchRealNotchSize)
+                        .tag(WindowHeightMode.matchRealNotchSize)
+                    Text("Match menubar height")
+                        .tag(WindowHeightMode.matchMenuBar)
                     Text("Custom height")
-                        .tag(NonNotchHeightMode.custom)
+                        .tag(WindowHeightMode.custom)
+                }
+                .onChange(of: notchHeightMode) {
+                    switch notchHeightMode {
+                    case .matchRealNotchSize:
+                            notchHeight = 38
+                        case .matchMenuBar:
+                            notchHeight = 44
+                        case .custom:
+                            nonNotchHeight = 38
+                    }
+                    NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
+                }
+                if notchHeightMode == .custom {
+                    Slider(value: $nonNotchHeight, in: 15...45, step: 1) {
+                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                    }
+                    .onChange(of: nonNotchHeight) {
+                        NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
+                    }
+                }
+                Picker("Non-notch display height", selection: $nonNotchHeightMode) {
+                    Text("Match menubar height")
+                        .tag(WindowHeightMode.matchMenuBar)
+                    Text("Match real notch size")
+                        .tag(WindowHeightMode.matchRealNotchSize)
+                    Text("Custom height")
+                        .tag(WindowHeightMode.custom)
                 }
                 .onChange(of: nonNotchHeightMode) {
                     switch nonNotchHeightMode {
@@ -184,7 +228,7 @@ struct GeneralSettings: View {
                     }
                 }
             } header: {
-                Text("Non-notch displays")
+                Text("Notch Height")
             }
             
             NotchBehaviour()
@@ -242,7 +286,7 @@ struct GeneralSettings: View {
         Section {
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
-            Toggle("Remember last tab", isOn: $vm.openLastTabByDefault)
+            Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
@@ -361,10 +405,11 @@ struct HUD: View {
     @EnvironmentObject var vm: BoringViewModel
     @Default(.inlineHUD) var inlineHUD
     @Default(.enableGradient) var enableGradient
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     var body: some View {
         Form {
             Section {
-                Toggle("Enable HUD replacement", isOn: $vm.hudReplacement)
+                Toggle("Enable HUD replacement", isOn: $coordinator.hudReplacement)
             } header: {
                 Text("General")
             }
@@ -403,14 +448,14 @@ struct HUD: View {
 }
 
 struct Media: View {
-    @EnvironmentObject var vm: BoringViewModel
     @Default(.waitInterval) var waitInterval
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     var body: some View {
         Form {
             Section {
                 Toggle(
                     "Enable music live activity",
-                    isOn: $vm.showMusicLiveActivityOnClosed.animation()
+                    isOn: $coordinator.showMusicLiveActivityOnClosed.animation()
                 )
                 Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
                 HStack {
@@ -670,7 +715,7 @@ struct Extensions: View {
 }
 
 struct Appearance: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
     @Default(.useMusicVisualizer) var useMusicVisualizer
@@ -687,7 +732,7 @@ struct Appearance: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Always show tabs", isOn: $vm.alwaysShowTabs)
+                Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
                 Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
                 Defaults.Toggle("Enable window shadow", key: .enableShadow)
                 Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)

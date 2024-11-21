@@ -11,11 +11,12 @@ import Defaults
 struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @EnvironmentObject var batteryModel: BatteryStatusViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = TrayDrop.shared
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || vm.alwaysShowTabs) && Defaults[.boringShelf] {
+                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -30,8 +31,8 @@ struct BoringHeader: View {
             if vm.notchState == .open {
                 Rectangle()
                     .fill(NSScreen.screens
-                        .first(where: {$0.localizedName == vm.selectedScreen})?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
-                    .frame(width: Sizes().size.closed.width! - 5)
+                        .first(where: {$0.localizedName == coordinator.selectedScreen})?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
+                    .frame(width: vm.closedNotchSize.width - 5)
                     .mask {
                         NotchShape()
                     }

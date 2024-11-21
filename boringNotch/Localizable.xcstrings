@@ -547,13 +547,16 @@
     "No extension installed" : {
 
     },
-    "Non-notch displays" : {
-
-    },
-    "Non-notch screen height" : {
+    "Non-notch display height" : {
 
     },
     "Notch behavior" : {
+
+    },
+    "Notch display height" : {
+
+    },
+    "Notch Height" : {
 
     },
     "OK" : {
@@ -732,6 +735,9 @@
       }
     },
     "Show on a specific display" : {
+
+    },
+    "Show on all displays" : {
 
     },
     "Slider color" : {
