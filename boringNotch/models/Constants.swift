@@ -35,11 +35,16 @@ extension Defaults.Keys {
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
     static let enableHaptics = Key<Bool>("enableHaptics", default: true)
     static let openNotchOnHover = Key<Bool>("openNotchOnHover", default: true)
-    static let nonNotchHeightMode = Key<NonNotchHeightMode>(
-        "nonNotchHeightMode",
-        default: NonNotchHeightMode.matchRealNotchSize
+    static let notchHeightMode = Key<WindowHeightMode>(
+        "notchHeightMode",
+        default: WindowHeightMode.matchRealNotchSize
     )
-    static let nonNotchHeight = Key<CGFloat>("nonNotchHeight", default: 32)
+    static let nonNotchHeightMode = Key<WindowHeightMode>(
+        "nonNotchHeightMode",
+        default: WindowHeightMode.matchRealNotchSize
+    )
+    static let nonNotchHeight = Key<CGFloat>("notchHeight", default: 32)
+    static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
     //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     
     // MARK: Appearance

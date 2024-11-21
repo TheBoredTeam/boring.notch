@@ -103,6 +103,8 @@ struct GeneralSettings: View {
     //@State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
+    @Default(.notchHeight) var notchHeight
+    @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
@@ -167,13 +169,44 @@ struct GeneralSettings: View {
             }
             
             Section {
-                Picker("Non-notch screen height", selection: $nonNotchHeightMode) {
-                    Text("Match menubar height")
-                        .tag(NonNotchHeightMode.matchMenuBar)
+                Picker(selection: $notchHeightMode, label:
+                HStack {
+                    Text("Notch display height")
+                    customBadge(text: "Beta")
+                }) {
                     Text("Match real notch size")
-                        .tag(NonNotchHeightMode.matchRealNotchSize)
+                        .tag(WindowHeightMode.matchRealNotchSize)
+                    Text("Match menubar height")
+                        .tag(WindowHeightMode.matchMenuBar)
                     Text("Custom height")
-                        .tag(NonNotchHeightMode.custom)
+                        .tag(WindowHeightMode.custom)
+                }
+                .onChange(of: notchHeightMode) {
+                    switch notchHeightMode {
+                    case .matchRealNotchSize:
+                            notchHeight = 38
+                        case .matchMenuBar:
+                            notchHeight = 44
+                        case .custom:
+                            nonNotchHeight = 38
+                    }
+                    NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
+                }
+                if notchHeightMode == .custom {
+                    Slider(value: $nonNotchHeight, in: 15...45, step: 1) {
+                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                    }
+                    .onChange(of: nonNotchHeight) {
+                        NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
+                    }
+                }
+                Picker("Non-notch display height", selection: $nonNotchHeightMode) {
+                    Text("Match menubar height")
+                        .tag(WindowHeightMode.matchMenuBar)
+                    Text("Match real notch size")
+                        .tag(WindowHeightMode.matchRealNotchSize)
+                    Text("Custom height")
+                        .tag(WindowHeightMode.custom)
                 }
                 .onChange(of: nonNotchHeightMode) {
                     switch nonNotchHeightMode {
@@ -195,7 +228,7 @@ struct GeneralSettings: View {
                     }
                 }
             } header: {
-                Text("Non-notch displays")
+                Text("Notch Height")
             }
             
             NotchBehaviour()

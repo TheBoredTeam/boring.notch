@@ -49,8 +49,12 @@ func getClosedNotchSize(screen: String? = nil) -> CGSize {
         
         // Check if the Mac has a notch
         if screen.safeAreaInsets.top > 0 {
-            print("has notch")
-            notchHeight = screen.safeAreaInsets.top
+            notchHeight = Defaults[.notchHeight]
+            if Defaults[.notchHeightMode] == .matchRealNotchSize {
+                notchHeight = screen.safeAreaInsets.top
+            } else if Defaults[.notchHeightMode] == .matchMenuBar {
+                notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+            }
         }
         print("height", notchHeight)
     }
