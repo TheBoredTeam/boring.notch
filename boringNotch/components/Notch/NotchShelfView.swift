@@ -20,7 +20,7 @@ struct NotchShelfView: View {
     }
 
     var panel: some View {
-        RoundedRectangle(cornerRadius: Sizes().cornerRadius.opened.inset! - 8)
+        RoundedRectangle(cornerRadius: 16)
             .strokeBorder(style: StrokeStyle(lineWidth: 4, dash: [10]))
             .foregroundStyle(.white.opacity(0.1))
             .overlay {
@@ -48,14 +48,14 @@ struct NotchShelfView: View {
                 }
             } else {
                 ScrollView(.horizontal) {
-                    HStack(spacing: vm.spacing) {
+                    HStack(spacing: spacing) {
                         ForEach(tvm.items) { item in
                             DropItemView(item: item)
                         }
                     }
-                    .padding(vm.spacing)
+                    .padding(spacing)
                 }
-                .padding(-vm.spacing)
+                .padding(-spacing)
                 .scrollIndicators(.never)
             }
         }

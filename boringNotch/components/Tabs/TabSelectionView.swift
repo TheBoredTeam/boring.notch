@@ -20,26 +20,26 @@ let tabs = [
 ]
 
 struct TabSelectionView: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {
             ForEach(tabs) { tab in
-                    TabButton(label: tab.label, icon: tab.icon, selected: vm.currentView == tab.view) {
+                    TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                         withAnimation(.smooth) {
-                            vm.currentView = tab.view
+                            coordinator.currentView = tab.view
                         }
                     }
                     .frame(height: 26)
-                    .foregroundStyle(tab.view == vm.currentView ? .white : .gray)
+                    .foregroundStyle(tab.view == coordinator.currentView ? .white : .gray)
                     .background {
-                        if tab.view == vm.currentView {
+                        if tab.view == coordinator.currentView {
                             Capsule()
-                                .fill(vm.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
+                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
                                 .matchedGeometryEffect(id: "capsule", in: animation)
                         } else {
                             Capsule()
-                                .fill(vm.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
+                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
                                 .matchedGeometryEffect(id: "capsule", in: animation)
                                 .hidden()
                         }
