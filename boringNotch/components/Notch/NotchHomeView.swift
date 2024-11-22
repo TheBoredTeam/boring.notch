@@ -38,7 +38,7 @@ struct NotchHomeView: View {
                                     )
                                     .clipped()
                                     .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
-                                    .scaleEffect(x: 1.3, y: 2.8)
+                                    .scaleEffect(x: 1.4, y: 1.4)
                                     .rotationEffect(.degrees(92))
                                     .blur(radius: 35)
                                     .opacity(min(0.6, 1 - max(musicManager.albumArt.getBrightness(), 0.3)))
