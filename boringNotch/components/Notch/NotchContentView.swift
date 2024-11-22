@@ -19,7 +19,7 @@ struct NotchContentView: View {
         VStack(alignment: coordinator.firstLaunch ? .center : .leading, spacing: 0) {
             if vm.notchState == .open {
                 BoringHeader()
-                    .animation(.spring(response: 0.7, dampingFraction: 0.8, blendDuration: 0.8), value: vm.notchState)
+                    .animation(.spring(response: 1, dampingFraction: 1, blendDuration: 0.8), value: vm.notchState)
                     .padding(.top, 10)
                 if coordinator.firstLaunch {
                     Spacer()
@@ -118,7 +118,7 @@ struct NotchContentView: View {
             }
         }
         .frame(width: calculateFrameWidthforNotchContent())
-        .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.5))))
+        .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1)))
     }
     
     func calculateFrameWidthforNotchContent() -> CGFloat? {
