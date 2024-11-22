@@ -155,6 +155,7 @@ struct NotchHomeView: View {
                             .frame(width: 16, height: 12)
                         }
                         .frame(width: 50, alignment: .center)
+                        .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
                 }
                 //                BoringSystemTiles()
                 //                    .transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)).delay(0.1)))
