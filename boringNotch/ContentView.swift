@@ -43,6 +43,7 @@ struct ContentView: View {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? vm.sizes.cornerRadius.opened.inset : vm.sizes.cornerRadius.closed.inset)
                 }
                 .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (Defaults[.inlineHUD] && vm.sneakPeek.show && vm.sneakPeek.type != .music)) ? nil : Sizes().size.closed.width! + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? Sizes().size.closed.height! + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
+                .padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
                     view
                         .onHover { hovering in
