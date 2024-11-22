@@ -74,48 +74,54 @@ struct NotchHomeView: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     
-                    VStack(alignment: .leading) {
-                        GeometryReader { geo in
-                            VStack(alignment: .leading, spacing: 4){
-                                MarqueeText($musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: geo.size.width)
-                                MarqueeText(
-                                    $musicManager.artistName,
-                                    font: .headline,
-                                    nsFont: .headline,
-                                    textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor)
-                                        .ensureMinimumBrightness(factor: 0.6) : .gray,
-                                    frameWidth: geo.size.width
-                                )
-                                .fontWeight(.medium)
-                                
-                                MusicSliderView(sliderValue: $sliderValue,
-                                                duration: $musicManager.songDuration,
-                                                lastDragged: $lastDragged,
-                                                color: musicManager.avgColor,
-                                                dragging: $dragging) { newValue in
-                                    musicManager.seekTrack(to: newValue)
+                    Group {
+                        if vm.notchState == .open {
+                            VStack(alignment: .leading) {
+                                GeometryReader { geo in
+                                    VStack(alignment: .leading, spacing: 4){
+                                        MarqueeText($musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: geo.size.width)
+                                        MarqueeText(
+                                            $musicManager.artistName,
+                                            font: .headline,
+                                            nsFont: .headline,
+                                            textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor)
+                                                .ensureMinimumBrightness(factor: 0.6) : .gray,
+                                            frameWidth: geo.size.width
+                                        )
+                                        .fontWeight(.medium)
+                                        
+                                        MusicSliderView(sliderValue: $sliderValue,
+                                                        duration: $musicManager.songDuration,
+                                                        lastDragged: $lastDragged,
+                                                        color: musicManager.avgColor,
+                                                        dragging: $dragging) { newValue in
+                                            musicManager.seekTrack(to: newValue)
+                                        }
+                                                        .padding(.top, 5)
+                                                        .frame(height: 36)
+                                    }
                                 }
-                                                .padding(.top, 5)
-                                                .frame(height: 36)
+                                .padding(.top, 10)
+                                .padding(.leading, 5)
+                                HStack(spacing: 8) {
+                                    HoverButton(icon: "backward.fill") {
+                                        musicManager.previousTrack()
+                                    }
+                                    HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill") {
+                                        print("tapped")
+                                        musicManager.togglePlayPause()
+                                    }
+                                    HoverButton(icon: "forward.fill") {
+                                        musicManager.nextTrack()
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .center)
                             }
+                            .buttonStyle(PlainButtonStyle())
+                            .frame(minWidth: 170)
                         }
-                        .padding(.top, 10)
-                        .padding(.leading, 5)
-                        HStack(spacing: 8) {
-                            HoverButton(icon: "backward.fill") {
-                                musicManager.previousTrack()
-                            }
-                            HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill") {
-                                musicManager.togglePlayPause()
-                            }
-                            HoverButton(icon: "forward.fill") {
-                                musicManager.nextTrack()
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .center)
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .frame(minWidth: 170)
+                    .transition(.blurReplace)
                 }
                 
                 if Defaults[.showCalendar] {
