@@ -96,24 +96,25 @@ We’re all about good vibes and awesome contributions! Here’s how you can joi
    git clone https://github.com/{your-name}/boring.notch.git
    # Replace {your-name} with your GitHub username
    ```
-3. **Create a New Branch**:
+3. **Make sure to use `dev` branch as base.**
+4. **Create a New Branch**:
    ```bash
    git checkout -b feature/{your-feature-name}
    # Replace {your-feature-name} with a descriptive and concise name for your branch
    # It is best practice to use only alphanumeric characters, write words in lowercase
    # and seperate words with a single hyphen
    ```
-4. **Make Your Changes**: Add that feature or fix that bug. Make sure it’s awesome.
-5. **Commit Your Changes**:
+5. **Make Your Changes**: Add that feature or fix that bug.
+6. **Commit Your Changes**:
    ```bash
    git commit -m "insert descriptive message here"
    ```
-6. **Push to Your Fork**:
+7. **Push to Your Fork**:
    ```bash
    git push origin feature/{your-feature-name}
    # Remember to replace {your-feature-name} with the name you chose
    ```
-7. **Create a Pull Request**: Head to the original repository and click on "New Pull Request." Fill in the required details, **make sure the base branch is set to `dev`**, and submit your PR. Let’s see what you’ve got!
+8. **Create a Pull Request**: Head to the original repository and click on "New Pull Request." Fill in the required details, **make sure the base branch is set to `dev`**, and submit your PR. Let’s see what you’ve got!
 
 ## 📝 License
 
