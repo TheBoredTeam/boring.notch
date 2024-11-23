@@ -59,6 +59,7 @@ struct NotchHomeView: View {
                                         )
                                         .clipped()
                                         .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                                        .opacity(musicManager.isPlaying ? 1 : 0.4)
                                         .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                                     
                                     if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
@@ -70,6 +71,7 @@ struct NotchHomeView: View {
                                             .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
                                     }
                                 }
+                                .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
