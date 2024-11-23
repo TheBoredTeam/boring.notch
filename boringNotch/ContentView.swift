@@ -36,7 +36,7 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             NotchLayout()
-                .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (cornerRadiusInsets.opened) : (cornerRadiusInsets.closed - 5) : 12)
+                .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (vm.sizes.cornerRadius.opened.inset! - 5) : (vm.sizes.cornerRadius.closed.inset! - 5) : 12)
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                 .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && coordinator.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || Defaults[.inlineHUD]) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((coordinator.sneakPeek.show && coordinator.sneakPeek.type != .music) || (coordinator.sneakPeek.show && coordinator.sneakPeek.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
                 .background(.black)
