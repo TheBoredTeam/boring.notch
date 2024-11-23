@@ -284,7 +284,8 @@ struct ContentView: View {
                             .aspectRatio(contentMode: .fill)
                     )
                     .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed))
+                    .clipShape(RoundedRectangle(cornerRadius: vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                    .opacity(musicManager.isPlaying ? 1 : 0.4)
                     .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                     .frame(width: max(0, vm.closedNotchSize.height - 12), height: max(0, vm.closedNotchSize.height - 12))
             }
