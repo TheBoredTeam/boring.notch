@@ -101,7 +101,7 @@ struct MarqueeText: View {
                 }
             }
             .frame(width: frameWidth, alignment: .leading)
-            .clipped()
+//            .clipped()
         }
         .frame(height: textSize.height * 1.3)
     }
