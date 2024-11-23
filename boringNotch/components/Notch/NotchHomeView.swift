@@ -24,7 +24,7 @@ struct NotchHomeView: View {
     
     var body: some View {
         Group {
-            if !vm.firstLaunch && vm.notchState == .open {
+            if !vm.firstLaunch {
                 HStack(alignment: .top, spacing: 30) {
                     HStack {
                         ZStack(alignment: .bottomTrailing) {
@@ -178,9 +178,7 @@ struct NotchHomeView: View {
             }
             .transition(.opacity.combined(with: .blurReplace))
         }
-        .animation(.smooth.speed(1.5), value: vm.notchState)
-        .transition(.move(edge: .top).combined(with: .blurReplace))
-        .blur(radius: vm.notchState == .closed ? 30 : 0)
+        .blur(radius: vm.notchState == .closed ? 15 : 0)
     }
     
     private func startTimer() {
