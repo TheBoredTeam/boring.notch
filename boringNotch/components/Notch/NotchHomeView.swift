@@ -109,14 +109,14 @@ struct NotchHomeView: View {
                                     .padding(.top, 10)
                                     .padding(.leading, 5)
                                     HStack(spacing: 8) {
-                                        HoverButton(icon: "backward.fill") {
+                                        HoverButton(icon: "backward.fill", scale: .medium) {
                                             musicManager.previousTrack()
                                         }
-                                        HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill") {
+                                        HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
                                             print("tapped")
                                             musicManager.togglePlayPause()
                                         }
-                                        HoverButton(icon: "forward.fill") {
+                                        HoverButton(icon: "forward.fill", scale: .medium) {
                                             musicManager.nextTrack()
                                         }
                                     }
