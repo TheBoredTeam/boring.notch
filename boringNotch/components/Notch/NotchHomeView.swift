@@ -255,12 +255,11 @@ struct CustomSlider: View {
     @Binding var lastDragged: Date
     var onValueChange: ((Double) -> Void)?
     var thumbSize: CGFloat = 12
-    @State private var hovered: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
-            let height = geometry.size.height
+            let height = CGFloat(dragging ? 9 : 5)
             let rangeSpan = range.upperBound - range.lowerBound
             
             let filledTrackWidth = min(rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width, width)
@@ -277,6 +276,8 @@ struct CustomSlider: View {
                     .frame(width: filledTrackWidth, height: height)
             }
             .cornerRadius(height / 2)
+            .frame(height: 10)
+            .contentShape(Rectangle())
             .highPriorityGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { gesture in
@@ -292,20 +293,8 @@ struct CustomSlider: View {
                         lastDragged = Date()
                     }
             )
-            .onContinuousHover { phase in
-                switch phase {
-                    case .active:
-                        withAnimation {
-                            hovered = true
-                        }
-                    case .ended:
-                        withAnimation {
-                            hovered = false
-                        }
-                }
-            }
+            .animation(.bouncy.speed(1.4), value: dragging)
         }
-        .frame(height: dragging || hovered ? 8 : 5)
     }
 }
 
