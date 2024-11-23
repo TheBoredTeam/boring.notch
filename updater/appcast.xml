@@ -2,16 +2,43 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>boringNotch</title>
-        <item>  
+        <item>
+            <title>2.3 🚀 New release with bug fixes and great additions</title>
+            <pubDate>Wed, 13 Nov 2024 21:44:25 +0530</pubDate>
+            <sparkle:version>2.3+1</sparkle:version>
+            <sparkle:shortVersionString>2.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h1>🎉 v2.3 🚀 New release with bug fixes and great additions</h1>
+                <p>We're thrilled to announce the release of Glowing Panda version 2.3! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
+                <h2>🤔 What's Changed? 🤓</h2>
+                <ul>
+                <li>
+                Fixed a bug that caused shelf to be unresponsive to drag and drop @Alexander 🛠️
+                </li>
+                <li>Fixed a bug that caused sliding text to be unvisible 📝</li>
+                <li>Fixed a bug that re-enabled music live activity on media actions 🎵</li>
+                <li>Fixed a bug that caused the app flickering when Apple Intelligence windows were open @Alexander 🌟
+                </li>
+                <li>Settings window won't open on start @Alexander 🛠️</li>
+                <li>New feature for battery that reflects low-power mode by @freepicheep 🔋</li>
+                <li>Preparing for custom animations in the live activity 🎉</li>
+                 <li>Boring notch now stays centered around the notch when changing virtual desktops. 🌟</li>
+                 <li>Keyboard shortcut I added to toggle the entire notch. @freepicheep 📝 </li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="9059580" type="application/octet-stream" sparkle:edSignature="NZcPHtGmR+zPIRSTwOrbTV5or6GoieQhdtnFcdhJdt3Gg5Z83A5tG/th/Ekb6DbbnMbCT3z7ckQfZn44mZ3aAQ=="/>
+        </item>
+        <item>
             <title>🎉 v2.2 🚀 New release with bug fixes and great additions</title>
             <link>https://theboring.name</link>
-            <pubDate>Tue, 29 Oct 2024 01:48:10 +0530</pubDate>
+            <pubDate>Wed, 13 Nov 2024 21:44:25 +0530</pubDate>
             <sparkle:version>2.2+1</sparkle:version>
             <sparkle:shortVersionString>2.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
             <description><![CDATA[
             <h1>🎉 v2.2 🚀 New release with bug fixes and great additions</h1>
-            <p>We're thrilled to announce the release of Glowing Panda version 2.2! 🎊 This major update brings numerous improvements and new features that will make your app-building experience even more enjoyable.</p><br />
+            <p>We're thrilled to announce the release of Glowing Panda version 2.2! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
             <h2>🤔 What's Changed? 🤓</h2>
             <ul>
                 <li>Calendar & Behavior: 📅 Fixed calendar data handling and behavior issues (Thanks @LostCause!)</li>
@@ -24,20 +51,19 @@
                 <li>Header Update: 🔄 Removed "Glowing 🐼" text from header</li>
                 <li>Settings Enhancement: ⚙️ Added new Appearance and Shortcuts tabs</li>
             </ul>
-            ]]>
-            </description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="7127871" type="application/octet-stream" sparkle:edSignature="ACOUBGdj/+iaWWDE8YetJVZp6UhTEqWWZPilGrUOo6ccwHCHMHaFo9Ppx+/Xq1iguS4NuOOyfVF55SQAWl4dCw=="/>
+            ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="9059580" type="application/octet-stream" sparkle:edSignature="NZcPHtGmR+zPIRSTwOrbTV5or6GoieQhdtnFcdhJdt3Gg5Z83A5tG/th/Ekb6DbbnMbCT3z7ckQfZn44mZ3aAQ=="/>
         </item>
-        <item>  
+        <item>
             <title>🎉 v2.1 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</title>
             <link>https://theboring.name</link>
-                    <pubDate>Sat, 19 Oct 2024 17:38:33 +0530</pubDate>
-                    <sparkle:version>2.1+1</sparkle:version>
-                    <sparkle:shortVersionString>2.1</sparkle:shortVersionString>
-                    <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <pubDate>Sat, 19 Oct 2024 17:38:33 +0530</pubDate>
+            <sparkle:version>2.1+1</sparkle:version>
+            <sparkle:shortVersionString>2.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
             <description><![CDATA[
                 <h1>🎉 v2.0 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</h1>
-                <p>We're thrilled to announce the release of Glowing Panda version 2.0! 🎊 This major update brings numerous improvements and new features that will make your app-building experience even more enjoyable.</p><br />
+                <p>We're thrilled to announce the release of Glowing Panda version 2.0! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
                 <h2>🤔 What's New? 🤓</h2>
                 <ul><li>Rewritten Layout: The Speed Demon 🏃‍♂️ Our layout has been reworked for better performance, making it faster and smoother. We've also added some fancy animations to keep things interesting 😎</li>
         <li>Polished Managers: The Playback Pro 🎵 Playback managers have been revamped to ensure a seamless experience. No more buffering or crashes – we've got this covered 💪</li>
@@ -50,11 +76,8 @@
         <li>Non-Notch Display Customization: 🖥️ Customization options for non-notch displays have been introduced to ensure a seamless experience for all users.</li>
         <li>GitHub Link Update: 🔄 The GitHub link in the settings has been updated to ensure easy access to the latest updates.</li>
             </ul>
-            ]]>
-            </description>
+            ]]></description>
             <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10428612" type="application/octet-stream" sparkle:edSignature="x6+BvmZZjnDg/CBMoEMaXMLzQtsW8Hi1Speba/I+KUCbqXgj2pRAo+ATo9m5pqedVmWmAqqEYxSY82u2TK3ZCw=="/>
         </item>
     </channel>
 </rss>
-
-
