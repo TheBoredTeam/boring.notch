@@ -82,16 +82,18 @@ struct NotchHomeView: View {
                                 VStack(alignment: .leading) {
                                     GeometryReader { geo in
                                         VStack(alignment: .leading, spacing: 4){
-                                            MarqueeText($musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: geo.size.width)
-                                            MarqueeText(
-                                                $musicManager.artistName,
-                                                font: .headline,
-                                                nsFont: .headline,
-                                                textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor)
-                                                    .ensureMinimumBrightness(factor: 0.6) : .gray,
-                                                frameWidth: geo.size.width
-                                            )
-                                            .fontWeight(.medium)
+                                            VStack(alignment: .leading, spacing: 0) {
+                                                MarqueeText($musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: geo.size.width)
+                                                MarqueeText(
+                                                    $musicManager.artistName,
+                                                    font: .headline,
+                                                    nsFont: .headline,
+                                                    textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor)
+                                                        .ensureMinimumBrightness(factor: 0.6) : .gray,
+                                                    frameWidth: geo.size.width
+                                                )
+                                                .fontWeight(.medium)
+                                            }
                                             
                                             MusicSliderView(sliderValue: $sliderValue,
                                                             duration: $musicManager.songDuration,
