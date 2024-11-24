@@ -40,6 +40,7 @@ class MusicManager: ObservableObject {
     @Published var timestampDate: Date = Date()
     @Published var playbackRate: Double = 0
     @ObservedObject var detector: FullscreenMediaDetector
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     var nowPlaying: NowPlaying
     
@@ -182,6 +183,10 @@ class MusicManager: ObservableObject {
             updateArtwork(newInfo.artworkData)
             self.lastMusicItem?.artworkData = newInfo.artworkData
         }
+        // Only update sneak peek if the music info has changed
+        if((newInfo.title, newInfo.artist, newInfo.album) != (lastMusicItem?.title, lastMusicItem?.artist, lastMusicItem?.album) && (newInfo.title, newInfo.artist) != ("", "")) {
+            updateSneakPeek()
+        }
         self.lastMusicItem = (title: newInfo.title, artist: newInfo.artist, album: newInfo.album, duration: newInfo.duration, artworkData: lastMusicItem?.artworkData)
         MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
             self?.musicIsPaused(state: isPlaying, setIdle: true)
@@ -219,7 +224,7 @@ class MusicManager: ObservableObject {
             updateFullscreenMediaDetection()
             
             // Only update sneak peek if the state has actually changed
-            if previousState != state {
+            if previousState != state && (songTitle, artistName) != ("", "") {
                 updateSneakPeek()
             }
             
@@ -237,7 +242,7 @@ class MusicManager: ObservableObject {
     
     private func updateSneakPeek() {
         if self.isPlaying && Defaults[.enableSneakPeek] && !self.detector.currentAppInFullScreen {
-            self.vm.toggleSneakPeek(status: true, type: SneakContentType.music)
+            coordinator.toggleSneakPeek(status: true, type: SneakContentType.music)
         }
     }
     

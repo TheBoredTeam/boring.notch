@@ -69,6 +69,7 @@ func logout() {
 
 struct BoringSystemTiles: View {
     @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     struct ItemButton {
         var icon: String
@@ -87,10 +88,10 @@ struct BoringSystemTiles: View {
                 //                }, label: "💡 Keyboard Backlight")
             }
             GridRow {
-                SystemItemButton(icon: vm.currentMicStatus ? "mic" : "mic.slash", onTap: {
-                    vm.toggleMic()
+                SystemItemButton(icon: coordinator.currentMicStatus ? "mic" : "mic.slash", onTap: {
+                    coordinator.toggleMic()
                     vm.close()
-                }, label: "Toggle Microphone", showEmojis: Defaults[.showEmojis], emoji: vm.currentMicStatus ? "😀" : "🤫")
+                }, label: "Toggle Microphone", showEmojis: Defaults[.showEmojis], emoji: coordinator.currentMicStatus ? "😀" : "🤫")
                 //                SystemItemButton(icon: "lock", onTap: {
                 //                    logout()
                 //                }, label: "🔒 Lock My Device")

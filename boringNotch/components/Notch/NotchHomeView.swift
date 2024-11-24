@@ -14,6 +14,7 @@ struct NotchHomeView: View {
     @EnvironmentObject var musicManager: MusicManager
     @EnvironmentObject var batteryModel: BatteryStatusViewModel
     @EnvironmentObject var webcamManager: WebcamManager
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
@@ -23,7 +24,7 @@ struct NotchHomeView: View {
     
     var body: some View {
         Group {
-            if !vm.firstLaunch {
+            if !coordinator.firstLaunch {
                 HStack(alignment: .top, spacing: 30) {
                     HStack {
                         ZStack(alignment: .bottomTrailing) {
@@ -36,7 +37,7 @@ struct NotchHomeView: View {
                                             .aspectRatio(contentMode: .fill)
                                     )
                                     .clipped()
-                                    .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
+                                    .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
                                     .scaleEffect(x: 1.4, y: 1.4)
                                     .rotationEffect(.degrees(92))
                                     .blur(radius: 35)
@@ -45,36 +46,36 @@ struct NotchHomeView: View {
                                         print(musicManager.albumArt.getBrightness())
                                     }
                             }
-                            
-                            Button {
-                                musicManager.openMusicApp()
-                            } label: {
-                                ZStack(alignment: .bottomTrailing) {
-                                    Color.clear
-                                        .aspectRatio(1, contentMode: .fit)
-                                        .background(
-                                            Image(nsImage: musicManager.albumArt)
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                        )
-                                        .clipped()
-                                        .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? vm.musicPlayerSizes.image.cornerRadius.opened.inset! : vm.musicPlayerSizes.image.cornerRadius.closed.inset!))
-                                        .opacity(musicManager.isPlaying ? 1 : 0.4)
-                                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                                    
-                                    if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
-                                        AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
+                        }
+                        
+                        Button {
+                            musicManager.openMusicApp()
+                        } label: {
+                            ZStack(alignment: .bottomTrailing) {
+                                Color.clear
+                                    .aspectRatio(1, contentMode: .fit)
+                                    .background(
+                                        Image(nsImage: musicManager.albumArt)
                                             .resizable()
                                             .aspectRatio(contentMode: .fill)
-                                            .frame(width: 30, height: 30)
-                                            .offset(x: 10, y: 10)
-                                            .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
-                                    }
+                                    )
+                                    .clipped()
+                                    .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
+                                    .opacity(musicManager.isPlaying ? 1 : 0.4)
+                                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                                
+                                if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
+                                    AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 30, height: 30)
+                                        .offset(x: 10, y: 10)
+                                        .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
                                 }
-                                .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
                         }
+                        .buttonStyle(PlainButtonStyle())
                         
                         Group {
                             if vm.notchState == .open {
@@ -175,6 +176,7 @@ struct NotchHomeView: View {
                     timer?.cancel()
                 }
             }
+            .transition(.opacity.combined(with: .blurReplace))
         }
         .blur(radius: vm.notchState == .closed ? 15 : 0)
     }
@@ -190,7 +192,7 @@ struct NotchHomeView: View {
     private func updateSliderValue() {
         guard !dragging, musicManager.timestampDate > lastDragged else { return }
         let currentTime = Date()
-        let timeDifference = currentTime.timeIntervalSince(musicManager.timestampDate)
+        let timeDifference = (musicManager.isPlaying ? currentTime.timeIntervalSince(musicManager.timestampDate) : musicManager.lastUpdated.timeIntervalSince(musicManager.timestampDate))
         // Calculate the real-time elapsed time
         let currentElapsedTime = musicManager.elapsedTime + (timeDifference * musicManager.playbackRate)
         sliderValue = min(currentElapsedTime, musicManager.songDuration)
