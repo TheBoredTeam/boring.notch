@@ -173,10 +173,10 @@ struct NotchHomeView: View {
                     // Stop the timer when the view disappears
                     timer?.cancel()
                 }
+                .transition(.opacity.animation(.smooth.speed(0.9)).combined(with: .blurReplace.animation(.smooth.speed(0.9))).combined(with: .move(edge: .top)))
+                .blur(radius: vm.notchState == .closed ? 30 : 0)
             }
         }
-        .transition(.opacity.combined(with: .blurReplace))
-        .blur(radius: vm.notchState == .closed ? 15 : 0)
     }
     
     private func startTimer() {
