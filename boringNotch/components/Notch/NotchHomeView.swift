@@ -23,33 +23,12 @@ struct NotchHomeView: View {
     let albumArtNamespace: Namespace.ID
     
     var body: some View {
-        if !coordinator.firstLaunch {
-            HStack(alignment: .top, spacing: 30) {
-                HStack {
-                    ZStack(alignment: .bottomTrailing) {
-                        if Defaults[.lightingEffect] {
-                            Color.clear
-                                .aspectRatio(1, contentMode: .fit)
-                                .background(
-                                    Image(nsImage: musicManager.albumArt)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                )
-                                .clipped()
-                                .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
-                                .scaleEffect(x: 1.3, y: 2.8)
-                                .rotationEffect(.degrees(92))
-                                .blur(radius: 35)
-                                .opacity(min(0.6, 1 - max(musicManager.albumArt.getBrightness(), 0.3)))
-                                .onAppear {
-                                    print(musicManager.albumArt.getBrightness())
-                                }
-                        }
-                        
-                        Button {
-                            musicManager.openMusicApp()
-                        } label: {
-                            ZStack(alignment: .bottomTrailing) {
+        Group {
+            if !coordinator.firstLaunch {
+                HStack(alignment: .top, spacing: 30) {
+                    HStack {
+                        ZStack(alignment: .bottomTrailing) {
+                            if Defaults[.lightingEffect] {
                                 Color.clear
                                     .aspectRatio(1, contentMode: .fit)
                                     .background(
@@ -59,70 +38,93 @@ struct NotchHomeView: View {
                                     )
                                     .clipped()
                                     .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
-                                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                                
-                                if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
-                                    AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 30, height: 30)
-                                        .offset(x: 10, y: 10)
-                                        .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
+                                    .scaleEffect(x: 1.4, y: 1.4)
+                                    .rotationEffect(.degrees(92))
+                                    .blur(radius: 35)
+                                    .opacity(min(0.6, 1 - max(musicManager.albumArt.getBrightness(), 0.3)))
+                                    .onAppear {
+                                        print(musicManager.albumArt.getBrightness())
+                                    }
+                            }
+                            
+                            
+                            Button {
+                                musicManager.openMusicApp()
+                            } label: {
+                                ZStack(alignment: .bottomTrailing) {
+                                    Color.clear
+                                        .aspectRatio(1, contentMode: .fit)
+                                        .background(
+                                            Image(nsImage: musicManager.albumArt)
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                        )
+                                        .clipped()
+                                        .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
+                                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                                    
+                                    if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
+                                        AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 30, height: 30)
+                                            .offset(x: 10, y: 10)
+                                            .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
+                                    }
                                 }
                                 .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .opacity(musicManager.isPlaying ? 1 : 0.4)
+                            .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
                         }
                         
-                        Group {
-                            if vm.notchState == .open {
-                                VStack(alignment: .leading) {
-                                    GeometryReader { geo in
-                                        VStack(alignment: .leading, spacing: 4){
-                                            VStack(alignment: .leading, spacing: 0) {
-                                                MarqueeText($musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: geo.size.width)
-                                                MarqueeText(
-                                                    $musicManager.artistName,
-                                                    font: .headline,
-                                                    nsFont: .headline,
-                                                    textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor)
-                                                        .ensureMinimumBrightness(factor: 0.6) : .gray,
-                                                    frameWidth: geo.size.width
-                                                )
-                                                .fontWeight(.medium)
-                                            }
-                                            
-                                            MusicSliderView(sliderValue: $sliderValue,
-                                                            duration: $musicManager.songDuration,
-                                                            lastDragged: $lastDragged,
-                                                            color: musicManager.avgColor,
-                                                            dragging: $dragging) { newValue in
-                                                musicManager.seekTrack(to: newValue)
-                                            }
-                                                            .padding(.top, 5)
-                                                            .frame(height: 36)
-                                        }
+                        VStack(alignment: .leading) {
+                            GeometryReader { geo in
+                                VStack(alignment: .leading, spacing: 4){
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        MarqueeText($musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: geo.size.width)
+                                        MarqueeText(
+                                            $musicManager.artistName,
+                                            font: .headline,
+                                            nsFont: .headline,
+                                            textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor)
+                                                .ensureMinimumBrightness(factor: 0.6) : .gray,
+                                            frameWidth: geo.size.width
+                                        )
+                                        .fontWeight(.medium)
                                     }
-                                    .padding(.top, 10)
-                                    .padding(.leading, 5)
-                                    HStack(spacing: 8) {
-                                        HoverButton(icon: "backward.fill", scale: .medium) {
-                                            musicManager.previousTrack()
-                                        }
-                                        HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
-                                            print("tapped")
-                                            musicManager.togglePlayPause()
-                                        }
-                                        HoverButton(icon: "forward.fill", scale: .medium) {
-                                            musicManager.nextTrack()
-                                        }
+                                    
+                                    MusicSliderView(sliderValue: $sliderValue,
+                                                    duration: $musicManager.songDuration,
+                                                    lastDragged: $lastDragged,
+                                                    color: musicManager.avgColor,
+                                                    dragging: $dragging) { newValue in
+                                        musicManager.seekTrack(to: newValue)
                                     }
-                                    .frame(maxWidth: .infinity, alignment: .center)
+                                                    .padding(.top, 5)
+                                                    .frame(height: 36)
                                 }
-                                .buttonStyle(PlainButtonStyle())
-                                .frame(minWidth: 170)
                             }
+                            .padding(.top, 10)
+                            .padding(.leading, 5)
+                            
+                            HStack(spacing: 8) {
+                                HoverButton(icon: "backward.fill", scale: .medium) {
+                                    musicManager.previousTrack()
+                                }
+                                HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
+                                    print("tapped")
+                                    musicManager.togglePlayPause()
+                                }
+                                HoverButton(icon: "forward.fill", scale: .medium) {
+                                    musicManager.nextTrack()
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .center)
                         }
+                        .buttonStyle(PlainButtonStyle())
+                        .frame(minWidth: 170)
                     }
                     
                     if Defaults[.showCalendar] {
@@ -130,10 +132,10 @@ struct NotchHomeView: View {
                             .onContinuousHover { phase in
                                 if Defaults[.closeGestureEnabled] {
                                     switch phase {
-                                    case .active:
-                                        Defaults[.closeGestureEnabled] = false
-                                    case .ended:
-                                        Defaults[.closeGestureEnabled] = false
+                                        case .active:
+                                            Defaults[.closeGestureEnabled] = false
+                                        case .ended:
+                                            Defaults[.closeGestureEnabled] = false
                                     }
                                 }
                             }
@@ -173,8 +175,8 @@ struct NotchHomeView: View {
                     timer?.cancel()
                 }
             }
-            .transition(.opacity.combined(with: .blurReplace))
         }
+        .transition(.opacity.combined(with: .blurReplace))
         .blur(radius: vm.notchState == .closed ? 15 : 0)
     }
     
