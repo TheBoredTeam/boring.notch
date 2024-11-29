@@ -160,6 +160,7 @@ struct GeneralSettings: View {
                         Text(screen)
                     }
                 }
+                .disabled(showOnAllDisplays)
                 .onChange(of: NSScreen.screens) {
                     screens =  NSScreen.screens.compactMap({$0.localizedName})
                 }
