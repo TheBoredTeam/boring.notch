@@ -178,6 +178,7 @@ struct NotchHomeView: View {
                 .blur(radius: vm.notchState == .closed ? 30 : 0)
             }
         }
+        .transition(.opacity.combined(with: .blurReplace))
     }
     
     private func startTimer() {
