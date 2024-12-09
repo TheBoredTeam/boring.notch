@@ -15,9 +15,6 @@
 <img src="https://www.kindpng.com/picc/m/221-2215393_discord-human-action-hd-png-download.png" width="200" alt="Discord - Human Action, HD Png Download@kindpng.com" />
 </a>
 
-## Preview
-
-https://github.com/user-attachments/assets/19b87973-4b3a-4853-b532-7e82d1d6b040
 
 Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen!
 
@@ -25,36 +22,6 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 ### Icon credits: [@maxtron95](https://github.com/maxtron95)
 ### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **A MacBook**: With a boring notch.
-- **macOS 14.2 or later**: If you’re not on the latest macOS, we might need to send a search party.
-- **Xcode 15.0 or later**: This is where the magic happens, so make sure it’s up-to-date.
-
-### Installation
-
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/TheBoredTeam/boring.notch.git
-   cd boring.notch
-   ```
-
-2. **Open the Project in Xcode**:
-   ```bash
-   open boringNotch.xcodeproj
-   ```
-
-3. **Build and Run**:
-    - Select your target device (MacBook—you do have one, right?).
-    - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
-
-## 🎸 Usage
-
-- Launch the app, and voilà—your notch is now the coolest part of your screen.
-- Hover over the notch to see it expand and reveal all its secrets.
-- Use the controls to manage your music like a rockstar.
 
 ## 📋 Roadmap
 - [x] Proper notch sizing and animations 📐
@@ -64,7 +31,9 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - [x] Calendar integration 📆
 - [x] Customizable gesture control 👆🏻
 - [x] Shelf functionality with AirDrop 📚
-- [x] Extension system with [starter template](https://github.com/TheBoredTeam/TheBoringWorker) 🧩
+- [x] Extension system with [starter template](https://github.com/TheBoredTeam/TheBoringWorker) 
+- [ ] Auto hide in ANY fullscreen app toggle for non notch macbook users
+- [ ] Siri (Apple intelligence) integration with notch
 - [ ] Clipboard history manager 📌 `Extension`
 - [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Extension`
 - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`
@@ -78,35 +47,6 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 > [!NOTE]
 > We’re hard at work on some awesome extensions! Stay tuned, and we’ll keep you updated as soon as they’re released.
 
-## 🤝 Contributing
-
-We’re all about good vibes and awesome contributions! Here’s how you can join the fun:
-
-1. **Fork the Repo**: Click that shiny "Fork" button and make your own version.
-2. **Clone Your Fork**:
-   ```bash
-   git clone https://github.com/{your-name}/boring.notch.git
-   # Replace {your-name} with your GitHub username
-   ```
-3. **Make sure to use `dev` branch as base.**
-4. **Create a New Branch**:
-   ```bash
-   git checkout -b feature/{your-feature-name}
-   # Replace {your-feature-name} with a descriptive and concise name for your branch
-   # It is best practice to use only alphanumeric characters, write words in lowercase
-   # and seperate words with a single hyphen
-   ```
-5. **Make Your Changes**: Add that feature or fix that bug.
-6. **Commit Your Changes**:
-   ```bash
-   git commit -m "insert descriptive message here"
-   ```
-7. **Push to Your Fork**:
-   ```bash
-   git push origin feature/{your-feature-name}
-   # Remember to replace {your-feature-name} with the name you chose
-   ```
-8. **Create a Pull Request**: Head to the original repository and click on "New Pull Request." Fill in the required details, **make sure the base branch is set to `dev`**, and submit your PR. Let’s see what you’ve got!
 
 ## 📝 License
 
