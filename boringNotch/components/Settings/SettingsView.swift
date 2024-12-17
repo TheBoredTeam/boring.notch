@@ -144,8 +144,13 @@ struct GeneralSettings: View {
             }
 
             Section {
-                Defaults.Toggle("Menubar icon", key: .menubarIcon)
-                LaunchAtLogin.Toggle("Launch at login")
+                Defaults.Toggle(
+                    NSLocalizedString("Menubar icon", comment: "Toggle in parameter to enable menubar icon"),
+                    key: .menubarIcon
+                )
+                LaunchAtLogin.Toggle(
+                    NSLocalizedString("Launch at login", comment:"Launch at login")
+                )
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     HStack {
                         Text("Show on all displays")
@@ -252,12 +257,18 @@ struct GeneralSettings: View {
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
-            Defaults.Toggle("Enable gestures", key: .enableGestures)
+            Defaults.Toggle(
+                NSLocalizedString("Enable gestures", comment: "Toggle in parameters to enable gestures"),
+                key: .enableGestures
+            )
                 .disabled(!openNotchOnHover)
             if enableGestures {
                 Toggle("Media change with horizontal gestures", isOn: .constant(false))
                     .disabled(true)
-                Defaults.Toggle("Close gesture", key: .closeGestureEnabled)
+                Defaults.Toggle(
+                    NSLocalizedString("Close gesture", comment: "Toggle in parameters to enable the closing gesture" ),
+                    key: .closeGestureEnabled
+                )
                 Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
                     HStack {
                         Text("Gesture sensitivity")
@@ -283,8 +294,14 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-            Defaults.Toggle("Enable haptics", key: .enableHaptics)
-            Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
+            Defaults.Toggle(
+                NSLocalizedString("Enable haptics", comment: "Parameter toggle for enabling haptics"),
+                key: .enableHaptics
+            )
+            Defaults.Toggle(
+                NSLocalizedString("Open notch on hover", comment: "Parameter toggle for opening notch on hover"),
+                key: .openNotchOnHover
+            )
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
@@ -309,8 +326,14 @@ struct Charge: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Show charging indicator", key: .chargingInfoAllowed)
-                Defaults.Toggle("Show battery indicator", key: .showBattery)
+                Defaults.Toggle(
+                    NSLocalizedString("Show charging indicator", comment: "Toogle in parameters to Show charging indicator"),
+                    key: .chargingInfoAllowed
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("Show battery indicator", comment: "Toggle in parameters to show battery indicator"),
+                    key: .showBattery
+                )
             } header: {
                 Text("General")
             }
@@ -327,9 +350,15 @@ struct Downloads: View {
         Form {
             warningBadge("We don't support downloads yet", "It will be supported later on.")
             Section {
-                Defaults.Toggle("Show download progress", key: .enableDownloadListener)
+                Defaults.Toggle(
+                    NSLocalizedString("Show download progress", comment: "Toggle in parameters to show the download progress in supported apps"),
+                    key: .enableDownloadListener
+                )
                     .disabled(true)
-                Defaults.Toggle("Enable Safari Downloads", key: .enableSafariDownloads)
+                Defaults.Toggle(
+                    NSLocalizedString("Enable Safari Downloads", comment: "Toggle to in parameters to enable Safari downloads"),
+                    key: .enableSafariDownloads
+                )
                     .disabled(!Defaults[.enableDownloadListener])
                 Picker("Download indicator style", selection: $selectedDownloadIndicatorStyle) {
                     Text("Progress bar")
@@ -433,8 +462,13 @@ struct HUD: View {
                     Text("Gradient")
                         .tag(true)
                 }
-                Defaults.Toggle("Enable glowing effect", key: .systemEventIndicatorShadow)
-                Defaults.Toggle("Use accent color", key: .systemEventIndicatorUseAccent)
+                Defaults.Toggle(
+                    NSLocalizedString("Enable glowing effect", comment: "Toggle in parameters to enable the glowing effet for progress bars"),
+                    key: .systemEventIndicatorShadow
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("Use accent color", comment: "Toggle in parameters to show the accent color of progress bars"),
+                    key: .systemEventIndicatorUseAccent)
             } header: {
                 HStack {
                     Text("Appearance")
@@ -456,7 +490,10 @@ struct Media: View {
                     "Enable music live activity",
                     isOn: $coordinator.showMusicLiveActivityOnClosed.animation()
                 )
-                Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
+                Defaults.Toggle(
+                    NSLocalizedString("Enable sneak peek", comment: "Toggle in parameters to enable the Sneak Peek feature"),
+                    key: .enableSneakPeek
+                )
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {
@@ -472,7 +509,10 @@ struct Media: View {
             }
             
             Section {
-                Defaults.Toggle("Autohide BoringNotch in fullscreen", key: .enableFullscreenMediaDetection)
+                Defaults.Toggle(
+                    NSLocalizedString("Autohide BoringNotch in fullscreen", comment: "Toggle in the parameters to autohide Boring notch in fullscreen"),
+                    key: .enableFullscreenMediaDetection
+                )
             } header: {
                 HStack {
                     Text("Fullscreen media playback detection")
@@ -578,8 +618,14 @@ struct Shelf: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Enable shelf", key: .boringShelf)
-                Defaults.Toggle("Open shelf tab by default if items added", key: .openShelfByDefault)
+                Defaults.Toggle(
+                    NSLocalizedString("Enable shelf", comment: "Toggle in parameters to enable shelf system"),
+                    key: .boringShelf
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("Open shelf tab by default if items added", comment: "Toggle in parameters to open shelf by default if items are added"),
+                    key: .openShelfByDefault
+                )
             } header: {
                 HStack {
                     Text("General")
@@ -732,21 +778,38 @@ struct Appearance: View {
         Form {
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
-                Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
-                Defaults.Toggle("Enable window shadow", key: .enableShadow)
-                Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
+                Defaults.Toggle(
+                    NSLocalizedString("Settings icon in notch", comment: "Toggle in parameters for settings icon in notch"),
+                    key: .settingsIconInNotch
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("Enable window shadow", comment: "Toggle in parameters for enabling the window shadow"),
+                    key: .enableShadow
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("Corner radius scaling", comment: "Toggle in parameters for corner radius scaling"),
+                    key: .cornerRadiusScaling
+                )
             } header: {
                 Text("General")
             }
             
             Section {
-                Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
-                Defaults
-                    .Toggle("Player tinting", key: .playerColorTinting)
-                Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
+                Defaults.Toggle(
+                    NSLocalizedString("Enable colored spectrograms", comment: "Toggle in parameters for colored spectrograms"),
+                    key: .coloredSpectrogram
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("Player tinting", comment: "Toggle in parameters to tint the player"),
+                    key: .playerColorTinting
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("Enable blur effect behind album art", comment: "Toggle in parameters to enable the blur effect behind album art"),
+                    key: .lightingEffect
+                )
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
-                        Text(option.rawValue)
+                        Text(option.localizedName)
                     }
                 }
             } header: {
@@ -922,7 +985,10 @@ struct Appearance: View {
             }
             
             Section {
-                Defaults.Toggle("Enable boring mirror", key: .showMirror)
+                Defaults.Toggle(
+                    NSLocalizedString("Enable boring mirror", comment: "Toggle in parameters to enable Boring mirror"),
+                    key: .showMirror
+                )
                     .disabled(!checkVideoInput())
                 Picker("Mirror shape", selection: $mirrorShape) {
                     Text("Circle")
@@ -930,8 +996,14 @@ struct Appearance: View {
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
-                Defaults.Toggle("Show calendar", key: .showCalendar)
-                Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
+                Defaults.Toggle(
+                    NSLocalizedString("Show calendar", comment: "Toggle in parameters to show the calendar in the expanded view"),
+                    key: .showCalendar
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("Show cool face animation while inactivity", comment: "Toggle in parameters to show a face animation when inactive"),
+                    key: .showNotHumanFace
+                )
                     .disabled(true)
             } header: {
                 HStack {
