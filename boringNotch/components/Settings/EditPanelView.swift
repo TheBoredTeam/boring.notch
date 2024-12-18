@@ -12,14 +12,14 @@ struct EditPanelView: View {
     var body: some View {
         VStack {
             HStack {
-                Text("Edit layout")
+                Text("edit_panel.edit_layout")
                     .font(.system(.largeTitle, design: .rounded))
                     .foregroundColor(.white.opacity(0.5))
                 Spacer()
                 Button {
                     exit(0)
                 } label: {
-                    Label("Close", systemImage: "xmark")
+                    Label("common.close", systemImage: "xmark")
                 }
                 .controlSize(.extraLarge)
                 .buttonStyle(AccessoryBarButtonStyle())

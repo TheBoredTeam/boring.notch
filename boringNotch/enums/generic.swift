@@ -67,9 +67,9 @@ enum MirrorShapeEnum: String, LocalizedEnum, Defaults.Serializable {
 }
 
 enum WindowHeightMode: String, LocalizedEnum, Defaults.Serializable {
-    case matchMenuBar = "Match menubar height"
+    case matchMenuBar = "settings.general.notch_match_menubar_height"
     case matchRealNotchSize = "Match real notch height"
-    case custom = "Custom height"
+    case custom = "settings.general.notch_custom_height"
 }
 
 enum SliderColorEnum: String, CaseIterable, LocalizedEnum, Defaults.Serializable {

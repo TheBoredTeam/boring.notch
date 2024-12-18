@@ -68,7 +68,7 @@ struct InlineHUD: View {
             
             HStack {
                 if (type == .mic) {
-                    Text(value.isZero ? "muted" : "unmuted")
+                    Text(value.isZero ? "common.muted" : "common.unmuted")
                         .foregroundStyle(.gray)
                         .lineLimit(1)
                         .allowsTightening(true)
@@ -79,7 +79,7 @@ struct InlineHUD: View {
                     HStack {
                         DraggableProgressBar(value: $value)
                         if (type == .volume && value.isZero) {
-                            Text("muted")
+                            Text("common.muted")
                                 .font(.caption)
                                 .fontWeight(.medium)
                                 .foregroundStyle(.gray)

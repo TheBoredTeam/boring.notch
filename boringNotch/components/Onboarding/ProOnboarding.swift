@@ -8,6 +8,14 @@
 import SwiftUI
 import SwiftUIIntrospect
 
+struct ProOnboard_Previews: PreviewProvider {
+    static var previews: some View {
+        ProOnboard()
+            .previewLayout(.sizeThatFits)
+            .padding()
+    }
+}
+
 struct ProOnboard: View {
     var body: some View {
         ZStack(alignment: .top) {
@@ -27,7 +35,7 @@ struct ProOnboard: View {
                         .padding(.bottom, 8)
                     Text("TheBoringNotch")
                         .font(.system(.largeTitle, design: .serif))
-                    Text("Welcome")
+                    Text("common.welcome")
                         .font(.title)
                         .foregroundStyle(.secondary)
                         .padding(.bottom, 30)
@@ -49,7 +57,7 @@ struct ProOnboard: View {
                     Button {
                         NSApp.keyWindow?.close()
                     } label: {
-                        Text("Get started")
+                        Text("onboarding.get_started")
                             .padding(.horizontal, 20)
                             .padding(.vertical, 6)
                     }

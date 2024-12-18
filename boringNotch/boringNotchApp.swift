@@ -26,7 +26,7 @@ struct DynamicNotchApp: App {
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             SettingsLink(label: {
-                Text("Settings")
+                Text("common.settings")
             })
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             if false {
@@ -51,7 +51,7 @@ struct DynamicNotchApp: App {
                 
                    NSApplication.shared.terminate(nil)
             }
-            Button("Quit", role: .destructive) {
+            Button("common.quit", role: .destructive) {
                 NSApp.terminate(nil)
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)

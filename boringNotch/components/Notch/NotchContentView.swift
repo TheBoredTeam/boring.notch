@@ -34,7 +34,7 @@ struct NotchContentView: View {
                 HStack(spacing: 14) {
                     if vm.notchState == .closed && vm.expandingView.show {
                         if(vm.expandingView.type == .battery){
-                            Text("Charging").foregroundStyle(.white).padding(.leading, 4)
+                            Text("common.charging").foregroundStyle(.white).padding(.leading, 4)
                         }
                         else {
                             if vm.expandingView.browser == .safari {
