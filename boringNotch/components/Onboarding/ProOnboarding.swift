@@ -33,7 +33,7 @@ struct ProOnboard: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 100, height: 100)
                         .padding(.bottom, 8)
-                    Text("TheBoringNotch")
+                    Text("common.app_name")
                         .font(.system(.largeTitle, design: .serif))
                     Text("common.welcome")
                         .font(.title)

@@ -2,7 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     " – %lld" : {
-
+      "shouldTranslate" : false
     },
     "(%@)" : {
       "localizations" : {
@@ -12,44 +12,35 @@
             "value" : "(%@)"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%.0f seconds" : {
-
+      "shouldTranslate" : false
     },
     "%.1fs" : {
-
+      "shouldTranslate" : false
     },
     "%@" : {
-
+      "shouldTranslate" : false
     },
     "%d%%" : {
-
+      "shouldTranslate" : false
     },
     "%lld" : {
-
+      "shouldTranslate" : false
     },
     "%lld%%" : {
-
+      "shouldTranslate" : false
     },
     "• Bug fixes" : {
-
+      "shouldTranslate" : false
     },
     "• Improved performance" : {
-
+      "shouldTranslate" : false
     },
     "• New feature 1" : {
-
-    },
-    "Activation" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activation"
-          }
-        }
-      }
+      "shouldTranslate" : false
     },
     "activation.header.subtitle" : {
       "localizations" : {
@@ -131,9 +122,19 @@
         }
       }
     },
-    "AirDrop" : {
+    "airdrop.airdrop_service_unavailable" : {
       "localizations" : {
-        "fr" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AirDrop service not available"
+          }
+        }
+      }
+    },
+    "airdrop.name" : {
+      "localizations" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "AirDrop"
@@ -141,22 +142,12 @@
         }
       }
     },
-    "AirDrop service not available" : {
+    "battery.charging" : {
       "localizations" : {
-        "fr" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le service AirDrop n’est pas disponible"
-          }
-        }
-      }
-    },
-    "Appearance" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apparence"
+            "value" : "Charging"
           }
         }
       }
@@ -186,23 +177,8 @@
             "value" : "boring.notch"
           }
         }
-      }
-    },
-    "Both" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Both"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les deux"
-          }
-        }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Buy Me a Coffee" : {
       "extractionState" : "stale",
@@ -251,39 +227,22 @@
         }
       }
     },
-    "Charging" : {
+    "changelog.got_it" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Charging"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chargement"
+            "value" : "Got it!"
           }
         }
       }
     },
-    "Circle" : {
+    "changelog.whats_new" : {
       "localizations" : {
-        "fr" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cercle"
-          }
-        }
-      }
-    },
-    "Circular" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Circulaire"
+            "value" : "What’s New"
           }
         }
       }
@@ -320,6 +279,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Ajouter"
+          }
+        }
+      }
+    },
+    "common.app_name" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TheBoringNotch"
           }
         }
       }
@@ -392,6 +361,16 @@
         }
       }
     },
+    "common.edit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
     "common.error" : {
       "localizations" : {
         "en" : {
@@ -412,12 +391,63 @@
         }
       }
     },
+    "common.gradient" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gradient"
+          }
+        }
+      }
+    },
+    "common.hierarchical" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hierarchical"
+          }
+        }
+      }
+    },
+    "common.inline" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inline"
+          }
+        }
+      }
+    },
     "common.later" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Later"
+          }
+        }
+      }
+    },
+    "common.load_file_error" : {
+      "comment" : "Error message when one or more files failed to load",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One or more files failed to load"
+          }
+        }
+      }
+    },
+    "common.mic %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mic %@"
           }
         }
       }
@@ -443,11 +473,12 @@
       }
     },
     "common.muted" : {
+      "comment" : "Mic muted",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Muted"
+            "value" : "muted"
           }
         }
       }
@@ -500,6 +531,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quitter l’application"
+          }
+        }
+      }
+    },
+    "common.restart_app" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart Boring Notch"
           }
         }
       }
@@ -557,6 +598,7 @@
       }
     },
     "common.unmuted" : {
+      "comment" : "Mic unmuted",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -592,104 +634,6 @@
         }
       }
     },
-    "Custom color" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom color"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couleur personnalisée"
-          }
-        }
-      }
-    },
-    "Custom notch size - %.0f" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Taille personnalisée de l’encoche - %.0f"
-          }
-        }
-      }
-    },
-    "Default" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Par défaut"
-          }
-        }
-      }
-    },
-    "Description" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Description"
-          }
-        }
-      }
-    },
-    "Download icon style" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download icon style"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Style de l’icône de téléchargement"
-          }
-        }
-      }
-    },
-    "Download indicator style" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download indicator style"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Style de l’indicateur de téléchargement"
-          }
-        }
-      }
-    },
-    "Download indicators" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Indicateur de téléchargement"
-          }
-        }
-      }
-    },
-    "Downloads" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Téléchargements"
-          }
-        }
-      }
-    },
     "downloads.download" : {
       "localizations" : {
         "en" : {
@@ -710,16 +654,6 @@
         }
       }
     },
-    "Edit" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Éditer"
-          }
-        }
-      }
-    },
     "edit_panel.edit_layout" : {
       "localizations" : {
         "en" : {
@@ -730,66 +664,8 @@
         }
       }
     },
-    "Enable glowing effect" : {
-      "comment" : "Toggle in parameters to enable the glowing effet for progress bars",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer l’effet de brillance"
-          }
-        }
-      }
-    },
-    "Enable HUD replacement" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer le remplacement de l’ATH"
-          }
-        }
-      }
-    },
-    "Enable Safari Downloads" : {
-      "comment" : "Toggle to in parameters to enable Safari downloads",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer les téléchargements Safari"
-          }
-        }
-      }
-    },
     "ERROR: VIEW NOT DEFINED" : {
 
-    },
-    "Exclude apps" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exclude apps"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exclure des applications"
-          }
-        }
-      }
-    },
-    "General" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Général"
-          }
-        }
-      }
     },
     "GitHub" : {
       "localizations" : {
@@ -805,239 +681,15 @@
             "value" : "GitHub"
           }
         }
-      }
-    },
-    "Got it!" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compris!"
-          }
-        }
-      }
-    },
-    "Gradient" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gradiant"
-          }
-        }
-      }
-    },
-    "Hierarchical" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hiérarchique"
-          }
-        }
-      }
-    },
-    "HUD style" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Style de l’ATH"
-          }
-        }
-      }
-    },
-    "HUDs" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ATHs"
-          }
-        }
-      }
-    },
-    "Inline" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En ligne"
-          }
-        }
-      }
-    },
-    "Key" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clé"
-          }
-        }
-      }
-    },
-    "Match album art" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Faire correspondre à la couverture d’album"
-          }
-        }
-      }
-    },
-    "Mic %@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone %@"
-          }
-        }
-      }
-    },
-    "No excluded apps" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune application exclue"
-          }
-        }
-      }
-    },
-    "Onboarding" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Embarquement"
-          }
-        }
-      }
+      },
+      "shouldTranslate" : false
     },
     "onboarding.get_started" : {
-
-    },
-    "One or more files failed to load" : {
-      "comment" : "Error message when one or more files failed to load",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un ou plusieurs fichier n’a pas pu être chargé"
-          }
-        }
-      }
-    },
-    "Only app icon" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only app icon"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seulement l’icône de l’application"
-          }
-        }
-      }
-    },
-    "Only download icon" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only download icon"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seulement l’icône de téléchargement"
-          }
-        }
-      }
-    },
-    "Percentage" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Percentage"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pourcentage"
-          }
-        }
-      }
-    },
-    "PRO" : {
-
-    },
-    "Progress" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Progrès"
-          }
-        }
-      }
-    },
-    "Progress bar" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Progress bar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Barre de progression"
-          }
-        }
-      }
-    },
-    "Progressbar style" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Style de la barre de progression"
-          }
-        }
-      }
-    },
-    "Rectangular" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rectangulaire"
-          }
-        }
-      }
-    },
-    "Restart Boring Notch" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Redémarrer Boring Notch"
+            "value" : "Get started"
           }
         }
       }
@@ -1058,18 +710,12 @@
         }
       }
     },
-    "Settings" : {
+    "setting.extensions.extension_description" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Settings"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paramètres"
+            "value" : "Description"
           }
         }
       }
@@ -1399,6 +1045,26 @@
         }
       }
     },
+    "settings.appearance.mirror_shape.circle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Circle"
+          }
+        }
+      }
+    },
+    "settings.appearance.mirror_shape.square" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Square"
+          }
+        }
+      }
+    },
     "settings.appearance.no_custom_visualizer" : {
       "localizations" : {
         "en" : {
@@ -1531,6 +1197,16 @@
         }
       }
     },
+    "settings.appearence.media.slider_color" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slider color"
+          }
+        }
+      }
+    },
     "settings.battery.header.general" : {
       "localizations" : {
         "en" : {
@@ -1577,6 +1253,170 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher l’indicateur de charge"
+          }
+        }
+      }
+    },
+    "settings.downloaders.header.excluded_apps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded apps"
+          }
+        }
+      }
+    },
+    "settings.downloads.enable_safari_dl" : {
+      "comment" : "Toggle to in parameters to enable Safari downloads",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Safari downloads"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Activer les téléchargements Safari"
+          }
+        }
+      }
+    },
+    "settings.downloads.header.indicators" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download indicators"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Indicateur de téléchargement"
+          }
+        }
+      }
+    },
+    "settings.downloads.icon_style" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "settings.downloads.icon_style"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Style de l’icône de téléchargement"
+          }
+        }
+      }
+    },
+    "settings.downloads.indicator_style" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "settings.downloads.indicator_style"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Style de l’indicateur de téléchargement"
+          }
+        }
+      }
+    },
+    "settings.downloads.no_excluded_apps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No excluded apps"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aucune application exclue"
+          }
+        }
+      }
+    },
+    "settings.downloads.show_progress" : {
+      "comment" : "Toggle in parameters to show the download progress in supported apps",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "settings.downloads.show_progress"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher le status du téléchargement"
+          }
+        }
+      }
+    },
+    "settings.downloads.style.app_icon_only" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only app icon"
+          }
+        }
+      }
+    },
+    "settings.downloads.style.both_app_icon" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only download icon"
+          }
+        }
+      }
+    },
+    "settings.downloads.style.icon_only" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Both"
+          }
+        }
+      }
+    },
+    "settings.downloads.style.percentage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Percentage"
+          }
+        }
+      }
+    },
+    "settings.downloads.style.progress_bar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "settings.downloads.style.progress_bar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barre de progression"
           }
         }
       }
@@ -1709,6 +1549,16 @@
         }
       }
     },
+    "settings.general.accent_color.custom_color" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom color"
+          }
+        }
+      }
+    },
     "settings.general.behavior.enable_haptics" : {
       "comment" : "Parameter toggle for enabling haptics",
       "localizations" : {
@@ -1771,6 +1621,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se souvenir du dernier onglet"
+          }
+        }
+      }
+    },
+    "settings.general.custom_notch_size %.0f" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom notch size - %.0f"
           }
         }
       }
@@ -2131,6 +1991,108 @@
         }
       }
     },
+    "settings.hud.enable_replacement" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable HUD replacement"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Activer le remplacement de l’ATH"
+          }
+        }
+      }
+    },
+    "settings.hud.header.appearance" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Apparence"
+          }
+        }
+      }
+    },
+    "settings.hud.header.general" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        }
+      }
+    },
+    "settings.hud.progressbar_style" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progressbar style"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Style de la barre de progression"
+          }
+        }
+      }
+    },
+    "settings.hud.progressbar_style.enable_glowing" : {
+      "comment" : "Toggle in parameters to enable the glowing effet for progress bars",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable glowing"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Activer l’effet de brillance"
+          }
+        }
+      }
+    },
+    "settings.hud.progressbar_style.use_accent_color" : {
+      "comment" : "Toggle in parameters to show the accent color of progress bars",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use accent colour"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Utiliser la couleur d’accentuation"
+          }
+        }
+      }
+    },
+    "settings.hud.style" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HUDs style"
+          }
+        }
+      }
+    },
     "settings.media.autohide_in_fullscreen" : {
       "comment" : "Toggle in the parameters to autohide Boring notch in fullscreen",
       "localizations" : {
@@ -2364,7 +2326,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Appearance"
+            "value" : "settings.hud.header.appearance"
           }
         },
         "fr" : {
@@ -2520,51 +2482,50 @@
       }
     },
     "shelf.drop_files_here" : {
-
-    },
-    "Show download progress" : {
-      "comment" : "Toggle in parameters to show the download progress in supported apps",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show download progress"
+            "value" : "Drop files here"
+          }
+        }
+      }
+    },
+    "slidercolor.match_accent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match accent"
+          }
+        }
+      }
+    },
+    "slidercolor.match_album_art" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match album art"
+          }
+        }
+      }
+    },
+    "slidercolor.white" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "White"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher le status du téléchargement"
-          }
-        }
-      }
-    },
-    "Slider color" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couleur du curseur"
-          }
-        }
-      }
-    },
-    "Square" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carré"
-          }
-        }
-      }
-    },
-    "TheBoringNotch" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TheBoringNotch"
+            "state" : "needs_review",
+            "value" : "Blanc"
           }
         }
       }
@@ -2629,34 +2590,22 @@
         }
       }
     },
-    "Use accent color" : {
-      "comment" : "Toggle in parameters to show the accent color of progress bars",
+    "windowtitle.activation" : {
       "localizations" : {
-        "fr" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utiliser la couleur d’accentuation"
+            "value" : "Activation"
           }
         }
       }
     },
-    "What's New" : {
+    "windowtitle.onboarding" : {
       "localizations" : {
-        "fr" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nouveautés"
-          }
-        }
-      }
-    },
-    "White" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blanc"
+            "value" : "Onboarding"
           }
         }
       }

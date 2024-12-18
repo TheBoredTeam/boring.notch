@@ -30,13 +30,13 @@ struct DynamicNotchApp: App {
             })
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             if false {
-                Button("Activate License") {
+                Button("activation.activate_license") {
                     openWindow(id: "activation")
                 }
             }
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
-            Button("Restart Boring Notch") {
+            Button("common.restart_app") {
                     guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
                     
                     let workspace = NSWorkspace.shared
@@ -61,13 +61,13 @@ struct DynamicNotchApp: App {
             SettingsView(updaterController: updaterController)
         }
         
-        Window("Onboarding", id: "onboarding") {
+        Window("windowtitle.onboarding", id: "onboarding") {
             ProOnboard()
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         
-        Window("Activation", id: "activation") {
+        Window("windowtitle.activation", id: "activation") {
             ActivationWindow()
         }
         .windowStyle(.hiddenTitleBar)
