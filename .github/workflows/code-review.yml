@@ -21,7 +21,7 @@ jobs:
         with:
           fetch-depth: 0  # Required to get full history for better context
 
-        - name: 🦦 Dr. OtterAI Code Review, PhD
+      - name: 🦦 Dr. OtterAI Code Review, PhD
         uses: fofsinx/OtterAI@1.1.1
             
         with:
