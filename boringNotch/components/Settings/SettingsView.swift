@@ -165,7 +165,7 @@ struct GeneralSettings: View {
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     HStack {
                         Text("settings.general.show_on_all_displays")
-                        customBadge(text: "common.beta")
+                        customBadge(text: NSLocalizedString("common.beta", comment: "Beta badge"))
                     }
                 }
                 .onChange(of: showOnAllDisplays) {
@@ -187,7 +187,7 @@ struct GeneralSettings: View {
                 Picker(selection: $notchHeightMode, label:
                 HStack {
                     Text("settings.general.notch_display_height")
-                    customBadge(text: "common.beta")
+                    customBadge(text: NSLocalizedString("common.beta", comment: "Beta badge"))
                 }) {
                     Text("settings.general.notch_match_display_height")
                         .tag(WindowHeightMode.matchRealNotchSize)
@@ -292,7 +292,7 @@ struct GeneralSettings: View {
         } header: {
             HStack {
                 Text("settings.general.header.gestures")
-                customBadge(text: "common.beta")
+                customBadge(text: NSLocalizedString("common.beta", comment: "Beta badge"))
             }
         } footer: {
             Text("settings.general.gestures.descriptions.open_close")
@@ -527,7 +527,7 @@ struct Media: View {
             } header: {
                 HStack {
                     Text("settings.media.header.fullscreen")
-                    customBadge(text: "common.beta")
+                    customBadge(text: NSLocalizedString("common.beta", comment: "Beta badge"))
                 }
             }
         }
@@ -859,7 +859,7 @@ struct Appearance: View {
             } header: {
                 HStack {
                     Text("settings.appearance.header.custom_live_activity_anim")
-                    customBadge(text: "common.coming_soon")
+                    customBadge(text: NSLocalizedString("common.coming_soon", comment: "Coming soon badge"))
                 }
             }
             
@@ -1062,7 +1062,7 @@ struct Appearance: View {
             } header: {
                 HStack {
                     Text("settings.appearance.header.app_icon")
-                    customBadge(text: "common.coming_soon")
+                    customBadge(text: NSLocalizedString("common.coming_soon", comment: "Coming soon badge"))
                 }
             }
         }
