@@ -10,20 +10,20 @@ import Cocoa
 extension NSAlert {
     static func popError(_ error: String) {
         let alert = NSAlert()
-        alert.messageText = NSLocalizedString("Error", comment: "")
+        alert.messageText = NSLocalizedString("common.error", comment: "")
         alert.alertStyle = .critical
         alert.informativeText = error
-        alert.addButton(withTitle: NSLocalizedString("OK", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("common.ok", comment: ""))
         alert.runModal()
     }
 
     static func popRestart(_ error: String, completion: @escaping () -> Void) {
         let alert = NSAlert()
-        alert.messageText = NSLocalizedString("Need Restart", comment: "")
+        alert.messageText = NSLocalizedString("common.restart_needed", comment: "")
         alert.alertStyle = .critical
         alert.informativeText = error
-        alert.addButton(withTitle: NSLocalizedString("Exit", comment: ""))
-        alert.addButton(withTitle: NSLocalizedString("Later", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("common.exit", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("common.later", comment: ""))
         let response = alert.runModal()
         if response == .alertFirstButtonReturn {
             completion()

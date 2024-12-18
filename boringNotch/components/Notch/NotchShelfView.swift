@@ -41,7 +41,7 @@ struct NotchShelfView: View {
                         .foregroundStyle(.white, .gray)
                         .imageScale(.large)
                     
-                    Text("Drop files here")
+                    Text("shelf.drop_files_here")
                         .foregroundStyle(.gray)
                         .font(.system(.title3, design: .rounded))
                         .fontWeight(.medium)

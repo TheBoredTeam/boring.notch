@@ -56,7 +56,7 @@ struct BoringExtrasMenu : View {
                 NSWorkspace.shared.open(sponsorPage)
             },
             icon: Image(systemName: "heart.fill"),
-            title: "Love Us"
+            title: "boring.love_us"
         )
     }
     
@@ -67,7 +67,7 @@ struct BoringExtrasMenu : View {
                 VStack(spacing: 8) {
                     Image(systemName: "gear").resizable()
                         .aspectRatio(contentMode: .fit).frame(width:20)
-                    Text("Settings").font(.body)
+                    Text("common.settings").font(.body)
                 }
             }
         })
@@ -82,7 +82,7 @@ struct BoringExtrasMenu : View {
                 }
             },
             icon: Image(systemName: "arrow.down.forward.and.arrow.up.backward"),
-            title: "Hide"
+            title: "common.hide"
         )
     }
     
@@ -96,7 +96,7 @@ struct BoringExtrasMenu : View {
                 }
             },
             icon: Image(systemName: "xmark"),
-            title: "Exit"
+            title: "common.exit"
         )
     }
 }
