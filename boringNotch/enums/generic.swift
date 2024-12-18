@@ -62,8 +62,8 @@ enum DownloadIconStyle: String, LocalizedEnum, Defaults.Serializable {
 }
 
 enum MirrorShapeEnum: String, LocalizedEnum, Defaults.Serializable {
-    case rectangle = "Rectangular"
-    case circle = "Circular"
+    case rectangle = "settings.mirror.shape.rectangle"
+    case circle = "settings.mirror.shape.circle"
 }
 
 enum WindowHeightMode: String, LocalizedEnum, Defaults.Serializable {
@@ -73,7 +73,7 @@ enum WindowHeightMode: String, LocalizedEnum, Defaults.Serializable {
 }
 
 enum SliderColorEnum: String, CaseIterable, LocalizedEnum, Defaults.Serializable {
-    case white = "White"
-    case albumArt = "Match album art"
-    case accent = "Accent color"
+    case white = "slidercolor.white"
+    case albumArt = "slidercolor.match_album_art"
+    case accent = "slidercolor.match_accent"
 }

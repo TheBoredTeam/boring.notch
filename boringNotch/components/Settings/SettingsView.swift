@@ -147,7 +147,7 @@ struct GeneralSettings: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     Spacer()
-                    ColorPicker("Custom color", selection: $accentColor)
+                    ColorPicker("settings.general.accent_color.custom_color", selection: $accentColor)
                         .labelsHidden()
                 }
             } header: {
@@ -209,7 +209,7 @@ struct GeneralSettings: View {
                 }
                 if notchHeightMode == .custom {
                     Slider(value: $nonNotchHeight, in: 15...45, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                        Text("settings.general.custom_notch_size \(nonNotchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: nonNotchHeight) {
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
@@ -236,7 +236,7 @@ struct GeneralSettings: View {
                 }
                 if nonNotchHeightMode == .custom {
                     Slider(value: $nonNotchHeight, in: 10...40, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                        Text("settings.general.custom_notch_size \(nonNotchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: nonNotchHeight) {
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
@@ -362,33 +362,33 @@ struct Downloads: View {
             warningBadge("We don't support downloads yet", "It will be supported later on.")
             Section {
                 Defaults.Toggle(
-                    NSLocalizedString("Show download progress", comment: "Toggle in parameters to show the download progress in supported apps"),
+                    NSLocalizedString("settings.downloads.show_progress", comment: "Toggle in parameters to show the download progress in supported apps"),
                     key: .enableDownloadListener
                 )
                     .disabled(true)
                 Defaults.Toggle(
-                    NSLocalizedString("Enable Safari Downloads", comment: "Toggle to in parameters to enable Safari downloads"),
+                    NSLocalizedString("settings.downloads.enable_safari_dl", comment: "Toggle to in parameters to enable Safari downloads"),
                     key: .enableSafariDownloads
                 )
                     .disabled(!Defaults[.enableDownloadListener])
-                Picker("Download indicator style", selection: $selectedDownloadIndicatorStyle) {
-                    Text("Progress bar")
+                Picker("settings.downloads.indicator_style", selection: $selectedDownloadIndicatorStyle) {
+                    Text("settings.downloads.style.progress_bar")
                         .tag(DownloadIndicatorStyle.progress)
-                    Text("Percentage")
+                    Text("settings.downloads.style.percentage")
                         .tag(DownloadIndicatorStyle.percentage)
                 }
-                Picker("Download icon style", selection: $selectedDownloadIconStyle) {
-                    Text("Only app icon")
+                Picker("settings.downloads.icon_style", selection: $selectedDownloadIconStyle) {
+                    Text("settings.downloads.style.app_icon_only")
                         .tag(DownloadIconStyle.onlyAppIcon)
-                    Text("Only download icon")
+                    Text("settings.downloads.style.icon_only")
                         .tag(DownloadIconStyle.onlyIcon)
-                    Text("Both")
+                    Text("settings.downloads.style.both_app_icon")
                         .tag(DownloadIconStyle.iconAndAppIcon)
                 }
                 
             } header: {
                 HStack {
-                    Text("Download indicators")
+                    Text("settings.downloads.header.indicators")
                     comingSoonTag()
                 }
             }
@@ -401,7 +401,7 @@ struct Downloads: View {
                 .frame(minHeight: 96)
                 .overlay {
                     if true {
-                        Text("No excluded apps")
+                        Text("settings.downloads.no_excluded_apps")
                             .foregroundStyle(Color(.secondaryLabelColor))
                     }
                 }
@@ -429,14 +429,14 @@ struct Downloads: View {
                 }
             } header: {
                 HStack (spacing: 4){
-                    Text("Exclude apps")
+                    Text("settings.downloaders.header.excluded_apps")
                     comingSoonTag()
                 }
                 
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("Downloads")
+        .navigationTitle("settings.tab.downloads")
     }
 }
 
@@ -448,15 +448,15 @@ struct HUD: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Enable HUD replacement", isOn: $coordinator.hudReplacement)
+                Toggle("settings.hud.enable_replacement", isOn: $coordinator.hudReplacement)
             } header: {
-                Text("General")
+                Text("settings.hud.header.general")
             }
             Section {
-                Picker("HUD style", selection: $inlineHUD) {
-                    Text("Default")
+                Picker("settings.hud.style", selection: $inlineHUD) {
+                    Text("common.default")
                         .tag(false)
-                    Text("Inline")
+                    Text("common.inline")
                         .tag(true)
                 }
                 .onChange(of: Defaults[.inlineHUD]) {
@@ -467,27 +467,27 @@ struct HUD: View {
                         }
                     }
                 }
-                Picker("Progressbar style", selection: $enableGradient) {
-                    Text("Hierarchical")
+                Picker("settings.hud.progressbar_style", selection: $enableGradient) {
+                    Text("common.hierarchical")
                         .tag(false)
-                    Text("Gradient")
+                    Text("common.gradient")
                         .tag(true)
                 }
                 Defaults.Toggle(
-                    NSLocalizedString("Enable glowing effect", comment: "Toggle in parameters to enable the glowing effet for progress bars"),
+                    NSLocalizedString("settings.hud.progressbar_style.enable_glowing", comment: "Toggle in parameters to enable the glowing effet for progress bars"),
                     key: .systemEventIndicatorShadow
                 )
                 Defaults.Toggle(
-                    NSLocalizedString("Use accent color", comment: "Toggle in parameters to show the accent color of progress bars"),
+                    NSLocalizedString("settings.hud.progressbar_style.use_accent_color", comment: "Toggle in parameters to show the accent color of progress bars"),
                     key: .systemEventIndicatorUseAccent)
             } header: {
                 HStack {
-                    Text("Appearance")
+                    Text("settings.hud.header.appearance")
                 }
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("HUDs")
+        .navigationTitle("settings.tab.huds")
     }
 }
 
@@ -663,7 +663,7 @@ struct Extensions: View {
                                 .frame(width: 24, height: 24)
                             Text(item.name)
                             ListItemPopover {
-                                Text("Description")
+                                Text("setting.extensions.extension_description")
                             }
                             Spacer(minLength: 0)
                             HStack(spacing: 6) {
@@ -818,7 +818,7 @@ struct Appearance: View {
                     NSLocalizedString("settings.appearance.enable_blur_effect_album_art", comment: "Toggle in parameters to enable the blur effect behind album art"),
                     key: .lightingEffect
                 )
-                Picker("Slider color", selection: $sliderColor) {
+                Picker("settings.appearence.media.slider_color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
                         Text(option.localizedName)
                     }
@@ -1002,9 +1002,9 @@ struct Appearance: View {
                 )
                     .disabled(!checkVideoInput())
                 Picker("settings.appearance.mirror_shape", selection: $mirrorShape) {
-                    Text("Circle")
+                    Text("settings.appearance.mirror_shape.circle")
                         .tag(MirrorShapeEnum.circle)
-                    Text("Square")
+                    Text("settings.appearance.mirror_shape.square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
                 Defaults.Toggle(
