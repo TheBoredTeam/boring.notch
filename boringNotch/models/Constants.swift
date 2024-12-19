@@ -25,6 +25,11 @@ struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
     var speed: CGFloat = 1.0
 }
 
+enum CalendarSelectionState: Codable, Defaults.Serializable {
+    case all
+    case selected(Set<String>)
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -99,4 +104,7 @@ extension Defaults.Keys {
     // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
+    
+    // MARK: Calendar
+    static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
 }
