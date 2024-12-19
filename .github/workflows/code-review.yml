@@ -9,6 +9,16 @@ on:
       - '.gitignore'
 
 jobs:
+  cori_authentication:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cori Auth Step
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.CORI_APP_ID }}
+          private-key: ${{ secrets.CORI_APP_PRIVATE_KEY }}
+          
   code-review:
     runs-on: ubuntu-latest
     permissions:
@@ -22,16 +32,15 @@ jobs:
           fetch-depth: 0  # Required to get full history for better context
 
       - name: ✨ CoriAI Code Review, PhD
-        uses: theboringhumane/cori-ai@1.2.0  # Uses the action from the current repository
+        uses: theboringhumane/cori-ai@1.2.1 # Uses the action from the current repository
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           openai_base_url: ${{ secrets.OPENAI_BASE_URL }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ steps.generate-token.outputs.token }}
           model: 'gpt-4o-mini'
           extra_prompt: |
             Please focus on:
             Boring notch is a dynamic island for macOS written in Swift.
-    
             - Swift best practices and macos app development guidelines
             - Security implications of the changes
             - Performance optimizations
