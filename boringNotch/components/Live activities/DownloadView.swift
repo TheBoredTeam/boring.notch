@@ -36,8 +36,8 @@ struct DownloadArea: View {
                     Image(.chrome).resizable().scaledToFit().frame(width: 30, height: 30)
                 }
                 VStack(alignment: .leading) {
-                    Text("Download")
-                    Text("In progress").font(.system(.footnote)).foregroundStyle(.gray)
+                    Text("downloads.download")
+                    Text("downloads.in_progress").font(.system(.footnote)).foregroundStyle(.gray)
                 }
             }
             Spacer()

@@ -61,7 +61,7 @@ struct SystemEventIndicatorModifier: View {
             if (eventType != .mic) {
                 DraggableProgressBar(value: $value)
             } else {
-                Text("Mic \(value > 0 ? "unmuted" : "muted")")
+                Text("common.mic \(value > 0 ? NSLocalizedString("common.unmuted", comment: "Mic unmuted") : NSLocalizedString("common.muted", comment: "Mic muted"))")
                     .foregroundStyle(.gray)
                     .lineLimit(1)
                     .allowsTightening(true)

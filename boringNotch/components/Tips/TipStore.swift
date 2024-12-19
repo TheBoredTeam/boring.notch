@@ -10,12 +10,12 @@ import TipKit
 
 struct HUDsTip: Tip {
     var title: Text {
-        Text("Enhance your experience with HUDs")
+        Text("tips.hud.title")
     }
     
     
     var message: Text? {
-        Text("Unlock advanced features and improve your experience. Upgrade now for more customizations!")
+        Text("tips.hud.message")
     }
     
     
@@ -25,19 +25,19 @@ struct HUDsTip: Tip {
     
     var actions: [Action] {
         Action {
-            Text("More")
+            Text("common.more")
         }
     }
 }
 
 struct CBTip: Tip {
     var title: Text {
-        Text("Boost your productivity with Clipboard Manager")
+        Text("clipboard_mgr.title")
     }
     
     
     var message: Text? {
-        Text("Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!")
+        Text("clipboard_mgr.message")
     }
     
     
@@ -47,7 +47,7 @@ struct CBTip: Tip {
     
     var actions: [Action] {
         Action {
-            Text("More")
+            Text("common.more")
         }
     }
 }
