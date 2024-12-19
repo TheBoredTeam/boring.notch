@@ -168,6 +168,9 @@
         }
       }
     },
+    "Calendar" : {
+
+    },
     "Cancel" : {
 
     },
@@ -668,6 +671,9 @@
         }
       }
     },
+    "Select Calendars" : {
+
+    },
     "selected" : {
 
     },
@@ -700,6 +706,9 @@
           }
         }
       }
+    },
+    "Show calendar" : {
+
     },
     "Show charging indicator" : {
       "extractionState" : "stale",
