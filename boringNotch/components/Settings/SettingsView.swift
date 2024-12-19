@@ -16,7 +16,7 @@ import LottieUI
 
 struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject var extensionManager = BoringExtensionManager()
+    @ObservedObject var extensionManager = BoringExtensionManager()
     let updaterController: SPUStandardUpdaterController
     @StateObject private var calendarManager = CalendarManager()
     
