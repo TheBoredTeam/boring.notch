@@ -16,8 +16,9 @@ import LottieUI
 
 struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject var extensionManager = BoringExtensionManager()
+    @ObservedObject var extensionManager = BoringExtensionManager()
     let updaterController: SPUStandardUpdaterController
+    @StateObject private var calendarManager = CalendarManager()
     
     @State private var selectedTab = "General"
     
@@ -32,6 +33,9 @@ struct SettingsView: View {
                 }
                 NavigationLink(destination: Media()) {
                     Label("Media", systemImage: "play.laptopcomputer")
+                }
+                NavigationLink(destination: CalendarSettings()) {
+                    Label("Calendar", systemImage: "calendar")
                 }
                 if extensionManager.installedExtensions
                     .contains(
@@ -72,6 +76,7 @@ struct SettingsView: View {
             GeneralSettings()
         }
         .environmentObject(extensionManager)
+        .environmentObject(calendarManager)
         .formStyle(.grouped)
         .onChange(of: scenePhase) {
             if scenePhase == .active {
@@ -482,6 +487,31 @@ struct Media: View {
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Media")
+    }
+}
+
+struct CalendarSettings: View {
+    @ObservedObject private var calendarManager = CalendarManager()
+    @Default(.showCalendar) var showCalendar: Bool
+    
+    var body: some View {
+        Form {
+            Toggle("Show calendar", isOn: $showCalendar)
+            Section(header: Text("Select Calendars")) {
+                List {
+                    ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
+                        Toggle(isOn: Binding(
+                            get: { calendarManager.getCalendarSelected(calendar) },
+                            set: { isSelected in
+                                calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+                            }
+                        )) {
+                            Text(calendar.title)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -930,7 +960,6 @@ struct Appearance: View {
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
-                Defaults.Toggle("Show calendar", key: .showCalendar)
                 Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
                     .disabled(true)
             } header: {
