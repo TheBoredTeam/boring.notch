@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0  # Required to get full history for better context
 
       - name: ✨ CoriAI Code Review, PhD
-        uses: theboringhumane/cori-ai@1.2.0  # Uses the action from the current repository
+        uses: theboringhumane/cori-ai@1.2.1 # Uses the action from the current repository
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           openai_base_url: ${{ secrets.OPENAI_BASE_URL }}
