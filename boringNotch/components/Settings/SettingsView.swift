@@ -14,6 +14,17 @@ import SwiftUIIntrospect
 import AVFoundation
 import LottieUI
 
+struct SettingsView_Previews: PreviewProvider {
+    static var previews: some View {
+        
+        let updaterController = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
+        
+        SettingsView(extensionManager: BoringExtensionManager(), updaterController: updaterController)
+            .previewLayout(.sizeThatFits)
+            .padding()
+    }
+}
+
 struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject var extensionManager = BoringExtensionManager()
@@ -25,46 +36,46 @@ struct SettingsView: View {
         NavigationSplitView {
             List(selection: $selectedTab) {
                 NavigationLink(destination: GeneralSettings()) {
-                    Label("General", systemImage: "gear")
+                    Label("settings.tab.general", systemImage: "gear")
                 }
                 NavigationLink(destination: Appearance()) {
-                    Label("Appearance", systemImage: "eye")
+                    Label("settings.tab.appearance", systemImage: "eye")
                 }
                 NavigationLink(destination: Media()) {
-                    Label("Media", systemImage: "play.laptopcomputer")
+                    Label("settings.tab.media", systemImage: "play.laptopcomputer")
                 }
                 if extensionManager.installedExtensions
                     .contains(
                         where: { $0.bundleIdentifier == hudExtension
                         }) {
                     NavigationLink(destination: HUD()) {
-                        Label("HUDs", systemImage: "dial.medium.fill")
+                        Label("settings.tab.huds", systemImage: "dial.medium.fill")
                     }
                 }
                 NavigationLink(destination: Charge()) {
-                    Label("Battery", systemImage: "battery.100.bolt")
+                    Label("settings.tab.battery", systemImage: "battery.100.bolt")
                 }
                 if extensionManager.installedExtensions
                     .contains(
                         where: { $0.bundleIdentifier == downloadManagerExtension
                         }) {
                     NavigationLink(destination: Downloads()) {
-                        Label("Downloads", systemImage: "square.and.arrow.down")
+                        Label("settings.tab.downloads", systemImage: "square.and.arrow.down")
                     }
                 }
                 NavigationLink(destination: Shelf()) {
-                    Label("Shelf", systemImage: "books.vertical")
+                    Label("settings.tab.shelf", systemImage: "books.vertical")
                 }
                 NavigationLink(destination: Shortcuts()) {
-                    Label("Shortcuts", systemImage: "keyboard")
+                    Label("settings.tab.shortcuts", systemImage: "keyboard")
                 }
                 NavigationLink(destination: Extensions()) {
-                    Label("Extensions", systemImage: "puzzlepiece.extension")
+                    Label("settings.tab.extensions", systemImage: "puzzlepiece.extension")
                 }
                 NavigationLink(
                     destination: About(updaterController: updaterController)
                 ) {
-                    Label("About", systemImage: "info.circle")
+                    Label("settings.tab.about", systemImage: "info.circle")
                 }
             }
             .tint(Defaults[.accentColor])
@@ -136,26 +147,31 @@ struct GeneralSettings: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     Spacer()
-                    ColorPicker("Custom color", selection: $accentColor)
+                    ColorPicker("settings.general.accent_color.custom_color", selection: $accentColor)
                         .labelsHidden()
                 }
             } header: {
-                Text("Accent color")
+                Text("settings.general.header.accent_color")
             }
 
             Section {
-                Defaults.Toggle("Menubar icon", key: .menubarIcon)
-                LaunchAtLogin.Toggle("Launch at login")
+                Defaults.Toggle(
+                    NSLocalizedString("settings.general.menubar_icon", comment: "Toggle in parameter to enable menubar icon"),
+                    key: .menubarIcon
+                )
+                LaunchAtLogin.Toggle(
+                    NSLocalizedString("settings.general.launch_at_login", comment:"Toggle for parameter launch at login")
+                )
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     HStack {
-                        Text("Show on all displays")
-                        customBadge(text: "Beta")
+                        Text("settings.general.show_on_all_displays")
+                        customBadge(text: NSLocalizedString("common.beta", comment: "Beta badge"))
                     }
                 }
                 .onChange(of: showOnAllDisplays) {
                     NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
-                Picker("Show on a specific display", selection: $coordinator.preferredScreen) {
+                Picker("settings.general.show_on_specific_display", selection: $coordinator.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
@@ -164,20 +180,20 @@ struct GeneralSettings: View {
                     screens =  NSScreen.screens.compactMap({$0.localizedName})
                 }
             } header: {
-                Text("System features")
+                Text("settings.general.header.system_features")
             }
             
             Section {
                 Picker(selection: $notchHeightMode, label:
                 HStack {
-                    Text("Notch display height")
-                    customBadge(text: "Beta")
+                    Text("settings.general.notch_display_height")
+                    customBadge(text: NSLocalizedString("common.beta", comment: "Beta badge"))
                 }) {
-                    Text("Match real notch size")
+                    Text("settings.general.notch_match_display_height")
                         .tag(WindowHeightMode.matchRealNotchSize)
-                    Text("Match menubar height")
+                    Text("settings.general.notch_match_menubar_height")
                         .tag(WindowHeightMode.matchMenuBar)
-                    Text("Custom height")
+                    Text("settings.general.notch_custom_height")
                         .tag(WindowHeightMode.custom)
                 }
                 .onChange(of: notchHeightMode) {
@@ -193,18 +209,18 @@ struct GeneralSettings: View {
                 }
                 if notchHeightMode == .custom {
                     Slider(value: $nonNotchHeight, in: 15...45, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                        Text("settings.general.custom_notch_size \(nonNotchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: nonNotchHeight) {
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
-                Picker("Non-notch display height", selection: $nonNotchHeightMode) {
-                    Text("Match menubar height")
+                Picker("settings.general.non_notch_display_height", selection: $nonNotchHeightMode) {
+                    Text("settings.general.notch_match_menubar_height")
                         .tag(WindowHeightMode.matchMenuBar)
-                    Text("Match real notch size")
+                    Text("settings.general.notch_match_display_height")
                         .tag(WindowHeightMode.matchRealNotchSize)
-                    Text("Custom height")
+                    Text("settings.general.notch_custom_height")
                         .tag(WindowHeightMode.custom)
                 }
                 .onChange(of: nonNotchHeightMode) {
@@ -220,14 +236,14 @@ struct GeneralSettings: View {
                 }
                 if nonNotchHeightMode == .custom {
                     Slider(value: $nonNotchHeight, in: 10...40, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                        Text("settings.general.custom_notch_size \(nonNotchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: nonNotchHeight) {
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
             } header: {
-                Text("Notch Height")
+                Text("settings.general.header.notch_height")
             }
             
             NotchBehaviour()
@@ -236,12 +252,12 @@ struct GeneralSettings: View {
         }
         .tint(Defaults[.accentColor])
         .toolbar {
-            Button("Quit app") {
+            Button("common.quit_app") {
                 NSApp.terminate(self)
             }
             .controlSize(.extraLarge)
         }
-        .navigationTitle("General")
+        .navigationTitle("settings.tab.general")
         .onChange(of: openNotchOnHover) {
             if !openNotchOnHover {
                 enableGestures = true
@@ -252,28 +268,34 @@ struct GeneralSettings: View {
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
-            Defaults.Toggle("Enable gestures", key: .enableGestures)
+            Defaults.Toggle(
+                NSLocalizedString("settings.general.gestures.enable", comment: "Toggle in parameters to enable gestures"),
+                key: .enableGestures
+            )
                 .disabled(!openNotchOnHover)
             if enableGestures {
-                Toggle("Media change with horizontal gestures", isOn: .constant(false))
+                Toggle("settings.general.gestures.media_change_horizontal", isOn: .constant(false))
                     .disabled(true)
-                Defaults.Toggle("Close gesture", key: .closeGestureEnabled)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.general.gestures.close", comment: "Toggle in parameters to enable the closing gesture" ),
+                    key: .closeGestureEnabled
+                )
                 Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
                     HStack {
-                        Text("Gesture sensitivity")
+                        Text("settings.general.gestures.sensitivity")
                         Spacer()
-                        Text(Defaults[.gestureSensitivity] == 100 ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low")
+                        Text(Defaults[.gestureSensitivity] == 100 ? "settings.general.gestures.sensitivity.high" : Defaults[.gestureSensitivity] == 200 ? "settings.general.gestures.sensitivity.medium" : "settings.general.gestures.sensitivity.low")
                             .foregroundStyle(.secondary)
                     }
                 }
             }
         } header: {
             HStack {
-                Text("Gesture control")
-                customBadge(text: "Beta")
+                Text("settings.general.header.gestures")
+                customBadge(text: NSLocalizedString("common.beta", comment: "Beta badge"))
             }
         } footer: {
-            Text("Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled")
+            Text("settings.general.gestures.descriptions.open_close")
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(.secondary)
                 .font(.caption)
@@ -283,13 +305,19 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-            Defaults.Toggle("Enable haptics", key: .enableHaptics)
-            Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
-            Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
+            Defaults.Toggle(
+                NSLocalizedString("settings.general.behavior.enable_haptics", comment: "Parameter toggle for enabling haptics"),
+                key: .enableHaptics
+            )
+            Defaults.Toggle(
+                NSLocalizedString("settings.general.behavior.open_on_hover", comment: "Parameter toggle for opening notch on hover"),
+                key: .openNotchOnHover
+            )
+            Toggle("settings.general.behavior.remember_last_tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
-                        Text("Minimum hover duration")
+                        Text("settings.general.behavior.hover_minimum_duration")
                         Spacer()
                         Text("\(minimumHoverDuration, specifier: "%.1f")s")
                             .foregroundStyle(.secondary)
@@ -300,7 +328,7 @@ struct GeneralSettings: View {
                 }
             }
         } header: {
-            Text("Notch behavior")
+            Text("settings.general.header.behavior")
         }
     }
 }
@@ -309,14 +337,20 @@ struct Charge: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Show charging indicator", key: .chargingInfoAllowed)
-                Defaults.Toggle("Show battery indicator", key: .showBattery)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.battery.show_charging_indicator", comment: "Toogle in parameters to Show charging indicator"),
+                    key: .chargingInfoAllowed
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("settings.battery.show_battery_indicator", comment: "Toggle in parameters to show battery indicator"),
+                    key: .showBattery
+                )
             } header: {
-                Text("General")
+                Text("settings.battery.header.general")
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("Battery")
+        .navigationTitle("settings.tab.battery")
     }
 }
 
@@ -327,28 +361,34 @@ struct Downloads: View {
         Form {
             warningBadge("We don't support downloads yet", "It will be supported later on.")
             Section {
-                Defaults.Toggle("Show download progress", key: .enableDownloadListener)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.downloads.show_progress", comment: "Toggle in parameters to show the download progress in supported apps"),
+                    key: .enableDownloadListener
+                )
                     .disabled(true)
-                Defaults.Toggle("Enable Safari Downloads", key: .enableSafariDownloads)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.downloads.enable_safari_dl", comment: "Toggle to in parameters to enable Safari downloads"),
+                    key: .enableSafariDownloads
+                )
                     .disabled(!Defaults[.enableDownloadListener])
-                Picker("Download indicator style", selection: $selectedDownloadIndicatorStyle) {
-                    Text("Progress bar")
+                Picker("settings.downloads.indicator_style", selection: $selectedDownloadIndicatorStyle) {
+                    Text("settings.downloads.style.progress_bar")
                         .tag(DownloadIndicatorStyle.progress)
-                    Text("Percentage")
+                    Text("settings.downloads.style.percentage")
                         .tag(DownloadIndicatorStyle.percentage)
                 }
-                Picker("Download icon style", selection: $selectedDownloadIconStyle) {
-                    Text("Only app icon")
+                Picker("settings.downloads.icon_style", selection: $selectedDownloadIconStyle) {
+                    Text("settings.downloads.style.app_icon_only")
                         .tag(DownloadIconStyle.onlyAppIcon)
-                    Text("Only download icon")
+                    Text("settings.downloads.style.icon_only")
                         .tag(DownloadIconStyle.onlyIcon)
-                    Text("Both")
+                    Text("settings.downloads.style.both_app_icon")
                         .tag(DownloadIconStyle.iconAndAppIcon)
                 }
                 
             } header: {
                 HStack {
-                    Text("Download indicators")
+                    Text("settings.downloads.header.indicators")
                     comingSoonTag()
                 }
             }
@@ -361,7 +401,7 @@ struct Downloads: View {
                 .frame(minHeight: 96)
                 .overlay {
                     if true {
-                        Text("No excluded apps")
+                        Text("settings.downloads.no_excluded_apps")
                             .foregroundStyle(Color(.secondaryLabelColor))
                     }
                 }
@@ -389,14 +429,14 @@ struct Downloads: View {
                 }
             } header: {
                 HStack (spacing: 4){
-                    Text("Exclude apps")
+                    Text("settings.downloaders.header.excluded_apps")
                     comingSoonTag()
                 }
                 
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("Downloads")
+        .navigationTitle("settings.tab.downloads")
     }
 }
 
@@ -408,15 +448,15 @@ struct HUD: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Enable HUD replacement", isOn: $coordinator.hudReplacement)
+                Toggle("settings.hud.enable_replacement", isOn: $coordinator.hudReplacement)
             } header: {
-                Text("General")
+                Text("settings.hud.header.general")
             }
             Section {
-                Picker("HUD style", selection: $inlineHUD) {
-                    Text("Default")
+                Picker("settings.hud.style", selection: $inlineHUD) {
+                    Text("common.default")
                         .tag(false)
-                    Text("Inline")
+                    Text("common.inline")
                         .tag(true)
                 }
                 .onChange(of: Defaults[.inlineHUD]) {
@@ -427,22 +467,27 @@ struct HUD: View {
                         }
                     }
                 }
-                Picker("Progressbar style", selection: $enableGradient) {
-                    Text("Hierarchical")
+                Picker("settings.hud.progressbar_style", selection: $enableGradient) {
+                    Text("common.hierarchical")
                         .tag(false)
-                    Text("Gradient")
+                    Text("common.gradient")
                         .tag(true)
                 }
-                Defaults.Toggle("Enable glowing effect", key: .systemEventIndicatorShadow)
-                Defaults.Toggle("Use accent color", key: .systemEventIndicatorUseAccent)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.hud.progressbar_style.enable_glowing", comment: "Toggle in parameters to enable the glowing effet for progress bars"),
+                    key: .systemEventIndicatorShadow
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("settings.hud.progressbar_style.use_accent_color", comment: "Toggle in parameters to show the accent color of progress bars"),
+                    key: .systemEventIndicatorUseAccent)
             } header: {
                 HStack {
-                    Text("Appearance")
+                    Text("settings.hud.header.appearance")
                 }
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("HUDs")
+        .navigationTitle("settings.tab.huds")
     }
 }
 
@@ -453,14 +498,17 @@ struct Media: View {
         Form {
             Section {
                 Toggle(
-                    "Enable music live activity",
+                    "settings.media.enable_live_activity",
                     isOn: $coordinator.showMusicLiveActivityOnClosed.animation()
                 )
-                Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.media.enable_sneak_peek", comment: "Toggle in parameters to enable the Sneak Peek feature"),
+                    key: .enableSneakPeek
+                )
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {
-                            Text("Media inactivity timeout")
+                            Text("settings.media.timeout")
                             Spacer()
                             Text("\(Defaults[.waitInterval], specifier: "%.0f") seconds")
                                 .foregroundStyle(.secondary)
@@ -468,20 +516,23 @@ struct Media: View {
                     }
                 }
             } header: {
-                Text("Media playback live activity")
+                Text("settings.media.header.live_activity")
             }
             
             Section {
-                Defaults.Toggle("Autohide BoringNotch in fullscreen", key: .enableFullscreenMediaDetection)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.media.autohide_in_fullscreen", comment: "Toggle in the parameters to autohide Boring notch in fullscreen"),
+                    key: .enableFullscreenMediaDetection
+                )
             } header: {
                 HStack {
-                    Text("Fullscreen media playback detection")
-                    customBadge(text: "Beta")
+                    Text("settings.media.header.fullscreen")
+                    customBadge(text: NSLocalizedString("common.beta", comment: "Beta badge"))
                 }
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("Media")
+        .navigationTitle("settings.tab.media")
     }
 }
 
@@ -494,13 +545,13 @@ struct About: View {
             Form {
                 Section {
                     HStack {
-                        Text("Release name")
+                        Text("settings.about.release_name")
                         Spacer()
                         Text(Defaults[.releaseName])
                             .foregroundStyle(.secondary)
                     }
                     HStack {
-                        Text("Version")
+                        Text("settings.about.version")
                         Spacer()
                         if (showBuildNumber) {
                             Text("(\(Bundle.main.buildVersionNumber ?? ""))")
@@ -515,7 +566,7 @@ struct About: View {
                         }
                     }
                 } header: {
-                    Text("Version info")
+                    Text("settings.about.header.version")
                 }
                 
                 UpdaterSettingsView(updater: updaterController.updater)
@@ -528,7 +579,7 @@ struct About: View {
                         VStack(spacing: 5) {
                             Image(systemName: "cup.and.saucer.fill")
                                 .imageScale(.large)
-                            Text("Support Us")
+                            Text("settings.about.support_us")
                                 .foregroundStyle(.white)
                         }
                         .contentShape(Rectangle())
@@ -553,7 +604,7 @@ struct About: View {
             }
             VStack(spacing: 0) {
                 Divider()
-                Text("Made with 🫶🏻 by not so boring not.people")
+                Text("settings.about.footer")
                     .foregroundStyle(.secondary)
                     .padding(.top, 5)
                     .padding(.bottom, 7)
@@ -563,14 +614,14 @@ struct About: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .toolbar {
-            Button("Welcome window") {
+            Button("settings.toolbar.onboarding") {
                 openWindow(id: "onboarding")
             }
             .controlSize(.extraLarge)
             CheckForUpdatesView(updater: updaterController.updater)
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("About")
+        .navigationTitle("settings.tab.about")
     }
 }
 
@@ -578,16 +629,22 @@ struct Shelf: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Enable shelf", key: .boringShelf)
-                Defaults.Toggle("Open shelf tab by default if items added", key: .openShelfByDefault)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.shelf.enable_shelf", comment: "Toggle in parameters to enable shelf system"),
+                    key: .boringShelf
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("settings.shelf.open_when_items_added", comment: "Toggle in parameters to open shelf by default if items are added"),
+                    key: .openShelfByDefault
+                )
             } header: {
                 HStack {
-                    Text("General")
+                    Text("settings.shelf.header.general")
                 }
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("Shelf")
+        .navigationTitle("settings.tab.shelf")
     }
 }
 
@@ -606,7 +663,7 @@ struct Extensions: View {
                                 .frame(width: 24, height: 24)
                             Text(item.name)
                             ListItemPopover {
-                                Text("Description")
+                                Text("setting.extensions.extension_description")
                             }
                             Spacer(minLength: 0)
                             HStack(spacing: 6) {
@@ -617,7 +674,7 @@ struct Extensions: View {
                                         view
                                             .shadow(color: .green, radius: 3)
                                     }
-                                Text(isExtensionRunning(item.bundleIdentifier) ? "Running" : item.status == .disabled ? "Disabled" : "Stopped")
+                                Text(isExtensionRunning(item.bundleIdentifier) ? "settings.extensions.running" : item.status == .disabled ? "setting.extensions.disabled" : "settings.extensions.stopped")
                                     .contentTransition(.numericText())
                                     .foregroundStyle(.secondary)
                                     .font(.footnote)
@@ -625,7 +682,7 @@ struct Extensions: View {
                             .frame(width: 60, alignment: .leading)
                             
                             Menu(content: {
-                                Button("Restart") {
+                                Button("settings.extensions.restart") {
                                     let ws = NSWorkspace.shared
                                     
                                     if let ext = ws.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
@@ -637,7 +694,7 @@ struct Extensions: View {
                                     }
                                 }
                                 .keyboardShortcut("R", modifiers: .command)
-                                Button("Disable") {
+                                Button("settings.extensions.disable") {
                                     if let ext = NSWorkspace.shared.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
                                         ext.terminate()
                                     }
@@ -645,7 +702,7 @@ struct Extensions: View {
                                 }
                                 .keyboardShortcut("D", modifiers: .command)
                                 Divider()
-                                Button("Uninstall", role: .destructive) {
+                                Button("settings.extensions.uninstall", role: .destructive) {
                                     //
                                 }
                             }, label: {
@@ -666,7 +723,7 @@ struct Extensions: View {
                     } label: {
                         HStack(spacing: 3) {
                             Image(systemName: "plus")
-                            Text("Add manually")
+                            Text("settings.extensions.add_manually")
                         }
                         .foregroundStyle(.secondary)
                     }
@@ -691,14 +748,14 @@ struct Extensions: View {
                 .buttonStyle(PlainButtonStyle())
                 .overlay {
                     if extensionManager.installedExtensions.isEmpty {
-                        Text("No extension installed")
+                        Text("settings.extensions.no_extensions_installed")
                             .foregroundStyle(Color(.secondaryLabelColor))
                             .padding(.bottom, 22)
                     }
                 }
             } header: {
                 HStack(spacing: 0) {
-                    Text("Installed extensions")
+                    Text("settings.extensions.header.installed_extensions")
                     if !extensionManager.installedExtensions.isEmpty {
                         Text(" – \(extensionManager.installedExtensions.count)")
                             .foregroundStyle(.secondary)
@@ -707,7 +764,7 @@ struct Extensions: View {
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("Extensions")
+        .navigationTitle("settings.tab.extensions")
         //TipsView()
         //.padding(.horizontal, 19)
     }
@@ -731,38 +788,55 @@ struct Appearance: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
-                Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
-                Defaults.Toggle("Enable window shadow", key: .enableShadow)
-                Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
+                Toggle("settings.appearance.always_show_tabs", isOn: $coordinator.alwaysShowTabs)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.appearance.settings_icon_in_notch", comment: "Toggle in parameters for settings icon in notch"),
+                    key: .settingsIconInNotch
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("settings.appearance.enable_window_shadow", comment: "Toggle in parameters for enabling the window shadow"),
+                    key: .enableShadow
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("settings.appearance.corner_radius_scaling", comment: "Toggle in parameters for corner radius scaling"),
+                    key: .cornerRadiusScaling
+                )
             } header: {
-                Text("General")
+                Text("settings.appearance.header.general")
             }
             
             Section {
-                Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
-                Defaults
-                    .Toggle("Player tinting", key: .playerColorTinting)
-                Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
-                Picker("Slider color", selection: $sliderColor) {
+                Defaults.Toggle(
+                    NSLocalizedString("settings.appearance.enable_colored_spectrograms", comment: "Toggle in parameters for colored spectrograms"),
+                    key: .coloredSpectrogram
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("settings.appearance.player_tinting", comment: "Toggle in parameters to tint the player"),
+                    key: .playerColorTinting
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("settings.appearance.enable_blur_effect_album_art", comment: "Toggle in parameters to enable the blur effect behind album art"),
+                    key: .lightingEffect
+                )
+                Picker("settings.appearence.media.slider_color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
-                        Text(option.rawValue)
+                        Text(option.localizedName)
                     }
                 }
             } header: {
-                Text("Media")
+                Text("settings.appearance.header.media")
             }
             
             Section {
                 Toggle(
-                    "Use music visualizer spectrogram",
+                    "settings.appearance.use_music_visualizer_spectrogram",
                     isOn: $useMusicVisualizer.animation()
                 )
                 .disabled(true)
                 if !useMusicVisualizer {
                     if customVisualizers.count > 0 {
                         Picker(
-                            "Selected animation",
+                            "settings.appearance.spectrogram_selected_animation",
                             selection: $selectedVisualizer
                         ) {
                             ForEach(
@@ -775,17 +849,17 @@ struct Appearance: View {
                         }
                     } else {
                         HStack {
-                            Text("Selected animation")
+                            Text("settings.appearance.spectrogram_selected_animation")
                             Spacer()
-                            Text("No custom animation available")
+                            Text("settings.appearance.spectrogram_selected_animation_none")
                                 .foregroundStyle(.secondary)
                         }
                     }
                 }
             } header: {
                 HStack {
-                    Text("Custom music live activity animation")
-                    customBadge(text: "Coming soon")
+                    Text("settings.appearance.header.custom_live_activity_anim")
+                    customBadge(text: NSLocalizedString("common.coming_soon", comment: "Coming soon badge"))
                 }
             }
             
@@ -798,7 +872,7 @@ struct Appearance: View {
                             Text(visualizer.name)
                             Spacer(minLength: 0)
                             if selectedVisualizer == visualizer {
-                                Text("selected")
+                                Text("common.selected")
                                     .font(.caption)
                                     .fontWeight(.medium)
                                     .foregroundStyle(.secondary)
@@ -858,20 +932,20 @@ struct Appearance: View {
                 .buttonStyle(PlainButtonStyle())
                 .overlay {
                     if customVisualizers.isEmpty {
-                        Text("No custom visualizer")
+                        Text("settings.appearance.no_custom_visualizer")
                             .foregroundStyle(Color(.secondaryLabelColor))
                             .padding(.bottom, 22)
                     }
                 }
                 .sheet(isPresented: $isPresented) {
                     VStack(alignment: .leading) {
-                        Text("Add new visualizer")
+                        Text("settings.appearance.add_custom_visualizer")
                             .font(.largeTitle.bold())
                             .padding(.vertical)
-                        TextField("Name", text: $name)
-                        TextField("Lottie JSON URL", text: $url)
+                        TextField("common.name", text: $name)
+                        TextField("settings.appearance.lottie_json_url", text: $url)
                         HStack {
-                            Text("Speed")
+                            Text("common.speed")
                             Spacer(minLength: 80)
                             Text("\(speed, specifier: "%.1f")s")
                                 .multilineTextAlignment(.trailing)
@@ -883,7 +957,7 @@ struct Appearance: View {
                             Button {
                                 isPresented.toggle()
                             } label: {
-                                Text("Cancel")
+                                Text("common.cancel")
                                     .frame(maxWidth: .infinity, alignment: .center)
                             }
                             
@@ -901,7 +975,7 @@ struct Appearance: View {
                                 
                                 isPresented.toggle()
                             } label: {
-                                Text("Add")
+                                Text("common.add")
                                     .frame(maxWidth: .infinity, alignment: .center)
                             }
                             .buttonStyle(BorderedProminentButtonStyle())
@@ -913,7 +987,7 @@ struct Appearance: View {
                 }
             } header: {
                 HStack(spacing: 0) {
-                    Text("Custom vizualizers (Lottie)")
+                    Text("settings.appearance.header.custom_visualizers")
                     if !Defaults[.customVisualizers].isEmpty {
                         Text(" – \(Defaults[.customVisualizers].count)")
                             .foregroundStyle(.secondary)
@@ -922,20 +996,29 @@ struct Appearance: View {
             }
             
             Section {
-                Defaults.Toggle("Enable boring mirror", key: .showMirror)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.appearance.enable_boring_mirror", comment: "Toggle in parameters to enable Boring mirror"),
+                    key: .showMirror
+                )
                     .disabled(!checkVideoInput())
-                Picker("Mirror shape", selection: $mirrorShape) {
-                    Text("Circle")
+                Picker("settings.appearance.mirror_shape", selection: $mirrorShape) {
+                    Text("settings.appearance.mirror_shape.circle")
                         .tag(MirrorShapeEnum.circle)
-                    Text("Square")
+                    Text("settings.appearance.mirror_shape.square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
-                Defaults.Toggle("Show calendar", key: .showCalendar)
-                Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
+                Defaults.Toggle(
+                    NSLocalizedString("settings.appearance.show_calendar", comment: "Toggle in parameters to show the calendar in the expanded view"),
+                    key: .showCalendar
+                )
+                Defaults.Toggle(
+                    NSLocalizedString("settings.appearance.show_idle_face_animation", comment: "Toggle in parameters to show a face animation when inactive"),
+                    key: .showNotHumanFace
+                )
                     .disabled(true)
             } header: {
                 HStack {
-                    Text("Additional features")
+                    Text("settings.appearance.header.additional_features")
                 }
             }
             
@@ -955,7 +1038,7 @@ struct Appearance: View {
                                         )
                                 )
                             
-                            Text("Default")
+                            Text("common.default")
                                 .fontWeight(.medium)
                                 .font(.caption)
                                 .foregroundStyle(icon == selectedIcon ? .white : .secondary)
@@ -978,13 +1061,13 @@ struct Appearance: View {
                 .disabled(true)
             } header: {
                 HStack {
-                    Text("App icon")
-                    customBadge(text: "Coming soon")
+                    Text("settings.appearance.header.app_icon")
+                    customBadge(text: NSLocalizedString("common.coming_soon", comment: "Coming soon badge"))
                 }
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("Appearance")
+        .navigationTitle("settings.tab.appearance")
     }
     
     func checkVideoInput() -> Bool {
@@ -1000,26 +1083,26 @@ struct Shortcuts: View {
     var body: some View {
         Form {
             Section {
-                KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
+                KeyboardShortcuts.Recorder("settings.shortcuts.toggle_sneak_peek", name: .toggleSneakPeek)
             } header: {
-                Text("Media")
+                Text("settings.shortcuts.header.media")
             } footer: {
-                Text("Sneak Peek shows the media title and artist under the notch for a few seconds.")
+                Text("settings.shortcuts.sneak_peek_description")
                     .multilineTextAlignment(.trailing)
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
             Section {
-                KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+                KeyboardShortcuts.Recorder("settings.shortcuts.toggle_notch", name: .toggleNotchOpen)
             }
         }
         .tint(Defaults[.accentColor])
-        .navigationTitle("Shortcuts")
+        .navigationTitle("settings.tab.shortcuts")
     }
 }
 
 func proFeatureBadge() -> some View {
-    Text("Upgrade to Pro")
+    Text("common.upgrade_pro")
         .foregroundStyle(Color(red: 0.545, green: 0.196, blue: 0.98))
         .font(.footnote.bold())
         .padding(.vertical, 3)
@@ -1028,7 +1111,7 @@ func proFeatureBadge() -> some View {
 }
 
 func comingSoonTag() -> some View {
-    Text("Coming soon")
+    Text("common.coming_soon")
         .foregroundStyle(.secondary)
         .font(.footnote.bold())
         .padding(.vertical, 3)

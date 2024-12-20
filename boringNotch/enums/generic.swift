@@ -8,6 +8,16 @@
 import Foundation
 import Defaults
 
+protocol LocalizedEnum: RawRepresentable, CaseIterable where RawValue == String {
+    var localizedName: String { get }
+}
+
+extension LocalizedEnum {
+    var localizedName: String {
+        NSLocalizedString(self.rawValue, comment: "")
+    }
+}
+
 public enum Style {
     case notch
     case floating
@@ -40,30 +50,30 @@ enum SettingsEnum {
     case extensions
 }
 
-enum DownloadIndicatorStyle: String, Defaults.Serializable {
+enum DownloadIndicatorStyle: String, LocalizedEnum, Defaults.Serializable {
     case progress = "Progress"
     case percentage = "Percentage"
 }
 
-enum DownloadIconStyle: String, Defaults.Serializable {
+enum DownloadIconStyle: String, LocalizedEnum, Defaults.Serializable {
     case onlyAppIcon = "Only app icon"
     case onlyIcon = "Only download icon"
     case iconAndAppIcon = "Icon and app icon"
 }
 
-enum MirrorShapeEnum: String, Defaults.Serializable {
-    case rectangle = "Rectangular"
-    case circle = "Circular"
+enum MirrorShapeEnum: String, LocalizedEnum, Defaults.Serializable {
+    case rectangle = "settings.mirror.shape.rectangle"
+    case circle = "settings.mirror.shape.circle"
 }
 
-enum WindowHeightMode: String, Defaults.Serializable {
-    case matchMenuBar = "Match menubar height"
+enum WindowHeightMode: String, LocalizedEnum, Defaults.Serializable {
+    case matchMenuBar = "settings.general.notch_match_menubar_height"
     case matchRealNotchSize = "Match real notch height"
-    case custom = "Custom height"
+    case custom = "settings.general.notch_custom_height"
 }
 
-enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
-    case white = "White"
-    case albumArt = "Match album art"
-    case accent = "Accent color"
+enum SliderColorEnum: String, CaseIterable, LocalizedEnum, Defaults.Serializable {
+    case white = "slidercolor.white"
+    case albumArt = "slidercolor.match_album_art"
+    case accent = "slidercolor.match_accent"
 }

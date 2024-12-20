@@ -198,10 +198,10 @@ struct CalendarView: View {
 struct EmptyEventsView: View {
     var body: some View {
         ScrollView {
-            Text("No events today")
+            Text("calendar.no_events")
                 .font(.headline)
                 .foregroundStyle(.white)
-            Text("Enjoy your free time!")
+            Text("calendar.enjoy_free_time")
                 .font(.subheadline)
                 .foregroundColor(.gray)
         }
@@ -220,7 +220,7 @@ struct EventListView: View {
                             if isAllDayEvent(
                                 start: events[index].startDate, end: events[index].endDate)
                             {
-                                Text("All-day")
+                                Text("calendar.all_day")
                             } else {
                                 Text("\(events[index].startDate, style: .time)")
                                 Text("\(events[index].endDate, style: .time)")

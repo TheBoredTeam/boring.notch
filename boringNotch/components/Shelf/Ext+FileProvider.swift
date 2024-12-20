@@ -52,7 +52,7 @@ extension [NSItemProvider] {
         }
         guard urls.count == count else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                NSAlert.popError(NSLocalizedString("One or more files failed to load", comment: ""))
+                NSAlert.popError(NSLocalizedString("common.load_file_error", comment: "Error message when one or more files failed to load"))
             }
             return nil
         }

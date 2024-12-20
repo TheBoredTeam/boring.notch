@@ -26,17 +26,17 @@ struct DynamicNotchApp: App {
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             SettingsLink(label: {
-                Text("Settings")
+                Text("common.settings")
             })
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             if false {
-                Button("Activate License") {
+                Button("activation.activate_license") {
                     openWindow(id: "activation")
                 }
             }
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
-            Button("Restart Boring Notch") {
+            Button("common.restart_app") {
                     guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
                     
                     let workspace = NSWorkspace.shared
@@ -51,7 +51,7 @@ struct DynamicNotchApp: App {
                 
                    NSApplication.shared.terminate(nil)
             }
-            Button("Quit", role: .destructive) {
+            Button("common.quit", role: .destructive) {
                 NSApp.terminate(nil)
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
@@ -61,13 +61,13 @@ struct DynamicNotchApp: App {
             SettingsView(updaterController: updaterController)
         }
         
-        Window("Onboarding", id: "onboarding") {
+        Window("windowtitle.onboarding", id: "onboarding") {
             ProOnboard()
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         
-        Window("Activation", id: "activation") {
+        Window("windowtitle.activation", id: "activation") {
             ActivationWindow()
         }
         .windowStyle(.hiddenTitleBar)

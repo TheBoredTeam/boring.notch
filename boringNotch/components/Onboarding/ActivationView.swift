@@ -7,6 +7,14 @@
 
 import SwiftUI
 
+struct ActivationWindow_Previews: PreviewProvider {
+    static var previews: some View {
+        ActivationWindow()
+            .previewLayout(.sizeThatFits)
+            .padding()
+    }
+}
+
 struct ActivationWindow: View {
     @State private var email: String = ""
     @State private var key: String = ""
@@ -18,19 +26,19 @@ struct ActivationWindow: View {
                 .frame(height: 80)
                 .padding(.top, 30)
                 .padding(.bottom, 10)
-            Text("Activate your license")
+            Text("activation.header.title")
                 .font(.largeTitle.bold())
                 .fontDesign(.rounded)
-            Text("Transform your notch truly yours")
+            Text("activation.header.subtitle")
                 .foregroundStyle(.secondary)
                 .font(.title2)
                 .padding(.bottom, 20)
             Group {
-                TextField("Email address", text: $email)
+                TextField("activation.process.email", text: $email)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
-                TextField("License key", text: $key)
+                TextField("activation.process.key", text: $key)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
@@ -43,7 +51,7 @@ struct ActivationWindow: View {
                 HStack(alignment: .center) {
                     HStack {
                         Button {} label: {
-                            Text("Cancel")
+                            Text("common.cancel")
                                 .padding(.horizontal, 18)
                         }
                         .buttonStyle(AccessoryBarButtonStyle())
@@ -57,7 +65,7 @@ struct ActivationWindow: View {
                         .blendMode(.overlay)
                     HStack {
                         Button {} label: {
-                            Text("Activate")
+                            Text("activation.process.activate")
                                 .padding(.horizontal, 18)
                         }
                         .buttonStyle(BorderedProminentButtonStyle())
