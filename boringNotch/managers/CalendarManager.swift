@@ -7,12 +7,15 @@
 
 import EventKit
 import SwiftUI
+import Defaults
 
 // MARK: - CalendarManager
 
 class CalendarManager: ObservableObject {
     @Published var currentWeekStartDate: Date
     @Published var events: [EKEvent] = []
+    @Published var allCalendars: [EKCalendar] = []
+    private var selectedCalendars: [EKCalendar] = []
     private let eventStore = EKEventStore()
     @Published var authorizationStatus: EKAuthorizationStatus = .notDetermined
     
@@ -29,6 +32,8 @@ class CalendarManager: ObservableObject {
         
         switch status {
             case .authorized:
+                self.allCalendars = eventStore.calendars(for: .event)
+                updateSelectedCalendars()
                 fetchEvents()
             case .notDetermined:
                 requestCalendarAccess()
@@ -56,9 +61,53 @@ class CalendarManager: ObservableObject {
         }
     }
     
+    func updateSelectedCalendars() {
+        selectedCalendars = allCalendars.filter { getCalendarSelected($0) }
+    }
+    
+    func getCalendarSelected(_ calendar: EKCalendar) -> Bool {
+        switch Defaults[.calendarSelectionState] {
+        case .all:
+            return true
+        case .selected(let identifiers):
+            return identifiers.contains(calendar.calendarIdentifier)
+        }
+    }
+
+    func setCalendarSelected(_ calendar: EKCalendar, isSelected: Bool) {
+        var selectionState = Defaults[.calendarSelectionState]
+
+        switch selectionState {
+        case .all:
+            if !isSelected {
+                let identifiers = Set(allCalendars.map { $0.calendarIdentifier }).subtracting([calendar.calendarIdentifier])
+                selectionState = .selected(identifiers)
+            }
+
+        case .selected(var identifiers):
+            if isSelected {
+                identifiers.insert(calendar.calendarIdentifier)
+            } else {
+                identifiers.remove(calendar.calendarIdentifier)
+            }
+            
+            selectionState = identifiers.count == allCalendars.count ? .all : .selected(identifiers)
+        }
+
+        Defaults[.calendarSelectionState] = selectionState
+        fetchEvents()
+    }
+    
     func fetchEvents() {
+        guard !self.selectedCalendars.isEmpty else {
+            DispatchQueue.main.async {
+                self.events = []
+            }
+            return
+        }
+        
         let endOfWeek = Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!
-        let predicate = eventStore.predicateForEvents(withStart: currentWeekStartDate, end: endOfWeek, calendars: nil)
+        let predicate = eventStore.predicateForEvents(withStart: currentWeekStartDate, end: endOfWeek, calendars: self.selectedCalendars)
         let fetchedEvents = eventStore.events(matching: predicate)
         DispatchQueue.main.async {
             self.events = fetchedEvents.sorted { $0.startDate < $1.startDate }
