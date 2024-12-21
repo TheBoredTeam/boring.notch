@@ -144,9 +144,10 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func close() {
-        withAnimation(.smooth) {
-            self.notchSize = getClosedNotchSize(screen: screen)
-            closedNotchSize = notchSize
+        withAnimation(.smooth) { [weak self] in
+            guard let self = self else { return }
+            self.notchSize = getClosedNotchSize(screen: self.screen)
+            self.closedNotchSize = self.notchSize
             self.notchState = .closed
         }
 

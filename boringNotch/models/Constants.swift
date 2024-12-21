@@ -55,7 +55,7 @@ extension Defaults.Keys {
         "nonNotchHeightMode",
         default: WindowHeightMode.matchRealNotchSize
     )
-    static let nonNotchHeight = Key<CGFloat>("notchHeight", default: 32)
+    static let nonNotchHeight = Key<CGFloat>("nonNotchHeight", default: 32)
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
         //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     
