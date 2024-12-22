@@ -11,8 +11,15 @@ body:
     id: what-happened
     attributes:
       label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
+      description: Describe the bug, also include the steps to replicate the issue
+      placeholder: Clearly explain the issue. Please limit each post to one issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behaviour
+    attributes:
+      label: What did you expect to happen?
+      description: A clear and concise description of what you expected to happen.
     validations:
       required: true
   - type: dropdown
@@ -32,7 +39,7 @@ body:
     id: operating-system
     attributes:
       label: MacOS Version
-      description: What version of MacOS are you seeing the problem on?
+      description: Go to  > About
     validations:
       required: true
   - type: textarea
