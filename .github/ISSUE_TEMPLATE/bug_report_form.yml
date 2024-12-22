@@ -13,7 +13,6 @@ body:
       label: What happened?
       description: Also tell us, what did you expect to happen?
       placeholder: Tell us what you see!
-      value: "A bug happened!"
     validations:
       required: true
   - type: dropdown
@@ -27,10 +26,9 @@ body:
         - 2.1
         - 2.0
         - 1.8
-      default: 0
     validations:
       required: true
-  - type: textarea
+  - type: input
     id: operating-system
     attributes:
       label: MacOS Version
