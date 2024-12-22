@@ -12,7 +12,7 @@ struct WhatsNewView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("What's New")
+            Text("changelog.whats_new")
                 .font(.largeTitle)
             
             VStack(alignment: .leading, spacing: 10) {
@@ -21,7 +21,7 @@ struct WhatsNewView: View {
                 Text("• Bug fixes")
             }
             
-            Button("Got it!") {
+            Button("changelog.got_it") {
                 isPresented = false
             }
         }

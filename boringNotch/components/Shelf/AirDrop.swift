@@ -26,12 +26,12 @@ class AirDrop: NSObject, NSSharingServiceDelegate {
     private func sendEx(_ files: [URL]) throws {
         guard let service = NSSharingService(named: .sendViaAirDrop) else {
             throw NSError(domain: "AirDrop", code: 1, userInfo: [
-                NSLocalizedDescriptionKey: NSLocalizedString("AirDrop service not available", comment: ""),
+                NSLocalizedDescriptionKey: NSLocalizedString("airdrop.airdrop_service_unavailable", comment: ""),
             ])
         }
         guard service.canPerform(withItems: files) else {
             throw NSError(domain: "AirDrop", code: 2, userInfo: [
-                NSLocalizedDescriptionKey: NSLocalizedString("AirDrop service not available", comment: ""),
+                NSLocalizedDescriptionKey: NSLocalizedString("airdrop.airdrop_service_unavailable", comment: ""),
             ])
         }
         service.delegate = self

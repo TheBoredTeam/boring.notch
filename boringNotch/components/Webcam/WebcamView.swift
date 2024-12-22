@@ -34,7 +34,7 @@ struct CameraPreviewView: View {
                             Image(systemName: "web.camera")
                                 .foregroundStyle(.gray)
                                 .font(.system(size: geometry.size.width/3.5))
-                            Text("Mirror")
+                            Text("common.mirror")
                                 .font(.caption2)
                                 .foregroundColor(.gray)
                         }

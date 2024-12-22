@@ -157,10 +157,10 @@ struct ContentView: View {
                 .sensoryFeedback(.alignment, trigger: haptics)
                 .contextMenu {
                     SettingsLink(label: {
-                        Text("Settings")
+                        Text("common.settings")
                     })
                     .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-                    Button("Edit") {
+                    Button("common.edit") {
                         let dn = DynamicNotch(content: EditPanelView())
                         dn.toggle()
                     }
@@ -196,7 +196,7 @@ struct ContentView: View {
                     if vm.expandingView.type == .battery && vm.expandingView.show && vm.notchState == .closed {
                         HStack(spacing: 0) {
                             HStack {
-                                Text("Charging")
+                                Text("battery.charging")
                                     .font(.subheadline)
                             }
                             
