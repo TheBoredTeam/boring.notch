@@ -29,7 +29,7 @@ jobs:
           private-key: ${{ secrets.CORI_APP_PRIVATE_KEY }}          
 
       - name: ✨ CoriAI Code Review, PhD
-        uses: theboringhumane/cori-ai@1.2.3 # Uses the action from the current repository
+        uses: theboringhumane/cori-ai@1.2.10 # Uses the action from the current repository
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           openai_base_url: ${{ secrets.OPENAI_BASE_URL }}
@@ -73,4 +73,6 @@ jobs:
             Are there any potential memory leaks?
             Does the PR include appropriate changelog entries?
 
-            Mandatory to Use emojis in your comments add code examples as well with your comments (markdown format)
+            IMPORTANT GUIDELINES
+            - Mandatory to Use emojis in your comments add code examples as well with your comments (markdown format)
+            - Do not repeat the commit message or description or what user is doing right, just point out issues and things which can be improved. Do not bombard with too much comments.
