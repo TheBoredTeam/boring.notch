@@ -10,8 +10,8 @@ body:
   - type: textarea
     id: what-happened
     attributes:
-      label: What happened?
-      description: Describe the bug, also include the steps to replicate the issue
+      label: What happened? What are the steps to reproduce the issue?
+      description: Describe the bug and include the steps to replicate the issue. Issues with images or videos will be resolved faster.
       placeholder: Clearly explain the issue. Please limit each post to one issue.
     validations:
       required: true
@@ -39,7 +39,7 @@ body:
     id: operating-system
     attributes:
       label: MacOS Version
-      description: Go to  > About
+      description: Go to  > About This Mac
     validations:
       required: true
   - type: textarea
