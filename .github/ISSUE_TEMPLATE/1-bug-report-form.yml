@@ -1,0 +1,58 @@
+name: Bug Report Form (Beta)
+description: File a bug report.
+title: "[Bug] "
+labels: ["bug", "unconfirmed"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened? What are the steps to reproduce the issue?
+      description: Describe the bug and include the steps to replicate the issue. Issues with images or videos will be resolved faster.
+      placeholder: Clearly explain the issue. Please limit each post to one issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behaviour
+    attributes:
+      label: What did you expect to happen?
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: dropdown
+    id: version
+    attributes:
+      label: BoringNotch Version
+      description: What version of our software are you running?
+      options:
+        - 2.3
+        - 2.2
+        - 2.1
+        - 2.0
+        - 1.8
+    validations:
+      required: true
+  - type: input
+    id: operating-system
+    attributes:
+      label: MacOS Version
+      description: Go to  > About This Mac
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      description: 
+      options:
+        - label: I haven't found any duplicates with my issue.
+          required: true
