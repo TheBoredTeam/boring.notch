@@ -27,7 +27,7 @@
 
 ## Join our Discord Server (new)
 
-<a href="https://discord.gg/GvYcYpAKTu" target="_blank"><img src="BoringLink.png" alt="Join The Boring Server!" style="height: 60px !important;width: 217px !important;" ></a>
+<a href="https://discord.gg/GvYcYpAKTu" target="_blank"><img src="https://iili.io/28m3GHv.png" alt="Join The Boring Server!" style="height: 60px !important;width: 217px !important;" ></a>
 
 ## Preview
 
