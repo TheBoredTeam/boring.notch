@@ -27,7 +27,7 @@
 
 ## Join our Community on Discord
 
-<iframe src="https://discord.com/widget?id=1269588937320566815&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+https://discord.com/widget?id=1269588937320566815&theme=dark
 
 ## Preview
 
