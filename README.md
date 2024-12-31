@@ -43,7 +43,7 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 
 ### Prerequisites
 
-- **A MacBook**: With a boring notch.
+- **A MacBook**: With a boring notch (Not Needed).
 - **macOS 14.2 or later**: If you’re not on the latest macOS, we might need to send a search party.
 - **Xcode 15.0 or later**: This is where the magic happens, so make sure it’s up-to-date.
 
