@@ -21,13 +21,13 @@
 
 [![Star History Chart](https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline)](https://star-history.com/#TheBoredTeam/boring.notch&Timeline)
 
-## Buy us coffee
+## Buy us a coffee!
 
 <a href="https://www.buymeacoffee.com/jfxh67wvfxq" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
-## Join our Community on Discord
+## Join our Discord Server (new)
 
-https://discord.com/widget?id=1269588937320566815&theme=dark
+<a href="https://discord.gg/GvYcYpAKTu" target="_blank"><img src="[![temp-Image-Nju-Lk-L.avif](https://i.postimg.cc/xC0rFqKZ/temp-Image-Nju-Lk-L.avif)](https://postimg.cc/B8wwjS75)" alt="Join The Boring Server!" style="height: 60px !important;width: 217px !important;" ></a>
 
 ## Preview
 
