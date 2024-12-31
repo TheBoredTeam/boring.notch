@@ -7,7 +7,15 @@
 <a href="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" target="_self"><img width="200" src="https://www.adviksoft.com/blog/wp-content/uploads/2023/09/editor_download_mac.png" /></a>
 
 > [!WARNING]
-> We don't have Apple Developer account yet. The applications will show a popup on first start. Click **Okay**, then go to **Settings / Privacy & Security** and scroll down until you see a button **Open anyway**. You'll have to do this once.
+> We don't have an Apple Developer account yet. The application will show a popup on first start. Click **Okay**, then, go to **Settings / Privacy & Security** and scroll down until you see a button called **Open anyway**. You'll only have to do this once.
+
+## Website
+> [!NOTE]
+> Hey There 👋 We have a new website at https://theboring.name! Go check it out for stuff like:
+> - All current bugs
+> - People's opinions about Boring.Notch
+> - All current features 
+> - Q&A answers
 
 ## Star History
 
@@ -19,9 +27,7 @@
 
 ## Join our Community on Discord
 
-<a href="https://discord.gg/GvYcYpAKTu" target="_blank">
-<img src="https://www.kindpng.com/picc/m/221-2215393_discord-human-action-hd-png-download.png" width="200" alt="Discord - Human Action, HD Png Download@kindpng.com" />
-</a>
+<iframe src="https://discord.com/widget?id=1269588937320566815&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
 
 ## Preview
 
