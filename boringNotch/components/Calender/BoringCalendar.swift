@@ -209,6 +209,7 @@ struct EmptyEventsView: View {
 }
 
 struct EventListView: View {
+    @Environment(\.openURL) private var openURL
     let events: [EKEvent]
 
     var body: some View {
@@ -249,9 +250,16 @@ struct EventListView: View {
                             }
                             .padding(.top, 1)
 
-                            Text(events[index].title)
-                                .font(.footnote)
-                                .foregroundStyle(.gray)
+                            Button {
+                                if let url = generateEventURL(for: events[index]) {
+                                    openURL(url)
+                                }
+                            } label: {
+                                Text(events[index].title)
+                                    .font(.footnote)
+                                    .foregroundStyle(.gray)
+                            }
+                            .buttonStyle(.plain)
 
                             Spacer(minLength: 0)
                         }
@@ -276,6 +284,22 @@ struct EventListView: View {
 
     private func isEventEnded(_ end: Date) -> Bool {
         return Date.now > end
+    }
+
+    private func generateEventURL(for event: EKEvent) -> URL? {
+        var dateComponent = ""
+        if event.hasRecurrenceRules {
+            if let startDate = event.startDate {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
+                formatter.timeZone = TimeZone.current
+                if !event.isAllDay {
+                    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                }
+                dateComponent = "/\(formatter.string(from: startDate))"
+            }
+        }
+        return URL(string: "ical://ekevent\(dateComponent)/\(event.calendarItemIdentifier)?method=show&options=more")
     }
 }
 
