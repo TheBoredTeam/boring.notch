@@ -961,7 +961,6 @@ struct Appearance: View {
                         .tag(MirrorShapeEnum.rectangle)
                 }
                 Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
-                    .disabled(true)
             } header: {
                 HStack {
                     Text("Additional features")
