@@ -142,7 +142,7 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func closeHello() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) { [weak self] in
             self?.coordinator.firstLaunch = false
             withAnimation(self?.animationLibrary.animation) {
                 self?.close()
