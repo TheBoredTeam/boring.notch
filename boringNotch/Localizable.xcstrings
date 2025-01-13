@@ -61,6 +61,9 @@
         }
       }
     },
+    "Access Denied" : {
+
+    },
     "Activate" : {
 
     },
@@ -334,9 +337,6 @@
 
     },
     "Error" : {
-
-    },
-    "ERROR: VIEW NOT DEFINED" : {
 
     },
     "Exclude apps" : {
