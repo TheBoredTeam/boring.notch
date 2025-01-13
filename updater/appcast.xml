@@ -3,6 +3,27 @@
     <channel>
         <title>boringNotch</title>
         <item>
+            <title>2.4 🚀 Exciting new features and improvements</title>
+            <pubDate>Wed, 20 Nov 2024 15:30:00 +0530</pubDate>
+            <sparkle:version>2.4+1</sparkle:version>
+            <sparkle:shortVersionString>2.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h1>🎉 v2.4 🚀 Exciting new features and improvements</h1>
+                <p>We're excited to bring you version 2.4 of Jolly Dolphin 🐬 (Dreaming) with some amazing new features and improvements! 🎊</p><br />
+                <h2>🤔 What's Changed? 🤓</h2>
+                <ul>
+                <li>🧠 Taught our app that RAM isn't an all-you-can-eat buffet (fixed those pesky memory leaks that made your computer think it was training ChatGPT)</li>
+                <li>Fixed AirDrop invisible window issue and improved error handling 📱</li>
+                <li>Improved gesture sensitivity and controls 🖐️</li>
+                <li>Better memory management and performance optimizations ⚡</li>
+                <li>Enhanced UI responsiveness across virtual desktops 🖥️</li>
+                <li>Fixed various minor bugs and stability issues 🐛</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/jolly.dolphin/JollyDolphin.dmg" length="9089728" type="application/octet-stream" sparkle:edSignature="0z3HRWi3T6Eus3rQgBlqC+vcPkfIRcMQLxXuJXgpLrUCamM5a664mzUkcI0zGN+0y+JF33M5DE5yhuuLgMuQBQ=="/>
+        </item>
+        <item>
             <title>2.3 🚀 New release with bug fixes and great additions</title>
             <pubDate>Wed, 13 Nov 2024 21:44:25 +0530</pubDate>
             <sparkle:version>2.3+1</sparkle:version>
