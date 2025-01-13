@@ -127,7 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil) { [weak self] _ in
             if(!Defaults[.showOnAllDisplays]) {
                 self?.window = BoringNotchWindow(
-                    contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width + 20, height: openNotchSize.height + 30),
+                    contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width, height: openNotchSize.height),
                     styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
                     backing: .buffered,
                     defer: false
@@ -200,7 +200,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if !Defaults[.showOnAllDisplays] {
             window = BoringNotchWindow(
-                contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width + 20, height: openNotchSize.height + 30),
+                contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width, height: openNotchSize.height),
                 styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
                 backing: .buffered,
                 defer: false
@@ -255,7 +255,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if windows[screen] == nil {
                     let viewModel: BoringViewModel = .init(screen: screen.localizedName)
                     let window = BoringNotchWindow(
-                        contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width + 20, height: openNotchSize.height + 30),
+                        contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width, height: openNotchSize.height),
                         styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
                         backing: .buffered,
                         defer: false
