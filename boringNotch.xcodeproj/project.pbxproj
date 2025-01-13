@@ -64,7 +64,6 @@
 		B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10348D82C74E56000475897 /* ConditionalModifier.swift */; };
 		B10A848A2C7BCC940088BFFC /* AirDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10A84892C7BCC940088BFFC /* AirDropView.swift */; };
 		B10A848C2C7BCD150088BFFC /* AirDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10A848B2C7BCD150088BFFC /* AirDrop.swift */; };
-		B10F849F2C6B5BCC009F3026 /* NotchContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10F849E2C6B5BCC009F3026 /* NotchContentView.swift */; };
 		B10F84A32C6C9596009F3026 /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10F84A22C6C9596009F3026 /* TestView.swift */; };
 		B141C23D2CA5F51200AC8CC8 /* ActivationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B141C23C2CA5F50F00AC8CC8 /* ActivationView.swift */; };
 		B141C23F2CA5F51E00AC8CC8 /* ProOnboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = B141C23E2CA5F51A00AC8CC8 /* ProOnboarding.swift */; };
@@ -179,7 +178,6 @@
 		B10348D82C74E56000475897 /* ConditionalModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalModifier.swift; sourceTree = "<group>"; };
 		B10A84892C7BCC940088BFFC /* AirDropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropView.swift; sourceTree = "<group>"; };
 		B10A848B2C7BCD150088BFFC /* AirDrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDrop.swift; sourceTree = "<group>"; };
-		B10F849E2C6B5BCC009F3026 /* NotchContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchContentView.swift; sourceTree = "<group>"; };
 		B10F84A22C6C9596009F3026 /* TestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestView.swift; sourceTree = "<group>"; };
 		B141C23C2CA5F50F00AC8CC8 /* ActivationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationView.swift; sourceTree = "<group>"; };
 		B141C23E2CA5F51A00AC8CC8 /* ProOnboarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProOnboarding.swift; sourceTree = "<group>"; };
@@ -505,7 +503,6 @@
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
 				1471A8582C6281BD0058408D /* BoringNotchWindow.swift */,
-				B10F849E2C6B5BCC009F3026 /* NotchContentView.swift */,
 			);
 			path = Notch;
 			sourceTree = "<group>";
@@ -707,7 +704,6 @@
 				9A987A0D2C73CA66005CA465 /* NotchShelfView.swift in Sources */,
 				14D570B62C5E961A0011E668 /* NotchShape.swift in Sources */,
 				9A987A0A2C73CA66005CA465 /* TrayDrop.swift in Sources */,
-				B10F849F2C6B5BCC009F3026 /* NotchContentView.swift in Sources */,
 				14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */,
 				B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */,
 				B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */,
