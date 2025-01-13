@@ -34,7 +34,7 @@ extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
-    static let releaseName = Key<String>("releaseName", default: "Glowing Panda 🐼 (Snooty)")
+    static let releaseName = Key<String>("releaseName", default: "Jolly Dolphin 🐬 (Dreaming)")
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
