@@ -20,13 +20,14 @@ class CalendarManager: ObservableObject {
     @Published var authorizationStatus: EKAuthorizationStatus = .notDetermined
     
     init() {
-        self.currentWeekStartDate = CalendarManager.startOfWeek(Date())
+        self.currentWeekStartDate = CalendarManager.startOfDay(Date())
         checkCalendarAuthorization()
     }
     
     func checkCalendarAuthorization() {
         let status = EKEventStore.authorizationStatus(for: .event)
         DispatchQueue.main.async {
+            print("📅 Current calendar authorization status: \(status)")
             self.authorizationStatus = status
         }
         
@@ -50,13 +51,19 @@ class CalendarManager: ObservableObject {
     }
     
     func requestCalendarAccess() {
-        eventStore.requestFullAccessToEvents { granted, _ in
+        eventStore.requestFullAccessToEvents { [weak self] granted, error in
             DispatchQueue.main.async {
-                self.authorizationStatus = granted ? .fullAccess : .denied
-            }
-            
-            if granted {
-                self.fetchEvents()
+                if let error = error {
+                    print("📅 Calendar access error: \(error.localizedDescription)")
+                }
+                
+                self?.authorizationStatus = granted ? .fullAccess : .denied
+                if granted {
+                    print("📅 Calendar access granted")
+                    self?.fetchEvents()
+                } else {
+                    print("📅 Calendar access denied")
+                }
             }
         }
     }
@@ -109,32 +116,19 @@ class CalendarManager: ObservableObject {
         let endOfWeek = Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!
         let predicate = eventStore.predicateForEvents(withStart: currentWeekStartDate, end: endOfWeek, calendars: self.selectedCalendars)
         let fetchedEvents = eventStore.events(matching: predicate)
+        
         DispatchQueue.main.async {
             self.events = fetchedEvents.sorted { $0.startDate < $1.startDate }
+            print("📅 Fetched \(self.events.count) calendar events")
         }
     }
     
-    func moveToNextWeek() {
-        if let nextWeek = Calendar.current.date(byAdding: .weekOfYear, value: 1, to: currentWeekStartDate) {
-            currentWeekStartDate = nextWeek
-            fetchEvents()
-        }
-    }
-    
-    func moveToPreviousWeek() {
-        if let previousWeek = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: currentWeekStartDate) {
-            currentWeekStartDate = previousWeek
-            fetchEvents()
-        }
-    }
-    
-    static func startOfWeek(_ date: Date) -> Date {
-        let firstWeekday = Calendar.current.firstWeekday - 1
-        let start = Calendar.current.date(from: Calendar.current.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date))!
-        return Calendar.current.date(byAdding: .day, value: firstWeekday,to: start)!
+    static func startOfDay(_ date: Date) -> Date {
+        return Calendar.current.startOfDay(for: date)
     }
     
     func updateCurrentDate(_ date: Date) {
+        print("📅 Updating current date to: \(date)")
         currentWeekStartDate = Calendar.current.startOfDay(for: date)
         fetchEvents()
     }

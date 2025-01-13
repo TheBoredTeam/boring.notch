@@ -49,6 +49,14 @@ class MusicManager: ObservableObject {
     private let MRMediaRemoteRegisterForNowPlayingNotifications: @convention(c) (DispatchQueue) -> Void
     private let MRMediaRemoteGetNowPlayingApplicationIsPlaying: @convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void
     
+    private var distributedObservers: [NSObjectProtocol] = []
+    
+    @Published var isFlipping: Bool = false
+    private var flipWorkItem: DispatchWorkItem?
+    
+    @Published var isTransitioning: Bool = false
+    private var transitionWorkItem: DispatchWorkItem?
+    
     // MARK: - Initialization
     init?(vm: BoringViewModel) {
         self.vm = vm
@@ -83,6 +91,14 @@ class MusicManager: ObservableObject {
     deinit {
         debounceToggle?.cancel()
         cancellables.removeAll()
+        
+        distributedObservers.forEach { observer in
+            DistributedNotificationCenter.default().removeObserver(observer)
+        }
+        distributedObservers.removeAll()
+        
+        flipWorkItem?.cancel()
+        transitionWorkItem?.cancel()
     }
     
     // MARK: - Setup Methods
@@ -121,11 +137,12 @@ class MusicManager: ObservableObject {
     }
     
     private func observeDistributedNotification(name: String, handler: @escaping () -> Void) {
-        DistributedNotificationCenter.default().addObserver(
+        let observer = DistributedNotificationCenter.default().addObserver(
             forName: NSNotification.Name(name),
             object: nil,
             queue: .main
         ) { _ in handler() }
+        distributedObservers.append(observer)
     }
     
     // MARK: - Update Methods
@@ -179,32 +196,81 @@ class MusicManager: ObservableObject {
     }
     
     private func updateMusicState(newInfo: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?), state: Int?) {
-        if((newInfo.artworkData != nil && newInfo.artworkData != lastMusicItem?.artworkData) || (newInfo.title, newInfo.artist, newInfo.album) != (lastMusicItem?.title, lastMusicItem?.artist, lastMusicItem?.album)) {
-            updateArtwork(newInfo.artworkData)
-            self.lastMusicItem?.artworkData = newInfo.artworkData
+        // Check if music info has actually changed
+        let musicInfoChanged = (newInfo.title != lastMusicItem?.title ||
+                              newInfo.artist != lastMusicItem?.artist ||
+                              newInfo.album != lastMusicItem?.album)
+        
+        let artworkChanged = newInfo.artworkData != nil && newInfo.artworkData != lastMusicItem?.artworkData
+        
+        if artworkChanged || musicInfoChanged {
+            // Trigger flip animation
+            flipWorkItem?.cancel()
+            let workItem = DispatchWorkItem { [weak self] in
+                self?.isFlipping = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    self?.isFlipping = false
+                }
+            }
+            flipWorkItem = workItem
+            DispatchQueue.main.async(execute: workItem)
+            
+            if artworkChanged {
+                updateArtwork(newInfo.artworkData)
+                self.lastMusicItem?.artworkData = newInfo.artworkData
+            }
+            
+            // Only update sneak peek if there's actual content
+            if musicInfoChanged && !newInfo.title.isEmpty && !newInfo.artist.isEmpty {
+                updateSneakPeek()
+            }
         }
-        // Only update sneak peek if the music info has changed
-        if((newInfo.title, newInfo.artist, newInfo.album) != (lastMusicItem?.title, lastMusicItem?.artist, lastMusicItem?.album) && (newInfo.title, newInfo.artist) != ("", "")) {
-            updateSneakPeek()
+        
+        self.lastMusicItem = (
+            title: newInfo.title,
+            artist: newInfo.artist,
+            album: newInfo.album,
+            duration: newInfo.duration,
+            artworkData: lastMusicItem?.artworkData
+        )
+        
+        // Batch state updates
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.artistName = newInfo.artist
+            self.songTitle = newInfo.title
+            self.album = newInfo.album
+            self.songDuration = newInfo.duration
+            
+            // Check playback state
+            MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
+                self?.musicIsPaused(state: isPlaying, setIdle: true)
+            }
         }
-        self.lastMusicItem = (title: newInfo.title, artist: newInfo.artist, album: newInfo.album, duration: newInfo.duration, artworkData: lastMusicItem?.artworkData)
-        MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
-            self?.musicIsPaused(state: isPlaying, setIdle: true)
-        }
-        self.artistName = newInfo.artist
-        self.songTitle = newInfo.title
-        self.album = newInfo.album
-        self.songDuration = newInfo.duration
     }
     
     private func updateArtwork(_ artworkData: Data?) {
-        if let artworkData = artworkData,
-           let artworkImage = NSImage(data: artworkData) {
-            self.usingAppIconForArtwork = false
-            self.updateAlbumArt(newAlbumArt: artworkImage)
-        } else if let appIconImage = AppIconAsNSImage(for: bundleIdentifier ?? nowPlaying.appBundleIdentifier ?? "") {
-            self.usingAppIconForArtwork = true
-            self.updateAlbumArt(newAlbumArt: appIconImage)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            
+            let newArt: NSImage?
+            let usingAppIcon: Bool
+            
+            if let artworkData = artworkData,
+               let artworkImage = NSImage(data: artworkData) {
+                newArt = artworkImage
+                usingAppIcon = false
+            } else if let appIconImage = AppIconAsNSImage(for: self.bundleIdentifier ?? self.nowPlaying.appBundleIdentifier ?? "") {
+                newArt = appIconImage
+                usingAppIcon = true
+            } else {
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.usingAppIconForArtwork = usingAppIcon
+                self.updateAlbumArt(newAlbumArt: newArt!)
+            }
         }
     }
     
@@ -212,8 +278,10 @@ class MusicManager: ObservableObject {
         if musicToggledManually && !bypass { return }
         
         let previousState = self.isPlaying
+        let hasContent = !songTitle.isEmpty && !artistName.isEmpty
         
         withAnimation(.smooth) {
+            // Batch related state updates
             self.isPlaying = state
             self.playbackManager.isPlaying = state
             
@@ -223,8 +291,8 @@ class MusicManager: ObservableObject {
             
             updateFullscreenMediaDetection()
             
-            // Only update sneak peek if the state has actually changed
-            if previousState != state && (songTitle, artistName) != ("", "") {
+            // Only update sneak peek if state changed and has content
+            if previousState != state && hasContent {
                 updateSneakPeek()
             }
             
@@ -233,10 +301,9 @@ class MusicManager: ObservableObject {
     }
     
     private func updateFullscreenMediaDetection() {
-        DispatchQueue.main.async {
-            if Defaults[.enableFullscreenMediaDetection] {
-                self.vm.toggleMusicLiveActivity(status: !self.detector.currentAppInFullScreen)
-            }
+        // Remove redundant dispatch since we're already on main thread
+        if Defaults[.enableFullscreenMediaDetection] {
+            self.vm.toggleMusicLiveActivity(status: !self.detector.currentAppInFullScreen)
         }
     }
     
