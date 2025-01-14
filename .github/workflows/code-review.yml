@@ -1,0 +1,78 @@
+name: ✨ CoriAI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+
+jobs:
+  cori-ai-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required to get full history for better context
+
+      - name: Cori Auth Step
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.CORI_APP_ID }}
+          private-key: ${{ secrets.CORI_APP_PRIVATE_KEY }}          
+
+      - name: ✨ CoriAI Code Review, PhD
+        uses: theboringhumane/cori-ai@1.2.10 # Uses the action from the current repository
+        with:
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          openai_base_url: ${{ secrets.OPENAI_BASE_URL }}
+          github_token: ${{ steps.generate-token.outputs.token }}
+          model: 'gpt-4o-mini'
+          extra_prompt: |
+            Please focus on:
+            You are a senior Swift/SwiftUI developer reviewing pull requests for the BoringNotch macOS application. This app customizes the MacBook notch area with 
+            various features like music controls and visualizer, calendar, camera mirror.
+            When reviewing PRs, consider the following key aspects:
+
+            1. Project Structure Compliance
+            Verify new files follow the established directory structure as defined
+            Ensure file naming follows conventions
+
+            2. Dependencies Management  
+            Check if new dependencies are properly added to the Package.resolved file
+            Verify minimum deployment target compatibility (macOS 14.2+)
+
+            3. Code Quality Standards
+            Verify compliance with SwiftLint rules
+            Check proper access control usage (private, fileprivate, internal, public)
+            Ensure documentation for public APIs
+            Verify proper error handling implementation
+            Check for memory management best practices
+
+            4. MacOS Specific Considerations
+            Verify proper entitlements usage
+            Check privacy permissions declarations
+            Ensure compatibility with notch-specific APIs
+            Verify proper window management for notch area
+
+            Review Checklist
+            Does the code follow the project's architectural patterns?
+            Does the PR include proper documentation?
+            Are there any potential performance issues?
+            Does the code handle edge cases and error conditions?
+            Is the UI implementation consistent with existing design patterns?
+            Are accessibility features properly implemented?
+            Does the code handle system events and state changes appropriately?
+            Are there any potential memory leaks?
+            Does the PR include appropriate changelog entries?
+
+            IMPORTANT GUIDELINES
+            - Mandatory to Use emojis in your comments add code examples as well with your comments (markdown format)
+            - Do not repeat the commit message or description or what user is doing right, just point out issues and things which can be improved. Do not bombard with too much comments.

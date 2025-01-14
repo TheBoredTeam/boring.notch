@@ -25,11 +25,22 @@ struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
     var speed: CGFloat = 1.0
 }
 
+enum CalendarSelectionState: Codable, Defaults.Serializable {
+    case all
+    case selected(Set<String>)
+}
+
+enum HideNotchOption: String, Defaults.Serializable {
+    case always
+    case nowPlayingOnly
+    case never
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
-    static let releaseName = Key<String>("releaseName", default: "Glowing Panda 🐼 (Snooty)")
+    static let releaseName = Key<String>("releaseName", default: "Jolly Dolphin 🐬 (Dreaming)")
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
@@ -57,7 +68,7 @@ extension Defaults.Keys {
     static let accentColor = Key<Color>("accentColor", default: Color.blue)
     static let enableShadow = Key<Bool>("enableShadow", default: true)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
-    static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
+    static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: true)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     static let showCalendar = Key<Bool>("showCalendar", default: true)
     static let sliderColor = Key<SliderColorEnum>(
@@ -99,4 +110,12 @@ extension Defaults.Keys {
     // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
+    
+    // MARK: Calendar
+    static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
+
+    // MARK: Fullscreen Media Detection
+    static let alwaysHideInFullscreen = Key<Bool>("alwaysHideInFullscreen", default: false)
+
+    static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
 }

@@ -51,5 +51,5 @@ struct TabSelectionView: View {
 }
 
 #Preview {
-    BoringHeader()
+    BoringHeader().environmentObject(BoringViewModel())
 }

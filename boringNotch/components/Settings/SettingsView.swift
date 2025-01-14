@@ -5,19 +5,20 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import SwiftUI
-import LaunchAtLogin
-import Sparkle
-import KeyboardShortcuts
-import Defaults
-import SwiftUIIntrospect
 import AVFoundation
+import Defaults
+import KeyboardShortcuts
+import LaunchAtLogin
 import LottieUI
+import Sparkle
+import SwiftUI
+import SwiftUIIntrospect
 
 struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject var extensionManager = BoringExtensionManager()
     let updaterController: SPUStandardUpdaterController
+    @StateObject private var calendarManager = CalendarManager()
     
     @State private var selectedTab = "General"
     
@@ -33,10 +34,14 @@ struct SettingsView: View {
                 NavigationLink(destination: Media()) {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
+                NavigationLink(destination: CalendarSettings()) {
+                    Label("Calendar", systemImage: "calendar")
+                }
                 if extensionManager.installedExtensions
                     .contains(
                         where: { $0.bundleIdentifier == hudExtension
-                        }) {
+                        })
+                {
                     NavigationLink(destination: HUD()) {
                         Label("HUDs", systemImage: "dial.medium.fill")
                     }
@@ -47,7 +52,8 @@ struct SettingsView: View {
                 if extensionManager.installedExtensions
                     .contains(
                         where: { $0.bundleIdentifier == downloadManagerExtension
-                        }) {
+                        })
+                {
                     NavigationLink(destination: Downloads()) {
                         Label("Downloads", systemImage: "square.and.arrow.down")
                     }
@@ -72,6 +78,7 @@ struct SettingsView: View {
             GeneralSettings()
         }
         .environmentObject(extensionManager)
+        .environmentObject(calendarManager)
         .formStyle(.grouped)
         .onChange(of: scenePhase) {
             if scenePhase == .active {
@@ -91,7 +98,7 @@ struct SettingsView: View {
 }
 
 struct GeneralSettings: View {
-    @State private var screens: [String] = NSScreen.screens.compactMap({$0.localizedName})
+    @State private var screens: [String] = NSScreen.screens.compactMap { $0.localizedName }
     let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -100,7 +107,7 @@ struct GeneralSettings: View {
     @Default(.showEmojis) var showEmojis
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
-    //@State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
+    // @State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
@@ -108,7 +115,8 @@ struct GeneralSettings: View {
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
-
+    @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
+    
     var body: some View {
         Form {
             Section {
@@ -161,7 +169,7 @@ struct GeneralSettings: View {
                     }
                 }
                 .onChange(of: NSScreen.screens) {
-                    screens =  NSScreen.screens.compactMap({$0.localizedName})
+                    screens = NSScreen.screens.compactMap { $0.localizedName }
                 }
             } header: {
                 Text("System features")
@@ -169,28 +177,28 @@ struct GeneralSettings: View {
             
             Section {
                 Picker(selection: $notchHeightMode, label:
-                HStack {
-                    Text("Notch display height")
-                    customBadge(text: "Beta")
-                }) {
-                    Text("Match real notch size")
-                        .tag(WindowHeightMode.matchRealNotchSize)
-                    Text("Match menubar height")
-                        .tag(WindowHeightMode.matchMenuBar)
-                    Text("Custom height")
-                        .tag(WindowHeightMode.custom)
-                }
-                .onChange(of: notchHeightMode) {
-                    switch notchHeightMode {
-                    case .matchRealNotchSize:
+                    HStack {
+                        Text("Notch display height")
+                        customBadge(text: "Beta")
+                    }) {
+                        Text("Match real notch size")
+                            .tag(WindowHeightMode.matchRealNotchSize)
+                        Text("Match menubar height")
+                            .tag(WindowHeightMode.matchMenuBar)
+                        Text("Custom height")
+                            .tag(WindowHeightMode.custom)
+                    }
+                    .onChange(of: notchHeightMode) {
+                        switch notchHeightMode {
+                        case .matchRealNotchSize:
                             notchHeight = 38
                         case .matchMenuBar:
                             notchHeight = 44
                         case .custom:
                             nonNotchHeight = 38
+                        }
+                        NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
-                    NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
-                }
                 if notchHeightMode == .custom {
                     Slider(value: $nonNotchHeight, in: 15...45, step: 1) {
                         Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
@@ -209,12 +217,12 @@ struct GeneralSettings: View {
                 }
                 .onChange(of: nonNotchHeightMode) {
                     switch nonNotchHeightMode {
-                        case .matchMenuBar:
-                            nonNotchHeight = 24
-                        case .matchRealNotchSize:
-                            nonNotchHeight = 32
-                        case .custom:
-                            nonNotchHeight = 32
+                    case .matchMenuBar:
+                        nonNotchHeight = 24
+                    case .matchRealNotchSize:
+                        nonNotchHeight = 32
+                    case .custom:
+                        nonNotchHeight = 32
                     }
                     NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                 }
@@ -367,9 +375,7 @@ struct Downloads: View {
                 }
                 .actionBar(padding: 0) {
                     Group {
-                        Button {
-                            
-                        } label: {
+                        Button {} label: {
                             Image(systemName: "plus")
                                 .frame(width: 25, height: 16, alignment: .center)
                                 .contentShape(Rectangle())
@@ -377,9 +383,7 @@ struct Downloads: View {
                         }
                         
                         Divider()
-                        Button {
-                            
-                        } label: {
+                        Button {} label: {
                             Image(systemName: "minus")
                                 .frame(width: 20, height: 16, alignment: .center)
                                 .contentShape(Rectangle())
@@ -388,11 +392,10 @@ struct Downloads: View {
                     }
                 }
             } header: {
-                HStack (spacing: 4){
+                HStack(spacing: 4) {
                     Text("Exclude apps")
                     comingSoonTag()
                 }
-                
             }
         }
         .tint(Defaults[.accentColor])
@@ -449,6 +452,9 @@ struct HUD: View {
 struct Media: View {
     @Default(.waitInterval) var waitInterval
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+
+    @Default(.hideNotchOption) var hideNotchOption
+
     var body: some View {
         Form {
             Section {
@@ -470,18 +476,48 @@ struct Media: View {
             } header: {
                 Text("Media playback live activity")
             }
-            
-            Section {
-                Defaults.Toggle("Autohide BoringNotch in fullscreen", key: .enableFullscreenMediaDetection)
-            } header: {
+
+            Picker(selection: $hideNotchOption, label:
                 HStack {
-                    Text("Fullscreen media playback detection")
+                    Text("Hide BoringNotch Options")
                     customBadge(text: "Beta")
+                }) {
+                    Text("Always hide in fullscreen").tag(HideNotchOption.always)
+                    Text("Hide only when NowPlaying app is in fullscreen").tag(HideNotchOption.nowPlayingOnly)
+                    Text("Never hide").tag(HideNotchOption.never)
                 }
-            }
+                .onChange(of: hideNotchOption) { _, newValue in
+                    Defaults[.alwaysHideInFullscreen] = newValue == .always
+                    Defaults[.enableFullscreenMediaDetection] = newValue != .never
+                }
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Media")
+    }
+}
+
+struct CalendarSettings: View {
+    @ObservedObject private var calendarManager = CalendarManager()
+    @Default(.showCalendar) var showCalendar: Bool
+    
+    var body: some View {
+        Form {
+            Toggle("Show calendar", isOn: $showCalendar)
+            Section(header: Text("Select Calendars")) {
+                List {
+                    ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
+                        Toggle(isOn: Binding(
+                            get: { calendarManager.getCalendarSelected(calendar) },
+                            set: { isSelected in
+                                calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+                            }
+                        )) {
+                            Text(calendar.title)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -502,7 +538,7 @@ struct About: View {
                     HStack {
                         Text("Version")
                         Spacer()
-                        if (showBuildNumber) {
+                        if showBuildNumber {
                             Text("(\(Bundle.main.buildVersionNumber ?? ""))")
                                 .foregroundStyle(.secondary)
                         }
@@ -628,7 +664,7 @@ struct Extensions: View {
                                 Button("Restart") {
                                     let ws = NSWorkspace.shared
                                     
-                                    if let ext = ws.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
+                                    if let ext = ws.runningApplications.first(where: { $0.bundleIdentifier == item.bundleIdentifier }) {
                                         ext.terminate()
                                     }
                                     
@@ -638,7 +674,7 @@ struct Extensions: View {
                                 }
                                 .keyboardShortcut("R", modifiers: .command)
                                 Button("Disable") {
-                                    if let ext = NSWorkspace.shared.runningApplications.first(where: {$0.bundleIdentifier == item.bundleIdentifier}) {
+                                    if let ext = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == item.bundleIdentifier }) {
                                         ext.terminate()
                                     }
                                     extensionManager.installedExtensions[index].status = .disabled
@@ -653,7 +689,6 @@ struct Extensions: View {
                                     .foregroundStyle(.secondary)
                             })
                             .controlSize(.regular)
-                            
                         }
                         .buttonStyle(PlainButtonStyle())
                         .padding(.vertical, 5)
@@ -661,9 +696,7 @@ struct Extensions: View {
                 }
                 .frame(minHeight: 120)
                 .actionBar {
-                    Button {
-                        
-                    } label: {
+                    Button {} label: {
                         HStack(spacing: 3) {
                             Image(systemName: "plus")
                             Text("Add manually")
@@ -708,8 +741,8 @@ struct Extensions: View {
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Extensions")
-        //TipsView()
-        //.padding(.horizontal, 19)
+        // TipsView()
+        // .padding(.horizontal, 19)
     }
 }
 
@@ -930,9 +963,7 @@ struct Appearance: View {
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
-                Defaults.Toggle("Show calendar", key: .showCalendar)
                 Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
-                    .disabled(true)
             } header: {
                 HStack {
                     Text("Additional features")
@@ -1062,4 +1093,8 @@ func warningBadge(_ text: String, _ description: String) -> some View {
             Spacer()
         }
     }
+}
+
+#Preview {
+    Media()
 }

@@ -61,6 +61,9 @@
         }
       }
     },
+    "Access Denied" : {
+
+    },
     "Activate" : {
 
     },
@@ -89,6 +92,9 @@
 
     },
     "All-day" : {
+
+    },
+    "Always hide in fullscreen" : {
 
     },
     "Always show tabs" : {
@@ -167,6 +173,9 @@
           }
         }
       }
+    },
+    "Calendar" : {
+
     },
     "Cancel" : {
 
@@ -333,9 +342,6 @@
     "Error" : {
 
     },
-    "ERROR: VIEW NOT DEFINED" : {
-
-    },
     "Exclude apps" : {
       "localizations" : {
         "en" : {
@@ -350,9 +356,6 @@
 
     },
     "Extensions" : {
-
-    },
-    "Fullscreen media playback detection" : {
 
     },
     "General" : {
@@ -388,6 +391,12 @@
 
     },
     "Gradient" : {
+
+    },
+    "Hide BoringNotch Options" : {
+
+    },
+    "Hide only when NowPlaying app is in fullscreen" : {
 
     },
     "Hierarchical" : {
@@ -519,6 +528,9 @@
 
     },
     "Need Restart" : {
+
+    },
+    "Never hide" : {
 
     },
     "No custom animation available" : {
@@ -668,6 +680,9 @@
         }
       }
     },
+    "Select Calendars" : {
+
+    },
     "selected" : {
 
     },
@@ -700,6 +715,9 @@
           }
         }
       }
+    },
+    "Show calendar" : {
+
     },
     "Show charging indicator" : {
       "extractionState" : "stale",
