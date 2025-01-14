@@ -30,6 +30,12 @@ enum CalendarSelectionState: Codable, Defaults.Serializable {
     case selected(Set<String>)
 }
 
+enum HideNotchOption: String, Defaults.Serializable {
+    case always
+    case nowPlayingOnly
+    case never
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -107,4 +113,9 @@ extension Defaults.Keys {
     
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
+
+    // MARK: Fullscreen Media Detection
+    static let alwaysHideInFullscreen = Key<Bool>("alwaysHideInFullscreen", default: false)
+
+    static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
 }

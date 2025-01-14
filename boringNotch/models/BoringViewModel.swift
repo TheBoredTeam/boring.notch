@@ -6,9 +6,9 @@
 //
 
 import Combine
+import Defaults
 import SwiftUI
 import TheBoringWorkerNotifier
-import Defaults
 
 enum BrowserType {
     case chromium
@@ -24,7 +24,7 @@ struct ExpandedItem {
 
 class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    
+
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
 
@@ -32,15 +32,15 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published private(set) var notchState: NotchState = .closed
     
     private var expandingViewDispatch: DispatchWorkItem?
-    
+
     @Published var dragDetectorTargeting: Bool = false
     @Published var dropZoneTargeting: Bool = false
     @Published var dropEvent: Bool = false
     @Published var anyDropZoneTargeting: Bool = false
     var cancellables: Set<AnyCancellable> = []
-    
+
     var screen: String?
-    
+
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
 
@@ -60,7 +60,7 @@ class BoringViewModel: NSObject, ObservableObject {
             }
         }
     }
-    
+
     deinit {
         destroy()
     }
@@ -74,11 +74,11 @@ class BoringViewModel: NSObject, ObservableObject {
         animation = animationLibrary.animation
 
         super.init()
-        
+
         notifier = coordinator.notifier
         self.screen = screen
-        self.notchSize = getClosedNotchSize(screen: screen)
-        self.closedNotchSize = notchSize
+        notchSize = getClosedNotchSize(screen: screen)
+        closedNotchSize = notchSize
 
         Publishers.CombineLatest($dropZoneTargeting, $dragDetectorTargeting)
             .map { value1, value2 in
@@ -97,7 +97,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
     func toggleMusicLiveActivity(status: Bool) {
         withAnimation(.smooth) {
-            // self.showMusicLiveActivityOnClosed = status
+            self.coordinator.showMusicLiveActivityOnClosed = status
         }
     }
 
@@ -132,7 +132,7 @@ class BoringViewModel: NSObject, ObservableObject {
             coordinator.currentView = .home
         }
     }
-    
+
     func openClipboard() {
         notifier.postNotification(name: notifier.showClipboardNotification.name, userInfo: nil)
     }
