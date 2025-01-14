@@ -33,7 +33,10 @@ class FullscreenMediaDetector: ObservableObject {
         let notifications: [(Notification.Name, Selector)] = [
             (NSWorkspace.activeSpaceDidChangeNotification, #selector(activeSpaceDidChange(_:))),
             (NSApplication.didChangeScreenParametersNotification, #selector(applicationDidChangeScreenMode(_:))),
-            (NSWorkspace.didActivateApplicationNotification, #selector(applicationDidChangeScreenMode(_:)))
+            (NSWorkspace.didActivateApplicationNotification, #selector(applicationDidChangeScreenMode(_:))),
+            (NSWorkspace.didDeactivateApplicationNotification, #selector(applicationDidChangeScreenMode(_:))), // Listen for when an application is deactivated
+            (NSApplication.didBecomeActiveNotification, #selector(applicationDidChangeScreenMode(_:))), // Listen for when the application becomes active
+            (NSApplication.didResignActiveNotification, #selector(applicationDidChangeScreenMode(_:))) // Listen for when the application resigns active status
         ]
         
         for (name, selector) in notifications {
