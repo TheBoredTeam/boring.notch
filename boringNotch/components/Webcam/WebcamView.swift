@@ -6,13 +6,13 @@
 //
 
 import AVFoundation
-import SwiftUI
 import Defaults
+import SwiftUI
 
 struct CameraPreviewView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager: WebcamManager
-    
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -56,7 +56,7 @@ struct CameraPreviewView: View {
                     alert.informativeText = "Please allow camera access in System Settings to use the mirror feature."
                     alert.addButton(withTitle: "Open Settings")
                     alert.addButton(withTitle: "Cancel")
-                    
+
                     if alert.runModal() == .alertFirstButtonReturn {
                         if let settingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
                             NSWorkspace.shared.open(settingsURL)
