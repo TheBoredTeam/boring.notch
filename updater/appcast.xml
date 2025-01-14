@@ -2,6 +2,28 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>boringNotch</title>
+        <title>2.5 🎉 Jellyfin Snoring 🪼 (Streaming)</title>
+            <pubDate>Wed, 15 Jan 2025 00:08:41 +0530</pubDate>
+            <sparkle:version>2.5+1</sparkle:version>
+            <sparkle:shortVersionString>2.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h1>🎉 v2.5 🚀 Jellyfin Snoring 🪼 (Dreaming)</h1>
+                <p>We're thrilled to announce the release of Jellyfin Snoring version 2.5! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
+                <h2>🤔 What's Changed? 🤓</h2>
+                <ul>
+                <li>🧠 Taught our app that RAM isn't an all-you-can-eat buffet (fixed those pesky memory leaks that made your computer think it was training ChatGPT)</li>
+                <li>Improved full-screen media detection (Thanks @MicroVisionKit!)</li>
+                <li>Jiggly wobbly notch open and close animation.</li>
+                <li>Fixed AirDrop invisible window issue and improved error handling 📱</li>
+                <li>Improved gesture sensitivity and controls 🖐️</li>
+                <li>Better performance optimizations ⚡</li>
+                <li>Fixed various minor bugs and stability issues 🐛</li>
+                <li> For more details, check out <a href="https://theboring.name">our website</a>.</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/jellyfin.snoring/JellyfinSnoring.dmg" length="9141156" type="application/octet-stream" sparkle:edSignature="ALdDOKISv9kYPHUe+qif8UjVOSf1WugJFuuwF7dpV+Ki4V+LRPUsp/pUr5pny8or2IpXfmwS0ah+1jhhDLSJAg=="/>
+        </item>
         <item>
             <title>2.4 🚀 Exciting new features and improvements</title>
             <pubDate>Wed, 20 Nov 2024 15:30:00 +0530</pubDate>
