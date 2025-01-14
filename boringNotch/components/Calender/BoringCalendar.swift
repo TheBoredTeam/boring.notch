@@ -45,7 +45,7 @@ struct WheelPicker: View {
                             withAnimation{
                                 scrollPosition = indexForDate(date, offset: offset) - config.offset
                             }
-                            haptics.toggle()
+                            //haptics.toggle()      // Causes double haptic when click
                         }
                     }
                 }
@@ -56,6 +56,7 @@ struct WheelPicker: View {
         .scrollIndicators(.never)
         .scrollPosition(id: $scrollPosition, anchor: .leading)
         .safeAreaPadding(.horizontal)
+        .scrollTargetBehavior(.viewAligned)   // Ensures scroll view snaps to button center
         .sensoryFeedback(.alignment, trigger: haptics)
         .onChange(of: scrollPosition) { oldValue, newValue in
             if(!byClick){
