@@ -3,7 +3,7 @@
     <channel>
         <title>boringNotch</title>
         <title>2.5 🎉 Jellyfin Snoring 🪼 (Streaming)</title>
-            <pubDate>Wed, 15 Jan 2025 00:08:41 +0530</pubDate>
+            <pubDate>Wed, 15 Jan 2025 00:34:25 +0530</pubDate>
             <sparkle:version>2.5+1</sparkle:version>
             <sparkle:shortVersionString>2.5</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
@@ -22,7 +22,7 @@
                 <li> For more details, check out <a href="https://theboring.name">our website</a>.</li>
                 </ul>
             ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/jellyfin.snoring/JellyfinSnoring.dmg" length="9141153" type="application/octet-stream" sparkle:edSignature="z+7wKceFTIL4ZwF8JnZvuIWfqY+l7eWTaw3mHM7PB6FQJ2VIBD4pJ4lkrgw7ZMRZHrSdpW1Q1Xx/5w+yjV4BCg=="/>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/jellyfin.snoring/JellyfinSnoring.dmg" length="9141153" type="application/octet-stream" sparkle:edSignature="z+7wKceFTIL4ZwF8JnZvuIWfqY+l7eWTaw3mHM7PB6FQJ2VIBD4pJ4lkrgw7ZMRZHrSdpW1Q1Xx/5w+yjV4BCg==" />
         </item>
         <item>
             <title>2.4 🚀 Exciting new features and improvements</title>
