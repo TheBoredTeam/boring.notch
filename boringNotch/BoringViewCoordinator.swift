@@ -6,9 +6,9 @@
 //
 
 import Combine
+import Defaults
 import SwiftUI
 import TheBoringWorkerNotifier
-import Defaults
 
 enum SneakContentType {
     case brightness
@@ -83,7 +83,7 @@ class BoringViewCoordinator: ObservableObject {
     @Published var optionKeyPressed: Bool = true
     
     private init() {
-        self.selectedScreen = preferredScreen
+        selectedScreen = preferredScreen
         notifier = TheBoringWorkerNotifier()
     }
     
@@ -110,9 +110,9 @@ class BoringViewCoordinator: ObservableObject {
     }
     
     func toggleSneakPeek(status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0, icon: String = "") {
-        self.sneakPeekDuration = duration
+        sneakPeekDuration = duration
         if type != .music {
-            //close()
+            // close()
             if !hudReplacement {
                 return
             }
@@ -146,7 +146,7 @@ class BoringViewCoordinator: ObservableObject {
                 }
                 DispatchQueue.main
                     .asyncAfter(
-                        deadline: .now() + self.sneakPeekDuration,
+                        deadline: .now() + sneakPeekDuration,
                         execute: sneakPeekDispatch!
                     )
             }
