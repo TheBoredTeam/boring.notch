@@ -1,8 +1,8 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
-        <title>boringNotch</title>
-        <title>2.5 🎉 Jellyfin Snoring 🪼 (Streaming)</title>
+        <item>
+            <title>2.5 🎉 Jellyfin Snoring 🪼 (Streaming)</title>
             <pubDate>Wed, 15 Jan 2025 00:34:25 +0530</pubDate>
             <sparkle:version>2.5+1</sparkle:version>
             <sparkle:shortVersionString>2.5</sparkle:shortVersionString>
@@ -109,18 +109,18 @@
                 <p>We're thrilled to announce the release of Glowing Panda version 2.0! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
                 <h2>🤔 What's New? 🤓</h2>
                 <ul><li>Rewritten Layout: The Speed Demon 🏃‍♂️ Our layout has been reworked for better performance, making it faster and smoother. We've also added some fancy animations to keep things interesting 😎</li>
-        <li>Polished Managers: The Playback Pro 🎵 Playback managers have been revamped to ensure a seamless experience. No more buffering or crashes – we've got this covered 💪</li>
-        <li>Calendar & Music Activity: The Visual Showstopper 📆 A fancy blur background behind music activity has been added to enhance the app's visual appeal. It's like a mini-movie in your app 🍿</li>
-        <li>Customization Options: Make it Yours (Sort Of) 🎨 More customization options have been introduced to personalize your glow. We've also added some new emojis to make things more fun 🤪</li>
-        <li>Improved Settings: Don't Lose Your Stuff 🗂️ New and improved settings that actually save changes 🔄. No more wondering where you put that pesky setting 🔍</li>
-        <li>Resource Management Optimizations: The Secret Sauce ⚙️ Our resource management has been optimized for a faster app. We've also added some secret sauce (just kidding, it's just good old-fashioned coding magic ✨)</li>
-        <li>Bug Fixes: 🚫 We've squashed some pesky bugs that caused issues with HUDs and Download Manager settings, shelf icon responsiveness, and General tab in Settings.</li>
-        <li>Update Check: 🔄 A new feature to check for updates in the Settings / About section has been added.</li>
-        <li>Non-Notch Display Customization: 🖥️ Customization options for non-notch displays have been introduced to ensure a seamless experience for all users.</li>
-        <li>GitHub Link Update: 🔄 The GitHub link in the settings has been updated to ensure easy access to the latest updates.</li>
-            </ul>
-            ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10428612" type="application/octet-stream" sparkle:edSignature="x6+BvmZZjnDg/CBMoEMaXMLzQtsW8Hi1Speba/I+KUCbqXgj2pRAo+ATo9m5pqedVmWmAqqEYxSY82u2TK3ZCw=="/>
+                <li>Polished Managers: The Playback Pro 🎵 Playback managers have been revamped to ensure a seamless experience. No more buffering or crashes – we've got this covered 💪</li>
+                <li>Calendar & Music Activity: The Visual Showstopper 📆 A fancy blur background behind music activity has been added to enhance the app's visual appeal. It's like a mini-movie in your app 🍿</li>
+                <li>Customization Options: Make it Yours (Sort Of) 🎨 More customization options have been introduced to personalize your glow. We've also added some new emojis to make things more fun 🤪</li>
+                <li>Improved Settings: Don't Lose Your Stuff 🗂️ New and improved settings that actually save changes 🔄. No more wondering where you put that pesky setting 🔍</li>
+                <li>Resource Management Optimizations: The Secret Sauce ⚙️ Our resource management has been optimized for a faster app. We've also added some secret sauce (just kidding, it's just good old-fashioned coding magic ✨)</li>
+                <li>Bug Fixes: 🚫 We've squashed some pesky bugs that caused issues with HUDs and Download Manager settings, shelf icon responsiveness, and General tab in Settings.</li>
+                <li>Update Check: 🔄 A new feature to check for updates in the Settings / About section has been added.</li>
+                <li>Non-Notch Display Customization: 🖥️ Customization options for non-notch displays have been introduced to ensure a seamless experience for all users.</li>
+                <li>GitHub Link Update: 🔄 The GitHub link in the settings has been updated to ensure easy access to the latest updates.</li>
+                    </ul>
+                    ]]></description>
+                    <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10428612" type="application/octet-stream" sparkle:edSignature="x6+BvmZZjnDg/CBMoEMaXMLzQtsW8Hi1Speba/I+KUCbqXgj2pRAo+ATo9m5pqedVmWmAqqEYxSY82u2TK3ZCw=="/>
         </item>
     </channel>
 </rss>
