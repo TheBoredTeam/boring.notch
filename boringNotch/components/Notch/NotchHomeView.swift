@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Hugo Persson on 2024-08-18.
+//  Modified by Harsh Vardhan Goswami & Richard Kunkli
 //
 
 import Combine
@@ -48,7 +49,7 @@ struct AlbumArtView: View {
             )
             .clipped()
             .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
-            .scaleEffect(x: 1.3, y: 2.8)
+            .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 35)
             .opacity(min(0.6, 1 - max(musicManager.albumArt.getBrightness(), 0.3)))
