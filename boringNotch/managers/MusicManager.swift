@@ -6,8 +6,8 @@
 //
 import AppKit
 import Combine
-import SwiftUI
 import Defaults
+import SwiftUI
 
 let defaultImage: NSImage = .init(
     systemSymbolName: "heart.fill",
@@ -15,8 +15,8 @@ let defaultImage: NSImage = .init(
 )!
 
 class MusicManager: ObservableObject {
-
     // MARK: - Properties
+
     private var cancellables = Set<AnyCancellable>()
     private var debounceToggle: DispatchWorkItem?
     private var vm: BoringViewModel
@@ -37,7 +37,7 @@ class MusicManager: ObservableObject {
     @Published var bundleIdentifier: String? = nil
     @Published var songDuration: TimeInterval = 0
     @Published var elapsedTime: TimeInterval = 0
-    @Published var timestampDate: Date = Date()
+    @Published var timestampDate: Date = .init()
     @Published var playbackRate: Double = 0
     @ObservedObject var detector: FullscreenMediaDetector
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -58,10 +58,11 @@ class MusicManager: ObservableObject {
     private var transitionWorkItem: DispatchWorkItem?
     
     // MARK: - Initialization
+
     init?(vm: BoringViewModel) {
         self.vm = vm
         _detector = ObservedObject(wrappedValue: FullscreenMediaDetector())
-        nowPlaying = NowPlaying()
+        self.nowPlaying = NowPlaying()
         
         guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")),
               let MRMediaRemoteGetNowPlayingInfoPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingInfo" as CFString),
@@ -77,14 +78,13 @@ class MusicManager: ObservableObject {
         self.MRMediaRemoteRegisterForNowPlayingNotifications = unsafeBitCast(MRMediaRemoteRegisterForNowPlayingNotificationsPointer, to: (@convention(c) (DispatchQueue) -> Void).self)
         self.MRMediaRemoteGetNowPlayingApplicationIsPlaying = unsafeBitCast(MRMediaRemoteGetNowPlayingApplicationIsPlayingPointer, to: (@convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void).self)
         
-        
         setupNowPlayingObserver()
         fetchNowPlayingInfo()
         
         setupDetectorObserver()
         
         if nowPlaying.playing {
-            self.fetchNowPlayingInfo()
+            fetchNowPlayingInfo()
         }
     }
     
@@ -92,7 +92,7 @@ class MusicManager: ObservableObject {
         debounceToggle?.cancel()
         cancellables.removeAll()
         
-        distributedObservers.forEach { observer in
+        for observer in distributedObservers {
             DistributedNotificationCenter.default().removeObserver(observer)
         }
         distributedObservers.removeAll()
@@ -102,6 +102,7 @@ class MusicManager: ObservableObject {
     }
     
     // MARK: - Setup Methods
+
     private func setupNowPlayingObserver() {
         MRMediaRemoteRegisterForNowPlayingNotifications(DispatchQueue.main)
         
@@ -146,8 +147,9 @@ class MusicManager: ObservableObject {
     }
     
     // MARK: - Update Methods
+
     @objc func updateApp() {
-        self.bundleIdentifier = nowPlaying.appBundleIdentifier ?? "com.apple.Music"
+        bundleIdentifier = nowPlaying.appBundleIdentifier ?? "com.apple.Music"
     }
     
     @objc func fetchNowPlayingInfo(bypass: Bool = false, bundle: String? = nil) {
@@ -165,7 +167,8 @@ class MusicManager: ObservableObject {
             
             guard let elapsedTime = information["kMRMediaRemoteNowPlayingInfoElapsedTime"] as? TimeInterval,
                   let timestampDate = information["kMRMediaRemoteNowPlayingInfoTimestamp"] as? Date,
-                  let playbackRate = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Double else {
+                  let playbackRate = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Double
+            else {
                 return
             }
             
@@ -178,10 +181,10 @@ class MusicManager: ObservableObject {
     }
     
     // MARK: - Helper Methods
+
     private func updateBundleIdentifier(_ bundle: String?) {
         if let bundle = bundle {
-            self.bundleIdentifier = bundle
-            
+            bundleIdentifier = bundle
         }
     }
     
@@ -198,8 +201,8 @@ class MusicManager: ObservableObject {
     private func updateMusicState(newInfo: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?), state: Int?) {
         // Check if music info has actually changed
         let musicInfoChanged = (newInfo.title != lastMusicItem?.title ||
-                              newInfo.artist != lastMusicItem?.artist ||
-                              newInfo.album != lastMusicItem?.album)
+            newInfo.artist != lastMusicItem?.artist ||
+            newInfo.album != lastMusicItem?.album)
         
         let artworkChanged = newInfo.artworkData != nil && newInfo.artworkData != lastMusicItem?.artworkData
         
@@ -217,7 +220,7 @@ class MusicManager: ObservableObject {
             
             if artworkChanged {
                 updateArtwork(newInfo.artworkData)
-                self.lastMusicItem?.artworkData = newInfo.artworkData
+                lastMusicItem?.artworkData = newInfo.artworkData
             }
             
             // Only update sneak peek if there's actual content
@@ -226,7 +229,7 @@ class MusicManager: ObservableObject {
             }
         }
         
-        self.lastMusicItem = (
+        lastMusicItem = (
             title: newInfo.title,
             artist: newInfo.artist,
             album: newInfo.album,
@@ -257,7 +260,8 @@ class MusicManager: ObservableObject {
             let usingAppIcon: Bool
             
             if let artworkData = artworkData,
-               let artworkImage = NSImage(data: artworkData) {
+               let artworkImage = NSImage(data: artworkData)
+            {
                 newArt = artworkImage
                 usingAppIcon = false
             } else if let appIconImage = AppIconAsNSImage(for: self.bundleIdentifier ?? self.nowPlaying.appBundleIdentifier ?? "") {
@@ -277,7 +281,7 @@ class MusicManager: ObservableObject {
     func musicIsPaused(state: Bool, bypass: Bool = false, setIdle: Bool = false) {
         if musicToggledManually && !bypass { return }
         
-        let previousState = self.isPlaying
+        let previousState = isPlaying
         let hasContent = !songTitle.isEmpty && !artistName.isEmpty
         
         withAnimation(.smooth) {
@@ -303,19 +307,19 @@ class MusicManager: ObservableObject {
     private func updateFullscreenMediaDetection() {
         // Remove redundant dispatch since we're already on main thread
         if Defaults[.enableFullscreenMediaDetection] {
-            self.vm.toggleMusicLiveActivity(status: !self.detector.currentAppInFullScreen)
+            vm.toggleMusicLiveActivity(status: !detector.currentAppInFullScreen)
         }
     }
     
     private func updateSneakPeek() {
-        if self.isPlaying && Defaults[.enableSneakPeek] && !self.detector.currentAppInFullScreen {
+        if isPlaying && Defaults[.enableSneakPeek] && !detector.currentAppInFullScreen {
             coordinator.toggleSneakPeek(status: true, type: SneakContentType.music)
         }
     }
     
     private func updateIdleState(setIdle: Bool, state: Bool) {
         if setIdle && state {
-            self.isPlayerIdle = false
+            isPlayerIdle = false
             debounceToggle?.cancel()
         } else if setIdle && !state {
             debounceToggle = DispatchWorkItem { [weak self] in
