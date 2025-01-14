@@ -57,9 +57,9 @@ class WebcamManager: NSObject, ObservableObject {
         
         switch status {
         case .authorized:
-            self.checkCameraAvailability() // Check availability if authorized
+            checkCameraAvailability() // Check availability if authorized
         case .notDetermined:
-            self.requestVideoAccess()
+            requestVideoAccess()
         case .denied, .restricted:
             NSLog("Camera access denied or restricted")
         @unknown default:
@@ -81,8 +81,8 @@ class WebcamManager: NSObject, ObservableObject {
     
     private func checkCameraAvailability() {
         let availableDevices = AVCaptureDevice.DiscoverySession(deviceTypes: [.external, .builtInWideAngleCamera], mediaType: .video, position: .unspecified).devices
-        if(!availableDevices.isEmpty && self.captureSession == nil) {
-            self.setupCaptureSession()
+        if !availableDevices.isEmpty && captureSession == nil {
+            setupCaptureSession()
         }
         DispatchQueue.main.async {
             self.cameraAvailable = !availableDevices.isEmpty
@@ -99,7 +99,8 @@ class WebcamManager: NSObject, ObservableObject {
             
             guard let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.external, .builtInWideAngleCamera], mediaType: .video, position: .unspecified).devices.first,
                   let videoInput = try? AVCaptureDeviceInput(device: videoDevice),
-                  session.canAddInput(videoInput) else {
+                  session.canAddInput(videoInput)
+            else {
                 DispatchQueue.main.async {
                     self.isSessionRunning = false
                     self.cameraAvailable = false
