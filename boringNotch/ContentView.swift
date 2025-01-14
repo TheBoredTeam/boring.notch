@@ -33,7 +33,7 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.useMusicVisualizer) var useMusicVisualizer
-    
+
     @Default(.showNotHumanFace) var showNotHumanFace
 
     var body: some View {
@@ -46,10 +46,11 @@ struct ContentView: View {
                 .mask {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? cornerRadiusInsets.opened : cornerRadiusInsets.closed).drawingGroup()
                 }
-                .padding(.bottom, vm.notchState == .open ? 30 : 0)
+                .padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
                 .animation(.bouncy.speed(1.2), value: hoverAnimation)
                 .animation(.bouncy.speed(1.2), value: vm.notchState)
                 .animation(.smooth, value: gestureProgress)
+                .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1)))
                 .allowsHitTesting(true)
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
                     view.onHover { hovering in
@@ -241,21 +242,21 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
-                    } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
+                    } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (vm.expandingView.type != .battery) {
                         InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                             .transition(.opacity)
                     } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.showMusicLiveActivityOnClosed {
                         MusicLiveActivity()
                     } else if !vm.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] {
                         BoringFaceAnimation().animation(.interactiveSpring, value: musicManager.isPlayerIdle)
-                    } else if (vm.notchState == .open) {
+                    } else if vm.notchState == .open {
                         BoringHeader()
                             .frame(height: max(24, vm.closedNotchSize.height))
                             .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
+                            .animation(.spring(response: 1, dampingFraction: 1, blendDuration: 0.8), value: vm.notchState)
                     } else {
                         Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.closedNotchSize.height)
                     }
-                    
 
                     if coordinator.sneakPeek.show && !Defaults[.inlineHUD] {
                         if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
@@ -265,7 +266,7 @@ struct ContentView: View {
                             .padding(.bottom, 10)
                             .padding(.leading, 4)
                             .padding(.trailing, 8)
-                        } else if coordinator.sneakPeek.type != .battery {
+                        } else if vm.expandingView.type != .battery {
                             if vm.notchState == .closed {
                                 HStack(alignment: .center) {
                                     Image(systemName: "music.note")
@@ -305,17 +306,17 @@ struct ContentView: View {
 
     @ViewBuilder
     func BoringFaceAnimation() -> some View {
-       HStack {
         HStack {
-            Rectangle()
-                .fill(.clear)
-                .frame(width: max(0, vm.closedNotchSize.height - 12), height: max(0, vm.closedNotchSize.height - 12))
+            HStack {
                 Rectangle()
-                .fill(.black)
-                .frame(width: vm.closedNotchSize.width - 20)
+                    .fill(.clear)
+                    .frame(width: max(0, vm.closedNotchSize.height - 12), height: max(0, vm.closedNotchSize.height - 12))
+                Rectangle()
+                    .fill(.black)
+                    .frame(width: vm.closedNotchSize.width - 20)
                 MinimalFaceFeatures()
-        }
-       }.frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
+            }
+        }.frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
     }
 
     @ViewBuilder
@@ -362,8 +363,6 @@ struct ContentView: View {
         }
         .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
     }
-    
-    
 
     @ViewBuilder
     var dragDetector: some View {

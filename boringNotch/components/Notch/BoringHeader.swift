@@ -5,8 +5,8 @@
 //  Created by Harsh Vardhan  Goswami  on 04/08/24.
 //
 
-import SwiftUI
 import Defaults
+import SwiftUI
 
 struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -25,19 +25,19 @@ struct BoringHeader: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
-            .animation(.smooth.delay(0.2), value: vm.notchState)
+            .animation(.smooth.delay(0.1), value: vm.notchState)
             .zIndex(2)
-            
+
             if vm.notchState == .open {
                 Rectangle()
                     .fill(NSScreen.screens
-                        .first(where: {$0.localizedName == coordinator.selectedScreen})?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
+                        .first(where: { $0.localizedName == coordinator.selectedScreen })?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
                     .frame(width: vm.closedNotchSize.width - 5)
                     .mask {
                         NotchShape()
                     }
             }
-            
+
             HStack(spacing: 4) {
                 if vm.notchState == .open {
                     if Defaults[.settingsIconInNotch] {
@@ -67,7 +67,7 @@ struct BoringHeader: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
-            .animation(.smooth.delay(0.2), value: vm.notchState)
+            .animation(.smooth.delay(0.1), value: vm.notchState)
             .zIndex(2)
         }
         .foregroundColor(.gray)
