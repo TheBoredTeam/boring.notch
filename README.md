@@ -7,21 +7,27 @@
 <a href="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" target="_self"><img width="200" src="https://www.adviksoft.com/blog/wp-content/uploads/2023/09/editor_download_mac.png" /></a>
 
 > [!WARNING]
-> We don't have Apple Developer account yet. The applications will show a popup on first start. Click **Okay**, then go to **Settings / Privacy & Security** and scroll down until you see a button **Open anyway**. You'll have to do this once.
+> We don't have an Apple Developer account yet. The application will show a popup on first start. Click **Okay**, then, go to **Settings / Privacy & Security** and scroll down until you see a button called **Open anyway**. You'll only have to do this once.
+
+## Website
+> [!NOTE]
+> Hey There 👋 We have a new website at https://theboring.name! Go check it out for stuff like:
+> - All current bugs
+> - People's opinions about Boring.Notch
+> - All current features 
+> - Q&A answers
 
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline)](https://star-history.com/#TheBoredTeam/boring.notch&Timeline)
 
-## Buy us coffee
+## Buy us a coffee!
 
 <a href="https://www.buymeacoffee.com/jfxh67wvfxq" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
-## Join our Community on Discord
+## Join our Discord Server (new)
 
-<a href="https://discord.gg/GvYcYpAKTu" target="_blank">
-<img src="https://www.kindpng.com/picc/m/221-2215393_discord-human-action-hd-png-download.png" width="200" alt="Discord - Human Action, HD Png Download@kindpng.com" />
-</a>
+<a href="https://discord.gg/GvYcYpAKTu" target="_blank"><img src="https://iili.io/28m3GHv.png" alt="Join The Boring Server!" style="height: 60px !important;width: 217px !important;" ></a>
 
 ## Preview
 
@@ -37,7 +43,7 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 
 ### Prerequisites
 
-- **A MacBook**: With a boring notch.
+- **A MacBook**: With a boring notch (Not Needed).
 - **macOS 14.2 or later**: If you’re not on the latest macOS, we might need to send a search party.
 - **Xcode 15.0 or later**: This is where the magic happens, so make sure it’s up-to-date.
 
