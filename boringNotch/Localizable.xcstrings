@@ -94,6 +94,9 @@
     "All-day" : {
 
     },
+    "Always hide in fullscreen" : {
+
+    },
     "Always show tabs" : {
 
     },
@@ -355,9 +358,6 @@
     "Extensions" : {
 
     },
-    "Fullscreen media playback detection" : {
-
-    },
     "General" : {
       "localizations" : {
         "en" : {
@@ -391,6 +391,12 @@
 
     },
     "Gradient" : {
+
+    },
+    "Hide BoringNotch Options" : {
+
+    },
+    "Hide only when NowPlaying app is in fullscreen" : {
 
     },
     "Hierarchical" : {
@@ -522,6 +528,9 @@
 
     },
     "Need Restart" : {
+
+    },
+    "Never hide" : {
 
     },
     "No custom animation available" : {
