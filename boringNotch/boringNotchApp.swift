@@ -99,10 +99,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func onScreenLocked(_: Notification) {
         print("Screen locked")
+        // Clean up windows when screen locks
+        cleanupWindows()
     }
     
     @objc func onScreenUnlocked(_: Notification) {
         print("Screen unlocked")
+        // Reset and readjust windows when screen unlocks
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.cleanupWindows()
+            self?.adjustWindowPosition()
+        }
+    }
+    
+    private func cleanupWindows() {
+        // Close and remove all existing windows
+        if Defaults[.showOnAllDisplays] {
+            for window in windows.values {
+                window.close()
+                NotchSpaceManager.shared.notchSpace.windows.remove(window)
+            }
+            windows.removeAll()
+            viewModels.removeAll()
+        } else if let window = window {
+            window.close()
+            NotchSpaceManager.shared.notchSpace.windows.remove(window)
+        }
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -242,11 +264,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func screenConfigurationDidChange() {
-        
         let currentScreens = NSScreen.screens
-        //guard currentScreens.count != previousScreens?.count || previousScreens?.first(where: {$0.localizedName == vm.selectedScreen})?.backingScaleFactor == currentScreens.first(where: {$0.localizedName == vm.selectedScreen})?.backingScaleFactor else { return }
-        previousScreens = currentScreens
-        adjustWindowPosition()
+        let screensChanged = currentScreens.count != previousScreens?.count || 
+            Set(currentScreens.map { $0.localizedName }) != Set(previousScreens?.map { $0.localizedName } ?? [])
+        
+        if screensChanged {
+            previousScreens = currentScreens
+            cleanupWindows()
+            adjustWindowPosition()
+        }
     }
     
     @objc func adjustWindowPosition(changeAlpha: Bool = false) {
@@ -273,7 +299,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if let window = windows[screen] {
                     window.alphaValue = changeAlpha ? 0 : 1
                     DispatchQueue.main.async {
-                        window.setFrameOrigin(screen.frame.origin.applying(CGAffineTransform(translationX: (screen.frame.width / 2) - window.frame.width / 2, y: screen.frame.height - window.frame.height)))
+                        let screenFrame = screen.frame
+                        window.setFrameOrigin(NSPoint(
+                            x: screenFrame.origin.x + (screenFrame.width / 2) - window.frame.width / 2,
+                            y: screenFrame.origin.y + screenFrame.height - window.frame.height
+                        ))
                         window.alphaValue = 1
                     }
                 }
@@ -296,8 +326,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 window.makeKeyAndOrderFront(nil)
 
                 DispatchQueue.main.async {[weak self] in
-                    self!.window.setFrameOrigin(screenFrame.frame.origin.applying(CGAffineTransform(translationX: (screenFrame.frame.width / 2) - self!.window.frame.width / 2, y: screenFrame.frame.height - self!.window.frame.height)))
-                    self!.window.alphaValue = 1
+                    guard let self = self else { return }
+                    let origin = NSPoint(
+                        x: screenFrame.frame.origin.x + (screenFrame.frame.width / 2) - self.window.frame.width / 2,
+                        y: screenFrame.frame.origin.y + screenFrame.frame.height - self.window.frame.height
+                    )
+                    self.window.setFrameOrigin(origin)
+                    self.window.alphaValue = 1
                 }
             }
             if vm.notchState == .closed {
