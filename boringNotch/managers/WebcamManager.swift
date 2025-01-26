@@ -44,7 +44,11 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     deinit {
-        stopSession()
+        sessionQueue.async { [weak self] in
+            self?.stopSession()
+            self?.captureSession = nil
+            self?.previewLayer = nil
+        }
         NotificationCenter.default.removeObserver(self)
     }
 
@@ -93,80 +97,121 @@ class WebcamManager: NSObject, ObservableObject {
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             
-            let session = AVCaptureSession()
-            self.captureSession = session
-            session.sessionPreset = .high
+            // Cleanup any existing session first
+            if let existingSession = self.captureSession {
+                existingSession.stopRunning()
+                self.captureSession = nil
+            }
             
-            guard let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.external, .builtInWideAngleCamera], mediaType: .video, position: .unspecified).devices.first,
-                  let videoInput = try? AVCaptureDeviceInput(device: videoDevice),
-                  session.canAddInput(videoInput)
-            else {
+            let session = AVCaptureSession()
+            
+            do {
+                guard let videoDevice = AVCaptureDevice.DiscoverySession(
+                    deviceTypes: [.external, .builtInWideAngleCamera],
+                    mediaType: .video,
+                    position: .unspecified
+                ).devices.first else {
+                    DispatchQueue.main.async {
+                        self.isSessionRunning = false
+                        self.cameraAvailable = false
+                    }
+                    return
+                }
+                
+                let videoInput = try AVCaptureDeviceInput(device: videoDevice)
+                guard session.canAddInput(videoInput) else {
+                    throw NSError(domain: "BoringNotch.WebcamManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Cannot add video input"])
+                }
+                
+                session.beginConfiguration()
+                session.sessionPreset = .high
+                session.addInput(videoInput)
+                
+                let videoOutput = AVCaptureVideoDataOutput()
+                if session.canAddOutput(videoOutput) {
+                    session.addOutput(videoOutput)
+                }
+                session.commitConfiguration()
+                
+                self.captureSession = session
+                
+                DispatchQueue.main.async {
+                    self.cameraAvailable = true
+                    let previewLayer = AVCaptureVideoPreviewLayer(session: session)
+                    previewLayer.videoGravity = .resizeAspectFill
+                    self.previewLayer = previewLayer
+                }
+                
+                NSLog("Capture session setup completed successfully")
+            } catch {
+                NSLog("Failed to setup capture session: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     self.isSessionRunning = false
                     self.cameraAvailable = false
+                    self.previewLayer = nil
                 }
-                return
             }
-            
-            DispatchQueue.main.async {
-                self.cameraAvailable = true
-            }
-            
-            session.beginConfiguration()
-            session.addInput(videoInput)
-            
-            let videoOutput = AVCaptureVideoDataOutput()
-            if session.canAddOutput(videoOutput) {
-                session.addOutput(videoOutput)
-            }
-            session.commitConfiguration()
-            
-            DispatchQueue.main.async {
-                let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-                previewLayer.videoGravity = .resizeAspectFill
-                self.previewLayer = previewLayer
-            }
-            
-            NSLog("Capture session setup completed")
         }
     }
 
     @objc private func deviceWasDisconnected(notification: Notification) {
         NSLog("Camera device was disconnected")
-        stopSession() // Stop the session if the camera is disconnected
-        DispatchQueue.main.async {
-            self.previewLayer = nil // Clear the preview layer
-            self.isSessionRunning = false // Update the session state
-            self.checkCameraAvailability() // Re-check camera availability
+        sessionQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.stopSession()
+            DispatchQueue.main.async {
+                self.previewLayer = nil
+                self.isSessionRunning = false
+                self.cameraAvailable = false
+            }
         }
     }
 
     @objc private func deviceWasConnected(notification: Notification) {
         NSLog("Camera device was connected")
-        checkCameraAvailability() // Check availability again when a device is connected
+        sessionQueue.async { [weak self] in
+            self?.checkCameraAvailability()
+        }
     }
 
     private func updateSessionState() {
-        DispatchQueue.main.async { [weak self] in
+        sessionQueue.async { [weak self] in
             guard let self = self else { return }
-            self.isSessionRunning = self.captureSession?.isRunning ?? false
+            let isRunning = self.captureSession?.isRunning ?? false
+            DispatchQueue.main.async {
+                self.isSessionRunning = isRunning
+            }
         }
     }
     
     func startSession() {
         sessionQueue.async { [weak self] in
-            guard let self = self, let session = self.captureSession, !session.isRunning else { return }
-            session.startRunning()
-            self.updateSessionState()
+            guard let self = self,
+                  let session = self.captureSession,
+                  !session.isRunning else { return }
+            
+            do {
+                session.startRunning()
+                self.updateSessionState()
+                NSLog("Capture session started successfully")
+            } catch {
+                NSLog("Failed to start capture session: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.isSessionRunning = false
+                }
+            }
         }
     }
     
     func stopSession() {
         sessionQueue.async { [weak self] in
-            guard let self = self, let session = self.captureSession, session.isRunning else { return }
+            guard let self = self,
+                  let session = self.captureSession,
+                  session.isRunning else { return }
             
             session.stopRunning()
             self.updateSessionState()
+            NSLog("Capture session stopped")
         }
     }
 }
