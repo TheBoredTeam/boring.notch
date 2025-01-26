@@ -68,6 +68,7 @@ class FullscreenMediaDetector: ObservableObject {
     func isAppFullScreen(_ app: NSRunningApplication) -> Bool {
         let fullscreenApps = detector.detectFullscreenApps(debug: false)
         return fullscreenApps.contains {
+            guard $0.bundleIdentifier != "com.apple.finder" else { return false }
             let isSameApp = $0.bundleIdentifier == app.bundleIdentifier
             if isSameApp { NSLog("Same app found! (Fullscreen: \(String(describing: $0.debugDescription)))") }
             return isSameApp
