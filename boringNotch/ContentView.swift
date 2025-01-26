@@ -63,7 +63,6 @@ struct ContentView: View {
                 .animation(useModernCloseAnimation ? .easeInOut(duration: 0.3) : .bouncy.speed(1.2), value: vm.notchState)
                 .animation(.smooth, value: gestureProgress)
                 .transition(notchTransition)
-                .allowsHitTesting(true)
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
                     view.onHover { systemHovering in
                         let hovering = systemHovering || vm.isMouseHovering()
