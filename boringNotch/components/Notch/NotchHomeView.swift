@@ -138,7 +138,7 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        TimelineView(.animation(minimumInterval: 0.1)) { timeline in
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
@@ -148,7 +148,8 @@ struct MusicControlsView: View {
                 currentDate: timeline.date,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
-                playbackRate: musicManager.playbackRate
+                playbackRate: musicManager.playbackRate,
+                isPlaying: musicManager.isPlaying
             ) { newValue in
                 musicManager.seekTrack(to: newValue)
             }
@@ -235,10 +236,11 @@ struct MusicSliderView: View {
     let timestampDate: Date
     let elapsedTime: Double
     let playbackRate: Double
+    let isPlaying: Bool
     var onValueChange: (Double) -> Void
 
     var currentElapsedTime: Double {
-        guard !dragging, currentDate > lastDragged else { return sliderValue }
+        guard !dragging && isPlaying, currentDate > lastDragged else { return sliderValue }
         let timeDifference = currentDate.timeIntervalSince(timestampDate)
         let elapsed = elapsedTime + (timeDifference * playbackRate)
         return min(elapsed, duration)
