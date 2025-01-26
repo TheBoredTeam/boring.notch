@@ -44,11 +44,13 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     deinit {
+        // Ensure we stop the session before deallocating
+        let semaphore = DispatchSemaphore(value: 0)
         sessionQueue.async { [weak self] in
             self?.stopSession()
-            self?.captureSession = nil
-            self?.previewLayer = nil
+            semaphore.signal()
         }
+        _ = semaphore.wait(timeout: .now() + 1.0)
         NotificationCenter.default.removeObserver(self)
     }
 
@@ -101,6 +103,11 @@ class WebcamManager: NSObject, ObservableObject {
             if let existingSession = self.captureSession {
                 existingSession.stopRunning()
                 self.captureSession = nil
+                
+                // Clear preview layer on main thread
+                DispatchQueue.main.async {
+                    self.previewLayer = nil
+                }
             }
             
             let session = AVCaptureSession()
@@ -128,6 +135,7 @@ class WebcamManager: NSObject, ObservableObject {
                 session.addInput(videoInput)
                 
                 let videoOutput = AVCaptureVideoDataOutput()
+                videoOutput.setSampleBufferDelegate(nil, queue: nil)
                 if session.canAddOutput(videoOutput) {
                     session.addOutput(videoOutput)
                 }
@@ -135,12 +143,16 @@ class WebcamManager: NSObject, ObservableObject {
                 
                 self.captureSession = session
                 
+                // Create and set up preview layer on main thread
                 DispatchQueue.main.async {
                     self.cameraAvailable = true
                     let previewLayer = AVCaptureVideoPreviewLayer(session: session)
                     previewLayer.videoGravity = .resizeAspectFill
                     self.previewLayer = previewLayer
                 }
+                
+                session.startRunning()
+                self.updateSessionState()
                 
                 NSLog("Capture session setup completed successfully")
             } catch {
@@ -160,8 +172,6 @@ class WebcamManager: NSObject, ObservableObject {
             guard let self = self else { return }
             self.stopSession()
             DispatchQueue.main.async {
-                self.previewLayer = nil
-                self.isSessionRunning = false
                 self.cameraAvailable = false
             }
         }
@@ -170,7 +180,8 @@ class WebcamManager: NSObject, ObservableObject {
     @objc private func deviceWasConnected(notification: Notification) {
         NSLog("Camera device was connected")
         sessionQueue.async { [weak self] in
-            self?.checkCameraAvailability()
+            guard let self = self else { return }
+            self.setupCaptureSession()
         }
     }
 
@@ -186,31 +197,45 @@ class WebcamManager: NSObject, ObservableObject {
     
     func startSession() {
         sessionQueue.async { [weak self] in
-            guard let self = self,
-                  let session = self.captureSession,
+            guard let self = self else { return }
+            
+            // If no session exists or preview layer is nil, create new session
+            if self.captureSession == nil || self.previewLayer == nil {
+                self.setupCaptureSession()
+                return
+            }
+            
+            guard let session = self.captureSession,
                   !session.isRunning else { return }
             
-            do {
-                session.startRunning()
-                self.updateSessionState()
-                NSLog("Capture session started successfully")
-            } catch {
-                NSLog("Failed to start capture session: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    self.isSessionRunning = false
-                }
-            }
+            session.startRunning()
+            self.updateSessionState()
+            NSLog("Capture session started successfully")
         }
     }
     
     func stopSession() {
         sessionQueue.async { [weak self] in
-            guard let self = self,
-                  let session = self.captureSession,
-                  session.isRunning else { return }
+            guard let self = self else { return }
             
-            session.stopRunning()
-            self.updateSessionState()
+            // Update state to indicate we're stopping
+            DispatchQueue.main.async {
+                self.isSessionRunning = false
+            }
+            
+            // Stop the session if it exists and is running
+            if let session = self.captureSession {
+                if session.isRunning {
+                    session.stopRunning()
+                }
+                
+                // Clear the session and preview layer
+                self.captureSession = nil
+                DispatchQueue.main.async {
+                    self.previewLayer = nil
+                }
+            }
+            
             NSLog("Capture session stopped")
         }
     }
