@@ -85,7 +85,7 @@ class WebcamManager: NSObject, ObservableObject {
         }
     }
     
-    private func checkCameraAvailability() {
+    func checkCameraAvailability() {
         let availableDevices = AVCaptureDevice.DiscoverySession(deviceTypes: [.external, .builtInWideAngleCamera], mediaType: .video, position: .unspecified).devices
         if !availableDevices.isEmpty && captureSession == nil {
             setupCaptureSession()
@@ -150,9 +150,6 @@ class WebcamManager: NSObject, ObservableObject {
                     previewLayer.videoGravity = .resizeAspectFill
                     self.previewLayer = previewLayer
                 }
-                
-                session.startRunning()
-                self.updateSessionState()
                 
                 NSLog("Capture session setup completed successfully")
             } catch {
