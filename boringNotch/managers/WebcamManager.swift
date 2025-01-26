@@ -198,9 +198,6 @@ class WebcamManager: NSObject, ObservableObject {
                     self.previewLayer = previewLayer
                 }
                 
-                session.startRunning()
-                self.updateSessionState()
-                
                 NSLog("Capture session setup completed successfully")
             } catch {
                 NSLog("Failed to setup capture session: \(error.localizedDescription)")
