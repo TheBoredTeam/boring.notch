@@ -119,4 +119,7 @@ extension Defaults.Keys {
     static let alwaysHideInFullscreen = Key<Bool>("alwaysHideInFullscreen", default: false)
 
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
+    
+    // MARK: Wobble Animation
+    static let enableWobbleAnimation = Key<Bool>("enableWobbleAnimation", default: false)
 }
