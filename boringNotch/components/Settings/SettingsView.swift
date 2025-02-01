@@ -195,15 +195,15 @@ struct GeneralSettings: View {
                         case .matchMenuBar:
                             notchHeight = 44
                         case .custom:
-                            nonNotchHeight = 38
+                            notchHeight = 38
                         }
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 if notchHeightMode == .custom {
-                    Slider(value: $nonNotchHeight, in: 15...45, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                    Slider(value: $notchHeight, in: 15...45, step: 1) {
+                        Text("Custom notch size - \(notchHeight, specifier: "%.0f")")
                     }
-                    .onChange(of: nonNotchHeight) {
+                    .onChange(of: notchHeight) {
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
