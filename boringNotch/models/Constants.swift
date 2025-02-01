@@ -68,6 +68,7 @@ extension Defaults.Keys {
     static let accentColor = Key<Color>("accentColor", default: Color.blue)
     static let enableShadow = Key<Bool>("enableShadow", default: true)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
+    static let useModernCloseAnimation = Key<Bool>("useModernCloseAnimation", default: true)
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: true)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     static let showCalendar = Key<Bool>("showCalendar", default: true)
