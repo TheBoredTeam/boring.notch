@@ -113,6 +113,7 @@ struct GeneralSettings: View {
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
+    @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
@@ -154,6 +155,10 @@ struct GeneralSettings: View {
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
+                Defaults.Toggle("Automatically switch displays", key: .automaticallySwitchDisplay)
+                .onChange(of: automaticallySwitchDisplay) {
+                    NotificationCenter.default.post(name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
+                }
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     HStack {
                         Text("Show on all displays")
