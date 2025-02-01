@@ -1,4 +1,4 @@
-name: Bug Report Form (Beta)
+name: Bug Report
 description: File a bug report.
 title: "[Bug] "
 labels: ["bug", "unconfirmed"]
