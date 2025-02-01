@@ -12,6 +12,7 @@ class AudioSpectrum: NSView {
     private var barLayers: [CAShapeLayer] = []
     private var isPlaying: Bool = true
     private var animationTimer: Timer?
+    private var lastFrameSize: CGSize = .zero
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -25,13 +26,26 @@ class AudioSpectrum: NSView {
         setupBars()
     }
     
+    override func layout() {
+        super.layout()
+        if frame.size != lastFrameSize {
+            lastFrameSize = frame.size
+            setupBars()
+        }
+    }
+
     private func setupBars() {
-        let barWidth: CGFloat = 2
-        let barCount = 4
+        guard let layer = layer else { return }
+        
+        barLayers.forEach { $0.removeFromSuperlayer() }
+        barLayers.removeAll()
+        
+        let totalHeight: CGFloat = min(14, frame.height + 2)
+        let barWidth: CGFloat = totalHeight >= 11 ? (totalHeight / 7) : (totalHeight / 5)
+        
+        let barCount = totalHeight >= 11 ? 4 : 3
         let spacing: CGFloat = barWidth
         let totalWidth = CGFloat(barCount) * (barWidth + spacing)
-        let totalHeight: CGFloat = 14
-        frame.size = CGSize(width: totalWidth, height: totalHeight)
         
         for i in 0 ..< barCount {
             let xPosition = CGFloat(i) * (barWidth + spacing)
@@ -46,14 +60,16 @@ class AudioSpectrum: NSView {
             barLayer.path = path.cgPath
             
             barLayers.append(barLayer)
-            layer?.addSublayer(barLayer)
+            layer.addSublayer(barLayer)
         }
     }
     
     private func startAnimating() {
         guard animationTimer == nil else { return }
         animationTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
-            self?.updateBars()
+            DispatchQueue.main.async {
+                self?.updateBars()
+            }
         }
     }
     
@@ -110,6 +126,6 @@ struct AudioSpectrumView: NSViewRepresentable {
 
 #Preview {
     AudioSpectrumView(isPlaying: .constant(true))
-        .frame(width: 16, height: 20)
+        .frame(width: 16, height: 12)
         .padding()
 }
