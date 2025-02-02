@@ -47,7 +47,7 @@ struct ContentView: View {
                 .mask {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? cornerRadiusInsets.opened : cornerRadiusInsets.closed).drawingGroup()
                 }
-                .padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
+                .padding(.bottom, calculateBottomPadding())
                 .conditionalModifier(!useModernCloseAnimation) { view in
                             let notchStateAnimation = Animation.bouncy.speed(1.2)
                             let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
@@ -413,6 +413,17 @@ struct ContentView: View {
         withAnimation(.bouncy.speed(1.2)) {
             vm.open()
         }
+    }
+
+    private func calculateBottomPadding() -> CGFloat {
+		let safeAreaNotchHeight: CGFloat = 30 // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
+		
+        if vm.notchState == .open {
+            return safeAreaNotchHeight
+        }
+        
+        let shouldExtendHover = vm.closedNotchSize.height == 0 && Defaults[.extendHoverArea]
+        return shouldExtendHover ? safeAreaNotchHeight : 0
     }
 }
 
