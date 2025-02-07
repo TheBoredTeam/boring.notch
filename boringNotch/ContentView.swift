@@ -224,7 +224,7 @@ struct ContentView: View {
                     if vm.expandingView.type == .battery && vm.expandingView.show && vm.notchState == .closed {
                         HStack(spacing: 0) {
                             HStack {
-                                Text("Charging")
+                                Text(batteryModel.isInitialPlugIn ? "Plugged In" : "Charging")
                                     .font(.subheadline)
                             }
 
@@ -234,9 +234,11 @@ struct ContentView: View {
 
                             HStack {
                                 BoringBatteryView(
-                                    batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn,
+                                    batteryPercentage: batteryModel.batteryPercentage, 
+                                    isPluggedIn: batteryModel.isPluggedIn,
                                     batteryWidth: 30,
-                                    isInLowPowerMode: batteryModel.isInLowPowerMode
+                                    isInLowPowerMode: batteryModel.isInLowPowerMode,
+                                    isInitialPlugIn: batteryModel.isInitialPlugIn
                                 )
                             }
                             .frame(width: 76, alignment: .trailing)

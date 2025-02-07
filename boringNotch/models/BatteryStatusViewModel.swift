@@ -18,6 +18,8 @@ class BatteryStatusViewModel: ObservableObject {
     @Published var isPluggedIn: Bool = false
     @Published var showChargingInfo: Bool = false
     @Published var isInLowPowerMode: Bool = false
+    @Published var isInitialPlugIn: Bool = true
+    private var wasCharging: Bool = false
 
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
@@ -39,24 +41,36 @@ class BatteryStatusViewModel: ObservableObject {
                 if let info = IOPSGetPowerSourceDescription(snapshot, source)?.takeUnretainedValue() as? [String: AnyObject],
                    let currentCapacity = info[kIOPSCurrentCapacityKey] as? Int,
                    let maxCapacity = info[kIOPSMaxCapacityKey] as? Int,
-                   let isCharging = info["Is Charging"] as? Bool {
+                   let isCharging = info["Is Charging"] as? Bool,
+                   let powerSource = info[kIOPSPowerSourceStateKey] as? String {
                     if(Defaults[.chargingInfoAllowed]) {
-
                         withAnimation {
                             self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
                         }
 
-                        if (isCharging && !self.isPluggedIn) {
+                        let isACPower = powerSource == "AC Power"
+                        
+                        // Show "Plugged In" notification when first connected to power
+                        if (isACPower && !self.isPluggedIn) {
                             DispatchQueue.main.asyncAfter(deadline: .now() + (coordinator.firstLaunch ? 6 : 0)) {
                                 self.vm.toggleExpandingView(status: true, type: .battery)
                                 self.showChargingInfo = true
                                 self.isPluggedIn = true
+                                self.isInitialPlugIn = true
                             }
-
                         }
+                        
+                        // Show "Charging" notification when charging begins
+                        if (isCharging && !self.wasCharging && isACPower) {
+                            self.vm.toggleExpandingView(status: true, type: .battery)
+                            self.showChargingInfo = true
+                            self.isInitialPlugIn = false
+                        }
+                        
                         withAnimation {
-                            self.isPluggedIn = isCharging
+                            self.isPluggedIn = isACPower
                         }
+                        self.wasCharging = isCharging
                     }
                 }
             }
