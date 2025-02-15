@@ -48,7 +48,9 @@ struct ContentView: View {
                 }
                 .padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
                 .animation(.bouncy.speed(1.2), value: hoverAnimation)
-                .animation(.bouncy.speed(1.2), value: vm.notchState)
+                .conditionalModifier(Defaults[.enableBouncyAnimation]) {view in
+                    view.animation(.bouncy.speed(1.2), value: vm.notchState)
+                }
                 .animation(.smooth, value: gestureProgress)
                 .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1)))
                 .allowsHitTesting(true)
