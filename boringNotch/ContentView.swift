@@ -53,7 +53,9 @@ struct ContentView: View {
                 .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1)))
                 .allowsHitTesting(true)
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
-                    view.onHover { hovering in
+                    view.onHover { systemHovering in
+                        let hovering = systemHovering || vm.isMouseHovering()
+
                         if hovering {
                             // Use Core Animation for hover state
                             withAnimation(.bouncy.speed(1.2)) {
