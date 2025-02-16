@@ -14,6 +14,9 @@
         }
       }
     },
+    "%.0f days" : {
+
+    },
     "%.0f seconds" : {
 
     },
@@ -240,6 +243,9 @@
 
     },
     "Custom vizualizers (Lottie)" : {
+
+    },
+    "Days" : {
 
     },
     "Default" : {
@@ -569,6 +575,12 @@
 
     },
     "Notch Height" : {
+
+    },
+    "Number of future days" : {
+
+    },
+    "Number of past days" : {
 
     },
     "OK" : {

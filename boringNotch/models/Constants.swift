@@ -71,6 +71,9 @@ extension Defaults.Keys {
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: true)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     static let showCalendar = Key<Bool>("showCalendar", default: true)
+    static let calendarPastDays = Key<CGFloat>("calendarPastDays", default: 7)
+    static let calendarFutureDays = Key<CGFloat>("calendarFutureDays", default: 10)
+    static let highlightToday = Key<Bool>("highlightToday", default: true)
     static let sliderColor = Key<SliderColorEnum>(
         "sliderUseAlbumArtColor",
         default: SliderColorEnum.white

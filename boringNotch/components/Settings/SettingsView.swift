@@ -499,6 +499,9 @@ struct Media: View {
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager()
     @Default(.showCalendar) var showCalendar: Bool
+    @Default(.calendarPastDays) var calendarPastDays
+    @Default(.calendarFutureDays) var calendarFutureDays
+    @Default(.highlightToday) var highlightToday
     
     var body: some View {
         Form {
@@ -516,6 +519,27 @@ struct CalendarSettings: View {
                         }
                     }
                 }
+            }
+            Section {
+                Slider(value: $calendarPastDays, in: 1...14, step: 1) {
+                    HStack {
+                        Text("Number of past days")
+                        Spacer()
+                        Text("\(calendarPastDays, specifier: "%.0f") days")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Slider(value: $calendarFutureDays, in: 1...14, step: 1) {
+                    HStack {
+                        Text("Number of future days")
+                        Spacer()
+                        Text("\(calendarFutureDays, specifier: "%.0f") days")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Defaults.Toggle("Highlight today", key: .highlightToday)
+            } header: {
+                Text("Days")
             }
         }
     }

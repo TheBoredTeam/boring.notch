@@ -11,8 +11,8 @@ import Defaults
 
 struct Config: Equatable {
 //    var count: Int = 10  // 3 days past + today + 7 days future
-    var past: Int = 3
-    var future: Int = 7
+    var past: Int = Int(Defaults[.calendarPastDays])
+    var future: Int = Int(Defaults[.calendarFutureDays])
     var steps: Int = 1  // Each step is one day
     var spacing: CGFloat = 1
     var showsText: Bool = true
@@ -72,7 +72,7 @@ struct WheelPicker: View {
     private func dateButton(date: Date, isSelected: Bool, offset: Int, onClick:@escaping()->Void) -> some View {
         Button(action: onClick) {
             VStack(spacing: 2) {
-                dayText(date: dateToString(for: date), isSelected: isSelected)
+                dayText(date: date, isSelected: isSelected)
                 dateCircle(date: date, isSelected: isSelected)
             }
         }
@@ -80,19 +80,24 @@ struct WheelPicker: View {
         .id(indexForDate(date, offset: offset))
     }
     
-    private func dayText(date: String, isSelected: Bool) -> some View {
-        Text(date)
+    private func dayText(date: Date, isSelected: Bool) -> some View {
+        let isToday = Calendar.current.isDateInToday(date)
+            
+        return Text(dateToString(for: date))
             .font(.caption2)
             .foregroundStyle(
-                isSelected ? Defaults[.accentColor] : .gray
+                isSelected ? Defaults[.accentColor] : ((isToday && Defaults[.highlightToday]) ? Defaults[.accentColor] : .gray)
+                    .opacity((!isSelected && isToday && Defaults[.highlightToday]) ? 0.35 : 1.0)
             )
     }
-    
+        
     private func dateCircle(date: Date, isSelected: Bool) -> some View {
-        ZStack {
+        let isToday = Calendar.current.isDateInToday(date)
+        return ZStack {
             Circle()
-                .fill(isSelected ? Defaults[.accentColor] : .clear)
+                .fill(isSelected ? Defaults[.accentColor] : ((isToday && Defaults[.highlightToday]) ? Defaults[.accentColor] : .clear))
                 .frame(width: 24, height: 24)
+                .opacity((!isSelected && isToday && Defaults[.highlightToday]) ? 0.35 : 1.0)
             Text("\(date.date)")
                 .font(.title3)
                 .foregroundStyle(isSelected ? .white : .gray)
