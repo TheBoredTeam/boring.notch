@@ -35,6 +35,8 @@ class WebcamManager: NSObject, ObservableObject {
 
     private let sessionQueue = DispatchQueue(label: "BoringNotch.WebcamManager.SessionQueue", qos: .userInitiated)
     
+    private var isCleaningUp: Bool = false
+    
     override init() {
         super.init()
         checkAndRequestVideoAuthorization()
@@ -43,33 +45,36 @@ class WebcamManager: NSObject, ObservableObject {
         checkCameraAvailability()
     }
     
-    deinit {
-        // Remove observers first to prevent any callbacks during cleanup
+    func cleanup() {
+        guard !isCleaningUp else { return }
+        isCleaningUp = true
+        
+        // Remove observers first
         NotificationCenter.default.removeObserver(self)
         
-        // Perform cleanup synchronously to ensure completion before deallocation
-        sessionQueue.sync { [weak self] in
-            guard let self = self else { return }
-            
-            // Stop the session if it exists and is running
-            if let session = self.captureSession {
-                if session.isRunning {
-                    session.stopRunning()
-                }
-                
-                // Clear the session
-                self.captureSession = nil
+        // Stop session and clear resources
+        if let session = captureSession {
+            // Stop running first if needed
+            if session.isRunning {
+                session.stopRunning()
             }
+            captureSession = nil
         }
         
-        // Clear preview layer on main thread synchronously
-        if Thread.isMainThread {
-            self.previewLayer = nil
-        } else {
-            DispatchQueue.main.sync {
-                self.previewLayer = nil
-            }
+        // Clear preview layer on main thread
+        DispatchQueue.main.async { [weak self] in
+            self?.previewLayer = nil
+            self?.isCleaningUp = false
         }
+    }
+    
+    deinit {
+        // Simple cleanup in deinit
+        if let session = captureSession {
+            session.stopRunning()
+        }
+        captureSession = nil
+        previewLayer = nil
     }
 
     // Check current authorization status and handle it accordingly
@@ -248,7 +253,12 @@ class WebcamManager: NSObject, ObservableObject {
                   !session.isRunning else { return }
             
             session.startRunning()
-            self.updateSessionState()
+            
+            // Update state on main thread
+            DispatchQueue.main.async {
+                self.isSessionRunning = true
+            }
+            
             NSLog("Capture session started successfully")
         }
     }
