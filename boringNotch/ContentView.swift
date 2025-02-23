@@ -48,7 +48,7 @@ struct ContentView: View {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? cornerRadiusInsets.opened : cornerRadiusInsets.closed).drawingGroup()
                 }
                 .padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
-               .conditionalModifier(!useModernCloseAnimation) { view in
+                .conditionalModifier(!useModernCloseAnimation) { view in
                             let notchStateAnimation = Animation.bouncy.speed(1.2)
                             let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
                             return view
@@ -56,14 +56,15 @@ struct ContentView: View {
                                 .animation(hoverAnimationAnimation, value: hoverAnimation)
                         }
                 .conditionalModifier(useModernCloseAnimation) { view in
-                    let hoverAnimationAnimation = Animation.spring.speed(1.2)
+                    let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
                     let notchStateAnimation = Animation.spring.speed(1.2)
                     return view
                         .animation(hoverAnimationAnimation, value: hoverAnimation)
                         .animation(notchStateAnimation, value: vm.notchState)
                 }
+                .allowsHitTesting(true)
                 .animation(.smooth, value: gestureProgress)
-                .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1)))
+                .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1.2)))
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
                     view.onHover { systemHovering in
                         let hovering = systemHovering || vm.isMouseHovering()
