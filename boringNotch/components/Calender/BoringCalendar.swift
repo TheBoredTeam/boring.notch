@@ -45,7 +45,7 @@ struct WheelPicker: View {
                             withAnimation{
                                 scrollPosition = indexForDate(date, offset: offset) - config.offset
                             }
-                            haptics.toggle()
+                            //haptics.toggle()      // Causes double haptic when click
                         }
                     }
                 }
