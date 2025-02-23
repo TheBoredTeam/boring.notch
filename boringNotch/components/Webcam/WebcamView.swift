@@ -48,7 +48,7 @@ struct CameraPreviewView: View {
                 handleCameraTap()
             }
             .onDisappear {
-                webcamManager.stopSession()
+                webcamManager.cleanup()
             }
         }
         .aspectRatio(1, contentMode: .fit)
