@@ -35,6 +35,18 @@ struct ContentView: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.useModernCloseAnimation) var useModernCloseAnimation
+
+    var notchTransition: AnyTransition {
+        if useModernCloseAnimation {
+            return .move(edge: .top).combined(with: .opacity)
+        } else {
+            return .asymmetric(
+                insertion: .opacity,
+                removal: .opacity
+            )
+        }
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -48,12 +60,14 @@ struct ContentView: View {
                 }
                 .padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
                 .animation(.bouncy.speed(1.2), value: hoverAnimation)
-                .animation(.bouncy.speed(1.2), value: vm.notchState)
+                .animation(useModernCloseAnimation ? .easeInOut(duration: 0.3) : .bouncy.speed(1.2), value: vm.notchState)
                 .animation(.smooth, value: gestureProgress)
-                .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1)))
+                .transition(notchTransition)
                 .allowsHitTesting(true)
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
-                    view.onHover { hovering in
+                    view.onHover { systemHovering in
+                        let hovering = systemHovering || vm.isMouseHovering()
+
                         if hovering {
                             // Use Core Animation for hover state
                             withAnimation(.bouncy.speed(1.2)) {
@@ -224,7 +238,7 @@ struct ContentView: View {
                     if vm.expandingView.type == .battery && vm.expandingView.show && vm.notchState == .closed {
                         HStack(spacing: 0) {
                             HStack {
-                                Text("Charging")
+                                Text(batteryModel.isInitialPlugIn ? "Plugged In" : "Charging")
                                     .font(.subheadline)
                             }
 
@@ -234,9 +248,11 @@ struct ContentView: View {
 
                             HStack {
                                 BoringBatteryView(
-                                    batteryPercentage: batteryModel.batteryPercentage, isPluggedIn: batteryModel.isPluggedIn,
+                                    batteryPercentage: batteryModel.batteryPercentage, 
+                                    isPluggedIn: batteryModel.isPluggedIn,
                                     batteryWidth: 30,
-                                    isInLowPowerMode: batteryModel.isInLowPowerMode
+                                    isInLowPowerMode: batteryModel.isInLowPowerMode,
+                                    isInitialPlugIn: batteryModel.isInitialPlugIn
                                 )
                             }
                             .frame(width: 76, alignment: .trailing)

@@ -87,6 +87,19 @@ class BoringViewModel: NSObject, ObservableObject {
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
     }
+    
+    func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
+        let screenFrame = getScreenFrame(screen)
+        if let frame = screenFrame {
+            
+            let baseY = frame.maxY - notchSize.height
+            let baseX = frame.midX - notchSize.width / 2
+            
+            return position.y >= baseY && position.x >= baseX && position.x <= baseX + notchSize.width
+        }
+        
+        return false
+    }
 
     func open() {
         withAnimation(.bouncy) {
