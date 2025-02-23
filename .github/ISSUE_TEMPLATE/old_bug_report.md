@@ -1,3 +1,4 @@
+<!--- This issue template is deprecated, use the updated issue form for bug reports -->
 ---
 name: Bug report
 about: Create a report to help us improve
