@@ -37,17 +37,6 @@ struct ContentView: View {
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.useModernCloseAnimation) var useModernCloseAnimation
 
-    var notchTransition: AnyTransition {
-        if useModernCloseAnimation {
-            return .move(edge: .top).combined(with: .opacity)
-        } else {
-            return .asymmetric(
-                insertion: .opacity,
-                removal: .opacity
-            )
-        }
-    }
-
     var body: some View {
         ZStack(alignment: .top) {
             NotchLayout()
@@ -59,10 +48,22 @@ struct ContentView: View {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? cornerRadiusInsets.opened : cornerRadiusInsets.closed).drawingGroup()
                 }
                 .padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
-                .animation(.bouncy.speed(1.2), value: hoverAnimation)
-                .animation(useModernCloseAnimation ? .easeInOut(duration: 0.3) : .bouncy.speed(1.2), value: vm.notchState)
+               .conditionalModifier(!useModernCloseAnimation) { view in
+                            let notchStateAnimation = Animation.bouncy.speed(1.2)
+                            let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
+                            return view
+                                .animation(notchStateAnimation, value: vm.notchState)
+                                .animation(hoverAnimationAnimation, value: hoverAnimation)
+                        }
+                .conditionalModifier(useModernCloseAnimation) { view in
+                    let hoverAnimationAnimation = Animation.spring.speed(1.2)
+                    let notchStateAnimation = Animation.spring.speed(1.2)
+                    return view
+                        .animation(hoverAnimationAnimation, value: hoverAnimation)
+                        .animation(notchStateAnimation, value: vm.notchState)
+                }
                 .animation(.smooth, value: gestureProgress)
-                .transition(notchTransition)
+                .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1)))
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
                     view.onHover { systemHovering in
                         let hovering = systemHovering || vm.isMouseHovering()
