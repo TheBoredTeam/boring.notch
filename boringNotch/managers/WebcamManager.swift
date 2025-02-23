@@ -44,14 +44,32 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     deinit {
-        // Ensure we stop the session before deallocating
-        let semaphore = DispatchSemaphore(value: 0)
-        sessionQueue.async { [weak self] in
-            self?.stopSession()
-            semaphore.signal()
-        }
-        _ = semaphore.wait(timeout: .now() + 1.0)
+        // Remove observers first to prevent any callbacks during cleanup
         NotificationCenter.default.removeObserver(self)
+        
+        // Perform cleanup synchronously to ensure completion before deallocation
+        sessionQueue.sync { [weak self] in
+            guard let self = self else { return }
+            
+            // Stop the session if it exists and is running
+            if let session = self.captureSession {
+                if session.isRunning {
+                    session.stopRunning()
+                }
+                
+                // Clear the session
+                self.captureSession = nil
+            }
+        }
+        
+        // Clear preview layer on main thread synchronously
+        if Thread.isMainThread {
+            self.previewLayer = nil
+        } else {
+            DispatchQueue.main.sync {
+                self.previewLayer = nil
+            }
+        }
     }
 
     // Check current authorization status and handle it accordingly
@@ -101,7 +119,23 @@ class WebcamManager: NSObject, ObservableObject {
             
             // Cleanup any existing session first
             if let existingSession = self.captureSession {
-                existingSession.stopRunning()
+                // First stop the session if running
+                if existingSession.isRunning {
+                    existingSession.stopRunning()
+                }
+                
+                // Then perform configuration cleanup
+                existingSession.beginConfiguration()
+                
+                // Remove all inputs and outputs
+                for input in existingSession.inputs {
+                    existingSession.removeInput(input)
+                }
+                for output in existingSession.outputs {
+                    existingSession.removeOutput(output)
+                }
+                
+                existingSession.commitConfiguration()
                 self.captureSession = nil
                 
                 // Clear preview layer on main thread
@@ -113,17 +147,25 @@ class WebcamManager: NSObject, ObservableObject {
             let session = AVCaptureSession()
             
             do {
-                guard let videoDevice = AVCaptureDevice.DiscoverySession(
+                // Get available devices and prefer external camera if available
+                let discoverySession = AVCaptureDevice.DiscoverySession(
                     deviceTypes: [.external, .builtInWideAngleCamera],
                     mediaType: .video,
                     position: .unspecified
-                ).devices.first else {
+                )
+                
+                guard let videoDevice = discoverySession.devices.first else {
+                    NSLog("No video devices available")
                     DispatchQueue.main.async {
                         self.isSessionRunning = false
                         self.cameraAvailable = false
                     }
                     return
                 }
+                
+                // Lock device for configuration
+                try videoDevice.lockForConfiguration()
+                defer { videoDevice.unlockForConfiguration() }
                 
                 let videoInput = try AVCaptureDeviceInput(device: videoDevice)
                 guard session.canAddInput(videoInput) else {
@@ -222,9 +264,23 @@ class WebcamManager: NSObject, ObservableObject {
             
             // Stop the session if it exists and is running
             if let session = self.captureSession {
+                // First stop the session if running
                 if session.isRunning {
                     session.stopRunning()
                 }
+                
+                // Then begin configuration for cleanup
+                session.beginConfiguration()
+                
+                // Remove all inputs and outputs
+                for input in session.inputs {
+                    session.removeInput(input)
+                }
+                for output in session.outputs {
+                    session.removeOutput(output)
+                }
+                
+                session.commitConfiguration()
                 
                 // Clear the session and preview layer
                 self.captureSession = nil
@@ -233,7 +289,7 @@ class WebcamManager: NSObject, ObservableObject {
                 }
             }
             
-            NSLog("Capture session stopped")
+            NSLog("Capture session stopped and cleaned up")
         }
     }
 }
