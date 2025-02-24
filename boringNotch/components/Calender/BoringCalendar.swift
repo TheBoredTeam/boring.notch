@@ -45,7 +45,9 @@ struct WheelPicker: View {
                             withAnimation{
                                 scrollPosition = indexForDate(date, offset: offset) - config.offset
                             }
-                            haptics.toggle()
+                            if (Defaults[.enableHaptics]) {
+                                haptics.toggle()
+                            }
                         }
                     }
                 }
@@ -107,7 +109,9 @@ struct WheelPicker: View {
         switch targetDateIndex{
         case todayIndex-config.past..<todayIndex+config.future:
             selectedDate = dateForIndex(targetDateIndex, offset: offset)
-            haptics.toggle()
+            if (Defaults[.enableHaptics]) {
+                haptics.toggle()
+            }
         default:
             return
         }
