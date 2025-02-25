@@ -51,23 +51,35 @@ struct AlbumArtView: View {
             .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
-            .blur(radius: 35)
-            .opacity(min(0.6, 1 - max(musicManager.albumArt.getBrightness(), 0.3)))
+            .blur(radius: 40)
+            .opacity(musicManager.isPlaying ? 0.5 : 0)
     }
 
     private var albumArtButton: some View {
-        Button {
-            musicManager.openMusicApp()
-        } label: {
-            ZStack(alignment: .bottomTrailing) {
-                albumArtImage
-                appIconOverlay
+        ZStack {
+            Button {
+                musicManager.openMusicApp()
+            } label: {
+                ZStack(alignment:.bottomTrailing) {
+                    albumArtImage
+                    appIconOverlay
+                }
             }
+            .buttonStyle(PlainButtonStyle())
+            .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
+            
+            albumArtDarkOverlay
         }
-        .buttonStyle(PlainButtonStyle())
-        .opacity(musicManager.isPlaying ? 1 : 0.4)
-        .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
     }
+
+    private var albumArtDarkOverlay: some View {
+        Rectangle()
+            .aspectRatio(1, contentMode: .fit)
+            .foregroundColor(Color.black)
+            .opacity(musicManager.isPlaying ? 0 : 0.8)
+            .blur(radius: 50)
+    }
+                
 
     private var albumArtImage: some View {
         Color.clear
