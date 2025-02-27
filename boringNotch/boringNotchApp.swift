@@ -180,7 +180,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
-
             self.coordinator.toggleSneakPeek(
                 status: !self.coordinator.sneakPeek.show,
                 type: .music,
