@@ -191,23 +191,32 @@ class MusicManager: ObservableObject {
         }
     }
 
-    private func extractMusicInfo(from information: [String: Any]) -> (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?) {
+    private func extractMusicInfo(from information: [String: Any]) -> (
+        title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?
+    ) {
         let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String ?? ""
         let artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
         let album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
-        let duration = information["kMRMediaRemoteNowPlayingInfoDuration"] as? TimeInterval ?? lastMusicItem?.duration ?? 0
+        let duration =
+            information["kMRMediaRemoteNowPlayingInfoDuration"] as? TimeInterval ?? lastMusicItem?
+            .duration ?? 0
         let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
 
         return (title, artist, album, duration, artworkData)
     }
 
-    private func updateMusicState(newInfo: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?), state _: Int?) {
+    private func updateMusicState(
+        newInfo: (
+            title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?
+        ), state _: Int?
+    ) {
         // Check if music info has actually changed
-        let musicInfoChanged = (newInfo.title != lastMusicItem?.title ||
-            newInfo.artist != lastMusicItem?.artist ||
-            newInfo.album != lastMusicItem?.album)
+        let musicInfoChanged =
+            (newInfo.title != lastMusicItem?.title || newInfo.artist != lastMusicItem?.artist
+                || newInfo.album != lastMusicItem?.album)
 
-        let artworkChanged = newInfo.artworkData != nil && newInfo.artworkData != lastMusicItem?.artworkData
+        let artworkChanged =
+            newInfo.artworkData != nil && newInfo.artworkData != lastMusicItem?.artworkData
 
         if artworkChanged || musicInfoChanged {
             // Trigger flip animation
@@ -249,7 +258,8 @@ class MusicManager: ObservableObject {
             self.songDuration = newInfo.duration
 
             // Check playback state
-            MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
+            MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) {
+                [weak self] isPlaying in
                 self?.musicIsPaused(state: isPlaying, setIdle: true)
             }
         }
@@ -263,11 +273,13 @@ class MusicManager: ObservableObject {
             let usingAppIcon: Bool
 
             if let artworkData = artworkData,
-               let artworkImage = NSImage(data: artworkData)
+                let artworkImage = NSImage(data: artworkData)
             {
                 newArt = artworkImage
                 usingAppIcon = false
-            } else if let appIconImage = AppIconAsNSImage(for: self.bundleIdentifier ?? self.nowPlaying.appBundleIdentifier ?? "") {
+            } else if let appIconImage = AppIconAsNSImage(
+                for: self.bundleIdentifier ?? self.nowPlaying.appBundleIdentifier ?? "")
+            {
                 newArt = appIconImage
                 usingAppIcon = true
             } else {
@@ -285,7 +297,7 @@ class MusicManager: ObservableObject {
         if musicToggledManually && !bypass { return }
 
         let previousState = isPlaying
-        let hasContent = !songTitle.isEmpty && !artistName.isEmpty
+        _ = !songTitle.isEmpty && !artistName.isEmpty
 
         withAnimation(.smooth) {
             // Batch related state updates
@@ -330,7 +342,6 @@ class MusicManager: ObservableObject {
     private func stopElapsedTimeTimer(elapsedTime: TimeInterval = 0) {
         elapsedTimeTimer?.invalidate()
         elapsedTimeTimer = nil
-        NSLog("Timer Stopped")
     }
 
     private func updateFullscreenMediaDetection() {
@@ -360,7 +371,8 @@ class MusicManager: ObservableObject {
                 }
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + Defaults[.waitInterval], execute: debounceToggle!)
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + Defaults[.waitInterval], execute: debounceToggle!)
         }
     }
 
@@ -377,7 +389,7 @@ class MusicManager: ObservableObject {
             lastUpdated = Date()
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.musicToggledManually = false
             self?.fetchNowPlayingInfo()
         }
@@ -429,7 +441,10 @@ class MusicManager: ObservableObject {
         }
 
         let workspace = NSWorkspace.shared
-        if workspace.launchApplication(withBundleIdentifier: bundleID, options: [], additionalEventParamDescriptor: nil, launchIdentifier: nil) {
+        if workspace.launchApplication(
+            withBundleIdentifier: bundleID, options: [], additionalEventParamDescriptor: nil,
+            launchIdentifier: nil)
+        {
             print("Launched app with bundle ID: \(bundleID)")
         } else {
             print("Failed to launch app with bundle ID: \(bundleID)")
