@@ -1,194 +1,5 @@
 {
-  "sourceLanguage" : "en",
   "strings" : {
-    " – %lld" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " – %lld"
-          }
-        }
-      }
-    },
-    "(%@)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "(%@)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "(%@)"
-          }
-        }
-      }
-    },
-    "%.0f seconds" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f 秒"
-          }
-        }
-      }
-    },
-    "%.1fs" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1f秒"
-          }
-        }
-      }
-    },
-    "%@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@"
-          }
-        }
-      }
-    },
-    "%d%%" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d%%"
-          }
-        }
-      }
-    },
-    "%lld" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld"
-          }
-        }
-      }
-    },
-    "%lld%%" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        }
-      }
-    },
-    "• Bug fixes" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• 修复错误"
-          }
-        }
-      }
-    },
-    "• Improved performance" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• 性能改进"
-          }
-        }
-      }
-    },
-    "• New feature 1" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• 新功能 1"
-          }
-        }
-      }
-    },
-    "About" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "About"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关于"
-          }
-        }
-      }
-    },
-    "Accent color" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accent color"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "强调色"
-          }
-        }
-      }
-    },
-    "Access Denied" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "访问被拒绝"
-          }
-        }
-      }
-    },
-    "Activate" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "激活"
-          }
-        }
-      }
-    },
-    "Activate your license" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "激活您的许可证"
-          }
-        }
-      }
-    },
-    "Activation" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "激活"
-          }
-        }
-      }
-    },
     "Add" : {
       "localizations" : {
         "zh-Hans" : {
@@ -196,306 +7,11 @@
             "state" : "translated",
             "value" : "添加"
           }
-        }
-      }
-    },
-    "Add manually" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "手动添加"
-          }
-        }
-      }
-    },
-    "Add new visualizer" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "添加新可视化效果"
-          }
-        }
-      }
-    },
-    "Additional features" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "附加功能"
-          }
-        }
-      }
-    },
-    "AirDrop" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隔空投送"
-          }
-        }
-      }
-    },
-    "AirDrop service not available" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隔空投送服务不可用"
-          }
-        }
-      }
-    },
-    "All-day" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "全天"
-          }
-        }
-      }
-    },
-    "Always hide in fullscreen" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在全屏时始终隐藏"
-          }
-        }
-      }
-    },
-    "Always show tabs" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "始终显示标签"
-          }
-        }
-      }
-    },
-    "App icon" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "应用图标"
-          }
-        }
-      }
-    },
-    "Appearance" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外观"
-          }
-        }
-      }
-    },
-    "Automatically check for updates" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatically check for updates"
-          }
         },
-        "zh-Hans" : {
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自动检查更新"
-          }
-        }
-      }
-    },
-    "Automatically download updates" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自动下载更新"
-          }
-        }
-      }
-    },
-    "Battery" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Battery"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "电池"
-          }
-        }
-      }
-    },
-    "Boost your productivity with Clipboard Manager" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用剪贴板管理器提升您的工作效率"
-          }
-        }
-      }
-    },
-    "Boring Controls" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boring Controls"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无聊控制"
-          }
-        }
-      }
-    },
-    "boring.notch" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "boring.notch"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无聊刘海"
-          }
-        }
-      }
-    },
-    "Both" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Both"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "两者"
-          }
-        }
-      }
-    },
-    "Buy Me a Coffee" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buy Me a Coffee"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请我喝咖啡"
-          }
-        }
-      }
-    },
-    "Buy us a coffee" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请我们喝咖啡"
-          }
-        }
-      }
-    },
-    "Calendar" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "日历"
-          }
-        }
-      }
-    },
-    "Cancel" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消"
-          }
-        }
-      }
-    },
-    "Charging" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Charging"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在充电"
-          }
-        }
-      }
-    },
-    "Check for updates" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Check for updates"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "检查更新"
-          }
-        }
-      }
-    },
-    "Check for Updates…" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "检查更新…"
-          }
-        }
-      }
-    },
-    "Circle" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "圆形"
+            "value" : "Добавить"
           }
         }
       }
@@ -507,87 +23,27 @@
             "state" : "translated",
             "value" : "关闭"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть"
+          }
         }
       }
     },
-    "Coming soon" : {
+    "Edit" : {
       "localizations" : {
-        "en" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Coming soon"
+            "value" : "编辑"
           }
         },
-        "zh-Hans" : {
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "即将推出"
-          }
-        }
-      }
-    },
-    "Custom color" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom color"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自定义颜色"
-          }
-        }
-      }
-    },
-    "Custom height" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自定义高度"
-          }
-        }
-      }
-    },
-    "Custom music live activity animation" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自定义音乐实时活动动画"
-          }
-        }
-      }
-    },
-    "Custom notch size - %.0f" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自定义刘海尺寸 - %.0f"
-          }
-        }
-      }
-    },
-    "Custom vizualizers (Lottie)" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自定义可视化效果（Lottie）"
-          }
-        }
-      }
-    },
-    "Default" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "默认"
+            "value" : "Редактировать"
           }
         }
       }
@@ -599,55 +55,11 @@
             "state" : "translated",
             "value" : "描述"
           }
-        }
-      }
-    },
-    "Disable" : {
-      "localizations" : {
-        "zh-Hans" : {
+        },
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "禁用"
-          }
-        }
-      }
-    },
-    "Disabled" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已禁用"
-          }
-        }
-      }
-    },
-    "Discord" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discord"
-          }
-        }
-      }
-    },
-    "Display" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示"
-          }
-        }
-      }
-    },
-    "Done" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "完成"
+            "value" : "Описание"
           }
         }
       }
@@ -658,6 +70,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下载"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скачать"
           }
         }
       }
@@ -675,6 +93,12 @@
             "state" : "translated",
             "value" : "下载图标样式"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стиль значка загрузки"
+          }
         }
       }
     },
@@ -691,6 +115,12 @@
             "state" : "translated",
             "value" : "下载指示器样式"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стиль индикатора загрузки"
+          }
         }
       }
     },
@@ -700,6 +130,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下载指示器"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Индикаторы загрузки"
           }
         }
       }
@@ -717,6 +153,12 @@
             "state" : "translated",
             "value" : "下载"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузки"
+          }
         }
       }
     },
@@ -726,6 +168,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "将文件拖放到这里"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перетащите файлы сюда"
           }
         }
       }
@@ -737,15 +185,11 @@
             "state" : "translated",
             "value" : "轻松复制、存储和管理您最常用的内容。立即升级以获取多项存储和快速访问等高级功能！"
           }
-        }
-      }
-    },
-    "Edit" : {
-      "localizations" : {
-        "zh-Hans" : {
+        },
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "编辑"
+            "value" : "Легко копируйте, храните и управляйте вашим наиболее часто используемым контентом. Обновитесь сейчас для доступа к расширенным функциям, таким как многоэлементное хранение и быстрый доступ!"
           }
         }
       }
@@ -757,6 +201,12 @@
             "state" : "translated",
             "value" : "编辑布局"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Редактировать макет"
+          }
         }
       }
     },
@@ -766,6 +216,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "电子邮件地址"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес электронной почты"
           }
         }
       }
@@ -783,6 +239,12 @@
             "state" : "translated",
             "value" : "启用彩色频谱图"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить цветные спектрограммы"
+          }
         }
       }
     },
@@ -799,6 +261,12 @@
             "state" : "translated",
             "value" : "启用触觉反馈"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить тактильный отклик"
+          }
         }
       }
     },
@@ -808,6 +276,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "启用 HUD 替换"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить замену HUD"
           }
         }
       }
@@ -819,6 +293,12 @@
             "state" : "translated",
             "value" : "启用音乐实时活动"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить музыкальную активность в реальном времени"
+          }
         }
       }
     },
@@ -828,6 +308,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 HUD 增强您的体验"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Улучшите свой опыт с помощью HUD"
           }
         }
       }
@@ -839,6 +325,12 @@
             "state" : "translated",
             "value" : "享受您的空闲时间！"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Наслаждайтесь своим свободным временем!"
+          }
         }
       }
     },
@@ -848,6 +340,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "错误"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ошибка"
           }
         }
       }
@@ -859,6 +357,12 @@
             "state" : "translated",
             "value" : "Exclude apps"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Исключить приложения"
+          }
         }
       }
     },
@@ -869,6 +373,12 @@
             "state" : "translated",
             "value" : "退出"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выйти"
+          }
         }
       }
     },
@@ -878,6 +388,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "扩展"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Расширения"
           }
         }
       }
@@ -895,6 +411,12 @@
             "state" : "translated",
             "value" : "通用"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Основные"
+          }
         }
       }
     },
@@ -904,6 +426,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "手势控制"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Управление жестами"
           }
         }
       }
@@ -915,6 +443,12 @@
             "state" : "translated",
             "value" : "手势灵敏度"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чувствительность жестов"
+          }
         }
       }
     },
@@ -924,6 +458,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开始使用"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать"
           }
         }
       }
@@ -941,6 +481,12 @@
             "state" : "translated",
             "value" : "GitHub"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub"
+          }
         }
       }
     },
@@ -951,6 +497,12 @@
             "state" : "translated",
             "value" : "明白了！"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Понятно!"
+          }
         }
       }
     },
@@ -959,343 +511,57 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "渐变"
+            "value" : "英语"
           }
-        }
-      }
-    },
-    "Hide BoringNotch Options" : {
-      "localizations" : {
-        "zh-Hans" : {
+        },
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "隐藏无聊刘海选项"
+            "value" : "Английский"
           }
         }
       }
     },
-    "Hide only when NowPlaying app is in fullscreen" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仅在正在播放的应用全屏时隐藏"
-          }
-        }
-      }
-    },
-    "Hierarchical" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "层级"
-          }
-        }
-      }
-    },
-    "High" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "高"
-          }
-        }
-      }
-    },
-    "HUD style" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "HUD 样式"
-          }
-        }
-      }
-    },
-    "HUDs" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "HUD"
-          }
-        }
-      }
-    },
-    "In progress" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "进行中"
-          }
-        }
-      }
-    },
-    "Inline" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "内联"
-          }
-        }
-      }
-    },
-    "Install updates automatically" : {
+    "Chinese (Simplified)" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Install updates automatically"
+            "value" : "Chinese (Simplified)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自动安装更新"
+            "value" : "简体中文"
           }
-        }
-      }
-    },
-    "Installed extensions" : {
-      "localizations" : {
-        "zh-Hans" : {
+        },
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已安装的扩展"
+            "value" : "Китайский (упрощенный)"
           }
         }
       }
     },
-    "Later" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "稍后"
-          }
-        }
-      }
-    },
-    "License key" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "许可证密钥"
-          }
-        }
-      }
-    },
-    "Lottie JSON URL" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lottie JSON 地址"
-          }
-        }
-      }
-    },
-    "Low" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "低"
-          }
-        }
-      }
-    },
-    "Made with 🫶🏻 by not so boring not.people" : {
+    "Russian" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Made with 🫶🏻 by not so boring not.people"
+            "value" : "Russian"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由不那么无聊的人用 🫶🏻 制作"
-          }
-        }
-      }
-    },
-    "Match menubar height" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匹配菜单栏高度"
-          }
-        }
-      }
-    },
-    "Match real notch size" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匹配真实刘海尺寸"
-          }
-        }
-      }
-    },
-    "Media" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Media"
+            "value" : "俄语"
           }
         },
-        "zh-Hans" : {
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "媒体"
-          }
-        }
-      }
-    },
-    "Media change with horizontal gestures" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用水平手势切换媒体"
-          }
-        }
-      }
-    },
-    "Media inactivity timeout" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Media inactivity timeout"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "媒体不活跃超时"
-          }
-        }
-      }
-    },
-    "Media playback live activity" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Media playback live activity"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "媒体播放实时活动"
-          }
-        }
-      }
-    },
-    "Medium" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "中"
-          }
-        }
-      }
-    },
-    "Menubar icon" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Menubar icon"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "菜单栏图标"
-          }
-        }
-      }
-    },
-    "Mic %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "麦克风 %@"
-          }
-        }
-      }
-    },
-    "Minimum hover duration" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最小悬停时间"
-          }
-        }
-      }
-    },
-    "Mirror" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "镜像"
-          }
-        }
-      }
-    },
-    "Mirror shape" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "镜像形状"
-          }
-        }
-      }
-    },
-    "More" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更多"
-          }
-        }
-      }
-    },
-    "muted" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已静音"
-          }
-        }
-      }
-    },
-    "Name" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "名称"
+            "value" : "Русский"
           }
         }
       }
@@ -1307,141 +573,11 @@
             "state" : "translated",
             "value" : "需要重启"
           }
-        }
-      }
-    },
-    "Never hide" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "永不隐藏"
-          }
-        }
-      }
-    },
-    "No custom animation available" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有可用的自定义动画"
-          }
-        }
-      }
-    },
-    "No custom visualizer" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有自定义可视化效果"
-          }
-        }
-      }
-    },
-    "No events today" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天没有事件"
-          }
-        }
-      }
-    },
-    "No excluded apps" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有排除的应用"
-          }
-        }
-      }
-    },
-    "No excludes" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No excludes"
-          }
         },
-        "zh-Hans" : {
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无排除项"
-          }
-        }
-      }
-    },
-    "No extension installed" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未安装扩展"
-          }
-        }
-      }
-    },
-    "Non-notch display height" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "非刘海显示高度"
-          }
-        }
-      }
-    },
-    "Notch behavior" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刘海行为"
-          }
-        }
-      }
-    },
-    "Notch display height" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刘海显示高度"
-          }
-        }
-      }
-    },
-    "Notch Height" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刘海高度"
-          }
-        }
-      }
-    },
-    "OK" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "确定"
-          }
-        }
-      }
-    },
-    "Onboarding" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新手引导"
+            "value" : "Требуется перезапуск"
           }
         }
       }
@@ -1453,480 +589,27 @@
             "state" : "translated",
             "value" : "一个或多个文件加载失败"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось загрузить один или несколько файлов"
+          }
         }
       }
     },
-    "Only app icon" : {
+    "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
-        "en" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only app icon"
+            "value" : "使用剪贴板管理器提升您的工作效率"
           }
         },
-        "zh-Hans" : {
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅应用图标"
-          }
-        }
-      }
-    },
-    "Only download icon" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only download icon"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仅下载图标"
-          }
-        }
-      }
-    },
-    "Percentage" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Percentage"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "百分比"
-          }
-        }
-      }
-    },
-    "Plugged In" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已接入电源"
-          }
-        }
-      }
-    },
-    "Progress bar" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Progress bar"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "进度条"
-          }
-        }
-      }
-    },
-    "Progressbar style" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "进度条样式"
-          }
-        }
-      }
-    },
-    "Quit" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quit"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "退出"
-          }
-        }
-      }
-    },
-    "Quit app" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "退出应用"
-          }
-        }
-      }
-    },
-    "Quit boring.notch" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quit boring.notch"
-          }
-        }
-      }
-    },
-    "Release name" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Release name"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发布名称"
-          }
-        }
-      }
-    },
-    "Remember last tab" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "记住上次标签"
-          }
-        }
-      }
-    },
-    "Restart" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重启"
-          }
-        }
-      }
-    },
-    "Restart Boring Notch" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重启无聊刘海"
-          }
-        }
-      }
-    },
-    "Running" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "运行中"
-          }
-        }
-      }
-    },
-    "seconds" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "seconds"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "秒"
-          }
-        }
-      }
-    },
-    "Select Calendars" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择日历"
-          }
-        }
-      }
-    },
-    "selected" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已选择"
-          }
-        }
-      }
-    },
-    "Selected animation" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已选择的动画"
-          }
-        }
-      }
-    },
-    "Settings" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "设置"
-          }
-        }
-      }
-    },
-    "Shelf" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "置物架"
-          }
-        }
-      }
-    },
-    "Shortcuts" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "快捷方式"
-          }
-        }
-      }
-    },
-    "Show battery indicator" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show battery indicator"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示电池指示器"
-          }
-        }
-      }
-    },
-    "Show calendar" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示日历"
-          }
-        }
-      }
-    },
-    "Show charging indicator" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show charging indicator"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示充电指示器"
-          }
-        }
-      }
-    },
-    "Show cool face animation while inactivity" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show cool face animation while inactivity"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在不活跃时显示酷脸动画"
-          }
-        }
-      }
-    },
-    "Show download progress" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show download progress"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示下载进度"
-          }
-        }
-      }
-    },
-    "Show on a specific display" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在特定显示器上显示"
-          }
-        }
-      }
-    },
-    "Show on all displays" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在所有显示器上显示"
-          }
-        }
-      }
-    },
-    "Slider color" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "滑块颜色"
-          }
-        }
-      }
-    },
-    "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "速览功能会在刘海下方显示几秒钟的媒体标题和艺术家信息。"
-          }
-        }
-      }
-    },
-    "Software updates" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Software updates"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "软件更新"
-          }
-        }
-      }
-    },
-    "Speed" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "速度"
-          }
-        }
-      }
-    },
-    "Square" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "方形"
-          }
-        }
-      }
-    },
-    "Stopped" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停止"
-          }
-        }
-      }
-    },
-    "Support Us" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Support Us"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支持我们"
-          }
-        }
-      }
-    },
-    "System features" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系统功能"
-          }
-        }
-      }
-    },
-    "TheBoringNotch" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无聊刘海"
-          }
-        }
-      }
-    },
-    "Toggle Notch Open:" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "切换刘海打开状态："
-          }
-        }
-      }
-    },
-    "Toggle Sneak Peek:" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "切换速览："
+            "value" : "Повысьте свою продуктивность с помощью менеджера буфера обмена"
           }
         }
       }
@@ -1938,185 +621,907 @@
             "state" : "translated",
             "value" : "将刘海真正变成你的专属"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сделайте вырез по-настоящему своим"
+          }
         }
       }
     },
-    "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
+    "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当**悬停时打开刘海**选项禁用时，双指在刘海上向上滑动关闭，向下滑动打开"
-          }
-        }
-      }
-    },
-    "Uninstall" : {
-
-    },
-    "Unlock advanced features and improve your experience. Upgrade now for more customizations!" : {
-
-    },
-    "unmuted" : {
-
-    },
-    "Upgrade to Pro" : {
-
-    },
-    "Use music visualizer spectrogram" : {
-
-    },
-    "Version" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Version"
-          }
-        }
-      }
-    },
-    "Version info" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Version info"
-          }
-        }
-      }
-    },
-    "Welcome" : {
-
-    },
-    "Welcome window" : {
-
-    },
-    "What's New" : {
-
-    },
-    "Get Started" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始使用"
-          }
-        }
-      }
-    },
-    "Hide" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隐藏"
-          }
-        }
-      }
-    },
-    "Hide menu bar" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隐藏菜单栏"
-          }
-        }
-      }
-    },
-    "Hide when inactive" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不活跃时隐藏"
-          }
-        }
-      }
-    },
-    "Icon" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "图标"
-          }
-        }
-      }
-    },
-    "Install" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "安装"
-          }
-        }
-      }
-    },
-    "Installing..." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在安装..."
-          }
-        }
-      }
-    },
-    "Launch at login" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "登录时启动"
-          }
-        }
-      }
-    },
-    "License" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "许可证"
-          }
-        }
-      }
-    },
-    "Live activity" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "实时活动"
-          }
-        }
-      }
-    },
-    "Loading..." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在加载..."
-          }
-        }
-      }
-    },
-    "Translated by StarFox" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Translated by StarFox"
+            "value" : "速览功能会在刘海下方显示几秒钟的媒体标题和艺术家信息。"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстрый просмотр показывает название медиа и исполнителя под вырезом в течение нескольких секунд."
+          }
+        }
+      }
+    },
+    "Enhance your experience with HUDs" : {
+      "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由 StarFox 翻译"
+            "value" : "使用 HUD 增强您的体验"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Улучшите свой опыт с помощью HUD"
+          }
+        }
+      }
+    },
+    "Connection failed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接失败"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ошибка подключения"
+          }
+        }
+      }
+    },
+    "Invalid input" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无效输入"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неверный ввод"
+          }
+        }
+      }
+    },
+    "Operation failed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "操作失败"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Операция не удалась"
+          }
+        }
+      }
+    },
+    "Please try again" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请重试"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пожалуйста, попробуйте снова"
+          }
+        }
+      }
+    },
+    "Customize your notch appearance and functionality" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义您的刘海外观和功能"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройте внешний вид и функциональность вашей вырезки"
+          }
+        }
+      }
+    },
+    "Get started with basic settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从基本设置开始"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начните с основных настроек"
+          }
+        }
+      }
+    },
+    "Learn more about advanced features" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "了解更多高级功能"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Узнайте больше о расширенных функциях"
+          }
+        }
+      }
+    },
+    "Manage your preferences and settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理您的偏好和设置"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Управляйте вашими предпочтениями и настройками"
+          }
+        }
+      }
+    },
+    "Update available" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新可用"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступно обновление"
+          }
+        }
+      }
+    },
+    "Update now" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "立即更新"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить сейчас"
+          }
+        }
+      }
+    },
+    "Settings saved" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置已保存"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки сохранены"
+          }
+        }
+      }
+    },
+    "Changes applied successfully" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改已成功应用"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изменения успешно применены"
+          }
+        }
+      }
+    },
+    "Are you sure you want to proceed?" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您确定要继续吗？"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вы уверены, что хотите продолжить?"
+          }
+        }
+      }
+    },
+    "Display Settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示设置"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки отображения"
+          }
+        }
+      }
+    },
+    "Customize the appearance of your interface" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义界面外观"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройте внешний вид вашего интерфейса"
+          }
+        }
+      }
+    },
+    "Animation speed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动画速度"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скорость анимации"
+          }
+        }
+      }
+    },
+    "Background opacity" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景不透明度"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Непрозрачность фона"
+          }
+        }
+      }
+    },
+    "Show advanced options" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示高级选项"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать расширенные настройки"
+          }
+        }
+      }
+    },
+    "Customize your media controls" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义您的媒体控制"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройте управление медиа"
+          }
+        }
+      }
+    },
+    "Double tap to play/pause" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "双击播放/暂停"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Двойное нажатие для воспроизведения/паузы"
+          }
+        }
+      }
+    },
+    "Swipe left/right to skip tracks" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左右滑动切换曲目"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проведите влево/вправо для переключения треков"
+          }
+        }
+      }
+    },
+    "Long press for more options" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "长按显示更多选项"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Долгое нажатие для дополнительных опций"
+          }
+        }
+      }
+    },
+    "Adjust volume with scroll wheel" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用滚轮调节音量"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Регулировка громкости колесиком прокрутки"
+          }
+        }
+      }
+    },
+    "Processing..." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "处理中..."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обработка..."
+          }
+        }
+      }
+    },
+    "Syncing data" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在同步数据"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Синхронизация данных"
+          }
+        }
+      }
+    },
+    "No items found" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到项目"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ничего не найдено"
+          }
+        }
+      }
+    },
+    "Connected successfully" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接成功"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключено успешно"
+          }
+        }
+      }
+    },
+    "Permission denied" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "权限被拒绝"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступ запрещен"
+          }
+        }
+      }
+    },
+    "Interface theme" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "界面主题"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тема интерфейса"
+          }
+        }
+      }
+    },
+    "System default" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统默认"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системная по умолчанию"
+          }
+        }
+      }
+    },
+    "Light mode" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浅色模式"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Светлый режим"
+          }
+        }
+      }
+    },
+    "Dark mode" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色模式"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Темный режим"
+          }
+        }
+      }
+    },
+    "Customize appearance" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义外观"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настроить внешний вид"
+          }
+        }
+      }
+    },
+    "Notifications" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уведомления"
+          }
+        }
+      }
+    },
+    "Enable notifications" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用通知"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить уведомления"
+          }
+        }
+      }
+    },
+    "Show notification preview" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示通知预览"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать предпросмотр уведомлений"
+          }
+        }
+      }
+    },
+    "Notification sound" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知声音"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звук уведомлений"
+          }
+        }
+      }
+    },
+    "Alert style" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒样式"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стиль оповещений"
+          }
+        }
+      }
+    },
+    "Privacy settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私设置"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки конфиденциальности"
+          }
+        }
+      }
+    },
+    "Data collection" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据收集"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбор данных"
+          }
+        }
+      }
+    },
+    "Usage analytics" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用分析"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аналитика использования"
+          }
+        }
+      }
+    },
+    "Backup settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "备份设置"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки резервного копирования"
+          }
+        }
+      }
+    },
+    "Auto backup" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动备份"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматическое резервное копирование"
+          }
+        }
+      }
+    },
+    "Advanced settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高级设置"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Расширенные настройки"
+          }
+        }
+      }
+    },
+    "Performance mode" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "性能模式"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим производительности"
+          }
+        }
+      }
+    },
+    "Debug mode" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调试模式"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим отладки"
+          }
+        }
+      }
+    },
+    "Reset all settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置所有设置"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить все настройки"
+          }
+        }
+      }
+    },
+    "Export configuration" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出配置"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспорт конфигурации"
+          }
+        }
+      }
+    },
+    "Help & Support" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帮助与支持"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Помощь и поддержка"
+          }
+        }
+      }
+    },
+    "Frequently Asked Questions" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "常见问题"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Часто задаваемые вопросы"
+          }
+        }
+      }
+    },
+    "Contact Support" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "联系支持"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Связаться с поддержкой"
+          }
+        }
+      }
+    },
+    "Report a Bug" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "报告问题"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сообщить об ошибке"
+          }
+        }
+      }
+    },
+    "Network error occurred" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发生网络错误"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Произошла ошибка сети"
+          }
+        }
+      }
+    },
+    "Check your internet connection" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请检查您的网络连接"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверьте подключение к интернету"
           }
         }
       }
