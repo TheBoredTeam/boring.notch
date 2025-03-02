@@ -593,7 +593,14 @@
       }
     },
     "Description" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "描述"
+          }
+        }
+      }
     },
     "Disable" : {
       "localizations" : {
@@ -662,6 +669,12 @@
             "state" : "translated",
             "value" : "Download icon style"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载图标样式"
+          }
         }
       }
     },
@@ -672,11 +685,24 @@
             "state" : "translated",
             "value" : "Download indicator style"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载指示器样式"
+          }
         }
       }
     },
     "Download indicators" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载指示器"
+          }
+        }
+      }
     },
     "Downloads" : {
       "localizations" : {
@@ -685,57 +711,136 @@
             "state" : "translated",
             "value" : "Downloads"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载"
+          }
         }
       }
     },
     "Drop files here" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将文件拖放到这里"
+          }
+        }
+      }
     },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轻松复制、存储和管理您最常用的内容。立即升级以获取多项存储和快速访问等高级功能！"
+          }
+        }
+      }
     },
     "Edit" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑"
+          }
+        }
+      }
     },
     "Edit layout" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑布局"
+          }
+        }
+      }
     },
     "Email address" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电子邮件地址"
+          }
+        }
+      }
     },
     "Enable colored spectrograms" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enable colored spectrograms"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用彩色频谱图"
+          }
         }
       }
     },
     "Enable haptics" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enable haptics"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用触觉反馈"
+          }
         }
       }
     },
     "Enable HUD replacement" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用 HUD 替换"
+          }
+        }
+      }
     },
     "Enable music live activity" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用音乐实时活动"
+          }
+        }
+      }
     },
     "Enhance your experience with HUDs" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 HUD 增强您的体验"
+          }
+        }
+      }
     },
     "Enjoy your free time!" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "享受您的空闲时间！"
+          }
+        }
+      }
     },
     "Error" : {
       "localizations" : {
@@ -758,7 +863,14 @@
       }
     },
     "Exit" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出"
+          }
+        }
+      }
     },
     "Extensions" : {
       "localizations" : {
@@ -787,13 +899,34 @@
       }
     },
     "Gesture control" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手势控制"
+          }
+        }
+      }
     },
     "Gesture sensitivity" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手势灵敏度"
+          }
+        }
+      }
     },
     "Get started" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始使用"
+          }
+        }
+      }
     },
     "GitHub" : {
       "localizations" : {
@@ -812,60 +945,170 @@
       }
     },
     "Got it!" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明白了！"
+          }
+        }
+      }
     },
     "Gradient" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "渐变"
+          }
+        }
+      }
     },
     "Hide BoringNotch Options" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏无聊刘海选项"
+          }
+        }
+      }
     },
     "Hide only when NowPlaying app is in fullscreen" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅在正在播放的应用全屏时隐藏"
+          }
+        }
+      }
     },
     "Hierarchical" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "层级"
+          }
+        }
+      }
     },
     "High" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高"
+          }
+        }
+      }
     },
     "HUD style" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HUD 样式"
+          }
+        }
+      }
     },
     "HUDs" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HUD"
+          }
+        }
+      }
     },
     "In progress" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进行中"
+          }
+        }
+      }
     },
     "Inline" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内联"
+          }
+        }
+      }
     },
     "Install updates automatically" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Install updates automatically"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动安装更新"
+          }
         }
       }
     },
     "Installed extensions" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已安装的扩展"
+          }
+        }
+      }
     },
     "Later" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍后"
+          }
+        }
+      }
     },
     "License key" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "许可证密钥"
+          }
+        }
+      }
     },
     "Lottie JSON URL" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lottie JSON 地址"
+          }
+        }
+      }
     },
     "Low" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低"
+          }
+        }
+      }
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
@@ -874,14 +1117,34 @@
             "state" : "translated",
             "value" : "Made with 🫶🏻 by not so boring not.people"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由不那么无聊的人用 🫶🏻 制作"
+          }
         }
       }
     },
     "Match menubar height" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匹配菜单栏高度"
+          }
+        }
+      }
     },
     "Match real notch size" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匹配真实刘海尺寸"
+          }
+        }
+      }
     },
     "Media" : {
       "localizations" : {
@@ -890,11 +1153,24 @@
             "state" : "translated",
             "value" : "Media"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体"
+          }
         }
       }
     },
     "Media change with horizontal gestures" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用水平手势切换媒体"
+          }
+        }
+      }
     },
     "Media inactivity timeout" : {
       "localizations" : {
@@ -902,6 +1178,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Media inactivity timeout"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体不活跃超时"
           }
         }
       }
@@ -913,96 +1195,266 @@
             "state" : "translated",
             "value" : "Media playback live activity"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体播放实时活动"
+          }
         }
       }
     },
     "Medium" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中"
+          }
+        }
+      }
     },
     "Menubar icon" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Menubar icon"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "菜单栏图标"
+          }
         }
       }
     },
     "Mic %@" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风 %@"
+          }
+        }
+      }
     },
     "Minimum hover duration" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最小悬停时间"
+          }
+        }
+      }
     },
     "Mirror" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "镜像"
+          }
+        }
+      }
     },
     "Mirror shape" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "镜像形状"
+          }
+        }
+      }
     },
     "More" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多"
+          }
+        }
+      }
     },
     "muted" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已静音"
+          }
+        }
+      }
     },
     "Name" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名称"
+          }
+        }
+      }
     },
     "Need Restart" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要重启"
+          }
+        }
+      }
     },
     "Never hide" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "永不隐藏"
+          }
+        }
+      }
     },
     "No custom animation available" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的自定义动画"
+          }
+        }
+      }
     },
     "No custom visualizer" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有自定义可视化效果"
+          }
+        }
+      }
     },
     "No events today" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天没有事件"
+          }
+        }
+      }
     },
     "No excluded apps" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有排除的应用"
+          }
+        }
+      }
     },
     "No excludes" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "No excludes"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无排除项"
+          }
         }
       }
     },
     "No extension installed" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安装扩展"
+          }
+        }
+      }
     },
     "Non-notch display height" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非刘海显示高度"
+          }
+        }
+      }
     },
     "Notch behavior" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刘海行为"
+          }
+        }
+      }
     },
     "Notch display height" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刘海显示高度"
+          }
+        }
+      }
     },
     "Notch Height" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刘海高度"
+          }
+        }
+      }
     },
     "OK" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确定"
+          }
+        }
+      }
     },
     "Onboarding" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新手引导"
+          }
+        }
+      }
     },
     "One or more files failed to load" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一个或多个文件加载失败"
+          }
+        }
+      }
     },
     "Only app icon" : {
       "localizations" : {
