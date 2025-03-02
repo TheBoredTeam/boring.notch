@@ -1463,6 +1463,12 @@
             "state" : "translated",
             "value" : "Only app icon"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅应用图标"
+          }
         }
       }
     },
@@ -1472,6 +1478,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Only download icon"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅下载图标"
           }
         }
       }
@@ -1483,11 +1495,24 @@
             "state" : "translated",
             "value" : "Percentage"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "百分比"
+          }
         }
       }
     },
     "Plugged In" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已接入电源"
+          }
+        }
+      }
     },
     "Progress bar" : {
       "localizations" : {
@@ -1496,11 +1521,24 @@
             "state" : "translated",
             "value" : "Progress bar"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进度条"
+          }
         }
       }
     },
     "Progressbar style" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进度条样式"
+          }
+        }
+      }
     },
     "Quit" : {
       "localizations" : {
@@ -1509,11 +1547,24 @@
             "state" : "translated",
             "value" : "Quit"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出"
+          }
         }
       }
     },
     "Quit app" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出应用"
+          }
+        }
+      }
     },
     "Quit boring.notch" : {
       "extractionState" : "stale",
@@ -1533,40 +1584,100 @@
             "state" : "translated",
             "value" : "Release name"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发布名称"
+          }
         }
       }
     },
     "Remember last tab" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记住上次标签"
+          }
+        }
+      }
     },
     "Restart" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重启"
+          }
+        }
+      }
     },
     "Restart Boring Notch" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重启无聊刘海"
+          }
+        }
+      }
     },
     "Running" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行中"
+          }
+        }
+      }
     },
     "seconds" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "seconds"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "秒"
+          }
         }
       }
     },
     "Select Calendars" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择日历"
+          }
+        }
+      }
     },
     "selected" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已选择"
+          }
+        }
+      }
     },
     "Selected animation" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已选择的动画"
+          }
+        }
+      }
     },
     "Settings" : {
       "localizations" : {
@@ -1575,73 +1686,148 @@
             "state" : "translated",
             "value" : "Settings"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置"
+          }
         }
       }
     },
     "Shelf" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "置物架"
+          }
+        }
+      }
     },
     "Shortcuts" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快捷方式"
+          }
+        }
+      }
     },
     "Show battery indicator" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show battery indicator"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示电池指示器"
+          }
         }
       }
     },
     "Show calendar" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示日历"
+          }
+        }
+      }
     },
     "Show charging indicator" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show charging indicator"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示充电指示器"
+          }
         }
       }
     },
     "Show cool face animation while inactivity" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show cool face animation while inactivity"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在不活跃时显示酷脸动画"
+          }
         }
       }
     },
     "Show download progress" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show download progress"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示下载进度"
+          }
         }
       }
     },
     "Show on a specific display" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在特定显示器上显示"
+          }
+        }
+      }
     },
     "Show on all displays" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在所有显示器上显示"
+          }
+        }
+      }
     },
     "Slider color" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "滑块颜色"
+          }
+        }
+      }
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "速览功能会在刘海下方显示几秒钟的媒体标题和艺术家信息。"
+          }
+        }
+      }
     },
     "Software updates" : {
       "localizations" : {
@@ -1650,17 +1836,44 @@
             "state" : "translated",
             "value" : "Software updates"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "软件更新"
+          }
         }
       }
     },
     "Speed" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "速度"
+          }
+        }
+      }
     },
     "Square" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "方形"
+          }
+        }
+      }
     },
     "Stopped" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停止"
+          }
+        }
+      }
     },
     "Support Us" : {
       "localizations" : {
@@ -1669,26 +1882,74 @@
             "state" : "translated",
             "value" : "Support Us"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支持我们"
+          }
         }
       }
     },
     "System features" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统功能"
+          }
+        }
+      }
     },
     "TheBoringNotch" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无聊刘海"
+          }
+        }
+      }
     },
     "Toggle Notch Open:" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换刘海打开状态："
+          }
+        }
+      }
     },
     "Toggle Sneak Peek:" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换速览："
+          }
+        }
+      }
     },
     "Transform your notch truly yours" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将刘海真正变成你的专属"
+          }
+        }
+      }
     },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当**悬停时打开刘海**选项禁用时，双指在刘海上向上滑动关闭，向下滑动打开"
+          }
+        }
+      }
     },
     "Uninstall" : {
 
