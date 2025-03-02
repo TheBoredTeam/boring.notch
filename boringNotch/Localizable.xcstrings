@@ -2104,6 +2104,22 @@
           }
         }
       }
+    },
+    "Translated by StarFox" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Translated by StarFox"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由 StarFox 翻译"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
