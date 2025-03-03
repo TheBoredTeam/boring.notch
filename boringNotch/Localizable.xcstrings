@@ -25,6 +25,12 @@
             "state" : "translated",
             "value" : "Ajouter"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hinzufügen"
+          }
         }
       }
     },
@@ -52,6 +58,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fermer"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schließen"
           }
         }
       }
@@ -81,6 +93,12 @@
             "state" : "translated",
             "value" : "Modifier"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bearbeiten"
+          }
         }
       }
     },
@@ -109,6 +127,12 @@
             "state" : "translated",
             "value" : "Description"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beschreibung"
+          }
         }
       }
     },
@@ -136,6 +160,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Télécharger"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herunterladen"
           }
         }
       }
@@ -171,6 +201,12 @@
             "state" : "translated",
             "value" : "Style d'icône de téléchargement"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download-Symbol-Stil"
+          }
         }
       }
     },
@@ -205,6 +241,12 @@
             "state" : "translated",
             "value" : "Style d'indicateur de téléchargement"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download-Indikator-Stil"
+          }
         }
       }
     },
@@ -232,6 +274,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Indicateurs de téléchargement"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download-Indikatoren"
           }
         }
       }
@@ -267,6 +315,12 @@
             "state" : "translated",
             "value" : "Téléchargements"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads"
+          }
         }
       }
     },
@@ -294,6 +348,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Déposez les fichiers ici"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dateien hier ablegen"
           }
         }
       }
@@ -323,6 +383,12 @@
             "state" : "translated",
             "value" : "Copiez, stockez et gérez facilement votre contenu le plus utilisé. Passez à la version supérieure pour des fonctionnalités avancées comme le stockage multi-éléments et l'accès rapide !"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopieren, speichern und verwalten Sie Ihre am häufigsten verwendeten Inhalte ganz einfach. Upgraden Sie jetzt für erweiterte Funktionen wie Mehrfach-Speicherung und Schnellzugriff!"
+          }
         }
       }
     },
@@ -351,6 +417,12 @@
             "state" : "translated",
             "value" : "Modifier la disposition"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Layout bearbeiten"
+          }
         }
       }
     },
@@ -378,6 +450,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adresse e-mail"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-Mail-Adresse"
           }
         }
       }
@@ -413,6 +491,12 @@
             "state" : "translated",
             "value" : "Activer les spectrogrammes colorés"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbige Spektrogramme aktivieren"
+          }
         }
       }
     },
@@ -447,6 +531,12 @@
             "state" : "translated",
             "value" : "Activer le retour haptique"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haptisches Feedback aktivieren"
+          }
         }
       }
     },
@@ -474,6 +564,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activer le remplacement du HUD"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HUD-Ersatz aktivieren"
           }
         }
       }
@@ -503,6 +599,12 @@
             "state" : "translated",
             "value" : "Activer l'activité musicale en direct"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musik-Live-Aktivität aktivieren"
+          }
         }
       }
     },
@@ -530,6 +632,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Améliorez votre expérience avec les HUD"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbessern Sie Ihr Erlebnis mit HUDs"
           }
         }
       }
@@ -559,6 +667,12 @@
             "state" : "translated",
             "value" : "Profitez de votre temps libre !"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Genießen Sie Ihre Freizeit!"
+          }
         }
       }
     },
@@ -586,6 +700,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Erreur"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler"
           }
         }
       }
@@ -615,6 +735,12 @@
             "state" : "translated",
             "value" : "Exclure des applications"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps ausschließen"
+          }
         }
       }
     },
@@ -643,6 +769,12 @@
             "state" : "translated",
             "value" : "Quitter"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beenden"
+          }
         }
       }
     },
@@ -670,6 +802,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Extensions"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erweiterungen"
           }
         }
       }
@@ -705,6 +843,12 @@
             "state" : "translated",
             "value" : "Général"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allgemein"
+          }
         }
       }
     },
@@ -732,6 +876,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Contrôle gestuel"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestensteuerung"
           }
         }
       }
@@ -761,6 +911,12 @@
             "state" : "translated",
             "value" : "Sensibilité des gestes"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestenempfindlichkeit"
+          }
         }
       }
     },
@@ -788,6 +944,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Commencer"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erste Schritte"
           }
         }
       }
@@ -823,6 +985,12 @@
             "state" : "translated",
             "value" : "GitHub"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub"
+          }
         }
       }
     },
@@ -851,6 +1019,12 @@
             "state" : "translated",
             "value" : "Compris !"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verstanden!"
+          }
         }
       }
     },
@@ -878,6 +1052,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dégradé"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbverlauf"
           }
         }
       }
@@ -913,6 +1093,12 @@
             "state" : "translated",
             "value" : "Chinois (simplifié)"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chinesisch (Vereinfacht)"
+          }
         }
       }
     },
@@ -947,6 +1133,12 @@
             "state" : "translated",
             "value" : "Russe"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Russisch"
+          }
         }
       }
     },
@@ -974,6 +1166,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Redémarrage nécessaire"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neustart erforderlich"
           }
         }
       }
@@ -1003,6 +1201,12 @@
             "state" : "translated",
             "value" : "Un ou plusieurs fichiers n'ont pas pu être chargés"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine oder mehrere Dateien konnten nicht geladen werden"
+          }
         }
       }
     },
@@ -1030,6 +1234,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Augmentez votre productivité avec le Gestionnaire de presse-papiers"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steigern Sie Ihre Produktivität mit dem Zwischenablage-Manager"
           }
         }
       }
@@ -1059,6 +1269,12 @@
             "state" : "translated",
             "value" : "Personnalisez véritablement votre encoche"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Machen Sie Ihre Notch wirklich zu Ihrer eigenen"
+          }
         }
       }
     },
@@ -1086,6 +1302,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'aperçu rapide affiche le titre du média et l'artiste sous l'encoche pendant quelques secondes."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sneak Peek zeigt den Medientitel und Künstler für einige Sekunden unter der Notch an."
           }
         }
       }
@@ -1115,6 +1337,12 @@
             "state" : "translated",
             "value" : "Échec de la connexion"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbindung fehlgeschlagen"
+          }
         }
       }
     },
@@ -1142,6 +1370,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entrée invalide"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungültige Eingabe"
           }
         }
       }
@@ -1171,6 +1405,12 @@
             "state" : "translated",
             "value" : "Échec de l'opération"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operation fehlgeschlagen"
+          }
         }
       }
     },
@@ -1198,6 +1438,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Veuillez réessayer"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte versuchen Sie es erneut"
           }
         }
       }
@@ -1227,6 +1473,12 @@
             "state" : "translated",
             "value" : "Personnalisez l'apparence et les fonctionnalités de votre encoche"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passen Sie das Aussehen und die Funktionalität Ihrer Notch an"
+          }
         }
       }
     },
@@ -1254,6 +1506,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Commencez avec les paramètres de base"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beginnen Sie mit den grundlegenden Einstellungen"
           }
         }
       }
@@ -1283,6 +1541,12 @@
             "state" : "translated",
             "value" : "En savoir plus sur les fonctionnalités avancées"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erfahren Sie mehr über erweiterte Funktionen"
+          }
         }
       }
     },
@@ -1310,6 +1574,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gérez vos préférences et paramètres"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwalten Sie Ihre Präferenzen und Einstellungen"
           }
         }
       }
@@ -1339,6 +1609,12 @@
             "state" : "translated",
             "value" : "Mise à jour disponible"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update verfügbar"
+          }
         }
       }
     },
@@ -1366,6 +1642,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mettre à jour maintenant"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt aktualisieren"
           }
         }
       }
@@ -1395,6 +1677,12 @@
             "state" : "translated",
             "value" : "Paramètres enregistrés"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen gespeichert"
+          }
         }
       }
     },
@@ -1422,6 +1710,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modifications appliquées avec succès"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Änderungen erfolgreich angewendet"
           }
         }
       }
@@ -1451,6 +1745,12 @@
             "state" : "translated",
             "value" : "Êtes-vous sûr de vouloir continuer ?"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sind Sie sicher, dass Sie fortfahren möchten?"
+          }
         }
       }
     },
@@ -1478,6 +1778,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paramètres d'affichage"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anzeigeeinstellungen"
           }
         }
       }
@@ -1507,6 +1813,12 @@
             "state" : "translated",
             "value" : "Personnalisez l'apparence de votre interface"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passen Sie das Erscheinungsbild Ihrer Benutzeroberfläche an"
+          }
         }
       }
     },
@@ -1534,6 +1846,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vitesse d'animation"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animationsgeschwindigkeit"
           }
         }
       }
@@ -1563,6 +1881,12 @@
             "state" : "translated",
             "value" : "Opacité du fond"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrundtransparenz"
+          }
         }
       }
     },
@@ -1590,6 +1914,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher les options avancées"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erweiterte Optionen anzeigen"
           }
         }
       }
@@ -1619,6 +1949,12 @@
             "state" : "translated",
             "value" : "Personnalisez vos contrôles multimédia"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passen Sie Ihre Mediensteuerung an"
+          }
         }
       }
     },
@@ -1646,6 +1982,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Double-tapez pour lire/mettre en pause"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doppeltippen zum Abspielen/Pausieren"
           }
         }
       }
@@ -1675,6 +2017,12 @@
             "state" : "translated",
             "value" : "Glissez à gauche/droite pour changer de piste"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach links/rechts wischen zum Überspringen von Titeln"
+          }
         }
       }
     },
@@ -1702,6 +2050,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appui long pour plus d'options"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lang drücken für weitere Optionen"
           }
         }
       }
@@ -1731,6 +2085,12 @@
             "state" : "translated",
             "value" : "Ajustez le volume avec la molette de défilement"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lautstärke mit Scrollrad anpassen"
+          }
         }
       }
     },
@@ -1758,6 +2118,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Traitement en cours..."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verarbeitung..."
           }
         }
       }
@@ -1787,6 +2153,12 @@
             "state" : "translated",
             "value" : "Synchronisation des données"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten werden synchronisiert"
+          }
         }
       }
     },
@@ -1814,6 +2186,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucun élément trouvé"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Elemente gefunden"
           }
         }
       }
@@ -1843,6 +2221,12 @@
             "state" : "translated",
             "value" : "Connecté avec succès"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erfolgreich verbunden"
+          }
         }
       }
     },
@@ -1870,6 +2254,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permission refusée"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zugriff verweigert"
           }
         }
       }
@@ -1899,6 +2289,12 @@
             "state" : "translated",
             "value" : "Thème de l'interface"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oberflächendesign"
+          }
         }
       }
     },
@@ -1926,6 +2322,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Par défaut du système"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systemstandard"
           }
         }
       }
@@ -1955,6 +2357,12 @@
             "state" : "translated",
             "value" : "Mode clair"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heller Modus"
+          }
         }
       }
     },
@@ -1982,6 +2390,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mode sombre"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dunkler Modus"
           }
         }
       }
@@ -2011,6 +2425,12 @@
             "state" : "translated",
             "value" : "Personnaliser l'apparence"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erscheinungsbild anpassen"
+          }
         }
       }
     },
@@ -2038,6 +2458,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Notifications"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benachrichtigungen"
           }
         }
       }
@@ -2067,6 +2493,12 @@
             "state" : "translated",
             "value" : "Activer les notifications"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benachrichtigungen aktivieren"
+          }
         }
       }
     },
@@ -2094,6 +2526,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher l'aperçu des notifications"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benachrichtigungsvorschau anzeigen"
           }
         }
       }
@@ -2123,6 +2561,12 @@
             "state" : "translated",
             "value" : "Son de notification"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benachrichtigungston"
+          }
         }
       }
     },
@@ -2150,6 +2594,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Style d'alerte"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warnungsstil"
           }
         }
       }
@@ -2179,6 +2629,12 @@
             "state" : "translated",
             "value" : "Paramètres de confidentialité"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutzeinstellungen"
+          }
         }
       }
     },
@@ -2190,31 +2646,6 @@
             "value" : "数据收集"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сбор данных"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "データ収集"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Collecte de données"
-          }
-        }
-      }
-    },
-    "Usage analytics" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
             "value" : "使用分析"
           }
         },
