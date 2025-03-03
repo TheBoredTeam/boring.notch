@@ -19,6 +19,12 @@
             "state" : "translated",
             "value" : "追加"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter"
+          }
         }
       }
     },
@@ -40,6 +46,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "閉じる"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer"
           }
         }
       }
@@ -63,6 +75,12 @@
             "state" : "translated",
             "value" : "編集"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier"
+          }
         }
       }
     },
@@ -85,6 +103,12 @@
             "state" : "translated",
             "value" : "説明"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Description"
+          }
         }
       }
     },
@@ -106,6 +130,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ダウンロード"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharger"
           }
         }
       }
@@ -135,6 +165,12 @@
             "state" : "translated",
             "value" : "ダウンロードアイコンのスタイル"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Style d'icône de téléchargement"
+          }
         }
       }
     },
@@ -163,6 +199,12 @@
             "state" : "translated",
             "value" : "ダウンロードインジケーターのスタイル"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Style d'indicateur de téléchargement"
+          }
         }
       }
     },
@@ -184,6 +226,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ダウンロードインジケーター"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indicateurs de téléchargement"
           }
         }
       }
@@ -213,6 +261,12 @@
             "state" : "translated",
             "value" : "ダウンロード"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téléchargements"
+          }
         }
       }
     },
@@ -234,6 +288,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ここにファイルをドロップ"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déposez les fichiers ici"
           }
         }
       }
@@ -257,6 +317,12 @@
             "state" : "translated",
             "value" : "よく使うコンテンツを簡単にコピー、保存、管理できます。複数アイテムの保存やクイックアクセスなどの高度な機能を利用するにはアップグレードしてください！"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiez, stockez et gérez facilement votre contenu le plus utilisé. Passez à la version supérieure pour des fonctionnalités avancées comme le stockage multi-éléments et l'accès rapide !"
+          }
         }
       }
     },
@@ -279,6 +345,12 @@
             "state" : "translated",
             "value" : "レイアウトを編集"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier la disposition"
+          }
         }
       }
     },
@@ -300,6 +372,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "メールアドレス"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse e-mail"
           }
         }
       }
@@ -329,6 +407,12 @@
             "state" : "translated",
             "value" : "カラースペクトログラムを有効化"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer les spectrogrammes colorés"
+          }
         }
       }
     },
@@ -357,6 +441,12 @@
             "state" : "translated",
             "value" : "触覚フィードバックを有効化"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer le retour haptique"
+          }
         }
       }
     },
@@ -378,6 +468,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "HUD置き換えを有効化"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer le remplacement du HUD"
           }
         }
       }
@@ -401,6 +497,12 @@
             "state" : "translated",
             "value" : "音楽のライブアクティビティを有効化"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer l'activité musicale en direct"
+          }
         }
       }
     },
@@ -422,6 +524,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "HUDで体験を向上させる"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Améliorez votre expérience avec les HUD"
           }
         }
       }
@@ -445,6 +553,12 @@
             "state" : "translated",
             "value" : "自由な時間をお楽しみください！"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profitez de votre temps libre !"
+          }
         }
       }
     },
@@ -466,6 +580,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "エラー"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur"
           }
         }
       }
@@ -489,6 +609,12 @@
             "state" : "translated",
             "value" : "アプリを除外"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclure des applications"
+          }
         }
       }
     },
@@ -511,6 +637,12 @@
             "state" : "translated",
             "value" : "終了"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitter"
+          }
         }
       }
     },
@@ -532,6 +664,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "拡張機能"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensions"
           }
         }
       }
@@ -561,6 +699,12 @@
             "state" : "translated",
             "value" : "一般"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Général"
+          }
         }
       }
     },
@@ -582,6 +726,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ジェスチャーコントロール"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contrôle gestuel"
           }
         }
       }
@@ -605,6 +755,12 @@
             "state" : "translated",
             "value" : "ジェスチャーの感度"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensibilité des gestes"
+          }
         }
       }
     },
@@ -626,6 +782,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "はじめる"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commencer"
           }
         }
       }
@@ -655,6 +817,12 @@
             "state" : "translated",
             "value" : "GitHub"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub"
+          }
         }
       }
     },
@@ -677,6 +845,12 @@
             "state" : "translated",
             "value" : "了解！"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compris !"
+          }
         }
       }
     },
@@ -698,6 +872,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "グラデーション"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dégradé"
           }
         }
       }
@@ -727,6 +907,12 @@
             "state" : "translated",
             "value" : "中国語（簡体字）"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chinois (simplifié)"
+          }
         }
       }
     },
@@ -755,6 +941,12 @@
             "state" : "translated",
             "value" : "ロシア語"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Russe"
+          }
         }
       }
     },
@@ -776,6 +968,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "再起動が必要"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redémarrage nécessaire"
           }
         }
       }
@@ -799,6 +997,12 @@
             "state" : "translated",
             "value" : "1つ以上のファイルの読み込みに失敗しました"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un ou plusieurs fichiers n'ont pas pu être chargés"
+          }
         }
       }
     },
@@ -820,6 +1024,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "クリップボードマネージャーで生産性を向上させましょう"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Augmentez votre productivité avec le Gestionnaire de presse-papiers"
           }
         }
       }
@@ -843,6 +1053,12 @@
             "state" : "translated",
             "value" : "ノッチを本当にあなたらしくカスタマイズ"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personnalisez véritablement votre encoche"
+          }
         }
       }
     },
@@ -864,6 +1080,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "スニークピークは数秒間、ノッチの下にメディアのタイトルとアーティストを表示します。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'aperçu rapide affiche le titre du média et l'artiste sous l'encoche pendant quelques secondes."
           }
         }
       }
@@ -887,6 +1109,12 @@
             "state" : "translated",
             "value" : "接続に失敗しました"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la connexion"
+          }
         }
       }
     },
@@ -908,6 +1136,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無効な入力"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrée invalide"
           }
         }
       }
@@ -931,6 +1165,12 @@
             "state" : "translated",
             "value" : "操作に失敗しました"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l'opération"
+          }
         }
       }
     },
@@ -952,6 +1192,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "もう一度お試しください"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veuillez réessayer"
           }
         }
       }
@@ -975,6 +1221,12 @@
             "state" : "translated",
             "value" : "ノッチの外観と機能をカスタマイズ"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personnalisez l'apparence et les fonctionnalités de votre encoche"
+          }
         }
       }
     },
@@ -996,6 +1248,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "基本設定から始める"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commencez avec les paramètres de base"
           }
         }
       }
@@ -1019,6 +1277,12 @@
             "state" : "translated",
             "value" : "高度な機能についてもっと知る"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En savoir plus sur les fonctionnalités avancées"
+          }
         }
       }
     },
@@ -1040,6 +1304,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定と環境設定を管理"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérez vos préférences et paramètres"
           }
         }
       }
@@ -1063,6 +1333,12 @@
             "state" : "translated",
             "value" : "アップデートが利用可能"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour disponible"
+          }
         }
       }
     },
@@ -1084,6 +1360,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今すぐアップデート"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à jour maintenant"
           }
         }
       }
@@ -1107,6 +1389,12 @@
             "state" : "translated",
             "value" : "設定を保存しました"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paramètres enregistrés"
+          }
         }
       }
     },
@@ -1128,6 +1416,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "変更が正常に適用されました"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifications appliquées avec succès"
           }
         }
       }
@@ -1151,6 +1445,12 @@
             "state" : "translated",
             "value" : "続行してもよろしいですか？"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Êtes-vous sûr de vouloir continuer ?"
+          }
         }
       }
     },
@@ -1172,6 +1472,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "表示設定"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paramètres d'affichage"
           }
         }
       }
@@ -1195,6 +1501,12 @@
             "state" : "translated",
             "value" : "インターフェースの外観をカスタマイズ"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personnalisez l'apparence de votre interface"
+          }
         }
       }
     },
@@ -1216,6 +1528,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "アニメーション速度"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vitesse d'animation"
           }
         }
       }
@@ -1239,6 +1557,12 @@
             "state" : "translated",
             "value" : "背景の不透明度"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opacité du fond"
+          }
         }
       }
     },
@@ -1260,6 +1584,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "詳細オプションを表示"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les options avancées"
           }
         }
       }
@@ -1283,6 +1613,12 @@
             "state" : "translated",
             "value" : "メディアコントロールをカスタマイズ"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personnalisez vos contrôles multimédia"
+          }
         }
       }
     },
@@ -1304,6 +1640,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ダブルタップで再生/一時停止"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double-tapez pour lire/mettre en pause"
           }
         }
       }
@@ -1327,6 +1669,12 @@
             "state" : "translated",
             "value" : "左右スワイプでトラックをスキップ"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glissez à gauche/droite pour changer de piste"
+          }
         }
       }
     },
@@ -1348,6 +1696,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "長押しで追加オプション"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appui long pour plus d'options"
           }
         }
       }
@@ -1371,6 +1725,12 @@
             "state" : "translated",
             "value" : "スクロールホイールで音量調整"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustez le volume avec la molette de défilement"
+          }
         }
       }
     },
@@ -1392,6 +1752,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "処理中..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traitement en cours..."
           }
         }
       }
@@ -1415,6 +1781,12 @@
             "state" : "translated",
             "value" : "データを同期中"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisation des données"
+          }
         }
       }
     },
@@ -1436,6 +1808,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "項目が見つかりません"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun élément trouvé"
           }
         }
       }
@@ -1459,6 +1837,12 @@
             "state" : "translated",
             "value" : "正常に接続されました"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecté avec succès"
+          }
         }
       }
     },
@@ -1480,6 +1864,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "権限が拒否されました"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission refusée"
           }
         }
       }
@@ -1503,6 +1893,12 @@
             "state" : "translated",
             "value" : "インターフェーステーマ"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thème de l'interface"
+          }
         }
       }
     },
@@ -1524,6 +1920,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "システムデフォルト"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Par défaut du système"
           }
         }
       }
@@ -1547,6 +1949,12 @@
             "state" : "translated",
             "value" : "ライトモード"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode clair"
+          }
         }
       }
     },
@@ -1568,6 +1976,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ダークモード"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode sombre"
           }
         }
       }
@@ -1591,6 +2005,12 @@
             "state" : "translated",
             "value" : "外観をカスタマイズ"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personnaliser l'apparence"
+          }
         }
       }
     },
@@ -1612,6 +2032,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications"
           }
         }
       }
@@ -1635,6 +2061,12 @@
             "state" : "translated",
             "value" : "通知を有効化"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer les notifications"
+          }
         }
       }
     },
@@ -1656,6 +2088,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知プレビューを表示"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher l'aperçu des notifications"
           }
         }
       }
@@ -1679,6 +2117,12 @@
             "state" : "translated",
             "value" : "通知音"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son de notification"
+          }
         }
       }
     },
@@ -1700,6 +2144,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "アラートスタイル"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Style d'alerte"
           }
         }
       }
@@ -1723,6 +2173,12 @@
             "state" : "translated",
             "value" : "プライバシー設定"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paramètres de confidentialité"
+          }
         }
       }
     },
@@ -1744,6 +2200,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "データ収集"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collecte de données"
           }
         }
       }
@@ -1767,6 +2229,12 @@
             "state" : "translated",
             "value" : "使用状況の分析"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyse d'utilisation"
+          }
         }
       }
     },
@@ -1788,6 +2256,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "バックアップ設定"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paramètres de sauvegarde"
           }
         }
       }
@@ -1811,6 +2285,12 @@
             "state" : "translated",
             "value" : "自動バックアップ"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sauvegarde automatique"
+          }
         }
       }
     },
@@ -1832,6 +2312,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "詳細設定"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paramètres avancés"
           }
         }
       }
@@ -1855,6 +2341,12 @@
             "state" : "translated",
             "value" : "パフォーマンスモード"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode performance"
+          }
         }
       }
     },
@@ -1876,6 +2368,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "デバッグモード"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode débogage"
           }
         }
       }
@@ -1899,6 +2397,12 @@
             "state" : "translated",
             "value" : "すべての設定をリセット"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser tous les paramètres"
+          }
         }
       }
     },
@@ -1920,6 +2424,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定をエクスポート"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporter la configuration"
           }
         }
       }
@@ -1943,6 +2453,12 @@
             "state" : "translated",
             "value" : "ヘルプとサポート"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aide & Support"
+          }
         }
       }
     },
@@ -1964,6 +2480,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "よくある質問"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questions fréquemment posées"
           }
         }
       }
@@ -1987,6 +2509,12 @@
             "state" : "translated",
             "value" : "サポートに連絡"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contacter le support"
+          }
         }
       }
     },
@@ -2008,6 +2536,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "バグを報告"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signaler un bug"
           }
         }
       }
@@ -2031,6 +2565,12 @@
             "state" : "translated",
             "value" : "ネットワークエラーが発生しました"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une erreur réseau s'est produite"
+          }
         }
       }
     },
@@ -2052,6 +2592,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "インターネット接続を確認してください"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérifiez votre connexion Internet"
           }
         }
       }
