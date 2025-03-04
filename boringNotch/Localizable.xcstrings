@@ -26,10 +26,10 @@
             "value" : "Ajouter"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hinzufügen"
+            "value" : "Añadir"
           }
         }
       }
@@ -60,10 +60,10 @@
             "value" : "Fermer"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Schließen"
+            "value" : "Cerrar"
           }
         }
       }
@@ -94,10 +94,10 @@
             "value" : "Modifier"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bearbeiten"
+            "value" : "Editar"
           }
         }
       }
@@ -128,10 +128,10 @@
             "value" : "Description"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beschreibung"
+            "value" : "Descripción"
           }
         }
       }
@@ -162,10 +162,10 @@
             "value" : "Télécharger"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Herunterladen"
+            "value" : "Descargar"
           }
         }
       }
@@ -202,10 +202,10 @@
             "value" : "Style d'icône de téléchargement"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Download-Symbol-Stil"
+            "value" : "Estilo del icono de descarga"
           }
         }
       }
@@ -242,10 +242,10 @@
             "value" : "Style d'indicateur de téléchargement"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Download-Indikator-Stil"
+            "value" : "Estilo del indicador de descarga"
           }
         }
       }
@@ -276,10 +276,10 @@
             "value" : "Indicateurs de téléchargement"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Download-Indikatoren"
+            "value" : "Indicadores de descarga"
           }
         }
       }
@@ -316,10 +316,10 @@
             "value" : "Téléchargements"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Downloads"
+            "value" : "Descargas"
           }
         }
       }
@@ -350,10 +350,10 @@
             "value" : "Déposez les fichiers ici"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dateien hier ablegen"
+            "value" : "Suelta los archivos aquí"
           }
         }
       }
@@ -384,10 +384,10 @@
             "value" : "Copiez, stockez et gérez facilement votre contenu le plus utilisé. Passez à la version supérieure pour des fonctionnalités avancées comme le stockage multi-éléments et l'accès rapide !"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kopieren, speichern und verwalten Sie Ihre am häufigsten verwendeten Inhalte ganz einfach. Upgraden Sie jetzt für erweiterte Funktionen wie Mehrfach-Speicherung und Schnellzugriff!"
+            "value" : "Copia, almacena y gestiona fácilmente tu contenido más utilizado. ¡Actualiza ahora para obtener funciones avanzadas como almacenamiento múltiple y acceso rápido!"
           }
         }
       }
@@ -418,10 +418,10 @@
             "value" : "Modifier la disposition"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Layout bearbeiten"
+            "value" : "Editar diseño"
           }
         }
       }
@@ -452,10 +452,10 @@
             "value" : "Adresse e-mail"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "E-Mail-Adresse"
+            "value" : "Dirección de correo electrónico"
           }
         }
       }
@@ -491,12 +491,6 @@
             "state" : "translated",
             "value" : "Activer les spectrogrammes colorés"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Farbige Spektrogramme aktivieren"
-          }
         }
       }
     },
@@ -531,12 +525,6 @@
             "state" : "translated",
             "value" : "Activer le retour haptique"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Haptisches Feedback aktivieren"
-          }
         }
       }
     },
@@ -565,12 +553,6 @@
             "state" : "translated",
             "value" : "Activer le remplacement du HUD"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "HUD-Ersatz aktivieren"
-          }
         }
       }
     },
@@ -598,12 +580,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activer l'activité musicale en direct"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Musik-Live-Aktivität aktivieren"
           }
         }
       }
@@ -634,10 +610,10 @@
             "value" : "Améliorez votre expérience avec les HUD"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbessern Sie Ihr Erlebnis mit HUDs"
+            "value" : "Mejora tu experiencia con HUDs"
           }
         }
       }
@@ -668,10 +644,10 @@
             "value" : "Profitez de votre temps libre !"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Genießen Sie Ihre Freizeit!"
+            "value" : "¡Disfruta de tu tiempo libre!"
           }
         }
       }
@@ -701,12 +677,6 @@
             "state" : "translated",
             "value" : "Erreur"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fehler"
-          }
         }
       }
     },
@@ -735,12 +705,6 @@
             "state" : "translated",
             "value" : "Exclure des applications"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apps ausschließen"
-          }
         }
       }
     },
@@ -768,12 +732,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quitter"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beenden"
           }
         }
       }
@@ -804,10 +762,10 @@
             "value" : "Extensions"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erweiterungen"
+            "value" : "Extensiones"
           }
         }
       }
@@ -844,10 +802,10 @@
             "value" : "Général"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Allgemein"
+            "value" : "General"
           }
         }
       }
@@ -878,10 +836,10 @@
             "value" : "Contrôle gestuel"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gestensteuerung"
+            "value" : "Control por gestos"
           }
         }
       }
@@ -912,10 +870,10 @@
             "value" : "Sensibilité des gestes"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gestenempfindlichkeit"
+            "value" : "Sensibilidad de gestos"
           }
         }
       }
@@ -946,10 +904,10 @@
             "value" : "Commencer"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erste Schritte"
+            "value" : "Comenzar"
           }
         }
       }
@@ -986,7 +944,7 @@
             "value" : "GitHub"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "GitHub"
@@ -1020,10 +978,10 @@
             "value" : "Compris !"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verstanden!"
+            "value" : "¡Entendido!"
           }
         }
       }
@@ -1052,12 +1010,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dégradé"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Farbverlauf"
           }
         }
       }
@@ -1092,12 +1044,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chinois (simplifié)"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chinesisch (Vereinfacht)"
           }
         }
       }
@@ -1134,10 +1080,10 @@
             "value" : "Russe"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Russisch"
+            "value" : "Ruso"
           }
         }
       }
@@ -1168,10 +1114,10 @@
             "value" : "Redémarrage nécessaire"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Neustart erforderlich"
+            "value" : "Necesita reinicio"
           }
         }
       }
@@ -1202,10 +1148,10 @@
             "value" : "Un ou plusieurs fichiers n'ont pas pu être chargés"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eine oder mehrere Dateien konnten nicht geladen werden"
+            "value" : "Uno o más archivos no se pudieron cargar"
           }
         }
       }
@@ -1236,10 +1182,10 @@
             "value" : "Augmentez votre productivité avec le Gestionnaire de presse-papiers"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Steigern Sie Ihre Produktivität mit dem Zwischenablage-Manager"
+            "value" : "Aumenta tu productividad con el Gestor del Portapapeles"
           }
         }
       }
@@ -1269,12 +1215,6 @@
             "state" : "translated",
             "value" : "Personnalisez véritablement votre encoche"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Machen Sie Ihre Notch wirklich zu Ihrer eigenen"
-          }
         }
       }
     },
@@ -1302,12 +1242,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'aperçu rapide affiche le titre du média et l'artiste sous l'encoche pendant quelques secondes."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sneak Peek zeigt den Medientitel und Künstler für einige Sekunden unter der Notch an."
           }
         }
       }
@@ -1337,12 +1271,6 @@
             "state" : "translated",
             "value" : "Échec de la connexion"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verbindung fehlgeschlagen"
-          }
         }
       }
     },
@@ -1370,12 +1298,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entrée invalide"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ungültige Eingabe"
           }
         }
       }
@@ -1406,10 +1328,10 @@
             "value" : "Échec de l'opération"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Operation fehlgeschlagen"
+            "value" : "La operación falló"
           }
         }
       }
@@ -1440,10 +1362,10 @@
             "value" : "Veuillez réessayer"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitte versuchen Sie es erneut"
+            "value" : "Por favor, inténtalo de nuevo"
           }
         }
       }
@@ -1474,10 +1396,10 @@
             "value" : "Personnalisez l'apparence et les fonctionnalités de votre encoche"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Passen Sie das Aussehen und die Funktionalität Ihrer Notch an"
+            "value" : "Personaliza la apariencia y funcionalidad de tu notch"
           }
         }
       }
@@ -1508,10 +1430,10 @@
             "value" : "Commencez avec les paramètres de base"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beginnen Sie mit den grundlegenden Einstellungen"
+            "value" : "Comienza con la configuración básica"
           }
         }
       }
@@ -1542,10 +1464,10 @@
             "value" : "En savoir plus sur les fonctionnalités avancées"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erfahren Sie mehr über erweiterte Funktionen"
+            "value" : "Aprende más sobre las funciones avanzadas"
           }
         }
       }
@@ -1576,10 +1498,10 @@
             "value" : "Gérez vos préférences et paramètres"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verwalten Sie Ihre Präferenzen und Einstellungen"
+            "value" : "Gestiona tus preferencias y configuración"
           }
         }
       }
@@ -1609,12 +1531,6 @@
             "state" : "translated",
             "value" : "Mise à jour disponible"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update verfügbar"
-          }
         }
       }
     },
@@ -1642,12 +1558,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mettre à jour maintenant"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jetzt aktualisieren"
           }
         }
       }
@@ -1678,10 +1588,10 @@
             "value" : "Paramètres enregistrés"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Einstellungen gespeichert"
+            "value" : "Configuración guardada"
           }
         }
       }
@@ -1712,10 +1622,10 @@
             "value" : "Modifications appliquées avec succès"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Änderungen erfolgreich angewendet"
+            "value" : "Cambios aplicados con éxito"
           }
         }
       }
@@ -1746,10 +1656,10 @@
             "value" : "Êtes-vous sûr de vouloir continuer ?"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sind Sie sicher, dass Sie fortfahren möchten?"
+            "value" : "¿Estás seguro de que quieres continuar?"
           }
         }
       }
@@ -1780,49 +1690,15 @@
             "value" : "Paramètres d'affichage"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anzeigeeinstellungen"
+            "value" : "Ajustes de pantalla"
           }
         }
       }
     },
     "Customize the appearance of your interface" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自定义界面外观"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Настройте внешний вид вашего интерфейса"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "インターフェースの外観をカスタマイズ"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Personnalisez l'apparence de votre interface"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passen Sie das Erscheinungsbild Ihrer Benutzeroberfläche an"
-          }
-        }
-      }
-    },
-    "Animation speed" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1848,10 +1724,10 @@
             "value" : "Vitesse d'animation"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Animationsgeschwindigkeit"
+            "value" : "Velocidad de animación"
           }
         }
       }
@@ -1881,12 +1757,6 @@
             "state" : "translated",
             "value" : "Opacité du fond"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hintergrundtransparenz"
-          }
         }
       }
     },
@@ -1914,12 +1784,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher les options avancées"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erweiterte Optionen anzeigen"
           }
         }
       }
@@ -1949,12 +1813,6 @@
             "state" : "translated",
             "value" : "Personnalisez vos contrôles multimédia"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passen Sie Ihre Mediensteuerung an"
-          }
         }
       }
     },
@@ -1982,12 +1840,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Double-tapez pour lire/mettre en pause"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Doppeltippen zum Abspielen/Pausieren"
           }
         }
       }
@@ -2017,12 +1869,6 @@
             "state" : "translated",
             "value" : "Glissez à gauche/droite pour changer de piste"
           }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nach links/rechts wischen zum Überspringen von Titeln"
-          }
         }
       }
     },
@@ -2050,12 +1896,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appui long pour plus d'options"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lang drücken für weitere Optionen"
           }
         }
       }
@@ -2086,10 +1926,10 @@
             "value" : "Ajustez le volume avec la molette de défilement"
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lautstärke mit Scrollrad anpassen"
+            "value" : "Ajustar volumen con la rueda de desplazamiento"
           }
         }
       }
@@ -2120,10 +1960,10 @@
             "value" : "Traitement en cours..."
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verarbeitung..."
+            "value" : "Procesando..."
           }
         }
       }
@@ -2139,900 +1979,148 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Синхронизация данных"
+            "value" : "Обработка данных..."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "データを同期中"
+            "value" : "データ同期中..."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchronisation des données"
+            "value" : "Synchronisation des données..."
           }
         },
-        "de" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Daten werden synchronisiert"
+            "value" : "Sincronizando datos..."
           }
         }
       }
     },
     "No items found" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未找到项目"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ничего не найдено"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "項目が見つかりません"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun élément trouvé"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Elemente gefunden"
+            "value" : "No se encontraron elementos"
           }
         }
       }
     },
     "Connected successfully" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连接成功"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подключено успешно"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正常に接続されました"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connecté avec succès"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erfolgreich verbunden"
+            "value" : "Conectado exitosamente"
           }
         }
       }
     },
     "Permission denied" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "权限被拒绝"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Доступ запрещен"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "権限が拒否されました"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permission refusée"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zugriff verweigert"
+            "value" : "Permiso denegado"
           }
         }
       }
     },
     "Interface theme" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "界面主题"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Тема интерфейса"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "インターフェーステーマ"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thème de l'interface"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oberflächendesign"
-          }
-        }
-      }
-    },
-    "System default" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系统默认"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Системная по умолчанию"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "システムデフォルト"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Par défaut du système"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Systemstandard"
-          }
-        }
-      }
-    },
-    "Light mode" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "浅色模式"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Светлый режим"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ライトモード"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode clair"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Heller Modus"
-          }
-        }
-      }
-    },
-    "Dark mode" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "深色模式"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Темный режим"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ダークモード"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode sombre"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dunkler Modus"
-          }
-        }
-      }
-    },
-    "Customize appearance" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自定义外观"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Настройте внешний вид"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外観をカスタマイズ"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Personnaliser l'apparence"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erscheinungsbild anpassen"
+            "value" : "Tema de la interfaz"
           }
         }
       }
     },
     "Notifications" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通知"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Уведомления"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通知"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notifications"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benachrichtigungen"
+            "value" : "Notificaciones"
           }
         }
       }
     },
     "Enable notifications" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "启用通知"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Включить уведомления"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通知を有効化"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer les notifications"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benachrichtigungen aktivieren"
+            "value" : "Activar notificaciones"
           }
         }
       }
     },
     "Show notification preview" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "显示通知预览"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показывать предпросмотр уведомлений"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通知プレビューを表示"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher l'aperçu des notifications"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benachrichtigungsvorschau anzeigen"
+            "value" : "Mostrar vista previa de notificaciones"
           }
         }
       }
     },
     "Notification sound" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通知声音"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Звук уведомлений"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通知音"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Son de notification"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benachrichtigungston"
+            "value" : "Sonido de notificación"
           }
         }
       }
     },
     "Alert style" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提醒样式"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Стиль оповещений"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アラートスタイル"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Style d'alerte"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Warnungsstil"
+            "value" : "Estilo de alerta"
           }
         }
       }
     },
     "Privacy settings" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "隐私设置"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Настройки конфиденциальности"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "プライバシー設定"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paramètres de confidentialité"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Datenschutzeinstellungen"
+            "value" : "Configuración de privacidad"
           }
         }
       }
     },
     "Data collection" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "数据收集"
-          }
-        },
-            "value" : "使用分析"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Аналитика использования"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用状況の分析"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Analyse d'utilisation"
+            "value" : "Recopilación de datos"
           }
         }
       }
     },
-    "Backup settings" : {
+    "Usage analytics" : {
       "localizations" : {
-        "zh-Hans" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "备份设置"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Настройки резервного копирования"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "バックアップ設定"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paramètres de sauvegarde"
-          }
-        }
-      }
-    },
-    "Auto backup" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自动备份"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Автоматическое резервное копирование"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自動バックアップ"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sauvegarde automatique"
-          }
-        }
-      }
-    },
-    "Advanced settings" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "高级设置"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Расширенные настройки"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "詳細設定"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paramètres avancés"
-          }
-        }
-      }
-    },
-    "Performance mode" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "性能模式"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Режим производительности"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "パフォーマンスモード"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode performance"
-          }
-        }
-      }
-    },
-    "Debug mode" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "调试模式"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Режим отладки"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "デバッグモード"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode débogage"
-          }
-        }
-      }
-    },
-    "Reset all settings" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重置所有设置"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сбросить все настройки"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "すべての設定をリセット"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réinitialiser tous les paramètres"
-          }
-        }
-      }
-    },
-    "Export configuration" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导出配置"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Экспорт конфигурации"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定をエクスポート"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exporter la configuration"
-          }
-        }
-      }
-    },
-    "Help & Support" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "帮助与支持"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Помощь и поддержка"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ヘルプとサポート"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aide & Support"
-          }
-        }
-      }
-    },
-    "Frequently Asked Questions" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "常见问题"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Часто задаваемые вопросы"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "よくある質問"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questions fréquemment posées"
-          }
-        }
-      }
-    },
-    "Contact Support" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "联系支持"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Связаться с поддержкой"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "サポートに連絡"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contacter le support"
-          }
-        }
-      }
-    },
-    "Report a Bug" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "报告问题"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сообщить об ошибке"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "バグを報告"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Signaler un bug"
-          }
-        }
-      }
-    },
-    "Network error occurred" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发生网络错误"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Произошла ошибка сети"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ネットワークエラーが発生しました"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Une erreur réseau s'est produite"
-          }
-        }
-      }
-    },
-    "Check your internet connection" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请检查您的网络连接"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Проверьте подключение к интернету"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "インターネット接続を確認してください"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vérifiez votre connexion Internet"
+            "value" : "Análisis de uso"
           }
         }
       }
     }
-  },
-  "version" : "1.0"
+  }
 }
