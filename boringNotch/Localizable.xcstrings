@@ -31,6 +31,12 @@
             "state" : "translated",
             "value" : "Añadir"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionar"
+          }
         }
       }
     },
@@ -65,6 +71,12 @@
             "state" : "translated",
             "value" : "Cerrar"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fechar"
+          }
         }
       }
     },
@@ -95,6 +107,12 @@
           }
         },
         "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar"
+          }
+        },
+        "pt" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Editar"
@@ -133,6 +151,12 @@
             "state" : "translated",
             "value" : "Descripción"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descrição"
+          }
         }
       }
     },
@@ -166,6 +190,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Descargar"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixar"
           }
         }
       }
@@ -207,6 +237,12 @@
             "state" : "translated",
             "value" : "Estilo del icono de descarga"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estilo do ícone de download"
+          }
         }
       }
     },
@@ -247,6 +283,12 @@
             "state" : "translated",
             "value" : "Estilo del indicador de descarga"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estilo do indicador de download"
+          }
         }
       }
     },
@@ -280,6 +322,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Indicadores de descarga"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indicadores de download"
           }
         }
       }
@@ -321,6 +369,12 @@
             "state" : "translated",
             "value" : "Descargas"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads"
+          }
         }
       }
     },
@@ -354,6 +408,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Suelta los archivos aquí"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solte os arquivos aqui"
           }
         }
       }
@@ -389,6 +449,12 @@
             "state" : "translated",
             "value" : "Copia, almacena y gestiona fácilmente tu contenido más utilizado. ¡Actualiza ahora para obtener funciones avanzadas como almacenamiento múltiple y acceso rápido!"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie, armazene e gerencie facilmente seu conteúdo mais usado. Atualize agora para recursos avançados como armazenamento multi-item e acesso rápido!"
+          }
         }
       }
     },
@@ -423,6 +489,12 @@
             "state" : "translated",
             "value" : "Editar diseño"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar layout"
+          }
         }
       }
     },
@@ -456,6 +528,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dirección de correo electrónico"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endereço de e-mail"
           }
         }
       }
@@ -615,6 +693,12 @@
             "state" : "translated",
             "value" : "Mejora tu experiencia con HUDs"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Melhore sua experiência com HUDs"
+          }
         }
       }
     },
@@ -648,6 +732,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Disfruta de tu tiempo libre!"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aproveite seu tempo livre!"
           }
         }
       }
@@ -767,6 +857,12 @@
             "state" : "translated",
             "value" : "Extensiones"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensões"
+          }
         }
       }
     },
@@ -807,6 +903,12 @@
             "state" : "translated",
             "value" : "General"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geral"
+          }
         }
       }
     },
@@ -840,6 +942,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Control por gestos"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controle por gestos"
           }
         }
       }
@@ -875,6 +983,12 @@
             "state" : "translated",
             "value" : "Sensibilidad de gestos"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensibilidade dos gestos"
+          }
         }
       }
     },
@@ -908,6 +1022,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comenzar"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Começar"
           }
         }
       }
@@ -949,6 +1069,12 @@
             "state" : "translated",
             "value" : "GitHub"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub"
+          }
         }
       }
     },
@@ -982,6 +1108,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Entendido!"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entendi!"
           }
         }
       }
@@ -1085,6 +1217,12 @@
             "state" : "translated",
             "value" : "Ruso"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Russo"
+          }
         }
       }
     },
@@ -1118,6 +1256,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Necesita reinicio"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necessita Reiniciar"
           }
         }
       }
@@ -1153,6 +1297,12 @@
             "state" : "translated",
             "value" : "Uno o más archivos no se pudieron cargar"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um ou mais arquivos falharam ao carregar"
+          }
         }
       }
     },
@@ -1186,6 +1336,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aumenta tu productividad con el Gestor del Portapapeles"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aumenta sua produtividade com o Gestor de Papel de Recibo"
           }
         }
       }
@@ -1333,6 +1489,12 @@
             "state" : "translated",
             "value" : "La operación falló"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operação falhou"
+          }
         }
       }
     },
@@ -1366,6 +1528,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Por favor, inténtalo de nuevo"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por favor, tente novamente"
           }
         }
       }
@@ -1401,6 +1569,12 @@
             "state" : "translated",
             "value" : "Personaliza la apariencia y funcionalidad de tu notch"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizar aparência"
+          }
         }
       }
     },
@@ -1434,6 +1608,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comienza con la configuración básica"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Começar"
           }
         }
       }
@@ -1469,6 +1649,12 @@
             "state" : "translated",
             "value" : "Aprende más sobre las funciones avanzadas"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aprenda mais sobre as funcionalidades avançadas"
+          }
         }
       }
     },
@@ -1502,6 +1688,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gestiona tus preferencias y configuración"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerenciar suas preferências e configurações"
           }
         }
       }
@@ -1593,6 +1785,12 @@
             "state" : "translated",
             "value" : "Configuración guardada"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurações salvas"
+          }
         }
       }
     },
@@ -1626,6 +1824,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cambios aplicados con éxito"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alterações aplicadas com sucesso"
           }
         }
       }
@@ -1661,6 +1865,12 @@
             "state" : "translated",
             "value" : "¿Estás seguro de que quieres continuar?"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tem certeza de que deseja prosseguir?"
+          }
         }
       }
     },
@@ -1694,6 +1904,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ajustes de pantalla"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurações de exibição"
           }
         }
       }
@@ -1729,6 +1945,12 @@
             "state" : "translated",
             "value" : "Velocidad de animación"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velocidade da animação"
+          }
         }
       }
     },
@@ -1756,6 +1978,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opacité du fond"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opacidad del fondo"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opacidade do fundo"
           }
         }
       }
@@ -1931,6 +2165,12 @@
             "state" : "translated",
             "value" : "Ajustar volumen con la rueda de desplazamiento"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustar volume com a roda de rolagem"
+          }
         }
       }
     },
@@ -1964,6 +2204,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Procesando..."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Processando..."
           }
         }
       }
@@ -1999,6 +2245,12 @@
             "state" : "translated",
             "value" : "Sincronizando datos..."
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizando dados..."
+          }
         }
       }
     },
@@ -2008,6 +2260,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se encontraron elementos"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum item encontrado"
           }
         }
       }
@@ -2019,6 +2277,12 @@
             "state" : "translated",
             "value" : "Conectado exitosamente"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado com sucesso"
+          }
         }
       }
     },
@@ -2028,6 +2292,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permiso denegado"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permissão negada"
           }
         }
       }
@@ -2039,6 +2309,12 @@
             "state" : "translated",
             "value" : "Tema de la interfaz"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema da interface"
+          }
         }
       }
     },
@@ -2048,6 +2324,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Notificaciones"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notificações"
           }
         }
       }
@@ -2059,6 +2341,12 @@
             "state" : "translated",
             "value" : "Activar notificaciones"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar notificações"
+          }
         }
       }
     },
@@ -2068,6 +2356,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar vista previa de notificaciones"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar prévia de notificações"
           }
         }
       }
@@ -2079,12 +2373,24 @@
             "state" : "translated",
             "value" : "Sonido de notificación"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Som de notificação"
+          }
         }
       }
     },
     "Alert style" : {
       "localizations" : {
         "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estilo de alerta"
+          }
+        },
+        "pt" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estilo de alerta"
@@ -2099,6 +2405,12 @@
             "state" : "translated",
             "value" : "Configuración de privacidad"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurações de privacidade"
+          }
         }
       }
     },
@@ -2109,6 +2421,12 @@
             "state" : "translated",
             "value" : "Recopilación de datos"
           }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coleta de dados"
+          }
         }
       }
     },
@@ -2118,6 +2436,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Análisis de uso"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Análise de uso"
+          }
+        }
+      }
+    },
+    "Backup settings" : {
+      "localizations" : {
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurações de backup"
+          }
+        }
+      }
+    },
+    "Auto backup" : {
+      "localizations" : {
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backup automático"
+          }
+        }
+      }
+    },
+    "Export configuration" : {
+      "localizations" : {
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportar configuração"
+          }
+        }
+      }
+    },
+    "Help & Support" : {
+      "localizations" : {
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajuda e Suporte"
+          }
+        }
+      }
+    },
+    "Frequently Asked Questions" : {
+      "localizations" : {
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perguntas Frequentes"
+          }
+        }
+      }
+    },
+    "Contact Support" : {
+      "localizations" : {
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contatar Suporte"
           }
         }
       }
