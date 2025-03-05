@@ -1645,7 +1645,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "將瀏海真正變成您的專屬"
+            "value" : "讓瀏海真正成為您的專屬"
           }
         }
       }
@@ -1747,7 +1747,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無效輸入"
+            "value" : "無效的輸入"
           }
         }
       }
