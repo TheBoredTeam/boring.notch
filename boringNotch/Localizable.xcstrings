@@ -37,6 +37,12 @@
             "state" : "translated",
             "value" : "Adicionar"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增"
+          }
         }
       }
     },
@@ -76,6 +82,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fechar"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉"
           }
         }
       }
@@ -117,6 +129,12 @@
             "state" : "translated",
             "value" : "Editar"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯"
+          }
         }
       }
     },
@@ -157,6 +175,12 @@
             "state" : "translated",
             "value" : "Descrição"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "描述"
+          }
         }
       }
     },
@@ -196,6 +220,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Baixar"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載"
           }
         }
       }
@@ -243,6 +273,12 @@
             "state" : "translated",
             "value" : "Estilo do ícone de download"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載圖示樣式"
+          }
         }
       }
     },
@@ -289,6 +325,12 @@
             "state" : "translated",
             "value" : "Estilo do indicador de download"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載指示器樣式"
+          }
         }
       }
     },
@@ -328,6 +370,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Indicadores de download"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載指示器"
           }
         }
       }
@@ -375,6 +423,12 @@
             "state" : "translated",
             "value" : "Downloads"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載"
+          }
         }
       }
     },
@@ -414,6 +468,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Solte os arquivos aqui"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將檔案拖放至此"
           }
         }
       }
@@ -455,6 +515,12 @@
             "state" : "translated",
             "value" : "Copie, armazene e gerencie facilmente seu conteúdo mais usado. Atualize agora para recursos avançados como armazenamento multi-item e acesso rápido!"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輕鬆複製、儲存和管理您最常用的內容。立即升級以獲取多項儲存和快速存取等進階功能！"
+          }
         }
       }
     },
@@ -494,6 +560,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Editar layout"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯版面"
           }
         }
       }
@@ -535,6 +607,12 @@
             "state" : "translated",
             "value" : "Endereço de e-mail"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電子郵件地址"
+          }
         }
       }
     },
@@ -568,6 +646,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activer les spectrogrammes colorés"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velocidad de animación"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velocidade da animação"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用彩色頻譜圖"
           }
         }
       }
@@ -603,6 +699,24 @@
             "state" : "translated",
             "value" : "Activer le retour haptique"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensibilidad de gestos"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensibilidade dos gestos"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用觸覺回饋"
+          }
         }
       }
     },
@@ -631,6 +745,24 @@
             "state" : "translated",
             "value" : "Activer le remplacement du HUD"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejora tu experiencia con HUDs"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Melhore sua experiência com HUDs"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用 HUD 替換"
+          }
         }
       }
     },
@@ -658,6 +790,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activer l'activité musicale en direct"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejora tu experiencia con HUDs"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Melhore sua experiência com HUDs"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用音樂即時活動"
           }
         }
       }
@@ -699,6 +849,12 @@
             "state" : "translated",
             "value" : "Melhore sua experiência com HUDs"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 HUD 提升您的體驗"
+          }
         }
       }
     },
@@ -739,6 +895,12 @@
             "state" : "translated",
             "value" : "Aproveite seu tempo livre!"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "享受您的空閒時間！"
+          }
         }
       }
     },
@@ -766,6 +928,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Erreur"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤"
           }
         }
       }
@@ -795,6 +963,12 @@
             "state" : "translated",
             "value" : "Exclure des applications"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排除應用程式"
+          }
         }
       }
     },
@@ -822,6 +996,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quitter"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出"
           }
         }
       }
@@ -862,6 +1042,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Extensões"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "擴充功能"
           }
         }
       }
@@ -909,6 +1095,12 @@
             "state" : "translated",
             "value" : "Geral"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一般"
+          }
         }
       }
     },
@@ -948,6 +1140,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Controle por gestos"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手勢控制"
           }
         }
       }
@@ -989,6 +1187,12 @@
             "state" : "translated",
             "value" : "Sensibilidade dos gestos"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手勢靈敏度"
+          }
         }
       }
     },
@@ -1028,6 +1232,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Começar"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始使用"
           }
         }
       }
@@ -1075,6 +1285,12 @@
             "state" : "translated",
             "value" : "GitHub"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub"
+          }
         }
       }
     },
@@ -1115,6 +1331,12 @@
             "state" : "translated",
             "value" : "Entendi!"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明白了！"
+          }
         }
       }
     },
@@ -1142,6 +1364,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dégradé"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "漸層"
           }
         }
       }
@@ -1176,6 +1404,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chinois (simplifié)"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "簡體中文"
           }
         }
       }
@@ -1223,6 +1457,12 @@
             "state" : "translated",
             "value" : "Russo"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "俄語"
+          }
         }
       }
     },
@@ -1262,6 +1502,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Necessita Reiniciar"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要重新啟動"
           }
         }
       }
@@ -1303,6 +1549,12 @@
             "state" : "translated",
             "value" : "Um ou mais arquivos falharam ao carregar"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一個或多個檔案載入失敗"
+          }
         }
       }
     },
@@ -1343,6 +1595,12 @@
             "state" : "translated",
             "value" : "Aumenta sua produtividade com o Gestor de Papel de Recibo"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用剪貼簿管理器提升您的工作效率"
+          }
         }
       }
     },
@@ -1370,6 +1628,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Personnalisez véritablement votre encoche"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personaliza la apariencia y funcionalidad de tu notch"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizar aparência"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將瀏海真正變成您的專屬"
           }
         }
       }
@@ -1399,6 +1675,12 @@
             "state" : "translated",
             "value" : "L'aperçu rapide affiche le titre du média et l'artiste sous l'encoche pendant quelques secondes."
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "速覽功能會在瀏海下方顯示幾秒鐘的媒體標題和藝術家資訊。"
+          }
         }
       }
     },
@@ -1427,6 +1709,12 @@
             "state" : "translated",
             "value" : "Échec de la connexion"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連線失敗"
+          }
         }
       }
     },
@@ -1454,6 +1742,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entrée invalide"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無效輸入"
           }
         }
       }
@@ -1495,6 +1789,12 @@
             "state" : "translated",
             "value" : "Operação falhou"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "操作失敗"
+          }
         }
       }
     },
@@ -1534,6 +1834,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Por favor, tente novamente"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請重試"
           }
         }
       }
@@ -1575,6 +1881,12 @@
             "state" : "translated",
             "value" : "Personalizar aparência"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自訂您的瀏海外觀和功能"
+          }
         }
       }
     },
@@ -1614,6 +1926,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Começar"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從基本設定開始"
           }
         }
       }
@@ -1655,6 +1973,12 @@
             "state" : "translated",
             "value" : "Aprenda mais sobre as funcionalidades avançadas"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "了解更多進階功能"
+          }
         }
       }
     },
@@ -1695,6 +2019,12 @@
             "state" : "translated",
             "value" : "Gerenciar suas preferências e configurações"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理您的偏好和設定"
+          }
         }
       }
     },
@@ -1723,6 +2053,12 @@
             "state" : "translated",
             "value" : "Mise à jour disponible"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新可用"
+          }
         }
       }
     },
@@ -1750,6 +2086,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mettre à jour maintenant"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "立即更新"
           }
         }
       }
@@ -1791,6 +2133,12 @@
             "state" : "translated",
             "value" : "Configurações salvas"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定已儲存"
+          }
         }
       }
     },
@@ -1830,6 +2178,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alterações aplicadas com sucesso"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "變更已成功套用"
           }
         }
       }
@@ -1871,6 +2225,12 @@
             "state" : "translated",
             "value" : "Tem certeza de que deseja prosseguir?"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您確定要繼續嗎？"
+          }
         }
       }
     },
@@ -1910,6 +2270,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Configurações de exibição"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示設定"
           }
         }
       }
@@ -1951,6 +2317,12 @@
             "state" : "translated",
             "value" : "Velocidade da animação"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自訂您的介面外觀"
+          }
         }
       }
     },
@@ -1991,6 +2363,12 @@
             "state" : "translated",
             "value" : "Opacidade do fundo"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景不透明度"
+          }
         }
       }
     },
@@ -2018,6 +2396,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher les options avancées"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示進階選項"
           }
         }
       }
@@ -2047,6 +2431,12 @@
             "state" : "translated",
             "value" : "Personnalisez vos contrôles multimédia"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自訂您的媒體控制"
+          }
         }
       }
     },
@@ -2056,34 +2446,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "双击播放/暂停"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Двойное нажатие для воспроизведения/паузы"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ダブルタップで再生/一時停止"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Double-tapez pour lire/mettre en pause"
-          }
-        }
-      }
-    },
-    "Swipe left/right to skip tracks" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "左右滑动切换曲目"
           }
         },
         "ru" : {
