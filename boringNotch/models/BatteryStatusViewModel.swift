@@ -43,11 +43,10 @@ class BatteryStatusViewModel: ObservableObject {
                    let maxCapacity = info[kIOPSMaxCapacityKey] as? Int,
                    let isCharging = info["Is Charging"] as? Bool,
                    let powerSource = info[kIOPSPowerSourceStateKey] as? String {
+                    withAnimation {
+                        self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
+                    }
                     if(Defaults[.chargingInfoAllowed]) {
-                        withAnimation {
-                            self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
-                        }
-
                         let isACPower = powerSource == "AC Power"
                         
                         // Show "Plugged In" notification when first connected to power
