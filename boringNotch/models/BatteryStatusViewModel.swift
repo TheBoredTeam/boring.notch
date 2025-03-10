@@ -36,13 +36,13 @@ class BatteryStatusViewModel: ObservableObject {
 
     private func updateBatteryStatus() {
         if let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
-           let sources = IOPSCopyPowerSourcesList(snapshot)?.takeRetainedValue() as? [CFTypeRef] {
+            let sources = IOPSCopyPowerSourcesList(snapshot)?.takeRetainedValue() as? [CFTypeRef] {
             for source in sources {
                 if let info = IOPSGetPowerSourceDescription(snapshot, source)?.takeUnretainedValue() as? [String: AnyObject],
-                   let currentCapacity = info[kIOPSCurrentCapacityKey] as? Int,
-                   let maxCapacity = info[kIOPSMaxCapacityKey] as? Int,
-                   let isCharging = info["Is Charging"] as? Bool,
-                   let powerSource = info[kIOPSPowerSourceStateKey] as? String {
+                    let currentCapacity = info[kIOPSCurrentCapacityKey] as? Int,
+                    let maxCapacity = info[kIOPSMaxCapacityKey] as? Int,
+                    let isCharging = info["Is Charging"] as? Bool,
+                    let powerSource = info[kIOPSPowerSourceStateKey] as? String {
                     withAnimation {
                         self.batteryPercentage = Float((currentCapacity * 100) / maxCapacity)
                     }
