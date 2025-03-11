@@ -239,7 +239,7 @@ struct ContentView: View {
                     if vm.expandingView.type == .battery && vm.expandingView.show && vm.notchState == .closed {
                         HStack(spacing: 0) {
                             HStack {
-                                Text(batteryModel.isInitialPlugIn ? "Plugged In" : "Charging")
+                                Text(batteryStatusText())
                                     .font(.subheadline)
                             }
 
@@ -405,6 +405,16 @@ struct ContentView: View {
                 }
         } else {
             EmptyView()
+        }
+    }
+
+    private func batteryStatusText() -> String {
+        if batteryModel.isPluggedIn {
+            return "Plugged In"
+        } else if batteryModel.isInLowPowerMode {
+            return "Low Power"
+        } else {
+            return "Unplugged"
         }
     }
 
