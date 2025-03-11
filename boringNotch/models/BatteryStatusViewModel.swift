@@ -1,9 +1,9 @@
-    //
-    //  BoringViewModel.swift
-    //  boringNotch
-    //
-    //  Created by Harsh Vardhan  Goswami  on 04/08/24.
-    //
+//
+//  BoringViewModel.swift
+//  boringNotch
+//
+//  Created by Harsh Vardhan  Goswami  on 04/08/24.
+//
 
 
 import Cocoa
@@ -12,18 +12,23 @@ import IOKit.ps
 import Defaults
 
 class BatteryStatusViewModel: ObservableObject {
+    
+    private var wasCharging: Bool = false
     private var vm: BoringViewModel
+    private var powerSourceChangedCallback: IOPowerSourceCallbackType?
+    private var runLoopSource: Unmanaged<CFRunLoopSource>?
+    var animations: BoringAnimations = BoringAnimations()
+
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+
     @Published var batteryPercentage: Float = 0.0
     @Published var isPluggedIn: Bool = false
     @Published var showChargingInfo: Bool = false
     @Published var isInLowPowerMode: Bool = false
     @Published var isInitialPlugIn: Bool = true
-    private var wasCharging: Bool = false
+    @Published var isUnplugged: Bool = false
+    @Published var timeRemaining: Int? = nil
 
-    private var powerSourceChangedCallback: IOPowerSourceCallbackType?
-    private var runLoopSource: Unmanaged<CFRunLoopSource>?
-    var animations: BoringAnimations = BoringAnimations()
 
     init(vm: BoringViewModel) {
         self.vm = vm
@@ -49,6 +54,21 @@ class BatteryStatusViewModel: ObservableObject {
                         }
 
                         let isACPower = powerSource == "AC Power"
+
+                        // Get time remaining for charging/discharging
+                        if isACPower && isCharging {
+                            if let timeToFull = info[kIOPSTimeToFullChargeKey] as? Int, timeToFull > 0 {
+                                self.timeRemaining = timeToFull
+                            } else {
+                                self.timeRemaining = nil
+                            }
+                        } else if !isACPower {
+                            if let timeToEmpty = info[kIOPSTimeToEmptyKey] as? Int, timeToEmpty > 0 {
+                                self.timeRemaining = timeToEmpty
+                            } else {
+                                self.timeRemaining = nil
+                            }
+                        }
                         
                         // Show "Plugged In" notification when first connected to power
                         if (isACPower && !self.isPluggedIn) {
@@ -60,12 +80,23 @@ class BatteryStatusViewModel: ObservableObject {
                             }
                         }
                         
+                        // Show "Unplugged" notification when power is disconnected
+                        if (!isACPower && self.isPluggedIn) {
+                            self.vm.toggleExpandingView(status: true, type: .battery)
+                            self.showChargingInfo = true
+                            self.isInitialPlugIn = false
+                            self.isUnplugged = true
+                        } else {
+                            self.isUnplugged = false
+                        }
+                        
                         // Show "Charging" notification when charging begins
                         if (isCharging && !self.wasCharging && isACPower) {
                             self.vm.toggleExpandingView(status: true, type: .battery)
                             self.showChargingInfo = true
                             self.isInitialPlugIn = false
                         }
+                        
                         
                         withAnimation {
                             self.isPluggedIn = isACPower

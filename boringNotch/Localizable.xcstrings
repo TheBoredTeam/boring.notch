@@ -129,6 +129,9 @@
         }
       }
     },
+    "Battery Settings" : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
 
     },
@@ -184,6 +187,7 @@
 
     },
     "Charging" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -612,9 +616,6 @@
           }
         }
       }
-    },
-    "Plugged In" : {
-
     },
     "Progress bar" : {
       "localizations" : {
