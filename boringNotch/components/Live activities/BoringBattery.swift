@@ -3,10 +3,10 @@ import SwiftUI
 /// A view that displays the battery status with an icon and charging indicator.
 struct BatteryView: View {
     
-    @State var percentage: Float
-    @State var isCharging: Bool
-    @State var isInLowPowerMode: Bool
-    @State var isInitialPlugIn: Bool
+    var percentage: Float
+    var isCharging: Bool
+    var isInLowPowerMode: Bool
+    var isInitialPlugIn: Bool
     
     var batteryWidth: CGFloat = 26
     var animationStyle: BoringAnimations = BoringAnimations()
