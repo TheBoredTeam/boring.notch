@@ -54,13 +54,14 @@ struct BoringHeader: View {
                         })
                         .buttonStyle(PlainButtonStyle())
                     }
-                    if Defaults[.showBattery] {
+                    if Defaults[.showBatteryIndicator] {
                         BoringBatteryView(
                             batteryPercentage: batteryModel.batteryPercentage,
-                            isPluggedIn: batteryModel.isPluggedIn, 
-                            batteryWidth: 30,
+                            isPluggedIn: batteryModel.isPluggedIn,
                             isInLowPowerMode: batteryModel.isInLowPowerMode,
-                            isInitialPlugIn: batteryModel.isInitialPlugIn
+                            batteryWidth: 30,
+                            isInitialPlugIn: batteryModel.isInitialPlugIn,
+                            isForNotification: false
                         )
                     }
                 }
