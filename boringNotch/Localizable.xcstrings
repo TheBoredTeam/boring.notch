@@ -129,6 +129,9 @@
         }
       }
     },
+    "Battery Information" : {
+
+    },
     "Battery Settings" : {
 
     },
@@ -448,6 +451,9 @@
 
     },
     "Low" : {
+
+    },
+    "Low Power Mode" : {
 
     },
     "Made with 🫶🏻 by not so boring not.people" : {

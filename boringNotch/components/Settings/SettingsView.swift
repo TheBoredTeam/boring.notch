@@ -317,10 +317,16 @@ struct Charge: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Show charging indicator", key: .chargingInfoAllowed)
-                Defaults.Toggle("Show battery indicator", key: .showBattery)
+                Defaults.Toggle("Show battery indicator", key: .showBatteryIndicator)
+                Defaults.Toggle("Show power status notifications", key: .showPowerStatusNotifications)
             } header: {
                 Text("General")
+            }
+            Section {
+                Defaults.Toggle("Show battery percentage", key: .showBatteryPercentage)
+                Defaults.Toggle("Show power status icons", key: .showPowerStatusIcons)
+            } header: {
+                Text("Battery Information")
             }
         }
         .tint(Defaults[.accentColor])
