@@ -3,40 +3,47 @@ import Defaults
 
 /// A view that displays the battery status with an icon and charging indicator.
 struct BatteryView: View {
-    
-    var percentage: Float
+
+    var levelBattery: Float
+    var isPluggedIn: Bool
     var isCharging: Bool
     var isInLowPowerMode: Bool
-    var isInitialPlugIn: Bool
     var batteryWidth: CGFloat = 26
     var isForNotification: Bool
-    
+
     var animationStyle: BoringAnimations = BoringAnimations()
-    
+
     var icon: String = "battery.0"
-    
+
     /// Determines the icon to display when charging.
-    var chargingIcon: String {
-        return isInitialPlugIn ? "powerplug.portrait.fill" : "bolt.fill"
+    var iconStatus: String {
+        if isCharging {
+            return "bolt.fill"
+        }
+        else if isPluggedIn {
+            return "powerplug.portrait.fill"
+        }
+        else {
+            return ""
+        }
     }
-    
+
     /// Determines the color of the battery based on its status.
     var batteryColor: Color {
-        switch (percentage, isInLowPowerMode, isCharging) {
-        case (_, true, _):
+        if isInLowPowerMode {
             return .yellow
-        case (...20, false, false):
+        } else if levelBattery <= 20 && !isCharging && !isPluggedIn {
             return .red
-        case (_, _, true):
+        } else if isCharging || isPluggedIn || levelBattery == 100 {
             return .green
-        default:
+        } else {
             return .white
         }
     }
 
     var body: some View {
         ZStack(alignment: .leading) {
-            
+
             Image(systemName: icon)
                 .resizable()
                 .fontWeight(.thin)
@@ -45,18 +52,18 @@ struct BatteryView: View {
                 .frame(
                     width: batteryWidth + 1
                 )
-            
+
             RoundedRectangle(cornerRadius: 2.5)
                 .fill(batteryColor)
                 .frame(
-                    width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth - 6))),
+                    width: CGFloat(((CGFloat(CFloat(levelBattery)) / 100) * (batteryWidth - 6))),
                     height: (batteryWidth - 2.75) - 18
                 )
                 .padding(.leading, 2)
-            
-            if isCharging && (isForNotification || Defaults[.showPowerStatusIcons]) {
+
+            if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
                 ZStack {
-                    Image(systemName: chargingIcon)
+                    Image(systemName: iconStatus)
                         .resizable()
                         .fontWeight(.thin)
                         .aspectRatio(contentMode: .fit)
@@ -74,63 +81,69 @@ struct BatteryView: View {
 
 /// A view that displays detailed battery information and settings.
 struct BatteryMenuView: View {
-    var percentage: Float
+    
     var isPluggedIn: Bool
-    var timeRemaining: Int?
+    var isCharging: Bool
+    var levelBattery: Float
+    var maxCapacity: Float
+    var timeToFullCharge: Int
     var isInLowPowerMode: Bool
     var onDismiss: () -> Void
 
     @Environment(\.openURL) private var openURL
 
-    private func formatTime(_ minutes: Int) -> String {
-        let hours = minutes / 60
-        let mins = minutes % 60
-        return hours > 0 ? "\(hours)h \(mins)m" : "\(mins)m"
-    }
-
-    private var statusText: String {
-        if isPluggedIn {
-            return percentage >= 100 ? "Fully Charged" :
-                   timeRemaining.map { "Charging - \(formatTime($0)) remaining" } ?? "Charging..."
-        } else {
-            return timeRemaining.map { "Battery - \(formatTime($0)) remaining" } ?? "On Battery"
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            
-            HStack {
-                Label {
-                    Text("Battery").fontWeight(.bold)
-                } icon: {
-                    Image(systemName: isPluggedIn ? "battery.100.bolt" : "battery.100")
-                }
-                Spacer()
-                Text("\(Int(percentage))%").fontWeight(.bold)
-            }
-            .font(.title3)
 
+            HStack {
+                Text("Battery Status")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                Spacer()
+                Text("\(Int(levelBattery))%")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+            }
+            
             VStack(alignment: .leading, spacing: 8) {
-                Text(statusText).fontWeight(.medium)
+                Text("Max Capacity: \(Int(maxCapacity))%")
+                    .font(.subheadline)
+                    .fontWeight(.regular)
                 if isInLowPowerMode {
-                    Label("Low Power Mode", systemImage: "bolt.circle.fill").fontWeight(.medium)
+                    Label("Low Power Mode", systemImage: "bolt.circle")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                }
+                if isCharging {
+                    Label("Charging", systemImage: "bolt.fill")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                }
+                if isPluggedIn {
+                    Label("Plugged In", systemImage: "powerplug.fill")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                }
+                if timeToFullCharge > 0 {
+                    Label("Time to Full Charge: \(timeToFullCharge) min", systemImage: "clock")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
                 }
             }
-            .font(.callout)
-            
-            Divider().background(.white)
-            
+            .padding(.vertical, 8)
+
+            Divider().background(Color.white)
+
             Button(action: openBatteryPreferences) {
-                Label("Battery Settings", systemImage: "gear")
-                    .font(.callout)
-                    .fontWeight(.medium)
+                Label("Battery Settings", systemImage: "gearshape")
+                    .fontWeight(.regular)
             }
+            .frame(maxWidth: .infinity)
             .buttonStyle(.plain)
-            .padding(.vertical, 4)
+            .padding(.vertical, 8)
         }
         .padding()
-        .frame(width: 250)
+        .frame(width: 280)
         .foregroundColor(.white)
     }
 
@@ -146,41 +159,59 @@ struct BatteryMenuView: View {
 /// A view that displays the battery status and allows interaction to show detailed information.
 struct BoringBatteryView: View {
     
-    @State var batteryPercentage: Float = 0
-    var isPluggedIn: Bool = false
-    var isInLowPowerMode: Bool
     @State var batteryWidth: CGFloat = 26
-    @State var isInitialPlugIn: Bool
-    @State var timeRemaining: Int?
-    @State private var showPopupMenu: Bool = false
+    var isCharging: Bool = false
+    var isInLowPowerMode: Bool = false
+    var isPluggedIn: Bool = false
+    var levelBattery: Float = 0
+    var maxCapacity: Float = 0
+    var timeToFullCharge: Int = 0
     @State var isForNotification: Bool = false
     
+    @State private var showPopupMenu: Bool = false
+    @State private var isPressed: Bool = false
+
     var body: some View {
         HStack {
             if Defaults[.showBatteryPercentage] {
-                Text("\(Int32(batteryPercentage))%")
+                Text("\(Int32(levelBattery))%")
                     .font(.callout)
                     .foregroundStyle(.white)
             }
             BatteryView(
-                percentage: batteryPercentage,
-                isCharging: isPluggedIn,
+                levelBattery: levelBattery,
+                isPluggedIn: isPluggedIn,
+                isCharging: isCharging,
                 isInLowPowerMode: isInLowPowerMode,
-                isInitialPlugIn: isInitialPlugIn,
                 batteryWidth: batteryWidth,
                 isForNotification: isForNotification
             )
         }
-        .onTapGesture {
-            showPopupMenu.toggle()
-        }
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isPressed)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    withAnimation {
+                        isPressed = true
+                    }
+                }
+                .onEnded { _ in
+                    withAnimation {
+                        isPressed = false
+                        showPopupMenu.toggle()
+                    }
+                }
+        )
         .popover(
             isPresented: $showPopupMenu,
             arrowEdge: .bottom) {
             BatteryMenuView(
-                percentage: batteryPercentage,
                 isPluggedIn: isPluggedIn,
-                timeRemaining: timeRemaining,
+                isCharging: isCharging,
+                levelBattery: levelBattery,
+                maxCapacity: maxCapacity,
+                timeToFullCharge: timeToFullCharge,
                 isInLowPowerMode: isInLowPowerMode,
                 onDismiss: { showPopupMenu = false }
             )
@@ -190,12 +221,13 @@ struct BoringBatteryView: View {
 
 #Preview {
     BoringBatteryView(
-        batteryPercentage: 100,
-        isPluggedIn: true,
-        isInLowPowerMode: false,
         batteryWidth: 30,
-        isInitialPlugIn: false,
-        timeRemaining: nil,
-        isForNotification: true
+        isCharging: true,
+        isInLowPowerMode: false,
+        isPluggedIn: true,
+        levelBattery: 100,
+        maxCapacity: 100,
+        timeToFullCharge: 10,
+        isForNotification: false
     ).frame(width: 200, height: 200)
 }

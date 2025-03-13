@@ -249,11 +249,11 @@ struct ContentView: View {
 
                             HStack {
                                 BoringBatteryView(
-                                    batteryPercentage: batteryModel.batteryPercentage, 
-                                    isPluggedIn: batteryModel.isPluggedIn,
-                                    isInLowPowerMode: batteryModel.isInLowPowerMode,
                                     batteryWidth: 30,
-                                    isInitialPlugIn: batteryModel.isInitialPlugIn,
+                                    isCharging: batteryModel.isCharging,
+                                    isInLowPowerMode: batteryModel.isInLowPowerMode,
+                                    isPluggedIn: batteryModel.isPluggedIn,
+                                    levelBattery: batteryModel.levelBattery,
                                     isForNotification: true
                                 )
                             }
@@ -406,14 +406,6 @@ struct ContentView: View {
                 }
         } else {
             EmptyView()
-        }
-    }
-
-    private func batteryStatusText() -> String {
-        if batteryModel.isPluggedIn {
-            return "Plugged In"
-        } else {
-            return "Unplugged"
         }
     }
 

@@ -135,6 +135,9 @@
     "Battery Settings" : {
 
     },
+    "Battery Status" : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
 
     },
@@ -190,7 +193,6 @@
 
     },
     "Charging" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -472,6 +474,9 @@
     "Match real notch size" : {
 
     },
+    "Max Capacity: %lld%%" : {
+
+    },
     "Media" : {
       "localizations" : {
         "en" : {
@@ -622,6 +627,9 @@
           }
         }
       }
+    },
+    "Plugged In" : {
+
     },
     "Progress bar" : {
       "localizations" : {
@@ -810,6 +818,9 @@
 
     },
     "TheBoringNotch" : {
+
+    },
+    "Time to Full Charge: %lld min" : {
 
     },
     "Toggle Notch Open:" : {
