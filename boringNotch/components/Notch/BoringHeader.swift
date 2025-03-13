@@ -56,11 +56,13 @@ struct BoringHeader: View {
                     }
                     if Defaults[.showBatteryIndicator] {
                         BoringBatteryView(
-                            batteryPercentage: batteryModel.batteryPercentage,
-                            isPluggedIn: batteryModel.isPluggedIn,
-                            isInLowPowerMode: batteryModel.isInLowPowerMode,
                             batteryWidth: 30,
-                            isInitialPlugIn: batteryModel.isInitialPlugIn,
+                            isCharging: batteryModel.isCharging,
+                            isInLowPowerMode: batteryModel.isInLowPowerMode,
+                            isPluggedIn: batteryModel.isPluggedIn,
+                            levelBattery: batteryModel.levelBattery,
+                            maxCapacity: batteryModel.maxCapacity,
+                            timeToFullCharge: batteryModel.timeToFullCharge,
                             isForNotification: false
                         )
                     }
