@@ -80,7 +80,7 @@ class BatteryStatusViewModel: ObservableObject {
                     self.notifyImportanChangeStatus()
                     withAnimation {
                         self.isCharging = isCharging
-                        self.statusText = "Charging: \(isCharging ? "Yes" : "No")"
+                        self.statusText = "Charging: \(isCharging ? "On" : "Off")"
                     }
                 
                 case .timeToFullChargeChanged(let time):
