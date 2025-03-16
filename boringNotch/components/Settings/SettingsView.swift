@@ -632,7 +632,7 @@ struct Extensions: View {
     @State private var effectTrigger: Bool = false
     var body: some View {
         Form {
-            warningBadge("We don't support extensions yet", "It will be supported later on.")
+            //warningBadge("We don't support extensions yet") // Uhhhh You do? <><><> Oori.S
             Section {
                 List {
                     ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
@@ -1098,5 +1098,5 @@ func warningBadge(_ text: String, _ description: String) -> some View {
 }
 
 #Preview {
-    Extensions()
+    HUD()
 }
