@@ -93,8 +93,10 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     
         // MARK: Battery
-    static let chargingInfoAllowed = Key<Bool>("chargingInfoAllowed", default: true)
-    static let showBattery = Key<Bool>("showBattery", default: true)
+    static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
+    static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
+    static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
+    static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
     
         // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)

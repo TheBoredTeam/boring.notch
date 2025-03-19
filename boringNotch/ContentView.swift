@@ -236,10 +236,10 @@ struct ContentView: View {
                     .padding(.top, 40).padding(.leading, 100).padding(.trailing, 100)
                     Spacer().animation(.spring(.bouncy(duration: 0.4)), value: coordinator.firstLaunch)
                 } else {
-                    if vm.expandingView.type == .battery && vm.expandingView.show && vm.notchState == .closed {
+                    if vm.expandingView.type == .battery && vm.expandingView.show && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
                         HStack(spacing: 0) {
                             HStack {
-                                Text(batteryModel.isInitialPlugIn ? "Plugged In" : "Charging")
+                                Text(batteryModel.statusText)
                                     .font(.subheadline)
                             }
 
@@ -249,11 +249,12 @@ struct ContentView: View {
 
                             HStack {
                                 BoringBatteryView(
-                                    batteryPercentage: batteryModel.batteryPercentage, 
-                                    isPluggedIn: batteryModel.isPluggedIn,
                                     batteryWidth: 30,
+                                    isCharging: batteryModel.isCharging,
                                     isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                    isInitialPlugIn: batteryModel.isInitialPlugIn
+                                    isPluggedIn: batteryModel.isPluggedIn,
+                                    levelBattery: batteryModel.levelBattery,
+                                    isForNotification: true
                                 )
                             }
                             .frame(width: 76, alignment: .trailing)
@@ -262,7 +263,7 @@ struct ContentView: View {
                     } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (vm.expandingView.type != .battery) {
                         InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                             .transition(.opacity)
-                    } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.showMusicLiveActivityOnClosed {
+                    } else if vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.showMusicLiveActivityOnClosed {
                         MusicLiveActivity()
                     } else if !vm.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] {
                         BoringFaceAnimation().animation(.interactiveSpring, value: musicManager.isPlayerIdle)
