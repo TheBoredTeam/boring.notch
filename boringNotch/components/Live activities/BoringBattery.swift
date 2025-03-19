@@ -18,10 +18,10 @@ struct BatteryView: View {
     /// Determines the icon to display when charging.
     var iconStatus: String {
         if isCharging {
-            return "bolt.fill"
+            return "bolt"
         }
         else if isPluggedIn {
-            return "powerplug.portrait.fill"
+            return "plug"
         }
         else {
             return ""
@@ -63,14 +63,13 @@ struct BatteryView: View {
 
             if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
                 ZStack {
-                    Image(systemName: iconStatus)
+                    Image(iconStatus)
                         .resizable()
-                        .fontWeight(.thin)
                         .aspectRatio(contentMode: .fit)
                         .foregroundColor(.white)
                         .frame(
-                            width: batteryWidth * 0.4,
-                            height: batteryWidth * 0.5
+                            width: 17,
+                            height: 17
                         )
                 }
                 .frame(width: batteryWidth, height: batteryWidth)
@@ -129,6 +128,12 @@ struct BatteryMenuView: View {
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
+                if !isCharging && isPluggedIn && levelBattery == 80 {
+                    Label("Charging on Hold: Desktop Mode", systemImage: "desktopcomputer")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                }
+                    
             }
             .padding(.vertical, 8)
 
@@ -222,10 +227,10 @@ struct BoringBatteryView: View {
 #Preview {
     BoringBatteryView(
         batteryWidth: 30,
-        isCharging: true,
+        isCharging: false,
         isInLowPowerMode: false,
         isPluggedIn: true,
-        levelBattery: 100,
+        levelBattery: 80,
         maxCapacity: 100,
         timeToFullCharge: 10,
         isForNotification: false
