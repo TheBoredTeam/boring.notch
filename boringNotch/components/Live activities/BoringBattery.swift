@@ -128,7 +128,7 @@ struct BatteryMenuView: View {
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
-                if !isCharging && isPluggedIn && levelBattery == 80 {
+                if !isCharging && isPluggedIn && levelBattery >= 80 {
                     Label("Charging on Hold: Desktop Mode", systemImage: "desktopcomputer")
                         .font(.subheadline)
                         .fontWeight(.regular)
