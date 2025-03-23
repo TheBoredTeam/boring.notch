@@ -21,7 +21,6 @@ class MusicManager: ObservableObject {
     private var debounceToggle: DispatchWorkItem?
     private var vm: BoringViewModel
     private var lastMusicItem: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
-    private var isCurrentlyPlaying: Bool = false
 
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
@@ -29,8 +28,7 @@ class MusicManager: ObservableObject {
     @Published var isPlaying = false
     @Published var musicToggledManually: Bool = false
     @Published var album: String = "Self Love"
-    @Published var playbackManager = PlaybackManager()
-    @Published var lastUpdated: Date = .init()
+    @Published var lastUpdated: Date = .distantPast
     @Published var isPlayerIdle: Bool = true
     @Published var animations: BoringAnimations = .init()
     @Published var avgColor: NSColor = .white
@@ -84,16 +82,11 @@ class MusicManager: ObservableObject {
         fetchNowPlayingInfo()
 
         setupDetectorObserver()
-
-        if nowPlaying.playing {
-            fetchNowPlayingInfo()
-        }
     }
 
     deinit {
         debounceToggle?.cancel()
         cancellables.removeAll()
-        stopElapsedTimeTimer()
 
         for observer in distributedObservers {
             DistributedNotificationCenter.default().removeObserver(observer)
@@ -128,8 +121,8 @@ class MusicManager: ObservableObject {
 
     private func setupDetectorObserver() {
         detector.$currentAppInFullScreen
-            .sink { [weak self] _ in
-                self?.fetchNowPlayingInfo(bypass: true, bundle: self?.nowPlaying.appBundleIdentifier ?? nil)
+            .sink { [weak self] isFullScreen in
+                self?.vm.toggleMusicLiveActivity(status: !(isFullScreen))
             }
             .store(in: &cancellables)
     }
@@ -168,9 +161,10 @@ class MusicManager: ObservableObject {
 
             self.updateMusicState(newInfo: newInfo, state: state)
 
+            let playbackRate = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Double ?? 1
+            
             guard let elapsedTime = information["kMRMediaRemoteNowPlayingInfoElapsedTime"] as? TimeInterval,
-                  let timestampDate = information["kMRMediaRemoteNowPlayingInfoTimestamp"] as? Date,
-                  let playbackRate = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Double
+                  let timestampDate = information["kMRMediaRemoteNowPlayingInfoTimestamp"] as? Date
             else {
                 return
             }
@@ -250,7 +244,9 @@ class MusicManager: ObservableObject {
 
             // Check playback state
             MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
-                self?.musicIsPaused(state: isPlaying, setIdle: true)
+                if isPlaying != self?.isPlaying {
+                    self?.updatePlaybackState(state: isPlaying)
+                }
             }
         }
     }
@@ -281,62 +277,19 @@ class MusicManager: ObservableObject {
         }
     }
 
-    func musicIsPaused(state: Bool, bypass: Bool = false, setIdle: Bool = false) {
+    func updatePlaybackState(state: Bool, bypass: Bool = false) {
+        lastUpdated = Date()
         if musicToggledManually && !bypass { return }
-
-        let previousState = isPlaying
-        let hasContent = !songTitle.isEmpty && !artistName.isEmpty
 
         withAnimation(.smooth) {
             // Batch related state updates
             self.isPlaying = state
-            self.playbackManager.isPlaying = state
 
-            NSLog("elapsedTime: \(elapsedTime)")
-            NSLog("lastUpdated: \(lastUpdated)")
-            NSLog("Current State \(state)")
-
-            // Handle elapsed time timer
-            if state {
-                startElapsedTimeTimer()
-            } else {
-                stopElapsedTimeTimer(elapsedTime: elapsedTime)
-                self.lastUpdated = Date()
-            }
-
-            updateFullscreenMediaDetection()
-
-            // Only update sneak peek if state changed and has content
-            if previousState != state && hasContent {
+            if !songTitle.isEmpty && !artistName.isEmpty {
                 updateSneakPeek()
             }
 
-            updateIdleState(setIdle: setIdle, state: state)
-        }
-    }
-
-    private func startElapsedTimeTimer() {
-        stopElapsedTimeTimer()
-        elapsedTimeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            if self.isPlaying {
-                let timeSinceTimestamp = Date().timeIntervalSince(self.timestampDate)
-                self.elapsedTime = self.elapsedTime + timeSinceTimestamp * self.playbackRate
-                self.timestampDate = Date()
-            }
-        }
-    }
-
-    private func stopElapsedTimeTimer(elapsedTime: TimeInterval = 0) {
-        elapsedTimeTimer?.invalidate()
-        elapsedTimeTimer = nil
-        NSLog("Timer Stopped")
-    }
-
-    private func updateFullscreenMediaDetection() {
-        // Remove redundant dispatch since we're already on main thread
-        if Defaults[.enableFullscreenMediaDetection] {
-            vm.toggleMusicLiveActivity(status: !detector.currentAppInFullScreen)
+            updateIdleState(state: state)
         }
     }
 
@@ -346,11 +299,11 @@ class MusicManager: ObservableObject {
         }
     }
 
-    private func updateIdleState(setIdle: Bool, state: Bool) {
-        if setIdle && state {
+    private func updateIdleState(state: Bool) {
+        if state {
             isPlayerIdle = false
             debounceToggle?.cancel()
-        } else if setIdle && !state {
+        } else {
             debounceToggle = DispatchWorkItem { [weak self] in
                 guard let self = self else { return }
                 if self.lastUpdated.timeIntervalSinceNow < -Defaults[.waitInterval] {
@@ -361,25 +314,6 @@ class MusicManager: ObservableObject {
             }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + Defaults[.waitInterval], execute: debounceToggle!)
-        }
-    }
-
-    func togglePlayPause() {
-        musicToggledManually = true
-
-        let playState = playbackManager.playPause()
-
-        musicIsPaused(state: playState, bypass: true, setIdle: true)
-
-        if playState {
-            fetchNowPlayingInfo(bypass: true)
-        } else {
-            lastUpdated = Date()
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.musicToggledManually = false
-            self?.fetchNowPlayingInfo()
         }
     }
 
@@ -408,20 +342,6 @@ class MusicManager: ObservableObject {
         }
     }
 
-    func nextTrack() {
-        playbackManager.nextTrack()
-        fetchNowPlayingInfo(bypass: true)
-    }
-
-    func previousTrack() {
-        playbackManager.previousTrack()
-        fetchNowPlayingInfo(bypass: true)
-    }
-
-    func seekTrack(to time: TimeInterval) {
-        playbackManager.seekTrack(to: time)
-    }
-
     func openMusicApp() {
         guard let bundleID = nowPlaying.appBundleIdentifier else {
             print("Error: appBundleIdentifier is nil")
@@ -429,10 +349,17 @@ class MusicManager: ObservableObject {
         }
 
         let workspace = NSWorkspace.shared
-        if workspace.launchApplication(withBundleIdentifier: bundleID, options: [], additionalEventParamDescriptor: nil, launchIdentifier: nil) {
-            print("Launched app with bundle ID: \(bundleID)")
+        if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
+            let configuration = NSWorkspace.OpenConfiguration()
+            workspace.openApplication(at: appURL, configuration: configuration) { (app, error) in
+                if let error = error {
+                    print("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
+                } else {
+                    print("Launched app with bundle ID: \(bundleID)")
+                }
+            }
         } else {
-            print("Failed to launch app with bundle ID: \(bundleID)")
+            print("Failed to find app with bundle ID: \(bundleID)")
         }
     }
 }
