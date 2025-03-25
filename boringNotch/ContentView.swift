@@ -18,6 +18,10 @@ struct ContentView: View {
     @StateObject var batteryModel: BatteryStatusViewModel
     @EnvironmentObject var musicManager: MusicManager
     @StateObject var webcamManager: WebcamManager = .init()
+    
+    @StateObject var volumeObserver = VolumeChangeObserver()
+    @State private var showVolumeIndicator = false
+    @State private var debounceTimer: Timer?
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
@@ -39,6 +43,28 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
+            
+            // Display VolumeView when a volume button is pressed
+            Group {
+                Rectangle()
+                    .fill(Color.black)
+                    .frame(width: getNotchCurrentWidth() + (hoverAnimation ? 12 : 0), height: 30 + (hoverAnimation ? 12 : 0))
+                    .mask{ HUDShape().frame(height: 40)}
+                    .overlay(
+                        VolumeView(volumeObserver: volumeObserver, notchWidth: getNotchCurrentWidth())
+                    )
+                    .offset(y: showVolumeIndicator ? getOffset() : -40)
+                    .animation(.easeInOut, value: showVolumeIndicator)
+            }
+            .onAppear {
+                NotificationCenter.default.addObserver(forName: NSNotification.Name("ShowVolumeIndicator"), object: nil, queue: .main) { _ in
+                    withAnimation {
+                        triggerVolumeIndicator()
+                    }
+                }
+            }
+
+            
             NotchLayout()
                 .frame(alignment: .top)
                 .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (cornerRadiusInsets.opened - 5) : (cornerRadiusInsets.closed - 5) : 12)
@@ -222,6 +248,32 @@ struct ContentView: View {
         .environmentObject(batteryModel)
         .environmentObject(musicManager)
         .environmentObject(webcamManager)
+    }
+    
+    func getNotchCurrentWidth()-> CGFloat{
+        
+        if $musicManager.isPlaying.wrappedValue {
+            return vm.closedNotchSize.width + 50
+        }
+        return vm.closedNotchSize.width - 6
+        
+    }
+    
+    func getOffset()-> CGFloat{
+        if vm.notchState == .closed{
+            return vm.closedNotchSize.height - 8
+        } else if vm.notchState == .open {
+            return openNotchSize.height - 43
+        }
+        return 0.0
+    }
+    
+    func triggerVolumeIndicator(){
+        showVolumeIndicator = true
+        debounceTimer?.invalidate()
+        debounceTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
+            showVolumeIndicator = false
+        }
     }
 
     @ViewBuilder
