@@ -84,15 +84,6 @@ class WebcamManager: NSObject, ObservableObject {
             self.previewLayer = nil
         }
     }
-    
-    deinit {
-        // Simple cleanup in deinit
-        if let session = captureSession {
-            session.stopRunning()
-        }
-        captureSession = nil
-        previewLayer = nil
-    }
 
     // MARK: - Camera Management
     
