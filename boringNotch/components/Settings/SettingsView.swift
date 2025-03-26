@@ -200,7 +200,7 @@ struct GeneralSettings: View {
                         case .matchMenuBar:
                             notchHeight = 44
                         case .custom:
-                            nonNotchHeight = 38
+                            notchHeight = 38
                         }
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }

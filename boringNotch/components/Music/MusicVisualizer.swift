@@ -37,12 +37,13 @@ class AudioSpectrum: NSView {
 
     private func setupBars() {
         guard let layer = layer else { return }
-
+        
         barLayers.forEach { $0.removeFromSuperlayer() }
         barLayers.removeAll()
-
+        
         let totalHeight: CGFloat = min(14, frame.height + 2)
         let barWidth: CGFloat = totalHeight >= 11 ? (totalHeight / 7) : (totalHeight / 5)
+        
         let barCount = totalHeight >= 11 ? 4 : 3
         let spacing: CGFloat = barWidth
         let totalWidth = CGFloat(barCount) * (barWidth + spacing)
