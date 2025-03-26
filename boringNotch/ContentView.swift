@@ -367,7 +367,7 @@ struct ContentView: View {
                         .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
                         .mask {
                             AudioSpectrumView(isPlaying: $musicManager.isPlaying)
-                                .frame(width: vm.closedNotchSize.height/2, height: (vm.closedNotchSize.height/2)-4)
+                                .frame(width: 16, height: 12)
                         }
                         .frame(width: max(0, vm.closedNotchSize.height - (hoverAnimation ? 0 : 12) + gestureProgress / 2),
                                height: max(0, vm.closedNotchSize.height - (hoverAnimation ? 0 : 12)), alignment: .center)
