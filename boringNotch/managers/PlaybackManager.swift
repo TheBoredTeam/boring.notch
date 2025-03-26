@@ -11,12 +11,13 @@ import AppKit
 import Combine
 
 class PlaybackManager: ObservableObject {
-    @Published var isPlaying = false
     @Published var MrMediaRemoteSendCommandFunction:@convention(c) (Int, AnyObject?) -> Void
     @Published var MrMediaRemoteSetElapsedTimeFunction: @convention(c) (Double) -> Void
+    
+    private var musicManager: MusicManager
 
-    init() {
-        self.isPlaying = false;
+    init(musicManager: MusicManager) {
+        self.musicManager = musicManager
         self.MrMediaRemoteSendCommandFunction = {_,_ in }
         self.MrMediaRemoteSetElapsedTimeFunction = { _ in }
         handleLoadMediaHandlerApis()
@@ -44,15 +45,11 @@ class PlaybackManager: ObservableObject {
         self.MrMediaRemoteSetElapsedTimeFunction = { _ in }
     }
     
-    func playPause() -> Bool {
-        if self.isPlaying {
+    func playPause() {
+        if musicManager.isPlaying {
             MrMediaRemoteSendCommandFunction(2, nil)
-            self.isPlaying = false;
-            return false;
         } else {
             MrMediaRemoteSendCommandFunction(0, nil)
-            self.isPlaying = true
-            return true;
         }
     }
     
