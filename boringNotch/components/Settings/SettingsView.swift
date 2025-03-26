@@ -84,6 +84,7 @@ struct SettingsView: View {
             if scenePhase == .active {
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
+                NSApp.keyWindow?.makeKeyAndOrderFront(nil)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
@@ -93,6 +94,8 @@ struct SettingsView: View {
         .introspect(.window, on: .macOS(.v14, .v15)) { window in
             window.toolbarStyle = .unified
             window.styleMask.update(with: .resizable)
+            
+            window.setContentSize(NSSize(width: 750, height: 700))
         }
     }
 }
