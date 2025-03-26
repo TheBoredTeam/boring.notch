@@ -21,6 +21,7 @@ class MusicManager: ObservableObject {
     private var debounceToggle: DispatchWorkItem?
     private var vm: BoringViewModel
     private var lastMusicItem: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
+    private var isInitializing: Bool = true
 
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
@@ -40,12 +41,14 @@ class MusicManager: ObservableObject {
     @ObservedObject var detector: FullscreenMediaDetector
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
-    var nowPlaying: NowPlaying
 
     private let mediaRemoteBundle: CFBundle
     private let MRMediaRemoteGetNowPlayingInfo: @convention(c) (DispatchQueue, @escaping ([String: Any]) -> Void) -> Void
     private let MRMediaRemoteRegisterForNowPlayingNotifications: @convention(c) (DispatchQueue) -> Void
     private let MRMediaRemoteGetNowPlayingApplicationIsPlaying: @convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void
+    private let MRMediaRemoteGetNowPlayingClient: @convention(c) (DispatchQueue, @escaping (AnyObject?) -> Void) -> Void
+    private let MRNowPlayingClientGetBundleIdentifier: @convention(c) (AnyObject?) -> String?
+    private let MRNowPlayingClientGetParentAppBundleIdentifier: @convention(c) (AnyObject?) -> String?
 
     private var distributedObservers: [NSObjectProtocol] = []
 
@@ -62,12 +65,14 @@ class MusicManager: ObservableObject {
     init?(vm: BoringViewModel) {
         self.vm = vm
         _detector = ObservedObject(wrappedValue: FullscreenMediaDetector())
-        nowPlaying = NowPlaying()
 
         guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")),
               let MRMediaRemoteGetNowPlayingInfoPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingInfo" as CFString),
               let MRMediaRemoteRegisterForNowPlayingNotificationsPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteRegisterForNowPlayingNotifications" as CFString),
-              let MRMediaRemoteGetNowPlayingApplicationIsPlayingPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingApplicationIsPlaying" as CFString)
+              let MRMediaRemoteGetNowPlayingApplicationIsPlayingPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingApplicationIsPlaying" as CFString),
+              let MRMediaRemoteGetNowPlayingClientPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingClient" as CFString),
+              let MRNowPlayingClientGetBundleIdentifierPointer = CFBundleGetFunctionPointerForName(bundle, "MRNowPlayingClientGetBundleIdentifier" as CFString),
+              let MRNowPlayingClientGetParentAppBundleIdentifierPointer = CFBundleGetFunctionPointerForName(bundle, "MRNowPlayingClientGetParentAppBundleIdentifier" as CFString)
         else {
             print("Failed to load MediaRemote.framework or get function pointers")
             return nil
@@ -77,11 +82,16 @@ class MusicManager: ObservableObject {
         MRMediaRemoteGetNowPlayingInfo = unsafeBitCast(MRMediaRemoteGetNowPlayingInfoPointer, to: (@convention(c) (DispatchQueue, @escaping ([String: Any]) -> Void) -> Void).self)
         MRMediaRemoteRegisterForNowPlayingNotifications = unsafeBitCast(MRMediaRemoteRegisterForNowPlayingNotificationsPointer, to: (@convention(c) (DispatchQueue) -> Void).self)
         MRMediaRemoteGetNowPlayingApplicationIsPlaying = unsafeBitCast(MRMediaRemoteGetNowPlayingApplicationIsPlayingPointer, to: (@convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void).self)
-
+        MRMediaRemoteGetNowPlayingClient = unsafeBitCast(MRMediaRemoteGetNowPlayingClientPointer, to: (@convention(c) (DispatchQueue, @escaping (AnyObject?) -> Void) -> Void).self)
+        MRNowPlayingClientGetBundleIdentifier = unsafeBitCast(MRNowPlayingClientGetBundleIdentifierPointer, to: (@convention(c) (AnyObject?) -> String?).self)
+        MRNowPlayingClientGetParentAppBundleIdentifier = unsafeBitCast(MRNowPlayingClientGetParentAppBundleIdentifierPointer, to: (@convention(c) (AnyObject?) -> String?).self)
+        
         setupNowPlayingObserver()
         fetchNowPlayingInfo()
 
         setupDetectorObserver()
+
+        isInitializing = false
     }
 
     deinit {
@@ -103,7 +113,7 @@ class MusicManager: ObservableObject {
         MRMediaRemoteRegisterForNowPlayingNotifications(DispatchQueue.main)
 
         observeNotification(name: "kMRMediaRemoteNowPlayingInfoDidChangeNotification") { [weak self] in
-            self?.fetchNowPlayingInfo(bundle: self?.nowPlaying.appBundleIdentifier ?? nil)
+            self?.fetchNowPlayingInfo()
         }
 
         observeNotification(name: "kMRMediaRemoteNowPlayingApplicationDidChangeNotification") { [weak self] in
@@ -117,7 +127,7 @@ class MusicManager: ObservableObject {
         observeDistributedNotification(name: "com.apple.Music.playerInfo") { [weak self] in
             self?.fetchNowPlayingInfo(bundle: "com.apple.Music")
         }
-    }
+            }
 
     private func setupDetectorObserver() {
         detector.$currentAppInFullScreen
@@ -145,13 +155,40 @@ class MusicManager: ObservableObject {
     // MARK: - Update Methods
 
     @objc func updateApp() {
-        bundleIdentifier = nowPlaying.appBundleIdentifier ?? "com.apple.Music"
+        // Get the now playing client
+        MRMediaRemoteGetNowPlayingClient(DispatchQueue.main) { [weak self] clientObj in
+            guard let clientObj = clientObj else {
+                DispatchQueue.main.async {
+                    self?.bundleIdentifier = "com.apple.Music" // Default fallback
+                }
+                return
+            }
+            
+            // Try to get parent bundle ID first, then fall back to direct bundle ID
+            var appBundleID = self?.MRNowPlayingClientGetParentAppBundleIdentifier(clientObj)
+            if appBundleID == nil {
+                appBundleID = self?.MRNowPlayingClientGetBundleIdentifier(clientObj)
+            }
+            
+            // Special case for WebKit.GPU which is often Safari
+            if appBundleID == "com.apple.WebKit.GPU" {
+                appBundleID = "com.apple.Safari"
+            }
+            
+            DispatchQueue.main.async {
+                self?.bundleIdentifier = appBundleID ?? "com.apple.Music"
+            }
+        }
     }
 
     @objc func fetchNowPlayingInfo(bypass: Bool = false, bundle: String? = nil) {
         if musicToggledManually && !bypass { return }
 
-        updateBundleIdentifier(bundle)
+        if(bundle != nil) {
+            bundleIdentifier = bundle
+        } else {
+            updateApp()
+        }
 
         MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
             guard let self = self else { return }
@@ -178,12 +215,6 @@ class MusicManager: ObservableObject {
     }
 
     // MARK: - Helper Methods
-
-    private func updateBundleIdentifier(_ bundle: String?) {
-        if let bundle = bundle {
-            bundleIdentifier = bundle
-        }
-    }
 
     private func extractMusicInfo(from information: [String: Any]) -> (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?) {
         let title = information["kMRMediaRemoteNowPlayingInfoTitle"] as? String ?? ""
@@ -215,10 +246,8 @@ class MusicManager: ObservableObject {
             flipWorkItem = workItem
             DispatchQueue.main.async(execute: workItem)
 
-            if artworkChanged {
-                updateArtwork(newInfo.artworkData)
-                lastMusicItem?.artworkData = newInfo.artworkData
-            }
+            updateArtwork(newInfo.artworkData)
+            lastMusicItem?.artworkData = newInfo.artworkData
 
             // Only update sneak peek if there's actual content
             if musicInfoChanged && !newInfo.title.isEmpty && !newInfo.artist.isEmpty {
@@ -263,7 +292,7 @@ class MusicManager: ObservableObject {
             {
                 newArt = artworkImage
                 usingAppIcon = false
-            } else if let appIconImage = AppIconAsNSImage(for: self.bundleIdentifier ?? self.nowPlaying.appBundleIdentifier ?? "") {
+            } else if let appIconImage = AppIconAsNSImage(for: self.bundleIdentifier ?? "") {
                 newArt = appIconImage
                 usingAppIcon = true
             } else {
@@ -278,7 +307,11 @@ class MusicManager: ObservableObject {
     }
 
     func updatePlaybackState(state: Bool, bypass: Bool = false) {
-        lastUpdated = Date()
+        // Only update lastUpdated when pausing the music and not during initialization
+        if !state && !isInitializing {
+            lastUpdated = Date()
+        }
+        
         if musicToggledManually && !bypass { return }
 
         withAnimation(.smooth) {
@@ -343,7 +376,7 @@ class MusicManager: ObservableObject {
     }
 
     func openMusicApp() {
-        guard let bundleID = nowPlaying.appBundleIdentifier else {
+        guard let bundleID = bundleIdentifier else {
             print("Error: appBundleIdentifier is nil")
             return
         }
