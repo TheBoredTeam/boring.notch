@@ -315,6 +315,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             if !NSScreen.screens.contains(where: {$0.localizedName == coordinator.preferredScreen}) {
                 coordinator.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
+            } else {
+                coordinator.selectedScreen = coordinator.preferredScreen
             }
             
             let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == coordinator.selectedScreen})
