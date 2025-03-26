@@ -154,15 +154,8 @@ struct GeneralSettings: View {
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
-                Defaults.Toggle("Automatically switch displays", key: .automaticallySwitchDisplay)
-                .onChange(of: automaticallySwitchDisplay) {
-                    NotificationCenter.default.post(name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
-                }
                 Defaults.Toggle(key: .showOnAllDisplays) {
-                    HStack {
-                        Text("Show on all displays")
-                        customBadge(text: "Beta")
-                    }
+                    Text("Show on all displays")
                 }
                 .onChange(of: showOnAllDisplays) {
                     NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
@@ -175,16 +168,19 @@ struct GeneralSettings: View {
                 .onChange(of: NSScreen.screens) {
                     screens =  NSScreen.screens.compactMap({$0.localizedName})
                 }
+                .disabled(showOnAllDisplays)
+                Defaults.Toggle("Automatically switch displays", key: .automaticallySwitchDisplay)
+                .onChange(of: automaticallySwitchDisplay) {
+                    NotificationCenter.default.post(name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
+                }
+                .disabled(showOnAllDisplays)
             } header: {
                 Text("System features")
             }
             
             Section {
                 Picker(selection: $notchHeightMode, label:
-                    HStack {
-                        Text("Notch display height")
-                        customBadge(text: "Beta")
-                    }) {
+                    Text("Notch display height")) {
                         Text("Match real notch size")
                             .tag(WindowHeightMode.matchRealNotchSize)
                         Text("Match menubar height")
