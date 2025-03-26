@@ -329,6 +329,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == coordinator.selectedScreen})
+            vm.screen = selectedScreen?.localizedName
             vm.notchSize = getClosedNotchSize(screen: selectedScreen?.localizedName)
      
             if let screenFrame = selectedScreen {
