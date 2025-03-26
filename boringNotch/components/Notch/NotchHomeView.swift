@@ -101,7 +101,14 @@ struct MusicControlsView: View {
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
-
+    
+    private var playbackManager: PlaybackManager
+    
+    init(musicManager: MusicManager) {
+        self.musicManager = musicManager
+        self.playbackManager = PlaybackManager(musicManager: musicManager)
+    }
+    
     var body: some View {
         VStack(alignment: .leading) {
             songInfoAndSlider
@@ -146,12 +153,13 @@ struct MusicControlsView: View {
                 color: musicManager.avgColor,
                 dragging: $dragging,
                 currentDate: timeline.date,
+                lastUpdated: musicManager.lastUpdated,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
                 playbackRate: musicManager.playbackRate,
                 isPlaying: musicManager.isPlaying
             ) { newValue in
-                musicManager.seekTrack(to: newValue)
+                playbackManager.seekTrack(to: newValue)
             }
             .padding(.top, 5)
             .frame(height: 36)
@@ -161,13 +169,13 @@ struct MusicControlsView: View {
     private var playbackControls: some View {
         HStack(spacing: 8) {
             HoverButton(icon: "backward.fill", scale: .medium) {
-                musicManager.previousTrack()
+                playbackManager.previousTrack()
             }
             HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
-                musicManager.togglePlayPause()
+                playbackManager.playPause()
             }
             HoverButton(icon: "forward.fill", scale: .medium) {
-                musicManager.nextTrack()
+                playbackManager.nextTrack()
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -233,6 +241,7 @@ struct MusicSliderView: View {
     var color: NSColor
     @Binding var dragging: Bool
     let currentDate: Date
+    let lastUpdated: Date
     let timestampDate: Date
     let elapsedTime: Double
     let playbackRate: Double
@@ -240,8 +249,8 @@ struct MusicSliderView: View {
     var onValueChange: (Double) -> Void
 
     var currentElapsedTime: Double {
-        guard !dragging && isPlaying, currentDate > lastDragged else { return sliderValue }
-        let timeDifference = currentDate.timeIntervalSince(timestampDate)
+        guard !dragging, timestampDate > lastDragged, timestampDate > lastUpdated else { return sliderValue }
+        let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
         let elapsed = elapsedTime + (timeDifference * playbackRate)
         return min(elapsed, duration)
     }
@@ -269,7 +278,7 @@ struct MusicSliderView: View {
                 .ensureMinimumBrightness(factor: 0.6) : .gray)
             .font(.caption)
         }
-        .onChange(of: currentDate) { _ in
+        .onChange(of: currentDate) {
             sliderValue = currentElapsedTime
         }
     }

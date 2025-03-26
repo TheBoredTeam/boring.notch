@@ -50,6 +50,7 @@ struct ContentView: View {
                 }
                 .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (Defaults[.inlineHUD] && coordinator.sneakPeek.show && coordinator.sneakPeek.type != .music)) ? nil : vm.closedNotchSize.width + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? vm.closedNotchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
                 //.padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
+
                 .conditionalModifier(!useModernCloseAnimation) { view in
                             let notchStateAnimation = Animation.bouncy.speed(1.2)
                             let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
@@ -238,29 +239,30 @@ struct ContentView: View {
                       .padding(.top, 40)
                       Spacer()
                   } else {
-                      if vm.expandingView.type == .battery && vm.expandingView.show && vm.notchState == .closed {
-                          HStack(spacing: 0) {
-                              HStack {
-                                  Text("Charging")
-                                      .font(.subheadline)
-                              }
-                              
-                              Rectangle()
-                                  .fill(.black)
-                                  .frame(width: vm.closedNotchSize.width + 5)
-                              
-                              HStack {
-                                  BoringBatteryView(
-                                      batteryPercentage: batteryModel.batteryPercentage,
-                                      isPluggedIn: batteryModel.isPluggedIn,
-                                      batteryWidth: 30,
-                                      isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                      isInitialPlugIn: batteryModel.isInitialPlugIn
-                                  )
-                              }
-                              .frame(width: 76, alignment: .trailing)
-                          }
-                          .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
+                      if vm.expandingView.type == .battery && vm.expandingView.show && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
+                        HStack(spacing: 0) {
+                            HStack {
+                                Text(batteryModel.statusText)
+                                    .font(.subheadline)
+                            }
+
+                            Rectangle()
+                                .fill(.black)
+                                .frame(width: vm.closedNotchSize.width + 5)
+
+                            HStack {
+                                BoringBatteryView(
+                                    batteryWidth: 30,
+                                    isCharging: batteryModel.isCharging,
+                                    isInLowPowerMode: batteryModel.isInLowPowerMode,
+                                    isPluggedIn: batteryModel.isPluggedIn,
+                                    levelBattery: batteryModel.levelBattery,
+                                    isForNotification: true
+                                )
+                            }
+                            .frame(width: 76, alignment: .trailing)
+                        }
+                        .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                               .transition(.opacity)
@@ -319,7 +321,6 @@ struct ContentView: View {
               .opacity(abs(gestureProgress) > 0.3 ? min(abs(gestureProgress * 2), 0.8) : 1)
           }
       }
-      
 
     @ViewBuilder
     func BoringFaceAnimation() -> some View {
@@ -412,6 +413,17 @@ struct ContentView: View {
         withAnimation(.bouncy.speed(1.2)) {
             vm.open()
         }
+    }
+
+    private func calculateBottomPadding() -> CGFloat {
+		let safeAreaNotchHeight: CGFloat = 30 // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
+		
+        if vm.notchState == .open {
+            return safeAreaNotchHeight
+        }
+        
+        let shouldExtendHover = vm.closedNotchSize.height == 0 && Defaults[.extendHoverArea]
+        return shouldExtendHover ? safeAreaNotchHeight : 0
     }
 }
 
