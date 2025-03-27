@@ -144,33 +144,6 @@ class WebcamManager: NSObject, ObservableObject {
             // Clean up any existing session before creating a new one
             self.cleanupExistingSession()
             
-            // Cleanup any existing session first
-            if let existingSession = self.captureSession {
-                // First stop the session if running
-                if existingSession.isRunning {
-                    existingSession.stopRunning()
-                }
-                
-                // Then perform configuration cleanup
-                existingSession.beginConfiguration()
-                
-                // Remove all inputs and outputs
-                for input in existingSession.inputs {
-                    existingSession.removeInput(input)
-                }
-                for output in existingSession.outputs {
-                    existingSession.removeOutput(output)
-                }
-                
-                existingSession.commitConfiguration()
-                self.captureSession = nil
-                
-                // Clear preview layer on main thread
-                DispatchQueue.main.async {
-                    self.previewLayer = nil
-                }
-            }
-            
             let session = AVCaptureSession()
             
             do {
