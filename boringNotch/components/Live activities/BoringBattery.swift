@@ -3,7 +3,7 @@ import Defaults
 
 /// A view that displays the battery status with an icon and charging indicator.
 struct BatteryView: View {
-    
+
     var levelBattery: Float
     var isPluggedIn: Bool
     var isCharging: Bool
