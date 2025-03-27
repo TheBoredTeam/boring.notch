@@ -65,7 +65,7 @@ class MusicManager: ObservableObject {
     init?(vm: BoringViewModel) {
         self.vm = vm
         _detector = ObservedObject(wrappedValue: FullscreenMediaDetector())
-        
+
         guard let bundle = CFBundleCreate(kCFAllocatorDefault, NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")),
               let MRMediaRemoteGetNowPlayingInfoPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteGetNowPlayingInfo" as CFString),
               let MRMediaRemoteRegisterForNowPlayingNotificationsPointer = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteRegisterForNowPlayingNotifications" as CFString),
@@ -245,7 +245,7 @@ class MusicManager: ObservableObject {
             }
             flipWorkItem = workItem
             DispatchQueue.main.async(execute: workItem)
-            
+
             updateArtwork(newInfo.artworkData)
             lastMusicItem?.artworkData = newInfo.artworkData
 
