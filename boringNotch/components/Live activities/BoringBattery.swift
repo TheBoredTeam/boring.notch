@@ -3,6 +3,7 @@ import Defaults
 
 /// A view that displays the battery status with an icon and charging indicator.
 struct BatteryView: View {
+    
     var levelBattery: Float
     var isPluggedIn: Bool
     var isCharging: Bool
@@ -162,6 +163,7 @@ struct BatteryMenuView: View {
 
 /// A view that displays the battery status and allows interaction to show detailed information.
 struct BoringBatteryView: View {
+    
     @State var batteryWidth: CGFloat = 26
     var isCharging: Bool = false
     var isInLowPowerMode: Bool = false
@@ -170,6 +172,7 @@ struct BoringBatteryView: View {
     var maxCapacity: Float = 0
     var timeToFullCharge: Int = 0
     @State var isForNotification: Bool = false
+    
     @State private var showPopupMenu: Bool = false
     @State private var isPressed: Bool = false
 
