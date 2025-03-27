@@ -227,7 +227,7 @@ struct GeneralSettings: View {
                     NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                 }
                 if nonNotchHeightMode == .custom {
-                    Slider(value: $nonNotchHeight, in: 10...40, step: 1) {
+                    Slider(value: $nonNotchHeight, in: 0...40, step: 1) {
                         Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: nonNotchHeight) {
@@ -291,6 +291,7 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
+			Defaults.Toggle("Extend hover area", key: .extendHoverArea)
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
@@ -317,10 +318,16 @@ struct Charge: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Show charging indicator", key: .chargingInfoAllowed)
-                Defaults.Toggle("Show battery indicator", key: .showBattery)
+                Defaults.Toggle("Show battery indicator", key: .showBatteryIndicator)
+                Defaults.Toggle("Show power status notifications", key: .showPowerStatusNotifications)
             } header: {
                 Text("General")
+            }
+            Section {
+                Defaults.Toggle("Show battery percentage", key: .showBatteryPercentage)
+                Defaults.Toggle("Show power status icons", key: .showPowerStatusIcons)
+            } header: {
+                Text("Battery Information")
             }
         }
         .tint(Defaults[.accentColor])
