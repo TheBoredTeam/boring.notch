@@ -269,9 +269,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func screenConfigurationDidChange() {
         let currentScreens = NSScreen.screens
-        let screensChanged = currentScreens.count != previousScreens?.count || 
-            Set(currentScreens.map { $0.localizedName }) != Set(previousScreens?.map { $0.localizedName } ?? [])
-        
+        let screensChanged = currentScreens.count != previousScreens?.count ||
+        Set(currentScreens.map { $0.localizedName }) != Set(previousScreens?.map { $0.localizedName } ?? []) || Set(currentScreens.map { $0.frame }) != Set(previousScreens?.map { $0.frame } ?? [])
         if screensChanged {
             previousScreens = currentScreens
             cleanupWindows()
