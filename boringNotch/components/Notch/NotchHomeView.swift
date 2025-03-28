@@ -207,17 +207,10 @@ struct NotchHomeView: View {
 
             if Defaults[.showCalendar] {
                 CalendarView()
-                .onContinuousHover { phase in
-                                if Defaults[.closeGestureEnabled] {
-                                    switch phase {
-                                        case .active:
-                                            Defaults[.closeGestureEnabled] = false
-                                        case .ended:
-                                            Defaults[.closeGestureEnabled] = false
-                                    }
-                                }
-                            }
-                    .environmentObject(vm)
+                .onHover { isHovering in
+                    vm.isHoveringCalendar = isHovering
+                }
+                .environmentObject(vm)
             }
 
             if Defaults[.showMirror] && webcamManager.cameraAvailable {

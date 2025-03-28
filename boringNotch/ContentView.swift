@@ -166,7 +166,7 @@ struct ContentView: View {
                 .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
                     view
                         .panGesture(direction: .up) { translation, phase in
-                            if vm.notchState == .open {
+                            if vm.notchState == .open && !vm.isHoveringCalendar {
                                 withAnimation(.smooth) {
                                     gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
                                 }

@@ -40,6 +40,7 @@ class BoringViewModel: NSObject, ObservableObject {
     var cancellables: Set<AnyCancellable> = []
     
     @Published var showMusicLiveActivityOnClosed: Bool = true
+    @Published var isHoveringCalendar: Bool = false
 
     var screen: String?
 
