@@ -132,7 +132,9 @@ class MusicManager: ObservableObject {
     private func setupDetectorObserver() {
         detector.$currentAppInFullScreen
             .sink { [weak self] isFullScreen in
-                self?.vm.toggleMusicLiveActivity(status: !(isFullScreen))
+                withAnimation(.smooth) {
+                    self?.vm.showMusicLiveActivityOnClosed = !(isFullScreen)
+                }
             }
             .store(in: &cancellables)
     }

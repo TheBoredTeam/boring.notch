@@ -43,7 +43,7 @@ class BoringViewCoordinator: ObservableObject {
     
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
-    @AppStorage("musicLiveActivity") var showMusicLiveActivityOnClosed: Bool = true
+    @AppStorage("musicLiveActivityEnabled") var musicLiveActivityEnabled: Bool = true
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
     
     @AppStorage("alwaysShowTabs") var alwaysShowTabs: Bool = true {

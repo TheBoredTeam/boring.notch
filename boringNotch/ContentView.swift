@@ -166,7 +166,7 @@ struct ContentView: View {
                 .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
                     view
                         .panGesture(direction: .up) { translation, phase in
-                            if vm.notchState == .open {
+                            if vm.notchState == .open && !vm.isHoveringCalendar {
                                 withAnimation(.smooth) {
                                     gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
                                 }
@@ -263,7 +263,7 @@ struct ContentView: View {
                     } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (vm.expandingView.type != .battery) {
                         InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                             .transition(.opacity)
-                    } else if vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.showMusicLiveActivityOnClosed {
+                    } else if vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.showMusicLiveActivityOnClosed && coordinator.musicLiveActivityEnabled {
                         MusicLiveActivity()
                     } else if !vm.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] {
                         BoringFaceAnimation().animation(.interactiveSpring, value: musicManager.isPlayerIdle)
