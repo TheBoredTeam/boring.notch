@@ -40,6 +40,7 @@ extension Defaults.Keys {
         // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
+    static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Wolf Painting 🐺🎨")
     
         // MARK: Behavior
@@ -53,9 +54,9 @@ extension Defaults.Keys {
     )
     static let nonNotchHeightMode = Key<WindowHeightMode>(
         "nonNotchHeightMode",
-        default: WindowHeightMode.matchRealNotchSize
+        default: WindowHeightMode.matchMenuBar
     )
-    static let nonNotchHeight = Key<CGFloat>("notchHeight", default: 32)
+    static let nonNotchHeight = Key<CGFloat>("nonNotchHeight", default: 32)
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
         //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     

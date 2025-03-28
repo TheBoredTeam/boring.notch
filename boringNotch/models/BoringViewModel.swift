@@ -64,6 +64,14 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
 
+    @AppStorage("preferred_screen_name") var preferredScreen = NSScreen.main?.localizedName ?? "Unknown" {
+        didSet {
+            selectedScreen = preferredScreen
+            NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
+        }
+    }
+    
+    @Published var selectedScreen: String = NSScreen.main?.localizedName ?? "Unknown"
     deinit {
         destroy()
     }
@@ -77,6 +85,11 @@ class BoringViewModel: NSObject, ObservableObject {
         animation = animationLibrary.animation
 
         super.init()
+        
+        notifier = coordinator.notifier
+        self.screen = screen
+        self.notchSize = getClosedNotchSize(screen: screen)
+        self.closedNotchSize = notchSize
 
         notifier = coordinator.notifier
         self.screen = screen
@@ -128,9 +141,10 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func close() {
-        withAnimation(.smooth) {
-            self.notchSize = getClosedNotchSize(screen: screen)
-            closedNotchSize = notchSize
+        withAnimation(.smooth) { [weak self] in
+            guard let self = self else { return }
+            self.notchSize = getClosedNotchSize(screen: self.screen)
+            self.closedNotchSize = self.notchSize
             self.notchState = .closed
         }
 
@@ -142,7 +156,7 @@ class BoringViewModel: NSObject, ObservableObject {
             coordinator.currentView = .home
         }
     }
-
+    
     func openClipboard() {
         notifier.postNotification(name: notifier.showClipboardNotification.name, userInfo: nil)
     }
