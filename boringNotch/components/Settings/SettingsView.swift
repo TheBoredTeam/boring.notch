@@ -470,7 +470,7 @@ struct Media: View {
             Section {
                 Toggle(
                     "Enable music live activity",
-                    isOn: $coordinator.showMusicLiveActivityOnClosed.animation()
+                    isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
                 Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
                 HStack {

@@ -38,6 +38,9 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var dropEvent: Bool = false
     @Published var anyDropZoneTargeting: Bool = false
     var cancellables: Set<AnyCancellable> = []
+    
+    @Published var showMusicLiveActivityOnClosed: Bool = true
+    @Published var isHoveringCalendar: Bool = false
 
     var screen: String?
 
@@ -118,12 +121,6 @@ class BoringViewModel: NSObject, ObservableObject {
         withAnimation(.bouncy) {
             self.notchSize = CGSize(width: openNotchSize.width, height: openNotchSize.height)
             self.notchState = .open
-        }
-    }
-
-    func toggleMusicLiveActivity(status: Bool) {
-        withAnimation(.smooth) {
-            self.coordinator.showMusicLiveActivityOnClosed = status
         }
     }
 
