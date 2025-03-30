@@ -28,9 +28,14 @@ class YouTubeMusicController: MediaControllerProtocol {
     private var accessToken: String?
     private var refreshTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
+    private var isAuthenticating = false
+    private let authQueue = DispatchQueue(label: "com.boringnotch.youtubemusicauth", qos: .background)
+    private let updateQueue = DispatchQueue(label: "com.boringnotch.youtubemusicupdate", qos: .utility)
     
     init() {
-        authenticateAndSetup()
+        authQueue.async { [weak self] in
+            self?.authenticateAndSetup()
+        }
     }
     
     deinit {
@@ -41,10 +46,25 @@ class YouTubeMusicController: MediaControllerProtocol {
     // MARK: - Authentication
     
     private func authenticateAndSetup() {
+        // Prevent multiple concurrent authentication attempts
+        guard !isAuthenticating else { return }
+        
+        isAuthenticating = true
         getAccessToken { [weak self] success in
-            guard success, let self = self else { return }
-            self.startPeriodicUpdates()
-            self.updatePlaybackInfo()
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.isAuthenticating = false
+                if success {
+                    self.startPeriodicUpdates()
+                    self.updatePlaybackInfo()
+                } else {
+                    // Retry authentication after a delay if it fails
+                    DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 5) { [weak self] in
+                        self?.authenticateAndSetup()
+                    }
+                }
+            }
         }
     }
     
@@ -88,7 +108,7 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     func togglePlay() {
-        sendCommand(endpoint: "/playPause", method: "POST")
+        sendCommand(endpoint: "/toggle-play", method: "POST")
     }
     
     func nextTrack() {
@@ -146,25 +166,63 @@ class YouTubeMusicController: MediaControllerProtocol {
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.updatePlaybackInfo()
         }
+        refreshTimer?.tolerance = 0.5
     }
     
     private func updatePlaybackInfo() {
         guard let url = getAuthenticatedURL(for: "/api/v1/song") else { return }
         
-        URLSession.shared.dataTaskPublisher(for: url)
-            .map { data, response -> Data in
-                return data
-            }
-            .decode(type: PlaybackResponse.self, decoder: JSONDecoder())
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                if case .failure(let error) = completion {
-                    print("Error fetching playback status: \(error.localizedDescription)")
+        // Use a lower priority queue for network operations
+        let backgroundQueue = DispatchQueue.global(qos: .utility)
+        
+        // Run the network request on a background queue
+        backgroundQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            URLSession.shared.dataTaskPublisher(for: url)
+                .map { data, response -> (Data, HTTPURLResponse) in
+                    return (data, response as! HTTPURLResponse)
                 }
-            }, receiveValue: { [weak self] response in
-                self?.updatePlaybackState(with: response)
-            })
-            .store(in: &cancellables)
+                .tryMap { data, response -> Data in
+                    // Check for authentication errors
+                    if response.statusCode == 401 || response.statusCode == 403 {
+                        
+                        // Re-authenticate on main thread and throw error to trigger retry
+                        DispatchQueue.main.async { [weak self] in
+                            self?.accessToken = nil
+                            self?.authenticateAndSetup()
+                        }
+                        
+                        throw URLError(.userAuthenticationRequired)
+                    } else if response.statusCode < 200 || response.statusCode >= 300 {
+                        throw URLError(.badServerResponse)
+                    }
+                    
+                    return data
+                }
+                .decode(type: PlaybackResponse.self, decoder: JSONDecoder())
+                // Process the data on the background queue
+                .subscribe(on: backgroundQueue)
+                // Only use the main queue for the final UI update
+                .receive(on: DispatchQueue.main)
+                .sink(receiveCompletion: { [weak self] completion in
+                    if case .failure(let error) = completion {
+                        
+                        // For network errors, retry after a delay
+                        if let urlError = error as? URLError {
+                            // Retry logic for network issues
+                            let delay: TimeInterval = (urlError.code == .userAuthenticationRequired) ? 2.0 : 1.0
+                            DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + delay) { [weak self] in
+                                self?.updatePlaybackInfo()
+                            }
+                        }
+                    }
+                }, receiveValue: { [weak self] response in
+                    
+                    self?.updatePlaybackState(with: response)
+                })
+                .store(in: &self.cancellables)
+        }
     }
     
     private func updatePlaybackState(with response: PlaybackResponse) {
@@ -183,7 +241,7 @@ class YouTubeMusicController: MediaControllerProtocol {
         )
         
         // Load artwork if available
-        if let artworkURL = response.artworkURL, let url = URL(string: artworkURL) {
+        if let artworkURL = response.imageSrc, let url = URL(string: artworkURL) {
             DispatchQueue.global(qos: .background).async { [weak self] in
                 do {
                     let artworkData = try Data(contentsOf: url)
@@ -197,8 +255,6 @@ class YouTubeMusicController: MediaControllerProtocol {
                     }
                 }
             }
-        } else {
-            playbackState = newState
         }
     }
     
@@ -216,15 +272,30 @@ class YouTubeMusicController: MediaControllerProtocol {
         }
         
         URLSession.shared.dataTaskPublisher(for: request)
-            .map { data, response -> Data in
-                return data
+            .map { data, response -> (Data, HTTPURLResponse) in
+                return (data, response as! HTTPURLResponse)
             }
             .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
+            .sink(receiveCompletion: { [weak self] completion in
                 if case .failure(let error) = completion {
+                    // Attempt to recover from network errors by re-authenticating
+                    DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 1) { [weak self] in
+                        self?.authenticateAndSetup()
+                    }
                 }
-            }, receiveValue: { [weak self] _ in
-                self?.updatePlaybackInfo()
+            }, receiveValue: { [weak self] data, response in
+                if response.statusCode == 401 || response.statusCode == 403 {
+                    // Authentication error - token might be expired
+                    self?.accessToken = nil
+                    self?.authenticateAndSetup()
+                    
+                    // Try the command again after a short delay
+                    DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 2) { [weak self] in
+                        self?.sendCommand(endpoint: endpoint, method: method)
+                    }
+                } else if response.statusCode >= 200 && response.statusCode < 300 {
+                    self?.updatePlaybackInfo()
+                }
             })
             .store(in: &cancellables)
     }
@@ -257,5 +328,5 @@ struct PlaybackResponse: Codable {
     let album: String?
     let elapsedSeconds: Double
     let songDuration: Double
-    let artworkURL: String?
+    let imageSrc: String?
 }
