@@ -46,6 +46,7 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     case nowPlaying = "Now Playing"
     case appleMusic = "Apple Music"
     case spotify = "Spotify"
+    case youtubeMusic = "Youtube Music"
     
     var id: String { self.rawValue }
 }

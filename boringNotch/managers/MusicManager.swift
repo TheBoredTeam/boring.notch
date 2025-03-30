@@ -105,6 +105,8 @@ class MusicManager: ObservableObject {
             newController = AppleMusicController()
         case .spotify:
             newController = SpotifyController()
+        case .youtubeMusic:
+            newController = YouTubeMusicController()
         }
         
         // Set up state observation for the new controller
