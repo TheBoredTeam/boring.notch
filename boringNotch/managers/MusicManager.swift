@@ -111,31 +111,13 @@ class MusicManager: ObservableObject {
         
         // Set up state observation for the new controller
         if let controller = newController {
-            if let nowPlayingController = controller as? NowPlayingController {
-                nowPlayingController.$playbackState
-                    .sink { [weak self] state in
-                        guard let self = self,
-                              self.activeController === nowPlayingController else { return }
-                        self.updateFromPlaybackState(state)
-                    }
-                    .store(in: &controllerCancellables)
-            } else if let appleMusicController = controller as? AppleMusicController {
-                appleMusicController.playbackStatePublisher
-                    .sink { [weak self] state in
-                        guard let self = self,
-                              self.activeController === appleMusicController else { return }
-                        self.updateFromPlaybackState(state)
-                    }
-                    .store(in: &controllerCancellables)
-            } else if let spotifyController = controller as? SpotifyController {
-                spotifyController.playbackStatePublisher
-                    .sink { [weak self] state in
-                        guard let self = self,
-                              self.activeController === spotifyController else { return }
-                        self.updateFromPlaybackState(state)
-                    }
-                    .store(in: &controllerCancellables)
-            }
+            controller.playbackStatePublisher
+                .sink { [weak self] state in
+                    guard let self = self,
+                          self.activeController === controller else { return }
+                    self.updateFromPlaybackState(state)
+                }
+                .store(in: &controllerCancellables)
         }
         
         return newController
