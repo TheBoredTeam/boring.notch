@@ -16,10 +16,10 @@ import SwiftUIIntrospect
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject var batteryModel: BatteryStatusViewModel
-    @EnvironmentObject var musicManager: MusicManager
     @StateObject var webcamManager: WebcamManager = .init()
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var musicManager = MusicManager.shared
 
     @State private var hoverStartTime: Date?
     @State private var isHovering: Bool = false
@@ -220,7 +220,6 @@ struct ContentView: View {
         .background(dragDetector)
         .environmentObject(vm)
         .environmentObject(batteryModel)
-        .environmentObject(musicManager)
         .environmentObject(webcamManager)
     }
 

@@ -7,6 +7,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Boring Notch uses AppleScripts to control Spotify and Apple Music</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Show calender events inside the notch</string>
 	<key>SUEnableDownloaderService</key>
