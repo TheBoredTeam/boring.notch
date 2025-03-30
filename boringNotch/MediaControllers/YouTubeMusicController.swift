@@ -11,7 +11,7 @@ import SwiftUI
 
 class YouTubeMusicController: MediaControllerProtocol {
     // MARK: - Properties
-    @Published private var playbackState: PlaybackState = PlaybackState(
+    @Published var playbackState: PlaybackState = .init(
         bundleIdentifier: "com.github.th-ch.youtube-music",
         isPlaying: false,
         title: "",
@@ -50,26 +50,28 @@ class YouTubeMusicController: MediaControllerProtocol {
     
     private func getAccessToken(completion: @escaping (Bool) -> Void) {
         guard let url = URL(string: "\(baseURL)/auth/boringNotch") else {
-            print("Invalid authentication URL")
             completion(false)
             return
         }
         
-        URLSession.shared.dataTaskPublisher(for: url)
-            .map { $0.data }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        URLSession.shared.dataTaskPublisher(for: request)
+            .map { data, response -> Data in
+                return data
+            }
             .decode(type: AuthResponse.self, decoder: JSONDecoder())
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completionStatus in
                 switch completionStatus {
                 case .failure(let error):
-                    print("Authentication failed: \(error.localizedDescription)")
                     completion(false)
                 case .finished:
                     break
                 }
             }, receiveValue: { [weak self] response in
                 self?.accessToken = response.accessToken
-                print("Successfully obtained YouTube Music access token")
                 completion(true)
             })
             .store(in: &cancellables)
@@ -78,33 +80,55 @@ class YouTubeMusicController: MediaControllerProtocol {
     // MARK: - Protocol Implementation
     
     func play() {
-        sendCommand(endpoint: "/play")
+        sendCommand(endpoint: "/play", method: "POST")
     }
     
     func pause() {
-        sendCommand(endpoint: "/pause")
+        sendCommand(endpoint: "/pause", method: "POST")
     }
     
     func togglePlay() {
-        sendCommand(endpoint: "/playPause")
+        sendCommand(endpoint: "/playPause", method: "POST")
     }
     
     func nextTrack() {
-        sendCommand(endpoint: "/next")
+        sendCommand(endpoint: "/next", method: "POST")
     }
     
     func previousTrack() {
-        sendCommand(endpoint: "/previous")
+        sendCommand(endpoint: "/previous", method: "POST")
     }
     
     func seek(to time: Double) {
-        guard let url = getAuthenticatedURL(for: "/seek-to?position=\(time)") else { return }
+        guard let url = URL(string: "\(baseURL)/seek-to") else { return }
         
-        URLSession.shared.dataTaskPublisher(for: url)
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = accessToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            authenticateAndSetup()
+            return
+        }
+        
+        // Create the request body with the seconds value
+        let seekData = ["seconds": time]
+        
+        do {
+            request.httpBody = try JSONEncoder().encode(seekData)
+        } catch {
+            return
+        }
+        
+        URLSession.shared.dataTaskPublisher(for: request)
+            .map { data, response -> Data in
+                return data
+            }
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completion in
                 if case .failure(let error) = completion {
-                    print("Seek error: \(error.localizedDescription)")
                 }
             }, receiveValue: { [weak self] _ in
                 self?.updatePlaybackInfo()
@@ -125,10 +149,12 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     private func updatePlaybackInfo() {
-        guard let url = getAuthenticatedURL(for: "/song") else { return }
+        guard let url = getAuthenticatedURL(for: "/api/v1/song") else { return }
         
         URLSession.shared.dataTaskPublisher(for: url)
-            .map { $0.data }
+            .map { data, response -> Data in
+                return data
+            }
             .decode(type: PlaybackResponse.self, decoder: JSONDecoder())
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completion in
@@ -166,7 +192,6 @@ class YouTubeMusicController: MediaControllerProtocol {
                         self?.playbackState = newState
                     }
                 } catch {
-                    print("Failed to load artwork: \(error)")
                     DispatchQueue.main.async {
                         self?.playbackState = newState
                     }
@@ -177,14 +202,26 @@ class YouTubeMusicController: MediaControllerProtocol {
         }
     }
     
-    private func sendCommand(endpoint: String) {
-        guard let url = getAuthenticatedURL(for: endpoint) else { return }
+    private func sendCommand(endpoint: String, method: String = "GET") {
+        guard let url = URL(string: "\(baseURL)/api/v1\(endpoint)") else { return }
         
-        URLSession.shared.dataTaskPublisher(for: url)
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        
+        if let token = accessToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            authenticateAndSetup()
+            return
+        }
+        
+        URLSession.shared.dataTaskPublisher(for: request)
+            .map { data, response -> Data in
+                return data
+            }
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completion in
                 if case .failure(let error) = completion {
-                    print("Command error: \(error.localizedDescription)")
                 }
             }, receiveValue: { [weak self] _ in
                 self?.updatePlaybackInfo()
@@ -192,7 +229,7 @@ class YouTubeMusicController: MediaControllerProtocol {
             .store(in: &cancellables)
     }
     
-    private func getAuthenticatedURL(for endpoint: String) -> URL? {
+    private func getAuthenticatedURL(for endpoint: String) -> URLRequest? {
         guard let token = accessToken, let url = URL(string: "\(baseURL)\(endpoint)") else {
             if accessToken == nil {
                 // Token is missing, try to authenticate again
@@ -203,7 +240,7 @@ class YouTubeMusicController: MediaControllerProtocol {
         
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        return request.url
+        return request
     }
 }
 
