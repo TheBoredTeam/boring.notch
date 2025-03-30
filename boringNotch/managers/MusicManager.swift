@@ -23,6 +23,8 @@ class MusicManager: ObservableObject {
 
     // Music controllers
     private var nowPlayingController: NowPlayingController?
+    private var appleMusicController: AppleMusicController?
+    private var spotifyController: SpotifyController?
     private var activeController: (any MediaControllerProtocol)?
     
     // Published properties for UI
@@ -56,7 +58,8 @@ class MusicManager: ObservableObject {
     init() {
         // Initialize controllers
         nowPlayingController = NowPlayingController()
-
+        appleMusicController = AppleMusicController()
+        spotifyController = SpotifyController()
        
         setupControllers()
         activeController = nowPlayingController
@@ -78,6 +81,24 @@ class MusicManager: ObservableObject {
             .sink { [weak self] state in
                 guard let self = self, 
                       self.activeController === self.nowPlayingController else { return }
+                self.updateFromPlaybackState(state)
+            }
+            .store(in: &cancellables)
+        
+        // Setup Apple Music Controller
+        appleMusicController?.playbackStatePublisher
+            .sink { [weak self] state in
+                guard let self = self,
+                      self.activeController === self.appleMusicController else { return }
+                self.updateFromPlaybackState(state)
+            }
+            .store(in: &cancellables)
+        
+        // Setup Spotify Controller
+        spotifyController?.playbackStatePublisher
+            .sink { [weak self] state in
+                guard let self = self,
+                      self.activeController === self.spotifyController else { return }
                 self.updateFromPlaybackState(state)
             }
             .store(in: &cancellables)
