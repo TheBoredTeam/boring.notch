@@ -70,7 +70,21 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
     }
     
     deinit {
+        // Clean up all Combine subscribers
         cancellables.removeAll()
+        
+        // Remove distributed notification observers
+        DistributedNotificationCenter.default().removeObserver(
+            self,
+            name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
+            object: nil
+        )
+        
+        DistributedNotificationCenter.default().removeObserver(
+            self,
+            name: NSNotification.Name("com.apple.Music.playerInfo"),
+            object: nil
+        )
     }
     
     // MARK: - Protocol Implementation

@@ -461,12 +461,34 @@ struct HUD: View {
 
 struct Media: View {
     @Default(.waitInterval) var waitInterval
+    @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-
     @Default(.hideNotchOption) var hideNotchOption
 
     var body: some View {
         Form {
+            Section {
+                Picker("Music Source", selection: $mediaController) {
+                    ForEach(availableMediaControllers) { controller in
+                        Text(controller.rawValue).tag(controller)
+                    }
+                }
+                .onChange(of: mediaController) { _, _ in
+                    NotificationCenter.default.post(
+                        name: Notification.Name.mediaControllerChanged,
+                        object: nil
+                    )
+                }
+            } header: {
+                Text("Media Source")
+            } footer: {
+                Text(MusicManager.shared.isNowPlayingDeprecated
+                    ? ""
+                    : "'Now Playing' was the only option on previous versions and works with all media apps.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            
             Section {
                 Toggle(
                     "Enable music live activity",
@@ -503,6 +525,15 @@ struct Media: View {
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Media")
+    }
+    
+    // Only show controller options that are available on this macOS version
+    private var availableMediaControllers: [MediaControllerType] {
+        if MusicManager.shared.isNowPlayingDeprecated {
+            return MediaControllerType.allCases.filter { $0 != .nowPlaying }
+        } else {
+            return MediaControllerType.allCases
+        }
     }
 }
 

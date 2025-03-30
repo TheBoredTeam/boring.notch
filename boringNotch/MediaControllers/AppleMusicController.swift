@@ -38,7 +38,15 @@ class AppleMusicController: MediaControllerProtocol {
             object: nil
         )
     }
+    
+    deinit {
+        DistributedNotificationCenter.default().removeObserver(
+            self,
+            name: NSNotification.Name("com.apple.Music.playerInfo"),
+            object: nil
+        )
 
+    }
     
     // MARK: - Protocol Implementation
     func play() {

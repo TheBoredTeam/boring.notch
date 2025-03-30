@@ -38,7 +38,14 @@ class SpotifyController: MediaControllerProtocol {
         )
     }
     
-    
+    deinit {
+        // Remove notification observer when controller is deallocated
+        DistributedNotificationCenter.default().removeObserver(
+            self,
+            name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
+            object: nil
+        )
+    }
     
     // MARK: - Protocol Implementation
     func play() {
