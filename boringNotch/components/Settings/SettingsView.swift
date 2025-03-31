@@ -482,11 +482,20 @@ struct Media: View {
             } header: {
                 Text("Media Source")
             } footer: {
-                Text(MusicManager.shared.isNowPlayingDeprecated
-                    ? ""
-                    : "'Now Playing' was the only option on previous versions and works with all media apps.")
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
+                if MusicManager.shared.isNowPlayingDeprecated {
+                    HStack {
+                        Text("YouTube Music requires this third-party app to be installed: ")
+                            .foregroundStyle(.secondary)
+                            .font(.caption)
+                        Link("https://github.com/th-ch/youtube-music", destination: URL(string: "https://github.com/th-ch/youtube-music")!)
+                            .font(.caption)
+                            .foregroundColor(.blue) // Ensures it's visibly a link
+                    }
+                } else {
+                    Text("'Now Playing' was the only option on previous versions and works with all media apps.")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
             }
             
             Section {

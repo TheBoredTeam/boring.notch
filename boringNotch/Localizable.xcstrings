@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
     " – %lld" : {
 
     },
@@ -424,6 +421,9 @@
 
     },
     "High" : {
+
+    },
+    "https://github.com/th-ch/youtube-music" : {
 
     },
     "HUD style" : {
@@ -892,6 +892,9 @@
 
     },
     "What's New" : {
+
+    },
+    "YouTube Music requires this third-party app to be installed: " : {
 
     }
   },
