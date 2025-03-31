@@ -81,10 +81,10 @@ class AppleMusicController: MediaControllerProtocol {
     
     // MARK: - Private Methods
     @objc private func updatePlaybackInfo() {
-        if let updatedState = getPlaybackInfo() {
-            DispatchQueue.main.async { [weak self] in
-                self?.playbackState = updatedState
-            }
+        guard let updatedState = getPlaybackInfo() else { return }
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.playbackState = updatedState
         }
     }
     

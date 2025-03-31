@@ -21,9 +21,9 @@ class YouTubeMusicController: MediaControllerProtocol {
     private var accessToken: String?
     private var refreshTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
+    private var playbackInfoCancellable: AnyCancellable?
     private var isAuthenticating = false
     private let authQueue = DispatchQueue(label: "com.boringnotch.youtubemusicauth", qos: .background)
-    private let updateQueue = DispatchQueue(label: "com.boringnotch.youtubemusicupdate", qos: .utility)
     
     init() {
         authQueue.async { [weak self] in
@@ -189,7 +189,9 @@ class YouTubeMusicController: MediaControllerProtocol {
         backgroundQueue.async { [weak self] in
             guard let self = self else { return }
             
-            URLSession.shared.dataTaskPublisher(for: request)
+            playbackInfoCancellable?.cancel()
+            
+            playbackInfoCancellable = URLSession.shared.dataTaskPublisher(for: request)
                 .tryMap { data, response -> Data in
                     guard let httpResponse = response as? HTTPURLResponse else {
                         throw URLError(.badServerResponse)
@@ -212,23 +214,14 @@ class YouTubeMusicController: MediaControllerProtocol {
                 .decode(type: PlaybackResponse.self, decoder: JSONDecoder())
                 .subscribe(on: backgroundQueue)
                 .receive(on: DispatchQueue.main)
-                .sink(receiveCompletion: { [weak self] completion in
-                    if case .failure(let error) = completion {
-                        // Retry after a delay for recoverable errors
-                        let delay: TimeInterval = (error is URLError) ? 2.0 : 1.0
-                        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + delay) { [weak self] in
-                            self?.updatePlaybackInfo()
-                        }
-                    }
-                }, receiveValue: { [weak self] response in
+                .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] response in
                     self?.updatePlaybackState(with: response)
                 })
-                .store(in: &self.cancellables)
         }
     }
     
     private func updatePlaybackState(with response: PlaybackResponse) {
-        playbackState.isPlaying = !response.isPaused
+                playbackState.isPlaying = !response.isPaused
         playbackState.title = response.title
         playbackState.artist = response.artist
         playbackState.album = response.album ?? ""

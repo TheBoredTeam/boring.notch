@@ -18,7 +18,6 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
     var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
     private var cancellables = Set<AnyCancellable>()
     private var lastMusicItem: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
-    private var isInitializing: Bool = true
     
     // MARK: - Media Remote Functions
     private let mediaRemoteBundle: CFBundle
@@ -56,8 +55,6 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
         
         setupNowPlayingObserver()
         fetchNowPlayingInfo()
-        
-        isInitializing = false
     }
     
     deinit {
@@ -179,7 +176,7 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
             
             // Update playback state
             DispatchQueue.main.async {
-                self.playbackState.title = title
+                                self.playbackState.title = title
                 self.playbackState.artist = artist
                 self.playbackState.album = album
                 self.playbackState.duration = duration
@@ -194,7 +191,7 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
                         self?.playbackState.isPlaying = isPlaying
                     }
                 }
-            }
+                            }
         }
     }
 }
