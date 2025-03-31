@@ -13,17 +13,19 @@ import MacroVisionKit
 import SwiftUI
 
 class FullscreenMediaDetector: ObservableObject {
+    static let shared = FullscreenMediaDetector()
     let detector: MacroVisionKit
+    let musicManager: MusicManager
+    
     @Published var currentAppInFullScreen: Bool = false {
         didSet {
             objectWillChange.send()
         }
     }
     
-    var nowPlaying: NowPlaying = .init()
-    
-    init() {
+    private init() {
         self.detector = MacroVisionKit.shared
+        self.musicManager = MusicManager.shared
         detector.configuration.includeSystemApps = true
         setupNotificationObservers()
     }
@@ -55,7 +57,7 @@ class FullscreenMediaDetector: ObservableObject {
     func checkFullScreenStatus() {
         DispatchQueue.main.async {
             if let frontmostApp = NSWorkspace.shared.frontmostApplication {
-                let sameAsNowPlaying = !Defaults[.alwaysHideInFullscreen] ? frontmostApp.bundleIdentifier == self.nowPlaying.appBundleIdentifier : true
+                let sameAsNowPlaying = !Defaults[.alwaysHideInFullscreen] ? frontmostApp.bundleIdentifier == self.musicManager.bundleIdentifier : true
                 
                 NSLog(Defaults[.enableFullscreenMediaDetection] ? "Fullscreen media detection is enabled." : "Fullscreen media detection is disabled.")
                 NSLog("Determine if app is in fullscreen: \(String(describing: sameAsNowPlaying))")

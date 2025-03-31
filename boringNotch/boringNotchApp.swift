@@ -165,7 +165,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
 
-                self?.window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self!.vm)).environmentObject(self!.vm).environmentObject(MusicManager(vm: self!.vm)!))
+                self?.window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self!.vm)).environmentObject(self!.vm))
 
                 self?.adjustWindowPosition(changeAlpha: true)
 
@@ -232,7 +232,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 defer: false
             )
             
-            window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self.vm)).environmentObject(vm).environmentObject(MusicManager(vm: vm)!))
+            window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self.vm)).environmentObject(vm))
             
             adjustWindowPosition(changeAlpha: true)
             
@@ -292,7 +292,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     window.contentView = NSHostingView(
                         rootView: ContentView(batteryModel: .init(vm: viewModel))
                             .environmentObject(viewModel)
-                            .environmentObject(MusicManager(vm: viewModel)!)
                     )
                     windows[screen] = window
                     viewModels[screen] = viewModel

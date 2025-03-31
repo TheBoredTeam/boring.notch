@@ -24,6 +24,7 @@ struct ExpandedItem {
 
 class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var detector = FullscreenMediaDetector.shared
 
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
@@ -88,11 +89,6 @@ class BoringViewModel: NSObject, ObservableObject {
         
         notifier = coordinator.notifier
         self.screen = screen
-        self.notchSize = getClosedNotchSize(screen: screen)
-        self.closedNotchSize = notchSize
-
-        notifier = coordinator.notifier
-        self.screen = screen
         notchSize = getClosedNotchSize(screen: screen)
         closedNotchSize = notchSize
 
@@ -101,6 +97,18 @@ class BoringViewModel: NSObject, ObservableObject {
                 value1 || value2
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
+            .store(in: &cancellables)
+        
+        setupDetectorObserver()
+    }
+    
+    private func setupDetectorObserver() {
+        detector.$currentAppInFullScreen
+            .sink { [weak self] isFullScreen in
+                withAnimation(.smooth) {
+                    self?.showMusicLiveActivityOnClosed = !(isFullScreen)
+                }
+            }
             .store(in: &cancellables)
     }
     

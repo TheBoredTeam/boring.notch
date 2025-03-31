@@ -14,19 +14,18 @@ import SwiftUI
 
 struct MusicPlayerView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @EnvironmentObject var musicManager: MusicManager
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
         HStack {
-            AlbumArtView(musicManager: musicManager, vm: vm, albumArtNamespace: albumArtNamespace)
-            MusicControlsView(musicManager: musicManager).drawingGroup().compositingGroup()
+            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
+            MusicControlsView().drawingGroup().compositingGroup()
         }
     }
 }
 
 struct AlbumArtView: View {
-    @ObservedObject var musicManager: MusicManager
+    @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
 
@@ -97,17 +96,10 @@ struct AlbumArtView: View {
 }
 
 struct MusicControlsView: View {
-    @ObservedObject var musicManager: MusicManager
+    @ObservedObject var musicManager = MusicManager.shared
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
-    
-    private var playbackManager: PlaybackManager
-    
-    init(musicManager: MusicManager) {
-        self.musicManager = musicManager
-        self.playbackManager = PlaybackManager(musicManager: musicManager)
-    }
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -154,12 +146,13 @@ struct MusicControlsView: View {
                 dragging: $dragging,
                 currentDate: timeline.date,
                 lastUpdated: musicManager.lastUpdated,
+                ignoreLastUpdated: musicManager.ignoreLastUpdated,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
                 playbackRate: musicManager.playbackRate,
                 isPlaying: musicManager.isPlaying
             ) { newValue in
-                playbackManager.seekTrack(to: newValue)
+                MusicManager.shared.seek(to: newValue)
             }
             .padding(.top, 5)
             .frame(height: 36)
@@ -169,13 +162,13 @@ struct MusicControlsView: View {
     private var playbackControls: some View {
         HStack(spacing: 8) {
             HoverButton(icon: "backward.fill", scale: .medium) {
-                playbackManager.previousTrack()
+                MusicManager.shared.previousTrack()
             }
             HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
-                playbackManager.playPause()
+                MusicManager.shared.togglePlay()
             }
             HoverButton(icon: "forward.fill", scale: .medium) {
-                playbackManager.nextTrack()
+                MusicManager.shared.nextTrack()
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -186,7 +179,6 @@ struct MusicControlsView: View {
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @EnvironmentObject var musicManager: MusicManager
     @EnvironmentObject var batteryModel: BatteryStatusViewModel
     @EnvironmentObject var webcamManager: WebcamManager
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -235,6 +227,7 @@ struct MusicSliderView: View {
     @Binding var dragging: Bool
     let currentDate: Date
     let lastUpdated: Date
+    let ignoreLastUpdated: Bool
     let timestampDate: Date
     let elapsedTime: Double
     let playbackRate: Double
@@ -242,7 +235,8 @@ struct MusicSliderView: View {
     var onValueChange: (Double) -> Void
 
     var currentElapsedTime: Double {
-        guard !dragging, timestampDate > lastDragged, timestampDate > lastUpdated else { return sliderValue }
+        // A small buffer is needed to ensure a meaningful difference between the two dates
+        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -0.0001, (timestampDate > lastUpdated || ignoreLastUpdated) else { return sliderValue }
         let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
         let elapsed = elapsedTime + (timeDifference * playbackRate)
         return min(elapsed, duration)
@@ -343,7 +337,6 @@ struct CustomSlider: View {
 
 #Preview {
     NotchHomeView(albumArtNamespace: Namespace().wrappedValue)
-        .environmentObject(MusicManager(vm: BoringViewModel())!)
         .environmentObject(BoringViewModel())
         .environmentObject(BatteryStatusViewModel(vm: BoringViewModel()))
         .environmentObject(WebcamManager())

@@ -36,6 +36,21 @@ enum HideNotchOption: String, Defaults.Serializable {
     case never
 }
 
+// Define notification names at file scope
+extension Notification.Name {
+    static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
+}
+
+// Media controller types for selection in settings
+enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case nowPlaying = "Now Playing"
+    case appleMusic = "Apple Music"
+    case spotify = "Spotify"
+    case youtubeMusic = "Youtube Music"
+    
+    var id: String { self.rawValue }
+}
+
 extension Defaults.Keys {
         // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -126,4 +141,16 @@ extension Defaults.Keys {
     
     // MARK: Wobble Animation
     static let enableWobbleAnimation = Key<Bool>("enableWobbleAnimation", default: false)
+    
+    // MARK: Media Controller
+    static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
+    
+    // Helper to determine the default media controller based on macOS version
+    static var defaultMediaController: MediaControllerType {
+        if #available(macOS 15.4, *) {
+            return .appleMusic
+        } else {
+            return .nowPlaying
+        }
+    }
 }
