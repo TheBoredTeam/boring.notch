@@ -167,67 +167,112 @@ class MusicManager: ObservableObject {
 
     // MARK: - Update Methods
     private func updateFromPlaybackState(_ state: PlaybackState) {
-        if state.isPlaying != isPlaying {
-            self.lastUpdated = Date()
-        }
-        withAnimation(.smooth) {
-            self.isPlaying = state.isPlaying
-            
-            self.updateIdleState(state: state.isPlaying)
-            
-            if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
-                self.updateSneakPeek()
-            }
-        }
-        
-        let musicInfoChanged = (state.title != songTitle ||
-            state.artist != artistName ||
-            state.album != album)
-        
-        let artworkChanged = state.artwork != nil && state.artwork != artworkData
-        
-        if artworkChanged || musicInfoChanged {
-            // Trigger flip animation
-            flipWorkItem?.cancel()
-            let workItem = DispatchWorkItem { [weak self] in
-                self?.isFlipping = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    self?.isFlipping = false
-                }
-            }
-            flipWorkItem = workItem
-            DispatchQueue.main.async(execute: workItem)
-            
-
-            if let artwork = state.artwork {
-                updateArtwork(artwork)
-            } else if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
-                DispatchQueue.main.async {
-                    self.usingAppIconForArtwork = true
-                    self.updateAlbumArt(newAlbumArt: appIconImage)
-                }
-            }
-            artworkData = state.artwork
-
-            // Only update sneak peek if there's actual content
-            if musicInfoChanged && !state.title.isEmpty && !state.artist.isEmpty {
-                updateSneakPeek()
-            }
-        }
-
-        // Batch state updates
-        DispatchQueue.main.async { [weak self] in
+        // Create a batch of updates to apply together
+        let updateBatch = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             
-            self.bundleIdentifier = state.bundleIdentifier
-            self.artistName = state.artist
-            self.songTitle = state.title
-            self.album = state.album
-            self.songDuration = state.duration
-            self.elapsedTime = state.currentTime
+            // Check for playback state changes (playing/paused)
+            if state.isPlaying != self.isPlaying {
+                self.lastUpdated = Date()
+                withAnimation(.smooth) {
+                    self.isPlaying = state.isPlaying
+                    self.updateIdleState(state: state.isPlaying)
+                }
+                
+                if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
+                    self.updateSneakPeek()
+                }
+            }
+            
+            // Check for changes in track metadata
+            let titleChanged = state.title != self.songTitle
+            let artistChanged = state.artist != self.artistName
+            let albumChanged = state.album != self.album
+            
+            // Check for artwork changes
+            let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
+            let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged
+            
+            // Handle artwork and visual transitions for changed content
+            if hasContentChange {
+                // Trigger flip animation only when visible content changes
+                self.triggerFlipAnimation()
+                
+                // Update artwork if it changed
+                if artworkChanged, let artwork = state.artwork {
+                    self.updateArtwork(artwork)
+                } else if hasContentChange && state.artwork == nil {
+                    // Try to use app icon if no artwork but track changed
+                    if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
+                        self.usingAppIconForArtwork = true
+                        self.updateAlbumArt(newAlbumArt: appIconImage)
+                    }
+                }
+                self.artworkData = state.artwork
+                
+                // Only update sneak peek if there's actual content and something changed
+                if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
+                    self.updateSneakPeek()
+                }
+            }
+            
+            // Update time-related properties only if they changed
+            let timeChanged = state.currentTime != self.elapsedTime
+            let durationChanged = state.duration != self.songDuration
+            let playbackRateChanged = state.playbackRate != self.playbackRate
+            
+            // Update playback state properties individually to avoid unnecessary renders
+            if titleChanged {
+                self.songTitle = state.title
+            }
+            
+            if artistChanged {
+                self.artistName = state.artist
+            }
+            
+            if albumChanged {
+                self.album = state.album
+            }
+            
+            if timeChanged {
+                self.elapsedTime = state.currentTime
+            }
+            
+            if durationChanged {
+                self.songDuration = state.duration
+            }
+            
+            if playbackRateChanged {
+                self.playbackRate = state.playbackRate
+            }
+            
+            // Update bundle identifier and timestamps
+            if state.bundleIdentifier != self.bundleIdentifier {
+                self.bundleIdentifier = state.bundleIdentifier
+            }
+            
+            // Always update timestamp for time calculations
             self.timestampDate = state.lastUpdated
-            self.playbackRate = state.playbackRate
         }
+        
+        // Execute the batch update on the main thread
+        DispatchQueue.main.async(execute: updateBatch)
+    }
+    
+    private func triggerFlipAnimation() {
+        // Cancel any existing animation
+        flipWorkItem?.cancel()
+        
+        // Create a new animation
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.isFlipping = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                self?.isFlipping = false
+            }
+        }
+        
+        flipWorkItem = workItem
+        DispatchQueue.main.async(execute: workItem)
     }
 
     private func updateArtwork(_ artworkData: Data) {

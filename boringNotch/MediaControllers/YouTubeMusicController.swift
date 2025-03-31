@@ -221,7 +221,7 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     private func updatePlaybackState(with response: PlaybackResponse) {
-                playbackState.isPlaying = !response.isPaused
+        playbackState.isPlaying = !response.isPaused
         playbackState.title = response.title
         playbackState.artist = response.artist
         playbackState.album = response.album ?? ""
