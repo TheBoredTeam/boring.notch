@@ -11,15 +11,7 @@ import Combine
 class SpotifyController: MediaControllerProtocol {
     // MARK: - Properties
     @Published private var playbackState: PlaybackState = PlaybackState(
-        bundleIdentifier: "com.spotify.client",
-        isPlaying: false,
-        title: "",
-        artist: "",
-        album: "",
-        currentTime: 0,
-        duration: 0,
-        playbackRate: 1,
-        lastUpdated: Date()
+        bundleIdentifier: "com.spotify.client"
     )
     
     var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }

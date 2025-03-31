@@ -11,15 +11,7 @@ import Combine
 class AppleMusicController: MediaControllerProtocol {
     // MARK: - Properties
     @Published private var playbackState: PlaybackState = PlaybackState(
-        bundleIdentifier: "com.apple.Music",
-        isPlaying: false,
-        title: "",
-        artist: "",
-        album: "",
-        currentTime: 0,
-        duration: 0,
-        playbackRate: 1,
-        lastUpdated: Date()
+        bundleIdentifier: "com.apple.Music"
     )
     
     var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }

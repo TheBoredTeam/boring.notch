@@ -97,15 +97,19 @@ class MusicManager: ObservableObject {
         case .nowPlaying:
             // Only create NowPlayingController if not deprecated on this macOS version
             if !self.isNowPlayingDeprecated {
+                ignoreLastUpdated = false
                 newController = NowPlayingController()
             } else {
                 return nil
             }
         case .appleMusic:
+            ignoreLastUpdated = true
             newController = AppleMusicController()
         case .spotify:
+            ignoreLastUpdated = true
             newController = SpotifyController()
         case .youtubeMusic:
+            ignoreLastUpdated = true
             newController = YouTubeMusicController()
         }
         

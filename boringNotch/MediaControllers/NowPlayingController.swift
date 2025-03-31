@@ -12,16 +12,7 @@ import Foundation
 class NowPlayingController: ObservableObject, MediaControllerProtocol {
     // MARK: - Properties
     @Published var playbackState: PlaybackState = .init(
-        bundleIdentifier: "com.apple.Music", 
-        isPlaying: false, 
-        title: "", 
-        artist: "", 
-        album: "", 
-        currentTime: 0, 
-        duration: 0,
-        playbackRate: 1,
-        lastUpdated: Date(),
-        artwork: nil
+        bundleIdentifier: "com.apple.Music"
     )
     
     var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
