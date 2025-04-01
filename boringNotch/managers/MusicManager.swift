@@ -195,10 +195,8 @@ class MusicManager: ObservableObject {
             
             // Handle artwork and visual transitions for changed content
             if hasContentChange {
-                // Trigger flip animation only when visible content changes
                 self.triggerFlipAnimation()
                 
-                // Update artwork if it changed
                 if artworkChanged, let artwork = state.artwork {
                     self.updateArtwork(artwork)
                 } else if hasContentChange && state.artwork == nil {
@@ -216,12 +214,10 @@ class MusicManager: ObservableObject {
                 }
             }
             
-            // Update time-related properties only if they changed
             let timeChanged = state.currentTime != self.elapsedTime
             let durationChanged = state.duration != self.songDuration
             let playbackRateChanged = state.playbackRate != self.playbackRate
             
-            // Update playback state properties individually to avoid unnecessary renders
             if titleChanged {
                 self.songTitle = state.title
             }
@@ -246,12 +242,10 @@ class MusicManager: ObservableObject {
                 self.playbackRate = state.playbackRate
             }
             
-            // Update bundle identifier and timestamps
             if state.bundleIdentifier != self.bundleIdentifier {
                 self.bundleIdentifier = state.bundleIdentifier
             }
             
-            // Always update timestamp for time calculations
             self.timestampDate = state.lastUpdated
         }
         
