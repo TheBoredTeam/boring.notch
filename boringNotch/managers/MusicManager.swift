@@ -302,7 +302,8 @@ class MusicManager: ObservableObject {
                 }
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + Defaults[.waitInterval], execute: debounceToggle!)
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + Defaults[.waitInterval], execute: debounceToggle!)
         }
     }
 

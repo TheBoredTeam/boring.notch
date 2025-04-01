@@ -41,6 +41,7 @@ class BoringViewCoordinator: ObservableObject {
     @Published var currentView: NotchViews = .home
     private var sneakPeekDispatch: DispatchWorkItem?
     
+    
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @AppStorage("musicLiveActivityEnabled") var musicLiveActivityEnabled: Bool = true
@@ -88,26 +89,26 @@ class BoringViewCoordinator: ObservableObject {
     }
     
     func setupWorkersNotificationObservers() {
-        notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
-        notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeekEvent)
-    }
+            notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
+            notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeekEvent)
+        }
     
     @objc func sneakPeekEvent(_ notification: Notification) {
-        let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data) {
-            let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
+            let decoder = JSONDecoder()
+            if let decodedData = try? decoder.decode(SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data) {
+                let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
 
-            let value = CGFloat((NumberFormatter().number(from: decodedData.value) ?? 0.0).floatValue)
-            let icon = decodedData.icon
-            
-            print(decodedData)
-            
-            toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
-            
-        } else {
-            print("Failed to decode JSON data")
+                let value = CGFloat((NumberFormatter().number(from: decodedData.value) ?? 0.0).floatValue)
+                let icon = decodedData.icon
+                
+                print(decodedData)
+                
+                toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
+                
+            } else {
+                print("Failed to decode JSON data")
+            }
         }
-    }
     
     func toggleSneakPeek(status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0, icon: String = "") {
         sneakPeekDuration = duration
@@ -132,6 +133,7 @@ class BoringViewCoordinator: ObservableObject {
     }
     
     private var sneakPeekDuration: TimeInterval = 1.5
+    
     @Published var sneakPeek: sneakPeek = .init() {
         didSet {
             if sneakPeek.show {
@@ -146,7 +148,7 @@ class BoringViewCoordinator: ObservableObject {
                 }
                 DispatchQueue.main
                     .asyncAfter(
-                        deadline: .now() + sneakPeekDuration,
+                        deadline: .now() + self.sneakPeekDuration,
                         execute: sneakPeekDispatch!
                     )
             }
