@@ -20,6 +20,10 @@ struct ContentView: View {
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
+    
+    @StateObject var volumeObserver = VolumeChangeObserver()
+    @State private var showVolumeIndicator = false
+    @State private var debounceTimer: Timer?
 
     @State private var hoverStartTime: Date?
     @State private var isHovering: Bool = false
@@ -39,6 +43,26 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
+            // Display VolumeView when a volume button is pressed
+                        Group {
+                            Rectangle()
+                                .fill(Color.black)
+                                .frame(width: getNotchCurrentWidth() + (hoverAnimation ? 12 : 0), height: 30 + (hoverAnimation ? 12 : 0))
+                                .mask{ HUDShape().frame(height: 40)}
+                                .overlay(
+                                    VolumeView(volumeObserver: volumeObserver, notchWidth: getNotchCurrentWidth())
+                                )
+                                .offset(y: showVolumeIndicator ? getOffset() : -40)
+                                .animation(.easeInOut, value: showVolumeIndicator)
+                        }
+                        .onAppear {
+                            NotificationCenter.default.addObserver(forName: NSNotification.Name("ShowVolumeIndicator"), object: nil, queue: .main) { _ in
+                                withAnimation {
+                                    triggerVolumeIndicator()
+                                }
+                            }
+                        }
+            
             NotchLayout()
                 //.frame(alignment: .top)
                 .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (cornerRadiusInsets.opened - 5) : (cornerRadiusInsets.closed - 5) : 12)
@@ -380,6 +404,32 @@ struct ContentView: View {
         }
         .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
     }
+    
+    private func getNotchCurrentWidth()-> CGFloat{
+            
+            if $musicManager.isPlaying.wrappedValue {
+                return vm.closedNotchSize.width + 50
+            }
+            return vm.closedNotchSize.width - 6
+            
+        }
+        
+        private func getOffset()-> CGFloat{
+            if vm.notchState == .closed{
+                return vm.closedNotchSize.height - 8
+            } else if vm.notchState == .open {
+                return openNotchSize.height - 43
+            }
+            return 0.0
+        }
+        
+        private func triggerVolumeIndicator(){
+            showVolumeIndicator = true
+            debounceTimer?.invalidate()
+            debounceTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
+                showVolumeIndicator = false
+            }
+        }
 
     @ViewBuilder
     var dragDetector: some View {

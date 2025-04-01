@@ -55,6 +55,9 @@
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
+		94BBB6A22D9C73B30072DC8F /* VolumeChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94BBB6A12D9C73A20072DC8F /* VolumeChangeObserver.swift */; };
+		94BBB6A52D9C74330072DC8F /* HUDShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94BBB6A42D9C742A0072DC8F /* HUDShape.swift */; };
+		94BBB6A72D9C74570072DC8F /* VolumeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94BBB6A62D9C74540072DC8F /* VolumeView.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
 		9A987A052C73CA66005CA465 /* Ext+FileProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A9879FB2C73CA66005CA465 /* Ext+FileProvider.swift */; };
@@ -174,6 +177,9 @@
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
+		94BBB6A12D9C73A20072DC8F /* VolumeChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeChangeObserver.swift; sourceTree = "<group>"; };
+		94BBB6A42D9C742A0072DC8F /* HUDShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDShape.swift; sourceTree = "<group>"; };
+		94BBB6A62D9C74540072DC8F /* VolumeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeView.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A9879FB2C73CA66005CA465 /* Ext+FileProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Ext+FileProvider.swift"; sourceTree = "<group>"; };
@@ -272,6 +278,7 @@
 		14288DE22C6E016F00B9F80C /* observers */ = {
 			isa = PBXGroup;
 			children = (
+				94BBB6A12D9C73A20072DC8F /* VolumeChangeObserver.swift */,
 				B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */,
 			);
 			path = observers;
@@ -288,6 +295,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				94BBB6A32D9C74210072DC8F /* HUD */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				B1C448992C97375A001F0858 /* Tips */,
 				14C08BB72C8DE49E000F8AA0 /* Calender */,
@@ -454,6 +462,15 @@
 				14D570D42C5F710B0011E668 /* constants.swift */,
 			);
 			path = strings;
+			sourceTree = "<group>";
+		};
+		94BBB6A32D9C74210072DC8F /* HUD */ = {
+			isa = PBXGroup;
+			children = (
+				94BBB6A62D9C74540072DC8F /* VolumeView.swift */,
+				94BBB6A42D9C742A0072DC8F /* HUDShape.swift */,
+			);
+			path = HUD;
 			sourceTree = "<group>";
 		};
 		9A0887332C7AFF7E00C160EA /* Tabs */ = {
@@ -678,9 +695,11 @@
 				B1D365CE2C6A979C0047BDBC /* LiveActivityModifier.swift in Sources */,
 				14D570C02C5EA5870011E668 /* AnimatedFace.swift in Sources */,
 				B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */,
+				94BBB6A22D9C73B30072DC8F /* VolumeChangeObserver.swift in Sources */,
 				B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */,
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
 				9A0887322C7A693000C160EA /* TabButton.swift in Sources */,
+				94BBB6A52D9C74330072DC8F /* HUDShape.swift in Sources */,
 				B10A848C2C7BCD150088BFFC /* AirDrop.swift in Sources */,
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
 				B141C23F2CA5F51E00AC8CC8 /* ProOnboarding.swift in Sources */,
@@ -748,6 +767,7 @@
 				B15063542C63E18700EBB0E3 /* SettingsView.swift in Sources */,
 				B1628BAA2CC40EB0003D8DF3 /* NotchOutline.swift in Sources */,
 				B141C23D2CA5F51200AC8CC8 /* ActivationView.swift in Sources */,
+				94BBB6A72D9C74570072DC8F /* VolumeView.swift in Sources */,
 				14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */,
 				149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */,
 				14288E0C2C6F8EC000B9F80C /* AppIcons.swift in Sources */,
