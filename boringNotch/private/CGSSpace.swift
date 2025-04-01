@@ -5,6 +5,8 @@
 //  Created by Alexander Greco on 2024-10-27.
 //
 
+import AppKit
+
 /// Small Spaces API wrapper.
 public final class CGSSpace {
     private let identifier: CGSSpaceID

@@ -145,6 +145,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(forName: Notification.Name.notchHeightChanged, object: nil, queue: nil) { [weak self] _ in
             self?.adjustWindowPosition()
         }
+        
+        NotificationCenter.default.addObserver(forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil) { [weak self] _ in
+            self?.window.alphaValue = self?.coordinator.selectedScreen == self?.coordinator.preferredScreen ? 1 : 0
+        }
 
         NotificationCenter.default.addObserver(forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil) { [weak self] _ in
             if(!Defaults[.showOnAllDisplays]) {
@@ -161,7 +165,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
 
-                self?.window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self!.vm)).environmentObject(self!.vm).environmentObject(MusicManager(vm: self!.vm)!))
+                self?.window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self!.vm)).environmentObject(self!.vm))
 
                 self?.adjustWindowPosition(changeAlpha: true)
 
@@ -227,7 +231,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 defer: false
             )
             
-            window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self.vm)).environmentObject(vm).environmentObject(MusicManager(vm: vm)!))
+            window.contentView = NSHostingView(rootView: ContentView(batteryModel: .init(vm: self.vm)).environmentObject(vm))
             
             adjustWindowPosition(changeAlpha: true)
             
@@ -264,9 +268,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func screenConfigurationDidChange() {
         let currentScreens = NSScreen.screens
-        let screensChanged = currentScreens.count != previousScreens?.count || 
-            Set(currentScreens.map { $0.localizedName }) != Set(previousScreens?.map { $0.localizedName } ?? [])
-        
+        let screensChanged = currentScreens.count != previousScreens?.count ||
+        Set(currentScreens.map { $0.localizedName }) != Set(previousScreens?.map { $0.localizedName } ?? []) || Set(currentScreens.map { $0.frame }) != Set(previousScreens?.map { $0.frame } ?? [])
         if screensChanged {
             previousScreens = currentScreens
             cleanupWindows()
@@ -288,7 +291,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     window.contentView = NSHostingView(
                         rootView: ContentView(batteryModel: .init(vm: viewModel))
                             .environmentObject(viewModel)
-                            .environmentObject(MusicManager(vm: viewModel)!)
                     )
                     windows[screen] = window
                     viewModels[screen] = viewModel
@@ -314,10 +316,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } else {
             if !NSScreen.screens.contains(where: {$0.localizedName == coordinator.preferredScreen}) {
+                guard Defaults[.automaticallySwitchDisplay] else {
+                    window.alphaValue = 0
+                    return
+                }
                 coordinator.selectedScreen = NSScreen.main?.localizedName ?? "Unknown"
+            } else {
+                coordinator.selectedScreen = coordinator.preferredScreen
             }
             
             let selectedScreen = NSScreen.screens.first(where: {$0.localizedName == coordinator.selectedScreen})
+            vm.screen = selectedScreen?.localizedName
             vm.notchSize = getClosedNotchSize(screen: selectedScreen?.localizedName)
      
             if let screenFrame = selectedScreen {
@@ -361,4 +370,5 @@ extension Notification.Name {
     static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
     static let notchHeightChanged = Notification.Name("NotchHeightChanged")
     static let showOnAllDisplaysChanged = Notification.Name("showOnAllDisplaysChanged")
+    static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
 }

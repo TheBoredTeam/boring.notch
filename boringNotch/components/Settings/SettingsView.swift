@@ -84,6 +84,7 @@ struct SettingsView: View {
             if scenePhase == .active {
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
+                NSApp.keyWindow?.makeKeyAndOrderFront(nil)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
@@ -93,6 +94,8 @@ struct SettingsView: View {
         .introspect(.window, on: .macOS(.v14, .v15)) { window in
             window.toolbarStyle = .unified
             window.styleMask.update(with: .resizable)
+            
+            window.setContentSize(NSSize(width: 750, height: 700))
         }
     }
 }
@@ -107,12 +110,12 @@ struct GeneralSettings: View {
     @Default(.showEmojis) var showEmojis
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
-    // @State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
+    @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
@@ -155,10 +158,7 @@ struct GeneralSettings: View {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
                 Defaults.Toggle(key: .showOnAllDisplays) {
-                    HStack {
-                        Text("Show on all displays")
-                        customBadge(text: "Beta")
-                    }
+                    Text("Show on all displays")
                 }
                 .onChange(of: showOnAllDisplays) {
                     NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
@@ -169,18 +169,21 @@ struct GeneralSettings: View {
                     }
                 }
                 .onChange(of: NSScreen.screens) {
-                    screens = NSScreen.screens.compactMap { $0.localizedName }
+                    screens =  NSScreen.screens.compactMap({$0.localizedName})
                 }
+                .disabled(showOnAllDisplays)
+                Defaults.Toggle("Automatically switch displays", key: .automaticallySwitchDisplay)
+                .onChange(of: automaticallySwitchDisplay) {
+                    NotificationCenter.default.post(name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
+                }
+                .disabled(showOnAllDisplays)
             } header: {
                 Text("System features")
             }
             
             Section {
                 Picker(selection: $notchHeightMode, label:
-                    HStack {
-                        Text("Notch display height")
-                        customBadge(text: "Beta")
-                    }) {
+                    Text("Notch display height")) {
                         Text("Match real notch size")
                             .tag(WindowHeightMode.matchRealNotchSize)
                         Text("Match menubar height")
@@ -195,15 +198,15 @@ struct GeneralSettings: View {
                         case .matchMenuBar:
                             notchHeight = 44
                         case .custom:
-                            nonNotchHeight = 38
+                            notchHeight = 38
                         }
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 if notchHeightMode == .custom {
-                    Slider(value: $nonNotchHeight, in: 15...45, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                    Slider(value: $notchHeight, in: 15...45, step: 1) {
+                        Text("Custom notch size - \(notchHeight, specifier: "%.0f")")
                     }
-                    .onChange(of: nonNotchHeight) {
+                    .onChange(of: notchHeight) {
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
@@ -458,16 +461,47 @@ struct HUD: View {
 
 struct Media: View {
     @Default(.waitInterval) var waitInterval
+    @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-
     @Default(.hideNotchOption) var hideNotchOption
 
     var body: some View {
         Form {
             Section {
+                Picker("Music Source", selection: $mediaController) {
+                    ForEach(availableMediaControllers) { controller in
+                        Text(controller.rawValue).tag(controller)
+                    }
+                }
+                .onChange(of: mediaController) { _, _ in
+                    NotificationCenter.default.post(
+                        name: Notification.Name.mediaControllerChanged,
+                        object: nil
+                    )
+                }
+            } header: {
+                Text("Media Source")
+            } footer: {
+                if MusicManager.shared.isNowPlayingDeprecated {
+                    HStack {
+                        Text("YouTube Music requires this third-party app to be installed: ")
+                            .foregroundStyle(.secondary)
+                            .font(.caption)
+                        Link("https://github.com/th-ch/youtube-music", destination: URL(string: "https://github.com/th-ch/youtube-music")!)
+                            .font(.caption)
+                            .foregroundColor(.blue) // Ensures it's visibly a link
+                    }
+                } else {
+                    Text("'Now Playing' was the only option on previous versions and works with all media apps.")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+            }
+            
+            Section {
                 Toggle(
                     "Enable music live activity",
-                    isOn: $coordinator.showMusicLiveActivityOnClosed.animation()
+                    isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
                 Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
                 HStack {
@@ -500,6 +534,15 @@ struct Media: View {
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Media")
+    }
+    
+    // Only show controller options that are available on this macOS version
+    private var availableMediaControllers: [MediaControllerType] {
+        if MusicManager.shared.isNowPlayingDeprecated {
+            return MediaControllerType.allCases.filter { $0 != .nowPlaying }
+        } else {
+            return MediaControllerType.allCases
+        }
     }
 }
 

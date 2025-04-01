@@ -4,6 +4,9 @@
     " – %lld" : {
 
     },
+    "'Now Playing' was the only option on previous versions and works with all media apps." : {
+
+    },
     "(%@)" : {
       "localizations" : {
         "en" : {
@@ -420,6 +423,9 @@
     "High" : {
 
     },
+    "https://github.com/th-ch/youtube-music" : {
+
+    },
     "HUD style" : {
 
     },
@@ -513,6 +519,9 @@
         }
       }
     },
+    "Media Source" : {
+
+    },
     "Medium" : {
 
     },
@@ -540,6 +549,9 @@
 
     },
     "More" : {
+
+    },
+    "Music Source" : {
 
     },
     "muted" : {
@@ -880,6 +892,9 @@
 
     },
     "What's New" : {
+
+    },
+    "YouTube Music requires this third-party app to be installed: " : {
 
     }
   },

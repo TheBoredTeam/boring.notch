@@ -16,10 +16,10 @@ import SwiftUIIntrospect
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject var batteryModel: BatteryStatusViewModel
-    @EnvironmentObject var musicManager: MusicManager
     @StateObject var webcamManager: WebcamManager = .init()
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var musicManager = MusicManager.shared
 
     @State private var hoverStartTime: Date?
     @State private var isHovering: Bool = false
@@ -169,7 +169,7 @@ struct ContentView: View {
                 .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
                     view
                         .panGesture(direction: .up) { translation, phase in
-                            if vm.notchState == .open {
+                            if vm.notchState == .open && !vm.isHoveringCalendar {
                                 withAnimation(.smooth) {
                                     gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
                                 }
@@ -223,7 +223,6 @@ struct ContentView: View {
         .background(dragDetector)
         .environmentObject(vm)
         .environmentObject(batteryModel)
-        .environmentObject(musicManager)
         .environmentObject(webcamManager)
     }
 
@@ -266,7 +265,7 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                               .transition(.opacity)
-                      } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.showMusicLiveActivityOnClosed {
+                      } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled {
                           MusicLiveActivity()
                       } else {
                           BoringHeader()

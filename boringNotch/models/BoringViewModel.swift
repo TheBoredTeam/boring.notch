@@ -24,6 +24,7 @@ struct ExpandedItem {
 
 class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var detector = FullscreenMediaDetector.shared
 
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
@@ -38,6 +39,9 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var dropEvent: Bool = false
     @Published var anyDropZoneTargeting: Bool = false
     var cancellables: Set<AnyCancellable> = []
+    
+    @Published var showMusicLiveActivityOnClosed: Bool = true
+    @Published var isHoveringCalendar: Bool = false
 
     var screen: String?
 
@@ -61,6 +65,14 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
 
+    @AppStorage("preferred_screen_name") var preferredScreen = NSScreen.main?.localizedName ?? "Unknown" {
+        didSet {
+            selectedScreen = preferredScreen
+            NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
+        }
+    }
+    
+    @Published var selectedScreen: String = NSScreen.main?.localizedName ?? "Unknown"
     deinit {
         destroy()
     }
@@ -74,7 +86,7 @@ class BoringViewModel: NSObject, ObservableObject {
         animation = animationLibrary.animation
 
         super.init()
-
+        
         notifier = coordinator.notifier
         self.screen = screen
         notchSize = getClosedNotchSize(screen: screen)
@@ -85,6 +97,18 @@ class BoringViewModel: NSObject, ObservableObject {
                 value1 || value2
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
+            .store(in: &cancellables)
+        
+        setupDetectorObserver()
+    }
+    
+    private func setupDetectorObserver() {
+        detector.$currentAppInFullScreen
+            .sink { [weak self] isFullScreen in
+                withAnimation(.smooth) {
+                    self?.showMusicLiveActivityOnClosed = !(isFullScreen)
+                }
+            }
             .store(in: &cancellables)
     }
     
@@ -108,12 +132,6 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
 
-    func toggleMusicLiveActivity(status: Bool) {
-        withAnimation(.smooth) {
-            self.coordinator.showMusicLiveActivityOnClosed = status
-        }
-    }
-
     func toggleExpandingView(status: Bool, type: SneakContentType, value: CGFloat = 0, browser: BrowserType = .chromium) {
         if expandingView.show {
             withAnimation(.smooth) {
@@ -131,9 +149,10 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func close() {
-        withAnimation(.smooth) {
-            self.notchSize = getClosedNotchSize(screen: screen)
-            closedNotchSize = notchSize
+        withAnimation(.smooth) { [weak self] in
+            guard let self = self else { return }
+            self.notchSize = getClosedNotchSize(screen: self.screen)
+            self.closedNotchSize = self.notchSize
             self.notchState = .closed
         }
 
@@ -145,7 +164,7 @@ class BoringViewModel: NSObject, ObservableObject {
             coordinator.currentView = .home
         }
     }
-
+    
     func openClipboard() {
         notifier.postNotification(name: notifier.showClipboardNotification.name, userInfo: nil)
     }
