@@ -242,7 +242,7 @@ struct ContentView: View {
 //                    .keyboardShortcut("E", modifiers: .command)
                 }
         }
-        .frame(maxWidth: openNotchSize.width + 40, maxHeight: openNotchSize.height + 20, alignment: .top)
+        .frame(width: openNotchSize.width + 40, height: openNotchSize.height + 80, alignment: .top)
         .shadow(color: ((vm.notchState == .open || hoverAnimation) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear, radius: Defaults[.cornerRadiusScaling] ? 10 : 5)
         .background(dragDetector)
         .environmentObject(vm)
