@@ -68,8 +68,7 @@ struct ContentView: View {
                         .animation(notchStateAnimation, value: vm.notchState)
                 }
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
-                    view.onHover { systemHovering in
-                        let hovering = systemHovering || vm.isMouseHovering()
+                    view.onHover { hovering in
 
                         if hovering {
                             // Use Core Animation for hover state
