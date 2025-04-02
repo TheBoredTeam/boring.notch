@@ -410,7 +410,7 @@ struct ContentView: View {
             if $musicManager.isPlaying.wrappedValue {
                 return vm.closedNotchSize.width + 50
             }
-            return vm.closedNotchSize.width - 6
+            return vm.closedNotchSize.width - 10
             
         }
         
@@ -418,7 +418,7 @@ struct ContentView: View {
             if vm.notchState == .closed{
                 return vm.closedNotchSize.height - 8
             } else if vm.notchState == .open {
-                return openNotchSize.height - 43
+                return openNotchSize.height
             }
             return 0.0
         }
