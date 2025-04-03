@@ -50,7 +50,7 @@ struct ContentView: View {
                                 .frame(width: getNotchCurrentWidth() + (hoverAnimation ? 12 : 0), height: 30 + (hoverAnimation ? 12 : 0))
                                 .mask{ HUDShape().frame(height: 40)}
                                 .overlay(
-                                    VolumeView(volumeObserver: volumeObserver, notchWidth: getNotchCurrentWidth())
+                                    VolumeView(volumeObserver: volumeObserver, notchWidth: getNotchCurrentWidth(), color: $musicManager.isPlaying.wrappedValue ? Color(nsColor: musicManager.avgColor) : .white)
                                 )
                                 .offset(y: showVolumeIndicator ? getOffset() : -40)
                                 .animation(.easeInOut, value: showVolumeIndicator)

@@ -13,10 +13,12 @@ struct VolumeView: View {
     @ObservedObject var volumeObserver: VolumeChangeObserver
     
     private var notchWidth: CGFloat
+    private var color: Color
     
-    init(volumeObserver: VolumeChangeObserver, notchWidth: CGFloat) {
+    init(volumeObserver: VolumeChangeObserver, notchWidth: CGFloat, color: Color) {
         self.volumeObserver = volumeObserver
         self.notchWidth = notchWidth
+        self.color = color
     }
     
     
@@ -24,11 +26,11 @@ struct VolumeView: View {
         HStack{
             Image(systemName: volumeObserver.isInternal ? iconForVolume(volumeObserver.currentVolume) : "headphones") // if the output's device is different from internal speaker, we use headphones icon
                 .font(.caption)
-                .foregroundColor(.white)
+                .foregroundColor(color)
             ProgressView(
                 value: Double(volumeObserver.currentVolume ?? 0.0), total: 1.0
             )
-            .progressViewStyle(CustomProgressViewStyle(progressColor: .white, width: self.notchWidth - 50))
+            .progressViewStyle(CustomProgressViewStyle(progressColor: color, width: self.notchWidth - 50))
             .padding()
             .frame(width: self.notchWidth - 50, height: 20)
         }.frame(maxWidth: self.notchWidth, maxHeight: .infinity, alignment: .center)
@@ -75,4 +77,8 @@ struct VolumeView: View {
             return "speaker.fill"
         }
     }
+}
+
+#Preview {
+    VolumeView(volumeObserver: VolumeChangeObserver(), notchWidth: 200, color: .red)
 }
