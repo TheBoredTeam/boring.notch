@@ -102,6 +102,8 @@
 		B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D365CF2C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift */; };
 		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		DAA6FFF52DA02CD400F53B8F /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA6FFF42DA02CC500F53B8F /* AudioDevice.swift */; };
+		DAA6FFF72DA02D0600F53B8F /* AudioDeviceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA6FFF62DA02D0400F53B8F /* AudioDeviceView.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -219,6 +221,8 @@
 		B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareUpdater.swift; sourceTree = "<group>"; };
 		B1ECFA032C6FE58A002ACD87 /* CoreDisplay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreDisplay.framework; path = ../../../../../System/Library/Frameworks/CoreDisplay.framework; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		DAA6FFF42DA02CC500F53B8F /* AudioDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDevice.swift; sourceTree = "<group>"; };
+		DAA6FFF62DA02D0400F53B8F /* AudioDeviceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceView.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -262,6 +266,7 @@
 		14288DD92C6E015000B9F80C /* helpers */ = {
 			isa = PBXGroup;
 			children = (
+				DAA6FFF42DA02CC500F53B8F /* AudioDevice.swift */,
 				1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */,
 				14288DD62C6E015000B9F80C /* AudioPlayer.swift */,
 				14288E0B2C6F8EC000B9F80C /* AppIcons.swift */,
@@ -272,6 +277,7 @@
 		14288DE22C6E016F00B9F80C /* observers */ = {
 			isa = PBXGroup;
 			children = (
+				DAA6FFF62DA02D0400F53B8F /* AudioDeviceView.swift */,
 				B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */,
 			);
 			path = observers;
@@ -681,6 +687,7 @@
 				B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */,
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
 				9A0887322C7A693000C160EA /* TabButton.swift in Sources */,
+				DAA6FFF72DA02D0600F53B8F /* AudioDeviceView.swift in Sources */,
 				B10A848C2C7BCD150088BFFC /* AirDrop.swift in Sources */,
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
 				B141C23F2CA5F51E00AC8CC8 /* ProOnboarding.swift in Sources */,
@@ -733,6 +740,7 @@
 				14CEF4182C5CAED300855D72 /* ContentView.swift in Sources */,
 				9A987A0D2C73CA66005CA465 /* NotchShelfView.swift in Sources */,
 				14D570B62C5E961A0011E668 /* NotchShape.swift in Sources */,
+				DAA6FFF52DA02CD400F53B8F /* AudioDevice.swift in Sources */,
 				9A987A0A2C73CA66005CA465 /* TrayDrop.swift in Sources */,
 				14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */,
 				B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */,

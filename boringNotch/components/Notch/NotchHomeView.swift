@@ -19,7 +19,7 @@ struct MusicPlayerView: View {
     var body: some View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
-            MusicControlsView().drawingGroup().compositingGroup()
+            MusicControlsView()//.drawingGroup().compositingGroup()
         }
     }
 }
@@ -96,6 +96,7 @@ struct AlbumArtView: View {
 }
 
 struct MusicControlsView: View {
+    @StateObject private var audioMonitor = AudioDeviceMonitor()
     @ObservedObject var musicManager = MusicManager.shared
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
@@ -113,7 +114,19 @@ struct MusicControlsView: View {
     private var songInfoAndSlider: some View {
         GeometryReader { geo in
             VStack(alignment: .leading, spacing: 4) {
-                songInfo(width: geo.size.width)
+                HStack{
+                    songInfo(width: geo.size.width)
+                    Rectangle()
+                        .fill(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor).gradient : Color.gray.gradient)
+                        .frame(width: 50, alignment: .center)
+//                        .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
+                        .mask {
+                            AudioSpectrumView(isPlaying: $musicManager.isPlaying)
+                                .frame(width: 16, height: 12)
+                        }
+                        .frame(width: max(0,40),
+                               height: max(0,40), alignment: .center)
+                }
                 musicSlider
             }
         }
@@ -170,10 +183,65 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
+            OutputDeviceIcon(outputDevice: audioMonitor.outputDeviceName)
+
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
 }
+
+struct OutputDeviceIcon: View {
+    let outputDevice: String
+
+    var iconName: String {
+        let lower = outputDevice.lowercased()
+        if lower.contains("airpods") {
+            return "airpodspro"
+        } else if lower.contains("speaker") {
+            return "speaker.wave.3.fill"
+        } else if lower.contains("headphones") {
+            return "headphones"
+        } else if lower.contains("display") || lower.contains("hdmi") {
+            return "display"
+        } else {
+            return "hifispeaker.fill"
+        }
+    }
+
+    var isBuiltIn: Bool {
+        outputDevice.lowercased().contains("built-in")
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: iconName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 34, height: 34)
+                .padding(.leading, 10)
+                .foregroundStyle(.primary)
+
+            if !isBuiltIn {
+                Text(outputDevice)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .foregroundStyle(.secondary)
+                    .transition(.opacity.combined(with: .move(edge: .trailing))) // 👈 fancy transition
+                    .animation(.easeInOut(duration: 0.3), value: isBuiltIn)     // 👈 animate it
+            }
+        }
+        .padding(.vertical, 6)
+        .padding(.trailing, 12)
+        .background(
+            isBuiltIn
+                ? AnyShapeStyle(Color.clear)
+                : AnyShapeStyle(.ultraThinMaterial)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+}
+
 
 // MARK: - Main View
 
@@ -340,4 +408,6 @@ struct CustomSlider: View {
         .environmentObject(BoringViewModel())
         .environmentObject(BatteryStatusViewModel(vm: BoringViewModel()))
         .environmentObject(WebcamManager())
+    OutputDeviceIcon(outputDevice: "Harsh’s AirPods Pro")
+
 }
