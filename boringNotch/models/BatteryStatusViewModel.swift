@@ -57,7 +57,7 @@ class BatteryStatusViewModel: ObservableObject {
                     print("🔌 Power source: \(isPluggedIn ? "Connected" : "Disconnected")")
                     withAnimation {
                         self.isPluggedIn = isPluggedIn
-                        self.statusText = isPluggedIn ? "Plugged In" : "Unplugged"
+                        self.statusText = isPluggedIn ? "Charging" : "Unplugged"
                         self.notifyImportanChangeStatus()
                     }
                 
@@ -110,7 +110,7 @@ class BatteryStatusViewModel: ObservableObject {
             self.isInLowPowerMode = batteryInfo.isInLowPowerMode
             self.timeToFullCharge = batteryInfo.timeToFullCharge
             self.maxCapacity = batteryInfo.maxCapacity
-            self.statusText = batteryInfo.isPluggedIn ? "Plugged In" : "Unplugged"
+            self.statusText = batteryInfo.isPluggedIn ? "Charging" : "Unplugged"
         }
         notifyImportanChangeStatus(delay: coordinator.firstLaunch ? 6 : 0.0)
         withAnimation {

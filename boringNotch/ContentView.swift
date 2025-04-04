@@ -251,7 +251,6 @@ struct ContentView: View {
 
                             HStack {
                                 BoringBatteryView(
-                                    batteryWidth: 30,
                                     isCharging: batteryModel.isCharging,
                                     isInLowPowerMode: batteryModel.isInLowPowerMode,
                                     isPluggedIn: batteryModel.isPluggedIn,
