@@ -1,6 +1,35 @@
 import SwiftUI
 import Defaults
 
+// MARK: - LeftRoundedFill
+struct LeftRoundedFill: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        let radius: CGFloat = 4
+        let height = rect.height
+        let width = rect.width
+
+        path.move(to: CGPoint(x: 0, y: height / 2))
+        path.addArc(center: CGPoint(x: radius, y: radius),
+                    radius: radius,
+                    startAngle: .degrees(180),
+                    endAngle: .degrees(270),
+                    clockwise: false)
+        path.addLine(to: CGPoint(x: width, y: 0))
+        path.addLine(to: CGPoint(x: width, y: height))
+        path.addLine(to: CGPoint(x: radius, y: height))
+        path.addArc(center: CGPoint(x: radius, y: height - radius),
+                    radius: radius,
+                    startAngle: .degrees(90),
+                    endAngle: .degrees(180),
+                    clockwise: false)
+        path.closeSubpath()
+
+        return path
+    }
+}
+
 /// A view that displays the battery status with an icon and charging indicator.
 struct BatteryView: View {
 
@@ -10,6 +39,10 @@ struct BatteryView: View {
     var isInLowPowerMode: Bool
     var batteryWidth: CGFloat = 26
     var isForNotification: Bool
+    var radius: CGFloat = 5
+    var height: CGFloat { batteryWidth / 1.9 }
+    var capWidth: CGFloat { 1.5 }
+
 
     var animationStyle: BoringAnimations = BoringAnimations()
 
@@ -41,39 +74,81 @@ struct BatteryView: View {
         }
     }
 
+    /// Battery background color logic
+    var backgroundColor: Color {
+        return batteryColor.opacity(0.3)
+    }
+
+    /// Battery cap color logic
+    var capColor: Color {
+        levelBattery == 100 ? batteryColor : backgroundColor
+    }
+
     var body: some View {
         ZStack(alignment: .leading) {
 
-            Image(systemName: icon)
-                .resizable()
-                .fontWeight(.thin)
-                .aspectRatio(contentMode: .fit)
-                .foregroundColor(.white.opacity(0.5))
-                .frame(
-                    width: batteryWidth + 1
-                )
+//            Image(systemName: icon)
+//                .resizable()
+//                .fontWeight(.thin)
+//                .aspectRatio(contentMode: .fit)
+//                .foregroundColor(.white.opacity(0.5))
+//                .frame(
+//                    width: batteryWidth + 1
+//                )
+            
+            
 
-            RoundedRectangle(cornerRadius: 2.5)
-                .fill(batteryColor)
-                .frame(
-                    width: CGFloat(((CGFloat(CFloat(levelBattery)) / 100) * (batteryWidth - 6))),
-                    height: (batteryWidth - 2.75) - 18
-                )
-                .padding(.leading, 2)
+//            RoundedRectangle(cornerRadius: 2.5)
+//                .fill(batteryColor)
+//                .frame(
+//                    width: CGFloat(((CGFloat(CFloat(levelBattery)) / 100) * (batteryWidth - 6))),
+//                    height: (batteryWidth - 2.75) - 18
+//                )
+//                .padding(.leading, 2)
 
-            if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
-                ZStack {
-                    Image(iconStatus)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .foregroundColor(.white)
-                        .frame(
-                            width: 17,
-                            height: 17
-                        )
-                }
-                .frame(width: batteryWidth, height: batteryWidth)
-            }
+//            if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
+//                ZStack {
+//                    Image(iconStatus)
+//                        .resizable()
+//                        .aspectRatio(contentMode: .fit)
+//                        .foregroundColor(.white)
+//                        .frame(
+//                            width: 17,
+//                            height: 17
+//                        )
+//                }
+//                .frame(width: batteryWidth, height: batteryWidth)
+//            }
+            
+            
+            
+            // Battery container + cap
+                        HStack(spacing: 0) {
+                            RoundedRectangle(cornerRadius: radius)
+                                .fill(backgroundColor)
+                                .frame(width: batteryWidth, height: height)
+
+                            RoundedRectangle(cornerRadius: radius)
+                                .fill(capColor)
+                                .frame(width: capWidth, height: height * 0.4)
+                                .padding(.leading, 1)
+                        }
+            // Battery fill
+                        GeometryReader { _ in
+                            let fillWidth = max(CGFloat(levelBattery) / 100 * batteryWidth, 2)
+
+                            if levelBattery == 100 {
+                                RoundedRectangle(cornerRadius: radius)
+                                    .fill(batteryColor)
+                                    .frame(width: fillWidth, height: height)
+                            } else {
+                                LeftRoundedFill()
+                                    .fill(batteryColor)
+                                    .frame(width: fillWidth, height: height)
+                            }
+                        }
+                        .frame(width: batteryWidth, height: height)
+                    
         }
     }
 }
@@ -175,13 +250,26 @@ struct BoringBatteryView: View {
     
     @State private var showPopupMenu: Bool = false
     @State private var isPressed: Bool = false
+    
+    /// Text color logic matching your battery logic
+    private var batteryTextColor: Color {
+        if isCharging || isPluggedIn {
+            return .green
+        } else if levelBattery <= 20 {
+            return .red
+        } else {
+            // If above 20% and not plugged in or charging, it's white
+            return .white
+        }
+    }
 
+    
     var body: some View {
         HStack {
             if Defaults[.showBatteryPercentage] {
                 Text("\(Int32(levelBattery))%")
                     .font(.callout)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(batteryTextColor)
             }
             BatteryView(
                 levelBattery: levelBattery,
@@ -223,16 +311,52 @@ struct BoringBatteryView: View {
         }
     }
 }
+// MARK: - Previews
+#Preview("Battery Previews") {
+    VStack(spacing: 12) {
+        BoringBatteryView(
+            batteryWidth: 20,
+            isCharging: false,
+            isInLowPowerMode: false,
+            isPluggedIn: false,
+            levelBattery: 15,
+            isForNotification: true
+        )
+        .padding()
+        .background(.black)
 
-#Preview {
-    BoringBatteryView(
-        batteryWidth: 30,
-        isCharging: false,
-        isInLowPowerMode: false,
-        isPluggedIn: true,
-        levelBattery: 80,
-        maxCapacity: 100,
-        timeToFullCharge: 10,
-        isForNotification: false
-    ).frame(width: 200, height: 200)
+        BoringBatteryView(
+            batteryWidth: 20,
+            isCharging: false,
+            isInLowPowerMode: false,
+            isPluggedIn: false,
+            levelBattery: 60,
+            isForNotification: true
+        )
+        .padding()
+        .background(.black)
+        
+        BoringBatteryView(
+            batteryWidth: 20,
+            isCharging: true,
+            isInLowPowerMode: false,
+            isPluggedIn: true,
+            levelBattery: 60,
+            isForNotification: true
+        )
+        .padding()
+        .background(.black)
+
+        BoringBatteryView(
+            batteryWidth: 20,
+            isCharging: true,
+            isInLowPowerMode: false,
+            isPluggedIn: true,
+            levelBattery: 100,
+            isForNotification: true
+        )
+        .padding()
+        .background(.black)
+    }
 }
+
