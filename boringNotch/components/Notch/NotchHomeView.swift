@@ -185,11 +185,8 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
-            OutputDeviceIcon(outputDevice: getCurrentOutputDeviceName() ?? "Unknown", namespace: namespace)
-                .onTapGesture {
-                    toggleOutputDevice()
-                }
-
+            OutputDeviceIcon(outputDevice: audioMonitor.outputDeviceName, namespace: namespace)
+              
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
