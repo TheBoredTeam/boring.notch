@@ -98,6 +98,8 @@ struct AlbumArtView: View {
 struct MusicControlsView: View {
     @StateObject private var audioMonitor = AudioDeviceMonitor()
     @ObservedObject var musicManager = MusicManager.shared
+    @Namespace private var namespace
+
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
@@ -183,64 +185,16 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
-            OutputDeviceIcon(outputDevice: audioMonitor.outputDeviceName)
+            OutputDeviceIcon(outputDevice: getCurrentOutputDeviceName() ?? "Unknown", namespace: namespace)
+                .onTapGesture {
+                    toggleOutputDevice()
+                }
 
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
-struct OutputDeviceIcon: View {
-    let outputDevice: String
-
-    var iconName: String {
-        let lower = outputDevice.lowercased()
-        if lower.contains("airpods") {
-            return "airpodspro"
-        } else if lower.contains("speaker") {
-            return "speaker.wave.3.fill"
-        } else if lower.contains("headphones") {
-            return "headphones"
-        } else if lower.contains("display") || lower.contains("hdmi") {
-            return "display"
-        } else {
-            return "hifispeaker.fill"
-        }
-    }
-
-    var isBuiltIn: Bool {
-        outputDevice.lowercased().contains("built-in")
-    }
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: iconName)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 34, height: 34)
-                .padding(.leading, 10)
-                .foregroundStyle(.primary)
-
-            if !isBuiltIn {
-                Text(outputDevice)
-                    .font(.headline)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .foregroundStyle(.secondary)
-                    .transition(.opacity.combined(with: .move(edge: .trailing))) // 👈 fancy transition
-                    .animation(.easeInOut(duration: 0.3), value: isBuiltIn)     // 👈 animate it
-            }
-        }
-        .padding(.vertical, 6)
-        .padding(.trailing, 12)
-        .background(
-            isBuiltIn
-                ? AnyShapeStyle(Color.clear)
-                : AnyShapeStyle(.ultraThinMaterial)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-    }
-}
 
 
 // MARK: - Main View
@@ -404,10 +358,12 @@ struct CustomSlider: View {
 }
 
 #Preview {
+    @Namespace var ns
+
     NotchHomeView(albumArtNamespace: Namespace().wrappedValue)
         .environmentObject(BoringViewModel())
         .environmentObject(BatteryStatusViewModel(vm: BoringViewModel()))
         .environmentObject(WebcamManager())
-    OutputDeviceIcon(outputDevice: "Harsh’s AirPods Pro")
+    OutputDeviceIcon(outputDevice: "Harsh’s AirPods Pro",namespace: ns)
 
 }

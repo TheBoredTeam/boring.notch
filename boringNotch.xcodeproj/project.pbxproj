@@ -104,6 +104,7 @@
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		DAA6FFF52DA02CD400F53B8F /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA6FFF42DA02CC500F53B8F /* AudioDevice.swift */; };
 		DAA6FFF72DA02D0600F53B8F /* AudioDeviceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA6FFF62DA02D0400F53B8F /* AudioDeviceView.swift */; };
+		DAA6FFFF2DA040B000F53B8F /* OutputDeviceIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA6FFFE2DA040A300F53B8F /* OutputDeviceIcon.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -223,6 +224,7 @@
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		DAA6FFF42DA02CC500F53B8F /* AudioDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDevice.swift; sourceTree = "<group>"; };
 		DAA6FFF62DA02D0400F53B8F /* AudioDeviceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceView.swift; sourceTree = "<group>"; };
+		DAA6FFFE2DA040A300F53B8F /* OutputDeviceIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputDeviceIcon.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -517,6 +519,7 @@
 		B186542E2C6F453B000B926A /* Music */ = {
 			isa = PBXGroup;
 			children = (
+				DAA6FFFE2DA040A300F53B8F /* OutputDeviceIcon.swift */,
 				B19424082CD0FEFE003E5DC2 /* LottieAnimationView.swift */,
 				147163972C5D35B70068B555 /* MusicVisualizer.swift */,
 			);
@@ -690,6 +693,7 @@
 				DAA6FFF72DA02D0600F53B8F /* AudioDeviceView.swift in Sources */,
 				B10A848C2C7BCD150088BFFC /* AirDrop.swift in Sources */,
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
+				DAA6FFFF2DA040B000F53B8F /* OutputDeviceIcon.swift in Sources */,
 				B141C23F2CA5F51E00AC8CC8 /* ProOnboarding.swift in Sources */,
 				B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
