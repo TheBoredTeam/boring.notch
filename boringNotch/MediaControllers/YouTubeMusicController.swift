@@ -103,6 +103,11 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     func togglePlay() {
+        if !isActive() {
+            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: playbackState.bundleIdentifier) {
+                NSWorkspace.shared.open(url)
+            }
+        }
         sendCommand(endpoint: "/toggle-play", method: "POST")
         updatePlaybackInfo()
     }
@@ -169,7 +174,8 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     func isActive() -> Bool {
-        return accessToken != nil
+        let runningApps = NSWorkspace.shared.runningApplications
+        return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
     }
     
     // MARK: - Private Methods
@@ -182,6 +188,10 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     private func updatePlaybackInfo() {
+        if !isActive() {
+            playbackState = PlaybackState(bundleIdentifier: playbackState.bundleIdentifier, isPlaying: false)
+            return
+        }
         guard let request = createAuthenticatedRequest(for: "/api/v1/song") else { return }
         
         let backgroundQueue = DispatchQueue.global(qos: .utility)
