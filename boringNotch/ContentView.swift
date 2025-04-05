@@ -40,15 +40,13 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             NotchLayout()
-                //.frame(alignment: .top)
+                .frame(alignment: .top)
                 .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (cornerRadiusInsets.opened - 5) : (cornerRadiusInsets.closed - 5) : 12)
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                .frame(maxWidth: (((musicManager.isPlaying || !musicManager.isPlayerIdle) && vm.notchState == .closed && coordinator.musicLiveActivityEnabled && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || Defaults[.inlineHUD]) ? nil : vm.notchSize.width + ((hoverAnimation || (vm.notchState == .closed)) ? 20 : 0) + gestureProgress, maxHeight: ((coordinator.sneakPeek.show && coordinator.sneakPeek.type != .music) || (coordinator.sneakPeek.show && coordinator.sneakPeek.type == .music && vm.notchState == .closed)) ? nil : vm.notchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3, alignment: .top)
                 .background(.black)
                 .mask {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? cornerRadiusInsets.opened : cornerRadiusInsets.closed).drawingGroup()
                 }
-                .frame(width: vm.notchState == .closed ? (((musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && vm.showMusicLiveActivityOnClosed) || (vm.expandingView.show && (vm.expandingView.type == .battery)) || (Defaults[.inlineHUD] && coordinator.sneakPeek.show && coordinator.sneakPeek.type != .music)) ? nil : vm.closedNotchSize.width + (hoverAnimation ? 20 : 0) + gestureProgress : nil, height: vm.notchState == .closed ? vm.closedNotchSize.height + (hoverAnimation ? 8 : 0) + gestureProgress / 3 : nil, alignment: .top)
                 //.padding(.bottom, vm.notchState == .open ? 30 : 0) // Safe area to ensure the notch does not close if the cursor is within 30px of the notch from the bottom.
 
                 .conditionalModifier(!useModernCloseAnimation) { view in
@@ -216,7 +214,7 @@ struct ContentView: View {
 //                    .keyboardShortcut("E", modifiers: .command)
                 }
         }
-        .frame(maxWidth: openNotchSize.width + 40, maxHeight: openNotchSize.height + 20, alignment: .top)
+        .frame(maxWidth: openNotchSize.width, maxHeight: openNotchSize.height, alignment: .top)
         .shadow(color: ((vm.notchState == .open || hoverAnimation) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear, radius: Defaults[.cornerRadiusScaling] ? 10 : 5)
         .background(dragDetector)
         .environmentObject(vm)
@@ -265,11 +263,16 @@ struct ContentView: View {
                               .transition(.opacity)
                       } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && vm.showMusicLiveActivityOnClosed {
                           MusicLiveActivity()
-                      } else {
+                      } else if !vm.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] {
+                          BoringFaceAnimation().animation(.interactiveSpring, value: musicManager.isPlayerIdle)
+                      } else if vm.notchState == .open {
                           BoringHeader()
                               .frame(height: max(24, vm.closedNotchSize.height))
                               .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
-                      }
+                              .animation(.spring(response: 1, dampingFraction: 1, blendDuration: 0.8), value: vm.notchState)
+                       } else {
+                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.closedNotchSize.height)
+                       }
                       
                       if coordinator.sneakPeek.show && !Defaults[.inlineHUD] {
                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
