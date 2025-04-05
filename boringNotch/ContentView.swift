@@ -261,9 +261,9 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                               .transition(.opacity)
-                      } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && vm.showMusicLiveActivityOnClosed {
+                      } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
-                      } else if !vm.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] {
+                      } else if !vm.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation().animation(.interactiveSpring, value: musicManager.isPlayerIdle)
                       } else if vm.notchState == .open {
                           BoringHeader()
@@ -284,7 +284,7 @@ struct ContentView: View {
                               .padding(.leading, 4)
                               .padding(.trailing, 8)
                           } else if coordinator.sneakPeek.type != .battery {
-                              if vm.notchState == .closed {
+                              if vm.notchState == .closed && !vm.hideOnClosed {
                                   HStack(alignment: .center) {
                                       Image(systemName: "music.note")
                                       GeometryReader { geo in
@@ -299,7 +299,7 @@ struct ContentView: View {
                       }
                   }
               }
-              .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (musicManager.isPlaying || !musicManager.isPlayerIdle))) { view in
+              .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (musicManager.isPlaying || !musicManager.isPlayerIdle))) { view in
                   view
                       .fixedSize()
               }
