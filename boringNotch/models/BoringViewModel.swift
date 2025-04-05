@@ -130,6 +130,9 @@ class BoringViewModel: NSObject, ObservableObject {
             self.notchSize = CGSize(width: openNotchSize.width, height: openNotchSize.height)
             self.notchState = .open
         }
+        
+        // Force music information update when notch is opened
+        MusicManager.shared.forceUpdate()
     }
 
     func toggleExpandingView(status: Bool, type: SneakContentType, value: CGFloat = 0, browser: BrowserType = .chromium) {

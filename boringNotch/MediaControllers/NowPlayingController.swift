@@ -54,7 +54,7 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
         MRMediaRemoteSetElapsedTimeFunction = unsafeBitCast(MRMediaRemoteSetElapsedTimePointer, to: (@convention(c) (Double) -> Void).self)
         
         setupNowPlayingObserver()
-        fetchNowPlayingInfo()
+        updatePlaybackInfo()
     }
     
     deinit {
@@ -109,7 +109,7 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
         MRMediaRemoteRegisterForNowPlayingNotifications(DispatchQueue.main)
 
         NotificationCenter.default.publisher(for: NSNotification.Name("kMRMediaRemoteNowPlayingInfoDidChangeNotification"))
-            .sink { [weak self] _ in self?.fetchNowPlayingInfo() }
+            .sink { [weak self] _ in self?.updatePlaybackInfo() }
             .store(in: &cancellables)
 
         NotificationCenter.default.publisher(for: NSNotification.Name("kMRMediaRemoteNowPlayingApplicationDidChangeNotification"))
@@ -118,14 +118,14 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
 
         DistributedNotificationCenter.default().addObserver(
             self,
-            selector: #selector(fetchNowPlayingInfo),
+            selector: #selector(updatePlaybackInfo),
             name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
             object: nil
         )
 
         DistributedNotificationCenter.default().addObserver(
             self,
-            selector: #selector(fetchNowPlayingInfo),
+            selector: #selector(updatePlaybackInfo),
             name: NSNotification.Name("com.apple.Music.playerInfo"),
             object: nil
         )
@@ -159,7 +159,7 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
         }
     }
 
-    @objc func fetchNowPlayingInfo() {
+    @objc func updatePlaybackInfo() {
         updateApp()
 
         MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main) { [weak self] information in
@@ -191,7 +191,7 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
                         self?.playbackState.isPlaying = isPlaying
                     }
                 }
-                            }
+            }
         }
     }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
 class AppleMusicController: MediaControllerProtocol {
     // MARK: - Properties
@@ -67,36 +68,14 @@ class AppleMusicController: MediaControllerProtocol {
     }
     
     func isActive() -> Bool {
-        let script = """
-        tell application "System Events" to set isRunning to exists (processes where name is "Music")
-        set isPlaying to false
-        return isRunning
-        """
-        
-        if let result = AppleScriptHelper.execute(script) {
-            return result.booleanValue
-        }
-        return false
+        let runningApps = NSWorkspace.shared.runningApplications
+        return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
     }
     
     // MARK: - Private Methods
-    @objc private func updatePlaybackInfo() {
-        guard let updatedState = getPlaybackInfo() else { return }
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.playbackState = updatedState
-        }
-    }
-    
-    private func executeCommand(_ command: String) {
-        let script = "tell application \"Music\" to \(command)"
-        AppleScriptHelper.executeVoid(script)
-    }
-    
-    private func getPlaybackInfo() -> PlaybackState? {
-        guard let descriptor = fetchPlaybackInfo() else { return nil }
-        
-        guard descriptor.numberOfItems >= 8 else { return nil }
+    @objc func updatePlaybackInfo() {
+        guard let descriptor = fetchPlaybackInfo() else { return }
+        guard descriptor.numberOfItems >= 8 else { return }
         
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
         let currentTrack = descriptor.atIndex(2)?.stringValue ?? "Unknown"
@@ -108,9 +87,7 @@ class AppleMusicController: MediaControllerProtocol {
         let isRepeating = descriptor.atIndex(8)?.booleanValue ?? false
         let artworkData = descriptor.atIndex(9)?.data as Data?
         
-
-        
-        return PlaybackState(
+        let updatedState = PlaybackState(
             bundleIdentifier: "com.apple.Music",
             isPlaying: isPlaying,
             title: currentTrack,
@@ -124,6 +101,15 @@ class AppleMusicController: MediaControllerProtocol {
             lastUpdated: Date(),
             artwork: (artworkData?.isEmpty ?? true) ? nil : artworkData
         )
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.playbackState = updatedState
+        }
+    }
+    
+    private func executeCommand(_ command: String) {
+        let script = "tell application \"Music\" to \(command)"
+        AppleScriptHelper.executeVoid(script)
     }
     
     private func fetchPlaybackInfo() -> NSAppleEventDescriptor? {
