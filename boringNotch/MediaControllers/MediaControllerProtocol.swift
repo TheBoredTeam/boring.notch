@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import AppKit
+
 protocol MediaControllerProtocol: ObservableObject {
     var playbackStatePublisher: Published<PlaybackState>.Publisher { get }
     func play()
@@ -15,4 +17,5 @@ protocol MediaControllerProtocol: ObservableObject {
     func previousTrack()
     func togglePlay()
     func isActive() -> Bool
+    func updatePlaybackInfo()
 }

@@ -26,14 +26,16 @@ class YouTubeMusicController: MediaControllerProtocol {
     private let authQueue = DispatchQueue(label: "com.boringnotch.youtubemusicauth", qos: .background)
     
     init() {
+        setupAppStateObservers()
         authQueue.async { [weak self] in
             self?.authenticateAndSetup()
         }
     }
     
     deinit {
-        refreshTimer?.invalidate()
+        stopPeriodicUpdates()
         cancellables.forEach { $0.cancel() }
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
     }
     
     // MARK: - Authentication
@@ -103,6 +105,11 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     func togglePlay() {
+        if !isActive() {
+            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: playbackState.bundleIdentifier) {
+                NSWorkspace.shared.open(url)
+            }
+        }
         sendCommand(endpoint: "/toggle-play", method: "POST")
         updatePlaybackInfo()
     }
@@ -169,19 +176,77 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     func isActive() -> Bool {
-        return accessToken != nil
+        let runningApps = NSWorkspace.shared.runningApplications
+        return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
     }
     
     // MARK: - Private Methods
     
+    private func setupAppStateObservers() {
+        // Register for app launch notifications
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(handleAppStateChange),
+            name: NSWorkspace.didLaunchApplicationNotification,
+            object: nil
+        )
+        
+        // Register for app termination notifications
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(handleAppStateChange),
+            name: NSWorkspace.didTerminateApplicationNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func handleAppStateChange(notification: Notification) {
+        guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+              app.bundleIdentifier == playbackState.bundleIdentifier else {
+            return
+        }
+        
+        if notification.name == NSWorkspace.didLaunchApplicationNotification {
+            startPeriodicUpdates()
+        } else if notification.name == NSWorkspace.didTerminateApplicationNotification {
+            // App has terminated - update state and stop timer
+            stopPeriodicUpdates()
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.playbackState = PlaybackState(
+                    bundleIdentifier: self.playbackState.bundleIdentifier,
+                    isPlaying: false
+                )
+            }
+        }
+    }
+    
     private func startPeriodicUpdates() {
+        stopPeriodicUpdates() // Ensure we don't create multiple timers
+        
+        // Only start the timer if the app is actually running
+        guard isActive() else { return }
+        
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             self?.updatePlaybackInfo()
         }
         refreshTimer?.tolerance = 0.5
+        
+        // Initial update when timer starts
+        updatePlaybackInfo()
     }
     
-    private func updatePlaybackInfo() {
+    private func stopPeriodicUpdates() {
+        refreshTimer?.invalidate()
+        refreshTimer = nil
+    }
+    
+    func updatePlaybackInfo() {
+        if !isActive() {
+            playbackState = PlaybackState(bundleIdentifier: playbackState.bundleIdentifier, isPlaying: false)
+            stopPeriodicUpdates()
+            return
+        }
         guard let request = createAuthenticatedRequest(for: "/api/v1/song") else { return }
         
         let backgroundQueue = DispatchQueue.global(qos: .utility)
