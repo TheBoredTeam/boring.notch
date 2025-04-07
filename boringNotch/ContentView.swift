@@ -344,9 +344,22 @@ struct ContentView: View {
                 Color.clear
                     .aspectRatio(1, contentMode: .fit)
                     .background(
-                        Image(nsImage: musicManager.albumArt)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
+                        ZStack {
+                            Image(nsImage: musicManager.albumArt)
+                                .resizable()
+                                .interpolation(.high)
+                                .aspectRatio(contentMode: .fill)
+                                .blur(radius: 1.5)
+
+                            Image(systemName: "play")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 12, height: 12)
+                                .foregroundColor(musicManager.avgColor.usingColorSpace(.sRGB)!.brightnessComponent < 0.7 ? .white.opacity(0.7) : .black.opacity(0.7)
+)
+                        }
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                     )
                     .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed))
