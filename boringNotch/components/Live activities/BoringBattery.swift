@@ -67,7 +67,7 @@ struct BatteryView: View {
             return .yellow
         } else if levelBattery <= 20 && !isCharging && !isPluggedIn {
             return .red
-        } else if isCharging || isPluggedIn || levelBattery == 100 {
+        } else if isCharging || isPluggedIn && levelBattery == 100 {
             return .green
         } else {
             return .white
@@ -349,6 +349,17 @@ struct BoringBatteryView: View {
 
         BoringBatteryView(
             batteryWidth: 20,
+            isCharging: false,
+            isInLowPowerMode: false,
+            isPluggedIn: false,
+            levelBattery: 100,
+            isForNotification: true
+        )
+        .padding()
+        .background(.black)
+        
+        BoringBatteryView(
+            batteryWidth: 20,
             isCharging: true,
             isInLowPowerMode: false,
             isPluggedIn: true,
@@ -357,6 +368,7 @@ struct BoringBatteryView: View {
         )
         .padding()
         .background(.black)
+       
     }
 }
 
