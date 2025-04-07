@@ -40,7 +40,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var anyDropZoneTargeting: Bool = false
     var cancellables: Set<AnyCancellable> = []
     
-    @Published var showMusicLiveActivityOnClosed: Bool = true
+    @Published var hideOnClosed: Bool = true
     @Published var isHoveringCalendar: Bool = false
 
     var screen: String?
@@ -106,7 +106,7 @@ class BoringViewModel: NSObject, ObservableObject {
         detector.$currentAppInFullScreen
             .sink { [weak self] isFullScreen in
                 withAnimation(.smooth) {
-                    self?.showMusicLiveActivityOnClosed = !(isFullScreen)
+                    self?.hideOnClosed = isFullScreen
                 }
             }
             .store(in: &cancellables)
@@ -130,6 +130,9 @@ class BoringViewModel: NSObject, ObservableObject {
             self.notchSize = CGSize(width: openNotchSize.width, height: openNotchSize.height)
             self.notchState = .open
         }
+        
+        // Force music information update when notch is opened
+        MusicManager.shared.forceUpdate()
     }
 
     func toggleExpandingView(status: Bool, type: SneakContentType, value: CGFloat = 0, browser: BrowserType = .chromium) {

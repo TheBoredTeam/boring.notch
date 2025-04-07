@@ -381,4 +381,11 @@ class MusicManager: ObservableObject {
             print("Failed to find app with bundle ID: \(bundleID)")
         }
     }
+    
+    func forceUpdate() {
+        // Request immediate update from the active controller
+        DispatchQueue.main.async { [weak self] in
+            self?.activeController?.updatePlaybackInfo()
+        }
+    }
 }
