@@ -79,6 +79,7 @@ struct OutputDeviceIcon: View {
     @Namespace var ns
 
     Grid() {
+        //test
                   OutputDeviceIcon(outputDevice: "Harsh’s AirPods Max", namespace: ns)
                   OutputDeviceIcon(outputDevice: "My AirPods Pro", namespace: ns)
                   
