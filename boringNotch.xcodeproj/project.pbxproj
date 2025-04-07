@@ -1086,8 +1086,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/Defaults";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.2;
 			};
 		};
 		B19424072CD0DB52003E5DC2 /* XCRemoteSwiftPackageReference "LottieUI" */ = {

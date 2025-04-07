@@ -110,8 +110,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    private func cleanupWindows() {
-        if Defaults[.showOnAllDisplays] {
+    private func cleanupWindows(shouldInvert:Bool=false) {
+        if shouldInvert ? !Defaults[.showOnAllDisplays] : Defaults[.showOnAllDisplays] {
             for window in windows.values {
                 window.close()
                 NotchSpaceManager.shared.notchSpace.windows.remove(window)
@@ -185,7 +185,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         NotificationCenter.default.addObserver(forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil) { [weak self] _ in
             guard let self = self else { return }
-            self.cleanupWindows()
+            self.cleanupWindows(shouldInvert: true)
             
             if(!Defaults[.showOnAllDisplays]) {
                 let viewModel = self.vm

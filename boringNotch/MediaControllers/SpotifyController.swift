@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
 class SpotifyController: MediaControllerProtocol {
     // MARK: - Properties
@@ -66,37 +67,14 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     func isActive() -> Bool {
-        let script = """
-        tell application "System Events" to set isRunning to exists (processes where name is "Spotify")
-        return isRunning
-        """
-        
-        if let result = AppleScriptHelper.execute(script) {
-            return result.booleanValue
-        }
-        return false
+        let runningApps = NSWorkspace.shared.runningApplications
+        return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
     }
     
     // MARK: - Private Methods
-    @objc private func updatePlaybackInfo() {
-        guard let updatedState = getPlaybackInfo() else { return }
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.playbackState = updatedState
-        }
-    }
-    
-    private func executeCommand(_ command: String) {
-        let script = "tell application \"Spotify\" to \(command)"
-        AppleScriptHelper.executeVoid(script)
-    }
-    
-    private func getPlaybackInfo() -> PlaybackState? {
-        guard let descriptor = fetchPlaybackInfo() else { return nil }
-        
-        guard descriptor.numberOfItems >= 9 else { return nil }
-        
-        print(descriptor)
+    @objc func updatePlaybackInfo() {
+        guard let descriptor = fetchPlaybackInfo() else { return }
+        guard descriptor.numberOfItems >= 9 else { return }
         
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
         let currentTrack = descriptor.atIndex(2)?.stringValue ?? "Unknown"
@@ -122,6 +100,10 @@ class SpotifyController: MediaControllerProtocol {
             lastUpdated: Date()
         )
         
+        DispatchQueue.main.async { [weak self] in
+            self?.playbackState = state
+        }
+        
         // Load artwork asynchronously and update the state when complete
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
             DispatchQueue.global(qos: .background).async { [weak self] in
@@ -138,8 +120,11 @@ class SpotifyController: MediaControllerProtocol {
                 }
             }
         }
-        
-        return state
+    }
+    
+    private func executeCommand(_ command: String) {
+        let script = "tell application \"Spotify\" to \(command)"
+        AppleScriptHelper.executeVoid(script)
     }
     
     private func fetchPlaybackInfo() -> NSAppleEventDescriptor? {
