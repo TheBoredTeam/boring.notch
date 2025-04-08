@@ -630,6 +630,9 @@
         }
       }
     },
+    "OpenWeatherMap API Key" : {
+
+    },
     "Percentage" : {
       "localizations" : {
         "en" : {
@@ -835,6 +838,9 @@
     "Time to Full Charge: %lld min" : {
 
     },
+    "To get weather data, go to OpenWeatherMap.org and Sign up for an account and obtain a personal API Key to paste above. It's free!" : {
+
+    },
     "Toggle Notch Open:" : {
 
     },
@@ -881,6 +887,9 @@
           }
         }
       }
+    },
+    "Weather" : {
+
     },
     "Welcome" : {
 

@@ -38,8 +38,11 @@ struct BoringHeader: View {
                     }
             }
 
-            HStack(spacing: 4) {
+            HStack(spacing: 3) {
                 if vm.notchState == .open {
+                    if Defaults[.showWeatherIcon] {
+                        BoringWeather()
+                    }
                     if Defaults[.settingsIconInNotch] {
                         SettingsLink(label: {
                             Capsule()

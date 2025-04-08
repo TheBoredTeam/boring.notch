@@ -825,6 +825,23 @@ struct Appearance: View {
             }
             
             Section {
+                Defaults.Toggle("Show weather icon", key: .showWeatherIcon)
+                TextField("OpenWeatherMap API Key", text: Binding(get: {
+                    Defaults[.weatherAPIToken]
+                }, set: { newValue in
+                    Defaults[.weatherAPIToken] = newValue
+                }))
+                Defaults.Toggle("Display Temperature in Celsius", key: .temperatureCelsius)
+            } header: {
+                Text("Weather")
+            } footer: {
+                Text("To get weather data, go to OpenWeatherMap.org and Sign up for an account and obtain a personal API Key to paste above. It's free!")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            
+            Section {
                 Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
                 Defaults
                     .Toggle("Player tinting", key: .playerColorTinting)
