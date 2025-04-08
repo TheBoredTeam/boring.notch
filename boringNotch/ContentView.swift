@@ -44,24 +44,24 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             // Display VolumeView when a volume button is pressed
-                        Group {
-                            Rectangle()
-                                .fill(Color.black)
-                                .frame(width: getNotchCurrentWidth() + (hoverAnimation ? 12 : 0), height: 30 + (hoverAnimation ? 12 : 0))
-                                .mask{ HUDShape().frame(height: 40)}
-                                .overlay(
-                                    VolumeView(volumeObserver: volumeObserver, notchWidth: getNotchCurrentWidth(), color: $musicManager.isPlaying.wrappedValue ? Color(nsColor: musicManager.avgColor) : .white)
-                                )
-                                .offset(y: showVolumeIndicator ? getOffset() : -40)
-                                .animation(.easeInOut, value: showVolumeIndicator)
-                        }
-                        .onAppear {
-                            NotificationCenter.default.addObserver(forName: NSNotification.Name("ShowVolumeIndicator"), object: nil, queue: .main) { _ in
-                                withAnimation {
-                                    triggerVolumeIndicator()
-                                }
-                            }
-                        }
+            Group {
+                Rectangle()
+                    .fill(Color.black)
+                    .frame(width: getNotchCurrentWidth() + (hoverAnimation ? 12 : 0), height: 30 + (hoverAnimation ? 12 : 0))
+                    .mask{ HUDShape().frame(height: 40)}
+                    .overlay(
+                        VolumeView(volumeObserver: volumeObserver, notchWidth: getNotchCurrentWidth(), color: $musicManager.isPlaying.wrappedValue ? Color(nsColor: musicManager.avgColor) : .white)
+                    )
+                    .offset(y: showVolumeIndicator ? getOffset() : -40)
+                    .animation(.easeInOut, value: showVolumeIndicator)
+            }
+            .onAppear {
+                NotificationCenter.default.addObserver(forName: NSNotification.Name("ShowVolumeIndicator"), object: nil, queue: .main) { _ in
+                    withAnimation {
+                        triggerVolumeIndicator()
+                    }
+                }
+            }
             
             NotchLayout()
                 .frame(alignment: .top)
@@ -408,12 +408,12 @@ struct ContentView: View {
     
     private func getNotchCurrentWidth()-> CGFloat{
             
-            if $musicManager.isPlaying.wrappedValue {
-                return vm.closedNotchSize.width + 50
-            }
-            return vm.closedNotchSize.width - 10
-            
+        if (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
+            return vm.closedNotchSize.width + 50
         }
+        return vm.closedNotchSize.width - 6
+            
+    }
         
         private func getOffset()-> CGFloat{
             if vm.notchState == .closed{
