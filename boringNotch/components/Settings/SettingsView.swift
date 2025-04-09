@@ -499,10 +499,12 @@ struct Media: View {
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager()
     @Default(.showCalendar) var showCalendar: Bool
+    @Default(.autoScrollCalendar) var autoScrollCalendar: Bool
     
     var body: some View {
         Form {
             Toggle("Show calendar", isOn: $showCalendar)
+            Toggle("Auto-scroll to ongoing or next event", isOn: $autoScrollCalendar)
             Section(header: Text("Select Calendars")) {
                 List {
                     ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in

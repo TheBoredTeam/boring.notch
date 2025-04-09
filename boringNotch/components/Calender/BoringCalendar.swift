@@ -214,62 +214,89 @@ struct EventListView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            HStack(alignment: .top) {
-                VStack(alignment: .trailing, spacing: 5) {
-                    ForEach(events.indices, id: \.self) { index in
-                        VStack(alignment: .trailing) {
-                            if isAllDayEvent(
-                                start: events[index].startDate, end: events[index].endDate)
-                            {
-                                Text("All-day")
-                            } else {
-                                Text("\(events[index].startDate, style: .time)")
-                                Text("\(events[index].endDate, style: .time)")
+            ScrollViewReader { proxy in
+                HStack(alignment: .top) {
+                    VStack(alignment: .trailing, spacing: 5) {
+                        ForEach(events.indices, id: \.self) { index in
+                            VStack(alignment: .trailing) {
+                                if isAllDayEvent(
+                                    start: events[index].startDate, end: events[index].endDate)
+                                {
+                                    Text("All-day")
+                                } else {
+                                    Text("\(events[index].startDate, style: .time)")
+                                    Text("\(events[index].endDate, style: .time)")
+                                }
                             }
+                            .multilineTextAlignment(.trailing)
+                            .padding(.bottom, 8)
+                            .font(.caption2)
                         }
-                        .multilineTextAlignment(.trailing)
-                        .padding(.bottom, 8)
-                        .font(.caption2)
+                    }
+
+                    VStack(alignment: .leading, spacing: 5) {
+                        ForEach(events.indices, id: \.self) { index in
+                            HStack(alignment: .top) {
+                                VStack(spacing: 5) {
+                                    Image(
+                                        systemName: isEventEnded(events[index].endDate)
+                                            ? "checkmark.circle" : "circle"
+                                    )
+                                    .foregroundColor(isEventEnded(events[index].endDate) ? .green : .gray)
+                                    .font(.footnote)
+                                    Rectangle()
+                                        .frame(width: 1)
+                                        .foregroundStyle(.gray.opacity(0.5))
+                                        .opacity(index == events.count - 1 ? 0 : 1)
+                                }
+                                .padding(.top, 1)
+
+                                Button {
+                                    if let url = generateEventURL(for: events[index]) {
+                                        openURL(url)
+                                    }
+                                } label: {
+                                    Text(events[index].title)
+                                        .font(.footnote)
+                                        .foregroundStyle(.gray)
+                                }
+                                .buttonStyle(.plain)
+
+                                Spacer(minLength: 0)
+                            }
+                            .opacity(isEventEnded(events[index].endDate) ? 0.6 : 1)
+                        }
                     }
                 }
-
-                VStack(alignment: .leading, spacing: 5) {
-                    ForEach(events.indices, id: \.self) { index in
-                        HStack(alignment: .top) {
-                            VStack(spacing: 5) {
-                                Image(
-                                    systemName: isEventEnded(events[index].endDate)
-                                        ? "checkmark.circle" : "circle"
-                                )
-                                .foregroundColor(isEventEnded(events[index].endDate) ? .green : .gray)
-                                .font(.footnote)
-                                Rectangle()
-                                    .frame(width: 1)
-                                    .foregroundStyle(.gray.opacity(0.5))
-                                    .opacity(index == events.count - 1 ? 0 : 1)
-                            }
-                            .padding(.top, 1)
-
-                            Button {
-                                if let url = generateEventURL(for: events[index]) {
-                                    openURL(url)
-                                }
-                            } label: {
-                                Text(events[index].title)
-                                    .font(.footnote)
-                                    .foregroundStyle(.gray)
-                            }
-                            .buttonStyle(.plain)
-
-                            Spacer(minLength: 0)
-                        }
-                        .opacity(isEventEnded(events[index].endDate) ? 0.6 : 1)
+                .onAppear {
+                    if Defaults[.autoScrollCalendar] {
+                        scrollToOngoingOrNextEvent(proxy: proxy)
                     }
                 }
             }
         }
         .scrollIndicators(.never)
         .scrollTargetBehavior(.viewAligned)
+    }
+
+    private func scrollToOngoingOrNextEvent(proxy: ScrollViewProxy) {
+        let now = Date()
+
+        // 1) Ongoing index
+        if let ongoingIndex = events.firstIndex(where: { $0.startDate <= now && $0.endDate >= now }) {
+            withAnimation {
+                proxy.scrollTo(ongoingIndex, anchor: .top)
+            }
+            return
+        }
+
+        // 2) Next upcoming index
+        if let upcomingIndex = events.firstIndex(where: { $0.startDate > now }) {
+            withAnimation {
+                proxy.scrollTo(upcomingIndex, anchor: .top)
+            }
+        }
+        // 3) Otherwise do nothing
     }
 
     private func isAllDayEvent(start: Date, end: Date) -> Bool {
