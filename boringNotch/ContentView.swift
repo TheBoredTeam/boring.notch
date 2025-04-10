@@ -366,8 +366,8 @@ struct ContentView: View {
                         MarqueeText(
                             .constant(musicManager.songTitle),
                             textColor: Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.gray,
-                            minDuration: 0.6,
-                            frameWidth: 140
+                            minDuration: 0.4,
+                            frameWidth: 100
                         )
                         .opacity(showSongInfo ? 1 : 0)
                         Spacer(minLength: vm.closedNotchSize.width)
