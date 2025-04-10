@@ -45,8 +45,8 @@ struct MarqueeText: View {
         self.frameWidth = frameWidth
     }
     
-    private var needsScrolling: Bool {
-        textSize.width > frameWidth
+    private func needsScrolling() -> Bool {
+        return textSize.width > frameWidth
     }
     
     var body: some View {
@@ -55,7 +55,7 @@ struct MarqueeText: View {
                 HStack(spacing: 20) {
                     Text(text)
                     Text(text)
-                        .opacity(needsScrolling ? 1 : 0)
+                        .opacity(needsScrolling() ? 1 : 0)
                 }
                 .font(font)
                 .foregroundColor(textColor)
@@ -77,7 +77,7 @@ struct MarqueeText: View {
 
                     offset = 0
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        if needsScrolling {
+                        if needsScrolling() {
                             offset = -(textSize.width + 10)
                             withAnimation {
                                 animate = true
@@ -91,7 +91,7 @@ struct MarqueeText: View {
                     }
                     offset = 0
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        if needsScrolling {
+                        if needsScrolling() {
                             offset = -(textSize.width + 10)
                             withAnimation {
                                 animate = true
@@ -104,5 +104,6 @@ struct MarqueeText: View {
             .clipped()
         }
         .frame(height: textSize.height * 1.3)
+        
     }
 }

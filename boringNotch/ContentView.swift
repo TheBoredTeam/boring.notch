@@ -29,6 +29,8 @@ struct ContentView: View {
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
+    
+    @State private var showSongInfo = false
 
     @Namespace var albumArtNamespace
 
@@ -355,9 +357,35 @@ struct ContentView: View {
             }
             .frame(width: max(0, vm.closedNotchSize.height - (hoverAnimation ? 0 : 12) + gestureProgress / 2), height: max(0, vm.closedNotchSize.height - (hoverAnimation ? 0 : 12)))
 
+            //TODO: check marquee text in more cases
             Rectangle()
                 .fill(.black)
-                .frame(width: vm.closedNotchSize.width - 20)
+                .overlay(
+                    HStack(alignment: .top){
+                        // Song Title
+                        MarqueeText(
+                            .constant(musicManager.songTitle),
+                            textColor: Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.gray,
+                            minDuration: 0.6,
+                            frameWidth: 140
+                        )
+                        .opacity(showSongInfo ? 1 : 0)
+                        Spacer(minLength: vm.closedNotchSize.width)
+                        // Song Artist
+                        Text(musicManager.artistName)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .foregroundStyle(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.gray)
+                            .opacity(showSongInfo ? 1 : 0)
+                    }
+                )
+                .frame(width: showSongInfo ? 380 : vm.closedNotchSize.width + (hoverAnimation ? 8 : 0))
+                .onChange(of: musicManager.isSongChanged) {_, newValue in
+                    withAnimation(.easeInOut(duration: 1.4)) {
+                        showSongInfo = newValue
+                    }
+                }
+            
 
             HStack {
                 if useMusicVisualizer {
@@ -413,6 +441,8 @@ struct ContentView: View {
         withAnimation(.bouncy.speed(1.2)) {
             vm.open()
         }
+        // When the notch is open, we set instantly showSongInfo to false
+        showSongInfo = false
     }
 
     private func calculateBottomPadding() -> CGFloat {

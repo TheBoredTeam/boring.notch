@@ -51,6 +51,9 @@ class MusicManager: ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     
+    @Published var isSongChanged: Bool = false
+    private var songInfoVersion = 0
+    
     private var artworkData: Data? = nil
 
     @Published var isFlipping: Bool = false
@@ -197,6 +200,8 @@ class MusicManager: ObservableObject {
             if hasContentChange {
                 self.triggerFlipAnimation()
                 
+                self.triggerShowNewSongInfo()
+                
                 if artworkChanged, let artwork = state.artwork {
                     self.updateArtwork(artwork)
                 } else if hasContentChange && state.artwork == nil {
@@ -267,6 +272,26 @@ class MusicManager: ObservableObject {
         
         flipWorkItem = workItem
         DispatchQueue.main.async(execute: workItem)
+    }
+    
+    private func triggerShowNewSongInfo() {
+        songInfoVersion += 1
+        let currentVersion = songInfoVersion
+        
+        isSongChanged = true
+        
+        // 3. Dopo 6 secondi, richiudi SOLO se è ancora la versione giusta
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) { [weak self] in
+            // 4. Verifica che questo blocco sia ancora "valido"
+            guard self?.songInfoVersion == currentVersion else {
+                // È stato superato da una nuova canzone → non fare nulla
+                return
+            }
+
+            // 5. Nessun'altra canzone è arrivata → chiudi l'infobox
+            print("🔻 Close Info")
+            self?.isSongChanged = false
+        }
     }
 
     private func updateArtwork(_ artworkData: Data) {
