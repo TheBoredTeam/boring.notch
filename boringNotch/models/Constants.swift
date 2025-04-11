@@ -106,6 +106,7 @@ extension Defaults.Keys {
         // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
+    static let enableNewSneakPeek = Key<Bool>("enableNewSneakPeek", default: false)
     static let enableFullscreenMediaDetection = Key<Bool>("enableFullscreenMediaDetection", default: true)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     

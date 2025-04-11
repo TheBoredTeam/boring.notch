@@ -464,6 +464,8 @@ struct Media: View {
     @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.hideNotchOption) var hideNotchOption
+    @Default(.enableSneakPeek) private var enableSneakPeek
+    @Default(.enableNewSneakPeek) private var enableNewSneakPeek
 
     var body: some View {
         Form {
@@ -503,7 +505,8 @@ struct Media: View {
                     "Enable music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
+                Toggle("Enable sneak peek", isOn: $enableSneakPeek).disabled(enableNewSneakPeek)
+                Toggle("Enable sneak peek NEW UI", isOn: $enableNewSneakPeek).disabled(enableSneakPeek)
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {

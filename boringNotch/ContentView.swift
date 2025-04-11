@@ -285,7 +285,9 @@ struct ContentView: View {
                               .padding(.bottom, 10)
                               .padding(.leading, 4)
                               .padding(.trailing, 8)
-                          } else if coordinator.sneakPeek.type != .battery {
+                          }
+                          // Old sneak peak music
+                          else if coordinator.sneakPeek.type != .battery {
                               if vm.notchState == .closed && !vm.hideOnClosed {
                                   HStack(alignment: .center) {
                                       Image(systemName: "music.note")
@@ -368,17 +370,17 @@ struct ContentView: View {
                             minDuration: 0.4,
                             frameWidth: 100
                         )
-                        .opacity(showSongInfo ? 1 : 0)
+                        .opacity((showSongInfo && Defaults[.enableNewSneakPeek]) ? 1 : 0)
                         Spacer(minLength: vm.closedNotchSize.width)
                         // Song Artist
                         Text(musicManager.artistName)
                             .lineLimit(1)
                             .truncationMode(.tail)
                             .foregroundStyle(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.gray)
-                            .opacity(showSongInfo ? 1 : 0)
+                            .opacity((showSongInfo && Defaults[.enableNewSneakPeek]) ? 1 : 0)
                     }
                 )
-                .frame(width: showSongInfo ? 380 : vm.closedNotchSize.width + (hoverAnimation ? 8 : 0))
+                .frame(width: (showSongInfo && Defaults[.enableNewSneakPeek]) ? 380 : vm.closedNotchSize.width + (hoverAnimation ? 8 : 0))
                 .onChange(of: musicManager.isSongChanged) {_, newValue in
                     withAnimation(.easeInOut(duration: 0.6)) {
                         showSongInfo = newValue
