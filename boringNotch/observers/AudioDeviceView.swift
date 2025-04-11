@@ -13,8 +13,10 @@ class AudioDeviceMonitor: ObservableObject {
     @Published var outputDeviceName: String = getCurrentOutputDeviceName() ?? "Unknown"
 
     private var defaultDeviceID = AudioDeviceID(0)
+    private var vm: BoringViewModel
 
-    init() {
+    init(vm: BoringViewModel) {
+        self.vm = vm
         updateOutputDeviceName()
         listenForOutputDeviceChanges()
     }
@@ -24,6 +26,13 @@ class AudioDeviceMonitor: ObservableObject {
             DispatchQueue.main.async {
                 self.outputDeviceName = name
             }
+        }
+    }
+
+    private func notifyImportanChangeStatus(delay: Double = 0.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            self.vm.toggleExpandingView(status: true, type: .battery)
+            print("ZBI")
         }
     }
 
@@ -38,6 +47,7 @@ class AudioDeviceMonitor: ObservableObject {
 
         let status = AudioObjectAddPropertyListenerBlock(systemObjectID, &address, DispatchQueue.global(qos: .default)) { [weak self] _, _ in
             self?.updateOutputDeviceName()
+            self?.notifyImportanChangeStatus()
         }
 
         if status != noErr {

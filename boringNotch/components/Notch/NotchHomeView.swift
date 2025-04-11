@@ -96,7 +96,9 @@ struct AlbumArtView: View {
 }
 
 struct MusicControlsView: View {
-    @StateObject private var audioMonitor = AudioDeviceMonitor()
+    @EnvironmentObject var vm: BoringViewModel
+
+    @StateObject private var audioMonitor = AudioDeviceMonitor(vm: BoringViewModel())
     @ObservedObject var musicManager = MusicManager.shared
     @Namespace private var namespace
 
