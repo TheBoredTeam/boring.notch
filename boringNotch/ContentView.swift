@@ -357,7 +357,6 @@ struct ContentView: View {
             }
             .frame(width: max(0, vm.closedNotchSize.height - (hoverAnimation ? 0 : 12) + gestureProgress / 2), height: max(0, vm.closedNotchSize.height - (hoverAnimation ? 0 : 12)))
 
-            //TODO: check marquee text in more cases
             Rectangle()
                 .fill(.black)
                 .overlay(
@@ -381,9 +380,12 @@ struct ContentView: View {
                 )
                 .frame(width: showSongInfo ? 380 : vm.closedNotchSize.width + (hoverAnimation ? 8 : 0))
                 .onChange(of: musicManager.isSongChanged) {_, newValue in
-                    withAnimation(.easeInOut(duration: 1.4)) {
+                    withAnimation(.easeInOut(duration: 0.6)) {
                         showSongInfo = newValue
                     }
+                }
+                .onAppear{
+                    showSongInfo = musicManager.isSongChanged
                 }
             
 
@@ -441,8 +443,6 @@ struct ContentView: View {
         withAnimation(.bouncy.speed(1.2)) {
             vm.open()
         }
-        // When the notch is open, we set instantly showSongInfo to false
-        showSongInfo = false
     }
 
     private func calculateBottomPadding() -> CGFloat {

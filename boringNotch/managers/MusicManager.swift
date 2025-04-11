@@ -280,15 +280,11 @@ class MusicManager: ObservableObject {
         
         isSongChanged = true
         
-        // 3. Dopo 6 secondi, richiudi SOLO se è ancora la versione giusta
         DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) { [weak self] in
-            // 4. Verifica che questo blocco sia ancora "valido"
             guard self?.songInfoVersion == currentVersion else {
-                // È stato superato da una nuova canzone → non fare nulla
                 return
             }
-
-            // 5. Nessun'altra canzone è arrivata → chiudi l'infobox
+            
             print("🔻 Close Info")
             self?.isSongChanged = false
         }
