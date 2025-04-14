@@ -60,6 +60,7 @@ struct DynamicNotchApp: App {
         Settings {
             SettingsView(updaterController: updaterController)
         }
+        .defaultSize(CGSize(width: 750, height: 700))
         
         Window("Onboarding", id: "onboarding") {
             ProOnboard()
