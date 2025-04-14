@@ -106,11 +106,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("Screen unlocked")
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             self?.cleanupWindows()
-            self?.adjustWindowPosition()
+            self?.adjustWindowPosition(changeAlpha: true)
         }
     }
     
-    private func cleanupWindows(shouldInvert:Bool=false) {
+    private func cleanupWindows(shouldInvert: Bool = false) {
         if shouldInvert ? !Defaults[.showOnAllDisplays] : Defaults[.showOnAllDisplays] {
             for window in windows.values {
                 window.close()
@@ -251,7 +251,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.window = window
             adjustWindowPosition(changeAlpha: true)
         } else {
-            adjustWindowPosition()
+            adjustWindowPosition(changeAlpha: true)
         }
         
         if coordinator.firstLaunch {
