@@ -406,7 +406,9 @@ class MusicManager: ObservableObject {
     func forceUpdate() {
         // Request immediate update from the active controller
         DispatchQueue.main.async { [weak self] in
-            self?.activeController?.updatePlaybackInfo()
+            if self?.activeController?.isActive() == true {
+                self?.activeController?.updatePlaybackInfo()
+            }
         }
     }
 }

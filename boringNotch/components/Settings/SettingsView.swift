@@ -94,8 +94,6 @@ struct SettingsView: View {
         .introspect(.window, on: .macOS(.v14, .v15)) { window in
             window.toolbarStyle = .unified
             window.styleMask.update(with: .resizable)
-            
-            window.setContentSize(NSSize(width: 750, height: 700))
         }
     }
 }
