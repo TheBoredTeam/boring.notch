@@ -41,3 +41,4 @@ extension View {
         self.modifier(LiveActivityModifier(for: activityId, leftContent: left, rightContent: right))
     }
 }
+

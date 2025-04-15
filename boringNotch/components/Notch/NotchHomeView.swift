@@ -19,7 +19,7 @@ struct MusicPlayerView: View {
     var body: some View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
-            MusicControlsView().drawingGroup().compositingGroup()
+            MusicControlsView()//.drawingGroup().compositingGroup()
         }
     }
 }
@@ -96,7 +96,12 @@ struct AlbumArtView: View {
 }
 
 struct MusicControlsView: View {
+    @EnvironmentObject var vm: BoringViewModel
+
+    @StateObject private var audioMonitor = AudioDeviceMonitor(vm: BoringViewModel())
     @ObservedObject var musicManager = MusicManager.shared
+    @Namespace private var namespace
+
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
@@ -113,7 +118,19 @@ struct MusicControlsView: View {
     private var songInfoAndSlider: some View {
         GeometryReader { geo in
             VStack(alignment: .leading, spacing: 4) {
-                songInfo(width: geo.size.width)
+                HStack{
+                    songInfo(width: geo.size.width)
+                    Rectangle()
+                        .fill(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor).gradient : Color.gray.gradient)
+                        .frame(width: 50, alignment: .center)
+//                        .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
+                        .mask {
+                            AudioSpectrumView(isPlaying: $musicManager.isPlaying)
+                                .frame(width: 16, height: 12)
+                        }
+                        .frame(width: max(0,40),
+                               height: max(0,40), alignment: .center)
+                }
                 musicSlider
             }
         }
@@ -170,10 +187,14 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
+            OutputDeviceIcon(outputDevice: audioMonitor.outputDeviceName, namespace: namespace)
+              
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
 }
+
+
 
 // MARK: - Main View
 
@@ -336,8 +357,12 @@ struct CustomSlider: View {
 }
 
 #Preview {
+    @Namespace var ns
+
     NotchHomeView(albumArtNamespace: Namespace().wrappedValue)
         .environmentObject(BoringViewModel())
         .environmentObject(BatteryStatusViewModel(vm: BoringViewModel()))
         .environmentObject(WebcamManager())
+    OutputDeviceIcon(outputDevice: "Harsh’s AirPods Pro",namespace: ns)
+
 }

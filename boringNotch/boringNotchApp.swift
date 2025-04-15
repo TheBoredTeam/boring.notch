@@ -135,7 +135,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         
         window.contentView = NSHostingView(
-            rootView: ContentView(batteryModel: .init(vm: viewModel))
+            rootView: ContentView(batteryModel: .init(vm: viewModel),audioMonitor: .init(vm: viewModel))
                 .environmentObject(viewModel)
         )
         

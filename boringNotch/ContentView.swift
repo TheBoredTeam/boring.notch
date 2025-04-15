@@ -16,6 +16,7 @@ import SwiftUIIntrospect
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject var batteryModel: BatteryStatusViewModel
+    @StateObject var audioMonitor: AudioDeviceMonitor
     @StateObject var webcamManager: WebcamManager = .init()
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
