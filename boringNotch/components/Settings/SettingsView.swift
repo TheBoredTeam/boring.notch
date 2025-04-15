@@ -465,8 +465,8 @@ struct Media: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
-    @Default(.enableNewSneakPeek) private var enableNewSneakPeek
-
+    @Default(.sneakPeekStyles) var sneakPeekStyles
+    
     var body: some View {
         Form {
             Section {
@@ -499,14 +499,17 @@ struct Media: View {
                         .font(.caption)
                 }
             }
-            
             Section {
                 Toggle(
                     "Enable music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Toggle("Enable sneak peek", isOn: $enableSneakPeek).disabled(enableNewSneakPeek)
-                Toggle("Enable sneak peek NEW UI", isOn: $enableNewSneakPeek).disabled(enableSneakPeek)
+                Toggle("Enable sneak peek", isOn: $enableSneakPeek)
+                Picker("Sneak Peek Style", selection: $sneakPeekStyles){
+                    ForEach(SneakPeekStyle.allCases) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }.disabled(!enableSneakPeek)
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {

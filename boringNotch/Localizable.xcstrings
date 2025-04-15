@@ -351,9 +351,6 @@
     "Enable sneak peek" : {
 
     },
-    "Enable sneak peek NEW UI" : {
-
-    },
     "Enhance your experience with HUDs" : {
 
     },
@@ -801,6 +798,9 @@
 
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
+
+    },
+    "Sneak Peek Style" : {
 
     },
     "Software updates" : {

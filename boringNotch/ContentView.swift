@@ -286,9 +286,9 @@ struct ContentView: View {
                               .padding(.leading, 4)
                               .padding(.trailing, 8)
                           }
-                          // Old sneak peak music
+                          // Old sneak peek music
                           else if coordinator.sneakPeek.type != .battery {
-                              if vm.notchState == .closed && !vm.hideOnClosed {
+                              if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard{
                                   HStack(alignment: .center) {
                                       Image(systemName: "music.note")
                                       GeometryReader { geo in
@@ -303,7 +303,7 @@ struct ContentView: View {
                       }
                   }
               }
-              .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (musicManager.isPlaying || !musicManager.isPlayerIdle))) { view in
+              .conditionalModifier((coordinator.sneakPeek.show && Defaults[.sneakPeekStyles] == .standard && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (musicManager.isPlaying || !musicManager.isPlayerIdle))) { view in
                   view
                       .fixedSize()
               }
@@ -370,17 +370,17 @@ struct ContentView: View {
                             minDuration: 0.4,
                             frameWidth: 100
                         )
-                        .opacity((showSongInfo && Defaults[.enableNewSneakPeek]) ? 1 : 0)
+                        .opacity((showSongInfo && coordinator.sneakPeek.show && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
                         Spacer(minLength: vm.closedNotchSize.width)
                         // Song Artist
                         Text(musicManager.artistName)
                             .lineLimit(1)
                             .truncationMode(.tail)
                             .foregroundStyle(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.gray)
-                            .opacity((showSongInfo && Defaults[.enableNewSneakPeek]) ? 1 : 0)
+                            .opacity((showSongInfo && coordinator.sneakPeek.show && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
                     }
                 )
-                .frame(width: (showSongInfo && Defaults[.enableNewSneakPeek]) ? 380 : vm.closedNotchSize.width + (hoverAnimation ? 8 : 0))
+                .frame(width: (showSongInfo && coordinator.sneakPeek.show && Defaults[.sneakPeekStyles] == .inline) ? 380 : vm.closedNotchSize.width + (hoverAnimation ? 8 : 0))
                 .onChange(of: musicManager.isSongChanged) {_, newValue in
                     withAnimation(.easeInOut(duration: 0.6)) {
                         showSongInfo = newValue
