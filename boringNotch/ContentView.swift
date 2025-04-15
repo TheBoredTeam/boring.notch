@@ -232,8 +232,7 @@ struct ContentView: View {
                       }
                   }
               }
-              .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed
-                && Defaults[.sneakPeekStyles] == .standard) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (musicManager.isPlaying || !musicManager.isPlayerIdle))) { view in
+              .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (musicManager.isPlaying || !musicManager.isPlayerIdle))) { view in
                   view
                       .fixedSize()
               }
@@ -310,7 +309,7 @@ struct ContentView: View {
                             .opacity((showSongInfo && Defaults[.enableSneakPeek] && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
                     }
                 )
-                .frame(width: (showSongInfo && Defaults[.enableSneakPeek] && Defaults[.sneakPeekStyles] == .inline) ? 380 : vm.closedNotchSize.width + (hoverAnimation ? 8 : 0))
+                .frame(width: (showSongInfo && Defaults[.enableSneakPeek] && Defaults[.sneakPeekStyles] == .inline) ? 380 : vm.closedNotchSize.width + (isHovering ? 8 : 0))
                 .onChange(of: musicManager.isSongChanged) {_, newValue in
                     withAnimation(.easeInOut(duration: 0.6)) {
                         showSongInfo = newValue
