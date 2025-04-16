@@ -5,7 +5,6 @@
 //  Created by Harsh Vardhan Goswami  on 02/08/24
 //  Modified by Richard Kunkli on 24/08/2024.
 //
-
 import AVFoundation
 import Combine
 import Defaults
@@ -67,8 +66,57 @@ struct ContentView: View {
                         .animation(notchStateAnimation, value: vm.notchState)
                 }
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
+<<<<<<< Updated upstream
                     view.onHover { hovering in
                         handleHover(hovering)
+=======
+                    view.onHover { systemHovering in
+                        let hovering = systemHovering || vm.isMouseHovering()
+
+                        if hovering {
+                            withAnimation(.bouncy.speed(1.2)) {
+                                hoverAnimation = true
+                                isHovering = true
+                            }
+
+                            if (vm.notchState == .closed) && Defaults[.enableHaptics] {
+                                haptics.toggle()
+                            }
+
+                            if coordinator.sneakPeek.show {
+                                return
+                            }
+
+                            hoverTask?.cancel()
+
+                            let task = DispatchWorkItem { [weak vm] in
+                                guard let vm = vm, vm.notchState == .closed else { return }
+                                DispatchQueue.main.async {
+                                    withAnimation(.bouncy.speed(1.2)) {
+                                        doOpen()
+                                    }
+                                }
+                            }
+
+                            hoverTask = task
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Defaults[.minimumHoverDuration], execute: task)
+
+                        } else {
+                            hoverTask?.cancel()
+                            hoverTask = nil
+
+                            withAnimation(.bouncy.speed(1.2)) {
+                                hoverAnimation = false
+                                isHovering = false
+                            }
+
+                            if vm.notchState == .open {
+                                withAnimation(.bouncy.speed(1.2)) {
+                                    vm.close()
+                                }
+                            }
+                        }
+>>>>>>> Stashed changes
                     }
                 }
                 .conditionalModifier(!Defaults[.openNotchOnHover]) { view in
@@ -126,11 +174,13 @@ struct ContentView: View {
                     }
                 }
                 .sensoryFeedback(.alignment, trigger: haptics)
+                // --- Context Menu Modification START ---
                 .contextMenu {
                     SettingsLink(label: {
                         Text("Settings")
                     })
                     .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+<<<<<<< Updated upstream
 //                    Button("Edit") { // Doesnt work....
 //                        let dn = DynamicNotch(content: EditPanelView())
 //                        dn.toggle()
@@ -141,7 +191,10 @@ struct ContentView: View {
 //                    .disabled(true)
 //                    #endif
 //                    .keyboardShortcut("E", modifiers: .command)
+=======
+>>>>>>> Stashed changes
                 }
+                // --- Context Menu Modification END ---
         }
         .frame(maxWidth: openNotchSize.width, maxHeight: openNotchSize.height, alignment: .top)
         .shadow(color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear, radius: Defaults[.cornerRadiusScaling] ? 10 : 5)
@@ -176,6 +229,11 @@ struct ContentView: View {
 
                             HStack {
                                 BoringBatteryView(
+<<<<<<< Updated upstream
+=======
+                                    batteryPercentage: batteryModel.batteryPercentage,
+                                    isPluggedIn: batteryModel.isPluggedIn,
+>>>>>>> Stashed changes
                                     batteryWidth: 30,
                                     isCharging: batteryModel.isCharging,
                                     isInLowPowerMode: batteryModel.isInLowPowerMode,

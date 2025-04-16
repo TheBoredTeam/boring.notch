@@ -6,8 +6,13 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sindresorhus/Defaults",
       "state" : {
+<<<<<<< Updated upstream
         "revision" : "00c82eff4550c87cf9c547d7e5493a6a97837061",
         "version" : "9.0.3"
+=======
+        "branch" : "main",
+        "revision" : "00c82eff4550c87cf9c547d7e5493a6a97837061"
+>>>>>>> Stashed changes
       }
     },
     {
@@ -15,8 +20,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sindresorhus/KeyboardShortcuts",
       "state" : {
-        "revision" : "7ecc38bb6edf7d087d30e737057b8d8a9b7f51eb",
-        "version" : "2.2.4"
+        "revision" : "045cf174010beb335fa1d2567d18c057b8787165",
+        "version" : "2.3.0"
       }
     },
     {
@@ -34,7 +39,7 @@
       "location" : "https://github.com/airbnb/lottie-spm.git",
       "state" : {
         "branch" : "main",
-        "revision" : "8c6edf4f0fa84fe9c058600a4295eb0c01661c69"
+        "revision" : "90fa25ba0feb39c22915d41b55226cc95955dfcc"
       }
     },
     {
@@ -69,8 +74,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sparkle-project/Sparkle",
       "state" : {
-        "revision" : "0ef1ee0220239b3776f433314515fd849025673f",
-        "version" : "2.6.4"
+        "revision" : "0ca3004e98712ea2b39dd881d28448630cce1c99",
+        "version" : "2.7.0"
       }
     },
     {

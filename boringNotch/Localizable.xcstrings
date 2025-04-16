@@ -308,6 +308,9 @@
         }
       }
     },
+    "Drag items to reorder them in the notch. Toggle visibility (Music Player cannot be hidden)." : {
+
+    },
     "Drop files here" : {
 
     },
@@ -420,7 +423,11 @@
     "High" : {
 
     },
+<<<<<<< Updated upstream
     "https://github.com/th-ch/youtube-music" : {
+=======
+    "Home View Layout" : {
+>>>>>>> Stashed changes
 
     },
     "HUD style" : {

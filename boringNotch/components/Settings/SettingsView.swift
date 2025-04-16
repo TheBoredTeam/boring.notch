@@ -1,10 +1,3 @@
-//
-//  SettingsView.swift
-//  boringNotch
-//
-//  Created by Richard Kunkli on 07/08/2024.
-//
-
 import AVFoundation
 import Defaults
 import KeyboardShortcuts
@@ -19,9 +12,9 @@ struct SettingsView: View {
     @StateObject var extensionManager = BoringExtensionManager()
     let updaterController: SPUStandardUpdaterController
     @StateObject private var calendarManager = CalendarManager()
-    
+
     @State private var selectedTab = "General"
-    
+
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
@@ -117,7 +110,7 @@ struct GeneralSettings: View {
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
-    
+
     var body: some View {
         Form {
             Section {
@@ -178,7 +171,7 @@ struct GeneralSettings: View {
             } header: {
                 Text("System features")
             }
-            
+
             Section {
                 Picker(selection: $notchHeightMode, label:
                     Text("Notch display height")) {
@@ -238,9 +231,9 @@ struct GeneralSettings: View {
             } header: {
                 Text("Notch Height")
             }
-            
+
             NotchBehaviour()
-            
+
             gestureControls()
         }
         .tint(Defaults[.accentColor])
@@ -257,7 +250,7 @@ struct GeneralSettings: View {
             }
         }
     }
-    
+
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
@@ -288,7 +281,7 @@ struct GeneralSettings: View {
                 .font(.caption)
         }
     }
-    
+
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
@@ -361,7 +354,7 @@ struct Downloads: View {
                     Text("Both")
                         .tag(DownloadIconStyle.iconAndAppIcon)
                 }
-                
+
             } header: {
                 HStack {
                     Text("Download indicators")
@@ -389,7 +382,7 @@ struct Downloads: View {
                                 .contentShape(Rectangle())
                                 .foregroundStyle(.secondary)
                         }
-                        
+
                         Divider()
                         Button {} label: {
                             Image(systemName: "minus")
@@ -547,7 +540,7 @@ struct Media: View {
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager()
     @Default(.showCalendar) var showCalendar: Bool
-    
+
     var body: some View {
         Form {
             Toggle("Show calendar", isOn: $showCalendar)
@@ -601,9 +594,9 @@ struct About: View {
                 } header: {
                     Text("Version info")
                 }
-                
+
                 UpdaterSettingsView(updater: updaterController.updater)
-                
+
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
@@ -708,15 +701,15 @@ struct Extensions: View {
                                     .font(.footnote)
                             }
                             .frame(width: 60, alignment: .leading)
-                            
+
                             Menu(content: {
                                 Button("Restart") {
                                     let ws = NSWorkspace.shared
-                                    
+
                                     if let ext = ws.runningApplications.first(where: { $0.bundleIdentifier == item.bundleIdentifier }) {
                                         ext.terminate()
                                     }
-                                    
+
                                     if let appURL = ws.urlForApplication(withBundleIdentifier: item.bundleIdentifier) {
                                         ws.openApplication(at: appURL, configuration: .init(), completionHandler: nil)
                                     }
@@ -805,11 +798,15 @@ struct Appearance: View {
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
-    
+
     @State private var isPresented: Bool = false
     @State private var name: String = ""
     @State private var url: String = ""
     @State private var speed: CGFloat = 1.0
+
+    @Default(.homeLayoutItems) var homeLayoutItems
+    @Default(.visibleHomeItems) var visibleHomeItems
+
     var body: some View {
         Form {
             Section {
@@ -821,7 +818,7 @@ struct Appearance: View {
             } header: {
                 Text("General")
             }
-            
+
             Section {
                 Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
                 Defaults
@@ -835,7 +832,7 @@ struct Appearance: View {
             } header: {
                 Text("Media")
             }
-            
+
             Section {
                 Toggle(
                     "Use music visualizer spectrogram",
@@ -871,7 +868,7 @@ struct Appearance: View {
                     customBadge(text: "Coming soon")
                 }
             }
-            
+
             Section {
                 List {
                     ForEach(customVisualizers, id: \.self) { visualizer in
@@ -969,7 +966,7 @@ struct Appearance: View {
                                 Text("Cancel")
                                     .frame(maxWidth: .infinity, alignment: .center)
                             }
-                            
+
                             Button {
                                 let visualizer: CustomVisualizer = .init(
                                     UUID: UUID(),
@@ -977,11 +974,11 @@ struct Appearance: View {
                                     url: URL(string: url)!,
                                     speed: speed
                                 )
-                                
+
                                 if !customVisualizers.contains(visualizer) {
                                     customVisualizers.append(visualizer)
                                 }
-                                
+
                                 isPresented.toggle()
                             } label: {
                                 Text("Add")
@@ -1003,7 +1000,44 @@ struct Appearance: View {
                     }
                 }
             }
-            
+
+            Section {
+                List {
+                    ForEach($homeLayoutItems, id: \.self, editActions: .move) { $item in
+                        HStack {
+                            Image(systemName: item.systemImage)
+                                .frame(width: 20, alignment: .center)
+                            Toggle(item.rawValue, isOn: Binding(
+                                get: { visibleHomeItems.contains(item) },
+                                set: { isVisible in
+                                    if isVisible {
+                                        visibleHomeItems.insert(item)
+                                    } else {
+                                        if item != .music {
+                                            visibleHomeItems.remove(item)
+                                        }
+                                    }
+                                }
+                            ))
+                            .disabled(item == .music && visibleHomeItems.count == 1)
+                        }
+                    }
+                    .onMove(perform: moveItems)
+                }
+                .frame(minHeight: 120)
+
+            } header: {
+                HStack {
+                    Text("Home View Layout")
+                    Spacer()
+                 }
+            } footer: {
+               Text("Drag items to reorder them in the notch. Toggle visibility (Music Player cannot be hidden).")
+                   .font(.caption)
+                   .foregroundStyle(.secondary)
+            }
+
+
             Section {
                 Defaults.Toggle("Enable boring mirror", key: .showMirror)
                     .disabled(!checkVideoInput())
@@ -1019,7 +1053,7 @@ struct Appearance: View {
                     Text("Additional features")
                 }
             }
-            
+
             Section {
                 HStack {
                     ForEach(icons, id: \.self) { icon in
@@ -1035,7 +1069,7 @@ struct Appearance: View {
                                             lineWidth: 2.5
                                         )
                                 )
-                            
+
                             Text("Default")
                                 .fontWeight(.medium)
                                 .font(.caption)
@@ -1067,12 +1101,16 @@ struct Appearance: View {
         .tint(Defaults[.accentColor])
         .navigationTitle("Appearance")
     }
-    
+
+    private func moveItems(from source: IndexSet, to destination: Int) {
+        homeLayoutItems.move(fromOffsets: source, toOffset: destination)
+    }
+
     func checkVideoInput() -> Bool {
         if let _ = AVCaptureDevice.default(for: .video) {
             return true
         }
-        
+
         return false
     }
 }

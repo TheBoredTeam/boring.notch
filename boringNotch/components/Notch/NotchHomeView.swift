@@ -10,8 +10,8 @@ import Combine
 import Defaults
 import SwiftUI
 
-// MARK: - Music Player Components
-
+// --- MusicPlayerView, AlbumArtView, MusicControlsView ---
+// (Keep these structs exactly as they were defined before)
 struct MusicPlayerView: View {
     @EnvironmentObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
@@ -174,8 +174,8 @@ struct MusicControlsView: View {
         .frame(maxWidth: .infinity, alignment: .center)
     }
 }
+// --- End of MusicPlayerView components ---
 
-// MARK: - Main View
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -183,6 +183,10 @@ struct NotchHomeView: View {
     @EnvironmentObject var webcamManager: WebcamManager
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
+
+    // Use @Default directly again
+    @Default(.homeLayoutItems) var homeLayoutItems
+    @Default(.visibleHomeItems) var visibleHomeItems
 
     var body: some View {
         Group {
@@ -193,8 +197,10 @@ struct NotchHomeView: View {
         .transition(.opacity.combined(with: .blurReplace))
     }
 
+    // Modify mainContent to use the @Default variable and .id()
     private var mainContent: some View {
         HStack(alignment: .top, spacing: 20) {
+<<<<<<< Updated upstream
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
 
             if Defaults[.showCalendar] {
@@ -210,15 +216,64 @@ struct NotchHomeView: View {
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
+=======
+            // Iterate over the @Default variable
+            // Add .id(homeLayoutItems) to the ForEach to force redraw on change
+            ForEach(homeLayoutItems, id: \.self) { itemType in
+                // Conditionally render based on visibility
+                if visibleHomeItems.contains(itemType) {
+                    viewForItem(itemType)
+                }
+>>>>>>> Stashed changes
             }
+            .id(homeLayoutItems) // Add this ID modifier
         }
         .transition(.opacity.animation(.smooth.speed(0.9))
             .combined(with: .blurReplace.animation(.smooth.speed(0.9)))
             .combined(with: .move(edge: .top)))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
+
+    // Helper function - Ensure NotchItemType is now visible
+    @ViewBuilder
+    private func viewForItem(_ itemType: NotchItemType) -> some View {
+        switch itemType {
+        case .music:
+            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                .environmentObject(vm)
+                .environmentObject(musicManager)
+        case .calendar:
+             if Defaults[.showCalendar] {
+                CalendarView()
+                   .onContinuousHover { phase in
+                       if Defaults[.closeGestureEnabled] {
+                           switch phase {
+                           case .active: Defaults[.closeGestureEnabled] = false
+                           case .ended: Defaults[.closeGestureEnabled] = false
+                           }
+                       }
+                   }
+                   .environmentObject(vm)
+             } else {
+                 EmptyView()
+             }
+        case .mirror:
+            if Defaults[.showMirror] && webcamManager.cameraAvailable {
+                CameraPreviewView(webcamManager: webcamManager)
+                     .scaledToFit()
+                     .opacity(vm.notchState == .closed ? 0 : 1)
+                     .blur(radius: vm.notchState == .closed ? 20 : 0)
+                     .environmentObject(vm)
+             } else {
+                  EmptyView()
+             }
+        }
+    }
 }
 
+
+// --- MusicSliderView, CustomSlider, Preview Provider ---
+// (Keep these structs exactly as they were defined before)
 struct MusicSliderView: View {
     @Binding var sliderValue: Double
     @Binding var duration: Double
@@ -302,12 +357,10 @@ struct CustomSlider: View {
             let filledTrackWidth = min(rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width, width)
 
             ZStack(alignment: .leading) {
-                // Background track
                 Rectangle()
                     .fill(.gray.opacity(0.3))
                     .frame(height: height)
 
-                // Filled track
                 Rectangle()
                     .fill(color)
                     .frame(width: filledTrackWidth, height: height)
