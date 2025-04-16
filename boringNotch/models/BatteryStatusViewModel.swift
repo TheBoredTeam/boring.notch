@@ -77,10 +77,12 @@ class BatteryStatusViewModel: ObservableObject {
                 
                 case .isChargingChanged(let isCharging):
                     print("🔌 Charging: \(isCharging ? "Yes" : "No")")
+                    print("maxCapacity: \(self.maxCapacity)")
+                    print("levelBattery: \(self.levelBattery)")
                     self.notifyImportanChangeStatus()
                     withAnimation {
                         self.isCharging = isCharging
-                        self.statusText = isCharging ? "Charging battery" : "Full charge"
+                        self.statusText = isCharging ? "Charging battery" : (self.levelBattery < self.maxCapacity ? "Not charging" : "Full charge")
                     }
                 
                 case .timeToFullChargeChanged(let time):
