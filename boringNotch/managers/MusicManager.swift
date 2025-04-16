@@ -184,6 +184,7 @@ class MusicManager: ObservableObject {
                 
                 if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
                     self.updateSneakPeek()
+                    self.triggerShowNewSongInfo()
                 }
             }
             
@@ -199,7 +200,6 @@ class MusicManager: ObservableObject {
             // Handle artwork and visual transitions for changed content
             if hasContentChange {
                 self.triggerFlipAnimation()
-                
                 self.triggerShowNewSongInfo()
                 
                 if artworkChanged, let artwork = state.artwork {
