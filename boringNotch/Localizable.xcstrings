@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     " – %lld" : {
 
     },
@@ -77,9 +80,6 @@
 
     },
     "Add" : {
-
-    },
-    "Add manually" : {
 
     },
     "Add new visualizer" : {
@@ -193,6 +193,9 @@
 
     },
     "Cancel" : {
+
+    },
+    "Changes are saved automatically" : {
 
     },
     "Charging" : {
@@ -315,6 +318,9 @@
 
     },
     "Edit layout" : {
+
+    },
+    "Element Order" : {
 
     },
     "Email address" : {
@@ -599,6 +605,9 @@
 
     },
     "Notch Height" : {
+
+    },
+    "Notch Layout" : {
 
     },
     "OK" : {

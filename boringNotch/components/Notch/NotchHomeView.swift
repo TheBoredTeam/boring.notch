@@ -195,27 +195,72 @@ struct NotchHomeView: View {
 
     private var mainContent: some View {
         HStack(alignment: .top, spacing: 20) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
-
-            if Defaults[.showCalendar] {
-                CalendarView()
-                .onHover { isHovering in
-                    vm.isHoveringCalendar = isHovering
-                }
-                .environmentObject(vm)
-            }
-
-            if Defaults[.showMirror] && webcamManager.cameraAvailable {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
-            }
+            leftSideElements
+            
+            Spacer()
+            
+            rightSideElements
         }
         .transition(.opacity.animation(.smooth.speed(0.9))
             .combined(with: .blurReplace.animation(.smooth.speed(0.9)))
             .combined(with: .move(edge: .top)))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
+    }
+    
+    @Default(.notchElementLayout) private var notchLayout: LayoutPreferences
+    
+    @ViewBuilder
+    private var leftSideElements: some View {
+        HStack(alignment: .top, spacing: 20) {
+            ForEach(notchLayout.leftElements, id: \.self) { elementType in
+                if notchLayout.elementVisibility[elementType] ?? true {
+                    switch elementType {
+                    case .musicPlayer:
+                        MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                    case .calendar:
+                        CalendarView()
+                            .onHover { isHovering in
+                                vm.isHoveringCalendar = isHovering
+                            }
+                            .environmentObject(vm)
+                    case .mirror:
+                        if webcamManager.cameraAvailable {
+                            CameraPreviewView(webcamManager: webcamManager)
+                                .scaledToFit()
+                                .opacity(vm.notchState == .closed ? 0 : 1)
+                                .blur(radius: vm.notchState == .closed ? 20 : 0)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var rightSideElements: some View {
+        HStack(alignment: .top, spacing: 20) {
+            ForEach(notchLayout.rightElements, id: \.self) { elementType in
+                if notchLayout.elementVisibility[elementType] ?? true {
+                    switch elementType {
+                    case .musicPlayer:
+                        MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                    case .calendar:
+                        CalendarView()
+                            .onHover { isHovering in
+                                vm.isHoveringCalendar = isHovering
+                            }
+                            .environmentObject(vm)
+                    case .mirror:
+                        if webcamManager.cameraAvailable {
+                            CameraPreviewView(webcamManager: webcamManager)
+                                .scaledToFit()
+                                .opacity(vm.notchState == .closed ? 0 : 1)
+                                .blur(radius: vm.notchState == .closed ? 20 : 0)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -235,7 +280,6 @@ struct MusicSliderView: View {
     var onValueChange: (Double) -> Void
 
     var currentElapsedTime: Double {
-        // A small buffer is needed to ensure a meaningful difference between the two dates
         guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -0.0001, (timestampDate > lastUpdated || ignoreLastUpdated) else { return sliderValue }
         let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
         let elapsed = elapsedTime + (timeDifference * playbackRate)
@@ -302,12 +346,10 @@ struct CustomSlider: View {
             let filledTrackWidth = min(rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width, width)
 
             ZStack(alignment: .leading) {
-                // Background track
                 Rectangle()
                     .fill(.gray.opacity(0.3))
                     .frame(height: height)
 
-                // Filled track
                 Rectangle()
                     .fill(color)
                     .frame(width: filledTrackWidth, height: height)
