@@ -196,22 +196,8 @@ struct NotchHomeView: View {
 
     private var mainContent: some View {
         HStack(alignment: .top, spacing: 20) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
-
-            if Defaults[.showCalendar] {
-                CalendarView(selectedDate: $selectedDate)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
-                    }
-                    .environmentObject(vm)
-            }
-
-            if Defaults[.showMirror] && webcamManager.cameraAvailable {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
-            }
+            leftSideElements
+            rightSideElements
         }
         .transition(.opacity.animation(.smooth.speed(0.9))
             .combined(with: .blurReplace.animation(.smooth.speed(0.9)))
@@ -229,10 +215,8 @@ struct NotchHomeView: View {
                     switch elementType {
                     case .musicPlayer:
                         MusicPlayerView(albumArtNamespace: albumArtNamespace)
-    
                     case .calendar:
                         CalendarView(selectedDate: $selectedDate)
-    
                             .onHover { isHovering in
                                 vm.isHoveringCalendar = isHovering
                             }
@@ -259,10 +243,8 @@ struct NotchHomeView: View {
                     switch elementType {
                     case .musicPlayer:
                         MusicPlayerView(albumArtNamespace: albumArtNamespace)
-    
                     case .calendar:
                         CalendarView(selectedDate: $selectedDate)
-    
                             .onHover { isHovering in
                                 vm.isHoveringCalendar = isHovering
                             }

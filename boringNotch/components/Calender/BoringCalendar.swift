@@ -157,7 +157,7 @@ struct CalendarView: View {
     @Binding var selectedDate: Date
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             HStack {
                 Text("\(selectedDate, format: .dateTime.month())")
                     .font(.system(size: 18))
@@ -179,8 +179,10 @@ struct CalendarView: View {
             }
             if calendarManager.events.isEmpty {
                 EmptyEventsView()
+                    .frame(maxHeight: .infinity)
             } else {
                 EventListView(events: calendarManager.events)
+                    .frame(maxHeight: .infinity)
             }
         }
         .listRowBackground(Color.clear)
@@ -200,7 +202,7 @@ struct CalendarView: View {
 
 struct EmptyEventsView: View {
     var body: some View {
-        ScrollView {
+        VStack(spacing: 4) {
             Text("No events today")
                 .font(.headline)
                 .foregroundStyle(.white)
@@ -208,6 +210,8 @@ struct EmptyEventsView: View {
                 .font(.subheadline)
                 .foregroundColor(.gray)
         }
+        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -217,6 +221,7 @@ struct EventListView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
+            // Set a fixed content height to ensure consistent scrolling
             HStack(alignment: .top) {
                 VStack(alignment: .trailing, spacing: 5) {
                     ForEach(events.indices, id: \.self) { index in
