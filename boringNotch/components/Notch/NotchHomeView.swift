@@ -183,6 +183,7 @@ struct NotchHomeView: View {
     @EnvironmentObject var webcamManager: WebcamManager
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
+    @State private var selectedDate = Date()
 
     var body: some View {
         Group {
@@ -196,9 +197,6 @@ struct NotchHomeView: View {
     private var mainContent: some View {
         HStack(alignment: .top, spacing: 20) {
             leftSideElements
-            
-            Spacer()
-            
             rightSideElements
         }
         .transition(.opacity.animation(.smooth.speed(0.9))
@@ -218,7 +216,7 @@ struct NotchHomeView: View {
                     case .musicPlayer:
                         MusicPlayerView(albumArtNamespace: albumArtNamespace)
                     case .calendar:
-                        CalendarView()
+                        CalendarView(selectedDate: $selectedDate)
                             .onHover { isHovering in
                                 vm.isHoveringCalendar = isHovering
                             }
@@ -226,6 +224,7 @@ struct NotchHomeView: View {
                     case .mirror:
                         if webcamManager.cameraAvailable {
                             CameraPreviewView(webcamManager: webcamManager)
+    .frame(maxWidth: 120)
                                 .scaledToFit()
                                 .opacity(vm.notchState == .closed ? 0 : 1)
                                 .blur(radius: vm.notchState == .closed ? 20 : 0)
@@ -245,7 +244,7 @@ struct NotchHomeView: View {
                     case .musicPlayer:
                         MusicPlayerView(albumArtNamespace: albumArtNamespace)
                     case .calendar:
-                        CalendarView()
+                        CalendarView(selectedDate: $selectedDate)
                             .onHover { isHovering in
                                 vm.isHoveringCalendar = isHovering
                             }
@@ -253,6 +252,7 @@ struct NotchHomeView: View {
                     case .mirror:
                         if webcamManager.cameraAvailable {
                             CameraPreviewView(webcamManager: webcamManager)
+    .frame(maxWidth: 120)
                                 .scaledToFit()
                                 .opacity(vm.notchState == .closed ? 0 : 1)
                                 .blur(radius: vm.notchState == .closed ? 20 : 0)

@@ -154,7 +154,7 @@ struct WheelPicker: View {
 struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject private var calendarManager = CalendarManager()
-    @State private var selectedDate = Date()
+    @Binding var selectedDate: Date
 
     var body: some View {
         VStack(spacing: 8) {
@@ -188,9 +188,11 @@ struct CalendarView: View {
             calendarManager.updateCurrentDate(newDate)
         }
         .onChange(of: vm.notchState) { _, _ in
+            selectedDate = Date()
             calendarManager.updateCurrentDate(Date.now)
         }
         .onAppear {
+            selectedDate = Date()
             calendarManager.updateCurrentDate(Date.now)
         }
     }
@@ -307,7 +309,7 @@ struct EventListView: View {
 // Keep the CalendarManager, EmptyEventsView, and EventListView as they were in the previous implementation
 
 #Preview {
-    CalendarView()
+    CalendarView(selectedDate: .constant(Date()))
         .frame(width: 250)
         .padding(.horizontal)
         .background(.black)
