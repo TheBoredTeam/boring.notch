@@ -53,3 +53,4 @@ build/
 *.xcarchive
 *.dSYM
 
+.qodo
