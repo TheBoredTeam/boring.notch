@@ -67,3 +67,9 @@ enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
     case albumArt = "Match album art"
     case accent = "Accent color"
 }
+
+enum NotchElementPosition: String, Defaults.Serializable {
+    case left = "Left"
+    case center = "Center"
+    case right = "Right"
+}

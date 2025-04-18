@@ -5,6 +5,7 @@
 //  Created by Richard Kunkli on 2024. 10. 17..
 //
 
+import Foundation
 import SwiftUI
 import Defaults
 
@@ -49,6 +50,89 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     case youtubeMusic = "Youtube Music"
     
     var id: String { self.rawValue }
+}
+
+// MARK: - Enums and Structs for Preferences
+
+// Ensure this enum is defined ONLY here
+enum NotchElementType: String, Codable, CaseIterable, Identifiable, Hashable { 
+    case musicPlayer = "Music Player"
+    case calendar = "Calendar"
+    case mirror = "Mirror"
+    
+    var id: String { self.rawValue }
+    
+    var iconName: String {
+        switch self {
+        case .musicPlayer: return "music.note"
+        case .calendar: return "calendar"
+        case .mirror: return "camera"
+        }
+    }
+}
+
+
+
+// Updated LayoutPreferences
+struct LayoutPreferences: Codable, Defaults.Serializable { 
+    var leftElements: [NotchElementType]
+    var rightElements: [NotchElementType]
+    var elementVisibility: [NotchElementType: Bool]
+
+    init(
+        leftElements: [NotchElementType] = [.musicPlayer],
+        rightElements: [NotchElementType] = [.calendar, .mirror],
+        elementVisibility: [NotchElementType: Bool] = [
+            .musicPlayer: true,
+            .calendar: true,
+            .mirror: true
+        ]
+    ) {
+        self.leftElements = leftElements
+        self.rightElements = rightElements
+        var completeVisibility = elementVisibility
+        for type in NotchElementType.allCases {
+            if completeVisibility[type] == nil {
+                completeVisibility[type] = true // Default to visible if missing
+            }
+        }
+        self.elementVisibility = completeVisibility
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case leftElements, rightElements, elementVisibility
+    }
+    
+    // Decoder init
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Use decodeIfPresent with correct types and provide default arrays/dict for ??
+        let decodedLeft = try container.decodeIfPresent([NotchElementType].self, forKey: .leftElements)
+        let decodedRight = try container.decodeIfPresent([NotchElementType].self, forKey: .rightElements)
+        let decodedVisibility = try container.decodeIfPresent([NotchElementType: Bool].self, forKey: .elementVisibility)
+
+        let defaultVisibility: [NotchElementType: Bool] = Dictionary(uniqueKeysWithValues: NotchElementType.allCases.map { ($0, true) })
+
+        self.leftElements = decodedLeft ?? [.musicPlayer]
+        self.rightElements = decodedRight ?? [.calendar, .mirror]
+        self.elementVisibility = decodedVisibility ?? defaultVisibility
+        
+        // Ensure all elements have visibility after decoding potentially old data
+        for type in NotchElementType.allCases {
+             if self.elementVisibility[type] == nil {
+                 self.elementVisibility[type] = true // Default to visible if missing
+             }
+         }
+    }
+
+    // Encoder func
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(leftElements, forKey: .leftElements)
+        try container.encode(rightElements, forKey: .rightElements)
+        try container.encode(elementVisibility, forKey: .elementVisibility)
+    }
 }
 
 extension Defaults.Keys {
@@ -97,6 +181,7 @@ extension Defaults.Keys {
     static let useMusicVisualizer = Key<Bool>("useMusicVisualizer", default: true)
     static let customVisualizers = Key<[CustomVisualizer]>("customVisualizers", default: [])
     static let selectedVisualizer = Key<CustomVisualizer?>("selectedVisualizer", default: nil)
+    static let notchElementLayout = Key<LayoutPreferences>("notchElementLayout", default: LayoutPreferences()) 
     
         // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)

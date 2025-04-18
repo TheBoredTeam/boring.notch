@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import AppKit
 import Defaults
 import KeyboardShortcuts
 import LaunchAtLogin
@@ -19,9 +20,9 @@ struct SettingsView: View {
     @StateObject var extensionManager = BoringExtensionManager()
     let updaterController: SPUStandardUpdaterController
     @StateObject private var calendarManager = CalendarManager()
-    
+
     @State private var selectedTab = "General"
-    
+
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
@@ -39,7 +40,8 @@ struct SettingsView: View {
                 }
                 if extensionManager.installedExtensions
                     .contains(
-                        where: { $0.bundleIdentifier == hudExtension
+                        where: {
+                            $0.bundleIdentifier == hudExtension
                         })
                 {
                     NavigationLink(destination: HUD()) {
@@ -51,7 +53,8 @@ struct SettingsView: View {
                 }
                 if extensionManager.installedExtensions
                     .contains(
-                        where: { $0.bundleIdentifier == downloadManagerExtension
+                        where: {
+                            $0.bundleIdentifier == downloadManagerExtension
                         })
                 {
                     NavigationLink(destination: Downloads()) {
@@ -87,7 +90,9 @@ struct SettingsView: View {
                 NSApp.keyWindow?.makeKeyAndOrderFront(nil)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
+        .onReceive(
+            NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)
+        ) { _ in
             NSApp.setActivationPolicy(.accessory)
             NSApp.deactivate()
         }
@@ -117,7 +122,7 @@ struct GeneralSettings: View {
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
-    
+
     var body: some View {
         Form {
             Section {
@@ -133,7 +138,10 @@ struct GeneralSettings: View {
                                 .frame(width: 20, height: 20)
                                 .overlay(
                                     Circle()
-                                        .stroke(Color.white, lineWidth: Defaults[.accentColor] == color ? 2 : 0)
+                                        .stroke(
+                                            Color.white,
+                                            lineWidth: Defaults[.accentColor] == color ? 2 : 0
+                                        )
                                         .overlay {
                                             Circle()
                                                 .fill(.white)
@@ -159,7 +167,8 @@ struct GeneralSettings: View {
                     Text("Show on all displays")
                 }
                 .onChange(of: showOnAllDisplays) {
-                    NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
+                    NotificationCenter.default.post(
+                        name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
                 Picker("Show on a specific display", selection: $coordinator.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
@@ -167,45 +176,51 @@ struct GeneralSettings: View {
                     }
                 }
                 .onChange(of: NSScreen.screens) {
-                    screens =  NSScreen.screens.compactMap({$0.localizedName})
+                    screens = NSScreen.screens.compactMap({ $0.localizedName })
                 }
                 .disabled(showOnAllDisplays)
                 Defaults.Toggle("Automatically switch displays", key: .automaticallySwitchDisplay)
-                .onChange(of: automaticallySwitchDisplay) {
-                    NotificationCenter.default.post(name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
-                }
-                .disabled(showOnAllDisplays)
+                    .onChange(of: automaticallySwitchDisplay) {
+                        NotificationCenter.default.post(
+                            name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
+                    }
+                    .disabled(showOnAllDisplays)
             } header: {
                 Text("System features")
             }
-            
+
             Section {
-                Picker(selection: $notchHeightMode, label:
-                    Text("Notch display height")) {
-                        Text("Match real notch size")
-                            .tag(WindowHeightMode.matchRealNotchSize)
-                        Text("Match menubar height")
-                            .tag(WindowHeightMode.matchMenuBar)
-                        Text("Custom height")
-                            .tag(WindowHeightMode.custom)
+                Picker(
+                    selection: $notchHeightMode,
+                    label:
+                        Text("Notch display height")
+                ) {
+                    Text("Match real notch size")
+                        .tag(WindowHeightMode.matchRealNotchSize)
+                    Text("Match menubar height")
+                        .tag(WindowHeightMode.matchMenuBar)
+                    Text("Custom height")
+                        .tag(WindowHeightMode.custom)
+                }
+                .onChange(of: notchHeightMode) {
+                    switch notchHeightMode {
+                    case .matchRealNotchSize:
+                        notchHeight = 38
+                    case .matchMenuBar:
+                        notchHeight = 44
+                    case .custom:
+                        notchHeight = 38
                     }
-                    .onChange(of: notchHeightMode) {
-                        switch notchHeightMode {
-                        case .matchRealNotchSize:
-                            notchHeight = 38
-                        case .matchMenuBar:
-                            notchHeight = 44
-                        case .custom:
-                            notchHeight = 38
-                        }
-                        NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
-                    }
+                    NotificationCenter.default.post(
+                        name: Notification.Name.notchHeightChanged, object: nil)
+                }
                 if notchHeightMode == .custom {
                     Slider(value: $notchHeight, in: 15...45, step: 1) {
                         Text("Custom notch size - \(notchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: notchHeight) {
-                        NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
+                        NotificationCenter.default.post(
+                            name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
                 Picker("Non-notch display height", selection: $nonNotchHeightMode) {
@@ -225,22 +240,24 @@ struct GeneralSettings: View {
                     case .custom:
                         nonNotchHeight = 32
                     }
-                    NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
+                    NotificationCenter.default.post(
+                        name: Notification.Name.notchHeightChanged, object: nil)
                 }
                 if nonNotchHeightMode == .custom {
                     Slider(value: $nonNotchHeight, in: 0...40, step: 1) {
                         Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: nonNotchHeight) {
-                        NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
+                        NotificationCenter.default.post(
+                            name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
             } header: {
                 Text("Notch Height")
             }
-            
+
             NotchBehaviour()
-            
+
             gestureControls()
         }
         .tint(Defaults[.accentColor])
@@ -257,7 +274,7 @@ struct GeneralSettings: View {
             }
         }
     }
-    
+
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
@@ -271,8 +288,11 @@ struct GeneralSettings: View {
                     HStack {
                         Text("Gesture sensitivity")
                         Spacer()
-                        Text(Defaults[.gestureSensitivity] == 100 ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low")
-                            .foregroundStyle(.secondary)
+                        Text(
+                            Defaults[.gestureSensitivity] == 100
+                                ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low"
+                        )
+                        .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -282,17 +302,19 @@ struct GeneralSettings: View {
                 customBadge(text: "Beta")
             }
         } footer: {
-            Text("Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled")
-                .multilineTextAlignment(.trailing)
-                .foregroundStyle(.secondary)
-                .font(.caption)
+            Text(
+                "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+            )
+            .multilineTextAlignment(.trailing)
+            .foregroundStyle(.secondary)
+            .font(.caption)
         }
     }
-    
+
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-			Defaults.Toggle("Extend hover area", key: .extendHoverArea)
+            Defaults.Toggle("Extend hover area", key: .extendHoverArea)
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
@@ -306,7 +328,8 @@ struct GeneralSettings: View {
                     }
                 }
                 .onChange(of: minimumHoverDuration) {
-                    NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
+                    NotificationCenter.default.post(
+                        name: Notification.Name.notchHeightChanged, object: nil)
                 }
             }
         } header: {
@@ -320,7 +343,8 @@ struct Charge: View {
         Form {
             Section {
                 Defaults.Toggle("Show battery indicator", key: .showBatteryIndicator)
-                Defaults.Toggle("Show power status notifications", key: .showPowerStatusNotifications)
+                Defaults.Toggle(
+                    "Show power status notifications", key: .showPowerStatusNotifications)
             } header: {
                 Text("General")
             }
@@ -361,7 +385,7 @@ struct Downloads: View {
                     Text("Both")
                         .tag(DownloadIconStyle.iconAndAppIcon)
                 }
-                
+
             } header: {
                 HStack {
                     Text("Download indicators")
@@ -383,15 +407,17 @@ struct Downloads: View {
                 }
                 .actionBar(padding: 0) {
                     Group {
-                        Button {} label: {
+                        Button {
+                        } label: {
                             Image(systemName: "plus")
                                 .frame(width: 25, height: 16, alignment: .center)
                                 .contentShape(Rectangle())
                                 .foregroundStyle(.secondary)
                         }
-                        
+
                         Divider()
-                        Button {} label: {
+                        Button {
+                        } label: {
                             Image(systemName: "minus")
                                 .frame(width: 20, height: 16, alignment: .center)
                                 .contentShape(Rectangle())
@@ -485,17 +511,22 @@ struct Media: View {
                         Text("YouTube Music requires this third-party app to be installed: ")
                             .foregroundStyle(.secondary)
                             .font(.caption)
-                        Link("https://github.com/th-ch/youtube-music", destination: URL(string: "https://github.com/th-ch/youtube-music")!)
-                            .font(.caption)
-                            .foregroundColor(.blue) // Ensures it's visibly a link
+                        Link(
+                            "https://github.com/th-ch/youtube-music",
+                            destination: URL(string: "https://github.com/th-ch/youtube-music")!
+                        )
+                        .font(.caption)
+                        .foregroundColor(.blue)  // Ensures it's visibly a link
                     }
                 } else {
-                    Text("'Now Playing' was the only option on previous versions and works with all media apps.")
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
+                    Text(
+                        "'Now Playing' was the only option on previous versions and works with all media apps."
+                    )
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
                 }
             }
-            
+
             Section {
                 Toggle(
                     "Enable music live activity",
@@ -516,24 +547,28 @@ struct Media: View {
                 Text("Media playback live activity")
             }
 
-            Picker(selection: $hideNotchOption, label:
-                HStack {
-                    Text("Hide BoringNotch Options")
-                    customBadge(text: "Beta")
-                }) {
-                    Text("Always hide in fullscreen").tag(HideNotchOption.always)
-                    Text("Hide only when NowPlaying app is in fullscreen").tag(HideNotchOption.nowPlayingOnly)
-                    Text("Never hide").tag(HideNotchOption.never)
-                }
-                .onChange(of: hideNotchOption) { _, newValue in
-                    Defaults[.alwaysHideInFullscreen] = newValue == .always
-                    Defaults[.enableFullscreenMediaDetection] = newValue != .never
-                }
+            Picker(
+                selection: $hideNotchOption,
+                label:
+                    HStack {
+                        Text("Hide BoringNotch Options")
+                        customBadge(text: "Beta")
+                    }
+            ) {
+                Text("Always hide in fullscreen").tag(HideNotchOption.always)
+                Text("Hide only when NowPlaying app is in fullscreen").tag(
+                    HideNotchOption.nowPlayingOnly)
+                Text("Never hide").tag(HideNotchOption.never)
+            }
+            .onChange(of: hideNotchOption) { _, newValue in
+                Defaults[.alwaysHideInFullscreen] = newValue == .always
+                Defaults[.enableFullscreenMediaDetection] = newValue != .never
+            }
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Media")
     }
-    
+
     // Only show controller options that are available on this macOS version
     private var availableMediaControllers: [MediaControllerType] {
         if MusicManager.shared.isNowPlayingDeprecated {
@@ -547,19 +582,22 @@ struct Media: View {
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager()
     @Default(.showCalendar) var showCalendar: Bool
-    
+
     var body: some View {
         Form {
             Toggle("Show calendar", isOn: $showCalendar)
             Section(header: Text("Select Calendars")) {
                 List {
                     ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
-                        Toggle(isOn: Binding(
-                            get: { calendarManager.getCalendarSelected(calendar) },
-                            set: { isSelected in
-                                calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
-                            }
-                        )) {
+                        Toggle(
+                            isOn: Binding(
+                                get: { calendarManager.getCalendarSelected(calendar) },
+                                set: { isSelected in
+                                    calendarManager.setCalendarSelected(
+                                        calendar, isSelected: isSelected)
+                                }
+                            )
+                        ) {
                             Text(calendar.title)
                         }
                     }
@@ -601,9 +639,9 @@ struct About: View {
                 } header: {
                     Text("Version info")
                 }
-                
+
                 UpdaterSettingsView(updater: updaterController.updater)
-                
+
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
@@ -663,7 +701,8 @@ struct Shelf: View {
         Form {
             Section {
                 Defaults.Toggle("Enable shelf", key: .boringShelf)
-                Defaults.Toggle("Open shelf tab by default if items added", key: .openShelfByDefault)
+                Defaults.Toggle(
+                    "Open shelf tab by default if items added", key: .openShelfByDefault)
             } header: {
                 HStack {
                     Text("General")
@@ -697,46 +736,66 @@ struct Extensions: View {
                             HStack(spacing: 6) {
                                 Circle()
                                     .frame(width: 6, height: 6)
-                                    .foregroundColor(isExtensionRunning(item.bundleIdentifier) ? .green : item.status == .disabled ? .gray : .red)
-                                    .conditionalModifier(isExtensionRunning(item.bundleIdentifier)) { view in
-                                        view
-                                            .shadow(color: .green, radius: 3)
-                                    }
-                                Text(isExtensionRunning(item.bundleIdentifier) ? "Running" : item.status == .disabled ? "Disabled" : "Stopped")
-                                    .contentTransition(.numericText())
-                                    .foregroundStyle(.secondary)
-                                    .font(.footnote)
+                                    .foregroundColor(
+                                        isExtensionRunning(item.bundleIdentifier)
+                                            ? .green : item.status == .disabled ? .gray : .red
+                                    )
+                                    .conditionalModifier(isExtensionRunning(item.bundleIdentifier))
+                                { view in
+                                    view
+                                        .shadow(color: .green, radius: 3)
+                                }
+                                Text(
+                                    isExtensionRunning(item.bundleIdentifier)
+                                        ? "Running"
+                                        : item.status == .disabled ? "Disabled" : "Stopped"
+                                )
+                                .contentTransition(.numericText())
+                                .foregroundStyle(.secondary)
+                                .font(.footnote)
                             }
                             .frame(width: 60, alignment: .leading)
-                            
-                            Menu(content: {
-                                Button("Restart") {
-                                    let ws = NSWorkspace.shared
-                                    
-                                    if let ext = ws.runningApplications.first(where: { $0.bundleIdentifier == item.bundleIdentifier }) {
-                                        ext.terminate()
+
+                            Menu(
+                                content: {
+                                    Button("Restart") {
+                                        let ws = NSWorkspace.shared
+
+                                        if let ext = ws.runningApplications.first(where: {
+                                            $0.bundleIdentifier == item.bundleIdentifier
+                                        }) {
+                                            ext.terminate()
+                                        }
+
+                                        if let appURL = ws.urlForApplication(
+                                            withBundleIdentifier: item.bundleIdentifier)
+                                        {
+                                            ws.openApplication(
+                                                at: appURL, configuration: .init(),
+                                                completionHandler: nil)
+                                        }
                                     }
-                                    
-                                    if let appURL = ws.urlForApplication(withBundleIdentifier: item.bundleIdentifier) {
-                                        ws.openApplication(at: appURL, configuration: .init(), completionHandler: nil)
+                                    .keyboardShortcut("R", modifiers: .command)
+                                    Button("Disable") {
+                                        if let ext = NSWorkspace.shared.runningApplications.first(
+                                            where: { $0.bundleIdentifier == item.bundleIdentifier })
+                                        {
+                                            ext.terminate()
+                                        }
+                                        extensionManager.installedExtensions[index].status =
+                                            .disabled
                                     }
-                                }
-                                .keyboardShortcut("R", modifiers: .command)
-                                Button("Disable") {
-                                    if let ext = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == item.bundleIdentifier }) {
-                                        ext.terminate()
+                                    .keyboardShortcut("D", modifiers: .command)
+                                    Divider()
+                                    Button("Uninstall", role: .destructive) {
+                                        //
                                     }
-                                    extensionManager.installedExtensions[index].status = .disabled
+                                },
+                                label: {
+                                    Image(systemName: "ellipsis.circle")
+                                        .foregroundStyle(.secondary)
                                 }
-                                .keyboardShortcut("D", modifiers: .command)
-                                Divider()
-                                Button("Uninstall", role: .destructive) {
-                                    //
-                                }
-                            }, label: {
-                                Image(systemName: "ellipsis.circle")
-                                    .foregroundStyle(.secondary)
-                            })
+                            )
                             .controlSize(.regular)
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -745,10 +804,10 @@ struct Extensions: View {
                 }
                 .frame(minHeight: 120)
                 .actionBar {
-                    Button {} label: {
+                    Button {
+                    } label: {
                         HStack(spacing: 3) {
                             Image(systemName: "plus")
-                            Text("Add manually")
                         }
                         .foregroundStyle(.secondary)
                     }
@@ -790,10 +849,201 @@ struct Extensions: View {
         }
         .tint(Defaults[.accentColor])
         .navigationTitle("Extensions")
-        // TipsView()
-        // .padding(.horizontal, 19)
     }
 }
+
+struct NotchElementItem: Identifiable, Equatable {
+    let id = UUID()
+    var type: NotchElementType
+
+    // Helper properties (read-only) derived from type
+    var title: String { type.rawValue }
+    var iconName: String { type.iconName }
+}
+
+struct NotchLayoutEditor: View {
+    @Default(.notchElementLayout) var notchLayout: LayoutPreferences
+    @State private var elements: [NotchElementItem] = []
+
+    private func initializeElements() {
+        // Merge left and right elements into a single ordered list
+        let orderedTypes = notchLayout.leftElements + notchLayout.rightElements
+        var combinedElements: [NotchElementItem] = orderedTypes.map { NotchElementItem(type: $0) }
+        // Add any missing types (e.g., after an update)
+        let currentTypes = Set(combinedElements.map { $0.type })
+        for type in NotchElementType.allCases {
+            if !currentTypes.contains(type) {
+                combinedElements.append(NotchElementItem(type: type))
+                if notchLayout.elementVisibility[type] == nil {
+                    notchLayout.elementVisibility[type] = true
+                }
+            }
+        }
+        self.elements = combinedElements
+    }
+
+    private func updateLayoutPreferences() {
+        let orderedTypes = elements.map { $0.type }
+        // Save all as leftElements, rightElements can be empty or used for future extensions
+        notchLayout.leftElements = orderedTypes
+        notchLayout.rightElements = []
+        NotificationCenter.default.post(name: .notchLayoutChanged, object: nil)
+    }
+
+    var body: some View {
+        VStack(spacing: 24) {
+            // Simple notch visualization
+            notchVisualization
+
+            // List-based element configuration
+            elementConfigurationList
+
+            // Instructions
+            HStack {
+                Image(systemName: "info.circle")
+                    .foregroundColor(Defaults[.accentColor])
+                    .font(.system(size: 14))
+
+                Text("Changes are saved automatically")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 4)
+        }
+        .padding(16)
+        .background(Color(.controlBackgroundColor).opacity(0.5))
+        .cornerRadius(16)
+        .onAppear {
+            initializeElements()
+        }
+    }
+
+    // Simple notch visualization
+    private var notchVisualization: some View {
+        VStack(spacing: 8) {
+            Text("Notch Layout")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            // --- Notch Visualization Layout ---
+            GeometryReader { geo in
+                let visibleElements = elements.filter {
+                    notchLayout.elementVisibility[$0.type] ?? true
+                }
+                let count = visibleElements.count
+                let leftCount = count > 2 ? count / 3 : (count == 2 ? 1 : count)
+                let rightCount = count > 2 ? count / 3 : (count == 2 ? 1 : 0)
+                let centerCount = count - leftCount - rightCount
+                let left = Array(visibleElements.prefix(leftCount))
+                let center = Array(visibleElements.dropFirst(leftCount).prefix(centerCount))
+                let right = Array(visibleElements.suffix(rightCount))
+                ZStack {
+                    // Screen area
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.black)
+                        .frame(height: 70)
+                    // Notch cutout
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.black)
+                        .frame(width: 120, height: 25)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                        )
+                        .offset(y: -35)
+                    // Camera dot
+                    Circle()
+                        .fill(Color.gray.opacity(0.5))
+                        .frame(width: 4, height: 4)
+                        .offset(y: -35)
+                    HStack {
+                        HStack(spacing: 8) {
+                            ForEach(left) { item in elementIndicator(item) }
+                        }
+                        Spacer(minLength: 40)
+                        HStack(spacing: 8) {
+                            ForEach(center) { item in elementIndicator(item) }
+                        }
+                        Spacer(minLength: 40)
+                        HStack(spacing: 8) {
+                            ForEach(right) { item in elementIndicator(item) }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+            }
+            .frame(height: 70)
+            // --- End NotchLayout ---
+        }
+    }
+
+    // Element indicator for visualization
+    private func elementIndicator(_ item: NotchElementItem) -> some View {
+        Image(systemName: item.iconName)
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(.white)
+            .frame(width: 24, height: 24)
+            .background(Defaults[.accentColor].opacity(0.8))
+            .cornerRadius(6)
+    }
+
+    // List-based configuration
+    private var elementConfigurationList: some View {
+        VStack(spacing: 16) {
+            Text("Element Order")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            List {
+                ForEach($elements) { $element in
+                    elementConfigRow(for: $element)
+                }
+                .onMove(perform: moveElement)
+            }
+            .frame(height: CGFloat(elements.count * 60))  // Adjust height dynamically or use ScrollView
+        }
+    }
+
+    // Configuration row for each element - Updated to use Binding
+    @ViewBuilder
+    func elementConfigRow(for elementBinding: Binding<NotchElementItem>) -> some View {
+        let element = elementBinding.wrappedValue
+        HStack {
+            // Element icon and name
+            Image(systemName: element.iconName)
+                .foregroundColor(Defaults[.accentColor])
+                .font(.system(size: 16))
+            Text(element.title)
+                .font(.system(size: 14, weight: .medium))
+            Spacer()
+            Toggle(
+                "",
+                isOn: Binding(
+                    get: { notchLayout.elementVisibility[element.type] ?? true },
+                    set: { newValue in
+                        withAnimation(.spring()) {
+                            notchLayout.elementVisibility[element.type] = newValue
+                            NotificationCenter.default.post(name: .notchLayoutChanged, object: nil)
+                        }
+                    }
+                )
+            )
+            .labelsHidden()
+            .toggleStyle(SwitchToggleStyle(tint: Defaults[.accentColor]))
+        }
+        .padding()
+        .background(Color(.windowBackgroundColor).opacity(0.6))
+        .cornerRadius(10)
+        .opacity(notchLayout.elementVisibility[element.type] ?? true ? 1.0 : 0.6)
+    }
+
+    private func moveElement(from source: IndexSet, to destination: Int) {
+        elements.move(fromOffsets: source, toOffset: destination)
+        updateLayoutPreferences()  // Save the new order
+    }
+}
+
+// MARK: - Appearance View
 
 struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -802,10 +1052,11 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.notchElementLayout) var notchLayout: LayoutPreferences
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
-    
+
     @State private var isPresented: Bool = false
     @State private var name: String = ""
     @State private var url: String = ""
@@ -821,7 +1072,7 @@ struct Appearance: View {
             } header: {
                 Text("General")
             }
-            
+
             Section {
                 Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
                 Defaults
@@ -835,7 +1086,13 @@ struct Appearance: View {
             } header: {
                 Text("Media")
             }
-            
+
+            Section {
+                NotchLayoutEditor()
+            } header: {
+                Text("Notch Layout")
+            }
+
             Section {
                 Toggle(
                     "Use music visualizer spectrogram",
@@ -871,13 +1128,17 @@ struct Appearance: View {
                     customBadge(text: "Coming soon")
                 }
             }
-            
+
             Section {
                 List {
                     ForEach(customVisualizers, id: \.self) { visualizer in
                         HStack {
-                            LottieView(state: LUStateData(type: .loadedFrom(visualizer.url), speed: visualizer.speed, loopMode: .loop))
-                                .frame(width: 30, height: 30, alignment: .center)
+                            LottieView(
+                                state: LUStateData(
+                                    type: .loadedFrom(visualizer.url), speed: visualizer.speed,
+                                    loopMode: .loop)
+                            )
+                            .frame(width: 30, height: 30, alignment: .center)
                             Text(visualizer.name)
                             Spacer(minLength: 0)
                             if selectedVisualizer == visualizer {
@@ -891,7 +1152,9 @@ struct Appearance: View {
                         .buttonStyle(PlainButtonStyle())
                         .padding(.vertical, 2)
                         .background(
-                            selectedListVisualizer != nil ? selectedListVisualizer == visualizer ? Defaults[.accentColor] : Color.clear : Color.clear,
+                            selectedListVisualizer != nil
+                                ? selectedListVisualizer == visualizer
+                                    ? Defaults[.accentColor] : Color.clear : Color.clear,
                             in: RoundedRectangle(cornerRadius: 5)
                         )
                         .contentShape(Rectangle())
@@ -925,7 +1188,8 @@ struct Appearance: View {
                             if selectedListVisualizer != nil {
                                 let visualizer = selectedListVisualizer!
                                 selectedListVisualizer = nil
-                                customVisualizers.remove(at: customVisualizers.firstIndex(of: visualizer)!)
+                                customVisualizers.remove(
+                                    at: customVisualizers.firstIndex(of: visualizer)!)
                                 if visualizer == selectedVisualizer && customVisualizers.count > 0 {
                                     selectedVisualizer = customVisualizers[0]
                                 }
@@ -969,7 +1233,7 @@ struct Appearance: View {
                                 Text("Cancel")
                                     .frame(maxWidth: .infinity, alignment: .center)
                             }
-                            
+
                             Button {
                                 let visualizer: CustomVisualizer = .init(
                                     UUID: UUID(),
@@ -977,11 +1241,11 @@ struct Appearance: View {
                                     url: URL(string: url)!,
                                     speed: speed
                                 )
-                                
+
                                 if !customVisualizers.contains(visualizer) {
                                     customVisualizers.append(visualizer)
                                 }
-                                
+
                                 isPresented.toggle()
                             } label: {
                                 Text("Add")
@@ -1003,7 +1267,7 @@ struct Appearance: View {
                     }
                 }
             }
-            
+
             Section {
                 Defaults.Toggle("Enable boring mirror", key: .showMirror)
                     .disabled(!checkVideoInput())
@@ -1019,7 +1283,7 @@ struct Appearance: View {
                     Text("Additional features")
                 }
             }
-            
+
             Section {
                 HStack {
                     ForEach(icons, id: \.self) { icon in
@@ -1035,7 +1299,7 @@ struct Appearance: View {
                                             lineWidth: 2.5
                                         )
                                 )
-                            
+
                             Text("Default")
                                 .fontWeight(.medium)
                                 .font(.caption)
@@ -1044,7 +1308,8 @@ struct Appearance: View {
                                 .padding(.vertical, 3)
                                 .background(
                                     Capsule()
-                                        .fill(icon == selectedIcon ? Defaults[.accentColor] : .clear)
+                                        .fill(
+                                            icon == selectedIcon ? Defaults[.accentColor] : .clear)
                                 )
                         }
                         .onTapGesture {
@@ -1067,12 +1332,12 @@ struct Appearance: View {
         .tint(Defaults[.accentColor])
         .navigationTitle("Appearance")
     }
-    
+
     func checkVideoInput() -> Bool {
-        if let _ = AVCaptureDevice.default(for: .video) {
+        if AVCaptureDevice.default(for: .video) != nil {
             return true
         }
-        
+
         return false
     }
 }
@@ -1085,10 +1350,12 @@ struct Shortcuts: View {
             } header: {
                 Text("Media")
             } footer: {
-                Text("Sneak Peek shows the media title and artist under the notch for a few seconds.")
-                    .multilineTextAlignment(.trailing)
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
+                Text(
+                    "Sneak Peek shows the media title and artist under the notch for a few seconds."
+                )
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+                .font(.caption)
             }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
@@ -1105,7 +1372,9 @@ func proFeatureBadge() -> some View {
         .font(.footnote.bold())
         .padding(.vertical, 3)
         .padding(.horizontal, 6)
-        .background(RoundedRectangle(cornerRadius: 4).stroke(Color(red: 0.545, green: 0.196, blue: 0.98), lineWidth: 1))
+        .background(
+            RoundedRectangle(cornerRadius: 4).stroke(
+                Color(red: 0.545, green: 0.196, blue: 0.98), lineWidth: 1))
 }
 
 func comingSoonTag() -> some View {
@@ -1145,6 +1414,12 @@ func warningBadge(_ text: String, _ description: String) -> some View {
     }
 }
 
+extension Notification.Name {
+    static let notchLayoutChanged = Notification.Name("notchLayoutChanged")
+}
+
 #Preview {
-    HUD()
+    SettingsView(
+        updaterController: SPUStandardUpdaterController(
+            startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil))
 }

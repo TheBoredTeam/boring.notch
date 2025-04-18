@@ -47,7 +47,12 @@ struct AlbumArtView: View {
                     .aspectRatio(contentMode: .fill)
             )
             .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: Defaults[.cornerRadiusScaling]
+                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
+                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+            )
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 35)
@@ -75,10 +80,17 @@ struct AlbumArtView: View {
                 Image(nsImage: musicManager.albumArt)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: musicManager.isFlipping)
+                    .animation(
+                        .spring(response: 0.4, dampingFraction: 0.8), value: musicManager.isFlipping
+                    )
             )
             .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: Defaults[.cornerRadiusScaling]
+                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
+                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+            )
             .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
     }
 
@@ -100,7 +112,7 @@ struct MusicControlsView: View {
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
-    
+
     var body: some View {
         VStack(alignment: .leading) {
             songInfoAndSlider
@@ -123,13 +135,16 @@ struct MusicControlsView: View {
 
     private func songInfo(width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            MarqueeText($musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: width)
+            MarqueeText(
+                $musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white,
+                frameWidth: width)
             MarqueeText(
                 $musicManager.artistName,
                 font: .headline,
                 nsFont: .headline,
-                textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor)
-                    .ensureMinimumBrightness(factor: 0.6) : .gray,
+                textColor: Defaults[.playerColorTinting]
+                    ? Color(nsColor: musicManager.avgColor)
+                        .ensureMinimumBrightness(factor: 0.6) : .gray,
                 frameWidth: width
             )
             .fontWeight(.medium)
@@ -137,7 +152,8 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) {
+            timeline in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
@@ -183,6 +199,7 @@ struct NotchHomeView: View {
     @EnvironmentObject var webcamManager: WebcamManager
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
+    @State private var selectedDate = Date()
 
     var body: some View {
         Group {
@@ -195,27 +212,73 @@ struct NotchHomeView: View {
 
     private var mainContent: some View {
         HStack(alignment: .top, spacing: 20) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+            leftSideElements
+            rightSideElements
+        }
+        .transition(
+            .opacity.animation(.smooth.speed(0.9))
+                .combined(with: .blurReplace.animation(.smooth.speed(0.9)))
+                .combined(with: .move(edge: .top))
+        )
+        .blur(radius: vm.notchState == .closed ? 30 : 0)
+    }
 
-            if Defaults[.showCalendar] {
-                CalendarView()
-                .onHover { isHovering in
-                    vm.isHoveringCalendar = isHovering
+    @Default(.notchElementLayout) private var notchLayout: LayoutPreferences
+
+    @ViewBuilder
+    private var leftSideElements: some View {
+        HStack(alignment: .top, spacing: 20) {
+            ForEach(notchLayout.leftElements, id: \.self) { elementType in
+                if notchLayout.elementVisibility[elementType] ?? true {
+                    switch elementType {
+                    case .musicPlayer:
+                        MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                    case .calendar:
+                        CalendarView(selectedDate: $selectedDate)
+                            .frame(height: 145)
+                            .onHover { isHovering in
+                                vm.isHoveringCalendar = isHovering
+                            }
+                            .environmentObject(vm)
+                    case .mirror:
+                        if webcamManager.cameraAvailable {
+                            CameraPreviewView(webcamManager: webcamManager)
+                                .frame(width: 145, height: 145)
+                                .opacity(vm.notchState == .closed ? 0 : 1)
+                                .blur(radius: vm.notchState == .closed ? 20 : 0)
+                        }
+                    }
                 }
-                .environmentObject(vm)
-            }
-
-            if Defaults[.showMirror] && webcamManager.cameraAvailable {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
             }
         }
-        .transition(.opacity.animation(.smooth.speed(0.9))
-            .combined(with: .blurReplace.animation(.smooth.speed(0.9)))
-            .combined(with: .move(edge: .top)))
-        .blur(radius: vm.notchState == .closed ? 30 : 0)
+    }
+
+    @ViewBuilder
+    private var rightSideElements: some View {
+        HStack(alignment: .top, spacing: 20) {
+            ForEach(notchLayout.rightElements, id: \.self) { elementType in
+                if notchLayout.elementVisibility[elementType] ?? true {
+                    switch elementType {
+                    case .musicPlayer:
+                        MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                    case .calendar:
+                        CalendarView(selectedDate: $selectedDate)
+                            .frame(height: 145)
+                            .onHover { isHovering in
+                                vm.isHoveringCalendar = isHovering
+                            }
+                            .environmentObject(vm)
+                    case .mirror:
+                        if webcamManager.cameraAvailable {
+                            CameraPreviewView(webcamManager: webcamManager)
+                                .frame(width: 145, height: 145)
+                                .opacity(vm.notchState == .closed ? 0 : 1)
+                                .blur(radius: vm.notchState == .closed ? 20 : 0)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -235,8 +298,9 @@ struct MusicSliderView: View {
     var onValueChange: (Double) -> Void
 
     var currentElapsedTime: Double {
-        // A small buffer is needed to ensure a meaningful difference between the two dates
-        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -0.0001, (timestampDate > lastUpdated || ignoreLastUpdated) else { return sliderValue }
+        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -0.0001,
+            timestampDate > lastUpdated || ignoreLastUpdated
+        else { return sliderValue }
         let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
         let elapsed = elapsedTime + (timeDifference * playbackRate)
         return min(elapsed, duration)
@@ -246,10 +310,13 @@ struct MusicSliderView: View {
         VStack {
             CustomSlider(
                 value: $sliderValue,
-                range: 0 ... duration,
-                color: Defaults[.sliderColor] == SliderColorEnum.albumArt ? Color(
-                    nsColor: color
-                ).ensureMinimumBrightness(factor: 0.8) : Defaults[.sliderColor] == SliderColorEnum.accent ? Defaults[.accentColor] : .white,
+                range: 0...duration,
+                color: Defaults[.sliderColor] == SliderColorEnum.albumArt
+                    ? Color(
+                        nsColor: color
+                    ).ensureMinimumBrightness(factor: 0.8)
+                    : Defaults[.sliderColor] == SliderColorEnum.accent
+                        ? Defaults[.accentColor] : .white,
                 dragging: $dragging,
                 lastDragged: $lastDragged,
                 onValueChange: onValueChange
@@ -261,8 +328,11 @@ struct MusicSliderView: View {
                 Text(timeString(from: duration))
             }
             .fontWeight(.medium)
-            .foregroundColor(Defaults[.playerColorTinting] ? Color(nsColor: color)
-                .ensureMinimumBrightness(factor: 0.6) : .gray)
+            .foregroundColor(
+                Defaults[.playerColorTinting]
+                    ? Color(nsColor: color)
+                        .ensureMinimumBrightness(factor: 0.6) : .gray
+            )
             .font(.caption)
         }
         .onChange(of: currentDate) {
@@ -299,15 +369,14 @@ struct CustomSlider: View {
             let height = CGFloat(dragging ? 9 : 5)
             let rangeSpan = range.upperBound - range.lowerBound
 
-            let filledTrackWidth = min(rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width, width)
+            let filledTrackWidth = min(
+                rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width, width)
 
             ZStack(alignment: .leading) {
-                // Background track
                 Rectangle()
                     .fill(.gray.opacity(0.3))
                     .frame(height: height)
 
-                // Filled track
                 Rectangle()
                     .fill(color)
                     .frame(width: filledTrackWidth, height: height)
@@ -321,7 +390,8 @@ struct CustomSlider: View {
                         withAnimation {
                             dragging = true
                         }
-                        let newValue = range.lowerBound + Double(gesture.location.x / width) * rangeSpan
+                        let newValue =
+                            range.lowerBound + Double(gesture.location.x / width) * rangeSpan
                         value = min(max(newValue, range.lowerBound), range.upperBound)
                     }
                     .onEnded { _ in
