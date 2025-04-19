@@ -192,6 +192,9 @@
     "Calendar" : {
 
     },
+    "Calendar access is denied. Please enable it in System Settings." : {
+
+    },
     "Cancel" : {
 
     },
@@ -632,6 +635,9 @@
           }
         }
       }
+    },
+    "Open System Settings" : {
+
     },
     "Percentage" : {
       "localizations" : {

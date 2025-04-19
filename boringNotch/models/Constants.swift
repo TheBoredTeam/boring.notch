@@ -96,7 +96,7 @@ extension Defaults.Keys {
     static let useModernCloseAnimation = Key<Bool>("useModernCloseAnimation", default: true)
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
-    static let showCalendar = Key<Bool>("showCalendar", default: true)
+    static let showCalendar = Key<Bool>("showCalendar", default: false)
     static let sliderColor = Key<SliderColorEnum>(
         "sliderUseAlbumArtColor",
         default: SliderColorEnum.white
