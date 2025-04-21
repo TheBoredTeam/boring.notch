@@ -34,12 +34,25 @@ struct SharedSneakPeek: Codable {
     var icon: String
 }
 
+enum BrowserType {
+    case chromium
+    case safari
+}
+
+struct ExpandedItem {
+    var show: Bool = false
+    var type: SneakContentType = .battery
+    var value: CGFloat = 0
+    var browser: BrowserType = .chromium
+}
+
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
     var notifier: TheBoringWorkerNotifier = .init()
     
     @Published var currentView: NotchViews = .home
     private var sneakPeekDispatch: DispatchWorkItem?
+    private var expandingViewDispatch: DispatchWorkItem?
     
     
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
@@ -154,6 +167,38 @@ class BoringViewCoordinator: ObservableObject {
             }
         }
     }
+    
+    func toggleExpandingView(status: Bool, type: SneakContentType, value: CGFloat = 0, browser: BrowserType = .chromium) {
+        if expandingView.show {
+            withAnimation(.smooth) {
+                self.expandingView.show = false
+            }
+        }
+        DispatchQueue.main.async {
+            withAnimation(.smooth) {
+                self.expandingView.show = status
+                self.expandingView.type = type
+                self.expandingView.value = value
+                self.expandingView.browser = browser
+            }
+        }
+    }
+    
+    @Published var expandingView: ExpandedItem = .init() {
+        didSet {
+            if expandingView.show {
+                expandingViewDispatch?.cancel()
+
+                expandingViewDispatch = DispatchWorkItem { [weak self] in
+                    guard let self = self else { return }
+                    self.toggleExpandingView(status: false, type: SneakContentType.battery)
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + (expandingView.type == .download ? 2 : 3), execute: expandingViewDispatch!)
+            }
+        }
+    }
+
     
     @objc func initialMicStatus(_ notification: Notification) {
         currentMicStatus = notification.userInfo?.first?.value as! Bool
