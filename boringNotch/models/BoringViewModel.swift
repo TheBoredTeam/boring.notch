@@ -10,18 +10,6 @@ import Defaults
 import SwiftUI
 import TheBoringWorkerNotifier
 
-enum BrowserType {
-    case chromium
-    case safari
-}
-
-struct ExpandedItem {
-    var show: Bool = false
-    var type: SneakContentType = .battery
-    var value: CGFloat = 0
-    var browser: BrowserType = .chromium
-}
-
 class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var detector = FullscreenMediaDetector.shared
@@ -31,8 +19,6 @@ class BoringViewModel: NSObject, ObservableObject {
 
     @Published var contentType: ContentType = .normal
     @Published private(set) var notchState: NotchState = .closed
-    
-    private var expandingViewDispatch: DispatchWorkItem?
 
     @Published var dragDetectorTargeting: Bool = false
     @Published var dropZoneTargeting: Bool = false
@@ -47,23 +33,6 @@ class BoringViewModel: NSObject, ObservableObject {
 
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
-
-    var notifier: TheBoringWorkerNotifier = .init()
-
-    @Published var expandingView: ExpandedItem = .init() {
-        didSet {
-            if expandingView.show {
-                expandingViewDispatch?.cancel()
-
-                expandingViewDispatch = DispatchWorkItem { [weak self] in
-                    guard let self = self else { return }
-                    self.toggleExpandingView(status: false, type: SneakContentType.battery)
-                }
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + (expandingView.type == .download ? 2 : 3), execute: expandingViewDispatch!)
-            }
-        }
-    }
 
     @AppStorage("preferred_screen_name") var preferredScreen = NSScreen.main?.localizedName ?? "Unknown" {
         didSet {
@@ -87,7 +56,6 @@ class BoringViewModel: NSObject, ObservableObject {
 
         super.init()
         
-        notifier = coordinator.notifier
         self.screen = screen
         notchSize = getClosedNotchSize(screen: screen)
         closedNotchSize = notchSize
@@ -135,22 +103,6 @@ class BoringViewModel: NSObject, ObservableObject {
         MusicManager.shared.forceUpdate()
     }
 
-    func toggleExpandingView(status: Bool, type: SneakContentType, value: CGFloat = 0, browser: BrowserType = .chromium) {
-        if expandingView.show {
-            withAnimation(.smooth) {
-                self.expandingView.show = false
-            }
-        }
-        DispatchQueue.main.async {
-            withAnimation(.smooth) {
-                self.expandingView.show = status
-                self.expandingView.type = type
-                self.expandingView.value = value
-                self.expandingView.browser = browser
-            }
-        }
-    }
-
     func close() {
         withAnimation(.smooth) { [weak self] in
             guard let self = self else { return }
@@ -166,14 +118,6 @@ class BoringViewModel: NSObject, ObservableObject {
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home
         }
-    }
-    
-    func openClipboard() {
-        notifier.postNotification(name: notifier.showClipboardNotification.name, userInfo: nil)
-    }
-
-    func toggleClipboard() {
-        openClipboard()
     }
 
     func closeHello() {

@@ -15,11 +15,11 @@ import SwiftUIIntrospect
 
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @StateObject var batteryModel: BatteryStatusViewModel
     @StateObject var webcamManager: WebcamManager = .init()
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
 
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
@@ -30,8 +30,6 @@ struct ContentView: View {
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
-    
-    @State private var showSongInfo = false
 
     @Namespace var albumArtNamespace
 
@@ -149,7 +147,6 @@ struct ContentView: View {
         .shadow(color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear, radius: Defaults[.cornerRadiusScaling] ? 10 : 5)
         .background(dragDetector)
         .environmentObject(vm)
-        .environmentObject(batteryModel)
         .environmentObject(webcamManager)
     }
 
@@ -165,7 +162,7 @@ struct ContentView: View {
                       .padding(.top, 40)
                       Spacer()
                   } else {
-                      if vm.expandingView.type == .battery && vm.expandingView.show && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
+                      if coordinator.expandingView.type == .battery && coordinator.expandingView.show && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
                         HStack(spacing: 0) {
                             HStack {
                                 Text(batteryModel.statusText)
@@ -192,9 +189,9 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
-                      } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
+                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
-                      } else if !vm.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
+                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation().animation(.interactiveSpring, value: musicManager.isPlayerIdle)
                       } else if vm.notchState == .open {
                           BoringHeader()
@@ -205,26 +202,24 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.closedNotchSize.height)
                        }
                       
-                      if coordinator.sneakPeek.show && !Defaults[.inlineHUD] {
-                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
+                      if coordinator.sneakPeek.show {
+                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] {
                               SystemEventIndicatorModifier(eventType: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, sendEventBack: { _ in
                                   //
                               })
-                              
                               .padding(.bottom, 10)
                               .padding(.leading, 4)
                               .padding(.trailing, 8)
                           }
                           // Old sneak peek music
-                          else if coordinator.sneakPeek.type != .battery {
-                              if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard{
+                          else if coordinator.sneakPeek.type == .music {
+                              if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
                                   HStack(alignment: .center) {
                                       Image(systemName: "music.note")
                                       GeometryReader { geo in
                                           MarqueeText(.constant(musicManager.songTitle + " - " + musicManager.artistName), textColor: .gray, minDuration: 1, frameWidth: geo.size.width)
                                       }
                                   }
-                                  
                                   .foregroundStyle(.gray)
                                   .padding(.bottom, 10)
                               }
@@ -292,32 +287,25 @@ struct ContentView: View {
                 .fill(.black)
                 .overlay(
                     HStack(alignment: .top){
-                        // Song Title
-                        MarqueeText(
-                            .constant(musicManager.songTitle),
-                            textColor: Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.gray,
-                            minDuration: 0.4,
-                            frameWidth: 100
-                        )
-                        .opacity((showSongInfo && Defaults[.enableSneakPeek] && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
-                        Spacer(minLength: vm.closedNotchSize.width)
-                        // Song Artist
-                        Text(musicManager.artistName)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .foregroundStyle(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.gray)
-                            .opacity((showSongInfo && Defaults[.enableSneakPeek] && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
+                        if(coordinator.expandingView.show && coordinator.expandingView.type == .music) {
+                            MarqueeText(
+                                .constant(musicManager.songTitle),
+                                textColor: Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.gray,
+                                minDuration: 0.4,
+                                frameWidth: 100
+                            )
+                            .opacity((coordinator.expandingView.show && Defaults[.enableSneakPeek] && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
+                            Spacer(minLength: vm.closedNotchSize.width)
+                            // Song Artist
+                            Text(musicManager.artistName)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .foregroundStyle(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.gray)
+                                .opacity((coordinator.expandingView.show && coordinator.expandingView.type == .music && Defaults[.enableSneakPeek] && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
+                        }
                     }
                 )
-                .frame(width: (showSongInfo && Defaults[.enableSneakPeek] && Defaults[.sneakPeekStyles] == .inline) ? 380 : vm.closedNotchSize.width + (isHovering ? 8 : 0))
-                .onChange(of: musicManager.isSongChanged) {_, newValue in
-                    withAnimation(.easeInOut(duration: 0.6)) {
-                        showSongInfo = newValue
-                    }
-                }
-                .onAppear{
-                    showSongInfo = musicManager.isSongChanged
-                }
+                .frame(width: (coordinator.expandingView.show && coordinator.expandingView.type == .music && Defaults[.enableSneakPeek] && Defaults[.sneakPeekStyles] == .inline) ? 380 : vm.closedNotchSize.width + (isHovering ? 8 : 0))
             
 
             HStack {

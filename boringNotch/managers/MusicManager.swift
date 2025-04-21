@@ -51,9 +51,6 @@ class MusicManager: ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     
-    @Published var isSongChanged: Bool = false
-    private var songInfoVersion = 0
-    
     private var artworkData: Data? = nil
 
     @Published var isFlipping: Bool = false
@@ -184,7 +181,6 @@ class MusicManager: ObservableObject {
                 
                 if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
                     self.updateSneakPeek()
-                    self.triggerShowNewSongInfo()
                 }
             }
             
@@ -200,7 +196,6 @@ class MusicManager: ObservableObject {
             // Handle artwork and visual transitions for changed content
             if hasContentChange {
                 self.triggerFlipAnimation()
-                self.triggerShowNewSongInfo()
                 
                 if artworkChanged, let artwork = state.artwork {
                     self.updateArtwork(artwork)
@@ -273,22 +268,6 @@ class MusicManager: ObservableObject {
         flipWorkItem = workItem
         DispatchQueue.main.async(execute: workItem)
     }
-    
-    private func triggerShowNewSongInfo() {
-        songInfoVersion += 1
-        let currentVersion = songInfoVersion
-        
-        isSongChanged = true
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) { [weak self] in
-            guard self?.songInfoVersion == currentVersion else {
-                return
-            }
-            
-            print("🔻 Close Info")
-            self?.isSongChanged = false
-        }
-    }
 
     private func updateArtwork(_ artworkData: Data) {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -349,7 +328,11 @@ class MusicManager: ObservableObject {
     
     private func updateSneakPeek() {
         if isPlaying && Defaults[.enableSneakPeek] {
-            coordinator.toggleSneakPeek(status: true, type: SneakContentType.music)
+            if Defaults[.sneakPeekStyles] == .standard {
+                coordinator.toggleSneakPeek(status: true, type: .music)
+            } else {
+                coordinator.toggleExpandingView(status: true, type: .music)
+            }
         }
     }
 
