@@ -21,7 +21,9 @@ class CalendarManager: ObservableObject {
     
     init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
-        checkCalendarAuthorization()
+        if(Defaults[.showCalendar]) {
+            checkCalendarAuthorization()
+        }
     }
     
     func checkCalendarAuthorization() {
@@ -32,10 +34,6 @@ class CalendarManager: ObservableObject {
         }
         
         switch status {
-            case .authorized:
-                self.allCalendars = eventStore.calendars(for: .event)
-                updateSelectedCalendars()
-                fetchEvents()
             case .notDetermined:
                 requestCalendarAccess()
             case .restricted, .denied:
@@ -43,6 +41,9 @@ class CalendarManager: ObservableObject {
                 NSLog("Calendar access denied or restricted")
             case .fullAccess:
                 NSLog("Full access")
+                self.allCalendars = eventStore.calendars(for: .event)
+                updateSelectedCalendars()
+                fetchEvents()
             case .writeOnly:
                 NSLog("Write only")
             @unknown default:
