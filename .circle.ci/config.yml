@@ -1,0 +1,20 @@
+version: 2.1
+
+jobs:
+  build-and-test:
+    macos:
+      xcode: "16.1.0"  # or "14.2.0", depending on your needs
+    steps:
+      - checkout
+      - run:
+          name: Build with xcodebuild
+          command: |
+            xcodebuild clean build \
+              -scheme YourSchemeName \
+              -project YourProjectName.xcodeproj \
+              -destination 'platform=macOS'
+
+workflows:
+  build:
+    jobs:
+      - build-and-test
