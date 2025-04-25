@@ -429,10 +429,17 @@ class MusicManager: ObservableObject {
         }
 
         let workspace = NSWorkspace.shared
-        if workspace.launchApplication(withBundleIdentifier: bundleID, options: [], additionalEventParamDescriptor: nil, launchIdentifier: nil) {
-            print("Launched app with bundle ID: \(bundleID)")
+        if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
+            let configuration = NSWorkspace.OpenConfiguration()
+            workspace.openApplication(at: appURL, configuration: configuration) { app, error in
+                if let error = error {
+                    print("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
+                } else if app != nil {
+                    print("Launched app with bundle ID: \(bundleID)")
+                }
+            }
         } else {
-            print("Failed to launch app with bundle ID: \(bundleID)")
+            print("Failed to find app with bundle ID: \(bundleID)")
         }
     }
 }

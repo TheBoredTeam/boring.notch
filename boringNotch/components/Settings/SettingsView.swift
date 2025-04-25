@@ -499,10 +499,12 @@ struct Media: View {
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager()
     @Default(.showCalendar) var showCalendar: Bool
+    @Default(.showQuickLaunch) var showQuickLaunch: Bool
     
     var body: some View {
         Form {
             Toggle("Show calendar", isOn: $showCalendar)
+            Defaults.Toggle("Quick Launch", key: .showQuickLaunch)
             Section(header: Text("Select Calendars")) {
                 List {
                     ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
