@@ -562,6 +562,9 @@
     "No extension installed" : {
 
     },
+    "No upcoming reminders" : {
+
+    },
     "Non-notch display height" : {
 
     },
@@ -664,6 +667,15 @@
       }
     },
     "Remember last tab" : {
+
+    },
+    "Reminder access denied or restricted." : {
+
+    },
+    "Reminders" : {
+
+    },
+    "Requesting access to reminders..." : {
 
     },
     "Restart" : {
@@ -818,6 +830,9 @@
 
     },
     "Uninstall" : {
+
+    },
+    "Unknown reminder permission status" : {
 
     },
     "Unlock advanced features and improve your experience. Upgrade now for more customizations!" : {
