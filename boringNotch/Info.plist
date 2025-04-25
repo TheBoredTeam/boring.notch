@@ -9,6 +9,8 @@
 	</dict>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Show calender events inside the notch</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Show reminders in the notch</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>

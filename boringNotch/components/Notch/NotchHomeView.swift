@@ -199,25 +199,27 @@ struct NotchHomeView: View {
 
             if Defaults[.showCalendar] {
                 CalendarView()
-                .onContinuousHover { phase in
-                                if Defaults[.closeGestureEnabled] {
-                                    switch phase {
-                                        case .active:
-                                            Defaults[.closeGestureEnabled] = false
-                                        case .ended:
-                                            Defaults[.closeGestureEnabled] = false
-                                    }
-                                }
-                            }
+                    .onContinuousHover { phase in
+                        if Defaults[.closeGestureEnabled] {
+                            Defaults[.closeGestureEnabled] = false
+                        }
+                    }
                     .environmentObject(vm)
             }
+            
+            if Defaults[.showReminders] {
+                BoringRemindersView()
+                    .scaledToFit()
+            }
 
-            if Defaults[.showMirror] && webcamManager.cameraAvailable {
+            if Defaults[.showMirror], webcamManager.cameraAvailable {
                 CameraPreviewView(webcamManager: webcamManager)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
             }
+
+
         }
         .transition(.opacity.animation(.smooth.speed(0.9))
             .combined(with: .blurReplace.animation(.smooth.speed(0.9)))

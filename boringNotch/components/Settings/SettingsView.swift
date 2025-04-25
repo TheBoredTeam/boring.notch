@@ -957,6 +957,7 @@ struct Appearance: View {
             }
             
             Section {
+                Defaults.Toggle("Enable Reminders", key: .showReminders)
                 Defaults.Toggle("Enable boring mirror", key: .showMirror)
                     .disabled(!checkVideoInput())
                 Picker("Mirror shape", selection: $mirrorShape) {

@@ -30,6 +30,11 @@ enum CalendarSelectionState: Codable, Defaults.Serializable {
     case selected(Set<String>)
 }
 
+enum ReminderSelectionState: Codable, Defaults.Serializable {
+    case all
+    case selected(Set<String>)
+}
+
 enum HideNotchOption: String, Defaults.Serializable {
     case always
     case nowPlayingOnly
@@ -62,6 +67,7 @@ extension Defaults.Keys {
     static let showEmojis = Key<Bool>("showEmojis", default: false)
         //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)
+    static let showReminders = Key<Bool>("showReminders", default: true)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: false)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
@@ -114,6 +120,10 @@ extension Defaults.Keys {
     
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
+    
+        // MARK: Reminders
+    
+    static let reminderSelectionState = Key<ReminderSelectionState>("reminderSelectionState", default: .all)
     
         // MARK: Fullscreen Media Detection
     static let alwaysHideInFullscreen = Key<Bool>("alwaysHideInFullscreen", default: false)
