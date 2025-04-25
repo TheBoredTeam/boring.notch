@@ -1,0 +1,23 @@
+version: 2.1
+
+jobs:
+  build-and-test:
+    macos:
+      xcode: "16.1.0"
+    steps:
+      - checkout
+      - run:
+          name: Build with xcodebuild
+          command: |
+            security find-identity -v -p codesigning
+            xcodebuild clean build \
+              -scheme boringNotch \
+              -project boringNotch.xcodeproj \
+              -destination 'platform=macOS' \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO
+
+workflows:
+  build:
+    jobs:
+      - build-and-test
