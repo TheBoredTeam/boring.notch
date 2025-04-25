@@ -275,22 +275,6 @@ struct ContentView: View {
                     } else {
                         Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.closedNotchSize.height)
                     }
-
-                    if workspaceMonitor.shouldShowStatus {
-                        Text(workspaceMonitor.currentStatus)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(.black.opacity(0.7))
-                                    .blur(radius: 2)
-                            )
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .transition(.opacity)
-                            .animation(.easeInOut(duration: 0.2), value: workspaceMonitor.shouldShowStatus)
-                    }
                 }
             }
             .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (musicManager.isPlaying || !musicManager.isPlayerIdle))) { view in
