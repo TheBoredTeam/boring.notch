@@ -1,0 +1,12 @@
+language: swift
+os: osx
+osx_image: xcode16.3  
+xcode_project: boringNotch.xcodeproj 
+xcode_scheme: boringNotch              
+xcode_destination: platform=macOS
+
+script:
+  - set -o pipefail && xcodebuild clean build test \
+    -project boringNotch.xcodeproj \
+    -scheme boringNotch \
+    -destination 'platform=macOS' | xcpretty
