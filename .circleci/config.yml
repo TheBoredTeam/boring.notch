@@ -10,8 +10,8 @@ jobs:
           name: Build with xcodebuild
           command: |
             xcodebuild clean build \
-              -scheme YourSchemeName \
-              -project YourProjectName.xcodeproj \
+              -scheme boringNotch \
+              -project boringNotch.xcodeproj \
               -destination 'platform=macOS'
 
 workflows:
