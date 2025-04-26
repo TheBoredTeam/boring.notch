@@ -16,7 +16,7 @@ struct PlaybackState {
     var currentTime: Double = 0
     var duration: Double = 0
     var playbackRate: Double = 1
-    var isShuffled: Bool? = nil
+    var isShuffled: Bool? = false
     var isRepeating: Bool? = nil
     var lastUpdated: Date = Date.distantPast
     var artwork: Data?

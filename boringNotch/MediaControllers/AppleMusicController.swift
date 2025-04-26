@@ -67,6 +67,11 @@ class AppleMusicController: MediaControllerProtocol {
         updatePlaybackInfo()
     }
     
+    func toggleShuffle() {
+        executeCommand("set shuffle enabled to not shuffle enabled")
+        updatePlaybackInfo()
+    }
+    
     func isActive() -> Bool {
         let runningApps = NSWorkspace.shared.runningApplications
         return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
@@ -123,7 +128,7 @@ class AppleMusicController: MediaControllerProtocol {
                 set currentTrackAlbum to album of current track
                 set trackPosition to player position
                 set trackDuration to duration of current track
-                set shuffleState to false
+                set shuffleState to shuffle enabled
                 set repeatState to false
                 try
                     set artData to data of artwork 1 of current track

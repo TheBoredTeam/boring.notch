@@ -104,6 +104,10 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
         return true
     }
     
+    func toggleShuffle() {
+        MRMediaRemoteSendCommandFunction(6, nil)
+    }
+    
     // MARK: - Setup Methods
     private func setupNowPlayingObserver() {
         MRMediaRemoteRegisterForNowPlayingNotifications(DispatchQueue.main)
@@ -173,6 +177,8 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
             let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
             let timestamp = information["kMRMediaRemoteNowPlayingInfoTimestamp"] as? Date ?? Date()
             let playbackRate = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Double ?? 1
+            let isShuffled = information["kMRMediaRemoteNowPlayingInfoiTunesStoreAdamID"] != nil && 
+                            (information["kMRMediaRemoteNowPlayingInfoShuffleMode"] as? Int ?? 0) > 0
             
             // Update playback state
             DispatchQueue.main.async {
@@ -184,6 +190,7 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
                 self.playbackState.artwork = artworkData
                 self.playbackState.lastUpdated = timestamp
                 self.playbackState.playbackRate = playbackRate
+                self.playbackState.isShuffled = isShuffled
                 
                 // Check playback state
                 self.MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in
