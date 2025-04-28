@@ -71,6 +71,24 @@ class AppleMusicController: MediaControllerProtocol {
         updatePlaybackInfo()
     }
     
+    func toggleShuffle() {
+        executeCommand("set shuffle enabled to not shuffle enabled")
+        updatePlaybackInfo()
+    }
+    
+    func toggleRepeat() {
+        executeCommand("""
+            if song repeat is off then
+                set song repeat to all
+            else if song repeat is all then
+                set song repeat to one
+            else
+                set song repeat to off
+            end if
+            """)
+        updatePlaybackInfo()
+    }
+    
     func isActive() -> Bool {
         let runningApps = NSWorkspace.shared.runningApplications
         return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
@@ -88,7 +106,8 @@ class AppleMusicController: MediaControllerProtocol {
         let currentTime = descriptor.atIndex(5)?.doubleValue ?? 0
         let duration = descriptor.atIndex(6)?.doubleValue ?? 0
         let isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
-        let isRepeating = descriptor.atIndex(8)?.booleanValue ?? false
+        let repeatModeValue = descriptor.atIndex(8)?.int32Value ?? 0
+        let repeatMode = RepeatMode(rawValue: Int(repeatModeValue)) ?? .off
         let artworkData = descriptor.atIndex(9)?.data as Data?
         
         let updatedState = PlaybackState(
@@ -101,7 +120,7 @@ class AppleMusicController: MediaControllerProtocol {
             duration: duration,
             playbackRate: 1,
             isShuffled: isShuffled,
-            isRepeating: isRepeating,
+            repeatMode: repeatMode,
             lastUpdated: Date(),
             artwork: (artworkData?.isEmpty ?? true) ? nil : artworkData
         )
@@ -129,16 +148,24 @@ class AppleMusicController: MediaControllerProtocol {
                 set currentTrackAlbum to album of current track
                 set trackPosition to player position
                 set trackDuration to duration of current track
-                set shuffleState to false
-                set repeatState to false
+                set shuffleState to shuffle enabled
+                set repeatState to song repeat
+                if repeatState is off then
+                    set repeatValue to 0
+                else if repeatState is all then
+                    set repeatValue to 1
+                else if repeatState is one then
+                    set repeatValue to 2
+                end if
+
                 try
                     set artData to data of artwork 1 of current track
                 on error
                     set artData to ""
                 end try
-                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatState, artData}
+                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, artData}
             on error
-                return {false, "Not Playing", "Unknown", "Unknown", 0, 0, false, false, ""}
+                return {false, "Not Playing", "Unknown", "Unknown", 0, 0, false, 0, ""}
             end try
         end tell
         """

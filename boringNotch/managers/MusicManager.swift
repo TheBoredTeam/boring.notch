@@ -42,6 +42,8 @@ class MusicManager: ObservableObject {
     @Published var elapsedTime: TimeInterval = 0
     @Published var timestampDate: Date = .init()
     @Published var playbackRate: Double = 1
+    @Published var isShuffled: Bool = false
+    @Published var repeatMode: RepeatMode = .off
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
 
@@ -226,6 +228,8 @@ class MusicManager: ObservableObject {
             let timeChanged = state.currentTime != self.elapsedTime
             let durationChanged = state.duration != self.songDuration
             let playbackRateChanged = state.playbackRate != self.playbackRate
+            let shuffleChanged = (state.isShuffled ?? false) != self.isShuffled
+            let repeatModeChanged = state.repeatMode != self.repeatMode
 
             if state.title != self.songTitle {
                 self.songTitle = state.title
@@ -255,6 +259,10 @@ class MusicManager: ObservableObject {
                 self.bundleIdentifier = state.bundleIdentifier
             }
 
+            if repeatModeChanged {
+                self.repeatMode = state.repeatMode
+            }
+            
             self.timestampDate = state.lastUpdated
         }
 
@@ -358,6 +366,16 @@ class MusicManager: ObservableObject {
         activeController?.pause()
     }
 
+    func toggleShuffle() {
+        activeController?.toggleShuffle()
+        refreshController()
+    }
+
+    func toggleRepeat() {
+        activeController?.toggleRepeat()
+        refreshController()
+    }
+    
     func togglePlay() {
         activeController?.togglePlay()
     }

@@ -98,7 +98,15 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     func isActive() -> Bool {
         return true
     }
-
+    
+    func toggleShuffle() {
+        MRMediaRemoteSendCommandFunction(6, nil)
+    }
+    
+    func toggleRepeat() {
+        MRMediaRemoteSendCommandFunction(7, nil)
+    }
+    
     // MARK: - Setup Methods
     private func setupNowPlayingObserver() {
         let process = Process()
