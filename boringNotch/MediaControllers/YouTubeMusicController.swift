@@ -174,9 +174,18 @@ class YouTubeMusicController: MediaControllerProtocol {
             })
             .store(in: &cancellables)
     }
+
+    func shuffleStatus() {
+        sendCommand(endpoint: "/shuffle", method: "GET")
+    }
     
     func toggleShuffle() {
         sendCommand(endpoint: "/shuffle", method: "POST")
+        updatePlaybackInfo()
+    }
+
+    func toggleRepeat() {
+        sendCommand(endpoint: "/switch-repeat", method: "POST")
         updatePlaybackInfo()
     }
 

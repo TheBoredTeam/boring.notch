@@ -7,6 +7,12 @@
 
 import Foundation
 
+enum RepeatMode: Int, Codable {
+    case off = 0
+    case all = 1
+    case one = 2
+}
+
 struct PlaybackState {
     var bundleIdentifier: String
     var isPlaying: Bool = false
@@ -17,7 +23,7 @@ struct PlaybackState {
     var duration: Double = 0
     var playbackRate: Double = 1
     var isShuffled: Bool? = false
-    var isRepeating: Bool? = nil
+    var repeatMode: RepeatMode = .off
     var lastUpdated: Date = Date.distantPast
     var artwork: Data?
 }
