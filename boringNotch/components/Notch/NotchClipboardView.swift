@@ -9,29 +9,27 @@ import SwiftUI
 
 struct NotchClipboardView : View {
     
-    private var data  = Array(1...20)
-       private let gridRows = [
+    @ObservedObject var clipboardMonitor: ClipboardMonitor
+    
+    init(clipboardMonitor: ClipboardMonitor) {
+        self.clipboardMonitor = clipboardMonitor
+    }
+
+    private let gridRows = [
         GridItem(.adaptive(minimum: 200)),
-        //GridItem(.adaptive(minimum: 10))
-       ]
+    ]
     
     var body: some View {
         ScrollView(.horizontal){
             LazyHGrid(rows: gridRows, spacing: 20)  {
-                            ForEach(data, id: \.self) { item in
-                                //ClipboardTile(text: item.description)
+                ForEach(clipboardMonitor.data.reversed(), id: \.self) { item in
+                    ClipboardTile(text: item.text, bundleID: item.bundleID)
                 }
             }
         }
-        /*HStack{
-            ClipboardTile();
-            ClipboardTile()
-        }*/
-        
-        
     }
 }
 
 #Preview {
-    NotchClipboardView()
+    NotchClipboardView(clipboardMonitor: ClipboardMonitor())
 }

@@ -30,6 +30,8 @@ struct ContentView: View {
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
+    
+    @StateObject private var clipboardMonitor = ClipboardMonitor()
 
     @Namespace var albumArtNamespace
 
@@ -241,7 +243,28 @@ struct ContentView: View {
                           case .shelf:
                               NotchShelfView()
                           case .clipboard:
-                              NotchClipboardView()
+                          NotchClipboardView(clipboardMonitor: clipboardMonitor)
+                          /* HStack{
+                              Text("Ultimo testo copiato:")
+                                              .font(.headline)
+                                              .foregroundStyle(.white)
+                              Text(clipboardMonitor.lastCopiedText)
+                                              .padding()
+                                              .background(.gray.opacity(0.1))
+                                              .cornerRadius(8)
+                                              .foregroundStyle(.white)
+                              Spacer()
+                              AppIcon(for: clipboardMonitor.lastCopiedApp)
+                                  .opacity(0.7)
+                                          Text("App sorgente:")
+                                              .font(.headline)
+                                              .foregroundStyle(.white)
+                                          Text(clipboardMonitor.lastCopiedApp)
+                                              .padding()
+                                              .background(.gray.opacity(0.1))
+                                              .cornerRadius(8)
+                                              .foregroundStyle(.white)
+                          }*/
                       }
                   }
               }

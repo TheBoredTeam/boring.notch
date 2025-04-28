@@ -26,8 +26,7 @@ struct ClipboardTile: View {
             .onTapGesture {
                 let clipboard = NSPasteboard.general
                 clipboard.clearContents()
-                clipboard.setString("Ciao dal Mac!", forType: .string)
-                print("Tap")
+                clipboard.setString(text, forType: .string)
             }
     }
     
@@ -42,7 +41,7 @@ struct ClipboardTile: View {
             Spacer()
             HStack(alignment: .center) {
                 ZStack{
-                    clipboardIconBackground
+                    //clipboardIconBackground
                     AppIcon(for: bundleID)
                         .opacity(0.7)
                 }
@@ -51,6 +50,7 @@ struct ClipboardTile: View {
                 Text("Copied!")
                     .padding(.trailing)
                     .padding(.bottom, 5)
+                    .foregroundStyle(.white.opacity(0.5))
             }
         }
         //.foregroundStyle(.gray)
@@ -76,7 +76,7 @@ struct ClipboardTile: View {
 #Preview {
     HStack{
         ClipboardTile(text: "Copia 1", bundleID: "com.apple.Notes")
-        ClipboardTile(text: "Copia 2", bundleID: "com.apple.Safari")
+        ClipboardTile(text: "Copia 2", bundleID: "com.spotify.client")
     }
     
 }
