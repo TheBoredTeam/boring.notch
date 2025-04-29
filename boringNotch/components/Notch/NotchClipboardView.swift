@@ -20,10 +20,18 @@ struct NotchClipboardView : View {
     ]
     
     var body: some View {
-        ScrollView(.horizontal){
-            LazyHGrid(rows: gridRows, spacing: 20)  {
-                ForEach(clipboardMonitor.data.reversed(), id: \.self) { item in
-                    ClipboardTile(text: item.text, bundleID: item.bundleID)
+        if clipboardMonitor.data.isEmpty {
+            Text("Clipboard is empty")
+                .foregroundStyle(.white.opacity(0.5))
+                .frame(width: 500, height: 148, alignment: .center)
+                .font(.system(.headline, design: .rounded))
+                
+        } else {
+            ScrollView(.horizontal){
+                LazyHGrid(rows: gridRows, spacing: 20)  {
+                    ForEach(clipboardMonitor.data.reversed(), id: \.self) { item in
+                        ClipboardTile(text: item.text, bundleID: item.bundleID)
+                    }
                 }
             }
         }

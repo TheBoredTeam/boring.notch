@@ -11,6 +11,13 @@ import AppKit
 struct ClipboardTile: View {
     var text: String
     var bundleID: String
+    @State private var isCopied: Bool = false
+    
+    init(text: String, bundleID: String) {
+        self.text = text
+        self.bundleID = bundleID
+    }
+    
     var body: some View {
         Rectangle()
             .fill(.white.opacity(0.4))
@@ -21,12 +28,17 @@ struct ClipboardTile: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             )
             .frame(width: 140, height: 120)
-            //.aspectRatio(1, contentMode: .fit)
             .contentShape(Rectangle())
             .onTapGesture {
                 let clipboard = NSPasteboard.general
                 clipboard.clearContents()
                 clipboard.setString(text, forType: .string)
+                isCopied = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isCopied = false
+                    }
+                }
             }
     }
     
@@ -43,14 +55,19 @@ struct ClipboardTile: View {
                 ZStack{
                     //clipboardIconBackground
                     AppIcon(for: bundleID)
-                        .opacity(0.7)
+                        .opacity(0.5)
                 }
                 .padding(.bottom, 10)
+                .padding(.leading, 8)
                 Spacer()
-                Text("Copied!")
-                    .padding(.trailing)
-                    .padding(.bottom, 5)
-                    .foregroundStyle(.white.opacity(0.5))
+                if isCopied {
+                    Text("Copied!")
+                        .padding(.trailing)
+                        .padding(.bottom, 5)
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+                
+                
             }
         }
         //.foregroundStyle(.gray)
