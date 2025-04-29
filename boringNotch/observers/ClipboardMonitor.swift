@@ -5,9 +5,6 @@
 //  Created by Alessandro Gravagno on 28/04/25.
 //
 
-// TODO: fix "Copied!" string behaviour
-// TODO: usare delle icone invece di copied e vedere come animare il passaggio da una all'altra
-// TODO: change UI
 // TODO: fix duplicate, se copio una stringa di un app mentre mi trovo in un altra app viene creato un duplicato
 
 import SwiftUI
@@ -47,8 +44,8 @@ class ClipboardMonitor: ObservableObject{
     }
     
     private func addToClipboard(element: ClipboardData){
-        if self.data.contains(element) {
-            return
+        if self.data.contains(element){
+            self.data.removeAll(where: {$0 == element})
         }
         self.data.append(element)
     }

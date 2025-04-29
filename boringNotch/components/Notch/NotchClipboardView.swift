@@ -23,8 +23,8 @@ struct NotchClipboardView : View {
         if clipboardMonitor.data.isEmpty {
             Text("Clipboard is empty")
                 .foregroundStyle(.white.opacity(0.5))
-                .frame(width: 500, height: 148, alignment: .center)
-                .font(.system(.headline, design: .rounded))
+                .frame(maxWidth: .infinity, maxHeight: 148)
+                .font(.system(.title, design: .rounded))
                 
         } else {
             ScrollView(.horizontal){

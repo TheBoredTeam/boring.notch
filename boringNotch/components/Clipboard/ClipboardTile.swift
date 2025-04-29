@@ -12,6 +12,7 @@ struct ClipboardTile: View {
     var text: String
     var bundleID: String
     @State private var isCopied: Bool = false
+    private let clipboard = NSPasteboard.general
     
     init(text: String, bundleID: String) {
         self.text = text
@@ -28,16 +29,13 @@ struct ClipboardTile: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             )
             .frame(width: 140, height: 120)
-            .contentShape(Rectangle())
+            .clipped()
             .onTapGesture {
-                let clipboard = NSPasteboard.general
                 clipboard.clearContents()
                 clipboard.setString(text, forType: .string)
                 isCopied = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        isCopied = false
-                    }
+                    isCopied = false
                 }
             }
     }
@@ -45,33 +43,30 @@ struct ClipboardTile: View {
     private var clipboardLabel: some View {
         VStack(alignment: .leading, spacing: 12){
             Text(text)
-                .foregroundStyle(.white)
+                .foregroundStyle(.white.opacity(0.9))
                 .padding(.top, 10)
                 .padding(.horizontal, 5)
-                .lineLimit(3)
+                .lineLimit(2)
                 .padding(.leading, 5)
-            Spacer()
+                .font(.system(.body, design: .rounded))
+                .frame(height: 50)
             HStack(alignment: .center) {
                 ZStack{
-                    //clipboardIconBackground
+                    clipboardIconBackground
                     AppIcon(for: bundleID)
-                        .opacity(0.5)
+                        .opacity(0.85)
                 }
-                .padding(.bottom, 10)
-                .padding(.leading, 8)
+                .padding(.bottom, 8)
                 Spacer()
-                if isCopied {
-                    Text("Copied!")
-                        .padding(.trailing)
-                        .padding(.bottom, 5)
-                        .foregroundStyle(.white.opacity(0.5))
-                }
-                
+                Image(systemName: isCopied ? "checkmark": "clipboard")
+                    .contentTransition(.symbolEffect(.replace))
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(.trailing)
+                    .padding(.bottom, 8)
+                    .font(.system(.headline, design: .rounded))
                 
             }
         }
-        //.foregroundStyle(.gray)
-        .font(.system(.headline, design: .rounded))
         .contentShape(Rectangle())
     }
     
@@ -83,17 +78,17 @@ struct ClipboardTile: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
             )
-            .clipped()
-            .scaleEffect(x: 1.3, y: 1.4)
-            .rotationEffect(.degrees(92))
-            .blur(radius: 35)
+            .scaleEffect(x: 1.3, y: 3.4)
+            .rotationEffect(.degrees(90))
+            .blur(radius:40)
     }
 }
 
 #Preview {
     HStack{
-        ClipboardTile(text: "Copia 1", bundleID: "com.apple.Notes")
+        ClipboardTile(text: "Copia 1 Copia 1 Copia 1 Copia 1 .frame(height: 18)", bundleID: "com.apple.Notes")
         ClipboardTile(text: "Copia 2", bundleID: "com.spotify.client")
+        ClipboardTile(text: "Copia 3", bundleID: "com.apple.music")
     }
     
 }
