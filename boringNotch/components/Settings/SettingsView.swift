@@ -7,6 +7,7 @@
 
 import AVFoundation
 import Defaults
+import EventKit
 import KeyboardShortcuts
 import LaunchAtLogin
 import LottieUI
@@ -462,7 +463,9 @@ struct Media: View {
     @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.hideNotchOption) var hideNotchOption
-
+    @Default(.enableSneakPeek) private var enableSneakPeek
+    @Default(.sneakPeekStyles) var sneakPeekStyles
+    
     var body: some View {
         Form {
             Section {
@@ -495,13 +498,17 @@ struct Media: View {
                         .font(.caption)
                 }
             }
-            
             Section {
                 Toggle(
                     "Enable music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
+                Toggle("Enable sneak peek", isOn: $enableSneakPeek)
+                Picker("Sneak Peek Style", selection: $sneakPeekStyles){
+                    ForEach(SneakPeekStyle.allCases) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }.disabled(!enableSneakPeek)
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {
@@ -547,24 +554,39 @@ struct Media: View {
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager()
     @Default(.showCalendar) var showCalendar: Bool
-    
+
     var body: some View {
         Form {
-            Toggle("Show calendar", isOn: $showCalendar)
-            Section(header: Text("Select Calendars")) {
-                List {
-                    ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
-                        Toggle(isOn: Binding(
-                            get: { calendarManager.getCalendarSelected(calendar) },
-                            set: { isSelected in
-                                calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+            if calendarManager.authorizationStatus != .fullAccess {
+                Text("Calendar access is denied. Please enable it in System Settings.")
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                Button("Open System Settings") {
+                    if let settingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                        NSWorkspace.shared.open(settingsURL)
+                    }
+                }
+            } else {
+                Toggle("Show calendar", isOn: $showCalendar)
+                Section(header: Text("Select Calendars")) {
+                    List {
+                        ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
+                            Toggle(isOn: Binding(
+                                get: { calendarManager.getCalendarSelected(calendar) },
+                                set: { isSelected in
+                                    calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+                                }
+                            )) {
+                                Text(calendar.title)
                             }
-                        )) {
-                            Text(calendar.title)
                         }
                     }
                 }
             }
+        }
+        .onAppear {
+            calendarManager.checkCalendarAuthorization()
         }
     }
 }

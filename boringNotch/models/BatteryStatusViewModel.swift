@@ -8,7 +8,6 @@ import Defaults
 class BatteryStatusViewModel: ObservableObject {
     
     private var wasCharging: Bool = false
-    private var vm: BoringViewModel
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
     var animations: BoringAnimations = BoringAnimations()
@@ -26,11 +25,12 @@ class BatteryStatusViewModel: ObservableObject {
     
     private let managerBattery = BatteryActivityManager.shared
     private var managerBatteryId: Int?
+    
+    static let shared = BatteryStatusViewModel()
 
     /// Initializes the view model with a given BoringViewModel instance
     /// - Parameter vm: The BoringViewModel instance
-    init(vm: BoringViewModel) {
-        self.vm = vm
+    private init() {
         setupPowerStatus()
         setupMonitor()
     }
@@ -77,10 +77,12 @@ class BatteryStatusViewModel: ObservableObject {
                 
                 case .isChargingChanged(let isCharging):
                     print("🔌 Charging: \(isCharging ? "Yes" : "No")")
+                    print("maxCapacity: \(self.maxCapacity)")
+                    print("levelBattery: \(self.levelBattery)")
                     self.notifyImportanChangeStatus()
                     withAnimation {
                         self.isCharging = isCharging
-                        self.statusText = isCharging ? "Charging battery" : "Full charge"
+                        self.statusText = isCharging ? "Charging battery" : (self.levelBattery < self.maxCapacity ? "Not charging" : "Full charge")
                     }
                 
                 case .timeToFullChargeChanged(let time):
@@ -131,7 +133,7 @@ class BatteryStatusViewModel: ObservableObject {
     /// - Parameter delay: The delay before notifying the change, default is 0.0
     private func notifyImportanChangeStatus(delay: Double = 0.0) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            self.vm.toggleExpandingView(status: true, type: .battery)
+            self.coordinator.toggleExpandingView(status: true, type: .battery)
         }
     }
 

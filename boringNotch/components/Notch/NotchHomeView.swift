@@ -179,8 +179,8 @@ struct MusicControlsView: View {
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @EnvironmentObject var batteryModel: BatteryStatusViewModel
     @EnvironmentObject var webcamManager: WebcamManager
+    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
 
@@ -338,6 +338,5 @@ struct CustomSlider: View {
 #Preview {
     NotchHomeView(albumArtNamespace: Namespace().wrappedValue)
         .environmentObject(BoringViewModel())
-        .environmentObject(BatteryStatusViewModel(vm: BoringViewModel()))
         .environmentObject(WebcamManager())
 }

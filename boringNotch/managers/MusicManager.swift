@@ -328,7 +328,11 @@ class MusicManager: ObservableObject {
     
     private func updateSneakPeek() {
         if isPlaying && Defaults[.enableSneakPeek] {
-            coordinator.toggleSneakPeek(status: true, type: SneakContentType.music)
+            if Defaults[.sneakPeekStyles] == .standard {
+                coordinator.toggleSneakPeek(status: true, type: .music)
+            } else {
+                coordinator.toggleExpandingView(status: true, type: .music)
+            }
         }
     }
 

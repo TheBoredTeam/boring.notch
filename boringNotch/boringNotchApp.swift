@@ -135,7 +135,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         
         window.contentView = NSHostingView(
-            rootView: ContentView(batteryModel: .init(vm: viewModel))
+            rootView: ContentView()
                 .environmentObject(viewModel)
         )
         
