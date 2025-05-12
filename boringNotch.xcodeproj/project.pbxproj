@@ -330,13 +330,6 @@
 			path = Webcam;
 			sourceTree = "<group>";
 		};
-		14A7E58C2C656A5D008C1BE9 /* observers */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = observers;
-			sourceTree = "<group>";
-		};
 		14C08BB72C8DE49E000F8AA0 /* Calender */ = {
 			isa = PBXGroup;
 			children = (
@@ -368,7 +361,6 @@
 				14288DE22C6E016F00B9F80C /* observers */,
 				14288DD92C6E015000B9F80C /* helpers */,
 				B186543A2C6F49A4000B926A /* Shortcuts */,
-				14A7E58C2C656A5D008C1BE9 /* observers */,
 				1443E7F12C609DB90027C1FC /* sizing */,
 				14D570D32C5F70FA0011E668 /* strings */,
 				14D570C72C5F38760011E668 /* models */,
@@ -1003,7 +995,7 @@
 			repositoryURL = "https://github.com/TheBoredTeam/MacroVisionKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.0;
+				minimumVersion = 0.1.0;
 			};
 		};
 		1485442D2C8F049C00943381 /* XCRemoteSwiftPackageReference "TheBoringWorkerNotifier" */ = {
