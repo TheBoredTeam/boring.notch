@@ -92,6 +92,13 @@ class BoringViewModel: NSObject, ObservableObject {
             .store(in: &cancellables)
     }
     
+    // Computed property for effective notch height
+    var effectiveClosedNotchHeight: CGFloat {
+        let currentScreen = NSScreen.screens.first { $0.localizedName == screen }
+        let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
+        return noNotchAndFullscreen ? 0 : closedNotchSize.height
+    }
+
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
         let screenFrame = getScreenFrame(screen)
         if let frame = screenFrame {
