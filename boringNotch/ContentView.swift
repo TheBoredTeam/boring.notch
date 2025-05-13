@@ -128,6 +128,13 @@ struct ContentView: View {
                         }
                     }
                 }
+                .onChange(of: vm.isBatteryPopoverActive) { _, newPopoverState in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if !newPopoverState && !isHovering && vm.notchState == .open {
+                            vm.close()
+                        }
+                    }
+                }
                 .sensoryFeedback(.alignment, trigger: haptics)
                 .contextMenu {
                     SettingsLink(label: {
@@ -418,8 +425,8 @@ struct ContentView: View {
                     isHovering = false
                 }
                 
-                // Close the notch if it's open
-                if vm.notchState == .open {
+                // Close the notch if it's open and battery popover is not active
+                if vm.notchState == .open && !vm.isBatteryPopoverActive {
                     vm.close()
                 }
             }
