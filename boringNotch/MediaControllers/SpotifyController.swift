@@ -19,7 +19,11 @@ class SpotifyController: MediaControllerProtocol {
     
     init() {
         setupPlaybackStateChangeObserver()
-        updatePlaybackInfo()
+        DispatchQueue.main.async { [weak self] in
+            if self?.isActive() == true {
+                self?.updatePlaybackInfo()
+            }
+        }
     }
     
     private func setupPlaybackStateChangeObserver() {
@@ -119,12 +123,16 @@ class SpotifyController: MediaControllerProtocol {
                     print("Failed to load artwork: \(error)")
                 }
             }
+        } else {
+            self.playbackState = state
         }
     }
     
     private func executeCommand(_ command: String) {
         let script = "tell application \"Spotify\" to \(command)"
-        AppleScriptHelper.executeVoid(script)
+        Task {
+            try? await AppleScriptHelper.executeVoid(script)
+        }
     }
     
     private func fetchPlaybackInfo() -> NSAppleEventDescriptor? {
@@ -148,6 +156,13 @@ class SpotifyController: MediaControllerProtocol {
         end tell
         """
         
-        return AppleScriptHelper.execute(script)
+        var descriptor: NSAppleEventDescriptor? = nil
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            descriptor = try? await AppleScriptHelper.execute(script)
+            semaphore.signal()
+        }
+        semaphore.wait()
+        return descriptor
     }
 }
