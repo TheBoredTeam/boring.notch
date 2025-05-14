@@ -28,6 +28,7 @@ class BoringViewModel: NSObject, ObservableObject {
     
     @Published var hideOnClosed: Bool = true
     @Published var isHoveringCalendar: Bool = false
+    @Published var isBatteryPopoverActive: Bool = false
 
     @Published var screen: String?
 
@@ -114,7 +115,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
     func open() {
         withAnimation(.bouncy) {
-            self.notchSize = CGSize(width: openNotchSize.width, height: openNotchSize.height)
+            self.notchSize = openNotchSize
             self.notchState = .open
         }
         

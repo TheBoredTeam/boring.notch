@@ -51,7 +51,7 @@ struct ContentView: View {
                 .mask {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? cornerRadiusInsets.opened : cornerRadiusInsets.closed).drawingGroup()
                 }
-                .padding(.bottom, vm.notchState == .open && Defaults[.extendHoverArea] ? extendedHoverPadding : (vm.effectiveClosedNotchHeight == 0) ? zeroHeightHoverPadding : 0)
+                .padding(.bottom, vm.notchState == .open && Defaults[.extendHoverArea] ? 0 : (vm.effectiveClosedNotchHeight == 0) ? zeroHeightHoverPadding : 0)
 
                 .conditionalModifier(!useModernCloseAnimation) { view in
                     let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
@@ -125,6 +125,13 @@ struct ContentView: View {
                         // Reset the flag after the animation completes
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             isHoverStateChanging = false
+                        }
+                    }
+                }
+                .onChange(of: vm.isBatteryPopoverActive) { _, newPopoverState in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if !newPopoverState && !isHovering && vm.notchState == .open {
+                            vm.close()
                         }
                     }
                 }
@@ -418,8 +425,8 @@ struct ContentView: View {
                     isHovering = false
                 }
                 
-                // Close the notch if it's open
-                if vm.notchState == .open {
+                // Close the notch if it's open and battery popover is not active
+                if vm.notchState == .open && !vm.isBatteryPopoverActive {
                     vm.close()
                 }
             }
