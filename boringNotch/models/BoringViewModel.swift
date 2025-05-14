@@ -115,7 +115,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
     func open() {
         withAnimation(.bouncy) {
-            self.notchSize = CGSize(width: openNotchSize.width, height: openNotchSize.height)
+            self.notchSize = openNotchSize
             self.notchState = .open
         }
         

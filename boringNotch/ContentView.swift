@@ -51,7 +51,7 @@ struct ContentView: View {
                 .mask {
                     NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? cornerRadiusInsets.opened : cornerRadiusInsets.closed).drawingGroup()
                 }
-                .padding(.bottom, vm.notchState == .open && Defaults[.extendHoverArea] ? extendedHoverPadding : (vm.effectiveClosedNotchHeight == 0) ? zeroHeightHoverPadding : 0)
+                .padding(.bottom, vm.notchState == .open && Defaults[.extendHoverArea] ? 0 : (vm.effectiveClosedNotchHeight == 0) ? zeroHeightHoverPadding : 0)
 
                 .conditionalModifier(!useModernCloseAnimation) { view in
                     let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
