@@ -174,7 +174,21 @@ class YouTubeMusicController: MediaControllerProtocol {
             })
             .store(in: &cancellables)
     }
+
+    func shuffleStatus() {
+        sendCommand(endpoint: "/shuffle", method: "GET")
+    }
     
+    func toggleShuffle() {
+        sendCommand(endpoint: "/shuffle", method: "POST")
+        updatePlaybackInfo()
+    }
+
+    func toggleRepeat() {
+        sendCommand(endpoint: "/switch-repeat", method: "POST")
+        updatePlaybackInfo()
+    }
+
     func isActive() -> Bool {
         let runningApps = NSWorkspace.shared.runningApplications
         return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
