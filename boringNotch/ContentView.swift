@@ -43,16 +43,27 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            NotchLayout()
+            let mainLayout = NotchLayout()
                 .frame(alignment: .top)
-                .padding(.horizontal, vm.notchState == .open ? Defaults[.cornerRadiusScaling] ? (cornerRadiusInsets.opened - 5) : (cornerRadiusInsets.closed - 5) : 12)
+                .padding(.horizontal, vm.notchState == .open
+                         ? Defaults[.cornerRadiusScaling] ? (cornerRadiusInsets.opened.top - 5) : (cornerRadiusInsets.opened.bottom - 5)
+                         : cornerRadiusInsets.closed.bottom
+                )
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                 .background(.black)
                 .mask {
-                    NotchShape(cornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling]) ? cornerRadiusInsets.opened : cornerRadiusInsets.closed).drawingGroup()
+                    ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
+                    ? NotchShape(topCornerRadius: cornerRadiusInsets.opened.top, bottomCornerRadius: cornerRadiusInsets.opened.bottom)
+                        .drawingGroup()
+                    : NotchShape(topCornerRadius: cornerRadiusInsets.closed.top, bottomCornerRadius: cornerRadiusInsets.closed.bottom)
+                        .drawingGroup()
                 }
-                .padding(.bottom, vm.notchState == .open && Defaults[.extendHoverArea] ? 0 : (vm.effectiveClosedNotchHeight == 0) ? zeroHeightHoverPadding : 0)
+                .padding(.bottom, vm.notchState == .open && Defaults[.extendHoverArea] ? 0 : (vm.effectiveClosedNotchHeight == 0)
+                    ? zeroHeightHoverPadding
+                    : 0
+                )
 
+            mainLayout
                 .conditionalModifier(!useModernCloseAnimation) { view in
                     let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
                     let notchStateAnimation = Animation.spring.speed(1.2)
@@ -181,7 +192,7 @@ struct ContentView: View {
 
                             Rectangle()
                                 .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 5)
+                                .frame(width: vm.closedNotchSize.width + 10)
 
                             HStack {
                                 BoringBatteryView(
