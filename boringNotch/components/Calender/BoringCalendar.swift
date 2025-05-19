@@ -108,7 +108,9 @@ struct WheelPicker: View {
         switch targetDateIndex{
         case todayIndex-config.past..<todayIndex+config.future:
             selectedDate = dateForIndex(targetDateIndex, offset: offset)
-            haptics.toggle()
+            if (Defaults[.enableHaptics]) {
+                haptics.toggle()
+            }
         default:
             return
         }
