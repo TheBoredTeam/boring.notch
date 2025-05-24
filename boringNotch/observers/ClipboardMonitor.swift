@@ -6,6 +6,7 @@
 //
 
 // TODO: fix duplicate, se copio una stringa di un app mentre mi trovo in un altra app viene creato un duplicato
+// TODO: UI -> fix sfumatura angolo in basso a sx
 
 import SwiftUI
 import AppKit
