@@ -28,20 +28,13 @@ class BoringViewModel: NSObject, ObservableObject {
     
     @Published var hideOnClosed: Bool = true
     @Published var isHoveringCalendar: Bool = false
+    @Published var isBatteryPopoverActive: Bool = false
 
-    var screen: String?
+    @Published var screen: String?
 
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
-
-    @AppStorage("preferred_screen_name") var preferredScreen = NSScreen.main?.localizedName ?? "Unknown" {
-        didSet {
-            selectedScreen = preferredScreen
-            NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
-        }
-    }
     
-    @Published var selectedScreen: String = NSScreen.main?.localizedName ?? "Unknown"
     deinit {
         destroy()
     }
@@ -71,15 +64,42 @@ class BoringViewModel: NSObject, ObservableObject {
     }
     
     private func setupDetectorObserver() {
-        detector.$currentAppInFullScreen
-            .sink { [weak self] isFullScreen in
+        // 1) Publisher for the user’s fullscreen detection setting
+        let enabledPublisher = Defaults
+            .publisher(.enableFullscreenMediaDetection)
+            .map(\.newValue)
+
+        // 2) For each non‑nil screen name, map to a Bool publisher for that screen's status
+        let statusPublisher = $screen
+            .compactMap { $0 }
+            .removeDuplicates()
+            .map { screenName in
+                self.detector.$fullscreenStatus
+                    .map { $0[screenName] ?? false }
+                    .removeDuplicates()
+            }
+            .switchToLatest()
+
+        // 3) Combine enabled & status, animate only on changes
+        Publishers.CombineLatest(statusPublisher, enabledPublisher)
+            .map { status, enabled in enabled && status }
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] shouldHide in
                 withAnimation(.smooth) {
-                    self?.hideOnClosed = isFullScreen
+                    self?.hideOnClosed = shouldHide
                 }
             }
             .store(in: &cancellables)
     }
     
+    // Computed property for effective notch height
+    var effectiveClosedNotchHeight: CGFloat {
+        let currentScreen = NSScreen.screens.first { $0.localizedName == screen }
+        let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
+        return noNotchAndFullscreen ? 0 : closedNotchSize.height
+    }
+
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
         let screenFrame = getScreenFrame(screen)
         if let frame = screenFrame {
@@ -95,7 +115,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
     func open() {
         withAnimation(.bouncy) {
-            self.notchSize = CGSize(width: openNotchSize.width, height: openNotchSize.height)
+            self.notchSize = openNotchSize
             self.notchState = .open
         }
         
