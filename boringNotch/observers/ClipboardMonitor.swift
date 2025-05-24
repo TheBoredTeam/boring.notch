@@ -5,9 +5,6 @@
 //  Created by Alessandro Gravagno on 28/04/25.
 //
 
-// TODO: fix duplicate, se copio una stringa di un app mentre mi trovo in un altra app viene creato un duplicato
-// TODO: UI -> fix sfumatura angolo in basso a sx
-
 import SwiftUI
 import AppKit
 
@@ -16,6 +13,7 @@ class ClipboardMonitor: ObservableObject{
 
     private var timer: Timer?
     private var lastChangeCount: Int = NSPasteboard.general.changeCount
+    private static var isInternalCopy = false
 
     init() {
         startMonitoring()
@@ -31,6 +29,11 @@ class ClipboardMonitor: ObservableObject{
         let pasteboard = NSPasteboard.general
         if pasteboard.changeCount != lastChangeCount {
             lastChangeCount = pasteboard.changeCount
+            
+            if ClipboardMonitor.isInternalCopy {
+                ClipboardMonitor.isInternalCopy = false
+                return
+            }
 
             if let copiedText = pasteboard.string(forType: .string),
                let activeApp = NSWorkspace.shared.frontmostApplication {
@@ -49,6 +52,13 @@ class ClipboardMonitor: ObservableObject{
             self.data.removeAll(where: {$0 == element})
         }
         self.data.append(element)
+    }
+    
+    static func CopyFromApp(_ text: String){
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        isInternalCopy = true
+        pasteboard.setString(text, forType: .string)
     }
     
     deinit {

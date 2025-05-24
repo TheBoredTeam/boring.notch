@@ -12,7 +12,8 @@ struct ClipboardTile: View {
     var text: String
     var bundleID: String
     @State private var isCopied: Bool = false
-    private let clipboard = NSPasteboard.general
+    //private let clipboard = NSPasteboard.general
+    //@ObservedObject var clipboardMonitor: ClipboardMonitor
     
     init(text: String, bundleID: String) {
         self.text = text
@@ -23,16 +24,17 @@ struct ClipboardTile: View {
         Rectangle()
             .fill(.white.opacity(0.4))
             .opacity(0.2)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
             .overlay(
                 clipboardLabel
                     .frame(maxWidth: .infinity, alignment: .leading)
             )
             .frame(width: 140, height: 120)
             .clipped()
+            .clipShape(RoundedRectangle(cornerRadius: 10))
             .onTapGesture {
-                clipboard.clearContents()
-                clipboard.setString(text, forType: .string)
+                //clipboard.clearContents()
+                //clipboard.setString(text, forType: .string)
+                ClipboardMonitor.CopyFromApp(text)
                 isCopied = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     isCopied = false
