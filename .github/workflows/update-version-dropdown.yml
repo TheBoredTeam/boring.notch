@@ -70,6 +70,7 @@ jobs:
 
       - name: Commit changes
         run: |
+          FORM_PATH=".github/ISSUE_TEMPLATE/1-bug-report-form.yml"
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
