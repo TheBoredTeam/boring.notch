@@ -7,6 +7,7 @@
 
 import AVFoundation
 import Defaults
+import EventKit
 import KeyboardShortcuts
 import LaunchAtLogin
 import LottieUI
@@ -84,6 +85,7 @@ struct SettingsView: View {
             if scenePhase == .active {
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
+                NSApp.keyWindow?.makeKeyAndOrderFront(nil)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
@@ -107,12 +109,12 @@ struct GeneralSettings: View {
     @Default(.showEmojis) var showEmojis
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
-    // @State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
+    @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
@@ -155,10 +157,7 @@ struct GeneralSettings: View {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
                 Defaults.Toggle(key: .showOnAllDisplays) {
-                    HStack {
-                        Text("Show on all displays")
-                        customBadge(text: "Beta")
-                    }
+                    Text("Show on all displays")
                 }
                 .onChange(of: showOnAllDisplays) {
                     NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
@@ -169,18 +168,21 @@ struct GeneralSettings: View {
                     }
                 }
                 .onChange(of: NSScreen.screens) {
-                    screens = NSScreen.screens.compactMap { $0.localizedName }
+                    screens =  NSScreen.screens.compactMap({$0.localizedName})
                 }
+                .disabled(showOnAllDisplays)
+                Defaults.Toggle("Automatically switch displays", key: .automaticallySwitchDisplay)
+                .onChange(of: automaticallySwitchDisplay) {
+                    NotificationCenter.default.post(name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
+                }
+                .disabled(showOnAllDisplays)
             } header: {
                 Text("System features")
             }
             
             Section {
                 Picker(selection: $notchHeightMode, label:
-                    HStack {
-                        Text("Notch display height")
-                        customBadge(text: "Beta")
-                    }) {
+                    Text("Notch display height")) {
                         Text("Match real notch size")
                             .tag(WindowHeightMode.matchRealNotchSize)
                         Text("Match menubar height")
@@ -195,15 +197,15 @@ struct GeneralSettings: View {
                         case .matchMenuBar:
                             notchHeight = 44
                         case .custom:
-                            nonNotchHeight = 38
+                            notchHeight = 38
                         }
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 if notchHeightMode == .custom {
-                    Slider(value: $nonNotchHeight, in: 15...45, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                    Slider(value: $notchHeight, in: 15...45, step: 1) {
+                        Text("Custom notch size - \(notchHeight, specifier: "%.0f")")
                     }
-                    .onChange(of: nonNotchHeight) {
+                    .onChange(of: notchHeight) {
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
@@ -227,7 +229,7 @@ struct GeneralSettings: View {
                     NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                 }
                 if nonNotchHeightMode == .custom {
-                    Slider(value: $nonNotchHeight, in: 10...40, step: 1) {
+                    Slider(value: $nonNotchHeight, in: 0...40, step: 1) {
                         Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
                     }
                     .onChange(of: nonNotchHeight) {
@@ -291,6 +293,7 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
+			Defaults.Toggle("Extend hover area", key: .extendHoverArea)
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
@@ -317,10 +320,16 @@ struct Charge: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Show charging indicator", key: .chargingInfoAllowed)
-                Defaults.Toggle("Show battery indicator", key: .showBattery)
+                Defaults.Toggle("Show battery indicator", key: .showBatteryIndicator)
+                Defaults.Toggle("Show power status notifications", key: .showPowerStatusNotifications)
             } header: {
                 Text("General")
+            }
+            Section {
+                Defaults.Toggle("Show battery percentage", key: .showBatteryPercentage)
+                Defaults.Toggle("Show power status icons", key: .showPowerStatusIcons)
+            } header: {
+                Text("Battery Information")
             }
         }
         .tint(Defaults[.accentColor])
@@ -451,18 +460,55 @@ struct HUD: View {
 
 struct Media: View {
     @Default(.waitInterval) var waitInterval
+    @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-
     @Default(.hideNotchOption) var hideNotchOption
-
+    @Default(.enableSneakPeek) private var enableSneakPeek
+    @Default(.sneakPeekStyles) var sneakPeekStyles
+    
     var body: some View {
         Form {
             Section {
+                Picker("Music Source", selection: $mediaController) {
+                    ForEach(availableMediaControllers) { controller in
+                        Text(controller.rawValue).tag(controller)
+                    }
+                }
+                .onChange(of: mediaController) { _, _ in
+                    NotificationCenter.default.post(
+                        name: Notification.Name.mediaControllerChanged,
+                        object: nil
+                    )
+                }
+            } header: {
+                Text("Media Source")
+            } footer: {
+                if MusicManager.shared.isNowPlayingDeprecated {
+                    HStack {
+                        Text("YouTube Music requires this third-party app to be installed: ")
+                            .foregroundStyle(.secondary)
+                            .font(.caption)
+                        Link("https://github.com/th-ch/youtube-music", destination: URL(string: "https://github.com/th-ch/youtube-music")!)
+                            .font(.caption)
+                            .foregroundColor(.blue) // Ensures it's visibly a link
+                    }
+                } else {
+                    Text("'Now Playing' was the only option on previous versions and works with all media apps.")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+            }
+            Section {
                 Toggle(
                     "Enable music live activity",
-                    isOn: $coordinator.showMusicLiveActivityOnClosed.animation()
+                    isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
+                Toggle("Enable sneak peek", isOn: $enableSneakPeek)
+                Picker("Sneak Peek Style", selection: $sneakPeekStyles){
+                    ForEach(SneakPeekStyle.allCases) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }.disabled(!enableSneakPeek)
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {
@@ -494,29 +540,53 @@ struct Media: View {
         .tint(Defaults[.accentColor])
         .navigationTitle("Media")
     }
+    
+    // Only show controller options that are available on this macOS version
+    private var availableMediaControllers: [MediaControllerType] {
+        if MusicManager.shared.isNowPlayingDeprecated {
+            return MediaControllerType.allCases.filter { $0 != .nowPlaying }
+        } else {
+            return MediaControllerType.allCases
+        }
+    }
 }
 
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager()
     @Default(.showCalendar) var showCalendar: Bool
-    
+
     var body: some View {
         Form {
-            Toggle("Show calendar", isOn: $showCalendar)
-            Section(header: Text("Select Calendars")) {
-                List {
-                    ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
-                        Toggle(isOn: Binding(
-                            get: { calendarManager.getCalendarSelected(calendar) },
-                            set: { isSelected in
-                                calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+            if calendarManager.authorizationStatus != .fullAccess {
+                Text("Calendar access is denied. Please enable it in System Settings.")
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                Button("Open System Settings") {
+                    if let settingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                        NSWorkspace.shared.open(settingsURL)
+                    }
+                }
+            } else {
+                Toggle("Show calendar", isOn: $showCalendar)
+                Section(header: Text("Select Calendars")) {
+                    List {
+                        ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
+                            Toggle(isOn: Binding(
+                                get: { calendarManager.getCalendarSelected(calendar) },
+                                set: { isSelected in
+                                    calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+                                }
+                            )) {
+                                Text(calendar.title)
                             }
-                        )) {
-                            Text(calendar.title)
                         }
                     }
                 }
             }
+        }
+        .onAppear {
+            calendarManager.checkCalendarAuthorization()
         }
     }
 }
@@ -632,7 +702,7 @@ struct Extensions: View {
     @State private var effectTrigger: Bool = false
     var body: some View {
         Form {
-            warningBadge("We don't support extensions yet", "It will be supported later on.")
+            //warningBadge("We don't support extensions yet") // Uhhhh You do? <><><> Oori.S
             Section {
                 List {
                     ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
@@ -1098,5 +1168,5 @@ func warningBadge(_ text: String, _ description: String) -> some View {
 }
 
 #Preview {
-    Extensions()
+    HUD()
 }

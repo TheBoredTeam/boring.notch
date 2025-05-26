@@ -36,25 +36,50 @@ enum HideNotchOption: String, Defaults.Serializable {
     case never
 }
 
+// Define notification names at file scope
+extension Notification.Name {
+    static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
+}
+
+// Media controller types for selection in settings
+enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case nowPlaying = "Now Playing"
+    case appleMusic = "Apple Music"
+    case spotify = "Spotify"
+    case youtubeMusic = "Youtube Music"
+    
+    var id: String { self.rawValue }
+}
+
+// Sneak peek styles for selection in settings
+enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case standard = "Default"
+    case inline = "Inline"
+    
+    var id: String { self.rawValue }
+}
+
 extension Defaults.Keys {
         // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
+    static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Wolf Painting 🐺🎨")
     
         // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
     static let enableHaptics = Key<Bool>("enableHaptics", default: true)
     static let openNotchOnHover = Key<Bool>("openNotchOnHover", default: true)
+	static let extendHoverArea = Key<Bool>("extendHoverArea", default: false)
     static let notchHeightMode = Key<WindowHeightMode>(
         "notchHeightMode",
         default: WindowHeightMode.matchRealNotchSize
     )
     static let nonNotchHeightMode = Key<WindowHeightMode>(
         "nonNotchHeightMode",
-        default: WindowHeightMode.matchRealNotchSize
+        default: WindowHeightMode.matchMenuBar
     )
-    static let nonNotchHeight = Key<CGFloat>("notchHeight", default: 32)
+    static let nonNotchHeight = Key<CGFloat>("nonNotchHeight", default: 32)
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
         //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     
@@ -63,7 +88,7 @@ extension Defaults.Keys {
         //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
-    static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: false)
+    static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
     static let accentColor = Key<Color>("accentColor", default: Color.blue)
     static let enableShadow = Key<Bool>("enableShadow", default: true)
@@ -71,7 +96,7 @@ extension Defaults.Keys {
     static let useModernCloseAnimation = Key<Bool>("useModernCloseAnimation", default: true)
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
-    static let showCalendar = Key<Bool>("showCalendar", default: true)
+    static let showCalendar = Key<Bool>("showCalendar", default: false)
     static let sliderColor = Key<SliderColorEnum>(
         "sliderUseAlbumArtColor",
         default: SliderColorEnum.white
@@ -89,12 +114,15 @@ extension Defaults.Keys {
         // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
+    static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let enableFullscreenMediaDetection = Key<Bool>("enableFullscreenMediaDetection", default: true)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     
         // MARK: Battery
-    static let chargingInfoAllowed = Key<Bool>("chargingInfoAllowed", default: true)
-    static let showBattery = Key<Bool>("showBattery", default: true)
+    static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
+    static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
+    static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
+    static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
     
         // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
@@ -122,4 +150,16 @@ extension Defaults.Keys {
     
     // MARK: Wobble Animation
     static let enableWobbleAnimation = Key<Bool>("enableWobbleAnimation", default: false)
+    
+    // MARK: Media Controller
+    static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
+    
+    // Helper to determine the default media controller based on macOS version
+    static var defaultMediaController: MediaControllerType {
+        if #available(macOS 15.4, *) {
+            return .appleMusic
+        } else {
+            return .nowPlaying
+        }
+    }
 }

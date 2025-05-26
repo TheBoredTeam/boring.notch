@@ -5,6 +5,7 @@
 //  Created by Alexander Greco on 2024-10-27.
 //
 
+import Foundation
 
 class NotchSpaceManager {
     static let shared = NotchSpaceManager()

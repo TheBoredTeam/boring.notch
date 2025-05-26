@@ -4,6 +4,9 @@
     " – %lld" : {
 
     },
+    "'Now Playing' was the only option on previous versions and works with all media apps." : {
+
+    },
     "(%@)" : {
       "localizations" : {
         "en" : {
@@ -129,6 +132,15 @@
         }
       }
     },
+    "Battery Information" : {
+
+    },
+    "Battery Settings" : {
+
+    },
+    "Battery Status" : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
 
     },
@@ -180,6 +192,9 @@
     "Calendar" : {
 
     },
+    "Calendar access is denied. Please enable it in System Settings." : {
+
+    },
     "Cancel" : {
 
     },
@@ -192,6 +207,9 @@
           }
         }
       }
+    },
+    "Charging on Hold: Desktop Mode" : {
+
     },
     "Check for updates" : {
       "extractionState" : "stale",
@@ -299,9 +317,6 @@
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
 
     },
-    "Edit" : {
-
-    },
     "Edit layout" : {
 
     },
@@ -334,6 +349,9 @@
 
     },
     "Enable music live activity" : {
+
+    },
+    "Enable sneak peek" : {
 
     },
     "Enhance your experience with HUDs" : {
@@ -408,6 +426,9 @@
     "High" : {
 
     },
+    "https://github.com/th-ch/youtube-music" : {
+
+    },
     "HUD style" : {
 
     },
@@ -446,6 +467,9 @@
     "Low" : {
 
     },
+    "Low Power Mode" : {
+
+    },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
         "en" : {
@@ -460,6 +484,9 @@
 
     },
     "Match real notch size" : {
+
+    },
+    "Max Capacity: %lld%%" : {
 
     },
     "Media" : {
@@ -495,6 +522,9 @@
         }
       }
     },
+    "Media Source" : {
+
+    },
     "Medium" : {
 
     },
@@ -522,6 +552,9 @@
 
     },
     "More" : {
+
+    },
+    "Music Source" : {
 
     },
     "muted" : {
@@ -602,6 +635,9 @@
           }
         }
       }
+    },
+    "Open System Settings" : {
+
     },
     "Percentage" : {
       "localizations" : {
@@ -770,6 +806,9 @@
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
 
     },
+    "Sneak Peek Style" : {
+
+    },
     "Software updates" : {
       "localizations" : {
         "en" : {
@@ -803,6 +842,9 @@
 
     },
     "TheBoringNotch" : {
+
+    },
+    "Time to Full Charge: %lld min" : {
 
     },
     "Toggle Notch Open:" : {
@@ -859,6 +901,9 @@
 
     },
     "What's New" : {
+
+    },
+    "YouTube Music requires this third-party app to be installed: " : {
 
     }
   },
