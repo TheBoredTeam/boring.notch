@@ -114,6 +114,7 @@ extension Defaults.Keys {
     
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
+    static let showQuickLaunch = Key<Bool>("showQuickLaunch", default: true)
     
         // MARK: Fullscreen Media Detection
     static let alwaysHideInFullscreen = Key<Bool>("alwaysHideInFullscreen", default: false)

@@ -194,30 +194,38 @@ struct NotchHomeView: View {
     }
 
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: 20) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+        VStack(spacing: 20) {
+            HStack(alignment: .top, spacing: 20) {
+                MusicPlayerView(albumArtNamespace: albumArtNamespace)
 
-            if Defaults[.showCalendar] {
-                CalendarView()
-                .onContinuousHover { phase in
-                                if Defaults[.closeGestureEnabled] {
-                                    switch phase {
-                                        case .active:
-                                            Defaults[.closeGestureEnabled] = false
-                                        case .ended:
-                                            Defaults[.closeGestureEnabled] = false
-                                    }
-                                }
+                if Defaults[.showCalendar] {
+                    CalendarView()
+                    .onContinuousHover { phase in
+                        if Defaults[.closeGestureEnabled] {
+                            switch phase {
+                                case .active:
+                                    Defaults[.closeGestureEnabled] = false
+                                case .ended:
+                                    Defaults[.closeGestureEnabled] = false
                             }
+                        }
+                    }
                     .environmentObject(vm)
-            }
+                }
 
-            if Defaults[.showMirror] && webcamManager.cameraAvailable {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
+                if Defaults[.showMirror] && webcamManager.cameraAvailable {
+                    CameraPreviewView(webcamManager: webcamManager)
+                        .scaledToFit()
+                        .opacity(vm.notchState == .closed ? 0 : 1)
+                        .blur(radius: vm.notchState == .closed ? 20 : 0)
+                }
+                
+                if Defaults[.showQuickLaunch] {
+                    QuickLaunchView()
+                        .transition(.opacity.animation(.smooth.speed(0.9)))
+                }
             }
+            
         }
         .transition(.opacity.animation(.smooth.speed(0.9))
             .combined(with: .blurReplace.animation(.smooth.speed(0.9)))

@@ -12,7 +12,7 @@ import SwiftUI
 let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
-let openNotchSize: CGSize = .init(width: 610, height: 200)
+let openNotchSize: CGSize = .init(width: 800, height: 200)
 let cornerRadiusInsets: (opened: CGFloat, closed: CGFloat) = (opened: 24, closed: 10)
 
 enum MusicPlayerImageSizes {
