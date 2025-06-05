@@ -177,6 +177,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(onScreenLocked(_:)), name: NSNotification.Name(rawValue: "com.apple.screenIsLocked"), object: nil)
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(onScreenUnlocked(_:)), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
+        KeyboardShortcuts.onKeyDown(for: .toggleNotch) {
+            // Put your toggle code here
+            print("Toggle Notch activated!")
+        }
+        if KeyboardShortcuts.getShortcut(for: .toggleNotch) == nil {
+            KeyboardShortcuts.setShortcut(
+                KeyboardShortcuts.Shortcut(.n, modifiers: [.command, .option]),
+                for: .toggleNotch
+            )
+        }
+
 
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
