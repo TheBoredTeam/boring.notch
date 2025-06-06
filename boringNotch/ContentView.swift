@@ -27,6 +27,7 @@ struct ContentView: View {
     @State private var hoverTask: DispatchWorkItem?
 
     @State private var gestureProgress: CGFloat = .zero
+    @State private var musicGestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
 
@@ -141,7 +142,30 @@ struct ContentView: View {
                         .conditionalModifier(Defaults[.enableGestures]) { view in
                             view
                                 .panGesture(direction: .down) { translation, phase in
-                                    guard vm.notchState == .closed else { return }
+                                    guard vm.notchState == .closed else { return nil }
+
+                                    if phase == .ended {
+                                        withAnimation(.smooth) {
+                                            gestureProgress = .zero
+                                        }
+                                    }
+                                    if translation > Defaults[.gestureSensitivity] {
+                                        if Defaults[.enableHaptics] {
+                                            haptics.toggle()
+                                        }
+                                        withAnimation(.smooth) {
+                                            gestureProgress = .zero
+                                        }
+                                        doOpen()
+                                    }
+
+                                    return nil
+                                }
+                        }
+                        .conditionalModifier(Defaults[.enableMusicGestures]) { view in
+                            view
+                                .panGesture(direction: .right) { translation, phase in
+                                    guard vm.notchState == .closed else { return nil }
                                     withAnimation(.smooth) {
                                         gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
                                     }
@@ -158,8 +182,39 @@ struct ContentView: View {
                                         withAnimation(.smooth) {
                                             gestureProgress = .zero
                                         }
-                                        doOpen()
+                                        musicManager.nextTrack()
+
+                                        // Inform the gesture handler to reset the accumalated translation
+                                        return true
                                     }
+
+                                    return nil
+                                }
+                                .panGesture(direction: .left) { translation, phase in
+                                    guard vm.notchState == .closed else { return nil }
+                                    withAnimation(.smooth) {
+                                        gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
+                                    }
+
+                                    if phase == .ended {
+                                        withAnimation(.smooth) {
+                                            gestureProgress = .zero
+                                        }
+                                    }
+                                    if translation > Defaults[.gestureSensitivity] {
+                                        if Defaults[.enableHaptics] {
+                                            haptics.toggle()
+                                        }
+                                        withAnimation(.smooth) {
+                                            gestureProgress = .zero
+                                        }
+                                        musicManager.previousTrack()
+
+                                        // Inform the gesture handler to reset the accumalated translation
+                                        return true
+                                    }
+
+                                    return nil
                                 }
                         }
                 }
@@ -186,6 +241,8 @@ struct ContentView: View {
                                     }
                                 }
                             }
+
+                            return nil
                         }
                 }
                 .onAppear(perform: {

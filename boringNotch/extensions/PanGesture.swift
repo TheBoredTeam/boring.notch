@@ -9,7 +9,7 @@ import SwiftUI
 import AppKit
 
 extension View {
-    func panGesture(direction: PanDirection, action: @escaping (CGFloat, NSEvent.Phase) -> Void) -> some View {
+    func panGesture(direction: PanDirection, action: @escaping (CGFloat, NSEvent.Phase) -> Bool?) -> some View {
         background(
             PanGestureView(direction: direction, action: action)
                 .frame(maxWidth: 0, maxHeight: 0)
@@ -19,8 +19,8 @@ extension View {
 
 struct PanGestureView: NSViewRepresentable {
     let direction: PanDirection
-    let action: (CGFloat, NSEvent.Phase) -> Void
-    
+    let action: (CGFloat, NSEvent.Phase) -> Bool?
+
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { event in
@@ -42,12 +42,12 @@ struct PanGestureView: NSViewRepresentable {
     
     class Coordinator: NSObject {
         let direction: PanDirection
-        let action: (CGFloat, NSEvent.Phase) -> Void
+        let action: (CGFloat, NSEvent.Phase) -> Bool?
         
         var accumulatedScrollDeltaX: CGFloat = 0
         var accumulatedScrollDeltaY: CGFloat = 0
         
-        init(direction: PanDirection, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
+        init(direction: PanDirection, action: @escaping (CGFloat, NSEvent.Phase) -> Bool?) {
             self.direction = direction
             self.action = action
         }
@@ -75,15 +75,22 @@ struct PanGestureView: NSViewRepresentable {
                             handle()
                         }
                 }
-                
+
+                /// If the action returns with `true`, resset accumulatedScrolDeltas
                 func handle() {
-                    if (direction == .left || direction == .right) {
-                        action(abs(accumulatedScrollDeltaX), event.phase)
+                    if direction == .left || direction == .right {
+                        if action(abs(accumulatedScrollDeltaX), event.phase) ?? false == true {
+                            accumulatedScrollDeltaX = 0
+                            accumulatedScrollDeltaY = 0
+                        }
                     } else {
-                        action(abs(accumulatedScrollDeltaY), event.phase)
+                        if action(abs(accumulatedScrollDeltaY), event.phase) ?? false == true {
+                            accumulatedScrollDeltaX = 0
+                            accumulatedScrollDeltaY = 0
+                        }
                     }
                 }
-                
+
                 if event.phase == .ended {
                     accumulatedScrollDeltaY = 0
                     accumulatedScrollDeltaX = 0
