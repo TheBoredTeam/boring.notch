@@ -27,6 +27,7 @@ struct ContentView: View {
     @State private var hoverTask: DispatchWorkItem?
 
     @State private var gestureProgress: CGFloat = .zero
+    @State private var musicGestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
 
@@ -65,6 +66,7 @@ struct ContentView: View {
                 .allowsHitTesting(true)
                 .animation(.smooth, value: gestureProgress)
                 .transition(.blurReplace.animation(.interactiveSpring(dampingFraction: 1.2)))
+                .animation(.smooth, value: musicGestureProgress)
                 .conditionalModifier(Defaults[.openNotchOnHover]) { view in
                     view.onHover { systemHovering in
                         let hovering = systemHovering || vm.isMouseHovering()
@@ -141,7 +143,7 @@ struct ContentView: View {
                         .conditionalModifier(Defaults[.enableGestures]) { view in
                             view
                                 .panGesture(direction: .down) { translation, phase in
-                                    guard vm.notchState == .closed else { return }
+                                    guard vm.notchState == .closed else { return nil }
                                     withAnimation(.smooth) {
                                         gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
                                     }
@@ -160,6 +162,63 @@ struct ContentView: View {
                                         }
                                         doOpen()
                                     }
+
+                                    return nil
+                                }
+                        }
+                        .conditionalModifier(Defaults[.enableMusicGestures]) { view in
+                            view
+                                .panGesture(direction: .right) { translation, phase in
+                                    guard vm.notchState == .closed else { return nil }
+                                    withAnimation(.smooth) {
+                                        musicGestureProgress = (translation / Defaults[.gestureSensitivity]) * 10
+                                    }
+                                    
+                                    if phase == .ended {
+                                        withAnimation(.smooth) {
+                                            musicGestureProgress = .zero
+                                        }
+                                    }
+                                    if translation > Defaults[.gestureSensitivity] {
+                                        if Defaults[.enableHaptics] {
+                                            haptics.toggle()
+                                        }
+                                        withAnimation(.smooth) {
+                                            musicGestureProgress = .zero
+                                        }
+                                        musicManager.nextTrack()
+
+                                        // Inform the gesture handler to reset the accumalated translation
+                                        return true
+                                    }
+
+                                    return nil
+                                }
+                                .panGesture(direction: .left) { translation, phase in
+                                    guard vm.notchState == .closed else { return nil }
+                                    withAnimation(.smooth) {
+                                        musicGestureProgress = -((translation / Defaults[.gestureSensitivity]) * 10)
+                                    }
+                                    
+                                    if phase == .ended {
+                                        withAnimation(.smooth) {
+                                            musicGestureProgress = .zero
+                                        }
+                                    }
+                                    if translation > Defaults[.gestureSensitivity] {
+                                        if Defaults[.enableHaptics] {
+                                            haptics.toggle()
+                                        }
+                                        withAnimation(.smooth) {
+                                            musicGestureProgress = .zero
+                                        }
+                                        musicManager.previousTrack()
+
+                                        // Inform the gesture handler to reset the accumalated translation
+                                        return true
+                                    }
+
+                                    return nil
                                 }
                         }
                 }
@@ -186,6 +245,8 @@ struct ContentView: View {
                                     }
                                 }
                             }
+
+                            return nil
                         }
                 }
                 .onAppear(perform: {
@@ -216,6 +277,7 @@ struct ContentView: View {
                 }
         }
         .frame(maxWidth: openNotchSize.width, maxHeight: openNotchSize.height, alignment: .top)
+        .offset(x: musicGestureProgress)
         .shadow(color: ((vm.notchState == .open || hoverAnimation) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear, radius: Defaults[.cornerRadiusScaling] ? 10 : 5)
         .background(dragDetector)
         .environmentObject(vm)
