@@ -144,6 +144,9 @@ struct ContentView: View {
                             view
                                 .panGesture(direction: .down) { translation, phase in
                                     guard vm.notchState == .closed else { return nil }
+                                    withAnimation(.smooth) {
+                                        gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
+                                    }
 
                                     if phase == .ended {
                                         withAnimation(.smooth) {
