@@ -76,7 +76,7 @@ struct PanGestureView: NSViewRepresentable {
                         }
                 }
 
-                /// If the action returns with `true`, resset accumulatedScrolDeltas
+                /// If the action returns with `true`, reset accumulatedScrolDeltas
                 func handle() {
                     if direction == .left || direction == .right {
                         if action(abs(accumulatedScrollDeltaX), event.phase) ?? false == true {
