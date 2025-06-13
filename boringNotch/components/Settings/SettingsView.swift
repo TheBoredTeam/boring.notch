@@ -263,8 +263,7 @@ struct GeneralSettings: View {
             Defaults.Toggle("Enable gestures", key: .enableGestures)
                 .disabled(!openNotchOnHover)
             if enableGestures {
-                Toggle("Media change with horizontal gestures", isOn: .constant(false))
-                    .disabled(true)
+                Defaults.Toggle("Media change with horizontal gestures", key: .enableMusicGestures)
                 Defaults.Toggle("Close gesture", key: .closeGestureEnabled)
                 Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
                     HStack {
