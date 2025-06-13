@@ -212,65 +212,73 @@ struct EmptyEventsView: View {
 struct EventListView: View {
     @Environment(\.openURL) private var openURL
     let events: [EKEvent]
-
+    
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            HStack(alignment: .top) {
-                VStack(alignment: .trailing, spacing: 5) {
-                    ForEach(events.indices, id: \.self) { index in
-                        VStack(alignment: .trailing) {
-                            if isAllDayEvent(
-                                start: events[index].startDate, end: events[index].endDate)
-                            {
-                                Text("All-day")
-                            } else {
-                                Text("\(events[index].startDate, style: .time)")
-                                Text("\(events[index].endDate, style: .time)")
-                            }
-                        }
-                        .multilineTextAlignment(.trailing)
-                        .padding(.bottom, 8)
-                        .font(.caption2)
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 5) {
-                    ForEach(events.indices, id: \.self) { index in
-                        HStack(alignment: .top) {
-                            VStack(spacing: 5) {
-                                Image(
-                                    systemName: isEventEnded(events[index].endDate)
-                                        ? "checkmark.circle" : "circle"
-                                )
-                                .foregroundColor(isEventEnded(events[index].endDate) ? .green : .gray)
-                                .font(.footnote)
-                                Rectangle()
-                                    .frame(width: 1)
-                                    .foregroundStyle(.gray.opacity(0.5))
-                                    .opacity(index == events.count - 1 ? 0 : 1)
-                            }
-                            .padding(.top, 1)
-
-                            Button {
-                                if let url = generateEventURL(for: events[index]) {
-                                    openURL(url)
+        ScrollViewReader { reader in
+            ScrollView(showsIndicators: false) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .trailing, spacing: 5) {
+                        ForEach(events.indices, id: \.self) { index in
+                            VStack(alignment: .trailing) {
+                                if isAllDayEvent(
+                                    start: events[index].startDate, end: events[index].endDate)
+                                {
+                                    Text("All-day")
+                                    Text(" ")
+                                } else {
+                                    Text("\(events[index].startDate, style: .time)")
+                                    Text("\(events[index].endDate, style: .time)")
                                 }
-                            } label: {
-                                Text(events[index].title)
-                                    .font(.footnote)
-                                    .foregroundStyle(.gray)
                             }
-                            .buttonStyle(.plain)
-
-                            Spacer(minLength: 0)
+                            .multilineTextAlignment(.trailing)
+                            .padding(.bottom, 8)
+                            .font(.caption2)
+                            .id(index)
                         }
-                        .opacity(isEventEnded(events[index].endDate) ? 0.6 : 1)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 5) {
+                        ForEach(events.indices, id: \.self) { index in
+                            HStack(alignment: .top) {
+                                VStack(spacing: 5) {
+                                    Image(
+                                        systemName: isEventEnded(events[index].endDate)
+                                        ? "checkmark.circle" : "circle"
+                                    )
+                                    .foregroundColor(isEventEnded(events[index].endDate) ? .green : .gray)
+                                    .font(.footnote)
+                                    Rectangle()
+                                        .frame(width: 1)
+                                        .foregroundStyle(.gray.opacity(0.5))
+                                        .opacity(index == events.count - 1 ? 0 : 1)
+                                }
+                                .padding(.top, 1)
+                                
+                                Button {
+                                    if let url = generateEventURL(for: events[index]) {
+                                        openURL(url)
+                                    }
+                                } label: {
+                                    Text(events[index].title)
+                                        .font(.footnote)
+                                        .foregroundStyle(.white)
+                                }
+                                .buttonStyle(.plain)
+                                
+                                Spacer(minLength: 0)
+                            }
+                            .opacity(isEventEnded(events[index].endDate) ? 0.6 : 1)
+                        }
                     }
                 }
             }
+            .scrollIndicators(.never)
+            .scrollTargetBehavior(.viewAligned)
+            .onAppear {
+                let index = events.firstIndex(where: { !isAllDayEvent(start: $0.startDate, end: $0.endDate) && !isEventEnded($0.endDate) }) ?? 0
+                reader.scrollTo(index, anchor: .top)
+            }
         }
-        .scrollIndicators(.never)
-        .scrollTargetBehavior(.viewAligned)
     }
 
     private func isAllDayEvent(start: Date, end: Date) -> Bool {
