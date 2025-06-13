@@ -6,6 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
+        **❗️IMPORTANT: If you came here to report that boring.notch does not show the now playing song, please do NOT open a new bug report! This bug was already reported and you can subscribe to issue [#417](https://github.com/TheBoredTeam/boring.notch/issues/417) to get updates on this bug and when it will get fixed! Thank you for not opening a duplicate!**
         Thanks for taking the time to fill out this bug report! Before filing a bug report, please make sure to have the [latest version of TheBoringNotch](https://github.com/TheBoredTeam/boring.notch/releases) installed.
   - type: textarea
     id: what-happened
