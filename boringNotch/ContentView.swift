@@ -18,6 +18,7 @@ struct ContentView: View {
     @StateObject var batteryModel: BatteryStatusViewModel
     @EnvironmentObject var musicManager: MusicManager
     @StateObject var webcamManager: WebcamManager = .init()
+    @StateObject var workspaceMonitor = WorkspaceMonitor()
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
@@ -259,7 +260,7 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
-                    } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (vm.expandingView.type != .battery) {
+                    
                         InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $hoverAnimation, gestureProgress: $gestureProgress)
                             .transition(.opacity)
                     } else if !vm.expandingView.show && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.showMusicLiveActivityOnClosed {
@@ -273,28 +274,6 @@ struct ContentView: View {
                             .animation(.spring(response: 1, dampingFraction: 1, blendDuration: 0.8), value: vm.notchState)
                     } else {
                         Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.closedNotchSize.height)
-                    }
-
-                    if coordinator.sneakPeek.show && !Defaults[.inlineHUD] {
-                        if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
-                            SystemEventIndicatorModifier(eventType: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, sendEventBack: { _ in
-                                //
-                            })
-                            .padding(.bottom, 10)
-                            .padding(.leading, 4)
-                            .padding(.trailing, 8)
-                        } else if vm.expandingView.type != .battery {
-                            if vm.notchState == .closed {
-                                HStack(alignment: .center) {
-                                    Image(systemName: "music.note")
-                                    GeometryReader { geo in
-                                        MarqueeText(.constant(musicManager.songTitle + " - " + musicManager.artistName), textColor: .gray, minDuration: 1, frameWidth: geo.size.width)
-                                    }
-                                }
-                                .foregroundStyle(.gray)
-                                .padding(.bottom, 10)
-                            }
-                        }
                     }
                 }
             }

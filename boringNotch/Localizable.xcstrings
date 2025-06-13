@@ -82,6 +82,9 @@
     "Add new visualizer" : {
 
     },
+    "Add your favorite apps for quick access" : {
+
+    },
     "Additional features" : {
 
     },
@@ -574,6 +577,9 @@
     "Notch Height" : {
 
     },
+    "Note View" : {
+
+    },
     "OK" : {
 
     },
@@ -629,6 +635,9 @@
     "Progressbar style" : {
 
     },
+    "Quick Launch" : {
+
+    },
     "Quit" : {
       "localizations" : {
         "en" : {
@@ -664,6 +673,9 @@
       }
     },
     "Remember last tab" : {
+
+    },
+    "Remove" : {
 
     },
     "Restart" : {
