@@ -2,7 +2,7 @@
 //  NotchSpaceManager.swift
 //  boringNotch
 //
-//  Created by Alexander Greco on 2024-10-27.
+//  Created by Alexander on 2024-10-27.
 //
 
 import Foundation

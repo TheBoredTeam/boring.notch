@@ -7,7 +7,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // Original source: https://github.com/avaidyam/Parrot/
-// Modified by Alexander Greco on 2024-10-27
+// Modified by Alexander on 2024-10-27
 
 import AppKit
 
