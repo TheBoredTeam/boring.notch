@@ -34,16 +34,30 @@ struct SharedSneakPeek: Codable {
     var icon: String
 }
 
+enum BrowserType {
+    case chromium
+    case safari
+}
+
+struct ExpandedItem {
+    var show: Bool = false
+    var type: SneakContentType = .battery
+    var value: CGFloat = 0
+    var browser: BrowserType = .chromium
+}
+
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
     var notifier: TheBoringWorkerNotifier = .init()
     
     @Published var currentView: NotchViews = .home
     private var sneakPeekDispatch: DispatchWorkItem?
+    private var expandingViewDispatch: DispatchWorkItem?
+    
     
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
-    @AppStorage("musicLiveActivity") var showMusicLiveActivityOnClosed: Bool = true
+    @AppStorage("musicLiveActivityEnabled") var musicLiveActivityEnabled: Bool = true
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
     
     @AppStorage("alwaysShowTabs") var alwaysShowTabs: Bool = true {
@@ -88,26 +102,26 @@ class BoringViewCoordinator: ObservableObject {
     }
     
     func setupWorkersNotificationObservers() {
-        notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
-        notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeekEvent)
-    }
+            notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
+            notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeekEvent)
+        }
     
     @objc func sneakPeekEvent(_ notification: Notification) {
-        let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data) {
-            let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
+            let decoder = JSONDecoder()
+            if let decodedData = try? decoder.decode(SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data) {
+                let contentType = decodedData.type == "brightness" ? SneakContentType.brightness : decodedData.type == "volume" ? SneakContentType.volume : decodedData.type == "backlight" ? SneakContentType.backlight : decodedData.type == "mic" ? SneakContentType.mic : SneakContentType.brightness
 
-            let value = CGFloat((NumberFormatter().number(from: decodedData.value) ?? 0.0).floatValue)
-            let icon = decodedData.icon
-            
-            print(decodedData)
-            
-            toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
-            
-        } else {
-            print("Failed to decode JSON data")
+                let value = CGFloat((NumberFormatter().number(from: decodedData.value) ?? 0.0).floatValue)
+                let icon = decodedData.icon
+                
+                print(decodedData)
+                
+                toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
+                
+            } else {
+                print("Failed to decode JSON data")
+            }
         }
-    }
     
     func toggleSneakPeek(status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0, icon: String = "") {
         sneakPeekDuration = duration
@@ -132,6 +146,7 @@ class BoringViewCoordinator: ObservableObject {
     }
     
     private var sneakPeekDuration: TimeInterval = 1.5
+    
     @Published var sneakPeek: sneakPeek = .init() {
         didSet {
             if sneakPeek.show {
@@ -146,12 +161,44 @@ class BoringViewCoordinator: ObservableObject {
                 }
                 DispatchQueue.main
                     .asyncAfter(
-                        deadline: .now() + sneakPeekDuration,
+                        deadline: .now() + self.sneakPeekDuration,
                         execute: sneakPeekDispatch!
                     )
             }
         }
     }
+    
+    func toggleExpandingView(status: Bool, type: SneakContentType, value: CGFloat = 0, browser: BrowserType = .chromium) {
+        if expandingView.show {
+            withAnimation(.smooth) {
+                self.expandingView.show = false
+            }
+        }
+        DispatchQueue.main.async {
+            withAnimation(.smooth) {
+                self.expandingView.show = status
+                self.expandingView.type = type
+                self.expandingView.value = value
+                self.expandingView.browser = browser
+            }
+        }
+    }
+    
+    @Published var expandingView: ExpandedItem = .init() {
+        didSet {
+            if expandingView.show {
+                expandingViewDispatch?.cancel()
+
+                expandingViewDispatch = DispatchWorkItem { [weak self] in
+                    guard let self = self else { return }
+                    self.toggleExpandingView(status: false, type: SneakContentType.battery)
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + (expandingView.type == .download ? 2 : 3), execute: expandingViewDispatch!)
+            }
+        }
+    }
+
     
     @objc func initialMicStatus(_ notification: Notification) {
         currentMicStatus = notification.userInfo?.first?.value as! Bool
