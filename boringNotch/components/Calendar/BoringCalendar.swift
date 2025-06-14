@@ -247,7 +247,9 @@ struct EventListView: View {
                             .padding(.top, 1)
 
                             Button {
-                                openURL(events[index].calendarAppURL()!)
+                                if let url = events[index].calendarAppURL() {
+                                    openURL(url)
+                                }
                             } label: {
                                 Text(events[index].title)
                                     .font(.footnote)
