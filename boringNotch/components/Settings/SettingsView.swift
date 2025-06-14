@@ -293,7 +293,7 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-			Defaults.Toggle("Extend hover area", key: .extendHoverArea)
+            Defaults.Toggle("Extend hover area", key: .extendHoverArea)
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
@@ -571,11 +571,13 @@ struct CalendarSettings: View {
                 Toggle("Show calendar", isOn: $showCalendar)
                 Section(header: Text("Select Calendars")) {
                     List {
-                        ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
+                        ForEach(calendarManager.allCalendars, id: \.id) { calendar in
                             Toggle(isOn: Binding(
                                 get: { calendarManager.getCalendarSelected(calendar) },
                                 set: { isSelected in
-                                    calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+                                    Task {
+                                        await calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+                                    }
                                 }
                             )) {
                                 Text(calendar.title)
@@ -586,8 +588,12 @@ struct CalendarSettings: View {
             }
         }
         .onAppear {
-            calendarManager.checkCalendarAuthorization()
+            Task {
+                await calendarManager.checkCalendarAuthorization()
+            }
         }
+        // Add navigation title if it's missing or adjust as needed
+        .navigationTitle("Calendar")
     }
 }
 

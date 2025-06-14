@@ -16,6 +16,9 @@
 		1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */; };
 		1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */; };
 		1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1160F8D72DD98230006FBB94 /* NotchShape.swift */; };
+		1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988C2DF5CAB40052E6AF /* EventModel.swift */; };
+		1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988E2DF5CC870052E6AF /* CalendarModel.swift */; };
+		116398962DF5D6C00052E6AF /* CalendarServiceProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116398952DF5D6C00052E6AF /* CalendarServiceProviding.swift */; };
 		11CC44A22CEE614100C7244B /* BoringViewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CC44A12CEE614100C7244B /* BoringViewCoordinator.swift */; };
 		14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DD62C6E015000B9F80C /* AudioPlayer.swift */; };
 		14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */; };
@@ -126,6 +129,9 @@
 		1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingController.swift; sourceTree = "<group>"; };
 		1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicController.swift; sourceTree = "<group>"; };
 		1160F8D72DD98230006FBB94 /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
+		1163988C2DF5CAB40052E6AF /* EventModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModel.swift; sourceTree = "<group>"; };
+		1163988E2DF5CC870052E6AF /* CalendarModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarModel.swift; sourceTree = "<group>"; };
+		116398952DF5D6C00052E6AF /* CalendarServiceProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarServiceProviding.swift; sourceTree = "<group>"; };
 		11CC44A12CEE614100C7244B /* BoringViewCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringViewCoordinator.swift; sourceTree = "<group>"; };
 		14288DD62C6E015000B9F80C /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressIndicator.swift; sourceTree = "<group>"; };
@@ -255,6 +261,14 @@
 			path = MediaControllers;
 			sourceTree = "<group>";
 		};
+		116398942DF5D6B40052E6AF /* Providers */ = {
+			isa = PBXGroup;
+			children = (
+				116398952DF5D6C00052E6AF /* CalendarServiceProviding.swift */,
+			);
+			path = Providers;
+			sourceTree = "<group>";
+		};
 		14288DD92C6E015000B9F80C /* helpers */ = {
 			isa = PBXGroup;
 			children = (
@@ -286,7 +300,7 @@
 			children = (
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				B1C448992C97375A001F0858 /* Tips */,
-				14C08BB72C8DE49E000F8AA0 /* Calender */,
+				14C08BB72C8DE49E000F8AA0 /* Calendar */,
 				9A987A042C73CA66005CA465 /* Shelf */,
 				149E0B982C737D26006418B1 /* Webcam */,
 				B18654312C6F45AE000B926A /* Live activities */,
@@ -326,12 +340,12 @@
 			path = Webcam;
 			sourceTree = "<group>";
 		};
-		14C08BB72C8DE49E000F8AA0 /* Calender */ = {
+		14C08BB72C8DE49E000F8AA0 /* Calendar */ = {
 			isa = PBXGroup;
 			children = (
 				14C08BB82C8DE4B1000F8AA0 /* BoringCalendar.swift */,
 			);
-			path = Calender;
+			path = Calendar;
 			sourceTree = "<group>";
 		};
 		14CEF4092C5CAED200855D72 = {
@@ -354,6 +368,7 @@
 		14CEF4142C5CAED300855D72 /* boringNotch */ = {
 			isa = PBXGroup;
 			children = (
+				116398942DF5D6B40052E6AF /* Providers */,
 				14288DE22C6E016F00B9F80C /* observers */,
 				14288DD92C6E015000B9F80C /* helpers */,
 				B186543A2C6F49A4000B926A /* Shortcuts */,
@@ -427,6 +442,8 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
+				1163988C2DF5CAB40052E6AF /* EventModel.swift */,
 				B19016232CC15B4D00E3F12E /* Constants.swift */,
 				14D570C82C5F38890011E668 /* BoringViewModel.swift */,
 				14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */,
@@ -671,8 +688,11 @@
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
 				B141C23F2CA5F51E00AC8CC8 /* ProOnboarding.swift in Sources */,
 				B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */,
+				116398962DF5D6C00052E6AF /* CalendarServiceProviding.swift in Sources */,
+				1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
 				1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */,
+				1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */,
 				1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */,
 				B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */,
 				9A987A072C73CA66005CA465 /* Ext+NSImage.swift in Sources */,

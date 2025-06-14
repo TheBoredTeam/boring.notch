@@ -85,7 +85,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var whatsNewWindow: NSWindow?
     var timer: Timer?
-    let calenderManager = CalendarManager()
+    let calendarManager = CalendarManager()
     var closeNotchWorkItem: DispatchWorkItem?
     private var previousScreens: [NSScreen]?
     @Environment(\.openWindow) var openWindow
