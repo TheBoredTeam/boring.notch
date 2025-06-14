@@ -104,6 +104,14 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
         return true
     }
     
+    func toggleShuffle() {
+        MRMediaRemoteSendCommandFunction(6, nil)
+    }
+    
+    func toggleRepeat() {
+        MRMediaRemoteSendCommandFunction(7, nil)
+    }
+    
     // MARK: - Setup Methods
     private func setupNowPlayingObserver() {
         MRMediaRemoteRegisterForNowPlayingNotifications(DispatchQueue.main)
@@ -173,7 +181,11 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
             let artworkData = information["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data
             let timestamp = information["kMRMediaRemoteNowPlayingInfoTimestamp"] as? Date ?? Date()
             let playbackRate = information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Double ?? 1
-            
+            let isShuffled = information["kMRMediaRemoteNowPlayingInfoiTunesStoreAdamID"] != nil && 
+                            (information["kMRMediaRemoteNowPlayingInfoShuffleMode"] as? Int ?? 0) > 0            
+            let repeatModeValue = information["kMRMediaRemoteNowPlayingInfoRepeatMode"] as? Int ?? 0
+            let repeatMode = RepeatMode(rawValue: repeatModeValue) ?? .off    
+                 
             // Update playback state
             DispatchQueue.main.async {
                                 self.playbackState.title = title
@@ -184,6 +196,8 @@ class NowPlayingController: ObservableObject, MediaControllerProtocol {
                 self.playbackState.artwork = artworkData
                 self.playbackState.lastUpdated = timestamp
                 self.playbackState.playbackRate = playbackRate
+                self.playbackState.isShuffled = isShuffled
+                self.playbackState.repeatMode = repeatMode
                 
                 // Check playback state
                 self.MRMediaRemoteGetNowPlayingApplicationIsPlaying(DispatchQueue.main) { [weak self] isPlaying in

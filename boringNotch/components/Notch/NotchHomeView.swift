@@ -30,12 +30,41 @@ struct AlbumArtView: View {
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            if Defaults[.lightingEffect] {
-                albumArtBackground
+        GeometryReader { geometry in
+            ZStack(alignment: .bottomTrailing) {
+                if Defaults[.lightingEffect] {
+                    albumArtBackground
+                }
+                albumArtButton
+                
+                if musicManager.totalControllerCount > 1 {
+                    carouselDots
+                        .position(x: geometry.size.width/2, y: geometry.size.height - 15)
+                }
             }
-            albumArtButton
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
+        .aspectRatio(1, contentMode: .fit)
+    }
+    
+    private var carouselDots: some View {
+        HStack(spacing: 5) {
+            ForEach(0..<musicManager.totalControllerCount, id: \.self) { index in
+                Circle()
+                    .fill(index == musicManager.currentControllerIndex ? Color.white : Color.white.opacity(0.4))
+                    .frame(width: 14, height: 8)
+                    .contentShape(Rectangle().size(CGSize(width: 30, height: 30)))
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.3)) {
+                            musicManager.switchToController(index: index)
+                        }
+                    }
+            }
+        }
+        .padding(8)
+        .background(Color.black.opacity(0.2))
+        .cornerRadius(10)
+        .padding(8)
     }
 
     private var albumArtBackground: some View {
@@ -161,6 +190,9 @@ struct MusicControlsView: View {
 
     private var playbackControls: some View {
         HStack(spacing: 8) {
+            HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .white, scale: .medium) {
+                MusicManager.shared.toggleShuffle()
+            }
             HoverButton(icon: "backward.fill", scale: .medium) {
                 MusicManager.shared.previousTrack()
             }
@@ -170,8 +202,31 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
+            HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
+                MusicManager.shared.toggleRepeat()
+            }
         }
         .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private var repeatIcon: String {
+        switch musicManager.repeatMode {
+        case .off:
+            return "repeat"
+        case .all:
+            return "repeat"
+        case .one:
+            return "repeat.1"
+        }
+    }
+
+    private var repeatIconColor: Color {
+        switch musicManager.repeatMode {
+        case .off:
+            return .white
+        case .all, .one:
+            return .red
+        }
     }
 }
 
