@@ -13,7 +13,7 @@ let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let openNotchSize: CGSize = .init(width: 610, height: 200)
-let cornerRadiusInsets: (opened: CGFloat, closed: CGFloat) = (opened: 24, closed: 10)
+let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
 enum MusicPlayerImageSizes {
     static let cornerRadiusInset: (opened: CGFloat, closed: CGFloat) = (opened: 13.0, closed: 4.0)
@@ -51,20 +51,22 @@ func getClosedNotchSize(screen: String? = nil) -> CGSize {
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
            let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width
         {
-            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 10
-        }
-
-        // Use MenuBar height as notch height if there is no notch
-        if Defaults[.nonNotchHeightMode] == .matchMenuBar {
-            notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
         }
 
         // Check if the Mac has a notch
         if screen.safeAreaInsets.top > 0 {
+            // This is a display WITH a notch - use notch height settings
             notchHeight = Defaults[.notchHeight]
             if Defaults[.notchHeightMode] == .matchRealNotchSize {
                 notchHeight = screen.safeAreaInsets.top
             } else if Defaults[.notchHeightMode] == .matchMenuBar {
+                notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+            }
+        } else {
+            // This is a display WITHOUT a notch - use non-notch height settings
+            notchHeight = Defaults[.nonNotchHeight]
+            if Defaults[.nonNotchHeightMode] == .matchMenuBar {
                 notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
             }
         }

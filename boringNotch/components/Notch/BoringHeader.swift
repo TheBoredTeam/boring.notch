@@ -10,7 +10,7 @@ import SwiftUI
 
 struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
-    @EnvironmentObject var batteryModel: BatteryStatusViewModel
+    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = TrayDrop.shared
     var body: some View {
@@ -32,7 +32,7 @@ struct BoringHeader: View {
                 Rectangle()
                     .fill(NSScreen.screens
                         .first(where: { $0.localizedName == coordinator.selectedScreen })?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
-                    .frame(width: vm.closedNotchSize.width - 5)
+                    .frame(width: vm.closedNotchSize.width)
                     .mask {
                         NotchShape()
                     }
@@ -54,13 +54,16 @@ struct BoringHeader: View {
                         })
                         .buttonStyle(PlainButtonStyle())
                     }
-                    if Defaults[.showBattery] {
+                    if Defaults[.showBatteryIndicator] {
                         BoringBatteryView(
-                            batteryPercentage: batteryModel.batteryPercentage,
-                            isPluggedIn: batteryModel.isPluggedIn, 
                             batteryWidth: 30,
+                            isCharging: batteryModel.isCharging,
                             isInLowPowerMode: batteryModel.isInLowPowerMode,
-                            isInitialPlugIn: batteryModel.isInitialPlugIn
+                            isPluggedIn: batteryModel.isPluggedIn,
+                            levelBattery: batteryModel.levelBattery,
+                            maxCapacity: batteryModel.maxCapacity,
+                            timeToFullCharge: batteryModel.timeToFullCharge,
+                            isForNotification: false
                         )
                     }
                 }
@@ -78,5 +81,5 @@ struct BoringHeader: View {
 }
 
 #Preview {
-    BoringHeader().environmentObject(BoringViewModel()).environmentObject(BatteryStatusViewModel(vm: BoringViewModel()))
+    BoringHeader().environmentObject(BoringViewModel())
 }
