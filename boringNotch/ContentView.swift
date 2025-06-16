@@ -88,6 +88,10 @@ struct ContentView: View {
                 .conditionalModifier(!Defaults[.openNotchOnHover]) { view in
                     view
                         .onHover { hovering in
+                            if (vm.notchState == .closed) && Defaults[.enableHaptics] {
+                                haptics.toggle()
+                            }
+                                
                             withAnimation(vm.animation) {
                                 isHovering = hovering
                             }
@@ -98,9 +102,6 @@ struct ContentView: View {
                             }
                         }
                         .onTapGesture {
-                            if (vm.notchState == .closed) && Defaults[.enableHaptics] {
-                                haptics.toggle()
-                            }
                             doOpen()
                         }
                         .conditionalModifier(Defaults[.enableGestures]) { view in
