@@ -57,45 +57,29 @@ struct MarqueeText: View {
                     Text(text)
                         .opacity(needsScrolling ? 1 : 0)
                 }
+                .id(text)
                 .font(font)
                 .foregroundColor(textColor)
                 .fixedSize(horizontal: true, vertical: false)
-                .offset(x: animate ? offset : 0)
+                .offset(x: self.animate ? offset : 0)
                 .animation(
-                    animate ?
+                    self.animate ?
                         .linear(duration: Double(textSize.width / 30))
                         .delay(minDuration)
                         .repeatForever(autoreverses: false) : .none,
-                    value: animate
+                    value: self.animate
                 )
                 .background(backgroundColor)
                 .modifier(MeasureSizeModifier())
                 .onPreferenceChange(SizePreferenceKey.self) { size in
                     self.textSize = CGSize(width: size.width / 2, height: NSFont.preferredFont(forTextStyle: nsFont).pointSize)
-                }
-                .onChange(of: text) {
-
-                    offset = 0
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.animate = false
+                    self.offset = 0
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.01){
                         if needsScrolling {
-                            offset = -(textSize.width + 10)
-                            withAnimation {
-                                animate = true
-                            }
-                        }
-                    }
-                }
-                .onAppear {
-                    withAnimation {
-                        animate = false
-                    }
-                    offset = 0
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        if needsScrolling {
-                            offset = -(textSize.width + 10)
-                            withAnimation {
-                                animate = true
-                            }
+                            self.animate = true
+                            self.offset = -(textSize.width + 10)
+                            
                         }
                     }
                 }
@@ -104,5 +88,6 @@ struct MarqueeText: View {
             .clipped()
         }
         .frame(height: textSize.height * 1.3)
+        
     }
 }

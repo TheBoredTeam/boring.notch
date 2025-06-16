@@ -14,19 +14,18 @@ import SwiftUI
 
 struct MusicPlayerView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @EnvironmentObject var musicManager: MusicManager
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
         HStack {
-            AlbumArtView(musicManager: musicManager, vm: vm, albumArtNamespace: albumArtNamespace)
-            MusicControlsView(musicManager: musicManager).drawingGroup().compositingGroup()
+            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
+            MusicControlsView().drawingGroup().compositingGroup()
         }
     }
 }
 
 struct AlbumArtView: View {
-    @ObservedObject var musicManager: MusicManager
+    @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
 
@@ -97,11 +96,11 @@ struct AlbumArtView: View {
 }
 
 struct MusicControlsView: View {
-    @ObservedObject var musicManager: MusicManager
+    @ObservedObject var musicManager = MusicManager.shared
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
-
+    
     var body: some View {
         VStack(alignment: .leading) {
             songInfoAndSlider
@@ -146,12 +145,14 @@ struct MusicControlsView: View {
                 color: musicManager.avgColor,
                 dragging: $dragging,
                 currentDate: timeline.date,
+                lastUpdated: musicManager.lastUpdated,
+                ignoreLastUpdated: musicManager.ignoreLastUpdated,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
                 playbackRate: musicManager.playbackRate,
                 isPlaying: musicManager.isPlaying
             ) { newValue in
-                musicManager.seekTrack(to: newValue)
+                MusicManager.shared.seek(to: newValue)
             }
             .padding(.top, 5)
             .frame(height: 36)
@@ -161,13 +162,13 @@ struct MusicControlsView: View {
     private var playbackControls: some View {
         HStack(spacing: 8) {
             HoverButton(icon: "backward.fill", scale: .medium) {
-                musicManager.previousTrack()
+                MusicManager.shared.previousTrack()
             }
             HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
-                musicManager.togglePlayPause()
+                MusicManager.shared.togglePlay()
             }
             HoverButton(icon: "forward.fill", scale: .medium) {
-                musicManager.nextTrack()
+                MusicManager.shared.nextTrack()
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -178,9 +179,8 @@ struct MusicControlsView: View {
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @EnvironmentObject var musicManager: MusicManager
-    @EnvironmentObject var batteryModel: BatteryStatusViewModel
     @EnvironmentObject var webcamManager: WebcamManager
+    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
 
@@ -199,17 +199,10 @@ struct NotchHomeView: View {
 
             if Defaults[.showCalendar] {
                 CalendarView()
-                .onContinuousHover { phase in
-                                if Defaults[.closeGestureEnabled] {
-                                    switch phase {
-                                        case .active:
-                                            Defaults[.closeGestureEnabled] = false
-                                        case .ended:
-                                            Defaults[.closeGestureEnabled] = false
-                                    }
-                                }
-                            }
-                    .environmentObject(vm)
+                .onHover { isHovering in
+                    vm.isHoveringCalendar = isHovering
+                }
+                .environmentObject(vm)
             }
 
             if Defaults[.showMirror] && webcamManager.cameraAvailable {
@@ -233,6 +226,8 @@ struct MusicSliderView: View {
     var color: NSColor
     @Binding var dragging: Bool
     let currentDate: Date
+    let lastUpdated: Date
+    let ignoreLastUpdated: Bool
     let timestampDate: Date
     let elapsedTime: Double
     let playbackRate: Double
@@ -240,8 +235,9 @@ struct MusicSliderView: View {
     var onValueChange: (Double) -> Void
 
     var currentElapsedTime: Double {
-        guard !dragging && isPlaying, currentDate > lastDragged else { return sliderValue }
-        let timeDifference = currentDate.timeIntervalSince(timestampDate)
+        // A small buffer is needed to ensure a meaningful difference between the two dates
+        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -0.0001, (timestampDate > lastUpdated || ignoreLastUpdated) else { return sliderValue }
+        let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
         let elapsed = elapsedTime + (timeDifference * playbackRate)
         return min(elapsed, duration)
     }
@@ -269,7 +265,7 @@ struct MusicSliderView: View {
                 .ensureMinimumBrightness(factor: 0.6) : .gray)
             .font(.caption)
         }
-        .onChange(of: currentDate) { _ in
+        .onChange(of: currentDate) {
             sliderValue = currentElapsedTime
         }
     }
@@ -341,8 +337,6 @@ struct CustomSlider: View {
 
 #Preview {
     NotchHomeView(albumArtNamespace: Namespace().wrappedValue)
-        .environmentObject(MusicManager(vm: BoringViewModel())!)
         .environmentObject(BoringViewModel())
-        .environmentObject(BatteryStatusViewModel(vm: BoringViewModel()))
         .environmentObject(WebcamManager())
 }
