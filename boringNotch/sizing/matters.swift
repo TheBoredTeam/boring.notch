@@ -13,7 +13,7 @@ let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let openNotchSize: CGSize = .init(width: 610, height: 200)
-let cornerRadiusInsets: (opened: CGFloat, closed: CGFloat) = (opened: 24, closed: 10)
+let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
 enum MusicPlayerImageSizes {
     static let cornerRadiusInset: (opened: CGFloat, closed: CGFloat) = (opened: 13.0, closed: 4.0)
@@ -51,7 +51,7 @@ func getClosedNotchSize(screen: String? = nil) -> CGSize {
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
            let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width
         {
-            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 10
+            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
         }
 
         // Check if the Mac has a notch
