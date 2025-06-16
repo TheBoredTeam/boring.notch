@@ -216,61 +216,69 @@ struct EventListView: View {
     let events: [EventModel]
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            HStack(alignment: .top) {
-                VStack(alignment: .trailing, spacing: 5) {
-                    ForEach(events.indices, id: \.self) { index in
-                        VStack(alignment: .trailing) {
-                            if events[index].isAllDay {
-                                Text("All-day")
-                            } else {
-                                Text("\(events[index].start, style: .time)")
-                                Text("\(events[index].end, style: .time)")
-                            }
-                        }
-                        .multilineTextAlignment(.trailing)
-                        .padding(.bottom, 8)
-                        .font(.caption2)
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 5) {
-                    ForEach(events.indices, id: \.self) { index in
-                        HStack(alignment: .top) {
-                            VStack(spacing: 5) {
-                                Image(
-                                    systemName: events[index].eventStatus == .ended
-                                        ? "checkmark.circle" : "circle"
-                                )
-                                .foregroundColor(events[index].eventStatus == .ended ? .green : .gray)
-                                .font(.footnote)
-                                Rectangle()
-                                    .frame(width: 1)
-                                    .foregroundStyle(.gray.opacity(0.5))
-                                    .opacity(index == events.count - 1 ? 0 : 1)
-                            }
-                            .padding(.top, 1)
-
-                            Button {
-                                if let url = events[index].calendarAppURL() {
-                                    openURL(url)
+        ScrollViewReader { reader in
+            ScrollView(showsIndicators: false) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .trailing, spacing: 5) {
+                        ForEach(events.indices, id: \.self) { index in
+                            VStack(alignment: .trailing) {
+                                if events[index].isAllDay {
+                                    Text("All-day")
+                                    Text(" ")
+                                } else {
+                                    Text("\(events[index].start, style: .time)")
+                                    Text("\(events[index].end, style: .time)")
                                 }
-                            } label: {
-                                Text(events[index].title)
-                                    .font(.footnote)
-                                    .foregroundStyle(.gray)
                             }
-                            .buttonStyle(.plain)
-
-                            Spacer(minLength: 0)
+                            .multilineTextAlignment(.trailing)
+                            .padding(.bottom, 8)
+                            .font(.caption2)
+                            .id(index)
                         }
-                        .opacity((events[index].eventStatus == .ended) ? 0.6 : 1)
+                    }
+
+                    VStack(alignment: .leading, spacing: 5) {
+                        ForEach(events.indices, id: \.self) { index in
+                            HStack(alignment: .top) {
+                                VStack(spacing: 5) {
+                                    Image(
+                                        systemName: events[index].eventStatus == .ended
+                                        ? "checkmark.circle" : "circle"
+                                    )
+                                    .foregroundColor(events[index].eventStatus == .ended ? .green : .gray)
+                                    .font(.footnote)
+                                    Rectangle()
+                                        .frame(width: 1)
+                                        .foregroundStyle(.gray.opacity(0.5))
+                                        .opacity(index == events.count - 1 ? 0 : 1)
+                                }
+                                .padding(.top, 1)
+                                
+                                Button {
+                                    if let url = events[index].calendarAppURL() {
+                                        openURL(url)
+                                    }
+                                } label: {
+                                    Text(events[index].title)
+                                        .font(.footnote)
+                                        .foregroundStyle(.white)
+                                }
+                                .buttonStyle(.plain)
+
+                                Spacer(minLength: 0)
+                            }
+                            .opacity((events[index].eventStatus == .ended) ? 0.6 : 1)
+                        }
                     }
                 }
             }
+            .scrollIndicators(.never)
+            .scrollTargetBehavior(.viewAligned)
+            .onAppear {
+                let index = events.firstIndex(where: { !$0.isAllDay && $0.eventStatus != .ended }) ?? 0
+                reader.scrollTo(index, anchor: .top)
+            }
         }
-        .scrollIndicators(.never)
-        .scrollTargetBehavior(.viewAligned)
     }
 }
 
