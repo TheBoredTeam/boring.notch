@@ -401,7 +401,12 @@ class MusicManager: ObservableObject {
         // Request immediate update from the active controller
         DispatchQueue.main.async { [weak self] in
             if self?.activeController?.isActive() == true {
-                self?.activeController?.updatePlaybackInfo()
+                if self?.bundleIdentifier == "com.github.th-ch.youtube-music",
+                let youtubeController = self?.activeController as? YouTubeMusicController {
+                    youtubeController.pollPlaybackState()
+                } else {
+                    self?.activeController?.updatePlaybackInfo()
+                }
             }
         }
     }
