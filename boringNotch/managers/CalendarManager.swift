@@ -12,12 +12,11 @@ import Defaults
 // MARK: - CalendarManager
 
 @MainActor
-class CalendarManager: ObservableObject {
+class CalendarManager: ObservableObject, CalendarSettingsProviding {
     @Published var currentWeekStartDate: Date
     @Published var events: [EventModel] = []
     @Published var allCalendars: [CalendarModel] = []
     @Published var authorizationStatus: EKAuthorizationStatus = .notDetermined
-    private var selectedCalendars: [CalendarModel] = []
     private let calendarService = CalendarService()
 
     init() {
@@ -45,8 +44,7 @@ class CalendarManager: ObservableObject {
             case .fullAccess:
                 NSLog("Full access")
                 allCalendars = await calendarService.calendars()
-                updateSelectedCalendars()
-                events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
+                await updateEvents()
             case .writeOnly:
                 NSLog("Write only")
             @unknown default:
@@ -54,11 +52,7 @@ class CalendarManager: ObservableObject {
         }
     }
     
-    func updateSelectedCalendars() {
-        selectedCalendars = allCalendars.filter { getCalendarSelected($0) }
-    }
-    
-    func getCalendarSelected(_ calendar: CalendarModel) -> Bool {
+    nonisolated func getCalendarSelected(_ calendar: CalendarModel) -> Bool {
         switch Defaults[.calendarSelectionState] {
         case .all:
             return true
@@ -88,8 +82,11 @@ class CalendarManager: ObservableObject {
         }
 
         Defaults[.calendarSelectionState] = selectionState
-        updateSelectedCalendars()
-        events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
+        await updateEvents()
+    }
+    
+    func updateEvents() async {
+        events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, settings: self)
     }
     
     static func startOfDay(_ date: Date) -> Date {
@@ -98,6 +95,6 @@ class CalendarManager: ObservableObject {
     
     func updateCurrentDate(_ date: Date) async {
         currentWeekStartDate = Calendar.current.startOfDay(for: date)
-        events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
+        await updateEvents()
     }
 }
