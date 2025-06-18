@@ -687,11 +687,16 @@ struct About: View {
 }
 
 struct Shelf: View {
+    
+    @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
+    
     var body: some View {
         Form {
             Section {
                 Defaults.Toggle("Enable shelf", key: .boringShelf)
                 Defaults.Toggle("Open shelf tab by default if items added", key: .openShelfByDefault)
+                Defaults.Toggle("Open files from shelf", key: .shelfTapToOpen)
+                
             } header: {
                 HStack {
                     Text("General")

@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
+import Defaults
 
 struct DropItemView: View {
     let item: TrayDrop.DropItem
@@ -37,6 +38,13 @@ struct DropItemView: View {
                     .allowsTightening(true)
             }
             .contentShape(Rectangle())
+            .onTapGesture {
+                if Defaults[.shelfTapToOpen] {
+                    if FileManager.default.fileExists(atPath: item.storageURL.path) {
+                        NSWorkspace.shared.open(item.storageURL)
+                    }
+                }
+            }
             .onDrag {
                 handleOnDrag(for: item)
             }
