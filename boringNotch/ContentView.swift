@@ -30,6 +30,8 @@ struct ContentView: View {
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
+    
+    @State private var isCameraExpanded: Bool = false
 
     @Namespace var albumArtNamespace
 
@@ -169,7 +171,6 @@ struct ContentView: View {
         .shadow(color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear, radius: Defaults[.cornerRadiusScaling] ? 10 : 5)
         .background(dragDetector)
         .environmentObject(vm)
-        .environmentObject(webcamManager)
     }
 
     @ViewBuilder
@@ -259,7 +260,10 @@ struct ContentView: View {
                   if vm.notchState == .open {
                       switch coordinator.currentView {
                           case .home:
-                              NotchHomeView(albumArtNamespace: albumArtNamespace)
+                          NotchHomeView(
+                            albumArtNamespace: albumArtNamespace,
+                            isCameraExpanded: $vm.isCameraExpanded
+                          )
                           case .shelf:
                               NotchShelfView()
                       }
