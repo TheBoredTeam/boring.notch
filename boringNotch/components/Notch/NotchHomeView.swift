@@ -184,6 +184,8 @@ struct NotchHomeView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
 
+    @Binding var isCameraExpanded: Bool
+    
     var body: some View {
         Group {
             if !coordinator.firstLaunch {
@@ -198,15 +200,19 @@ struct NotchHomeView: View {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
 
             if Defaults[.showCalendar] {
-                CalendarView()
+                CalendarView(isCameraExpanded: isCameraExpanded)
                 .onHover { isHovering in
                     vm.isHoveringCalendar = isHovering
                 }
                 .environmentObject(vm)
             }
 
-            if Defaults[.showMirror] && webcamManager.cameraAvailable {
-                CameraPreviewView(webcamManager: webcamManager)
+            if Defaults[.showMirror] && vm.webcamManager.cameraAvailable {
+                CameraPreviewView(webcamManager: vm.webcamManager)
+                    .frame(
+                        width:  isCameraExpanded ? 150 : 0,
+                        height: isCameraExpanded ? 150 : 0
+                    )
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
@@ -336,7 +342,12 @@ struct CustomSlider: View {
 }
 
 #Preview {
-    NotchHomeView(albumArtNamespace: Namespace().wrappedValue)
-        .environmentObject(BoringViewModel())
-        .environmentObject(WebcamManager())
+    let vm = BoringViewModel()
+    return NotchHomeView(
+        albumArtNamespace: Namespace().wrappedValue,
+        isCameraExpanded: .constant(false)
+    )
+    .environmentObject(vm)
+    .environmentObject(WebcamManager())
 }
+ 
