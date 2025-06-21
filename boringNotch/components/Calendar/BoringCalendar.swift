@@ -151,7 +151,8 @@ struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject private var calendarManager = CalendarManager()
     @State private var selectedDate = Date()
-
+    var isCameraExpanded: Bool
+    
     var body: some View {
         VStack(spacing: 8) {
             HStack {
@@ -275,7 +276,7 @@ struct EventListView: View {
 }
 
 #Preview {
-    CalendarView()
+    CalendarView(isCameraExpanded: false)
         .frame(width: 250)
         .padding(.horizontal)
         .background(.black)
