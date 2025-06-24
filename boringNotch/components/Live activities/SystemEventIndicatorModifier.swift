@@ -101,20 +101,26 @@ struct DraggableProgressBar: View {
                 ZStack(alignment: .leading) {
                     Capsule()
                         .fill(.tertiary)
-                    Group {
-                        if Defaults[.enableGradient] {
-                            Capsule()
-                                .fill(LinearGradient(colors: Defaults[.systemEventIndicatorUseAccent] ? [Defaults[.accentColor], Defaults[.accentColor].ensureMinimumBrightness(factor: 0.2)] : [.white, .white.opacity(0.2)], startPoint: .trailing, endPoint: .leading))
-                                .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
-                                .shadow(color: Defaults[.systemEventIndicatorShadow] ? Defaults[.systemEventIndicatorUseAccent] ? Defaults[.accentColor].ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
-                        } else {
-                            Capsule()
-                                .fill(Defaults[.systemEventIndicatorUseAccent] ? Defaults[.accentColor] : .white)
-                                .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
-                                .shadow(color: Defaults[.systemEventIndicatorShadow] ? Defaults[.systemEventIndicatorUseAccent] ? Defaults[.accentColor].ensureMinimumBrightness(factor: 0.7) : .white : .clear, radius: 8, x: 3)
-                        }
-                    }
-                    .opacity(value.isZero ? 0 : 1)
+                    Capsule()
+                        .fill(
+                            Defaults[.enableGradient] ?
+                                AnyShapeStyle(LinearGradient(
+                                    colors: Defaults[.systemEventIndicatorUseAccent] ?
+                                        [Color.accentColor, Color.accentColor.ensureMinimumBrightness(factor: 0.2)] :
+                                        [Color.white, Color.white.opacity(0.2)],
+                                    startPoint: .trailing,
+                                    endPoint: .leading
+                                )) :
+                                AnyShapeStyle(Defaults[.systemEventIndicatorUseAccent] ? Color.accentColor : Color.white)
+                        )
+                        .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
+                        .shadow(color: Defaults[.systemEventIndicatorShadow] ?
+                            (Defaults[.systemEventIndicatorUseAccent] ?
+                                Color.accentColor.ensureMinimumBrightness(factor: 0.7) :
+                                Color.white) :
+                            Color.clear,
+                            radius: 8, x: 3)
+                        .opacity(value.isZero ? 0 : 1)
                 }
                 .gesture(
                     DragGesture(minimumDistance: 0)
