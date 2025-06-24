@@ -46,7 +46,7 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     case nowPlaying = "Now Playing"
     case appleMusic = "Apple Music"
     case spotify = "Spotify"
-    case youtubeMusic = "Youtube Music"
+    case youtubeMusic = "YouTube Music"
     
     var id: String { self.rawValue }
 }
@@ -90,7 +90,6 @@ extension Defaults.Keys {
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
-    static let accentColor = Key<Color>("accentColor", default: Color.blue)
     static let enableShadow = Key<Bool>("enableShadow", default: true)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
     static let useModernCloseAnimation = Key<Bool>("useModernCloseAnimation", default: true)

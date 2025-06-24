@@ -41,7 +41,9 @@ struct BoringHeader: View {
             HStack(spacing: 4) {
                 if vm.notchState == .open {
                     if Defaults[.settingsIconInNotch] {
-                        SettingsLink(label: {
+                        Button(action: {
+                            SettingsWindowController.shared.showWindow()
+                        }) {
                             Capsule()
                                 .fill(.black)
                                 .frame(width: 30, height: 30)
@@ -51,7 +53,7 @@ struct BoringHeader: View {
                                         .padding()
                                         .imageScale(.medium)
                                 }
-                        })
+                        }
                         .buttonStyle(PlainButtonStyle())
                     }
                     if Defaults[.showBatteryIndicator] {
