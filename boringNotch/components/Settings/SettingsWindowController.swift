@@ -102,12 +102,6 @@ class SettingsWindowController: NSWindowController {
         
         // Set app back to accessory mode immediately
         NSApp.setActivationPolicy(.accessory)
-        
-        // deactivate the app
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            print("🔒 Relinquishing focus from settings window")
-            NSApp.deactivate()
-        }
     }
 }
 
