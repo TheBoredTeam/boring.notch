@@ -85,7 +85,7 @@ class YouTubeMusicController: MediaControllerProtocol {
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completionStatus in
                 switch completionStatus {
-                case .failure(let error):
+                case .failure(_):
                     completion(false)
                 case .finished:
                     break
