@@ -22,11 +22,6 @@ class CalendarManager: ObservableObject {
 
     init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
-        if(Defaults[.showCalendar]) {
-            Task {
-                await checkCalendarAuthorization()
-            }
-        }
     }
 
     func checkCalendarAuthorization() async {

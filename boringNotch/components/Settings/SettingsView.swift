@@ -663,10 +663,10 @@ struct About: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .toolbar {
-            Button("Welcome window") {
-                openWindow(id: "onboarding")
-            }
-            .controlSize(.extraLarge)
+//            Button("Welcome window") {
+//                openWindow(id: "onboarding")
+//            }
+//            .controlSize(.extraLarge)
             CheckForUpdatesView(updater: updaterController.updater)
         }
         .navigationTitle("About")
