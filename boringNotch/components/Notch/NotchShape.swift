@@ -4,7 +4,7 @@
 //
 // Created by Kai Azim on 2023-08-24.
 // Original source: https://github.com/MrKai77/DynamicNotchKit
-// Modified by Alexander Greco on 2025-05-18.
+// Modified by Alexander on 2025-05-18.
 
 import SwiftUI
 

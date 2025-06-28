@@ -1,11 +1,10 @@
 //
-//  BoringCalender.swift
+//  BoringCalendar.swift
 //  boringNotch
 //
 //  Created by Harsh Vardhan  Goswami  on 08/09/24.
 //
 
-import EventKit
 import SwiftUI
 import Defaults
 
@@ -45,7 +44,9 @@ struct WheelPicker: View {
                             withAnimation{
                                 scrollPosition = indexForDate(date, offset: offset) - config.offset
                             }
-                            //haptics.toggle()      // Causes double haptic when click
+                            if (Defaults[.enableHaptics]) {
+                                haptics.toggle()
+                            }
                         }
                     }
                 }
@@ -84,15 +85,13 @@ struct WheelPicker: View {
     private func dayText(date: String, isSelected: Bool) -> some View {
         Text(date)
             .font(.caption2)
-            .foregroundStyle(
-                isSelected ? Defaults[.accentColor] : .gray
-            )
+            .foregroundStyle(isSelected ? Color.accentColor : .gray)
     }
-    
+
     private func dateCircle(date: Date, isSelected: Bool) -> some View {
         ZStack {
             Circle()
-                .fill(isSelected ? Defaults[.accentColor] : .clear)
+                .fill(isSelected ? Color.accentColor : .clear)
                 .frame(width: 24, height: 24)
             Text("\(date.date)")
                 .font(.title3)
@@ -105,15 +104,17 @@ struct WheelPicker: View {
         let todayIndex = indexForDate(Date(), offset: offset)
         guard let newIndex = newValue else { return }
         let targetDateIndex = newIndex + config.offset
-        switch targetDateIndex{
-        case todayIndex-config.past..<todayIndex+config.future:
+        switch targetDateIndex {
+        case todayIndex - config.past ..< todayIndex + config.future:
             selectedDate = dateForIndex(targetDateIndex, offset: offset)
-            haptics.toggle()
+            if (Defaults[.enableHaptics]) {
+                haptics.toggle()
+            }
         default:
             return
         }
     }
-    
+
     private func scrollToToday(config: Config) {
         let today = Date()
         let todayIndex = indexForDate(today, offset: -config.offset - config.past)
@@ -121,7 +122,7 @@ struct WheelPicker: View {
         scrollPosition = todayIndex - config.offset
         selectedDate = today
     }
-    
+
     private func indexForDate(_ date: Date, offset: Int) -> Int {
         let calendar = Calendar.current
         let startDate = calendar.startOfDay(for: calendar.date(byAdding: .day, value: offset, to: Date()) ?? Date())
@@ -129,23 +130,18 @@ struct WheelPicker: View {
         let daysDifference = calendar.dateComponents([.day], from: startDate, to: targetDate).day ?? 0
         return daysDifference
     }
-    
+
     private func dateForIndex(_ index: Int, offset: Int) -> Date {
         let startDate = Calendar.current.date(byAdding: .day, value: offset, to: Date()) ?? Date()
         return Calendar.current.date(byAdding: .day, value: index, to: startDate) ?? Date()
     }
-    
-    private func dayForIndex(_ index: Int, offset: Int) -> String {
-        let date = dateForIndex(index, offset: offset)
-        return dateToString(for: date)
-    }
-    
+
     private func dateToString(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "E"
         return formatter.string(from: date)
     }
-    
+
     private func isDateSelected(_ index: Int, offset: Int) -> Bool {
         Calendar.current.isDate(dateForIndex(index, offset: offset), inSameDayAs: selectedDate)
     }
@@ -185,13 +181,19 @@ struct CalendarView: View {
         }
         .listRowBackground(Color.clear)
         .onChange(of: selectedDate) { _, newDate in
-            calendarManager.updateCurrentDate(newDate)
+            Task {
+                await calendarManager.updateCurrentDate(newDate)
+            }
         }
         .onChange(of: vm.notchState) { _, _ in
-            calendarManager.updateCurrentDate(Date.now)
+            Task {
+                await calendarManager.updateCurrentDate(Date.now)
+            }
         }
         .onAppear {
-            calendarManager.updateCurrentDate(Date.now)
+            Task {
+                await calendarManager.updateCurrentDate(Date.now)
+            }
         }
     }
 }
@@ -211,7 +213,7 @@ struct EmptyEventsView: View {
 
 struct EventListView: View {
     @Environment(\.openURL) private var openURL
-    let events: [EKEvent]
+    let events: [EventModel]
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -219,13 +221,11 @@ struct EventListView: View {
                 VStack(alignment: .trailing, spacing: 5) {
                     ForEach(events.indices, id: \.self) { index in
                         VStack(alignment: .trailing) {
-                            if isAllDayEvent(
-                                start: events[index].startDate, end: events[index].endDate)
-                            {
+                            if events[index].isAllDay {
                                 Text("All-day")
                             } else {
-                                Text("\(events[index].startDate, style: .time)")
-                                Text("\(events[index].endDate, style: .time)")
+                                Text("\(events[index].start, style: .time)")
+                                Text("\(events[index].end, style: .time)")
                             }
                         }
                         .multilineTextAlignment(.trailing)
@@ -239,10 +239,10 @@ struct EventListView: View {
                         HStack(alignment: .top) {
                             VStack(spacing: 5) {
                                 Image(
-                                    systemName: isEventEnded(events[index].endDate)
+                                    systemName: events[index].eventStatus == .ended
                                         ? "checkmark.circle" : "circle"
                                 )
-                                .foregroundColor(isEventEnded(events[index].endDate) ? .green : .gray)
+                                .foregroundColor(events[index].eventStatus == .ended ? .green : .gray)
                                 .font(.footnote)
                                 Rectangle()
                                     .frame(width: 1)
@@ -252,7 +252,7 @@ struct EventListView: View {
                             .padding(.top, 1)
 
                             Button {
-                                if let url = generateEventURL(for: events[index]) {
+                                if let url = events[index].calendarAppURL() {
                                     openURL(url)
                                 }
                             } label: {
@@ -264,7 +264,7 @@ struct EventListView: View {
 
                             Spacer(minLength: 0)
                         }
-                        .opacity(isEventEnded(events[index].endDate) ? 0.6 : 1)
+                        .opacity((events[index].eventStatus == .ended) ? 0.6 : 1)
                     }
                 }
             }
@@ -272,39 +272,7 @@ struct EventListView: View {
         .scrollIndicators(.never)
         .scrollTargetBehavior(.viewAligned)
     }
-
-    private func isAllDayEvent(start: Date, end: Date) -> Bool {
-        let calendar = Calendar.current
-
-        let startComponents = calendar.dateComponents([.hour, .minute], from: start)
-        let endComponents = calendar.dateComponents([.hour, .minute], from: end)
-
-        return startComponents.hour == 0 && startComponents.minute == 0 && endComponents.hour == 23
-            && endComponents.minute == 59
-    }
-
-    private func isEventEnded(_ end: Date) -> Bool {
-        return Date.now > end
-    }
-
-    private func generateEventURL(for event: EKEvent) -> URL? {
-        var dateComponent = ""
-        if event.hasRecurrenceRules {
-            if let startDate = event.startDate {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
-                formatter.timeZone = TimeZone.current
-                if !event.isAllDay {
-                    formatter.timeZone = TimeZone(secondsFromGMT: 0)
-                }
-                dateComponent = "/\(formatter.string(from: startDate))"
-            }
-        }
-        return URL(string: "ical://ekevent\(dateComponent)/\(event.calendarItemIdentifier)?method=show&options=more")
-    }
 }
-
-// Keep the CalendarManager, EmptyEventsView, and EventListView as they were in the previous implementation
 
 #Preview {
     CalendarView()

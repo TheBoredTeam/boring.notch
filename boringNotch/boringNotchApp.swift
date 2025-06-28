@@ -7,27 +7,32 @@
 
 import AVFoundation
 import Combine
+import Defaults
 import KeyboardShortcuts
 import Sparkle
 import SwiftUI
-import Defaults
 
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
+
     let updaterController: SPUStandardUpdaterController
-    
+
     init() {
-        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        updaterController = SPUStandardUpdaterController(
+            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+
+        // Initialize the settings window controller with the updater controller
+        SettingsWindowController.shared.setUpdaterController(updaterController)
     }
-    
+
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
-            SettingsLink(label: {
-                Text("Settings")
-            })
+            Button("Settings") {
+                SettingsWindowController.shared.showWindow()
+            }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             if false {
                 Button("Activate License") {
@@ -37,37 +42,27 @@ struct DynamicNotchApp: App {
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Restart Boring Notch") {
-                    guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
-                    
-                    let workspace = NSWorkspace.shared
-                    
-                    if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleIdentifier) {
-                        
-                        let configuration = NSWorkspace.OpenConfiguration()
-                        configuration.createsNewApplicationInstance = true
-                        
-                        workspace.openApplication(at: appURL, configuration: configuration)
-                    }
-                
-                   NSApplication.shared.terminate(nil)
+                guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
+
+                let workspace = NSWorkspace.shared
+
+                if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleIdentifier)
+                {
+
+                    let configuration = NSWorkspace.OpenConfiguration()
+                    configuration.createsNewApplicationInstance = true
+
+                    workspace.openApplication(at: appURL, configuration: configuration)
+                }
+
+                NSApplication.shared.terminate(nil)
             }
             Button("Quit", role: .destructive) {
                 NSApp.terminate(nil)
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
-        
-        Settings {
-            SettingsView(updaterController: updaterController)
-        }
-        .defaultSize(CGSize(width: 750, height: 700))
-        
-        Window("Onboarding", id: "onboarding") {
-            ProOnboard()
-        }
-        .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
-        
+
         Window("Activation", id: "activation") {
             ActivationWindow()
         }
@@ -85,11 +80,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var whatsNewWindow: NSWindow?
     var timer: Timer?
-    let calenderManager = CalendarManager()
+    let calendarManager = CalendarManager()
     var closeNotchWorkItem: DispatchWorkItem?
     private var previousScreens: [NSScreen]?
-    @Environment(\.openWindow) var openWindow
-    
+    private var onboardingWindowController: NSWindowController?
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
     }
@@ -125,10 +120,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.window = nil
         }
     }
-    
-    private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
+
+    private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel)
+        -> NSWindow
+    {
         let window = BoringNotchWindow(
-            contentRect: NSRect(x: 0, y: 0, width: openNotchSize.width, height: openNotchSize.height),
+            contentRect: NSRect(
+                x: 0, y: 0, width: openNotchSize.width, height: openNotchSize.height),
             styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
             backing: .buffered,
             defer: false
@@ -143,8 +141,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
         return window
     }
-    
-    private func positionWindow(_ window: NSWindow, on screen: NSScreen, changeAlpha: Bool = false) {
+
+    private func positionWindow(_ window: NSWindow, on screen: NSScreen, changeAlpha: Bool = false)
+    {
         if changeAlpha {
             window.alphaValue = 0
         }
@@ -152,45 +151,56 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.async { [weak window] in
             guard let window = window else { return }
             let screenFrame = screen.frame
-            window.setFrameOrigin(NSPoint(
-                x: screenFrame.origin.x + (screenFrame.width / 2) - window.frame.width / 2,
-                y: screenFrame.origin.y + screenFrame.height - window.frame.height
-            ))
+            window.setFrameOrigin(
+                NSPoint(
+                    x: screenFrame.origin.x + (screenFrame.width / 2) - window.frame.width / 2,
+                    y: screenFrame.origin.y + screenFrame.height - window.frame.height
+                ))
             window.alphaValue = 1
         }
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        
-        coordinator.setupWorkersNotificationObservers();
-    
+
+        coordinator.setupWorkersNotificationObservers()
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(screenConfigurationDidChange),
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
-        
-        NotificationCenter.default.addObserver(forName: Notification.Name.selectedScreenChanged, object: nil, queue: nil) { [weak self] _ in
+
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.selectedScreenChanged, object: nil, queue: nil
+        ) { [weak self] _ in
             self?.adjustWindowPosition(changeAlpha: true)
         }
-        
-        NotificationCenter.default.addObserver(forName: Notification.Name.notchHeightChanged, object: nil, queue: nil) { [weak self] _ in
+
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.notchHeightChanged, object: nil, queue: nil
+        ) { [weak self] _ in
             self?.adjustWindowPosition()
         }
-        
-        NotificationCenter.default.addObserver(forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil) { [weak self] _ in
+
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
+        ) { [weak self] _ in
             guard let self = self, let window = self.window else { return }
-            window.alphaValue = self.coordinator.selectedScreen == self.coordinator.preferredScreen ? 1 : 0
+            window.alphaValue =
+                self.coordinator.selectedScreen == self.coordinator.preferredScreen ? 1 : 0
         }
 
-        NotificationCenter.default.addObserver(forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil) { [weak self] _ in
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil
+        ) { [weak self] _ in
             guard let self = self else { return }
             self.cleanupWindows(shouldInvert: true)
-            
-            if(!Defaults[.showOnAllDisplays]) {
+
+            if !Defaults[.showOnAllDisplays] {
                 let viewModel = self.vm
-                let window = self.createBoringNotchWindow(for: NSScreen.main ?? NSScreen.screens.first!, with: viewModel)
+                let window = self.createBoringNotchWindow(
+                    for: NSScreen.main ?? NSScreen.screens.first!, with: viewModel)
                 self.window = window
                 self.adjustWindowPosition(changeAlpha: true)
             } else {
@@ -198,8 +208,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(onScreenLocked(_:)), name: NSNotification.Name(rawValue: "com.apple.screenIsLocked"), object: nil)
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(onScreenUnlocked(_:)), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
+        DistributedNotificationCenter.default().addObserver(
+            self, selector: #selector(onScreenLocked(_:)),
+            name: NSNotification.Name(rawValue: "com.apple.screenIsLocked"), object: nil)
+        DistributedNotificationCenter.default().addObserver(
+            self, selector: #selector(onScreenUnlocked(_:)),
+            name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
 
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
@@ -216,8 +230,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let mouseLocation = NSEvent.mouseLocation
             
             var viewModel = self.vm
-            
-            if(Defaults[.showOnAllDisplays]) {
+
+            if Defaults[.showOnAllDisplays] {
                 for screen in NSScreen.screens {
                     if screen.frame.contains(mouseLocation) {
                         if let screenViewModel = self.viewModels[screen] {
@@ -248,7 +262,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
-            let window = createBoringNotchWindow(for: NSScreen.main ?? NSScreen.screens.first!, with: viewModel)
+            let window = createBoringNotchWindow(
+                for: NSScreen.main ?? NSScreen.screens.first!, with: viewModel)
             self.window = window
             adjustWindowPosition(changeAlpha: true)
         } else {
@@ -257,7 +272,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
-                self.openWindow(id: "onboarding")
+                self.showOnboardingWindow()
             }
             playWelcomeSound()
         }
@@ -283,11 +298,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func screenConfigurationDidChange() {
         let currentScreens = NSScreen.screens
-        
-        let screensChanged = currentScreens.count != previousScreens?.count ||
-            Set(currentScreens.map { $0.localizedName }) != Set(previousScreens?.map { $0.localizedName } ?? []) || 
-            Set(currentScreens.map { $0.frame }) != Set(previousScreens?.map { $0.frame } ?? [])
-        
+
+        let screensChanged =
+            currentScreens.count != previousScreens?.count
+            || Set(currentScreens.map { $0.localizedName })
+                != Set(previousScreens?.map { $0.localizedName } ?? [])
+            || Set(currentScreens.map { $0.frame }) != Set(previousScreens?.map { $0.frame } ?? [])
+
         previousScreens = currentScreens
         
         if screensChanged {
@@ -330,8 +347,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } else {
             let selectedScreen: NSScreen
-            
-            if let preferredScreen = NSScreen.screens.first(where: { $0.localizedName == coordinator.preferredScreen }) {
+
+            if let preferredScreen = NSScreen.screens.first(where: {
+                $0.localizedName == coordinator.preferredScreen
+            }) {
                 coordinator.selectedScreen = coordinator.preferredScreen
                 selectedScreen = preferredScreen
             } else if Defaults[.automaticallySwitchDisplay], let mainScreen = NSScreen.main {
@@ -375,6 +394,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func quitAction() {
         NSApplication.shared.terminate(nil)
+    }
+
+    private func showOnboardingWindow() {
+        if onboardingWindowController == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 400, height: 600),
+                styleMask: [.titled, .fullSizeContentView],
+                backing: .buffered,
+                defer: false
+            )
+            window.center()
+            window.title = "Onboarding"
+            window.titlebarAppearsTransparent = true
+            window.titleVisibility = .hidden
+            window.contentView = NSHostingView(rootView: OnboardingView(
+                onFinish: {
+                    window.orderOut(nil)
+                    NSApp.setActivationPolicy(.accessory)
+                    window.close()
+                    NSApp.deactivate()
+                },
+                onOpenSettings: {
+                    window.close()
+                    SettingsWindowController.shared.showWindow()
+                }
+            ))
+            window.isRestorable = false
+            window.identifier = NSUserInterfaceItemIdentifier("OnboardingWindow")
+
+            onboardingWindowController = NSWindowController(window: window)
+        }
+
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
+        onboardingWindowController?.window?.orderFrontRegardless()
     }
 }
 

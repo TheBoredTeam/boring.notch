@@ -2,7 +2,7 @@
 //  YouTubeMusicController.swift
 //  boringNotch
 //
-//  Created By Alexander Greco on 2025-03-30.
+//  Created By Alexander on 2025-03-30.
 //
 
 import Foundation
@@ -80,7 +80,7 @@ class YouTubeMusicController: MediaControllerProtocol {
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completionStatus in
                 switch completionStatus {
-                case .failure(let error):
+                case .failure(_):
                     completion(false)
                 case .finished:
                     break

@@ -1,5 +1,5 @@
 //
-//  CalenderManager.swift
+//  CalendarManager.swift
 //  boringNotch
 //
 //  Created by Harsh Vardhan  Goswami  on 08/09/24.
@@ -11,39 +11,37 @@ import Defaults
 
 // MARK: - CalendarManager
 
+@MainActor
 class CalendarManager: ObservableObject {
     @Published var currentWeekStartDate: Date
-    @Published var events: [EKEvent] = []
-    @Published var allCalendars: [EKCalendar] = []
-    private var selectedCalendars: [EKCalendar] = []
-    private let eventStore = EKEventStore()
+    @Published var events: [EventModel] = []
+    @Published var allCalendars: [CalendarModel] = []
     @Published var authorizationStatus: EKAuthorizationStatus = .notDetermined
-    
+    private var selectedCalendars: [CalendarModel] = []
+    private let calendarService = CalendarService()
+
     init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
-        if(Defaults[.showCalendar]) {
-            checkCalendarAuthorization()
-        }
     }
-    
-    func checkCalendarAuthorization() {
+
+    func checkCalendarAuthorization() async {
         let status = EKEventStore.authorizationStatus(for: .event)
         DispatchQueue.main.async {
             print("📅 Current calendar authorization status: \(status)")
             self.authorizationStatus = status
         }
-        
+
         switch status {
             case .notDetermined:
-                requestCalendarAccess()
+                self.authorizationStatus = await calendarService.requestAccess() ? .fullAccess : .denied
             case .restricted, .denied:
                 // Handle the case where the user has denied or restricted access
                 NSLog("Calendar access denied or restricted")
             case .fullAccess:
                 NSLog("Full access")
-                self.allCalendars = eventStore.calendars(for: .event)
+                allCalendars = await calendarService.calendars()
                 updateSelectedCalendars()
-                fetchEvents()
+                events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
             case .writeOnly:
                 NSLog("Write only")
             @unknown default:
@@ -51,86 +49,50 @@ class CalendarManager: ObservableObject {
         }
     }
     
-    func requestCalendarAccess() {
-        eventStore.requestFullAccessToEvents { [weak self] granted, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("📅 Calendar access error: \(error.localizedDescription)")
-                }
-                
-                self?.authorizationStatus = granted ? .fullAccess : .denied
-                if granted {
-                    print("📅 Calendar access granted")
-                    self?.fetchEvents()
-                } else {
-                    print("📅 Calendar access denied")
-                }
-            }
-        }
-    }
-    
     func updateSelectedCalendars() {
         selectedCalendars = allCalendars.filter { getCalendarSelected($0) }
     }
     
-    func getCalendarSelected(_ calendar: EKCalendar) -> Bool {
+    func getCalendarSelected(_ calendar: CalendarModel) -> Bool {
         switch Defaults[.calendarSelectionState] {
         case .all:
             return true
         case .selected(let identifiers):
-            return identifiers.contains(calendar.calendarIdentifier)
+            return identifiers.contains(calendar.id)
         }
     }
 
-    func setCalendarSelected(_ calendar: EKCalendar, isSelected: Bool) {
+    func setCalendarSelected(_ calendar: CalendarModel, isSelected: Bool) async {
         var selectionState = Defaults[.calendarSelectionState]
 
         switch selectionState {
         case .all:
             if !isSelected {
-                let identifiers = Set(allCalendars.map { $0.calendarIdentifier }).subtracting([calendar.calendarIdentifier])
+                let identifiers = Set(allCalendars.map { $0.id }).subtracting([calendar.id])
                 selectionState = .selected(identifiers)
             }
 
         case .selected(var identifiers):
             if isSelected {
-                identifiers.insert(calendar.calendarIdentifier)
+                identifiers.insert(calendar.id)
             } else {
-                identifiers.remove(calendar.calendarIdentifier)
+                identifiers.remove(calendar.id)
             }
             
-            selectionState = identifiers.count == allCalendars.count ? .all : .selected(identifiers)
+            selectionState = identifiers.isEmpty ? .all : identifiers.count == allCalendars.count ? .all : .selected(identifiers) // if empty, select all
         }
 
         Defaults[.calendarSelectionState] = selectionState
-        fetchEvents()
-    }
-    
-    func fetchEvents() {
-        guard !self.selectedCalendars.isEmpty else {
-            DispatchQueue.main.async {
-                self.events = []
-            }
-            return
-        }
-        
-        let endOfWeek = Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!
-        let predicate = eventStore.predicateForEvents(withStart: currentWeekStartDate, end: endOfWeek, calendars: self.selectedCalendars)
-        let fetchedEvents = eventStore.events(matching: predicate)
-        
-        DispatchQueue.main.async {
-            self.events = fetchedEvents.sorted { $0.startDate < $1.startDate }
-            print("📅 Fetched \(self.events.count) calendar events")
-        }
+        updateSelectedCalendars()
+        events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
     }
     
     static func startOfDay(_ date: Date) -> Date {
         return Calendar.current.startOfDay(for: date)
     }
     
-    func updateCurrentDate(_ date: Date) {
-        print("📅 Updating current date to: \(date)")
+    func updateCurrentDate(_ date: Date) async {
         currentWeekStartDate = Calendar.current.startOfDay(for: date)
-        fetchEvents()
+        events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
     }
 }

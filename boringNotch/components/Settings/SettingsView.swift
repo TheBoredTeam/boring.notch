@@ -16,95 +16,120 @@ import SwiftUI
 import SwiftUIIntrospect
 
 struct SettingsView: View {
-    @Environment(\.scenePhase) private var scenePhase
     @StateObject var extensionManager = BoringExtensionManager()
-    let updaterController: SPUStandardUpdaterController
     @StateObject private var calendarManager = CalendarManager()
     
     @State private var selectedTab = "General"
     
+    let updaterController: SPUStandardUpdaterController?
+    
+    init(updaterController: SPUStandardUpdaterController? = nil) {
+        self.updaterController = updaterController
+    }
+    
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
-                NavigationLink(destination: GeneralSettings()) {
+                NavigationLink(value: "General") {
                     Label("General", systemImage: "gear")
                 }
-                NavigationLink(destination: Appearance()) {
+                NavigationLink(value: "Appearance") {
                     Label("Appearance", systemImage: "eye")
                 }
-                NavigationLink(destination: Media()) {
+                NavigationLink(value: "Media") {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
-                NavigationLink(destination: CalendarSettings()) {
+                NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
                 }
                 if extensionManager.installedExtensions
-                    .contains(
-                        where: { $0.bundleIdentifier == hudExtension
-                        })
-                {
-                    NavigationLink(destination: HUD()) {
+                    .contains(where: { $0.bundleIdentifier == hudExtension }) {
+                    NavigationLink(value: "HUD") {
                         Label("HUDs", systemImage: "dial.medium.fill")
                     }
                 }
-                NavigationLink(destination: Charge()) {
+                NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
                 if extensionManager.installedExtensions
-                    .contains(
-                        where: { $0.bundleIdentifier == downloadManagerExtension
-                        })
-                {
-                    NavigationLink(destination: Downloads()) {
+                    .contains(where: { $0.bundleIdentifier == downloadManagerExtension }) {
+                    NavigationLink(value: "Downloads") {
                         Label("Downloads", systemImage: "square.and.arrow.down")
                     }
                 }
-                NavigationLink(destination: Shelf()) {
+                NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
-                NavigationLink(destination: Shortcuts()) {
+                NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-                NavigationLink(destination: Extensions()) {
+                NavigationLink(value: "Extensions") {
                     Label("Extensions", systemImage: "puzzlepiece.extension")
                 }
-                NavigationLink(
-                    destination: About(updaterController: updaterController)
-                ) {
+                NavigationLink(value: "About") {
                     Label("About", systemImage: "info.circle")
                 }
             }
-            .tint(Defaults[.accentColor])
+            .listStyle(SidebarListStyle())
+            .toolbar(removing: .sidebarToggle)
+            .navigationSplitViewColumnWidth(200)
         } detail: {
-            GeneralSettings()
+            Group {
+                switch selectedTab {
+                case "General":
+                    GeneralSettings()
+                case "Appearance":
+                    Appearance()
+                case "Media":
+                    Media()
+                case "Calendar":
+                    CalendarSettings()
+                case "HUD":
+                    HUD()
+                case "Battery":
+                    Charge()
+                case "Downloads":
+                    Downloads()
+                case "Shelf":
+                    Shelf()
+                case "Shortcuts":
+                    Shortcuts()
+                case "Extensions":
+                    Extensions()
+                case "About":
+                    if let controller = updaterController {
+                        About(updaterController: controller)
+                    } else {
+                        // Fallback with a default controller
+                        About(updaterController: SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil))
+                    }
+                default:
+                    GeneralSettings()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .navigationSplitViewStyle(.balanced)
+        .toolbar(removing: .sidebarToggle)
+        .toolbar {
+            Button("") {} // Empty label, does nothing
+                .controlSize(.extraLarge)
+                .opacity(0) // Invisible, but reserves space for a consistent look between tabs
+                .disabled(true)
         }
         .environmentObject(extensionManager)
         .environmentObject(calendarManager)
         .formStyle(.grouped)
-        .onChange(of: scenePhase) {
-            if scenePhase == .active {
-                NSApp.setActivationPolicy(.regular)
-                NSApp.activate(ignoringOtherApps: true)
-                NSApp.keyWindow?.makeKeyAndOrderFront(nil)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
-            NSApp.setActivationPolicy(.accessory)
-            NSApp.deactivate()
-        }
-        .introspect(.window, on: .macOS(.v14, .v15)) { window in
-            window.toolbarStyle = .unified
-            window.styleMask.update(with: .resizable)
-        }
+        .frame(width: 700)
+        .background(Color(NSColor.windowBackgroundColor))
     }
 }
 
 struct GeneralSettings: View {
     @State private var screens: [String] = NSScreen.screens.compactMap { $0.localizedName }
-    let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @Default(.accentColor) var accentColor
+
     @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
     @Default(.gestureSensitivity) var gestureSensitivity
@@ -121,38 +146,6 @@ struct GeneralSettings: View {
     
     var body: some View {
         Form {
-            Section {
-                HStack {
-                    ForEach(accentColors, id: \.self) { color in
-                        Button(action: {
-                            withAnimation {
-                                Defaults[.accentColor] = color
-                            }
-                        }) {
-                            Circle()
-                                .fill(color)
-                                .frame(width: 20, height: 20)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.white, lineWidth: Defaults[.accentColor] == color ? 2 : 0)
-                                        .overlay {
-                                            Circle()
-                                                .fill(.white)
-                                                .frame(width: 7, height: 7)
-                                                .opacity(Defaults[.accentColor] == color ? 1 : 0)
-                                        }
-                                )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    Spacer()
-                    ColorPicker("Custom color", selection: $accentColor)
-                        .labelsHidden()
-                }
-            } header: {
-                Text("Accent color")
-            }
-
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
@@ -244,7 +237,6 @@ struct GeneralSettings: View {
             
             gestureControls()
         }
-        .tint(Defaults[.accentColor])
         .toolbar {
             Button("Quit app") {
                 NSApp.terminate(self)
@@ -293,7 +285,7 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-			Defaults.Toggle("Extend hover area", key: .extendHoverArea)
+            Defaults.Toggle("Extend hover area", key: .extendHoverArea)
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
@@ -332,7 +324,6 @@ struct Charge: View {
                 Text("Battery Information")
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Battery")
     }
 }
@@ -407,7 +398,6 @@ struct Downloads: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Downloads")
     }
 }
@@ -453,7 +443,6 @@ struct HUD: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("HUDs")
     }
 }
@@ -537,7 +526,6 @@ struct Media: View {
                     Defaults[.enableFullscreenMediaDetection] = newValue != .never
                 }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Media")
     }
     
@@ -571,11 +559,13 @@ struct CalendarSettings: View {
                 Toggle("Show calendar", isOn: $showCalendar)
                 Section(header: Text("Select Calendars")) {
                     List {
-                        ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
+                        ForEach(calendarManager.allCalendars, id: \.id) { calendar in
                             Toggle(isOn: Binding(
                                 get: { calendarManager.getCalendarSelected(calendar) },
                                 set: { isSelected in
-                                    calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+                                    Task {
+                                        await calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+                                    }
                                 }
                             )) {
                                 Text(calendar.title)
@@ -586,8 +576,12 @@ struct CalendarSettings: View {
             }
         }
         .onAppear {
-            calendarManager.checkCalendarAuthorization()
+            Task {
+                await calendarManager.checkCalendarAuthorization()
+            }
         }
+        // Add navigation title if it's missing or adjust as needed
+        .navigationTitle("Calendar")
     }
 }
 
@@ -669,13 +663,12 @@ struct About: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .toolbar {
-            Button("Welcome window") {
-                openWindow(id: "onboarding")
-            }
-            .controlSize(.extraLarge)
+//            Button("Welcome window") {
+//                openWindow(id: "onboarding")
+//            }
+//            .controlSize(.extraLarge)
             CheckForUpdatesView(updater: updaterController.updater)
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("About")
     }
 }
@@ -692,7 +685,6 @@ struct Shelf: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Shelf")
     }
 }
@@ -810,7 +802,6 @@ struct Extensions: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Extensions")
         // TipsView()
         // .padding(.horizontal, 19)
@@ -913,7 +904,7 @@ struct Appearance: View {
                         .buttonStyle(PlainButtonStyle())
                         .padding(.vertical, 2)
                         .background(
-                            selectedListVisualizer != nil ? selectedListVisualizer == visualizer ? Defaults[.accentColor] : Color.clear : Color.clear,
+                            selectedListVisualizer != nil ? selectedListVisualizer == visualizer ? Color.accentColor : Color.clear : Color.clear,
                             in: RoundedRectangle(cornerRadius: 5)
                         )
                         .contentShape(Rectangle())
@@ -1053,7 +1044,7 @@ struct Appearance: View {
                                 .background(
                                     RoundedRectangle(cornerRadius: 20, style: .circular)
                                         .strokeBorder(
-                                            icon == selectedIcon ? Defaults[.accentColor] : .clear,
+                                            icon == selectedIcon ? Color.accentColor : .clear,
                                             lineWidth: 2.5
                                         )
                                 )
@@ -1066,7 +1057,7 @@ struct Appearance: View {
                                 .padding(.vertical, 3)
                                 .background(
                                     Capsule()
-                                        .fill(icon == selectedIcon ? Defaults[.accentColor] : .clear)
+                                        .fill(icon == selectedIcon ? Color.accentColor : .clear)
                                 )
                         }
                         .onTapGesture {
@@ -1086,7 +1077,6 @@ struct Appearance: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Appearance")
     }
     
@@ -1116,7 +1106,6 @@ struct Shortcuts: View {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Shortcuts")
     }
 }
