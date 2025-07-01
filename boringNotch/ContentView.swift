@@ -32,8 +32,6 @@ struct ContentView: View {
     @State private var haptics: Bool = false
     
     @StateObject private var clipboardMonitor = ClipboardMonitor()
-    
-    @State private var isCameraExpanded: Bool = false
 
     @Namespace var albumArtNamespace
 
