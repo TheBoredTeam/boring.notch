@@ -31,7 +31,6 @@ struct ContentView: View {
 
     @State private var haptics: Bool = false
     
-    @State private var isCameraExpanded: Bool = false
 
     @Namespace var albumArtNamespace
 
