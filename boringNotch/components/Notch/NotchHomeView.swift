@@ -3,7 +3,7 @@
 //  boringNotch
 //
 //  Created by Hugo Persson on 2024-08-18.
-//  Modified by Harsh Vardhan Goswami & Richard Kunkli
+//  Modified by Harsh Vardhan Goswami & Richard Kunkli & Mustafa Ramadan
 //
 
 import Combine
@@ -198,21 +198,20 @@ struct NotchHomeView: View {
     private var mainContent: some View {
         HStack(alignment: .top, spacing: 20) {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
-
+            
             if Defaults[.showCalendar] {
-                CalendarView(isCameraExpanded: isCameraExpanded)
-                .onHover { isHovering in
-                    vm.isHoveringCalendar = isHovering
-                }
-                .environmentObject(vm)
+                CalendarView()
+                    .onHover { isHovering in
+                        vm.isHoveringCalendar = isHovering
+                    }
+                    .environmentObject(vm)
             }
-
-            if Defaults[.showMirror] && vm.webcamManager.cameraAvailable {
+            
+            if Defaults[.showMirror],
+               vm.webcamManager.cameraAvailable,
+               isCameraExpanded {
                 CameraPreviewView(webcamManager: vm.webcamManager)
-                    .frame(
-                        width:  isCameraExpanded ? 150 : 0,
-                        height: isCameraExpanded ? 150 : 0
-                    )
+                    .frame(width: 150, height: 150)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
@@ -342,12 +341,10 @@ struct CustomSlider: View {
 }
 
 #Preview {
-    let vm = BoringViewModel()
-    return NotchHomeView(
+    NotchHomeView(
         albumArtNamespace: Namespace().wrappedValue,
         isCameraExpanded: .constant(false)
     )
-    .environmentObject(vm)
+    .environmentObject(BoringViewModel())
     .environmentObject(WebcamManager())
 }
- 
