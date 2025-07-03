@@ -31,6 +31,7 @@ struct ContentView: View {
 
     @State private var haptics: Bool = false
     
+    @StateObject private var clipboardMonitor = ClipboardMonitor()
 
     @Namespace var albumArtNamespace
 
@@ -38,7 +39,8 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.useModernCloseAnimation) var useModernCloseAnimation
-
+    @Default(.showClipboard) var showClipboard
+    
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
@@ -127,6 +129,9 @@ struct ContentView: View {
                         }
                     }
                 })
+                .onChange(of: showClipboard) { _, newValue in
+                                clipboardMonitor.toggleMonitoring(newValue)
+                            }
                 .onChange(of: vm.notchState) { _, newState in
                     // Reset hover state when notch state changes
                     if newState == .closed && isHovering {
@@ -263,6 +268,8 @@ struct ContentView: View {
                           NotchHomeView(albumArtNamespace: albumArtNamespace)
                           case .shelf:
                               NotchShelfView()
+                          case .clipboard:
+                              NotchClipboardView(clipboardMonitor: clipboardMonitor)
                       }
                   }
               }

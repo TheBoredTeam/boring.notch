@@ -143,6 +143,7 @@ struct GeneralSettings: View {
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
+    @Default(.showClipboard) var showClipboard
     
     var body: some View {
         Form {
@@ -1031,6 +1032,11 @@ struct Appearance: View {
                 HStack {
                     Text("Additional features")
                 }
+            }
+            Section {
+                Defaults.Toggle("Enable clipboard feature", key: .showClipboard)
+            } header: {
+                Text("Clipboard")
             }
             
             Section {

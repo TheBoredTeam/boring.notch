@@ -238,6 +238,12 @@
     "Circle" : {
 
     },
+    "Clipboard" : {
+
+    },
+    "Clipboard is empty" : {
+      "extractionState" : "manual"
+    },
     "Close" : {
 
     },
