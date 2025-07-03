@@ -341,7 +341,6 @@ struct CustomSlider: View {
 #Preview {
     NotchHomeView(
         albumArtNamespace: Namespace().wrappedValue,
-//        isCameraExpanded: .constant(false)
     )
     .environmentObject(BoringViewModel())
 }
