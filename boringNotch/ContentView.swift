@@ -15,7 +15,7 @@ import SwiftUIIntrospect
 
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @StateObject var webcamManager: WebcamManager = .init()
+    @ObservedObject var webcamManager = WebcamManager.shared
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
@@ -51,6 +51,10 @@ struct ContentView: View {
                          : cornerRadiusInsets.closed.bottom
                 )
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
+                .shadow(
+                    color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear,
+                    radius: Defaults[.cornerRadiusScaling] ? 10 : 5
+                )
                 .background(.black)
                 .mask {
                     ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
@@ -259,10 +263,7 @@ struct ContentView: View {
                   if vm.notchState == .open {
                       switch coordinator.currentView {
                           case .home:
-                          NotchHomeView(
-                            albumArtNamespace: albumArtNamespace,
-                            isCameraExpanded: $vm.isCameraExpanded
-                          )
+                          NotchHomeView(albumArtNamespace: albumArtNamespace)
                           case .shelf:
                               NotchShelfView()
                       }

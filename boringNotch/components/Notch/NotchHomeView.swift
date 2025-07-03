@@ -179,12 +179,10 @@ struct MusicControlsView: View {
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @EnvironmentObject var webcamManager: WebcamManager
+    @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
-
-    @Binding var isCameraExpanded: Bool
     
     var body: some View {
         Group {
@@ -208,9 +206,9 @@ struct NotchHomeView: View {
             }
             
             if Defaults[.showMirror],
-               vm.webcamManager.cameraAvailable,
-               isCameraExpanded {
-                CameraPreviewView(webcamManager: vm.webcamManager)
+               webcamManager.cameraAvailable,
+               vm.isCameraExpanded {
+                CameraPreviewView(webcamManager: webcamManager)
                     .frame(width: 150, height: 150)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
@@ -343,8 +341,7 @@ struct CustomSlider: View {
 #Preview {
     NotchHomeView(
         albumArtNamespace: Namespace().wrappedValue,
-        isCameraExpanded: .constant(false)
+//        isCameraExpanded: .constant(false)
     )
     .environmentObject(BoringViewModel())
-    .environmentObject(WebcamManager())
 }
