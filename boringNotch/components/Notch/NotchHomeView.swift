@@ -209,7 +209,6 @@ struct NotchHomeView: View {
                webcamManager.cameraAvailable,
                vm.isCameraExpanded {
                 CameraPreviewView(webcamManager: webcamManager)
-                    .frame(width: 150, height: 150)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
