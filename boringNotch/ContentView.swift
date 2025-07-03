@@ -168,7 +168,7 @@ struct ContentView: View {
         }
         .padding(.bottom, 8)
         .frame(maxWidth: openNotchSize.width, maxHeight: openNotchSize.height, alignment: .top)
-        .shadow(color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow]) ? .red.opacity(0.2) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4)
+        .shadow(color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow]) ? .black.opacity(0.2) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4)
         .background(dragDetector)
         .environmentObject(vm)
     }
