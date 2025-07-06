@@ -1,0 +1,45 @@
+name: Update Version Dropdown in Issue Form
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  update-dropdown:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Fetch tags
+        run: git fetch --tags
+
+      - name: Get latest 5 versions
+        id: tags
+        run: |
+          TAGS=$(git tag --sort=-v:refname | head -n 5 | jq -R . | jq -sc .)
+          echo "versions=$TAGS" >> $GITHUB_OUTPUT
+
+      - name: Issue Forms Dropdown Options
+        uses: ShaMan123/gha-form-dropdown-options@v2.1.0
+        with:
+          form: .github/ISSUE_TEMPLATE/1-bug-report-form.yml
+          dropdown: version
+          options: ${{ steps.tags.outputs.versions }}
+
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          if git diff --quiet; then
+            echo "No changes to commit."
+          else
+            git add .github/ISSUE_TEMPLATE/1-bug-report-form.yml
+            git commit -m "Update issue form version dropdown with latest tags"
+            git push
+          fi
