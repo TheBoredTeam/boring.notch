@@ -190,11 +190,12 @@ struct ContentView: View {
                             HStack {
                                 Text(batteryModel.statusText)
                                     .font(.subheadline)
+                                    .foregroundStyle(.white)
                             }
 
                             Rectangle()
                                 .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 10)
+                                .frame(width: vm.closedNotchSize.width)
 
                             HStack {
                                 BoringBatteryView(
@@ -206,7 +207,7 @@ struct ContentView: View {
                                     isForNotification: true
                                 )
                             }
-                            .frame(width: 76, alignment: .trailing)
+                            .frame(width: 66, alignment: .trailing)
                         }
                         .frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
