@@ -3,7 +3,7 @@
 //  boringNotch
 //
 //  Created by Hugo Persson on 2024-08-18.
-//  Modified by Harsh Vardhan Goswami & Richard Kunkli
+//  Modified by Harsh Vardhan Goswami & Richard Kunkli & Mustafa Ramadan
 //
 
 import Combine
@@ -179,11 +179,11 @@ struct MusicControlsView: View {
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @EnvironmentObject var webcamManager: WebcamManager
+    @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
-
+    
     var body: some View {
         Group {
             if !coordinator.firstLaunch {
@@ -196,16 +196,18 @@ struct NotchHomeView: View {
     private var mainContent: some View {
         HStack(alignment: .top, spacing: 20) {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
-
+            
             if Defaults[.showCalendar] {
                 CalendarView()
-                .onHover { isHovering in
-                    vm.isHoveringCalendar = isHovering
-                }
-                .environmentObject(vm)
+                    .onHover { isHovering in
+                        vm.isHoveringCalendar = isHovering
+                    }
+                    .environmentObject(vm)
             }
-
-            if Defaults[.showMirror] && webcamManager.cameraAvailable {
+            
+            if Defaults[.showMirror],
+               webcamManager.cameraAvailable,
+               vm.isCameraExpanded {
                 CameraPreviewView(webcamManager: webcamManager)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
@@ -336,7 +338,8 @@ struct CustomSlider: View {
 }
 
 #Preview {
-    NotchHomeView(albumArtNamespace: Namespace().wrappedValue)
-        .environmentObject(BoringViewModel())
-        .environmentObject(WebcamManager())
+    NotchHomeView(
+        albumArtNamespace: Namespace().wrappedValue,
+    )
+    .environmentObject(BoringViewModel())
 }

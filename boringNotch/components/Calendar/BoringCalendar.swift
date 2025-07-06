@@ -151,7 +151,7 @@ struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject private var calendarManager = CalendarManager()
     @State private var selectedDate = Date()
-
+    
     var body: some View {
         VStack(spacing: 8) {
             HStack {

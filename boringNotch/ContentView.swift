@@ -15,7 +15,7 @@ import SwiftUIIntrospect
 
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @StateObject var webcamManager: WebcamManager = .init()
+    @ObservedObject var webcamManager = WebcamManager.shared
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
@@ -30,6 +30,7 @@ struct ContentView: View {
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
+    
 
     @Namespace var albumArtNamespace
 
@@ -165,11 +166,11 @@ struct ContentView: View {
 //                    .keyboardShortcut("E", modifiers: .command)
                 }
         }
+        .padding(.bottom, 8)
         .frame(maxWidth: openNotchSize.width, maxHeight: openNotchSize.height, alignment: .top)
-        .shadow(color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow]) ? .black.opacity(0.6) : .clear, radius: Defaults[.cornerRadiusScaling] ? 10 : 5)
+        .shadow(color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow]) ? .black.opacity(0.2) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4)
         .background(dragDetector)
         .environmentObject(vm)
-        .environmentObject(webcamManager)
     }
 
     @ViewBuilder
@@ -259,7 +260,7 @@ struct ContentView: View {
                   if vm.notchState == .open {
                       switch coordinator.currentView {
                           case .home:
-                              NotchHomeView(albumArtNamespace: albumArtNamespace)
+                          NotchHomeView(albumArtNamespace: albumArtNamespace)
                           case .shelf:
                               NotchShelfView()
                       }
