@@ -812,6 +812,7 @@ struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
+    @Default(.mediaControllerEnabled) var mediaControllerEnabled
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
@@ -836,6 +837,7 @@ struct Appearance: View {
             }
             
             Section {
+                Defaults.Toggle("Enable media controller view", key: .mediaControllerEnabled)
                 Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
                 Defaults
                     .Toggle("Player tinting", key: .playerColorTinting)

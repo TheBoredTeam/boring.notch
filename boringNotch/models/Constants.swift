@@ -111,6 +111,7 @@ extension Defaults.Keys {
     static let gestureSensitivity = Key<CGFloat>("gestureSensitivity", default: 200.0)
     
         // MARK: Media playback
+    static let mediaControllerEnabled = Key<Bool>("mediaCotrollerEnabled", default: true)
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)

@@ -166,6 +166,9 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func open() {
+        if !(Defaults[.mediaControllerEnabled] || Defaults[.showCalendar] || Defaults[.showMirror]) && Defaults[.boringShelf] {
+            coordinator.currentView = .shelf
+        }
         withAnimation(.bouncy) {
             self.notchSize = openNotchSize
             self.notchState = .open
@@ -185,7 +188,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-        if !TrayDrop.shared.isEmpty && Defaults[.openShelfByDefault] {
+        if (!TrayDrop.shared.isEmpty && Defaults[.openShelfByDefault]) ||  (!(Defaults[.mediaControllerEnabled] || Defaults[.showCalendar] || Defaults[.showMirror]) && Defaults[.boringShelf]) {
             coordinator.currentView = .shelf
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home
