@@ -158,6 +158,7 @@ struct CalendarView: View {
                 Text("\(selectedDate, format: .dateTime.month())")
                     .font(.system(size: 18))
                     .fontWeight(.semibold)
+                    .foregroundStyle(.white)
                 ZStack {
                     WheelPicker(selectedDate: $selectedDate, config: Config())
                     HStack {
