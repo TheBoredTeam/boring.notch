@@ -8,6 +8,8 @@ import AVFoundation
 import SwiftUI
 
 class WebcamManager: NSObject, ObservableObject {
+    static let shared = WebcamManager()
+    
     @Published var previewLayer: AVCaptureVideoPreviewLayer? {
         didSet {
             objectWillChange.send()
@@ -58,7 +60,7 @@ class WebcamManager: NSObject, ObservableObject {
     
     // MARK: - Properties
     
-    override init() {
+    private override init() {
         super.init()
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasDisconnected), name: .AVCaptureDeviceWasDisconnected, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasConnected), name: .AVCaptureDeviceWasConnected, object: nil)

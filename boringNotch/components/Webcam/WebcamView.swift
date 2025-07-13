@@ -118,5 +118,5 @@ struct CameraPreviewLayerView: NSViewRepresentable {
 }
 
 #Preview {
-    CameraPreviewView(webcamManager: WebcamManager())
+    CameraPreviewView(webcamManager: .shared)
 }
