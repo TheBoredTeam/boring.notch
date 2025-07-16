@@ -40,7 +40,7 @@ struct BatteryView: View {
                 .frame(width: CGFloat(((CGFloat(CFloat(percentage)) / 100) * (batteryWidth - 6))), height: (batteryWidth - 2.75) - 18).padding(.leading, 2)
             if isCharging {
                 if isInitialPlugIn {
-                    Image(systemName: "powerplug.fill")
+                    Image(systemName: "bolt.fill")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .foregroundColor(.white)
@@ -80,7 +80,7 @@ struct BoringBatteryView: View {
 
 #Preview {
     BoringBatteryView(
-        batteryPercentage: 40,
+        batteryPercentage: 100,
         isPluggedIn: true,
         batteryWidth: 30,
         isInLowPowerMode: false,
