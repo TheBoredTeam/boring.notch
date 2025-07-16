@@ -17,16 +17,14 @@ import SwiftUIIntrospect
 
 struct SettingsView: View {
     @StateObject var extensionManager = BoringExtensionManager()
-    @StateObject private var calendarManager = CalendarManager()
-    
     @State private var selectedTab = "General"
-    
+
     let updaterController: SPUStandardUpdaterController?
-    
+
     init(updaterController: SPUStandardUpdaterController? = nil) {
         self.updaterController = updaterController
     }
-    
+
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
@@ -118,7 +116,6 @@ struct SettingsView: View {
                 .disabled(true)
         }
         .environmentObject(extensionManager)
-        .environmentObject(calendarManager)
         .formStyle(.grouped)
         .frame(width: 700)
         .background(Color(NSColor.windowBackgroundColor))
@@ -143,7 +140,7 @@ struct GeneralSettings: View {
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
-    
+
     var body: some View {
         Form {
             Section {
@@ -172,7 +169,7 @@ struct GeneralSettings: View {
             } header: {
                 Text("System features")
             }
-            
+
             Section {
                 Picker(selection: $notchHeightMode, label:
                     Text("Notch display height")) {
@@ -232,9 +229,9 @@ struct GeneralSettings: View {
             } header: {
                 Text("Notch Height")
             }
-            
+
             NotchBehaviour()
-            
+
             gestureControls()
         }
         .toolbar {
@@ -250,7 +247,7 @@ struct GeneralSettings: View {
             }
         }
     }
-    
+
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
@@ -281,7 +278,7 @@ struct GeneralSettings: View {
                 .font(.caption)
         }
     }
-    
+
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
@@ -353,7 +350,7 @@ struct Downloads: View {
                     Text("Both")
                         .tag(DownloadIconStyle.iconAndAppIcon)
                 }
-                
+
             } header: {
                 HStack {
                     Text("Download indicators")
@@ -381,7 +378,7 @@ struct Downloads: View {
                                 .contentShape(Rectangle())
                                 .foregroundStyle(.secondary)
                         }
-                        
+
                         Divider()
                         Button {} label: {
                             Image(systemName: "minus")
@@ -454,7 +451,7 @@ struct Media: View {
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
-    
+
     var body: some View {
         Form {
             Section {
@@ -528,7 +525,7 @@ struct Media: View {
         }
         .navigationTitle("Media")
     }
-    
+
     // Only show controller options that are available on this macOS version
     private var availableMediaControllers: [MediaControllerType] {
         if MusicManager.shared.isNowPlayingDeprecated {
@@ -540,7 +537,7 @@ struct Media: View {
 }
 
 struct CalendarSettings: View {
-    @ObservedObject private var calendarManager = CalendarManager()
+    @ObservedObject private var calendarManager = CalendarManager.shared
     @Default(.showCalendar) var showCalendar: Bool
 
     var body: some View {
@@ -617,9 +614,9 @@ struct About: View {
                 } header: {
                     Text("Version info")
                 }
-                
+
                 UpdaterSettingsView(updater: updaterController.updater)
-                
+
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
@@ -722,15 +719,15 @@ struct Extensions: View {
                                     .font(.footnote)
                             }
                             .frame(width: 60, alignment: .leading)
-                            
+
                             Menu(content: {
                                 Button("Restart") {
                                     let ws = NSWorkspace.shared
-                                    
+
                                     if let ext = ws.runningApplications.first(where: { $0.bundleIdentifier == item.bundleIdentifier }) {
                                         ext.terminate()
                                     }
-                                    
+
                                     if let appURL = ws.urlForApplication(withBundleIdentifier: item.bundleIdentifier) {
                                         ws.openApplication(at: appURL, configuration: .init(), completionHandler: nil)
                                     }
@@ -818,7 +815,7 @@ struct Appearance: View {
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
-    
+
     @State private var isPresented: Bool = false
     @State private var name: String = ""
     @State private var url: String = ""
@@ -834,7 +831,7 @@ struct Appearance: View {
             } header: {
                 Text("General")
             }
-            
+
             Section {
                 Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
                 Defaults
@@ -848,7 +845,7 @@ struct Appearance: View {
             } header: {
                 Text("Media")
             }
-            
+
             Section {
                 Toggle(
                     "Use music visualizer spectrogram",
@@ -884,7 +881,7 @@ struct Appearance: View {
                     customBadge(text: "Coming soon")
                 }
             }
-            
+
             Section {
                 List {
                     ForEach(customVisualizers, id: \.self) { visualizer in
@@ -982,7 +979,7 @@ struct Appearance: View {
                                 Text("Cancel")
                                     .frame(maxWidth: .infinity, alignment: .center)
                             }
-                            
+
                             Button {
                                 let visualizer: CustomVisualizer = .init(
                                     UUID: UUID(),
@@ -990,11 +987,11 @@ struct Appearance: View {
                                     url: URL(string: url)!,
                                     speed: speed
                                 )
-                                
+
                                 if !customVisualizers.contains(visualizer) {
                                     customVisualizers.append(visualizer)
                                 }
-                                
+
                                 isPresented.toggle()
                             } label: {
                                 Text("Add")
@@ -1016,7 +1013,7 @@ struct Appearance: View {
                     }
                 }
             }
-            
+
             Section {
                 Defaults.Toggle("Enable boring mirror", key: .showMirror)
                     .disabled(!checkVideoInput())
@@ -1032,7 +1029,7 @@ struct Appearance: View {
                     Text("Additional features")
                 }
             }
-            
+
             Section {
                 HStack {
                     ForEach(icons, id: \.self) { icon in
@@ -1048,7 +1045,7 @@ struct Appearance: View {
                                             lineWidth: 2.5
                                         )
                                 )
-                            
+
                             Text("Default")
                                 .fontWeight(.medium)
                                 .font(.caption)
@@ -1079,12 +1076,12 @@ struct Appearance: View {
         }
         .navigationTitle("Appearance")
     }
-    
+
     func checkVideoInput() -> Bool {
         if let _ = AVCaptureDevice.default(for: .video) {
             return true
         }
-        
+
         return false
     }
 }
