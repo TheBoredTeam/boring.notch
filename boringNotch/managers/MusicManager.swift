@@ -24,7 +24,7 @@ class MusicManager: ObservableObject {
     // Helper to check if macOS is too new for NowPlayingController
     public var isNowPlayingDeprecated: Bool {
         if #available(macOS 15.4, *) {
-            return true
+            return false
         }
         return false
     }
@@ -38,8 +38,6 @@ class MusicManager: ObservableObject {
     @Published var albumArt: NSImage = defaultImage
     @Published var isPlaying = false
     @Published var album: String = "Self Love"
-    @Published var lastUpdated: Date = .distantPast
-    @Published var ignoreLastUpdated = true
     @Published var isPlayerIdle: Bool = true
     @Published var animations: BoringAnimations = .init()
     @Published var avgColor: NSColor = .white
@@ -97,19 +95,15 @@ class MusicManager: ObservableObject {
         case .nowPlaying:
             // Only create NowPlayingController if not deprecated on this macOS version
             if !self.isNowPlayingDeprecated {
-                ignoreLastUpdated = false
                 newController = NowPlayingController()
             } else {
                 return nil
             }
         case .appleMusic:
-            ignoreLastUpdated = true
             newController = AppleMusicController()
         case .spotify:
-            ignoreLastUpdated = true
             newController = SpotifyController()
         case .youtubeMusic:
-            ignoreLastUpdated = true
             newController = YouTubeMusicController()
         }
         
@@ -173,7 +167,6 @@ class MusicManager: ObservableObject {
             
             // Check for playback state changes (playing/paused)
             if state.isPlaying != self.isPlaying {
-                self.lastUpdated = Date()
                 withAnimation(.smooth) {
                     self.isPlaying = state.isPlaying
                     self.updateIdleState(state: state.isPlaying)
@@ -289,7 +282,7 @@ class MusicManager: ObservableObject {
         } else {
             debounceToggle = DispatchWorkItem { [weak self] in
                 guard let self = self else { return }
-                if self.lastUpdated.timeIntervalSinceNow < -Defaults[.waitInterval] {
+                if self.timestampDate.timeIntervalSinceNow < -Defaults[.waitInterval] {
                     withAnimation {
                         self.isPlayerIdle = !self.isPlaying
                     }

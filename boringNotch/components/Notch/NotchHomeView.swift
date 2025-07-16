@@ -145,8 +145,6 @@ struct MusicControlsView: View {
                 color: musicManager.avgColor,
                 dragging: $dragging,
                 currentDate: timeline.date,
-                lastUpdated: musicManager.lastUpdated,
-                ignoreLastUpdated: musicManager.ignoreLastUpdated,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
                 playbackRate: musicManager.playbackRate,
@@ -228,8 +226,6 @@ struct MusicSliderView: View {
     var color: NSColor
     @Binding var dragging: Bool
     let currentDate: Date
-    let lastUpdated: Date
-    let ignoreLastUpdated: Bool
     let timestampDate: Date
     let elapsedTime: Double
     let playbackRate: Double
@@ -238,7 +234,7 @@ struct MusicSliderView: View {
 
     var currentElapsedTime: Double {
         // A small buffer is needed to ensure a meaningful difference between the two dates
-        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -0.0001, (timestampDate > lastUpdated || ignoreLastUpdated) else { return sliderValue }
+        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return sliderValue }
         let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
         let elapsed = elapsedTime + (timeDifference * playbackRate)
         return min(elapsed, duration)
