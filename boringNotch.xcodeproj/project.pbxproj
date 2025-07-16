@@ -29,7 +29,7 @@
 		11CFC6652E09C7B300748C80 /* OnboardingFinishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6642E09C7B300748C80 /* OnboardingFinishView.swift */; };
 		11D910992E25969D0034C63A /* mediaremote-adapter.pl in Resources */ = {isa = PBXBuildFile; fileRef = 11D910982E25969D0034C63A /* mediaremote-adapter.pl */; };
 		11D9109E2E2772EA0034C63A /* MediaRemoteAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11D9109D2E2772EA0034C63A /* MediaRemoteAdapter.framework */; };
-		11D9109F2E2773100034C63A /* MediaRemoteAdapter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 11D9109D2E2772EA0034C63A /* MediaRemoteAdapter.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		11D9109F2E2773100034C63A /* MediaRemoteAdapter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 11D9109D2E2772EA0034C63A /* MediaRemoteAdapter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DD62C6E015000B9F80C /* AudioPlayer.swift */; };
 		14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */; };
 		14288DFE2C6E9A4700B9F80C /* BoringSystemTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DFD2C6E9A4700B9F80C /* BoringSystemTiles.swift */; };
@@ -641,7 +641,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					14CEF4112C5CAED300855D72 = {
 						CreatedOnToolsVersion = 15.4;
