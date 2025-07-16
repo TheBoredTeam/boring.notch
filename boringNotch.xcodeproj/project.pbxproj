@@ -27,6 +27,9 @@
 		11CFC6612E097F6800748C80 /* PermissionsRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6602E097F6800748C80 /* PermissionsRequestView.swift */; };
 		11CFC6632E09918400748C80 /* MusicControllerSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6622E09917B00748C80 /* MusicControllerSelectionView.swift */; };
 		11CFC6652E09C7B300748C80 /* OnboardingFinishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6642E09C7B300748C80 /* OnboardingFinishView.swift */; };
+		11D910992E25969D0034C63A /* mediaremote-adapter.pl in Resources */ = {isa = PBXBuildFile; fileRef = 11D910982E25969D0034C63A /* mediaremote-adapter.pl */; };
+		11D9109E2E2772EA0034C63A /* MediaRemoteAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11D9109D2E2772EA0034C63A /* MediaRemoteAdapter.framework */; };
+		11D9109F2E2773100034C63A /* MediaRemoteAdapter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 11D9109D2E2772EA0034C63A /* MediaRemoteAdapter.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DD62C6E015000B9F80C /* AudioPlayer.swift */; };
 		14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */; };
 		14288DFE2C6E9A4700B9F80C /* BoringSystemTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DFD2C6E9A4700B9F80C /* BoringSystemTiles.swift */; };
@@ -114,10 +117,11 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		B1ECFA062C6FE58A002ACD87 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				11D9109F2E2773100034C63A /* MediaRemoteAdapter.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -145,6 +149,8 @@
 		11CFC6602E097F6800748C80 /* PermissionsRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsRequestView.swift; sourceTree = "<group>"; };
 		11CFC6622E09917B00748C80 /* MusicControllerSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicControllerSelectionView.swift; sourceTree = "<group>"; };
 		11CFC6642E09C7B300748C80 /* OnboardingFinishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFinishView.swift; sourceTree = "<group>"; };
+		11D910982E25969D0034C63A /* mediaremote-adapter.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = "mediaremote-adapter.pl"; sourceTree = "<group>"; };
+		11D9109D2E2772EA0034C63A /* MediaRemoteAdapter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = MediaRemoteAdapter.framework; sourceTree = "<group>"; };
 		14288DD62C6E015000B9F80C /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressIndicator.swift; sourceTree = "<group>"; };
 		14288DFD2C6E9A4700B9F80C /* BoringSystemTiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringSystemTiles.swift; sourceTree = "<group>"; };
@@ -245,6 +251,7 @@
 			files = (
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1485442F2C8F049C00943381 /* TheBoringWorkerNotifier in Frameworks */,
+				11D9109E2E2772EA0034C63A /* MediaRemoteAdapter.framework in Frameworks */,
 				146BC4372D366E9B0047C66A /* MacroVisionKit in Frameworks */,
 				14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */,
 				B194240B2CD10017003E5DC2 /* LottieUI in Frameworks */,
@@ -361,6 +368,7 @@
 		14CEF4092C5CAED200855D72 = {
 			isa = PBXGroup;
 			children = (
+				11D910982E25969D0034C63A /* mediaremote-adapter.pl */,
 				14CEF4142C5CAED300855D72 /* boringNotch */,
 				14CEF4132C5CAED300855D72 /* Products */,
 				14D031EC2C689DB70096E6A1 /* Frameworks */,
@@ -416,6 +424,7 @@
 		14D031EC2C689DB70096E6A1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				11D9109D2E2772EA0034C63A /* MediaRemoteAdapter.framework */,
 				147CB9452C8C47750094C254 /* MediaRemote.framework */,
 				B1A78C832C8C65ED00BD51B0 /* MediaRemote.framework */,
 				B17C3C242C7DAD0C0082390A /* OSD.framework */,
@@ -677,6 +686,7 @@
 			files = (
 				14CEF41D2C5CAED400855D72 /* Preview Assets.xcassets in Resources */,
 				14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */,
+				11D910992E25969D0034C63A /* mediaremote-adapter.pl in Resources */,
 				B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */,
 				14A7E5972C65FD31008C1BE9 /* boring.m4a in Resources */,
 			);
@@ -923,6 +933,10 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TheBoringNotch;
@@ -970,6 +984,10 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TheBoringNotch;
