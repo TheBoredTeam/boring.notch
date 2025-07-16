@@ -25,7 +25,7 @@ struct WheelPicker: View {
     @State private var haptics: Bool = false
     @State private var byClick: Bool = false
     let config: Config
-    
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: config.spacing) {
@@ -70,7 +70,7 @@ struct WheelPicker: View {
             scrollToToday(config: config)
         }
     }
-    
+
     private func dateButton(date: Date, isSelected: Bool, offset: Int, onClick:@escaping()->Void) -> some View {
         Button(action: onClick) {
             VStack(spacing: 2) {
@@ -81,7 +81,7 @@ struct WheelPicker: View {
         .buttonStyle(PlainButtonStyle())
         .id(indexForDate(date, offset: offset))
     }
-    
+
     private func dayText(date: String, isSelected: Bool) -> some View {
         Text(date)
             .font(.caption2)
@@ -98,7 +98,7 @@ struct WheelPicker: View {
                 .foregroundStyle(isSelected ? .white : .gray)
         }
     }
-    
+
     func handleScrollChange(newValue: Int?, config: Config) {
         let offset = -config.offset - config.past
         let todayIndex = indexForDate(Date(), offset: offset)
@@ -149,9 +149,9 @@ struct WheelPicker: View {
 
 struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @StateObject private var calendarManager = CalendarManager()
+    @StateObject private var calendarManager = CalendarManager.shared
     @State private var selectedDate = Date()
-    
+
     var body: some View {
         VStack(spacing: 8) {
             HStack {
