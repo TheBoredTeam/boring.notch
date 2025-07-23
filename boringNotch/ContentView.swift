@@ -47,7 +47,7 @@ struct ContentView: View {
             let mainLayout = NotchLayout()
                 .frame(alignment: .top)
                 .padding(.horizontal, vm.notchState == .open
-                         ? Defaults[.cornerRadiusScaling] ? (cornerRadiusInsets.opened.top - 5) : (cornerRadiusInsets.opened.bottom - 5)
+                         ? Defaults[.cornerRadiusScaling] ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
                          : cornerRadiusInsets.closed.bottom
                 )
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
