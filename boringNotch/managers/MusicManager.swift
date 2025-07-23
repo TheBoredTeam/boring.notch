@@ -51,6 +51,12 @@ class MusicManager: ObservableObject {
     
     private var artworkData: Data? = nil
 
+    // Store last values at the time artwork was changed
+    private var lastArtworkTitle: String = "I'm Handsome"
+    private var lastArtworkArtist: String = "Me"
+    private var lastArtworkAlbum: String = "Self Love"
+    private var lastArtworkBundleIdentifier: String? = nil
+
     @Published var isFlipping: Bool = false
     private var flipWorkItem: DispatchWorkItem?
 
@@ -84,7 +90,7 @@ class MusicManager: ObservableObject {
     // MARK: - Setup Methods
     private func createController(for type: MediaControllerType) -> (any MediaControllerProtocol)? {
         // Cleanup previous controller
-        if let _ = activeController {
+        if activeController != nil {
             controllerCancellables.removeAll()
             activeController = nil
         }
@@ -176,23 +182,24 @@ class MusicManager: ObservableObject {
                     self.updateSneakPeek()
                 }
             }
-            
-            // Check for changes in track metadata
-            let titleChanged = state.title != self.songTitle
-            let artistChanged = state.artist != self.artistName
-            let albumChanged = state.album != self.album
-            
+
+            // Check for changes in track metadata using last artwork change values
+            let titleChanged = state.title != self.lastArtworkTitle
+            let artistChanged = state.artist != self.lastArtworkArtist
+            let albumChanged = state.album != self.lastArtworkAlbum
+            let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
+
             // Check for artwork changes
             let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
-            let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged
-            
+            let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged || bundleChanged
+
             // Handle artwork and visual transitions for changed content
             if hasContentChange {
                 self.triggerFlipAnimation()
-                
+
                 if artworkChanged, let artwork = state.artwork {
                     self.updateArtwork(artwork)
-                } else if hasContentChange && state.artwork == nil {
+                } else if state.artwork == nil {
                     // Try to use app icon if no artwork but track changed
                     if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
                         self.usingAppIconForArtwork = true
@@ -200,56 +207,64 @@ class MusicManager: ObservableObject {
                     }
                 }
                 self.artworkData = state.artwork
-                
+
+                if(artworkChanged || state.artwork == nil) {
+                    // Update last artwork change values
+                    self.lastArtworkTitle = state.title
+                    self.lastArtworkArtist = state.artist
+                    self.lastArtworkAlbum = state.album
+                    self.lastArtworkBundleIdentifier = state.bundleIdentifier
+                }
+
                 // Only update sneak peek if there's actual content and something changed
                 if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
                     self.updateSneakPeek()
                 }
             }
-            
+
             let timeChanged = state.currentTime != self.elapsedTime
             let durationChanged = state.duration != self.songDuration
             let playbackRateChanged = state.playbackRate != self.playbackRate
-            
-            if titleChanged {
+
+            if state.title != self.songTitle {
                 self.songTitle = state.title
             }
-            
-            if artistChanged {
+
+            if state.artist != self.artistName {
                 self.artistName = state.artist
             }
-            
-            if albumChanged {
+
+            if state.album != self.album {
                 self.album = state.album
             }
-            
+
             if timeChanged {
                 self.elapsedTime = state.currentTime
             }
-            
+
             if durationChanged {
                 self.songDuration = state.duration
             }
-            
+
             if playbackRateChanged {
                 self.playbackRate = state.playbackRate
             }
-            
+
             if state.bundleIdentifier != self.bundleIdentifier {
                 self.bundleIdentifier = state.bundleIdentifier
             }
-            
+
             self.timestampDate = state.lastUpdated
         }
-        
+
         // Execute the batch update on the main thread
         DispatchQueue.main.async(execute: updateBatch)
     }
-    
+
     private func triggerFlipAnimation() {
         // Cancel any existing animation
         flipWorkItem?.cancel()
-        
+
         // Create a new animation
         let workItem = DispatchWorkItem { [weak self] in
             self?.isFlipping = true
@@ -257,7 +272,7 @@ class MusicManager: ObservableObject {
                 self?.isFlipping = false
             }
         }
-        
+
         flipWorkItem = workItem
         DispatchQueue.main.async(execute: workItem)
     }
@@ -318,7 +333,7 @@ class MusicManager: ObservableObject {
             }
         }
     }
-    
+
     private func updateSneakPeek() {
         if isPlaying && Defaults[.enableSneakPeek] {
             if Defaults[.sneakPeekStyles] == .standard {
@@ -333,31 +348,31 @@ class MusicManager: ObservableObject {
     func playPause() {
         activeController?.togglePlay()
     }
-    
+
     func play() {
         activeController?.play()
     }
-    
+
     func pause() {
         activeController?.pause()
     }
-    
+
     func togglePlay() {
         activeController?.togglePlay()
     }
-    
+
     func nextTrack() {
         activeController?.nextTrack()
     }
-    
+
     func previousTrack() {
         activeController?.previousTrack()
     }
-    
+
     func seek(to position: TimeInterval) {
         activeController?.seek(to: position)
     }
-    
+
     func openMusicApp() {
         guard let bundleID = bundleIdentifier else {
             print("Error: appBundleIdentifier is nil")
@@ -378,7 +393,7 @@ class MusicManager: ObservableObject {
             print("Failed to find app with bundle ID: \(bundleID)")
         }
     }
-    
+
     func forceUpdate() {
         // Request immediate update from the active controller
         DispatchQueue.main.async { [weak self] in

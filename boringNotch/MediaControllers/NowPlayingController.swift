@@ -5,8 +5,8 @@
 //  Created by Alexander on 2025-03-29.
 //
 
-import Combine
 import AppKit
+import Combine
 import Foundation
 
 final class NowPlayingController: ObservableObject, MediaControllerProtocol {
@@ -133,26 +133,35 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             let payload = object["payload"] as? [String: Any]
         else { return }
 
+        let diff = object["diff"] as? Bool ?? false
+
         DispatchQueue.main.async {
-            self.playbackState.title = payload["title"] as? String ?? self.playbackState.title
-            self.playbackState.artist = payload["artist"] as? String ?? self.playbackState.artist
-            self.playbackState.album = payload["album"] as? String ?? self.playbackState.album
-            self.playbackState.duration = payload["duration"] as? Double ?? self.playbackState.duration
-            self.playbackState.currentTime = payload["elapsedTime"] as? Double ?? self.playbackState.currentTime
+            self.playbackState.title = payload["title"] as? String ?? (diff ? self.playbackState.title : "")
+            self.playbackState.artist = payload["artist"] as? String ?? (diff ? self.playbackState.artist : "")
+            self.playbackState.album = payload["album"] as? String ?? (diff ? self.playbackState.album : "")
+            self.playbackState.duration = payload["duration"] as? Double ?? (diff ? self.playbackState.duration : 0)
+            self.playbackState.currentTime = payload["elapsedTime"] as? Double ?? (diff ? self.playbackState.currentTime : 0)
+
             if let artworkDataString = payload["artworkData"] as? String {
                 self.playbackState.artwork = Data(
                     base64Encoded: artworkDataString.trimmingCharacters(in: .whitespacesAndNewlines)
                 )
+            } else if !diff {
+                self.playbackState.artwork = nil
             }
+            
             if let dateString = payload["timestamp"] as? String,
                let date = ISO8601DateFormatter().date(from: dateString) {
                 self.playbackState.lastUpdated = date
             }
-            self.playbackState.playbackRate = payload["playbackRate"] as? Double ?? self.playbackState.playbackRate
-            self.playbackState.isPlaying = payload["playing"] as? Bool ?? self.playbackState.isPlaying
-            self.playbackState.bundleIdentifier =
-                payload["parentBundleIdentifier"] as? String ?? payload["bundleIdentifier"]
-                as? String ?? self.playbackState.bundleIdentifier
+
+            self.playbackState.playbackRate = payload["playbackRate"] as? Double ?? (diff ? self.playbackState.playbackRate : 1.0)
+            self.playbackState.isPlaying = payload["playing"] as? Bool ?? (diff ? self.playbackState.isPlaying : false)
+            self.playbackState.bundleIdentifier = (
+                payload["parentApplicationBundleIdentifier"] as? String ??
+                payload["bundleIdentifier"] as? String ??
+                (diff ? self.playbackState.bundleIdentifier : "")
+            )
         }
     }
 }
