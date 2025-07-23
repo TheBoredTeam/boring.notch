@@ -22,12 +22,7 @@ class MusicManager: ObservableObject {
     private var debounceToggle: DispatchWorkItem?
     
     // Helper to check if macOS is too new for NowPlayingController
-    public var isNowPlayingDeprecated: Bool {
-        if #available(macOS 15.4, *) {
-            return false
-        }
-        return false
-    }
+    public let isNowPlayingDeprecated: Bool
 
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
@@ -65,6 +60,21 @@ class MusicManager: ObservableObject {
 
     // MARK: - Initialization
     init() {
+        
+        let process = Process()
+        let scriptURL = Bundle.main.url(forResource: "mediaremote-adapter", withExtension: "pl")
+        let nowPlayingTestClientPath = Bundle.main.url(forResource: "NowPlayingTestClient", withExtension: "")!.path
+        let frameworkPath = Bundle.main.privateFrameworksPath?.appending("/MediaRemoteAdapter.framework")
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
+        process.arguments = [scriptURL!.path, frameworkPath!, nowPlayingTestClientPath, "test"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        try? process.run()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8) ?? ""
+        let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
+        let intValue = Int(trimmed) == 1 ? 1 : 0
+        self.isNowPlayingDeprecated = intValue == 1
         // Listen for changes to the default controller preference
         NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
             .sink { [weak self] _ in
