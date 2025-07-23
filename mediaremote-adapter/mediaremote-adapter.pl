@@ -13,10 +13,13 @@ use File::Basename;
 sub print_help() {
   print <<'HELP';
 Usage:
-  mediaremote-adapter.pl FRAMEWORK_PATH [FUNCTION [PARAMS|OPTIONS...]]
+  mediaremote-adapter.pl FRAMEWORK_PATH [NOWPLAYING_CLIENT_PATH] [FUNCTION [PARAMS|OPTIONS...]]
 
 FRAMEWORK_PATH:
   Absolute path to MediaRemoteAdapter.framework
+
+NOWPLAYING_CLIENT_PATH (optional):
+  Path to the NowPlayingTestClient executable (used for test mode)
 
 FUNCTION:
   stream   Streams now playing information (as diff by default)
@@ -71,6 +74,14 @@ sub fail {
 fail "Framework path not provided" unless @ARGV >= 1;
 
 my $framework_path = shift @ARGV;
+
+# Optionally accept NOWPLAYING_CLIENT path as second argument
+my $maybe_helper_path = $ARGV[0] // '';
+if ($maybe_helper_path =~ m{NowPlayingTestClient} || $maybe_helper_path =~ m{/}) {
+    my $helper_path = shift @ARGV;
+    $ENV{NOWPLAYING_CLIENT} = $helper_path;
+}
+
 my $framework_basename = File::Basename::basename($framework_path);
 fail "Provided path is not a framework: $framework_path"
   unless $framework_basename =~ s/\.framework$//;
@@ -88,7 +99,8 @@ fail "Invalid function name: '$function_name'"
   || $function_name eq "seek"
   || $function_name eq "shuffle"
   || $function_name eq "repeat"
-  || $function_name eq "speed";
+  || $function_name eq "speed"
+  || $function_name eq "test";
 
 sub parse_options {
   my ($start_index) = @_;
@@ -203,6 +215,9 @@ elsif ($function_name eq "speed") {
   fail "Missing speed for '$function_name' command" unless defined $speed;
   set_env_param($symbol_name, 0, "speed", "$speed");
   $symbol_name = env_func($symbol_name);
+}
+elsif ($function_name eq "test") {
+  $symbol_name = "_adapter_is_it_broken_yet";
 }
 
 if (defined shift @ARGV) {
