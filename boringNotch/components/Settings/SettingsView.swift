@@ -551,7 +551,7 @@ struct CalendarSettings: View {
                     }
                 }
             } else {
-                Toggle("Show calendar", isOn: $showCalendar)
+                Defaults.Toggle("Show calendar", key: .showCalendar)
                 Section(header: Text("Select Calendars")) {
                     List {
                         ForEach(calendarManager.allCalendars, id: \.id) { calendar in
@@ -565,6 +565,7 @@ struct CalendarSettings: View {
                             )) {
                                 Text(calendar.title)
                             }
+                            .disabled(!showCalendar)
                         }
                     }
                 }
