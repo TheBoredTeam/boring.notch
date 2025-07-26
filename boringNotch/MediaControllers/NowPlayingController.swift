@@ -19,8 +19,8 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     )
 
     var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
-    private var cancellables = Set<AnyCancellable>()
-    private var lastMusicItem: (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
+    private var lastMusicItem:
+        (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
 
     // MARK: - Media Remote Functions
     private let mediaRemoteBundle: CFBundle
@@ -28,7 +28,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     private let MRMediaRemoteSetElapsedTimeFunction: @convention(c) (Double) -> Void
 
     private var process: Process?
-    private let pipe = Pipe()
+    private var pipe: Pipe?
     private var buffer = ""
 
     // MARK: - Initialization
@@ -54,8 +54,20 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     }
 
     deinit {
-        process?.terminate()
-        pipe.fileHandleForReading.readabilityHandler = nil
+        if let process = self.process {
+            if process.isRunning {
+                process.terminate()
+                process.waitUntilExit()
+            }
+        }
+
+        if let pipe = self.pipe {
+            pipe.fileHandleForReading.closeFile()
+            pipe.fileHandleForWriting.closeFile()
+        }
+
+        self.process = nil
+        self.pipe = nil
     }
 
     // MARK: - Protocol Implementation
@@ -102,6 +114,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         let pipe = Pipe()
         process.standardOutput = pipe
         self.process = process
+        self.pipe = pipe
 
         pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             guard let self else { return }
@@ -149,7 +162,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             } else if !diff {
                 self.playbackState.artwork = nil
             }
-            
+
             if let dateString = payload["timestamp"] as? String,
                let date = ISO8601DateFormatter().date(from: dateString) {
                 self.playbackState.lastUpdated = date
