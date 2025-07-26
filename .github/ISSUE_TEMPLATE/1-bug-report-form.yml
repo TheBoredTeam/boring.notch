@@ -58,7 +58,7 @@ body:
     id: checks
     attributes:
       label: Checks
-      description: Please confirm the following:
+      description:
       options:
         - label: I haven't found any duplicates with my issue.
           required: true
