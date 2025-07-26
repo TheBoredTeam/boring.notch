@@ -73,7 +73,7 @@ class AppleMusicController: MediaControllerProtocol {
     
     func toggleShuffle() {
         executeCommand("set shuffle enabled to not shuffle enabled")
-        updatePlaybackInfo()
+        playbackState.isShuffled.toggle()
     }
     
     func toggleRepeat() {
@@ -86,7 +86,13 @@ class AppleMusicController: MediaControllerProtocol {
                 set song repeat to off
             end if
             """)
-        updatePlaybackInfo()
+        if playbackState.repeatMode == .off {
+            playbackState.repeatMode = .all
+        } else if playbackState.repeatMode == .all {
+            playbackState.repeatMode = .one
+        } else {
+            playbackState.repeatMode = .off
+        }
     }
     
     func isActive() -> Bool {
