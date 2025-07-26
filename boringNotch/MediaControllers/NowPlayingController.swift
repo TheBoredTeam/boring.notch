@@ -26,6 +26,8 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     private let mediaRemoteBundle: CFBundle
     private let MRMediaRemoteSendCommandFunction: @convention(c) (Int, AnyObject?) -> Void
     private let MRMediaRemoteSetElapsedTimeFunction: @convention(c) (Double) -> Void
+    private let MRMediaRemoteSetShuffleModeFunction: @convention(c) (Int) -> Void
+    private let MRMediaRemoteSetRepeatModeFunction: @convention(c) (Int) -> Void
 
     private var process: Process?
     private var pipe: Pipe?
@@ -40,7 +42,12 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             let MRMediaRemoteSendCommandPointer = CFBundleGetFunctionPointerForName(
                 bundle, "MRMediaRemoteSendCommand" as CFString),
             let MRMediaRemoteSetElapsedTimePointer = CFBundleGetFunctionPointerForName(
-                bundle, "MRMediaRemoteSetElapsedTime" as CFString)
+                bundle, "MRMediaRemoteSetElapsedTime" as CFString),
+            let MRMediaRemoteSetShuffleModePointer = CFBundleGetFunctionPointerForName(
+                bundle, "MRMediaRemoteSetShuffleMode" as CFString),
+            let MRMediaRemoteSetRepeatModePointer = CFBundleGetFunctionPointerForName(
+                bundle, "MRMediaRemoteSetRepeatMode" as CFString)
+            
         else { return nil }
 
         mediaRemoteBundle = bundle
@@ -48,6 +55,10 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             MRMediaRemoteSendCommandPointer, to: (@convention(c) (Int, AnyObject?) -> Void).self)
         MRMediaRemoteSetElapsedTimeFunction = unsafeBitCast(
             MRMediaRemoteSetElapsedTimePointer, to: (@convention(c) (Double) -> Void).self)
+        MRMediaRemoteSetShuffleModeFunction = unsafeBitCast(
+            MRMediaRemoteSetShuffleModePointer, to: (@convention(c) (Int) -> Void).self)
+        MRMediaRemoteSetRepeatModeFunction = unsafeBitCast(
+            MRMediaRemoteSetRepeatModePointer, to: (@convention(c) (Int) -> Void).self)
 
         setupNowPlayingObserver()
         updatePlaybackInfo()
@@ -100,11 +111,16 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     }
     
     func toggleShuffle() {
-        MRMediaRemoteSendCommandFunction(6, nil)
+        // MRMediaRemoteSendCommandFunction(6, nil)
+        MRMediaRemoteSetShuffleModeFunction( playbackState.isShuffled ? 1 : 3)
+        playbackState.isShuffled.toggle()
     }
     
     func toggleRepeat() {
-        MRMediaRemoteSendCommandFunction(7, nil)
+        // MRMediaRemoteSendCommandFunction(7, nil)
+        let newRepeatMode = (playbackState.repeatMode == .off) ? 3 : (playbackState.repeatMode.rawValue - 1)
+        playbackState.repeatMode = RepeatMode(rawValue: newRepeatMode) ?? .off
+        MRMediaRemoteSetRepeatModeFunction(newRepeatMode)
     }
     
     // MARK: - Setup Methods
@@ -162,7 +178,11 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             self.playbackState.album = payload["album"] as? String ?? (diff ? self.playbackState.album : "")
             self.playbackState.duration = payload["duration"] as? Double ?? (diff ? self.playbackState.duration : 0)
             self.playbackState.currentTime = payload["elapsedTime"] as? Double ?? (diff ? self.playbackState.currentTime : 0)
-            self.playbackState.isShuffled = payload["shuffleMode"] as? Bool ?? (diff ? self.playbackState.isShuffled : false)
+            if let shuffleMode = payload["shuffleMode"] as? Int {
+                self.playbackState.isShuffled = shuffleMode != 1
+            } else if !diff {
+                self.playbackState.isShuffled = false
+            }
             if let repeatModeValue = payload["repeatMode"] as? Int {
                 self.playbackState.repeatMode = RepeatMode(rawValue: repeatModeValue) ?? .off
             } else if !diff {

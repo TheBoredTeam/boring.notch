@@ -522,6 +522,9 @@
     "Media change with horizontal gestures" : {
 
     },
+    "Media controls" : {
+
+    },
     "Media inactivity timeout" : {
       "localizations" : {
         "en" : {
@@ -818,6 +821,9 @@
 
     },
     "Show on all displays" : {
+
+    },
+    "Show shuffle and repeat buttons" : {
 
     },
     "Slider color" : {

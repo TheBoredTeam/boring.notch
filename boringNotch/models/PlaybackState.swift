@@ -8,9 +8,9 @@
 import Foundation
 
 enum RepeatMode: Int, Codable {
-    case off = 0
-    case all = 1
+    case off = 1
     case one = 2
+    case all = 3
 }
 
 struct PlaybackState {
