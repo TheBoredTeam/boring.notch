@@ -70,6 +70,11 @@ class SpotifyController: MediaControllerProtocol {
         updatePlaybackInfo()
     }
     
+    func toggleShuffle() {
+        executeCommand("set shuffling to not shuffling")
+        updatePlaybackInfo()
+    }
+    
     func toggleRepeat() {
         executeCommand("set repeating to not repeating")
         updatePlaybackInfo()

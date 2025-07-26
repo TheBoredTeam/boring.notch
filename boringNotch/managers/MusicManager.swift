@@ -254,6 +254,10 @@ class MusicManager: ObservableObject {
             if playbackRateChanged {
                 self.playbackRate = state.playbackRate
             }
+            
+            if shuffleChanged {
+                self.isShuffled = state.isShuffled ?? false
+            }
 
             if state.bundleIdentifier != self.bundleIdentifier {
                 self.bundleIdentifier = state.bundleIdentifier
@@ -368,12 +372,10 @@ class MusicManager: ObservableObject {
 
     func toggleShuffle() {
         activeController?.toggleShuffle()
-        refreshController()
     }
 
     func toggleRepeat() {
         activeController?.toggleRepeat()
-        refreshController()
     }
     
     func togglePlay() {

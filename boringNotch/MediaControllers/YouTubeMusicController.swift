@@ -188,10 +188,6 @@ class YouTubeMusicController: MediaControllerProtocol {
     func fetchShuffleState() {
         sendCommand(endpoint: "/shuffle", method: "GET")
     }
-
-    func shuffleStatus() {
-        sendCommand(endpoint: "/shuffle", method: "GET")
-    }
     
     func toggleShuffle() {
         sendCommand(endpoint: "/shuffle", method: "POST")
@@ -209,11 +205,6 @@ class YouTubeMusicController: MediaControllerProtocol {
 
     func fetchRepeatMode() {
         sendCommand(endpoint: "/repeat-mode", method: "GET")
-    }
-
-    func toggleRepeat() {
-        sendCommand(endpoint: "/switch-repeat", method: "POST")
-        updatePlaybackInfo()
     }
 
     func isActive() -> Bool {
