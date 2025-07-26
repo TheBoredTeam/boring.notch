@@ -20,13 +20,13 @@ class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var controllerCancellables = Set<AnyCancellable>()
     private var debounceToggle: DispatchWorkItem?
-    
-    // Helper to check if macOS is too new for NowPlayingController
+
+    // Helper to check if macOS has removed support for NowPlayingController
     public let isNowPlayingDeprecated: Bool
 
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
-    
+
     // Published properties for UI
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
@@ -43,7 +43,7 @@ class MusicManager: ObservableObject {
     @Published var playbackRate: Double = 1
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
-    
+
     private var artworkData: Data? = nil
 
     // Store last values at the time artwork was changed
@@ -60,7 +60,7 @@ class MusicManager: ObservableObject {
 
     // MARK: - Initialization
     init() {
-        
+
         let process = Process()
         let scriptURL = Bundle.main.url(forResource: "mediaremote-adapter", withExtension: "pl")
         let nowPlayingTestClientPath = Bundle.main.url(forResource: "NowPlayingTestClient", withExtension: "")!.path
@@ -81,7 +81,7 @@ class MusicManager: ObservableObject {
                 self?.setActiveControllerBasedOnPreference()
             }
             .store(in: &cancellables)
-            
+
         // Initialize the active controller
         setActiveControllerBasedOnPreference()
     }
@@ -92,7 +92,7 @@ class MusicManager: ObservableObject {
         controllerCancellables.removeAll()
         flipWorkItem?.cancel()
         transitionWorkItem?.cancel()
-        
+
         // Release active controller
         activeController = nil
     }
@@ -104,9 +104,9 @@ class MusicManager: ObservableObject {
             controllerCancellables.removeAll()
             activeController = nil
         }
-        
+
         let newController: (any MediaControllerProtocol)?
-        
+
         switch type {
         case .nowPlaying:
             // Only create NowPlayingController if not deprecated on this macOS version
@@ -122,7 +122,7 @@ class MusicManager: ObservableObject {
         case .youtubeMusic:
             newController = YouTubeMusicController()
         }
-        
+
         // Set up state observation for the new controller
         if let controller = newController {
             controller.playbackStatePublisher
@@ -133,19 +133,19 @@ class MusicManager: ObservableObject {
                 }
                 .store(in: &controllerCancellables)
         }
-        
+
         return newController
     }
-    
+
     private func setActiveControllerBasedOnPreference() {
         let preferredType = Defaults[.mediaController]
         print("Preferred Media Controller: \(preferredType)")
-        
+
         // If NowPlaying is deprecated but that's the preference, use Apple Music instead
         let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
             ? .appleMusic
             : preferredType
-        
+
         if let controller = createController(for: controllerType) {
             setActiveController(controller)
         } else if controllerType != .appleMusic, let fallbackController = createController(for: .appleMusic) {
@@ -153,26 +153,16 @@ class MusicManager: ObservableObject {
             setActiveController(fallbackController)
         }
     }
-    
+
     private func setActiveController(_ controller: any MediaControllerProtocol) {
-        // Transition animation when changing controllers
-        transitionWorkItem?.cancel()
-        let workItem = DispatchWorkItem { [weak self] in
-            self?.isTransitioning = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                self?.isTransitioning = false
-            }
-        }
-        transitionWorkItem = workItem
-        DispatchQueue.main.async(execute: workItem)
-        
+        // Cancel any existing flip animation
+        flipWorkItem?.cancel()
+
         // Set new active controller
         activeController = controller
-        
+
         // Get current state from active controller
-        if let state = Mirror(reflecting: controller).children.first(where: { $0.label == "playbackState" })?.value as? PlaybackState {
-            updateFromPlaybackState(state)
-        }
+        forceUpdate()
     }
 
     // MARK: - Update Methods
@@ -180,14 +170,14 @@ class MusicManager: ObservableObject {
         // Create a batch of updates to apply together
         let updateBatch = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
-            
+
             // Check for playback state changes (playing/paused)
             if state.isPlaying != self.isPlaying {
                 withAnimation(.smooth) {
                     self.isPlaying = state.isPlaying
                     self.updateIdleState(state: state.isPlaying)
                 }
-                
+
                 if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
                     self.updateSneakPeek()
                 }
@@ -218,7 +208,7 @@ class MusicManager: ObservableObject {
                 }
                 self.artworkData = state.artwork
 
-                if(artworkChanged || state.artwork == nil) {
+                if artworkChanged || state.artwork == nil {
                     // Update last artwork change values
                     self.lastArtworkTitle = state.title
                     self.lastArtworkArtist = state.artist
