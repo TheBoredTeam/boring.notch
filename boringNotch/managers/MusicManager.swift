@@ -42,6 +42,8 @@ class MusicManager: ObservableObject {
     @Published var elapsedTime: TimeInterval = 0
     @Published var timestampDate: Date = .init()
     @Published var playbackRate: Double = 1
+    @Published var isShuffled: Bool = false
+    @Published var repeatMode: RepeatMode = .off
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
 
@@ -226,6 +228,8 @@ class MusicManager: ObservableObject {
             let timeChanged = state.currentTime != self.elapsedTime
             let durationChanged = state.duration != self.songDuration
             let playbackRateChanged = state.playbackRate != self.playbackRate
+            let shuffleChanged = state.isShuffled != self.isShuffled
+            let repeatModeChanged = state.repeatMode != self.repeatMode
 
             if state.title != self.songTitle {
                 self.songTitle = state.title
@@ -250,11 +254,19 @@ class MusicManager: ObservableObject {
             if playbackRateChanged {
                 self.playbackRate = state.playbackRate
             }
+            
+            if shuffleChanged {
+                self.isShuffled = state.isShuffled
+            }
 
             if state.bundleIdentifier != self.bundleIdentifier {
                 self.bundleIdentifier = state.bundleIdentifier
             }
 
+            if repeatModeChanged {
+                self.repeatMode = state.repeatMode
+            }
+            
             self.timestampDate = state.lastUpdated
         }
 
@@ -358,6 +370,14 @@ class MusicManager: ObservableObject {
         activeController?.pause()
     }
 
+    func toggleShuffle() {
+        activeController?.toggleShuffle()
+    }
+
+    func toggleRepeat() {
+        activeController?.toggleRepeat()
+    }
+    
     func togglePlay() {
         activeController?.togglePlay()
     }
@@ -399,7 +419,12 @@ class MusicManager: ObservableObject {
         // Request immediate update from the active controller
         DispatchQueue.main.async { [weak self] in
             if self?.activeController?.isActive() == true {
-                self?.activeController?.updatePlaybackInfo()
+                if self?.bundleIdentifier == "com.github.th-ch.youtube-music",
+                let youtubeController = self?.activeController as? YouTubeMusicController {
+                    youtubeController.pollPlaybackState()
+                } else {
+                    self?.activeController?.updatePlaybackInfo()
+                }
             }
         }
     }

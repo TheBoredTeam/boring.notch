@@ -484,6 +484,16 @@ struct Media: View {
                 }
             }
             Section {
+                Defaults.Toggle(key: .showShuffleAndRepeat) {
+                    HStack {
+                        Text("Show shuffle and repeat buttons")
+                        customBadge(text: "Beta")
+                    }
+                }
+            } header: {
+                Text("Media controls")
+            }
+            Section {
                 Toggle(
                     "Enable music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
