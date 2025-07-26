@@ -1,7 +1,13 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     " – %lld" : {
+
+    },
+    "'Now Playing' was the only option on previous versions and works with all media apps." : {
 
     },
     "(%@)" : {
@@ -52,6 +58,7 @@
       }
     },
     "Accent color" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -94,6 +101,9 @@
     "All-day" : {
 
     },
+    "Allow Access" : {
+
+    },
     "Always hide in fullscreen" : {
 
     },
@@ -129,6 +139,15 @@
         }
       }
     },
+    "Battery Information" : {
+
+    },
+    "Battery Settings" : {
+
+    },
+    "Battery Status" : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
 
     },
@@ -142,6 +161,9 @@
           }
         }
       }
+    },
+    "Boring Notch" : {
+
     },
     "boring.notch" : {
       "localizations" : {
@@ -174,10 +196,10 @@
         }
       }
     },
-    "Buy us a coffee" : {
+    "Calendar" : {
 
     },
-    "Calendar" : {
+    "Calendar access is denied. Please enable it in System Settings." : {
 
     },
     "Cancel" : {
@@ -193,6 +215,9 @@
         }
       }
     },
+    "Charging on Hold: Desktop Mode" : {
+
+    },
     "Check for updates" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -205,6 +230,9 @@
       }
     },
     "Check for Updates…" : {
+
+    },
+    "Choose a Music Source" : {
 
     },
     "Circle" : {
@@ -223,7 +251,11 @@
         }
       }
     },
+    "Continue" : {
+
+    },
     "Custom color" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -243,6 +275,9 @@
 
     },
     "Custom vizualizers (Lottie)" : {
+
+    },
+    "Customize in Settings" : {
 
     },
     "Default" : {
@@ -299,9 +334,6 @@
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
 
     },
-    "Edit" : {
-
-    },
     "Edit layout" : {
 
     },
@@ -336,6 +368,9 @@
     "Enable music live activity" : {
 
     },
+    "Enable sneak peek" : {
+
+    },
     "Enhance your experience with HUDs" : {
 
     },
@@ -359,6 +394,9 @@
 
     },
     "Extensions" : {
+
+    },
+    "Finish" : {
 
     },
     "General" : {
@@ -408,6 +446,9 @@
     "High" : {
 
     },
+    "https://github.com/th-ch/youtube-music" : {
+
+    },
     "HUD style" : {
 
     },
@@ -446,6 +487,9 @@
     "Low" : {
 
     },
+    "Low Power Mode" : {
+
+    },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
         "en" : {
@@ -460,6 +504,9 @@
 
     },
     "Match real notch size" : {
+
+    },
+    "Max Capacity: %lld%%" : {
 
     },
     "Media" : {
@@ -495,6 +542,9 @@
         }
       }
     },
+    "Media Source" : {
+
+    },
     "Medium" : {
 
     },
@@ -522,6 +572,9 @@
 
     },
     "More" : {
+
+    },
+    "Music Source" : {
 
     },
     "muted" : {
@@ -565,6 +618,9 @@
     "Non-notch display height" : {
 
     },
+    "Not Now" : {
+
+    },
     "Notch behavior" : {
 
     },
@@ -575,9 +631,6 @@
 
     },
     "OK" : {
-
-    },
-    "Onboarding" : {
 
     },
     "One or more files failed to load" : {
@@ -602,6 +655,9 @@
           }
         }
       }
+    },
+    "Open System Settings" : {
+
     },
     "Percentage" : {
       "localizations" : {
@@ -689,6 +745,9 @@
     "Select Calendars" : {
 
     },
+    "Select the music source you want to use. You can change this later in the app settings." : {
+
+    },
     "selected" : {
 
     },
@@ -770,6 +829,9 @@
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
 
     },
+    "Sneak Peek Style" : {
+
+    },
     "Software updates" : {
       "localizations" : {
         "en" : {
@@ -802,7 +864,7 @@
     "System features" : {
 
     },
-    "TheBoringNotch" : {
+    "Time to Full Charge: %lld min" : {
 
     },
     "Toggle Notch Open:" : {
@@ -852,13 +914,22 @@
         }
       }
     },
+    "View on GitHub: th-ch/youtube-music" : {
+
+    },
     "Welcome" : {
 
     },
-    "Welcome window" : {
+    "What's New" : {
 
     },
-    "What's New" : {
+    "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
+
+    },
+    "You're All Set!" : {
+
+    },
+    "YouTube Music requires this third-party app to be installed: " : {
 
     }
   },

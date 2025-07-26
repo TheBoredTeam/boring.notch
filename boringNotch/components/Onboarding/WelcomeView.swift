@@ -1,5 +1,5 @@
 //
-//  ProOnboarding.swift
+//  WelcomeView.swift
 //  boringNotch
 //
 //  Created by Richard Kunkli on 2024. 09. 26..
@@ -8,7 +8,8 @@
 import SwiftUI
 import SwiftUIIntrospect
 
-struct ProOnboard: View {
+struct WelcomeView: View {
+    var onGetStarted: (() -> Void)? = nil
     var body: some View {
         ZStack(alignment: .top) {
             ZStack {
@@ -20,13 +21,14 @@ struct ProOnboard: View {
                     .offset(y: -5)
                     .background(SparkleView().opacity(0.6))
                 VStack(spacing: 8) {
-                    Image("logo")
+                    Image("logo2")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 100, height: 100)
                         .padding(.bottom, 8)
-                    Text("TheBoringNotch")
-                        .font(.system(.largeTitle, design: .serif))
+                    Text("Boring Notch")
+                        .font(.system(.largeTitle, design: .default))
+                        .fontWeight(.semibold)
                     Text("Welcome")
                         .font(.title)
                         .foregroundStyle(.secondary)
@@ -46,24 +48,10 @@ struct ProOnboard: View {
                             )
                             .padding(.bottom, 30)
                     }
-                    Button {
-                        if let url = URL(string: "https://buymeacoffee.com/jfxh67wvfxq") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    } label: {
-                        Label("Buy us a coffee", systemImage: "cup.and.saucer.fill")
-                            .font(.headline)
-                            .foregroundColor(Color.black)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(Color.yellow)
-                            .cornerRadius(8)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.bottom, 20)
+
 
                     Button {
-                        NSApp.keyWindow?.close()
+                        onGetStarted?()
                     } label: {
                         Text("Get started")
                             .padding(.horizontal, 20)
@@ -89,17 +77,9 @@ struct ProOnboard: View {
             VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
                 .ignoresSafeArea()
         }
-        .onAppear {
-            NSApp.mainWindow?.standardWindowButton(.zoomButton)?.isHidden = true
-            NSApp.mainWindow?.standardWindowButton(.closeButton)?.isHidden = true
-            NSApp.mainWindow?.standardWindowButton(.miniaturizeButton)?.isHidden = true
-            NSApp.mainWindow?.styleMask.remove(.resizable)
-        }
-        .frame(width: 350, height: 500)
-        .introspect(.window, on: .macOS(.v14, .v15)) { window in
-            window.titlebarAppearsTransparent = true
-            window.titleVisibility = .hidden
-            window.center()
-        }
     }
+}
+
+#Preview {
+    WelcomeView()
 }
