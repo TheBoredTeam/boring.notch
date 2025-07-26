@@ -3,11 +3,12 @@ description: File a bug report.
 title: "[Bug] "
 labels: ["bug", "unconfirmed"]
 body:
-- type: markdown
+  - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
- - type: textarea
+
+  - type: textarea
     id: what-happened
     attributes:
       label: What happened? What are the steps to reproduce the issue?
@@ -15,6 +16,7 @@ body:
       placeholder: Clearly explain the issue. Please limit each post to one issue.
     validations:
       required: true
+
   - type: textarea
     id: expected-behaviour
     attributes:
@@ -22,6 +24,7 @@ body:
       description: A clear and concise description of what you expected to happen.
     validations:
       required: true
+
   - type: dropdown
     id: version
     attributes:
@@ -35,24 +38,27 @@ body:
         - 2.3
     validations:
       required: true
+
   - type: input
     id: operating-system
     attributes:
-      label: MacOS Version
+      label: macOS Version
       description: Go to  > About This Mac
     validations:
       required: true
+
   - type: textarea
     id: logs
     attributes:
       label: Relevant log output
       description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
       render: shell
+
   - type: checkboxes
     id: checks
     attributes:
       label: Checks
-      description: 
+      description: Please confirm the following:
       options:
         - label: I haven't found any duplicates with my issue.
           required: true
