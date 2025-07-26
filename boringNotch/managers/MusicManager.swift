@@ -87,6 +87,10 @@ class MusicManager: ObservableObject {
     }
 
     deinit {
+        destroy()
+    }
+    
+    public func destroy() {
         debounceToggle?.cancel()
         cancellables.removeAll()
         controllerCancellables.removeAll()

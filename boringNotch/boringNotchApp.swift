@@ -90,6 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         NotificationCenter.default.removeObserver(self)
+        MusicManager.shared.destroy()
         cleanupWindows()
     }
 
