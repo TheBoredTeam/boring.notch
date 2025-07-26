@@ -181,9 +181,9 @@ struct CalendarView: View {
             }
         }
         .listRowBackground(Color.clear)
-        .onChange(of: selectedDate) { _, newDate in
+        .onChange(of: selectedDate) {
             Task {
-                await calendarManager.updateCurrentDate(newDate)
+                await calendarManager.updateCurrentDate(selectedDate)
             }
         }
         .onChange(of: vm.notchState) { _, _ in
