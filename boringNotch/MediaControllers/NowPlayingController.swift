@@ -162,7 +162,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             self.playbackState.album = payload["album"] as? String ?? (diff ? self.playbackState.album : "")
             self.playbackState.duration = payload["duration"] as? Double ?? (diff ? self.playbackState.duration : 0)
             self.playbackState.currentTime = payload["elapsedTime"] as? Double ?? (diff ? self.playbackState.currentTime : 0)
-            self.playbackState.isShuffled = payload["shuffleMode"] as? Bool ?? (diff ? self.playbackState.isShuffled : nil)
+            self.playbackState.isShuffled = payload["shuffleMode"] as? Bool ?? (diff ? self.playbackState.isShuffled : false)
             if let repeatModeValue = payload["repeatMode"] as? Int {
                 self.playbackState.repeatMode = RepeatMode(rawValue: repeatModeValue) ?? .off
             } else if !diff {

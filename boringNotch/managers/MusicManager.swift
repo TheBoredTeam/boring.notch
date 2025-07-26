@@ -228,7 +228,7 @@ class MusicManager: ObservableObject {
             let timeChanged = state.currentTime != self.elapsedTime
             let durationChanged = state.duration != self.songDuration
             let playbackRateChanged = state.playbackRate != self.playbackRate
-            let shuffleChanged = (state.isShuffled ?? false) != self.isShuffled
+            let shuffleChanged = state.isShuffled != self.isShuffled
             let repeatModeChanged = state.repeatMode != self.repeatMode
 
             if state.title != self.songTitle {
@@ -256,7 +256,7 @@ class MusicManager: ObservableObject {
             }
             
             if shuffleChanged {
-                self.isShuffled = state.isShuffled ?? false
+                self.isShuffled = state.isShuffled
             }
 
             if state.bundleIdentifier != self.bundleIdentifier {

@@ -22,7 +22,7 @@ struct PlaybackState {
     var currentTime: Double = 0
     var duration: Double = 0
     var playbackRate: Double = 1
-    var isShuffled: Bool? = false
+    var isShuffled: Bool = false
     var repeatMode: RepeatMode = .off
     var lastUpdated: Date = Date.distantPast
     var artwork: Data?
