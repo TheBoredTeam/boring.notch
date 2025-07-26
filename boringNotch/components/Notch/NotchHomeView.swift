@@ -18,7 +18,7 @@ struct MusicPlayerView: View {
 
     var body: some View {
         HStack {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
+            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
             MusicControlsView().drawingGroup().compositingGroup()
         }
     }
@@ -191,21 +191,24 @@ struct NotchHomeView: View {
         .transition(.opacity.combined(with: .blurReplace))
     }
 
+    private var shouldShowCamera: Bool {
+        Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
+    }
+
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: 20) {
+        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
             
             if Defaults[.showCalendar] {
                 CalendarView()
+                    .frame(width: shouldShowCamera ? 170 : 215)
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
                     .environmentObject(vm)
             }
             
-            if Defaults[.showMirror],
-               webcamManager.cameraAvailable,
-               vm.isCameraExpanded {
+            if shouldShowCamera {
                 CameraPreviewView(webcamManager: webcamManager)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
@@ -331,11 +334,4 @@ struct CustomSlider: View {
             .animation(.bouncy.speed(1.4), value: dragging)
         }
     }
-}
-
-#Preview {
-    NotchHomeView(
-        albumArtNamespace: Namespace().wrappedValue,
-    )
-    .environmentObject(BoringViewModel())
 }
