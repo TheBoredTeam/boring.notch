@@ -35,7 +35,13 @@ class CalendarManager: ObservableObject {
 
         switch status {
             case .notDetermined:
-                self.authorizationStatus = await calendarService.requestAccess() ? .fullAccess : .denied
+                let granted = await calendarService.requestAccess()
+                self.authorizationStatus = granted ? .fullAccess : .denied
+                if granted {
+                    allCalendars = await calendarService.calendars()
+                    updateSelectedCalendars()
+                    events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
+                }
             case .restricted, .denied:
                 // Handle the case where the user has denied or restricted access
                 NSLog("Calendar access denied or restricted")
