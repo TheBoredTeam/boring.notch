@@ -68,25 +68,27 @@ class BoringViewModel: NSObject, ObservableObject {
     }
     
     private func setupDetectorObserver() {
-        // 1) Publisher for the user’s fullscreen detection setting
+        // Publisher for the user’s fullscreen detection setting
         let enabledPublisher = Defaults
             .publisher(.enableFullscreenMediaDetection)
             .map(\.newValue)
+            .removeDuplicates()
 
-        // 2) For each non‑nil screen name, map to a Bool publisher for that screen's status
-        let statusPublisher = $screen
+        // Publisher for the current screen name (non-nil, distinct)
+        let screenPublisher = $screen
             .compactMap { $0 }
             .removeDuplicates()
-            .map { screenName in
-                self.detector.$fullscreenStatus
-                    .map { $0[screenName] ?? false }
-                    .removeDuplicates()
-            }
-            .switchToLatest()
 
-        // 3) Combine enabled & status, animate only on changes
-        Publishers.CombineLatest(statusPublisher, enabledPublisher)
-            .map { status, enabled in enabled && status }
+        // Publisher for fullscreen status dictionary
+        let fullscreenStatusPublisher = detector.$fullscreenStatus
+            .removeDuplicates()
+
+        // Combine all three: screen name, fullscreen status, and enabled setting
+        Publishers.CombineLatest3(screenPublisher, fullscreenStatusPublisher, enabledPublisher)
+            .map { screenName, fullscreenStatus, enabled in
+                let isFullscreen = fullscreenStatus[screenName] ?? false
+                return enabled && isFullscreen
+            }
             .removeDuplicates()
             .receive(on: RunLoop.main)
             .sink { [weak self] shouldHide in
@@ -96,7 +98,7 @@ class BoringViewModel: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
     }
-    
+
     // Computed property for effective notch height
     var effectiveClosedNotchHeight: CGFloat {
         let currentScreen = NSScreen.screens.first { $0.localizedName == screen }

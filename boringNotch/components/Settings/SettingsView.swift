@@ -139,7 +139,6 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
-    @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
 
     var body: some View {
         Form {
@@ -518,9 +517,8 @@ struct Media: View {
                     Text("Hide only when NowPlaying app is in fullscreen").tag(HideNotchOption.nowPlayingOnly)
                     Text("Never hide").tag(HideNotchOption.never)
                 }
-                .onChange(of: hideNotchOption) { _, newValue in
-                    Defaults[.alwaysHideInFullscreen] = newValue == .always
-                    Defaults[.enableFullscreenMediaDetection] = newValue != .never
+                .onChange(of: hideNotchOption) {
+                    Defaults[.enableFullscreenMediaDetection] = hideNotchOption != .never
                 }
         }
         .navigationTitle("Media")

@@ -5,9 +5,6 @@
 //  Created by Richard Kunkli on 06/09/2024.
 //
 
-import Accessibility
-import Cocoa
-import CoreAudio
 import Defaults
 import MacroVisionKit
 import SwiftUI
@@ -16,15 +13,15 @@ import SwiftUI
 class FullscreenMediaDetector: ObservableObject {
     static let shared = FullscreenMediaDetector()
     private let detector: MacroVisionKit
+    @ObservedObject private var musicManager = MusicManager.shared
 
-    // changed from [NSScreen:Bool] to [screenName:Bool]
     @Published private(set) var fullscreenStatus: [String: Bool] = [:]
 
     private init() {
         self.detector = MacroVisionKit.shared
         detector.configuration.includeSystemApps = true
         setupNotificationObservers()
-        updateFullScreenStatus()  // now on MainActor
+        updateFullScreenStatus()
     }
 
     private func setupNotificationObservers() {
@@ -42,40 +39,26 @@ class FullscreenMediaDetector: ObservableObject {
     }
 
     private func updateFullScreenStatus() {
-        NSLog("🔄 Fullscreen status update triggered")
         guard Defaults[.enableFullscreenMediaDetection] else {
-            NSLog("❌ Fullscreen media detection disabled")
-            let reset = Dictionary(uniqueKeysWithValues: NSScreen.screens.map { ($0.localizedName, false) }
-            )
+            let reset = Dictionary(uniqueKeysWithValues: NSScreen.screens.map { ($0.localizedName, false) })
             if reset != fullscreenStatus {
                 fullscreenStatus = reset
-                NSLog("⏸ Fullscreen disabled → reset all screens")
             }
             return
         }
         
-        NSLog("🔄 Fullscreen media detection enabled")
 
         let apps = detector.detectFullscreenApps(debug: false)
         let names = NSScreen.screens.map { $0.localizedName }
         var newStatus: [String: Bool] = [:]
         for name in names {
-            newStatus[name] = apps.contains { $0.screen.localizedName == name && $0.bundleIdentifier != "com.apple.finder" }
+            newStatus[name] = apps.contains { $0.screen.localizedName == name && $0.bundleIdentifier != "com.apple.finder" && ($0.bundleIdentifier == musicManager.bundleIdentifier || Defaults[.hideNotchOption] == .always) }
         }
 
         if newStatus != fullscreenStatus {
             fullscreenStatus = newStatus
             NSLog("✅ Fullscreen status: \(newStatus)")
         }
-    }
-
-    func isScreenInFullScreen(_ screen: NSScreen) -> Bool {
-        let screenName = screen.localizedName
-        return fullscreenStatus[screenName] ?? false
-    }
-    
-    func isAnyScreenInFullScreen() -> Bool {
-        return fullscreenStatus.values.contains(true)
     }
 
     private func cleanupNotificationObservers() {
