@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        **❗️IMPORTANT: If you came here to report that boring.notch does not show the now playing song, please do NOT open a new bug report! This bug was already reported and you can subscribe to issue [#417](https://github.com/TheBoredTeam/boring.notch/issues/417) to get updates on this bug and when it will get fixed! Thank you for not opening a duplicate!**
-        Thanks for taking the time to fill out this bug report! Before filing a bug report, please make sure to have the [latest version of TheBoringNotch](https://github.com/TheBoredTeam/boring.notch/releases) installed.
+        Thanks for taking the time to fill out this bug report!
+
   - type: textarea
     id: what-happened
     attributes:
@@ -16,6 +16,7 @@ body:
       placeholder: Clearly explain the issue. Please limit each post to one issue.
     validations:
       required: true
+
   - type: textarea
     id: expected-behaviour
     attributes:
@@ -23,40 +24,41 @@ body:
       description: A clear and concise description of what you expected to happen.
     validations:
       required: true
+
   - type: dropdown
     id: version
     attributes:
       label: BoringNotch Version
       description: What version of our software are you running?
       options:
+        - 2.7-rc.0
         - 2.6
         - 2.5
         - 2.4
         - 2.3
-        - 2.2
-        - 2.1
-        - 2.0
-        - 1.8
     validations:
       required: true
+
   - type: input
     id: operating-system
     attributes:
-      label: MacOS Version
+      label: macOS Version
       description: Go to  > About This Mac
     validations:
       required: true
+
   - type: textarea
     id: logs
     attributes:
       label: Relevant log output
       description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
       render: shell
+
   - type: checkboxes
     id: checks
     attributes:
       label: Checks
-      description: 
+      description:
       options:
         - label: I haven't found any duplicates with my issue.
           required: true
