@@ -7,36 +7,38 @@
             <sparkle:version>2.7-rc.1+3</sparkle:version>
             <sparkle:shortVersionString>2.7-rc.1</sparkle:shortVersionString>
 	    <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-				<description><![CDATA[<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; background: #fafbfc; border-radius: 12px; border: 1px solid #e1e4e8; padding: 32px; margin: 40px auto; box-shadow: 0 4px 28px 0 rgba(56,65,77,.12);">
-  <h1 style="color: #3b4cca; font-size:2.3em; font-weight: 700; margin-bottom: 0.2em;">🐇 boring.notch v2.7 – <span style="color:#36c;">Flying Rabbit RC 1</span></h1>
-  <p style="font-size: 1.1em; color: #586069; margin-top:.2em;">Release Candidate - <strong>July 27, 2025</strong></p>
-  
-  <section style="margin: 2em 0 1.5em 0;">
-    <h2 style="color: #22863a; font-size: 1.3em; border-left: 4px solid #36c; padding-left: 12px; margin-bottom: 10px;">✨ What’s New & Improved</h2>
-    <ul style="line-height: 1.7em; color:#24292f; font-size:1.08em; margin:0 0 0 1em;">
-      <li><b>🛠️ Fixed hanging issues:</b> Resolved stability concerns by addressing test instability. <span style="color:#666;">(by @Alexander5015)</span></li>
-      <li><b>📅 Calendar Settings Resolved:</b> Calendar settings now update correctly with authorization; proper show/hide.</li>
-      <li><b>🎵 YouTube Music Controller:</b>
-        <ul style="padding-left:20px; margin:0;">
-          <li>Improved shuffle and repeat UX, beta features for shuffle/repeat now available.</li>
-          <li>Fixed seek control bugs and added forced polling.</li>
-        </ul>
-        <span style="color:#666;">(by @pranav1st & @Alexander5015)</span>
-      </li>
-      <li><b>🔲 MediaRemoteAdapter.Framework updated</b></li>
-					<li><b>🔃 Button order and repeat toggle improved:</b> Better player button logic and new repeat toggle.</li>
-					      <li><b>🐞 Now Playing Controller Beta:</b> Beta enhancements and settings (known bugs remain for testing).</li>
-      <li><b>♻️ Shuffle is now always enabled.</b></li>
-      <li><b>💡 Refactored Shuffle & Repeat:</b> toggleShuffle/toggleRepeat refactored for improved experience.</li>
- </ul>
-  </section>
-    <blockquote style="background:#fff8dc;border-left: 6px solid #e36209;padding:8px 17px;margin:1.2em 0 1.5em 0">
-    <b style="color:#e36209;">Ready for review!</b>  
-    Try out the features and <a href="https://github.com/TheBoredTeam/boring.notch/pull/637" style="color:#36c;">comment on PR #637</a> for feedback.
-  </blockquote>
+				<description><![CDATA[
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; background: #fafbfc; border-radius: 12px; border: 1px solid #e1e4e8; padding: 32px; margin: 40px auto; box-shadow: 0 4px 28px 0 rgba(56,65,77,.12);">
+                    <h1 style="color: #3b4cca; font-size:2.3em; font-weight: 700; margin-bottom: 0.2em;">🐇 boring.notch v2.7 – <span style="color:#36c;">Flying Rabbit RC 1</span></h1>
+                    <p style="font-size: 1.1em; color: #586069; margin-top:.2em;">Release Candidate - <strong>July 27, 2025</strong></p>
+                    
+                    <section style="margin: 2em 0 1.5em 0;">
+                        <h2 style="color: #22863a; font-size: 1.3em; border-left: 4px solid #36c; padding-left: 12px; margin-bottom: 10px;">✨ What's New & Improved</h2>
+                        <ul style="line-height: 1.7em; color:#24292f; font-size:1.08em; margin:0 0 0 1em;">
+                        <li><b>🛠️ Fixed hanging issues:</b> Resolved stability concerns by addressing test instability. <span style="color:#666;">(by @Alexander5015)</span></li>
+                        <li><b>📅 Calendar Settings Resolved:</b> Calendar settings now update correctly with authorization; proper show/hide.</li>
+                        <li><b>🎵 YouTube Music Controller:</b>
+                            <ul style="padding-left:20px; margin:0;">
+                            <li>Improved shuffle and repeat UX, beta features for shuffle/repeat now available.</li>
+                            <li>Fixed seek control bugs and added forced polling.</li>
+                            </ul>
+                            <span style="color:#666;">(by @pranav1st & @Alexander5015)</span>
+                        </li>
+                        <li><b>🔲 MediaRemoteAdapter.Framework updated</b></li>
+                        <li><b>🔃 Button order and repeat toggle improved:</b> Better player button logic and new repeat toggle.</li>
+                        <li><b>🐞 Now Playing Controller Beta:</b> Beta enhancements and settings (known bugs remain for testing).</li>
+                        <li><b>♻️ Shuffle is now always enabled.</b></li>
+                        <li><b>💡 Refactored Shuffle & Repeat:</b> toggleShuffle/toggleRepeat refactored for improved experience.</li>
+                        </ul>
+                    </section>
+                    <blockquote style="background:#fff8dc;border-left: 6px solid #e36209;padding:8px 17px;margin:1.2em 0 1.5em 0">
+                        <b style="color:#e36209;">Ready for review!</b>  
+                        Try out the features and <a href="https://github.com/TheBoredTeam/boring.notch/pull/637" style="color:#36c;">comment on PR #637</a> for feedback.
+                    </blockquote>
 
-					<p style="font-size:.97em;color:#666; margin-top:2.2em;">— The Boring Team</p>]]>
-</description>
+                    <p style="font-size:.97em;color:#666; margin-top:2.2em;">— The Boring Team</p>
+                </div>
+            ]]></description>
             <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.1/Flying_Rabbit.dmg" length="9033705" type="application/octet-stream" sparkle:edSignature="uqhoyMyORG3ro/pjKA/kSUt4IaSyo9JWtnWP+Ww6FqOF2ajhoIniUJqnnR+imcBld20snHpE2MEuzSBgZO6sAg=="/>
         </item>
 		<item>
