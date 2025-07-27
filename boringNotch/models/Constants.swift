@@ -116,6 +116,7 @@ extension Defaults.Keys {
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let enableFullscreenMediaDetection = Key<Bool>("enableFullscreenMediaDetection", default: true)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
+    static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     
         // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)

@@ -22,7 +22,8 @@ class MusicManager: ObservableObject {
     private var debounceToggle: DispatchWorkItem?
 
     // Helper to check if macOS has removed support for NowPlayingController
-    public let isNowPlayingDeprecated: Bool
+    public private(set) var isNowPlayingDeprecated: Bool = false
+    private let mediaChecker = MediaChecker()
 
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
@@ -41,6 +42,8 @@ class MusicManager: ObservableObject {
     @Published var elapsedTime: TimeInterval = 0
     @Published var timestampDate: Date = .init()
     @Published var playbackRate: Double = 1
+    @Published var isShuffled: Bool = false
+    @Published var repeatMode: RepeatMode = .off
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
 
@@ -60,21 +63,6 @@ class MusicManager: ObservableObject {
 
     // MARK: - Initialization
     init() {
-
-        let process = Process()
-        let scriptURL = Bundle.main.url(forResource: "mediaremote-adapter", withExtension: "pl")
-        let nowPlayingTestClientPath = Bundle.main.url(forResource: "NowPlayingTestClient", withExtension: "")!.path
-        let frameworkPath = Bundle.main.privateFrameworksPath?.appending("/MediaRemoteAdapter.framework")
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
-        process.arguments = [scriptURL!.path, frameworkPath!, nowPlayingTestClientPath, "test"]
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        try? process.run()
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? ""
-        let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
-        let intValue = Int(trimmed) == 1 ? 1 : 0
-        self.isNowPlayingDeprecated = intValue == 1
         // Listen for changes to the default controller preference
         NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
             .sink { [weak self] _ in
@@ -82,8 +70,19 @@ class MusicManager: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Initialize the active controller
-        setActiveControllerBasedOnPreference()
+        // Initialize deprecation check asynchronously
+        Task { @MainActor in
+            do {
+                self.isNowPlayingDeprecated = try await self.mediaChecker.checkDeprecationStatus()
+                print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
+            } catch {
+                print("Failed to check deprecation status: \(error). Defaulting to false.")
+                self.isNowPlayingDeprecated = false
+            }
+            
+            // Initialize the active controller after deprecation check
+            self.setActiveControllerBasedOnPreference()
+        }
     }
 
     deinit {
@@ -229,6 +228,8 @@ class MusicManager: ObservableObject {
             let timeChanged = state.currentTime != self.elapsedTime
             let durationChanged = state.duration != self.songDuration
             let playbackRateChanged = state.playbackRate != self.playbackRate
+            let shuffleChanged = state.isShuffled != self.isShuffled
+            let repeatModeChanged = state.repeatMode != self.repeatMode
 
             if state.title != self.songTitle {
                 self.songTitle = state.title
@@ -253,11 +254,19 @@ class MusicManager: ObservableObject {
             if playbackRateChanged {
                 self.playbackRate = state.playbackRate
             }
+            
+            if shuffleChanged {
+                self.isShuffled = state.isShuffled
+            }
 
             if state.bundleIdentifier != self.bundleIdentifier {
                 self.bundleIdentifier = state.bundleIdentifier
             }
 
+            if repeatModeChanged {
+                self.repeatMode = state.repeatMode
+            }
+            
             self.timestampDate = state.lastUpdated
         }
 
@@ -361,6 +370,14 @@ class MusicManager: ObservableObject {
         activeController?.pause()
     }
 
+    func toggleShuffle() {
+        activeController?.toggleShuffle()
+    }
+
+    func toggleRepeat() {
+        activeController?.toggleRepeat()
+    }
+    
     func togglePlay() {
         activeController?.togglePlay()
     }
@@ -402,7 +419,12 @@ class MusicManager: ObservableObject {
         // Request immediate update from the active controller
         DispatchQueue.main.async { [weak self] in
             if self?.activeController?.isActive() == true {
-                self?.activeController?.updatePlaybackInfo()
+                if self?.bundleIdentifier == "com.github.th-ch.youtube-music",
+                let youtubeController = self?.activeController as? YouTubeMusicController {
+                    youtubeController.pollPlaybackState()
+                } else {
+                    self?.activeController?.updatePlaybackInfo()
+                }
             }
         }
     }

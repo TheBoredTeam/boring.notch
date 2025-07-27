@@ -159,6 +159,11 @@ struct MusicControlsView: View {
 
     private var playbackControls: some View {
         HStack(spacing: 8) {
+            if Defaults[.showShuffleAndRepeat] {
+                HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .white, scale: .medium) {
+                    MusicManager.shared.toggleShuffle()
+                }
+            }
             HoverButton(icon: "backward.fill", scale: .medium) {
                 MusicManager.shared.previousTrack()
             }
@@ -168,8 +173,33 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
+            if Defaults[.showShuffleAndRepeat] {
+                HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
+                    MusicManager.shared.toggleRepeat()
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private var repeatIcon: String {
+        switch musicManager.repeatMode {
+        case .off:
+            return "repeat"
+        case .all:
+            return "repeat"
+        case .one:
+            return "repeat.1"
+        }
+    }
+
+    private var repeatIconColor: Color {
+        switch musicManager.repeatMode {
+        case .off:
+            return .white
+        case .all, .one:
+            return .red
+        }
     }
 }
 

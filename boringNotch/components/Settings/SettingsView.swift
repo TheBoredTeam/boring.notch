@@ -484,6 +484,16 @@ struct Media: View {
                 }
             }
             Section {
+                Defaults.Toggle(key: .showShuffleAndRepeat) {
+                    HStack {
+                        Text("Show shuffle and repeat buttons")
+                        customBadge(text: "Beta")
+                    }
+                }
+            } header: {
+                Text("Media controls")
+            }
+            Section {
                 Toggle(
                     "Enable music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
@@ -551,7 +561,7 @@ struct CalendarSettings: View {
                     }
                 }
             } else {
-                Toggle("Show calendar", isOn: $showCalendar)
+                Defaults.Toggle("Show calendar", key: .showCalendar)
                 Section(header: Text("Select Calendars")) {
                     List {
                         ForEach(calendarManager.allCalendars, id: \.id) { calendar in
@@ -565,6 +575,7 @@ struct CalendarSettings: View {
                             )) {
                                 Text(calendar.title)
                             }
+                            .disabled(!showCalendar)
                         }
                     }
                 }
