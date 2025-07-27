@@ -241,7 +241,7 @@ struct NotchHomeView: View {
                         vm.isHoveringCalendar = isHovering
                     }
                     .environmentObject(vm)
-                    .frame(maxWidth: willShowMirror ? CGFloat.infinity : 250)
+                    .frame(maxWidth: shouldShowCamera ? CGFloat.infinity : 250)
             }
             
             if shouldShowCamera {
