@@ -2,180 +2,172 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
 		<item>
-            <title>2.7-rc.1 Flying Rabbit 🐇🪽/title>
-            <pubDate>Sun, 27 Jul 2025 09:41:40 +0530</pubDate>
-            <sparkle:version>2.7-rc.1+3</sparkle:version>
-            <sparkle:shortVersionString>2.7-rc.1</sparkle:shortVersionString>
-	    <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-				<description><![CDATA[
-                <div>
-                    <h1>🐇 boring.notch v2.7 – Flying Rabbit RC 1</h1>
-                    <p>Release Candidate - July 27, 2025</p>
-                    
-                    <section>
-                        <h2>✨ What's New & Improved</h2>
-                        <ul>
-                        <li><b>🛠️ Fixed hanging issues:</b> Resolved stability concerns by addressing test instability. (by @Alexander5015)</li>
-                        <li><b>📅 Calendar Settings Resolved:</b> Calendar settings now update correctly with authorization; proper show/hide.</li>
-                        <li><b>🎵 YouTube Music Controller:</b>
+                <title>2.7-rc.1 Flying Rabbit 🐇🪽</title>
+                <pubDate>Sun, 27 Jul 2025 09:41:40 +0530</pubDate>
+                <sparkle:version>2.7-rc.1+3</sparkle:version>
+                <sparkle:shortVersionString>2.7-rc.1</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+                    <description><![CDATA[
+                    <div>
+                        <h1>🐇 boring.notch v2.7 – Flying Rabbit RC 1</h1>
+                        <p>Release Candidate - July 27, 2025</p>
+                            <h2>✨ What's New & Improved</h2>
                             <ul>
-                            <li>Improved shuffle and repeat UX, beta features for shuffle/repeat now available.</li>
-                            <li>Fixed seek control bugs and added forced polling.</li>
+                            <li><b>🛠️ Fixed hanging issues:</b> Resolved stability concerns by addressing test instability. (by @Alexander5015)</li>
+                            <li><b>📅 Calendar Settings Resolved:</b> Calendar settings now update correctly with authorization; proper show/hide.</li>
+                            <li><b>🎵 YouTube Music Controller:</b>
+                                <ul>
+                                <li>Improved shuffle and repeat UX, beta features for shuffle/repeat now available.</li>
+                                <li>Fixed seek control bugs and added forced polling.</li>
+                                </ul>
+                                (by @pranav1st & @Alexander5015)
+                            </li>
+                            <li><b>🔲 MediaRemoteAdapter.Framework updated</b></li>
+                            <li><b>🔃 Button order and repeat toggle improved:</b> Better player button logic and new repeat toggle.</li>
+                            <li><b>🐞 Now Playing Controller Beta:</b> Beta enhancements and settings (known bugs remain for testing).</li>
+                            <li><b>♻️ Shuffle is now always enabled.</b></li>
+                            <li><b>💡 Refactored Shuffle & Repeat:</b> toggleShuffle/toggleRepeat refactored for improved experience.</li>
                             </ul>
-                            (by @pranav1st & @Alexander5015)
-                        </li>
-                        <li><b>🔲 MediaRemoteAdapter.Framework updated</b></li>
-                        <li><b>🔃 Button order and repeat toggle improved:</b> Better player button logic and new repeat toggle.</li>
-                        <li><b>🐞 Now Playing Controller Beta:</b> Beta enhancements and settings (known bugs remain for testing).</li>
-                        <li><b>♻️ Shuffle is now always enabled.</b></li>
-                        <li><b>💡 Refactored Shuffle & Repeat:</b> toggleShuffle/toggleRepeat refactored for improved experience.</li>
-                        </ul>
-                    </section>
-                    <blockquote>
-                        <b>Ready for review!</b>  
-                        Try out the features and <a href="https://github.com/TheBoredTeam/boring.notch/pull/637">comment on PR #637</a> for feedback.
-                    </blockquote>
-
-                    <p>— The Boring Team</p>
-                </div>
-            ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.1/Flying_Rabbit.dmg" length="9033705" type="application/octet-stream" sparkle:edSignature="uqhoyMyORG3ro/pjKA/kSUt4IaSyo9JWtnWP+Ww6FqOF2ajhoIniUJqnnR+imcBld20snHpE2MEuzSBgZO6sAg=="/>
+                        <p>— The Boring Team</p>
+                    </div>
+                ]]></description>
+                <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.1/Flying_Rabbit.dmg" length="9033202" type="application/octet-stream" sparkle:edSignature="z1SbQHDCg1D+6m811f4ubdinUiXvoYF4Ra2xlzS3NSAlUqmmIpdzCp1MHMv5J9ddlxTws3rG48OCJfZRAXHHAw=="/>
         </item>
-		<item>
-        <title>2.7-rc.0 Flying Rabbit 🐇🪽</title>
-        <pubDate>Sat, 26 Jul 2025 12:45:19 +0530</pubDate>
-        <sparkle:version>2.7-rc.0+1</sparkle:version>
-        <sparkle:shortVersionString>2.7-rc.0</sparkle:shortVersionString>
-        <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-        <description><![CDATA[
-            <h1 id="-release-v2-7-flying-rabbit-rc-0-boring-notch">🎉 Release v2.7 Flying Rabbit RC 0 — Boring Notch</h1>
-            <p>We’re thrilled to announce <strong>Boring Notch v2.7: Flying Rabbit RC 0</strong>, packed with powerful new features, polish, and community contributions!</p>
-            <h2 id="-highlights">🚀 Highlights</h2>
-            <ul>
-            <li><strong>🔋 Enhanced Battery Status \&amp; Charging Experience</strong>
-            Thanks to @AlexLemus-Dev<ul>
-            <li>More informative battery menu: percentage, max capacity, charging, low power, and status icons</li>
-            <li>Configurable battery indicators, notifications, and display options</li>
-            <li>Interactive battery icon with detailed info and instant System Preferences access</li>
-            <li>Visual alignment and consistent styling (macOS-like bolt/plug icons, dark mode, etc.)</li>
-            <li>Optimized and documented code, robust error handling, and improved performance</li>
-            <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/437">Details \&amp; Demo</a></li>
-            </ul>
-            </li>
-            <li><strong>🖥️ Fullscreen Detection \&amp; Playback Management Fixes</strong>
-            @Alexander5015 improved reliability of media controls during fullscreen transitions<ul>
-            <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/449">PR #449</a></li>
-            </ul>
-            </li>
-            <li><strong>🦷 Allow 0 Height Notch</strong>
-            Now supports notches with zero height for enhanced layout flexibility<ul>
-            <li>Thanks, @yaxarat! <a href="https://github.com/TheBoredTeam/boring.notch/pull/397">PR #397</a></li>
-            </ul>
-            </li>
-            <li><strong>🎛️ Multiple Media Controllers</strong>
-            Control and display several media controllers at once<ul>
-            <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/460">PR #460</a></li>
-            </ul>
-            </li>
-            <li><strong>👀 Sneak Peek \&amp; Jiggle Fixes</strong>
-            Re-added sneak peek and improved animation stability<ul>
-            <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/409">PR #409</a></li>
-            </ul>
-            </li>
-            <li><strong>🗓️ New Calendar Service</strong>
-            Seamlessly integrates your calendar into Boring Notch<ul>
-            <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/589">PR #589</a></li>
-            </ul>
-            </li>
-            <li><strong>📄 Updated LICENSE</strong>
-            Keeping compliance and clarity up to date<ul>
-            <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/590">PR #590</a></li>
-            </ul>
-            </li>
-            <li><strong>🆕 Onboarding \&amp; Better Settings Window</strong>
-            Streamlined onboarding and redesigned settings for easy configuration<ul>
-            <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/600">PR #600</a></li>
-            </ul>
-            </li>
-            <li><strong>📸 Camera Toggle Feature</strong>
-            New camera quick toggle, privacy-first!<ul>
-            <li>Added by @Steve-sy <a href="https://github.com/TheBoredTeam/boring.notch/pull/598">PR #598</a></li>
-            </ul>
-            </li>
-            <li><strong>🎵 MediaRemote Adapter Support</strong>
-            Improved compatibility with MediaRemote devices<ul>
-            <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/631">PR #631</a></li>
-            </ul>
-            </li>
-            </ul>
-            <h2 id="-welcoming-first-time-contributors-">🆕 Welcoming First-Time Contributors!</h2>
-            <table>
-            <thead>
-            <tr>
-            <th style="text-align:left">Contributor</th>
-            <th style="text-align:left">PR Link</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-            <td style="text-align:left">@sancho1952007</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/431">https://github.com/TheBoredTeam/boring.notch/pull/431</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@Ein-Tim</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/405">https://github.com/TheBoredTeam/boring.notch/pull/405</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@AlexLemus-Dev</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/437">https://github.com/TheBoredTeam/boring.notch/pull/437</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@yaxarat</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/397">https://github.com/TheBoredTeam/boring.notch/pull/397</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@ShirakawaMio</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/399">https://github.com/TheBoredTeam/boring.notch/pull/399</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@divyanshu0469</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/454">https://github.com/TheBoredTeam/boring.notch/pull/454</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@oorischubert</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/409">https://github.com/TheBoredTeam/boring.notch/pull/409</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@Al3Gr</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/493">https://github.com/TheBoredTeam/boring.notch/pull/493</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@ChemicalChaos-Fabian42</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/509">https://github.com/TheBoredTeam/boring.notch/pull/509</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@Davetheword</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/501">https://github.com/TheBoredTeam/boring.notch/pull/501</a>)</td>
-            </tr>
-            <tr>
-            <td style="text-align:left">@Steve-sy</td>
-            <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/598">https://github.com/TheBoredTeam/boring.notch/pull/598</a>)</td>
-            </tr>
-            </tbody>
-            </table>
-            <h2 id="-other-improvements">🛠️ Other Improvements</h2>
-            <ul>
-            <li>Visual and animation refinements for battery/media indicators</li>
-            <li>Enhanced error handling, code reorganization, and extensive documentation</li>
-            <li>Optimizations for consistent performance across all system conditions</li>
-            </ul>
-            <p>Thank you 🌟 to everyone—new and returning—for their effort in making this release feature-rich, steady, and super fun!</p>
-            <p><strong>Try Boring Notch v2.7 — Flying Rabbit RC 0 and let us know what you think!</strong></p>
-            <p><em>— The Boring Notch Team</em></p>
-        ]]></description>
-        <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.0/Flying_Rabbit.dmg" length="9000118" type="application/octet-stream" sparkle:edSignature="G5D2zsLFBR0Ua9b1EkLD8jjdkpMA10P1C9KmEL2Drg1WNwCnNAY+lGmljx1UQ+qDyqpjjMrOoGClevHd/276BQ=="/>
-    </item>
-            <item>
+        <item>
+                <title>2.7-rc.0 Flying Rabbit 🐇🪽</title>
+                <pubDate>Sat, 26 Jul 2025 12:45:19 +0530</pubDate>
+                <sparkle:version>2.7-rc.0+1</sparkle:version>
+                <sparkle:shortVersionString>2.7-rc.0</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+                <description><![CDATA[
+                    <h1 id="-release-v2-7-flying-rabbit-rc-0-boring-notch">🎉 Release v2.7 Flying Rabbit RC 0 — Boring Notch</h1>
+                    <p>We're thrilled to announce <strong>Boring Notch v2.7: Flying Rabbit RC 0</strong>, packed with powerful new features, polish, and community contributions!</p>
+                    <h2 id="-highlights">🚀 Highlights</h2>
+                    <ul>
+                    <li><strong>🔋 Enhanced Battery Status \&amp; Charging Experience</strong>
+                    Thanks to @AlexLemus-Dev<ul>
+                    <li>More informative battery menu: percentage, max capacity, charging, low power, and status icons</li>
+                    <li>Configurable battery indicators, notifications, and display options</li>
+                    <li>Interactive battery icon with detailed info and instant System Preferences access</li>
+                    <li>Visual alignment and consistent styling (macOS-like bolt/plug icons, dark mode, etc.)</li>
+                    <li>Optimized and documented code, robust error handling, and improved performance</li>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/437">Details \&amp; Demo</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🖥️ Fullscreen Detection \&amp; Playback Management Fixes</strong>
+                    @Alexander5015 improved reliability of media controls during fullscreen transitions<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/449">PR #449</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🦷 Allow 0 Height Notch</strong>
+                    Now supports notches with zero height for enhanced layout flexibility<ul>
+                    <li>Thanks, @yaxarat! <a href="https://github.com/TheBoredTeam/boring.notch/pull/397">PR #397</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🎛️ Multiple Media Controllers</strong>
+                    Control and display several media controllers at once<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/460">PR #460</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>👀 Sneak Peek \&amp; Jiggle Fixes</strong>
+                    Re-added sneak peek and improved animation stability<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/409">PR #409</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🗓️ New Calendar Service</strong>
+                    Seamlessly integrates your calendar into Boring Notch<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/589">PR #589</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>📄 Updated LICENSE</strong>
+                    Keeping compliance and clarity up to date<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/590">PR #590</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🆕 Onboarding \&amp; Better Settings Window</strong>
+                    Streamlined onboarding and redesigned settings for easy configuration<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/600">PR #600</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>📸 Camera Toggle Feature</strong>
+                    New camera quick toggle, privacy-first!<ul>
+                    <li>Added by @Steve-sy <a href="https://github.com/TheBoredTeam/boring.notch/pull/598">PR #598</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🎵 MediaRemote Adapter Support</strong>
+                    Improved compatibility with MediaRemote devices<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/631">PR #631</a></li>
+                    </ul>
+                    </li>
+                    </ul>
+                    <h2 id="-welcoming-first-time-contributors-">🆕 Welcoming First-Time Contributors!</h2>
+                    <table>
+                    <thead>
+                    <tr>
+                    <th style="text-align:left">Contributor</th>
+                    <th style="text-align:left">PR Link</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                    <td style="text-align:left">@sancho1952007</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/431">https://github.com/TheBoredTeam/boring.notch/pull/431</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@Ein-Tim</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/405">https://github.com/TheBoredTeam/boring.notch/pull/405</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@AlexLemus-Dev</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/437">https://github.com/TheBoredTeam/boring.notch/pull/437</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@yaxarat</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/397">https://github.com/TheBoredTeam/boring.notch/pull/397</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@ShirakawaMio</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/399">https://github.com/TheBoredTeam/boring.notch/pull/399</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@divyanshu0469</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/454">https://github.com/TheBoredTeam/boring.notch/pull/454</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@oorischubert</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/409">https://github.com/TheBoredTeam/boring.notch/pull/409</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@Al3Gr</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/493">https://github.com/TheBoredTeam/boring.notch/pull/493</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@ChemicalChaos-Fabian42</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/509">https://github.com/TheBoredTeam/boring.notch/pull/509</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@Davetheword</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/501">https://github.com/TheBoredTeam/boring.notch/pull/501</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@Steve-sy</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/598">https://github.com/TheBoredTeam/boring.notch/pull/598</a>)</td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    <h2 id="-other-improvements">🛠️ Other Improvements</h2>
+                    <ul>
+                    <li>Visual and animation refinements for battery/media indicators</li>
+                    <li>Enhanced error handling, code reorganization, and extensive documentation</li>
+                    <li>Optimizations for consistent performance across all system conditions</li>
+                    </ul>
+                    <p>Thank you 🌟 to everyone—new and returning—for their effort in making this release feature-rich, steady, and super fun!</p>
+                    <p><strong>Try Boring Notch v2.7 — Flying Rabbit RC 0 and let us know what you think!</strong></p>
+                    <p><em>— The Boring Notch Team</em></p>
+                ]]></description>
+                <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.0/Flying_Rabbit.dmg" length="9000118" type="application/octet-stream" sparkle:edSignature="G5D2zsLFBR0Ua9b1EkLD8jjdkpMA10P1C9KmEL2Drg1WNwCnNAY+lGmljx1UQ+qDyqpjjMrOoGClevHd/276BQ=="/>
+        </item>
+        <item>
             <title>2.6 🎉 Wolf Painting 🐺</title>
             <pubDate>Sun, 23 Feb 2025 22:02:47 +0530</pubDate>
             <sparkle:version>2.6+1</sparkle:version>
