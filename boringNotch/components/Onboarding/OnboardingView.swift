@@ -19,7 +19,7 @@ enum OnboardingStep {
 private let calendarService = CalendarService()
 
 struct OnboardingView: View {
-    @State private var step: OnboardingStep = .welcome
+    @State var step: OnboardingStep = .welcome
     let onFinish: () -> Void
     let onOpenSettings: () -> Void
 

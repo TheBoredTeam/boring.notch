@@ -18,7 +18,7 @@ struct MusicPlayerView: View {
 
     var body: some View {
         HStack {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
+            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
             MusicControlsView().drawingGroup().compositingGroup()
         }
     }
@@ -145,8 +145,6 @@ struct MusicControlsView: View {
                 color: musicManager.avgColor,
                 dragging: $dragging,
                 currentDate: timeline.date,
-                lastUpdated: musicManager.lastUpdated,
-                ignoreLastUpdated: musicManager.ignoreLastUpdated,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
                 playbackRate: musicManager.playbackRate,
@@ -161,6 +159,11 @@ struct MusicControlsView: View {
 
     private var playbackControls: some View {
         HStack(spacing: 8) {
+            if Defaults[.showShuffleAndRepeat] {
+                HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .white, scale: .medium) {
+                    MusicManager.shared.toggleShuffle()
+                }
+            }
             HoverButton(icon: "backward.fill", scale: .medium) {
                 MusicManager.shared.previousTrack()
             }
@@ -170,8 +173,33 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
+            if Defaults[.showShuffleAndRepeat] {
+                HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
+                    MusicManager.shared.toggleRepeat()
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private var repeatIcon: String {
+        switch musicManager.repeatMode {
+        case .off:
+            return "repeat"
+        case .all:
+            return "repeat"
+        case .one:
+            return "repeat.1"
+        }
+    }
+
+    private var repeatIconColor: Color {
+        switch musicManager.repeatMode {
+        case .off:
+            return .white
+        case .all, .one:
+            return .red
+        }
     }
 }
 
@@ -193,10 +221,14 @@ struct NotchHomeView: View {
         .transition(.opacity.combined(with: .blurReplace))
     }
 
+    private var shouldShowCamera: Bool {
+        Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
+    }
+
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: 20) {
+
+        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
             let showMediaController = Defaults[.mediaControllerEnabled]
-            let willShowMirror = Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
             
             if showMediaController {
                 MusicPlayerView(albumArtNamespace: albumArtNamespace)
@@ -204,6 +236,7 @@ struct NotchHomeView: View {
             
             if Defaults[.showCalendar] {
                 CalendarView()
+                    .frame(width: shouldShowCamera ? 170 : 215)
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
@@ -211,12 +244,13 @@ struct NotchHomeView: View {
                     .frame(maxWidth: willShowMirror ? CGFloat.infinity : 250)
             }
             
-            if willShowMirror {
+            if shouldShowCamera {
                 CameraPreviewView(webcamManager: webcamManager)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
             }
+          
             if !showMediaController {Spacer()}
         }
         .transition(.opacity.animation(.smooth.speed(0.9))
@@ -233,8 +267,6 @@ struct MusicSliderView: View {
     var color: NSColor
     @Binding var dragging: Bool
     let currentDate: Date
-    let lastUpdated: Date
-    let ignoreLastUpdated: Bool
     let timestampDate: Date
     let elapsedTime: Double
     let playbackRate: Double
@@ -243,7 +275,7 @@ struct MusicSliderView: View {
 
     var currentElapsedTime: Double {
         // A small buffer is needed to ensure a meaningful difference between the two dates
-        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -0.0001, (timestampDate > lastUpdated || ignoreLastUpdated) else { return sliderValue }
+        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return sliderValue }
         let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
         let elapsed = elapsedTime + (timeDifference * playbackRate)
         return min(elapsed, duration)
@@ -340,11 +372,4 @@ struct CustomSlider: View {
             .animation(.bouncy.speed(1.4), value: dragging)
         }
     }
-}
-
-#Preview {
-    NotchHomeView(
-        albumArtNamespace: Namespace().wrappedValue,
-    )
-    .environmentObject(BoringViewModel())
 }

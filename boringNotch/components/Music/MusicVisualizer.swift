@@ -72,7 +72,9 @@ class AudioSpectrum: NSView {
             animation.autoreverses = true
             animation.fillMode = .forwards
             animation.isRemovedOnCompletion = false
-            
+            if #available(macOS 13.0, *) {
+                animation.preferredFrameRateRange = CAFrameRateRange(minimum: 24, maximum: 24, preferred: 24)
+            }
             barLayer.add(animation, forKey: "scaleY")
         }
     }

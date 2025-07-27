@@ -13,6 +13,8 @@ import Defaults
 
 @MainActor
 class CalendarManager: ObservableObject {
+    static let shared = CalendarManager()
+
     @Published var currentWeekStartDate: Date
     @Published var events: [EventModel] = []
     @Published var allCalendars: [CalendarModel] = []
@@ -20,7 +22,7 @@ class CalendarManager: ObservableObject {
     private var selectedCalendars: [CalendarModel] = []
     private let calendarService = CalendarService()
 
-    init() {
+    private init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
     }
 
@@ -33,7 +35,13 @@ class CalendarManager: ObservableObject {
 
         switch status {
             case .notDetermined:
-                self.authorizationStatus = await calendarService.requestAccess() ? .fullAccess : .denied
+                let granted = await calendarService.requestAccess()
+                self.authorizationStatus = granted ? .fullAccess : .denied
+                if granted {
+                    allCalendars = await calendarService.calendars()
+                    updateSelectedCalendars()
+                    events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
+                }
             case .restricted, .denied:
                 // Handle the case where the user has denied or restricted access
                 NSLog("Calendar access denied or restricted")
@@ -48,11 +56,11 @@ class CalendarManager: ObservableObject {
                 print("Unknown authorization status")
         }
     }
-    
+
     func updateSelectedCalendars() {
         selectedCalendars = allCalendars.filter { getCalendarSelected($0) }
     }
-    
+
     func getCalendarSelected(_ calendar: CalendarModel) -> Bool {
         switch Defaults[.calendarSelectionState] {
         case .all:
@@ -78,7 +86,7 @@ class CalendarManager: ObservableObject {
             } else {
                 identifiers.remove(calendar.id)
             }
-            
+
             selectionState = identifiers.isEmpty ? .all : identifiers.count == allCalendars.count ? .all : .selected(identifiers) // if empty, select all
         }
 
@@ -86,11 +94,11 @@ class CalendarManager: ObservableObject {
         updateSelectedCalendars()
         events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
     }
-    
+
     static func startOfDay(_ date: Date) -> Date {
         return Calendar.current.startOfDay(for: date)
     }
-    
+
     func updateCurrentDate(_ date: Date) async {
         currentWeekStartDate = Calendar.current.startOfDay(for: date)
         events = await calendarService.events(from: currentWeekStartDate, to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!, calendars: selectedCalendars.map{$0.id})
