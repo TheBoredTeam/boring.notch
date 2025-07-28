@@ -78,7 +78,7 @@ Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the st
 - [x] Calendar integration 📆
 - [x] Customizable gesture control 👆🏻
 - [x] Shelf functionality with AirDrop 📚
-- [x] Extension system with [starter template](https://github.com/TheBoredTeam/TheBoringWorker) 🧩
+- [ ] Extension system 🧩
 - [ ] Clipboard history manager 📌 `Extension`
 - [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Extension`
 - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`
