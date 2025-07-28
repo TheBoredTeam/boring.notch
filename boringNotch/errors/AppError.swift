@@ -2,7 +2,7 @@
 //  AppError.swift
 //  boringNotch
 //
-//  Created by boringNotch on 2025-07-28.
+//  Created by weitheng on 2025-07-28.
 //
 
 import Foundation
