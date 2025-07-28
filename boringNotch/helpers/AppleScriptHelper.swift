@@ -6,20 +6,55 @@
 //
 
 import Foundation
+import OSLog
 
 class AppleScriptHelper {
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "boringNotch", category: "AppleScript")
+    
     @discardableResult
     class func execute(_ scriptText: String) async throws -> NSAppleEventDescriptor? {
-        try await withCheckedThrowingContinuation { continuation in
+        logger.debug("Executing AppleScript")
+        
+        // Log script for debugging (be careful with sensitive data)
+        if scriptText.count < 200 {
+            logger.debug("Script: \(scriptText)")
+        } else {
+            logger.debug("Script: \(scriptText.prefix(100))... (truncated)")
+        }
+        
+        return try await withCheckedThrowingContinuation { continuation in
             Task.detached(priority: .userInitiated) {
-                let script = NSAppleScript(source: scriptText)
-                var error: NSDictionary?
-                if let descriptor = script?.executeAndReturnError(&error) {
+                guard let script = NSAppleScript(source: scriptText) else {
+                    logger.error("Failed to create NSAppleScript from source")
+                    continuation.resume(throwing: AppError.appleScriptExecutionFailed(
+                        script: scriptText.prefix(100) + "...",
+                        error: "Failed to create script object"
+                    ))
+                    return
+                }
+                
+                var errorDict: NSDictionary?
+                let descriptor = script.executeAndReturnError(&errorDict)
+                
+                if let descriptor = descriptor {
+                    logger.info("AppleScript executed successfully")
                     continuation.resume(returning: descriptor)
-                } else if let error = error {
-                    continuation.resume(throwing: NSError(domain: "AppleScriptError", code: 1, userInfo: error as? [String: Any]))
+                } else if let errorDict = errorDict {
+                    let errorMessage = errorDict[NSAppleScript.errorMessage] as? String ?? "Unknown error"
+                    let errorNumber = errorDict[NSAppleScript.errorNumber] as? Int ?? -1
+                    
+                    logger.error("AppleScript execution failed: \(errorMessage) (code: \(errorNumber))")
+                    
+                    continuation.resume(throwing: AppError.appleScriptExecutionFailed(
+                        script: scriptText.prefix(100) + "...",
+                        error: "\(errorMessage) (code: \(errorNumber))"
+                    ))
                 } else {
-                    continuation.resume(throwing: NSError(domain: "AppleScriptError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unknown error"]))
+                    logger.error("AppleScript execution failed with unknown error")
+                    continuation.resume(throwing: AppError.appleScriptExecutionFailed(
+                        script: scriptText.prefix(100) + "...",
+                        error: "Unknown error occurred"
+                    ))
                 }
             }
         }
@@ -27,5 +62,28 @@ class AppleScriptHelper {
     
     class func executeVoid(_ scriptText: String) async throws {
         _ = try await execute(scriptText)
+    }
+    
+    // MARK: - Safe Script Execution
+    /// Execute a pre-validated script template with parameters
+    class func executeSafe(template: String, parameters: [String: Any] = [:]) async throws -> NSAppleEventDescriptor? {
+        logger.debug("Executing safe script template")
+        
+        // Sanitize parameters to prevent injection
+        var sanitizedScript = template
+        for (key, value) in parameters {
+            let sanitizedValue = sanitizeValue(value)
+            sanitizedScript = sanitizedScript.replacingOccurrences(of: "{\(key)}", with: sanitizedValue)
+        }
+        
+        return try await execute(sanitizedScript)
+    }
+    
+    private class func sanitizeValue(_ value: Any) -> String {
+        let stringValue = String(describing: value)
+        // Escape quotes and backslashes for AppleScript
+        return stringValue
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
     }
 }

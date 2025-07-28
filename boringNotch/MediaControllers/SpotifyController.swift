@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import SwiftUI
+import OSLog
 
 class SpotifyController: MediaControllerProtocol {
     // MARK: - Properties
@@ -142,7 +143,8 @@ class SpotifyController: MediaControllerProtocol {
                         self?.playbackState = updatedState
                     }
                 } catch {
-                    print("Failed to load artwork: \(error)")
+                    Logger(subsystem: Bundle.main.bundleIdentifier ?? "boringNotch", category: "SpotifyController")
+                        .error("Failed to load artwork from URL '\(artworkURL)': \(error.localizedDescription)")
                 }
             }
         } else {
