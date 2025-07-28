@@ -8,6 +8,7 @@ import AppKit
 import Combine
 import Defaults
 import SwiftUI
+import OSLog
 
 let defaultImage: NSImage = .init(
     systemSymbolName: "heart.fill",
@@ -17,9 +18,14 @@ let defaultImage: NSImage = .init(
 class MusicManager: ObservableObject {
     // MARK: - Properties
     static let shared = MusicManager()
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "boringNotch", category: "MusicManager")
+    
     private var cancellables = Set<AnyCancellable>()
     private var controllerCancellables = Set<AnyCancellable>()
     private var debounceToggle: DispatchWorkItem?
+    
+    // Error handling
+    @Published var lastError: AppError?
 
     // Helper to check if macOS has removed support for NowPlayingController
     public private(set) var isNowPlayingDeprecated: Bool = false
@@ -74,10 +80,11 @@ class MusicManager: ObservableObject {
         Task { @MainActor in
             do {
                 self.isNowPlayingDeprecated = try await self.mediaChecker.checkDeprecationStatus()
-                print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
+                Self.logger.info("Deprecation check completed: \(self.isNowPlayingDeprecated)")
             } catch {
-                print("Failed to check deprecation status: \(error). Defaulting to false.")
+                Self.logger.error("Failed to check deprecation status: \(error.localizedDescription)")
                 self.isNowPlayingDeprecated = false
+                self.lastError = AppError.unknown(error)
             }
             
             // Initialize the active controller after deprecation check
@@ -101,7 +108,7 @@ class MusicManager: ObservableObject {
     }
 
     // MARK: - Setup Methods
-    private func createController(for type: MediaControllerType) -> (any MediaControllerProtocol)? {
+    private func createController(for type: MediaControllerType) throws -> (any MediaControllerProtocol)? {
         // Cleanup previous controller
         if activeController != nil {
             controllerCancellables.removeAll()
@@ -116,6 +123,7 @@ class MusicManager: ObservableObject {
             if !self.isNowPlayingDeprecated {
                 newController = NowPlayingController()
             } else {
+                Self.logger.warning("NowPlaying controller is deprecated on this macOS version")
                 return nil
             }
         case .appleMusic:
@@ -135,6 +143,10 @@ class MusicManager: ObservableObject {
                     self.updateFromPlaybackState(state)
                 }
                 .store(in: &controllerCancellables)
+            
+            Self.logger.info("Created \(type.displayName) controller successfully")
+        } else {
+            Self.logger.error("Failed to create controller for \(type.displayName)")
         }
 
         return newController
@@ -142,18 +154,32 @@ class MusicManager: ObservableObject {
 
     private func setActiveControllerBasedOnPreference() {
         let preferredType = Defaults[.mediaController]
-        print("Preferred Media Controller: \(preferredType)")
+        Self.logger.info("Setting media controller to: \(preferredType.displayName)")
 
         // If NowPlaying is deprecated but that's the preference, use Apple Music instead
         let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
             ? .appleMusic
             : preferredType
-
-        if let controller = createController(for: controllerType) {
-            setActiveController(controller)
-        } else if controllerType != .appleMusic, let fallbackController = createController(for: .appleMusic) {
-            // Fallback to Apple Music if preferred controller couldn't be created
-            setActiveController(fallbackController)
+        
+        do {
+            if let controller = try createController(for: controllerType) {
+                setActiveController(controller)
+                lastError = nil
+            } else if controllerType != .appleMusic {
+                // Fallback to Apple Music if preferred controller couldn't be created
+                Self.logger.warning("Falling back to Apple Music controller")
+                if let fallbackController = try createController(for: .appleMusic) {
+                    setActiveController(fallbackController)
+                    lastError = nil
+                } else {
+                    throw AppError.musicServiceUnavailable
+                }
+            } else {
+                throw AppError.mediaControllerNotFound(controllerType)
+            }
+        } catch {
+            Self.logger.error("Failed to create controller: \(error.localizedDescription)")
+            lastError = error as? AppError ?? AppError.unknown(error)
         }
     }
 
@@ -359,73 +385,139 @@ class MusicManager: ObservableObject {
 
     // MARK: - Public Methods for controlling playback
     func playPause() {
-        activeController?.togglePlay()
+        guard let controller = activeController else {
+            Self.logger.error("No active controller available for playPause")
+            lastError = AppError.musicServiceUnavailable
+            return
+        }
+        controller.togglePlay()
     }
 
     func play() {
-        activeController?.play()
+        guard let controller = activeController else {
+            Self.logger.error("No active controller available for play")
+            lastError = AppError.musicServiceUnavailable
+            return
+        }
+        controller.play()
     }
 
     func pause() {
-        activeController?.pause()
+        guard let controller = activeController else {
+            Self.logger.error("No active controller available for pause")
+            lastError = AppError.musicServiceUnavailable
+            return
+        }
+        controller.pause()
     }
 
     func toggleShuffle() {
-        activeController?.toggleShuffle()
+        guard let controller = activeController else {
+            Self.logger.error("No active controller available for toggleShuffle")
+            lastError = AppError.musicServiceUnavailable
+            return
+        }
+        controller.toggleShuffle()
     }
 
     func toggleRepeat() {
-        activeController?.toggleRepeat()
+        guard let controller = activeController else {
+            Self.logger.error("No active controller available for toggleRepeat")
+            lastError = AppError.musicServiceUnavailable
+            return
+        }
+        controller.toggleRepeat()
     }
     
     func togglePlay() {
-        activeController?.togglePlay()
+        guard let controller = activeController else {
+            Self.logger.error("No active controller available for togglePlay")
+            lastError = AppError.musicServiceUnavailable
+            return
+        }
+        controller.togglePlay()
     }
 
     func nextTrack() {
-        activeController?.nextTrack()
+        guard let controller = activeController else {
+            Self.logger.error("No active controller available for nextTrack")
+            lastError = AppError.musicServiceUnavailable
+            return
+        }
+        controller.nextTrack()
     }
 
     func previousTrack() {
-        activeController?.previousTrack()
+        guard let controller = activeController else {
+            Self.logger.error("No active controller available for previousTrack")
+            lastError = AppError.musicServiceUnavailable
+            return
+        }
+        controller.previousTrack()
     }
 
     func seek(to position: TimeInterval) {
-        activeController?.seek(to: position)
+        guard let controller = activeController else {
+            Self.logger.error("No active controller available for seek")
+            lastError = AppError.musicServiceUnavailable
+            return
+        }
+        controller.seek(to: position)
     }
 
     func openMusicApp() {
         guard let bundleID = bundleIdentifier else {
-            print("Error: appBundleIdentifier is nil")
+            Self.logger.error("Cannot open music app: bundle identifier is nil")
+            lastError = AppError.invalidState("No music app bundle identifier available")
             return
         }
 
         let workspace = NSWorkspace.shared
         if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
             let configuration = NSWorkspace.OpenConfiguration()
-            workspace.openApplication(at: appURL, configuration: configuration) { (app, error) in
+            workspace.openApplication(at: appURL, configuration: configuration) { [weak self] (app, error) in
                 if let error = error {
-                    print("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
+                    Self.logger.error("Failed to launch app with bundle ID '\(bundleID)': \(error.localizedDescription)")
+                    self?.lastError = AppError.systemServiceUnavailable("Failed to launch \(bundleID)")
                 } else {
-                    print("Launched app with bundle ID: \(bundleID)")
+                    Self.logger.info("Successfully launched app with bundle ID: \(bundleID)")
+                    self?.lastError = nil
                 }
             }
         } else {
-            print("Failed to find app with bundle ID: \(bundleID)")
+            Self.logger.error("Failed to find app with bundle ID: \(bundleID)")
+            lastError = AppError.fileNotFound("Application with bundle ID '\(bundleID)' not found")
         }
     }
 
     func forceUpdate() {
         // Request immediate update from the active controller
         DispatchQueue.main.async { [weak self] in
-            if self?.activeController?.isActive() == true {
-                if self?.bundleIdentifier == "com.github.th-ch.youtube-music",
-                let youtubeController = self?.activeController as? YouTubeMusicController {
+            guard let self = self else { return }
+            
+            guard let controller = self.activeController else {
+                Self.logger.warning("No active controller to force update")
+                self.lastError = AppError.musicServiceUnavailable
+                return
+            }
+            
+            if controller.isActive() {
+                if self.bundleIdentifier == "com.github.th-ch.youtube-music",
+                   let youtubeController = controller as? YouTubeMusicController {
                     youtubeController.pollPlaybackState()
                 } else {
-                    self?.activeController?.updatePlaybackInfo()
+                    controller.updatePlaybackInfo()
                 }
+                Self.logger.debug("Forced update on active controller")
+            } else {
+                Self.logger.warning("Controller is not active, cannot force update")
+                self.lastError = AppError.invalidState("Music controller is not active")
             }
         }
+    }
+    
+    // MARK: - Error Management
+    func clearError() {
+        lastError = nil
     }
 }
