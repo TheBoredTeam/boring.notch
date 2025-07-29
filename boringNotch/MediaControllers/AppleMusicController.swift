@@ -20,9 +20,9 @@ class AppleMusicController: MediaControllerProtocol {
     // MARK: - Initialization
     init() {
         setupPlaybackStateChangeObserver()
-        DispatchQueue.main.async { [weak self] in
-            if self?.isActive() == true {
-                self?.updatePlaybackInfo()
+        Task { @MainActor in
+            if isActive() {
+                await updatePlaybackInfoAsync()
             }
         }
     }
@@ -30,7 +30,7 @@ class AppleMusicController: MediaControllerProtocol {
     private func setupPlaybackStateChangeObserver() {
         DistributedNotificationCenter.default().addObserver(
             self,
-            selector: #selector(updatePlaybackInfo),
+            selector: #selector(handlePlaybackStateChange),
             name: NSNotification.Name("com.apple.Music.playerInfo"),
             object: nil
         )
@@ -68,7 +68,9 @@ class AppleMusicController: MediaControllerProtocol {
     
     func seek(to time: Double) {
         executeCommand("set player position to \(time)")
-        updatePlaybackInfo()
+        Task { @MainActor in
+            await updatePlaybackInfoAsync()
+        }
     }
     
     func toggleShuffle() {
@@ -101,8 +103,22 @@ class AppleMusicController: MediaControllerProtocol {
     }
     
     // MARK: - Private Methods
-    @objc func updatePlaybackInfo() {
-        guard let descriptor = fetchPlaybackInfo() else { return }
+    @objc private func handlePlaybackStateChange() {
+        Task { @MainActor in
+            await updatePlaybackInfoAsync()
+        }
+    }
+    
+    // Public method for protocol conformance
+    func updatePlaybackInfo() {
+        Task { @MainActor in
+            await updatePlaybackInfoAsync()
+        }
+    }
+    
+    @MainActor
+    private func updatePlaybackInfoAsync() async {
+        guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
         guard descriptor.numberOfItems >= 8 else { return }
         
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
@@ -131,9 +147,7 @@ class AppleMusicController: MediaControllerProtocol {
             artwork: (artworkData?.isEmpty ?? true) ? nil : artworkData
         )
         
-        DispatchQueue.main.async { [weak self] in
-            self?.playbackState = updatedState
-        }
+        self.playbackState = updatedState
     }
     
     private func executeCommand(_ command: String) {
@@ -143,7 +157,7 @@ class AppleMusicController: MediaControllerProtocol {
         }
     }
     
-    private func fetchPlaybackInfo() -> NSAppleEventDescriptor? {
+    private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {
         let script = """
         tell application "Music"
             set isRunning to true
@@ -175,13 +189,7 @@ class AppleMusicController: MediaControllerProtocol {
             end try
         end tell
         """
-        var descriptor: NSAppleEventDescriptor? = nil
-        let semaphore = DispatchSemaphore(value: 0)
-        Task {
-            descriptor = try? await AppleScriptHelper.execute(script)
-            semaphore.signal()
-        }
-        semaphore.wait()
-        return descriptor
+        
+        return try await AppleScriptHelper.execute(script)
     }
 }
