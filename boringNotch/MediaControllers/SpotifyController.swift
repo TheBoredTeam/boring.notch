@@ -19,7 +19,7 @@ class SpotifyController: MediaControllerProtocol {
     
     init() {
         setupPlaybackStateChangeObserver()
-        Task { @MainActor in
+        Task {
             if isActive() {
                 await updatePlaybackInfoAsync()
             }
@@ -46,42 +46,52 @@ class SpotifyController: MediaControllerProtocol {
     
     // MARK: - Protocol Implementation
     func play() {
-        executeCommand("play")
+        Task {
+            await executeCommand("play")
+        }
     }
     
     func pause() {
-        executeCommand("pause")
+        Task {
+            await executeCommand("pause")
+        }
     }
     
     func togglePlay() {
-        executeCommand("playpause")
+        Task {
+            await executeCommand("playpause")
+        }
     }
     
     func nextTrack() {
-        executeCommand("next track")
+        Task {
+            await executeCommand("next track")
+        }
     }
     
     func previousTrack() {
-        executeCommand("previous track")
+        Task {
+            await executeCommand("previous track")
+        }
     }
     
     func seek(to time: Double) {
-        executeCommand("set player position to \(time)")
-        Task { @MainActor in
+        Task {
+            await executeCommand("set player position to \(time)")
             await updatePlaybackInfoAsync()
         }
     }
     
     func toggleShuffle() {
-        executeCommand("set shuffling to not shuffling")
-        Task { @MainActor in
+        Task {
+            await executeCommand("set shuffling to not shuffling")
             await updatePlaybackInfoAsync()
         }
     }
     
     func toggleRepeat() {
-        executeCommand("set repeating to not repeating")
-        Task { @MainActor in
+        Task {
+            await executeCommand("set repeating to not repeating")
             await updatePlaybackInfoAsync()
         }
     }
@@ -92,20 +102,20 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     // MARK: - Private Methods
+    // DistributedNotificationCenter requires a selector method, so we can't directly use a Task
     @objc private func handlePlaybackStateChange() {
-        Task { @MainActor in
+        Task {
             await updatePlaybackInfoAsync()
         }
     }
     
     // Public method for protocol conformance
     func updatePlaybackInfo() {
-        Task { @MainActor in
+        Task {
             await updatePlaybackInfoAsync()
         }
     }
     
-    @MainActor
     private func updatePlaybackInfoAsync() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
         guard descriptor.numberOfItems >= 9 else { return }
@@ -134,11 +144,13 @@ class SpotifyController: MediaControllerProtocol {
             lastUpdated: Date()
         )
         
-        self.playbackState = state
+        await MainActor.run {
+            self.playbackState = state
+        }
         
         // Load artwork asynchronously and update the state when complete
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
-            Task {
+            Task.detached {
                 do {
                     let (data, _) = try await URLSession.shared.data(from: url)
                     // Create a new state with the artwork data and update
@@ -154,11 +166,9 @@ class SpotifyController: MediaControllerProtocol {
         }
     }
     
-    private func executeCommand(_ command: String) {
+    private func executeCommand(_ command: String) async {
         let script = "tell application \"Spotify\" to \(command)"
-        Task {
-            try? await AppleScriptHelper.executeVoid(script)
-        }
+        try? await AppleScriptHelper.executeVoid(script)
     }
     
     private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {

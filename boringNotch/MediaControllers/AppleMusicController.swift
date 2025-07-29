@@ -20,7 +20,7 @@ class AppleMusicController: MediaControllerProtocol {
     // MARK: - Initialization
     init() {
         setupPlaybackStateChangeObserver()
-        Task { @MainActor in
+        Task {
             if isActive() {
                 await updatePlaybackInfoAsync()
             }
@@ -47,53 +47,71 @@ class AppleMusicController: MediaControllerProtocol {
     
     // MARK: - Protocol Implementation
     func play() {
-        executeCommand("play")
+        Task {
+            await executeCommand("play")
+        }
     }
     
     func pause() {
-        executeCommand("pause")
+        Task {
+            await executeCommand("pause")
+        }
     }
     
     func togglePlay() {
-        executeCommand("playpause")
+        Task {
+            await executeCommand("playpause")
+        }
     }
     
     func nextTrack() {
-        executeCommand("next track")
+        Task {
+            await executeCommand("next track")
+        }
     }
     
     func previousTrack() {
-        executeCommand("previous track")
+        Task {
+            await executeCommand("previous track")
+        }
     }
     
     func seek(to time: Double) {
-        executeCommand("set player position to \(time)")
-        Task { @MainActor in
+        Task {
+            await executeCommand("set player position to \(time)")
             await updatePlaybackInfoAsync()
         }
     }
     
     func toggleShuffle() {
-        executeCommand("set shuffle enabled to not shuffle enabled")
-        playbackState.isShuffled.toggle()
+        Task {
+            await executeCommand("set shuffle enabled to not shuffle enabled")
+            await MainActor.run {
+                playbackState.isShuffled.toggle()
+            }
+        }
     }
     
     func toggleRepeat() {
-        executeCommand("""
-            if song repeat is off then
-                set song repeat to all
-            else if song repeat is all then
-                set song repeat to one
-            else
-                set song repeat to off
-            end if
-            """)
-        if playbackState.repeatMode == .off {
-            playbackState.repeatMode = .all
-        } else if playbackState.repeatMode == .all {
-            playbackState.repeatMode = .one
-        } else {
-            playbackState.repeatMode = .off
+        Task {
+            await executeCommand("""
+                if song repeat is off then
+                    set song repeat to all
+                else if song repeat is all then
+                    set song repeat to one
+                else
+                    set song repeat to off
+                end if
+                """)
+            await MainActor.run {
+                if playbackState.repeatMode == .off {
+                    playbackState.repeatMode = .all
+                } else if playbackState.repeatMode == .all {
+                    playbackState.repeatMode = .one
+                } else {
+                    playbackState.repeatMode = .off
+                }
+            }
         }
     }
     
@@ -103,20 +121,20 @@ class AppleMusicController: MediaControllerProtocol {
     }
     
     // MARK: - Private Methods
+    // DistributedNotificationCenter requires a selector method, so we can't directly use a Task
     @objc private func handlePlaybackStateChange() {
-        Task { @MainActor in
+        Task {
             await updatePlaybackInfoAsync()
         }
     }
     
     // Public method for protocol conformance
     func updatePlaybackInfo() {
-        Task { @MainActor in
+        Task {
             await updatePlaybackInfoAsync()
         }
     }
     
-    @MainActor
     private func updatePlaybackInfoAsync() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
         guard descriptor.numberOfItems >= 8 else { return }
@@ -147,14 +165,14 @@ class AppleMusicController: MediaControllerProtocol {
             artwork: (artworkData?.isEmpty ?? true) ? nil : artworkData
         )
         
-        self.playbackState = updatedState
+        await MainActor.run {
+            self.playbackState = updatedState
+        }
     }
     
-    private func executeCommand(_ command: String) {
+    private func executeCommand(_ command: String) async {
         let script = "tell application \"Music\" to \(command)"
-        Task {
-            try? await AppleScriptHelper.executeVoid(script)
-        }
+        try? await AppleScriptHelper.executeVoid(script)
     }
     
     private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {
