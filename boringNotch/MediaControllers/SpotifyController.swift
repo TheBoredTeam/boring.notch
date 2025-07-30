@@ -16,6 +16,7 @@ class SpotifyController: MediaControllerProtocol {
     )
     
     var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
+    private var notificationObserver: Any?
     
     init() {
         setupPlaybackStateChangeObserver()
@@ -27,73 +28,58 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     private func setupPlaybackStateChangeObserver() {
-        DistributedNotificationCenter.default().addObserver(
-            self,
-            selector: #selector(handlePlaybackStateChange),
-            name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
-            object: nil
-        )
+        notificationObserver = DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
+            object: nil,
+            queue: nil
+        ) { [weak self] _ in
+            Task {
+                await self?.updatePlaybackInfoAsync()
+            }
+        }
     }
     
     deinit {
         // Remove notification observer when controller is deallocated
-        DistributedNotificationCenter.default().removeObserver(
-            self,
-            name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
-            object: nil
-        )
+        if let observer = notificationObserver {
+            DistributedNotificationCenter.default().removeObserver(observer)
+        }
     }
     
     // MARK: - Protocol Implementation
-    func play() {
-        Task {
-            await executeCommand("play")
-        }
+    func play() async {
+        await executeCommand("play")
     }
     
-    func pause() {
-        Task {
-            await executeCommand("pause")
-        }
+    func pause() async {
+        await executeCommand("pause")
     }
     
-    func togglePlay() {
-        Task {
-            await executeCommand("playpause")
-        }
+    func togglePlay() async {
+        await executeCommand("playpause")
     }
     
-    func nextTrack() {
-        Task {
-            await executeCommand("next track")
-        }
+    func nextTrack() async {
+        await executeCommand("next track")
     }
     
-    func previousTrack() {
-        Task {
-            await executeCommand("previous track")
-        }
+    func previousTrack() async {
+        await executeCommand("previous track")
     }
     
-    func seek(to time: Double) {
-        Task {
-            await executeCommand("set player position to \(time)")
-            await updatePlaybackInfoAsync()
-        }
+    func seek(to time: Double) async {
+        await executeCommand("set player position to \(time)")
+        await updatePlaybackInfoAsync()
     }
     
-    func toggleShuffle() {
-        Task {
-            await executeCommand("set shuffling to not shuffling")
-            await updatePlaybackInfoAsync()
-        }
+    func toggleShuffle() async {
+        await executeCommand("set shuffling to not shuffling")
+        await updatePlaybackInfoAsync()
     }
     
-    func toggleRepeat() {
-        Task {
-            await executeCommand("set repeating to not repeating")
-            await updatePlaybackInfoAsync()
-        }
+    func toggleRepeat() async {
+        await executeCommand("set repeating to not repeating")
+        await updatePlaybackInfoAsync()
     }
     
     func isActive() -> Bool {
@@ -102,12 +88,6 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     // MARK: - Private Methods
-    // DistributedNotificationCenter requires a selector method, so we can't directly use a Task
-    @objc private func handlePlaybackStateChange() {
-        Task {
-            await updatePlaybackInfoAsync()
-        }
-    }
     
     // Public method for protocol conformance
     func updatePlaybackInfo() {
@@ -150,14 +130,15 @@ class SpotifyController: MediaControllerProtocol {
         
         // Load artwork asynchronously and update the state when complete
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
-            Task.detached {
+            let currentState = state
+            Task.detached { [weak self] in
                 do {
                     let (data, _) = try await URLSession.shared.data(from: url)
                     // Create a new state with the artwork data and update
-                    var updatedState = state
+                    var updatedState = currentState
                     updatedState.artwork = data
                     await MainActor.run {
-                        self.playbackState = updatedState
+                        self?.playbackState = updatedState
                     }
                 } catch {
                     print("Failed to load artwork: \(error)")
