@@ -82,27 +82,27 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     }
 
     // MARK: - Protocol Implementation
-    func play() {
+    func play() async {
         MRMediaRemoteSendCommandFunction(0, nil)
     }
 
-    func pause() {
+    func pause() async {
         MRMediaRemoteSendCommandFunction(1, nil)
     }
 
-    func togglePlay() {
+    func togglePlay() async {
         MRMediaRemoteSendCommandFunction(2, nil)
     }
 
-    func nextTrack() {
+    func nextTrack() async {
         MRMediaRemoteSendCommandFunction(4, nil)
     }
 
-    func previousTrack() {
+    func previousTrack() async {
         MRMediaRemoteSendCommandFunction(5, nil)
     }
 
-    func seek(to time: Double) {
+    func seek(to time: Double) async {
         MRMediaRemoteSetElapsedTimeFunction(time)
     }
 
@@ -110,17 +110,21 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         return true
     }
     
-    func toggleShuffle() {
+    func toggleShuffle() async {
         // MRMediaRemoteSendCommandFunction(6, nil)
         MRMediaRemoteSetShuffleModeFunction( playbackState.isShuffled ? 1 : 3)
-        playbackState.isShuffled.toggle()
+        await MainActor.run {
+            playbackState.isShuffled.toggle()
+        }
     }
     
-    func toggleRepeat() {
+    func toggleRepeat() async {
         // MRMediaRemoteSendCommandFunction(7, nil)
-        let newRepeatMode = (playbackState.repeatMode == .off) ? 3 : (playbackState.repeatMode.rawValue - 1)
-        playbackState.repeatMode = RepeatMode(rawValue: newRepeatMode) ?? .off
-        MRMediaRemoteSetRepeatModeFunction(newRepeatMode)
+        await MainActor.run {
+            let newRepeatMode = (playbackState.repeatMode == .off) ? 3 : (playbackState.repeatMode.rawValue - 1)
+            playbackState.repeatMode = RepeatMode(rawValue: newRepeatMode) ?? .off
+            MRMediaRemoteSetRepeatModeFunction(newRepeatMode)
+        }
     }
     
     // MARK: - Setup Methods

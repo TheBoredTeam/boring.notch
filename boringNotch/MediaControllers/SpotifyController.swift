@@ -16,7 +16,7 @@ class SpotifyController: MediaControllerProtocol {
     )
     
     var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
-    private var notificationObserver: Any?
+    private var notificationTask: Task<Void, Never>?
     
     init() {
         setupPlaybackStateChangeObserver()
@@ -28,22 +28,19 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     private func setupPlaybackStateChangeObserver() {
-        notificationObserver = DistributedNotificationCenter.default().addObserver(
-            forName: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
-            object: nil,
-            queue: nil
-        ) { [weak self] _ in
-            Task {
+        notificationTask = Task { [weak self] in
+            let notifications = DistributedNotificationCenter.default().notifications(
+                named: NSNotification.Name("com.spotify.client.PlaybackStateChanged")
+            )
+            
+            for await _ in notifications {
                 await self?.updatePlaybackInfoAsync()
             }
         }
     }
     
     deinit {
-        // Remove notification observer when controller is deallocated
-        if let observer = notificationObserver {
-            DistributedNotificationCenter.default().removeObserver(observer)
-        }
+        notificationTask?.cancel()
     }
     
     // MARK: - Protocol Implementation

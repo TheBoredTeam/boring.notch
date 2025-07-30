@@ -95,37 +95,37 @@ class YouTubeMusicController: MediaControllerProtocol {
     
     // MARK: - Protocol Implementation
     
-    func play() {
-        sendCommand(endpoint: "/play", method: "POST")
+    func play() async {
+        await sendCommand(endpoint: "/play", method: "POST")
         updatePlaybackInfo()
     }
     
-    func pause() {
-        sendCommand(endpoint: "/pause", method: "POST")
+    func pause() async {
+        await sendCommand(endpoint: "/pause", method: "POST")
         updatePlaybackInfo()
     }
     
-    func togglePlay() {
+    func togglePlay() async {
         if !isActive() {
             if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: playbackState.bundleIdentifier) {
                 NSWorkspace.shared.open(url)
             }
         }
-        sendCommand(endpoint: "/toggle-play", method: "POST")
+        await sendCommand(endpoint: "/toggle-play", method: "POST")
         updatePlaybackInfo()
     }
     
-    func nextTrack() {
-        sendCommand(endpoint: "/next", method: "POST")
+    func nextTrack() async {
+        await sendCommand(endpoint: "/next", method: "POST")
         updatePlaybackInfo()
     }
     
-    func previousTrack() {
-        sendCommand(endpoint: "/previous", method: "POST")
+    func previousTrack() async {
+        await sendCommand(endpoint: "/previous", method: "POST")
         updatePlaybackInfo()
     }
     
-    func seek(to time: Double) {
+    func seek(to time: Double) async {
         // Format the seek data payload according to the API schema
         let seekData = ["seconds": time]
         
@@ -148,36 +148,32 @@ class YouTubeMusicController: MediaControllerProtocol {
             
             request.httpBody = jsonData
             
-            URLSession.shared.dataTaskPublisher(for: request)
-                .tryMap { data, response -> Data in
-                    guard let httpResponse = response as? HTTPURLResponse else {
-                        throw URLError(.badServerResponse)
-                    }
-                    
-                    if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                        throw URLError(.userAuthenticationRequired)
-                    } else if httpResponse.statusCode < 200 || httpResponse.statusCode >= 300 {
-                        throw URLError(.badServerResponse)
-                    }
-                    
-                    return data
+            do {
+                let (_, response) = try await URLSession.shared.data(for: request)
+                
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw URLError(.badServerResponse)
                 }
-                .receive(on: DispatchQueue.main)
-                .sink(receiveCompletion: { [weak self] completion in
-                    if case .failure(let error) = completion {
-                        print("Seek error: \(error)")
-                        if let urlError = error as? URLError, urlError.code == .userAuthenticationRequired {
-                            self?.accessToken = nil
-                            self?.authenticateAndSetup()
-                        }
+                
+                if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                    throw URLError(.userAuthenticationRequired)
+                } else if httpResponse.statusCode < 200 || httpResponse.statusCode >= 300 {
+                    throw URLError(.badServerResponse)
+                }
+                
+                // Update playback info after seeking
+                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+                updatePlaybackInfo()
+                
+            } catch {
+                print("Seek error: \(error)")
+                if let urlError = error as? URLError, urlError.code == .userAuthenticationRequired {
+                    await MainActor.run {
+                        self.accessToken = nil
+                        self.authenticateAndSetup()
                     }
-                }, receiveValue: { [weak self] _ in
-                    // Update playback info after seeking
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                        self?.updatePlaybackInfo()
-                    }
-                })
-                .store(in: &cancellables)
+                }
+            }
             
         } catch {
             print("Error encoding seek data: \(error)")
@@ -186,25 +182,27 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     func fetchShuffleState() {
-        sendCommand(endpoint: "/shuffle", method: "GET")
+        Task {
+            await sendCommand(endpoint: "/shuffle", method: "GET")
+        }
     }
     
-    func toggleShuffle() {
-        sendCommand(endpoint: "/shuffle", method: "POST")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            self?.fetchShuffleState()
-        }
+    func toggleShuffle() async {
+        await sendCommand(endpoint: "/shuffle", method: "POST")
+        try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+        fetchShuffleState()
     }
 
-    func toggleRepeat() {
-        sendCommand(endpoint: "/switch-repeat", method: "POST")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            self?.fetchRepeatMode()
-        }
+    func toggleRepeat() async {
+        await sendCommand(endpoint: "/switch-repeat", method: "POST")
+        try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+        fetchRepeatMode()
     }
 
     func fetchRepeatMode() {
-        sendCommand(endpoint: "/repeat-mode", method: "GET")
+        Task {
+            await sendCommand(endpoint: "/repeat-mode", method: "GET")
+        }
     }
 
     func isActive() -> Bool {
@@ -378,7 +376,7 @@ class YouTubeMusicController: MediaControllerProtocol {
         updatePlaybackInfo()
     }
 
-    private func sendCommand(endpoint: String, method: String = "GET") {
+    private func sendCommand(endpoint: String, method: String = "GET") async {
         guard let url = URL(string: "\(baseURL)/api/v1\(endpoint)") else { return }
         
         var request = URLRequest(url: url)
@@ -391,62 +389,56 @@ class YouTubeMusicController: MediaControllerProtocol {
             return
         }
         
-        URLSession.shared.dataTaskPublisher(for: request)
-            .tryMap { data, response -> Data in
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw URLError(.badServerResponse)
-                }
-                
-                if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                    throw URLError(.userAuthenticationRequired)
-                } else if httpResponse.statusCode < 200 || httpResponse.statusCode >= 300 {
-                    throw URLError(.badServerResponse)
-                }
-                
-                return data
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw URLError(.badServerResponse)
             }
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { [weak self] completion in
-                if case .failure(let error) = completion {
-                    if let urlError = error as? URLError, urlError.code == .userAuthenticationRequired {
-                        // Authentication error - token might be expired
-                        self?.accessToken = nil
-                        self?.authenticateAndSetup()
-                        
-                        // Try the command again after authentication
-                        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 2) { [weak self] in
-                            self?.sendCommand(endpoint: endpoint, method: method)
+            
+            if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                throw URLError(.userAuthenticationRequired)
+            } else if httpResponse.statusCode < 200 || httpResponse.statusCode >= 300 {
+                throw URLError(.badServerResponse)
+            }
+            
+            // Handle data based on endpoint
+            if endpoint == "/shuffle" || endpoint == "/shuffle-status" {
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                    let shuffleState = json["state"] as? Bool {
+                        await MainActor.run {
+                            playbackState.isShuffled = shuffleState
                         }
                     }
+                } catch {
+                    print("Error parsing shuffle state: \(error)")
                 }
-            }, receiveValue: { [weak self] data in
-                // Handle data based on endpoint
-                if endpoint == "/shuffle" || endpoint == "/shuffle-status" {
-                    do {
-                        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                        let shuffleState = json["state"] as? Bool {
-                            DispatchQueue.main.async {
-                                self?.playbackState.isShuffled = shuffleState
-                            }
-                        }
-                    } catch {
-                        print("Error parsing shuffle state: \(error)")
+            } else if endpoint == "/repeat-mode" {
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                    let mode = json["mode"] as? String {
+                        updateRepeatMode(mode)
                     }
-                } else if endpoint == "/repeat-mode" {
-                    do {
-                        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                        let mode = json["mode"] as? String {
-                            self?.updateRepeatMode(mode)
-                        }
-                    } catch {
-                        print("Error parsing repeat mode: \(error)")
-                    }
+                } catch {
+                    print("Error parsing repeat mode: \(error)")
                 }
+            }
 
-                // Update playback info for relevant commands
-                self?.updatePlaybackInfo()
-            })
-            .store(in: &cancellables)
+            // Update playback info for relevant commands
+            updatePlaybackInfo()
+            
+        } catch {
+            if let urlError = error as? URLError, urlError.code == .userAuthenticationRequired {
+                // Authentication error - token might be expired
+                accessToken = nil
+                authenticateAndSetup()
+                
+                // Try the command again after authentication
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                await sendCommand(endpoint: endpoint, method: method)
+            }
+        }
     }
     
     private func createAuthenticatedRequest(for endpoint: String) -> URLRequest? {
