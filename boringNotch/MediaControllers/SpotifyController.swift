@@ -18,6 +18,9 @@ class SpotifyController: MediaControllerProtocol {
     var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
     private var notificationTask: Task<Void, Never>?
     
+    //Constant for time between command and update
+    let commandUpdateDelay: Duration = .milliseconds(25)
+    
     init() {
         setupPlaybackStateChangeObserver()
         Task {
@@ -66,16 +69,19 @@ class SpotifyController: MediaControllerProtocol {
     
     func seek(to time: Double) async {
         await executeCommand("set player position to \(time)")
+        try? await Task.sleep(for: commandUpdateDelay)
         await updatePlaybackInfoAsync()
     }
     
     func toggleShuffle() async {
         await executeCommand("set shuffling to not shuffling")
+        try? await Task.sleep(for: commandUpdateDelay)
         await updatePlaybackInfoAsync()
     }
     
     func toggleRepeat() async {
         await executeCommand("set repeating to not repeating")
+        try? await Task.sleep(for: commandUpdateDelay)
         await updatePlaybackInfoAsync()
     }
     
