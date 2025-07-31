@@ -5,7 +5,7 @@
 //  Created by Alexander on 2025-03-29.
 //
 
-import Foundation
+@preconcurrency import Foundation
 import Combine
 import SwiftUI
 

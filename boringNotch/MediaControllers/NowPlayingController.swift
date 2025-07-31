@@ -7,7 +7,7 @@
 
 import AppKit
 import Combine
-import Foundation
+@preconcurrency import Foundation
 
 final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     // Stub for now to conform with ControllerProtocol
