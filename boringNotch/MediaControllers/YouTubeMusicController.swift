@@ -23,7 +23,6 @@ class YouTubeMusicController: MediaControllerProtocol {
     private var refreshTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     private var isAuthenticating = false
-    // Removed authQueue - using async/await instead
     
     init() {
         setupAppStateObservers()
