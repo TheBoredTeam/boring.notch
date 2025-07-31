@@ -359,39 +359,57 @@ class MusicManager: ObservableObject {
 
     // MARK: - Public Methods for controlling playback
     func playPause() {
-        activeController?.togglePlay()
+        Task {
+            await activeController?.togglePlay()
+        }
     }
 
     func play() {
-        activeController?.play()
+        Task {
+            await activeController?.play()
+        }
     }
 
     func pause() {
-        activeController?.pause()
+        Task {
+            await activeController?.pause()
+        }
     }
 
     func toggleShuffle() {
-        activeController?.toggleShuffle()
+        Task {
+            await activeController?.toggleShuffle()
+        }
     }
 
     func toggleRepeat() {
-        activeController?.toggleRepeat()
+        Task {
+            await activeController?.toggleRepeat()
+        }
     }
     
     func togglePlay() {
-        activeController?.togglePlay()
+        Task {
+            await activeController?.togglePlay()
+        }
     }
 
     func nextTrack() {
-        activeController?.nextTrack()
+        Task {
+            await activeController?.nextTrack()
+        }
     }
 
     func previousTrack() {
-        activeController?.previousTrack()
+        Task {
+            await activeController?.previousTrack()
+        }
     }
 
     func seek(to position: TimeInterval) {
-        activeController?.seek(to: position)
+        Task {
+            await activeController?.seek(to: position)
+        }
     }
 
     func openMusicApp() {

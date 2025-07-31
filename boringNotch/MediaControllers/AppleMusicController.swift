@@ -5,7 +5,7 @@
 //  Created by Alexander on 2025-03-29.
 //
 
-import Foundation
+@preconcurrency import Foundation
 import Combine
 import SwiftUI
 
@@ -16,68 +16,69 @@ class AppleMusicController: MediaControllerProtocol {
     )
     
     var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
+    private var notificationTask: Task<Void, Never>?
     
     // MARK: - Initialization
     init() {
         setupPlaybackStateChangeObserver()
-        DispatchQueue.main.async { [weak self] in
-            if self?.isActive() == true {
-                self?.updatePlaybackInfo()
+        Task {
+            if isActive() {
+                await updatePlaybackInfoAsync()
             }
         }
     }
     
     private func setupPlaybackStateChangeObserver() {
-        DistributedNotificationCenter.default().addObserver(
-            self,
-            selector: #selector(updatePlaybackInfo),
-            name: NSNotification.Name("com.apple.Music.playerInfo"),
-            object: nil
-        )
+        notificationTask = Task { [weak self] in
+            let notifications = DistributedNotificationCenter.default().notifications(
+                named: NSNotification.Name("com.apple.Music.playerInfo")
+            )
+            
+            for await _ in notifications {
+                await self?.updatePlaybackInfoAsync()
+            }
+        }
     }
     
     deinit {
-        DistributedNotificationCenter.default().removeObserver(
-            self,
-            name: NSNotification.Name("com.apple.Music.playerInfo"),
-            object: nil
-        )
-
+        notificationTask?.cancel()
     }
     
     // MARK: - Protocol Implementation
-    func play() {
-        executeCommand("play")
+    func play() async {
+        await executeCommand("play")
     }
     
-    func pause() {
-        executeCommand("pause")
+    func pause() async {
+        await executeCommand("pause")
     }
     
-    func togglePlay() {
-        executeCommand("playpause")
+    func togglePlay() async {
+        await executeCommand("playpause")
     }
     
-    func nextTrack() {
-        executeCommand("next track")
+    func nextTrack() async {
+        await executeCommand("next track")
     }
     
-    func previousTrack() {
-        executeCommand("previous track")
+    func previousTrack() async {
+        await executeCommand("previous track")
     }
     
-    func seek(to time: Double) {
-        executeCommand("set player position to \(time)")
-        updatePlaybackInfo()
+    func seek(to time: Double) async {
+        await executeCommand("set player position to \(time)")
+        await updatePlaybackInfoAsync()
     }
     
-    func toggleShuffle() {
-        executeCommand("set shuffle enabled to not shuffle enabled")
-        playbackState.isShuffled.toggle()
+    func toggleShuffle() async {
+        await executeCommand("set shuffle enabled to not shuffle enabled")
+        await MainActor.run {
+            playbackState.isShuffled.toggle()
+        }
     }
     
-    func toggleRepeat() {
-        executeCommand("""
+    func toggleRepeat() async {
+        await executeCommand("""
             if song repeat is off then
                 set song repeat to all
             else if song repeat is all then
@@ -86,12 +87,14 @@ class AppleMusicController: MediaControllerProtocol {
                 set song repeat to off
             end if
             """)
-        if playbackState.repeatMode == .off {
-            playbackState.repeatMode = .all
-        } else if playbackState.repeatMode == .all {
-            playbackState.repeatMode = .one
-        } else {
-            playbackState.repeatMode = .off
+        await MainActor.run {
+            if playbackState.repeatMode == .off {
+                playbackState.repeatMode = .all
+            } else if playbackState.repeatMode == .all {
+                playbackState.repeatMode = .one
+            } else {
+                playbackState.repeatMode = .off
+            }
         }
     }
     
@@ -101,8 +104,16 @@ class AppleMusicController: MediaControllerProtocol {
     }
     
     // MARK: - Private Methods
-    @objc func updatePlaybackInfo() {
-        guard let descriptor = fetchPlaybackInfo() else { return }
+    
+    // Public method for protocol conformance
+    func updatePlaybackInfo() {
+        Task {
+            await updatePlaybackInfoAsync()
+        }
+    }
+    
+    private func updatePlaybackInfoAsync() async {
+        guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
         guard descriptor.numberOfItems >= 8 else { return }
         
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
@@ -131,19 +142,17 @@ class AppleMusicController: MediaControllerProtocol {
             artwork: (artworkData?.isEmpty ?? true) ? nil : artworkData
         )
         
-        DispatchQueue.main.async { [weak self] in
-            self?.playbackState = updatedState
+        await MainActor.run {
+            self.playbackState = updatedState
         }
     }
     
-    private func executeCommand(_ command: String) {
+    private func executeCommand(_ command: String) async {
         let script = "tell application \"Music\" to \(command)"
-        Task {
-            try? await AppleScriptHelper.executeVoid(script)
-        }
+        try? await AppleScriptHelper.executeVoid(script)
     }
     
-    private func fetchPlaybackInfo() -> NSAppleEventDescriptor? {
+    private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {
         let script = """
         tell application "Music"
             set isRunning to true
@@ -175,13 +184,7 @@ class AppleMusicController: MediaControllerProtocol {
             end try
         end tell
         """
-        var descriptor: NSAppleEventDescriptor? = nil
-        let semaphore = DispatchSemaphore(value: 0)
-        Task {
-            descriptor = try? await AppleScriptHelper.execute(script)
-            semaphore.signal()
-        }
-        semaphore.wait()
-        return descriptor
+        
+        return try await AppleScriptHelper.execute(script)
     }
 }
