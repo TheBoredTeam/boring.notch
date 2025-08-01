@@ -330,7 +330,9 @@ struct CustomSlider: View {
             let height = CGFloat(dragging ? 9 : 5)
             let rangeSpan = range.upperBound - range.lowerBound
 
-            let filledTrackWidth = min(rangeSpan == .zero ? 0 : ((value - range.lowerBound) / rangeSpan) * width, width)
+
+            let progress = rangeSpan == .zero ? 0 : (value - range.lowerBound) / rangeSpan
+            let filledTrackWidth = min(max(progress, 0), 1) * width
 
             ZStack(alignment: .leading) {
                 // Background track
