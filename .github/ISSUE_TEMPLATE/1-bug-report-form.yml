@@ -29,8 +29,10 @@ body:
     id: version
     attributes:
       label: BoringNotch Version
-      description: What version of our software are you running?
+      description: What version of our software are you running? (Go to ✦ in the menu bar > Settings > About)
       options:
+        - Select an option
+        - 2.7-rc.2
         - 2.7-rc.1
         - 2.7-rc.0
         - 2.6
