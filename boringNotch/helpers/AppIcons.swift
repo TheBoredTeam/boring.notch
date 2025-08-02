@@ -26,13 +26,6 @@ struct AppIcons {
         return getIcon(file: path)
     }
     
-    func getIcon(application: String) -> NSImage? {
-        guard let path = NSWorkspace.shared.fullPath(forApplication: application)
-        else { return nil }
-        
-        return getIcon(file: path)
-    }
-    
         /// Easily read Info.plist as a Dictionary from any bundle by accessing .infoDictionary on Bundle
     func bundle(forBundleID: String) -> Bundle? {
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: forBundleID)
