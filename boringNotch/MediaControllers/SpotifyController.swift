@@ -5,7 +5,7 @@
 //  Created by Alexander on 2025-03-29.
 //
 
-@preconcurrency import Foundation
+import Foundation
 import Combine
 import SwiftUI
 
@@ -15,7 +15,10 @@ class SpotifyController: MediaControllerProtocol {
         bundleIdentifier: "com.spotify.client"
     )
     
-    var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
+    var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
+        $playbackState.eraseToAnyPublisher()
+    }
+    
     private var notificationTask: Task<Void, Never>?
     
     //Constant for time between command and update
@@ -25,19 +28,19 @@ class SpotifyController: MediaControllerProtocol {
         setupPlaybackStateChangeObserver()
         Task {
             if isActive() {
-                await updatePlaybackInfoAsync()
+                await updatePlaybackInfo()
             }
         }
     }
     
     private func setupPlaybackStateChangeObserver() {
-        notificationTask = Task { [weak self] in
+        notificationTask = Task { @Sendable [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.spotify.client.PlaybackStateChanged")
             )
             
             for await _ in notifications {
-                await self?.updatePlaybackInfoAsync()
+                await self?.updatePlaybackInfo()
             }
         }
     }
@@ -70,19 +73,19 @@ class SpotifyController: MediaControllerProtocol {
     func seek(to time: Double) async {
         await executeCommand("set player position to \(time)")
         try? await Task.sleep(for: commandUpdateDelay)
-        await updatePlaybackInfoAsync()
+        await updatePlaybackInfo()
     }
     
     func toggleShuffle() async {
         await executeCommand("set shuffling to not shuffling")
         try? await Task.sleep(for: commandUpdateDelay)
-        await updatePlaybackInfoAsync()
+        await updatePlaybackInfo()
     }
     
     func toggleRepeat() async {
         await executeCommand("set repeating to not repeating")
         try? await Task.sleep(for: commandUpdateDelay)
-        await updatePlaybackInfoAsync()
+        await updatePlaybackInfo()
     }
     
     func isActive() -> Bool {
@@ -90,16 +93,7 @@ class SpotifyController: MediaControllerProtocol {
         return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
     }
     
-    // MARK: - Private Methods
-    
-    // Public method for protocol conformance
-    func updatePlaybackInfo() {
-        Task {
-            await updatePlaybackInfoAsync()
-        }
-    }
-    
-    private func updatePlaybackInfoAsync() async {
+    func updatePlaybackInfo() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
         guard descriptor.numberOfItems >= 9 else { return }
         
@@ -127,28 +121,24 @@ class SpotifyController: MediaControllerProtocol {
             lastUpdated: Date()
         )
         
-        await MainActor.run {
-            self.playbackState = state
-        }
+        self.playbackState = state
         
         // Load artwork asynchronously and update the state when complete
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
             let currentState = state
-            Task.detached { [weak self] in
-                do {
-                    let (data, _) = try await URLSession.shared.data(from: url)
-                    // Create a new state with the artwork data and update
-                    var updatedState = currentState
-                    updatedState.artwork = data
-                    await MainActor.run {
-                        self?.playbackState = updatedState
-                    }
-                } catch {
-                    print("Failed to load artwork: \(error)")
-                }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                // Create a new state with the artwork data and update
+                var updatedState = currentState
+                updatedState.artwork = data
+                playbackState = updatedState
+            } catch {
+                print("Failed to load artwork: \(error)")
             }
         }
     }
+    
+// MARK: - Private Methods
     
     private func executeCommand(_ command: String) async {
         let script = "tell application \"Spotify\" to \(command)"
