@@ -5,7 +5,7 @@
 //  Created by Alexander on 2025-03-29.
 //
 
-@preconcurrency import Foundation
+import Foundation
 import Combine
 import SwiftUI
 
@@ -15,7 +15,10 @@ class AppleMusicController: MediaControllerProtocol {
         bundleIdentifier: "com.apple.Music"
     )
     
-    var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
+    var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
+        $playbackState.eraseToAnyPublisher()
+    }
+    
     private var notificationTask: Task<Void, Never>?
     
     // MARK: - Initialization
@@ -23,19 +26,19 @@ class AppleMusicController: MediaControllerProtocol {
         setupPlaybackStateChangeObserver()
         Task {
             if isActive() {
-                await updatePlaybackInfoAsync()
+                await updatePlaybackInfo()
             }
         }
     }
     
     private func setupPlaybackStateChangeObserver() {
-        notificationTask = Task { [weak self] in
+        notificationTask = Task { @Sendable [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.apple.Music.playerInfo")
             )
             
             for await _ in notifications {
-                await self?.updatePlaybackInfoAsync()
+                await self?.updatePlaybackInfo()
             }
         }
     }
@@ -67,14 +70,12 @@ class AppleMusicController: MediaControllerProtocol {
     
     func seek(to time: Double) async {
         await executeCommand("set player position to \(time)")
-        await updatePlaybackInfoAsync()
+        await updatePlaybackInfo()
     }
     
     func toggleShuffle() async {
         await executeCommand("set shuffle enabled to not shuffle enabled")
-        await MainActor.run {
-            playbackState.isShuffled.toggle()
-        }
+        playbackState.isShuffled.toggle()
     }
     
     func toggleRepeat() async {
@@ -87,65 +88,41 @@ class AppleMusicController: MediaControllerProtocol {
                 set song repeat to off
             end if
             """)
-        await MainActor.run {
-            if playbackState.repeatMode == .off {
-                playbackState.repeatMode = .all
-            } else if playbackState.repeatMode == .all {
-                playbackState.repeatMode = .one
-            } else {
-                playbackState.repeatMode = .off
-            }
+        
+        if playbackState.repeatMode == .off {
+            playbackState.repeatMode = .all
+        } else if playbackState.repeatMode == .all {
+            playbackState.repeatMode = .one
+        } else {
+            playbackState.repeatMode = .off
         }
     }
     
     func isActive() -> Bool {
         let runningApps = NSWorkspace.shared.runningApplications
-        return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
+        return runningApps.contains { $0.bundleIdentifier == "com.apple.Music" }
+    }
+    
+    func updatePlaybackInfo() async {
+        guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
+        guard descriptor.numberOfItems >= 8 else { return }
+        var updatedState = self.playbackState
+        
+        updatedState.isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
+        updatedState.title = descriptor.atIndex(2)?.stringValue ?? "Unknown"
+        updatedState.artist = descriptor.atIndex(3)?.stringValue ?? "Unknown"
+        updatedState.album = descriptor.atIndex(4)?.stringValue ?? "Unknown"
+        updatedState.currentTime = descriptor.atIndex(5)?.doubleValue ?? 0
+        updatedState.duration = descriptor.atIndex(6)?.doubleValue ?? 0
+        updatedState.isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
+        let repeatModeValue = descriptor.atIndex(8)?.int32Value ?? 0
+        updatedState.repeatMode = RepeatMode(rawValue: Int(repeatModeValue)) ?? .off
+        updatedState.artwork = descriptor.atIndex(9)?.data as Data?
+
+        self.playbackState = updatedState
     }
     
     // MARK: - Private Methods
-    
-    // Public method for protocol conformance
-    func updatePlaybackInfo() {
-        Task {
-            await updatePlaybackInfoAsync()
-        }
-    }
-    
-    private func updatePlaybackInfoAsync() async {
-        guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
-        guard descriptor.numberOfItems >= 8 else { return }
-        
-        let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
-        let currentTrack = descriptor.atIndex(2)?.stringValue ?? "Unknown"
-        let currentTrackArtist = descriptor.atIndex(3)?.stringValue ?? "Unknown"
-        let currentTrackAlbum = descriptor.atIndex(4)?.stringValue ?? "Unknown"
-        let currentTime = descriptor.atIndex(5)?.doubleValue ?? 0
-        let duration = descriptor.atIndex(6)?.doubleValue ?? 0
-        let isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
-        let repeatModeValue = descriptor.atIndex(8)?.int32Value ?? 0
-        let repeatMode = RepeatMode(rawValue: Int(repeatModeValue)) ?? .off
-        let artworkData = descriptor.atIndex(9)?.data as Data?
-        
-        let updatedState = PlaybackState(
-            bundleIdentifier: "com.apple.Music",
-            isPlaying: isPlaying,
-            title: currentTrack,
-            artist: currentTrackArtist,
-            album: currentTrackAlbum,
-            currentTime: currentTime,
-            duration: duration,
-            playbackRate: 1,
-            isShuffled: isShuffled,
-            repeatMode: repeatMode,
-            lastUpdated: Date(),
-            artwork: (artworkData?.isEmpty ?? true) ? nil : artworkData
-        )
-        
-        await MainActor.run {
-            self.playbackState = updatedState
-        }
-    }
     
     private func executeCommand(_ command: String) async {
         let script = "tell application \"Music\" to \(command)"

@@ -19,7 +19,7 @@ class MusicManager: ObservableObject {
     static let shared = MusicManager()
     private var cancellables = Set<AnyCancellable>()
     private var controllerCancellables = Set<AnyCancellable>()
-    private var debounceToggle: DispatchWorkItem?
+    private var debounceIdleTask: Task<Void, Never>?
 
     // Helper to check if macOS has removed support for NowPlayingController
     public private(set) var isNowPlayingDeprecated: Bool = false
@@ -90,7 +90,7 @@ class MusicManager: ObservableObject {
     }
     
     public func destroy() {
-        debounceToggle?.cancel()
+        debounceIdleTask?.cancel()
         cancellables.removeAll()
         controllerCancellables.removeAll()
         flipWorkItem?.cancel()
@@ -129,6 +129,7 @@ class MusicManager: ObservableObject {
         // Set up state observation for the new controller
         if let controller = newController {
             controller.playbackStatePublisher
+                .receive(on: DispatchQueue.main)
                 .sink { [weak self] state in
                     guard let self = self,
                           self.activeController === controller else { return }
@@ -169,109 +170,103 @@ class MusicManager: ObservableObject {
     }
 
     // MARK: - Update Methods
+    @MainActor
     private func updateFromPlaybackState(_ state: PlaybackState) {
-        // Create a batch of updates to apply together
-        let updateBatch = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
-
-            // Check for playback state changes (playing/paused)
-            if state.isPlaying != self.isPlaying {
-                withAnimation(.smooth) {
-                    self.isPlaying = state.isPlaying
-                    self.updateIdleState(state: state.isPlaying)
-                }
-
-                if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
-                    self.updateSneakPeek()
-                }
+        // Check for playback state changes (playing/paused)
+        if state.isPlaying != self.isPlaying {
+            NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
+            withAnimation(.smooth) {
+                self.isPlaying = state.isPlaying
+                self.updateIdleState(state: state.isPlaying)
             }
 
-            // Check for changes in track metadata using last artwork change values
-            let titleChanged = state.title != self.lastArtworkTitle
-            let artistChanged = state.artist != self.lastArtworkArtist
-            let albumChanged = state.album != self.lastArtworkAlbum
-            let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
-
-            // Check for artwork changes
-            let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
-            let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged || bundleChanged
-
-            // Handle artwork and visual transitions for changed content
-            if hasContentChange {
-                self.triggerFlipAnimation()
-
-                if artworkChanged, let artwork = state.artwork {
-                    self.updateArtwork(artwork)
-                } else if state.artwork == nil {
-                    // Try to use app icon if no artwork but track changed
-                    if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
-                        self.usingAppIconForArtwork = true
-                        self.updateAlbumArt(newAlbumArt: appIconImage)
-                    }
-                }
-                self.artworkData = state.artwork
-
-                if artworkChanged || state.artwork == nil {
-                    // Update last artwork change values
-                    self.lastArtworkTitle = state.title
-                    self.lastArtworkArtist = state.artist
-                    self.lastArtworkAlbum = state.album
-                    self.lastArtworkBundleIdentifier = state.bundleIdentifier
-                }
-
-                // Only update sneak peek if there's actual content and something changed
-                if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
-                    self.updateSneakPeek()
-                }
+            if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
+                self.updateSneakPeek()
             }
-
-            let timeChanged = state.currentTime != self.elapsedTime
-            let durationChanged = state.duration != self.songDuration
-            let playbackRateChanged = state.playbackRate != self.playbackRate
-            let shuffleChanged = state.isShuffled != self.isShuffled
-            let repeatModeChanged = state.repeatMode != self.repeatMode
-
-            if state.title != self.songTitle {
-                self.songTitle = state.title
-            }
-
-            if state.artist != self.artistName {
-                self.artistName = state.artist
-            }
-
-            if state.album != self.album {
-                self.album = state.album
-            }
-
-            if timeChanged {
-                self.elapsedTime = state.currentTime
-            }
-
-            if durationChanged {
-                self.songDuration = state.duration
-            }
-
-            if playbackRateChanged {
-                self.playbackRate = state.playbackRate
-            }
-            
-            if shuffleChanged {
-                self.isShuffled = state.isShuffled
-            }
-
-            if state.bundleIdentifier != self.bundleIdentifier {
-                self.bundleIdentifier = state.bundleIdentifier
-            }
-
-            if repeatModeChanged {
-                self.repeatMode = state.repeatMode
-            }
-            
-            self.timestampDate = state.lastUpdated
         }
 
-        // Execute the batch update on the main thread
-        DispatchQueue.main.async(execute: updateBatch)
+        // Check for changes in track metadata using last artwork change values
+        let titleChanged = state.title != self.lastArtworkTitle
+        let artistChanged = state.artist != self.lastArtworkArtist
+        let albumChanged = state.album != self.lastArtworkAlbum
+        let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
+
+        // Check for artwork changes
+        let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
+        let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged || bundleChanged
+
+        // Handle artwork and visual transitions for changed content
+        if hasContentChange {
+            self.triggerFlipAnimation()
+
+            if artworkChanged, let artwork = state.artwork {
+                self.updateArtwork(artwork)
+            } else if state.artwork == nil {
+                // Try to use app icon if no artwork but track changed
+                if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
+                    self.usingAppIconForArtwork = true
+                    self.updateAlbumArt(newAlbumArt: appIconImage)
+                }
+            }
+            self.artworkData = state.artwork
+
+            if artworkChanged || state.artwork == nil {
+                // Update last artwork change values
+                self.lastArtworkTitle = state.title
+                self.lastArtworkArtist = state.artist
+                self.lastArtworkAlbum = state.album
+                self.lastArtworkBundleIdentifier = state.bundleIdentifier
+            }
+
+            // Only update sneak peek if there's actual content and something changed
+            if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
+                self.updateSneakPeek()
+            }
+        }
+
+        let timeChanged = state.currentTime != self.elapsedTime
+        let durationChanged = state.duration != self.songDuration
+        let playbackRateChanged = state.playbackRate != self.playbackRate
+        let shuffleChanged = state.isShuffled != self.isShuffled
+        let repeatModeChanged = state.repeatMode != self.repeatMode
+
+        if state.title != self.songTitle {
+            self.songTitle = state.title
+        }
+
+        if state.artist != self.artistName {
+            self.artistName = state.artist
+        }
+
+        if state.album != self.album {
+            self.album = state.album
+        }
+
+        if timeChanged {
+            self.elapsedTime = state.currentTime
+        }
+
+        if durationChanged {
+            self.songDuration = state.duration
+        }
+
+        if playbackRateChanged {
+            self.playbackRate = state.playbackRate
+        }
+        
+        if shuffleChanged {
+            self.isShuffled = state.isShuffled
+        }
+
+        if state.bundleIdentifier != self.bundleIdentifier {
+            self.bundleIdentifier = state.bundleIdentifier
+        }
+
+        if repeatModeChanged {
+            self.repeatMode = state.repeatMode
+        }
+        
+        self.timestampDate = state.lastUpdated
     }
 
     private func triggerFlipAnimation() {
@@ -295,9 +290,9 @@ class MusicManager: ObservableObject {
             guard let self = self else { return }
 
             if let artworkImage = NSImage(data: artworkData) {
-                DispatchQueue.main.async {
-                    self.usingAppIconForArtwork = false
-                    self.updateAlbumArt(newAlbumArt: artworkImage)
+                DispatchQueue.main.async { [weak self] in
+                    self?.usingAppIconForArtwork = false
+                    self?.updateAlbumArt(newAlbumArt: artworkImage)
                 }
             }
         }
@@ -306,19 +301,16 @@ class MusicManager: ObservableObject {
     private func updateIdleState(state: Bool) {
         if state {
             isPlayerIdle = false
-            debounceToggle?.cancel()
+            debounceIdleTask?.cancel()
         } else {
-            debounceToggle = DispatchWorkItem { [weak self] in
+            debounceIdleTask?.cancel()
+            debounceIdleTask = Task { [weak self] in
                 guard let self = self else { return }
-                if self.timestampDate.timeIntervalSinceNow < -Defaults[.waitInterval] {
-                    withAnimation {
-                        self.isPlayerIdle = !self.isPlaying
-                    }
+                try? await Task.sleep(for: .seconds(Defaults[.waitInterval]))
+                withAnimation {
+                    self.isPlayerIdle = !self.isPlaying
                 }
             }
-
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + Defaults[.waitInterval], execute: debounceToggle!)
         }
     }
 
@@ -435,13 +427,13 @@ class MusicManager: ObservableObject {
 
     func forceUpdate() {
         // Request immediate update from the active controller
-        DispatchQueue.main.async { [weak self] in
+        Task { [weak self] in
             if self?.activeController?.isActive() == true {
-                if self?.bundleIdentifier == "com.github.th-ch.youtube-music",
+                if  type(of: self?.activeController) == YouTubeMusicController.self,
                 let youtubeController = self?.activeController as? YouTubeMusicController {
-                    youtubeController.pollPlaybackState()
+                    await youtubeController.pollPlaybackState()
                 } else {
-                    self?.activeController?.updatePlaybackInfo()
+                    await self?.activeController?.updatePlaybackInfo()
                 }
             }
         }

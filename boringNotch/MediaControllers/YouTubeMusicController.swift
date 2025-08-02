@@ -6,7 +6,7 @@
 //  Modified by Pranav on 2025-06-16.
 //
 
-@preconcurrency import Foundation
+import Foundation
 import Combine
 import SwiftUI
 
@@ -17,18 +17,18 @@ class YouTubeMusicController: MediaControllerProtocol {
         isPlaying: true
     )
     
-    var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
+    var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
+        $playbackState.eraseToAnyPublisher()
+    }
     private let baseURL = "http://localhost:26538"
     private var accessToken: String?
-    private var refreshTimer: Timer?
+    private var periodicUpdateTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
     private var isAuthenticating = false
     
     init() {
         setupAppStateObservers()
-        Task { [weak self] in
-            await self?.authenticateAndSetup()
-        }
+        Task {await authenticateAndSetup()}
     }
     
     deinit {
@@ -43,25 +43,16 @@ class YouTubeMusicController: MediaControllerProtocol {
         // Prevent multiple concurrent authentication attempts
         guard !isAuthenticating else { return }
         
-        await MainActor.run {
-            isAuthenticating = true
-        }
-        
+        isAuthenticating = true
         let success = await getAccessToken()
         
-        await MainActor.run { [weak self] in
-            guard let self = self else { return }
-            self.isAuthenticating = false
-            if success {
-                self.startPeriodicUpdates()
-                self.updatePlaybackInfo()
-            } else {
-                // Retry authentication after a delay if it fails
-                Task { [weak self] in
-                    try? await Task.sleep(for: .seconds(5))
-                    await self?.authenticateAndSetup()
-                }
-            }
+        self.isAuthenticating = false
+        if success {
+            await self.startPeriodicUpdates()
+            await updatePlaybackInfo()
+        } else {
+            try? await Task.sleep(for: .seconds(5))
+            await authenticateAndSetup()
         }
     }
     
@@ -76,9 +67,7 @@ class YouTubeMusicController: MediaControllerProtocol {
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
             let response = try JSONDecoder().decode(AuthResponse.self, from: data)
-            await MainActor.run { [weak self] in
-                self?.accessToken = response.accessToken
-            }
+            accessToken = response.accessToken
             return true
         } catch {
             return false
@@ -89,12 +78,12 @@ class YouTubeMusicController: MediaControllerProtocol {
     
     func play() async {
         await sendCommand(endpoint: "/play", method: "POST")
-        updatePlaybackInfo()
+        await updatePlaybackInfo()
     }
     
     func pause() async {
         await sendCommand(endpoint: "/pause", method: "POST")
-        updatePlaybackInfo()
+        await updatePlaybackInfo()
     }
     
     func togglePlay() async {
@@ -104,17 +93,17 @@ class YouTubeMusicController: MediaControllerProtocol {
             }
         }
         await sendCommand(endpoint: "/toggle-play", method: "POST")
-        updatePlaybackInfo()
+        await updatePlaybackInfo()
     }
     
     func nextTrack() async {
         await sendCommand(endpoint: "/next", method: "POST")
-        updatePlaybackInfo()
+        await updatePlaybackInfo()
     }
     
     func previousTrack() async {
         await sendCommand(endpoint: "/previous", method: "POST")
-        updatePlaybackInfo()
+        await updatePlaybackInfo()
     }
     
     func seek(to time: Double) async {
@@ -155,17 +144,13 @@ class YouTubeMusicController: MediaControllerProtocol {
                 
                 // Update playback info after seeking
                 try? await Task.sleep(for: .milliseconds(300))
-                updatePlaybackInfo()
+                await updatePlaybackInfo()
                 
             } catch {
                 print("Seek error: \(error)")
                 if let urlError = error as? URLError, urlError.code == .userAuthenticationRequired {
-                    await MainActor.run {
-                        self.accessToken = nil
-                        Task {
-                            await self.authenticateAndSetup()
-                        }
-                    }
+                    self.accessToken = nil
+                    await self.authenticateAndSetup()
                 }
             }
             
@@ -220,49 +205,46 @@ class YouTubeMusicController: MediaControllerProtocol {
         )
     }
     
-    @objc private func handleAppStateChange(notification: Notification) {
+    @objc private func handleAppStateChange(notification: Notification) async {
         guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
               app.bundleIdentifier == playbackState.bundleIdentifier else {
             return
         }
         
         if notification.name == NSWorkspace.didLaunchApplicationNotification {
-            startPeriodicUpdates()
+            await startPeriodicUpdates()
         } else if notification.name == NSWorkspace.didTerminateApplicationNotification {
             // App has terminated - update state and stop timer
             stopPeriodicUpdates()
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.playbackState = PlaybackState(
-                    bundleIdentifier: self.playbackState.bundleIdentifier,
-                    isPlaying: false
-                )
-            }
+            self.playbackState = PlaybackState(
+                bundleIdentifier: self.playbackState.bundleIdentifier,
+                isPlaying: false
+            )
         }
     }
     
-    private func startPeriodicUpdates() {
+    private func startPeriodicUpdates() async {
         stopPeriodicUpdates() // Ensure we don't create multiple timers
         
         // Only start the timer if the app is actually running
         guard isActive() else { return }
         
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            self?.updatePlaybackInfo()
+        periodicUpdateTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.updatePlaybackInfo()
+                try? await Task.sleep(for: .seconds(2))
+            }
         }
-        refreshTimer?.tolerance = 0.5
         
         // Initial update when timer starts
-        updatePlaybackInfo()
-        Task { [weak self] in
-            await self?.fetchRepeatMode()
-            await self?.fetchShuffleState()
-        }
+        await updatePlaybackInfo()
+        await fetchRepeatMode()
+        await fetchShuffleState()
     }
     
     private func stopPeriodicUpdates() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
+        periodicUpdateTask?.cancel()
+        periodicUpdateTask = nil
     }
 
     private func updateRepeatMode(_ modeString: String?) {
@@ -281,90 +263,82 @@ class YouTubeMusicController: MediaControllerProtocol {
         }
         
         if repeatMode != playbackState.repeatMode {
-            DispatchQueue.main.async { [weak self] in
-                self?.playbackState.repeatMode = repeatMode
-            }
+            playbackState.repeatMode = repeatMode
         }
     }
     
-    func updatePlaybackInfo() {
+    func updatePlaybackInfo() async {
         if !isActive() {
             playbackState = PlaybackState(bundleIdentifier: playbackState.bundleIdentifier, isPlaying: false)
             stopPeriodicUpdates()
             return
         }
+
+        guard let request = await createAuthenticatedRequest(for: "/api/v1/song") else { return }
         
-        Task { [weak self] in
-            guard let self = self else { return }
-            guard let request = await self.createAuthenticatedRequest(for: "/api/v1/song") else { return }
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
             
-            do {
-                let (data, response) = try await URLSession.shared.data(for: request)
-                
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw URLError(.badServerResponse)
-                }
-                
-                // Check for authentication errors
-                if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                    // Re-authenticate and retry later
-                    await MainActor.run {
-                        self.accessToken = nil
-                    }
-                    await self.authenticateAndSetup()
-                    throw URLError(.userAuthenticationRequired)
-                } else if httpResponse.statusCode < 200 || httpResponse.statusCode >= 300 {
-                    throw URLError(.badServerResponse)
-                }
-                
-                let playbackResponse = try JSONDecoder().decode(PlaybackResponse.self, from: data)
-                await self.updatePlaybackState(with: playbackResponse)
-                
-            } catch {
-                // Handle error silently for now, as this is called periodically
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw URLError(.badServerResponse)
             }
+            
+            // Check for authentication errors
+            if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                // Re-authenticate and retry later
+                self.accessToken = nil
+                await authenticateAndSetup()
+                throw URLError(.userAuthenticationRequired)
+            } else if httpResponse.statusCode < 200 || httpResponse.statusCode >= 300 {
+                throw URLError(.badServerResponse)
+            }
+            
+            let playbackResponse = try JSONDecoder().decode(PlaybackResponse.self, from: data)
+            await updatePlaybackState(with: playbackResponse)
+            
+        } catch {
+            // Handle error silently for now, as this is called periodically
         }
     }
     
     private func updatePlaybackState(with response: PlaybackResponse) async {
-        await MainActor.run { [weak self] in
-            guard let self = self else { return }
-            self.playbackState.isPlaying = !response.isPaused
-            self.playbackState.title = response.title
-            self.playbackState.artist = response.artist
-            self.playbackState.album = response.album ?? ""
-            self.playbackState.currentTime = response.elapsedSeconds
-            self.playbackState.duration = response.songDuration
-            self.playbackState.lastUpdated = Date()
-            
-            if let isShuffled = response.isShuffled {
-                self.playbackState.isShuffled = isShuffled
-            }
+        var updatedState = self.playbackState
+        updatedState.isPlaying = !response.isPaused
+        updatedState.title = response.title
+        updatedState.artist = response.artist
+        updatedState.album = response.album ?? ""
+        updatedState.currentTime = response.elapsedSeconds
+        updatedState.duration = response.songDuration
+        updatedState.lastUpdated = Date()
+        
+        if let isShuffled = response.isShuffled {
+            updatedState.isShuffled = isShuffled
         }
-
+        
         // Load artwork if available
         if let artworkURL = response.imageSrc, let url = URL(string: artworkURL) {
-            Task {
-                do {
-                    let artworkData = try Data(contentsOf: url)
-                    await MainActor.run { [weak self] in
-                        self?.playbackState.artwork = artworkData
-                    }
-                } catch { return }
+            do {
+                let artworkData = try Data(contentsOf: url)
+                playbackState.artwork = artworkData
+                
+            } catch {
+                NSLog("Failed to load artwork: \(error)")
+                updatedState.artwork = nil
+                self.playbackState = updatedState
+                return
             }
         }
+        self.playbackState = updatedState
     }
     
-    func pollPlaybackState() {
+    func pollPlaybackState() async {
         if !isActive() {
             return
         }
         
-        Task { [weak self] in
-            await self?.fetchRepeatMode()
-            await self?.fetchShuffleState()
-            self?.updatePlaybackInfo()
-        }
+        await fetchRepeatMode()
+        await fetchShuffleState()
+        await updatePlaybackInfo()
     }
 
     private func sendCommand(endpoint: String, method: String = "GET") async {
@@ -398,9 +372,7 @@ class YouTubeMusicController: MediaControllerProtocol {
                 do {
                     if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                     let shuffleState = json["state"] as? Bool {
-                        await MainActor.run {
-                            playbackState.isShuffled = shuffleState
-                        }
+                        playbackState.isShuffled = shuffleState
                     }
                 } catch {
                     print("Error parsing shuffle state: \(error)")
@@ -417,7 +389,7 @@ class YouTubeMusicController: MediaControllerProtocol {
             }
 
             // Update playback info for relevant commands
-            updatePlaybackInfo()
+            await updatePlaybackInfo()
             
         } catch {
             if let urlError = error as? URLError, urlError.code == .userAuthenticationRequired {
