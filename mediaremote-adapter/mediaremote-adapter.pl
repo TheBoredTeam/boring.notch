@@ -43,14 +43,20 @@ PARAMS:
     speed: The playback speed
 
 OPTIONS:
+  get
+    --now: Sets "elapsedTime" to the current elapsed time. By default,
+      this value is the elapsed time at the time of the given "timestamp"
   stream
     --no-diff: Disable diffing and always dump all metadata
     --debounce=N: Delay in milliseconds to prevent spam (0 by default)
   get, stream
     --micros: Replaces the following time keys with microsecond equivalents
-      duration -> durationMicros
-      elapsedTime -> elapsedTimeMicros
-      timestamp -> timestampEpochMicros (converted to epoch time)
+      "duration" -> "durationMicros"
+      "elapsedTime" -> "elapsedTimeMicros"
+      "timestamp" -> "timestampEpochMicros" (converted to epoch time)
+    --human-readable, -h: Makes values human-readable. Use only for debugging.
+      The JSON output is pretty-printed and the following keys are adapted:
+      "artworkData" -> Binary data is truncated to a shorter representation
 
 Examples (script name and framework path omitted):
   stream --no-diff --debounce=100
@@ -114,6 +120,11 @@ sub parse_options {
       $arg_map{$key} = $value;
       splice @ARGV, $i, 1;
     }
+    elsif ($arg =~ /^-([a-zA-Z]+)$/) {
+      my @flags = split //, $1;
+      $arg_map{$_} = undef for @flags;
+      splice @ARGV, $i, 1;
+    }
     else {
       $i++;
     }
@@ -174,6 +185,9 @@ elsif ($function_name eq "stream") {
     elsif ($key eq "micros") {
       set_env_option($options, $key);
     }
+    elsif ($key eq "human-readable" || $key eq "h") {
+      set_env_option($options, "human-readable");
+    }
     else {
       fail "Unrecognized option '$key'";
     }
@@ -184,6 +198,12 @@ elsif ($function_name eq "get") {
   my $options = parse_options(0);
   foreach my $key (keys %{$options}) {
     if ($key eq "micros") {
+      set_env_option($options, $key);
+    }
+    elsif ($key eq "human-readable" || $key eq "h") {
+      set_env_option($options, "human-readable");
+    }
+    elsif ($key eq "now") {
       set_env_option($options, $key);
     }
     else {
