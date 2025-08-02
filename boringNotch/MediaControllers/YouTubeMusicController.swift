@@ -13,8 +13,7 @@ import SwiftUI
 class YouTubeMusicController: MediaControllerProtocol {
     // MARK: - Properties
     @Published var playbackState: PlaybackState = .init(
-        bundleIdentifier: "com.github.th-ch.youtube-music",
-        isPlaying: true
+        bundleIdentifier: "com.github.th-ch.youtube-music"
     )
     
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
@@ -23,6 +22,7 @@ class YouTubeMusicController: MediaControllerProtocol {
     private let baseURL = "http://localhost:26538"
     private var accessToken: String?
     private var periodicUpdateTask: Task<Void, Never>?
+    private var notificationTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
     private var isAuthenticating = false
     
@@ -33,8 +33,8 @@ class YouTubeMusicController: MediaControllerProtocol {
     
     deinit {
         stopPeriodicUpdates()
+        notificationTask?.cancel()
         cancellables.forEach { $0.cancel() }
-        NSWorkspace.shared.notificationCenter.removeObserver(self)
     }
     
     // MARK: - Authentication
@@ -188,24 +188,34 @@ class YouTubeMusicController: MediaControllerProtocol {
     // MARK: - Private Methods
     
     private func setupAppStateObservers() {
-        // Register for app launch notifications
-        NSWorkspace.shared.notificationCenter.addObserver(
-            self,
-            selector: #selector(handleAppStateChange),
-            name: NSWorkspace.didLaunchApplicationNotification,
-            object: nil
-        )
-        
-        // Register for app termination notifications
-        NSWorkspace.shared.notificationCenter.addObserver(
-            self,
-            selector: #selector(handleAppStateChange),
-            name: NSWorkspace.didTerminateApplicationNotification,
-            object: nil
-        )
+        notificationTask = Task { @Sendable [weak self] in
+            await withTaskGroup(of: Void.self) { group in
+                // Handle app launch notifications
+                group.addTask {
+                    let launchNotifications = NSWorkspace.shared.notificationCenter.notifications(
+                        named: NSWorkspace.didLaunchApplicationNotification
+                    )
+                    
+                    for await notification in launchNotifications {
+                        await self?.handleAppStateChange(notification: notification)
+                    }
+                }
+                
+                // Handle app termination notifications
+                group.addTask {
+                    let terminateNotifications = NSWorkspace.shared.notificationCenter.notifications(
+                        named: NSWorkspace.didTerminateApplicationNotification
+                    )
+                    
+                    for await notification in terminateNotifications {
+                        await self?.handleAppStateChange(notification: notification)
+                    }
+                }
+            }
+        }
     }
     
-    @objc private func handleAppStateChange(notification: Notification) async {
+    private func handleAppStateChange(notification: Notification) async {
         guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
               app.bundleIdentifier == playbackState.bundleIdentifier else {
             return
