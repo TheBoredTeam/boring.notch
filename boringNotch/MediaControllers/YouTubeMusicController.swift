@@ -22,7 +22,7 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     private let baseURL = "http://localhost:26538"
     private var accessToken: String?
-    private var refreshTimer: Timer?
+    private var periodicUpdateTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
     private var isAuthenticating = false
     
@@ -229,8 +229,8 @@ class YouTubeMusicController: MediaControllerProtocol {
         // Only start the timer if the app is actually running
         guard isActive() else { return }
         
-        Task { [weak self] in
-            while true {
+        periodicUpdateTask = Task { [weak self] in
+            while !Task.isCancelled {
                 await self?.updatePlaybackInfo()
                 try? await Task.sleep(for: .seconds(2))
             }
@@ -243,8 +243,8 @@ class YouTubeMusicController: MediaControllerProtocol {
     }
     
     private func stopPeriodicUpdates() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
+        periodicUpdateTask?.cancel()
+        periodicUpdateTask = nil
     }
 
     private func updateRepeatMode(_ modeString: String?) {
