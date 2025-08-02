@@ -31,6 +31,7 @@ body:
       label: BoringNotch Version
       description: What version of our software are you running?
       options:
+        - 2.7-rc.2
         - 2.7-rc.1
         - 2.7-rc.0
         - 2.6
