@@ -226,8 +226,13 @@ struct NotchHomeView: View {
     }
 
     private var mainContent: some View {
+
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+            let showMediaController = Defaults[.mediaControllerEnabled]
+            
+            if showMediaController {
+                MusicPlayerView(albumArtNamespace: albumArtNamespace)
+            } else {Spacer()}
             
             if Defaults[.showCalendar] {
                 CalendarView()
@@ -236,6 +241,7 @@ struct NotchHomeView: View {
                         vm.isHoveringCalendar = isHovering
                     }
                     .environmentObject(vm)
+                    .frame(maxWidth: shouldShowCamera ? CGFloat.infinity : 250)
             }
             
             if shouldShowCamera {
@@ -244,6 +250,8 @@ struct NotchHomeView: View {
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
             }
+          
+            if !showMediaController {Spacer()}
         }
         .transition(.opacity.animation(.smooth.speed(0.9))
             .combined(with: .blurReplace.animation(.smooth.speed(0.9)))

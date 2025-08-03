@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Defaults
 
 struct TabModel: Identifiable {
     let id = UUID()
@@ -25,6 +26,7 @@ struct TabSelectionView: View {
     var body: some View {
         HStack(spacing: 0) {
             ForEach(tabs) { tab in
+                if !(tab.label == "Home" && !(Defaults[.mediaControllerEnabled] || Defaults[.showCalendar] || Defaults[.showMirror])) {
                     TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view
@@ -44,6 +46,7 @@ struct TabSelectionView: View {
                                 .hidden()
                         }
                     }
+                }
             }
         }
         .clipShape(Capsule())
