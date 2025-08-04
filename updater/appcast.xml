@@ -1,6 +1,28 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
-    <channel>
+    <channel>        
+    <item>
+            <title>2.7-rc.2 Flying Rabbit 🐇🪽</title>
+            <pubDate>Mon, 04 Aug 2025 11:50:17 +0530</pubDate>
+            <sparkle:version>2.7-rc.2+1</sparkle:version>
+            <sparkle:shortVersionString>2.7-rc.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                    <div>
+                        <h1>🐇 boring.notch v2.7 – Flying Rabbit RC 2</h1>
+                        <p>Release Candidate - August 4, 2025</p>
+                            <h2>✨ What's New & Improved</h2>
+                            <ul>
+                            <li><b>🎵 Better Media Controller Stability:</b> Improved stability and app support by replacing blocking semaphores with async/await in music controllers. (by @weitheng & @Alexander5015)</li>
+                            <li><b>🔧 MediaRemote Adapter Updates:</b> Enhanced stability and better app support in MediaRemote Adapter. (by @Alexander5015)</li>
+                            <li><b>🔔 YouTube Music Controller Fixes:</b> Resolved notification handling issues in YouTube Music Controller. (by @Alexander5015)</li>
+                        </ul>
+                        <p>— The Boring Team</p>
+                    </div>
+                ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.2/boringNotch.dmg" length="9057470" type="application/octet-stream" sparkle:edSignature="iMtS4RJNt7sOdPOsHYJZPpmSZNZgkeRqQJYsv4v0Um8ocq1n/gmD++UWeuv9ftgC7OZ6ihRjYe2yrNc05ErgAA=="/>
+        </item>
+
 		<item>
                 <title>2.7-rc.1 Flying Rabbit 🐇🪽</title>
                 <pubDate>Sun, 27 Jul 2025 09:41:40 +0530</pubDate>
