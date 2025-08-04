@@ -8,7 +8,14 @@
 
     },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'En reproducción' era la única opción en versiones anteriores y funciona con todas las aplicaciones multimedia."
+          }
+        }
+      }
     },
     "(%@)" : {
       "localizations" : {
@@ -39,13 +46,34 @@
 
     },
     "• Bug fixes" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Corrección de errores"
+          }
+        }
+      }
     },
     "• Improved performance" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Rendimiento mejorado"
+          }
+        }
+      }
     },
     "• New feature 1" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Nueva funcionalidad 1"
+          }
+        }
+      }
     },
     "About" : {
       "localizations" : {
@@ -54,67 +82,191 @@
             "state" : "translated",
             "value" : "About"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acerca de"
+          }
         }
       }
     },
     "Accent color" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accent color"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color de acento"
+          }
         }
       }
     },
     "Access Denied" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acceso Denegado"
+          }
+        }
+      }
     },
     "Activate" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activar"
+          }
+        }
+      }
     },
     "Activate your license" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa tu licencia"
+          }
+        }
+      }
     },
     "Activation" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activación"
+          }
+        }
+      }
     },
     "Add" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir"
+          }
+        }
+      }
     },
     "Add manually" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir manualmente"
+          }
+        }
+      }
     },
     "Add new visualizer" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir nuevo visualizador"
+          }
+        }
+      }
     },
     "Additional features" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Características adicionales"
+          }
+        }
+      }
     },
     "AirDrop" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AirDrop"
+          }
+        }
+      }
     },
     "AirDrop service not available" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servicio AirDrop no disponible"
+          }
+        }
+      }
     },
     "All-day" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo el día"
+          }
+        }
+      }
     },
     "Allow Access" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir Acceso"
+          }
+        }
+      }
     },
     "Always hide in fullscreen" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar siempre en pantalla completa"
+          }
+        }
+      }
     },
     "Always show tabs" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar siempre las pestañas"
+          }
+        }
+      }
     },
     "App icon" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icono de la aplicación"
+          }
+        }
+      }
     },
     "Appearance" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apariencia"
+          }
+        }
+      }
     },
     "Automatically check for updates" : {
       "localizations" : {
@@ -123,11 +275,24 @@
             "state" : "translated",
             "value" : "Automatically check for updates"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar actualizaciones automáticamente"
+          }
         }
       }
     },
     "Automatically download updates" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargar actualizaciones automáticamente"
+          }
+        }
+      }
     },
     "Battery" : {
       "localizations" : {
@@ -136,34 +301,81 @@
             "state" : "translated",
             "value" : "Battery"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Batería"
+          }
         }
       }
     },
     "Battery Information" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Información de la Batería"
+          }
+        }
+      }
     },
     "Battery Settings" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuración de Batería"
+          }
+        }
+      }
     },
     "Battery Status" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado de la Batería"
+          }
+        }
+      }
     },
     "Boost your productivity with Clipboard Manager" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aumenta tu productividad con el Gestor del Portapapeles"
+          }
+        }
+      }
     },
     "Boring Controls" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Controls"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controles Boring"
+          }
         }
       }
     },
     "Boring Notch" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch"
+          }
+        }
+      }
     },
     "boring.notch" : {
       "localizations" : {
@@ -182,28 +394,61 @@
             "state" : "translated",
             "value" : "Both"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ambos"
+          }
         }
       }
     },
     "Buy Me a Coffee" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Buy Me a Coffee"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invítame un Café"
+          }
         }
       }
     },
     "Calendar" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendario"
+          }
+        }
+      }
     },
     "Calendar access is denied. Please enable it in System Settings." : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El acceso al calendario está denegado. Por favor, habilítalo en Configuración del Sistema."
+          }
+        }
+      }
     },
     "Cancel" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        }
+      }
     },
     "Charging" : {
       "localizations" : {
@@ -212,34 +457,81 @@
             "state" : "translated",
             "value" : "Charging"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargando"
+          }
         }
       }
     },
     "Charging on Hold: Desktop Mode" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carga en Espera: Modo Escritorio"
+          }
+        }
+      }
     },
     "Check for updates" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Check for updates"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar actualizaciones"
+          }
         }
       }
     },
     "Check for Updates…" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar Actualizaciones…"
+          }
+        }
+      }
     },
     "Choose a Music Source" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige una Fuente de Música"
+          }
+        }
+      }
     },
     "Circle" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Círculo"
+          }
+        }
+      }
     },
     "Close" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar"
+          }
+        }
+      }
     },
     "Coming soon" : {
       "localizations" : {
@@ -248,52 +540,141 @@
             "state" : "translated",
             "value" : "Coming soon"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próximamente"
+          }
         }
       }
     },
     "Continue" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar"
+          }
+        }
+      }
     },
     "Custom color" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Custom color"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color personalizado"
+          }
         }
       }
     },
     "Custom height" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altura personalizada"
+          }
+        }
+      }
     },
     "Custom music live activity animation" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animación personalizada de actividad musical en vivo"
+          }
+        }
+      }
     },
     "Custom notch size - %.0f" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamaño de notch personalizado - %.0f"
+          }
+        }
+      }
     },
     "Custom vizualizers (Lottie)" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visualizadores personalizados (Lottie)"
+          }
+        }
+      }
     },
     "Customize in Settings" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizar en Configuración"
+          }
+        }
+      }
     },
     "Default" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por defecto"
+          }
+        }
+      }
     },
     "Description" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descripción"
+          }
+        }
+      }
     },
     "Disable" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivar"
+          }
+        }
+      }
     },
     "Disabled" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado"
+          }
+        }
+      }
     },
     "Download" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargar"
+          }
+        }
+      }
     },
     "Download icon style" : {
       "localizations" : {
@@ -301,6 +682,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Download icon style"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estilo del icono de descarga"
           }
         }
       }
@@ -312,11 +699,24 @@
             "state" : "translated",
             "value" : "Download indicator style"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estilo del indicador de descarga"
+          }
         }
       }
     },
     "Download indicators" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indicadores de descarga"
+          }
+        }
+      }
     },
     "Downloads" : {
       "localizations" : {
@@ -325,60 +725,148 @@
             "state" : "translated",
             "value" : "Downloads"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargas"
+          }
         }
       }
     },
     "Drop files here" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra archivos aquí"
+          }
+        }
+      }
     },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia, almacena y gestiona fácilmente tu contenido más usado. ¡Actualiza ahora para características avanzadas como almacenamiento múltiple y acceso rápido!"
+          }
+        }
+      }
     },
     "Edit layout" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar diseño"
+          }
+        }
+      }
     },
     "Email address" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección de correo electrónico"
+          }
+        }
+      }
     },
     "Enable colored spectrograms" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enable colored spectrograms"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar espectrogramas de colores"
+          }
         }
       }
     },
     "Enable haptics" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enable haptics"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar hápticos"
+          }
         }
       }
     },
     "Enable HUD replacement" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar reemplazo HUD"
+          }
+        }
+      }
     },
     "Enable music live activity" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar actividad musical en vivo"
+          }
+        }
+      }
     },
     "Enable sneak peek" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar vista previa"
+          }
+        }
+      }
     },
     "Enhance your experience with HUDs" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejora tu experiencia con HUDs"
+          }
+        }
+      }
     },
     "Enjoy your free time!" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Disfruta tu tiempo libre!"
+          }
+        }
+      }
     },
     "Error" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        }
+      }
     },
     "Exclude apps" : {
       "localizations" : {
@@ -387,17 +875,44 @@
             "state" : "translated",
             "value" : "Exclude apps"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluir aplicaciones"
+          }
         }
       }
     },
     "Exit" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salir"
+          }
+        }
+      }
     },
     "Extensions" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensiones"
+          }
+        }
+      }
     },
     "Finish" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finalizar"
+          }
+        }
+      }
     },
     "General" : {
       "localizations" : {
@@ -406,17 +921,44 @@
             "state" : "translated",
             "value" : "General"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
         }
       }
     },
     "Gesture control" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Control por gestos"
+          }
+        }
+      }
     },
     "Gesture sensitivity" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensibilidad de gestos"
+          }
+        }
+      }
     },
     "Get started" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comenzar"
+          }
+        }
+      }
     },
     "GitHub" : {
       "localizations" : {
@@ -425,70 +967,214 @@
             "state" : "translated",
             "value" : "GitHub"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub"
+          }
         }
       }
     },
     "Got it!" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Entendido!"
+          }
+        }
+      }
     },
     "Gradient" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Degradado"
+          }
+        }
+      }
     },
     "Hide BoringNotch Options" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar Opciones de BoringNotch"
+          }
+        }
+      }
     },
     "Hide only when NowPlaying app is in fullscreen" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar solo cuando la aplicación En Reproducción esté en pantalla completa"
+          }
+        }
+      }
     },
     "Hierarchical" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jerárquico"
+          }
+        }
+      }
     },
     "High" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alto"
+          }
+        }
+      }
     },
     "https://github.com/th-ch/youtube-music" : {
 
     },
     "HUD style" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estilo HUD"
+          }
+        }
+      }
     },
     "HUDs" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HUDs"
+          }
+        }
+      }
     },
     "In progress" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En progreso"
+          }
+        }
+      }
     },
     "Inline" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En línea"
+          }
+        }
+      }
     },
     "Install updates automatically" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Install updates automatically"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar actualizaciones automáticamente"
+          }
         }
       }
     },
     "Installed extensions" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extensiones instaladas"
+          }
+        }
+      }
+    },
+    "Language" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma"
+          }
+        }
+      }
+    },
+    "Language Changed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma Cambiado"
+          }
+        }
+      }
     },
     "Later" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más tarde"
+          }
+        }
+      }
     },
     "License key" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clave de licencia"
+          }
+        }
+      }
     },
     "Lottie JSON URL" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL JSON de Lottie"
+          }
+        }
+      }
     },
     "Low" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bajo"
+          }
+        }
+      }
     },
     "Low Power Mode" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de Bajo Consumo"
+          }
+        }
+      }
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
@@ -497,17 +1183,44 @@
             "state" : "translated",
             "value" : "Made with 🫶🏻 by not so boring not.people"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hecho con 🫶🏻 por not so boring not.people"
+          }
         }
       }
     },
     "Match menubar height" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coincidir con altura de la barra de menú"
+          }
+        }
+      }
     },
     "Match real notch size" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coincidir con el tamaño real del notch"
+          }
+        }
+      }
     },
     "Max Capacity: %lld%%" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capacidad Máxima: %lld%%"
+          }
+        }
+      }
     },
     "Media" : {
       "localizations" : {
@@ -516,14 +1229,34 @@
             "state" : "translated",
             "value" : "Media"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medios"
+          }
         }
       }
     },
     "Media change with horizontal gestures" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambio de medios con gestos horizontales"
+          }
+        }
+      }
     },
     "Media controls" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controles de medios"
+          }
+        }
+      }
     },
     "Media inactivity timeout" : {
       "localizations" : {
@@ -531,6 +1264,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Media inactivity timeout"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo de espera por inactividad de medios"
           }
         }
       }
@@ -542,102 +1281,288 @@
             "state" : "translated",
             "value" : "Media playback live activity"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actividad en vivo de reproducción de medios"
+          }
         }
       }
     },
     "Media Source" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuente de Medios"
+          }
+        }
+      }
     },
     "Medium" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medio"
+          }
+        }
+      }
     },
     "Menubar icon" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Menubar icon"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icono de la barra de menú"
+          }
         }
       }
     },
     "Mic %@" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Micrófono %@"
+          }
+        }
+      }
     },
     "Minimum hover duration" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duración mínima de hover"
+          }
+        }
+      }
     },
     "Mirror" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espejo"
+          }
+        }
+      }
     },
     "Mirror shape" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forma de espejo"
+          }
+        }
+      }
     },
     "More" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más"
+          }
+        }
+      }
     },
     "Music Source" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuente de Música"
+          }
+        }
+      }
     },
     "muted" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "silenciado"
+          }
+        }
+      }
     },
     "Name" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre"
+          }
+        }
+      }
     },
     "Need Restart" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necesita Reinicio"
+          }
+        }
+      }
     },
     "Never hide" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nunca ocultar"
+          }
+        }
+      }
     },
     "No custom animation available" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay animación personalizada disponible"
+          }
+        }
+      }
     },
     "No custom visualizer" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin visualizador personalizado"
+          }
+        }
+      }
     },
     "No events today" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay eventos hoy"
+          }
+        }
+      }
     },
     "No excluded apps" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay aplicaciones excluidas"
+          }
+        }
+      }
     },
     "No excludes" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "No excludes"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin exclusiones"
+          }
         }
       }
     },
     "No extension installed" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay extensiones instaladas"
+          }
+        }
+      }
     },
     "Non-notch display height" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altura de pantalla sin notch"
+          }
+        }
+      }
     },
     "Not Now" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora No"
+          }
+        }
+      }
     },
     "Notch behavior" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comportamiento del notch"
+          }
+        }
+      }
     },
     "Notch display height" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altura de pantalla del notch"
+          }
+        }
+      }
     },
     "Notch Height" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altura del Notch"
+          }
+        }
+      }
     },
     "OK" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
     },
     "One or more files failed to load" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uno o más archivos no se pudieron cargar"
+          }
+        }
+      }
     },
     "Only app icon" : {
       "localizations" : {
@@ -645,6 +1570,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Only app icon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo icono de la aplicación"
           }
         }
       }
@@ -656,11 +1587,24 @@
             "state" : "translated",
             "value" : "Only download icon"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo icono de descarga"
+          }
         }
       }
     },
     "Open System Settings" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Configuración del Sistema"
+          }
+        }
+      }
     },
     "Percentage" : {
       "localizations" : {
@@ -669,11 +1613,24 @@
             "state" : "translated",
             "value" : "Percentage"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porcentaje"
+          }
         }
       }
     },
     "Plugged In" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado"
+          }
+        }
+      }
     },
     "Progress bar" : {
       "localizations" : {
@@ -682,11 +1639,24 @@
             "state" : "translated",
             "value" : "Progress bar"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barra de progreso"
+          }
         }
       }
     },
     "Progressbar style" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estilo de barra de progreso"
+          }
+        }
+      }
     },
     "Quit" : {
       "localizations" : {
@@ -695,19 +1665,48 @@
             "state" : "translated",
             "value" : "Quit"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salir"
+          }
         }
       }
     },
     "Quit app" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salir de la aplicación"
+          }
+        }
+      }
     },
     "Quit boring.notch" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quit boring.notch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salir de boring.notch"
+          }
+        }
+      }
+    },
+    "Quit Now" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salir Ya"
           }
         }
       }
@@ -719,43 +1718,122 @@
             "state" : "translated",
             "value" : "Release name"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de la versión"
+          }
         }
       }
     },
     "Remember last tab" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recordar última pestaña"
+          }
+        }
+      }
     },
     "Restart" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar"
+          }
+        }
+      }
     },
     "Restart Boring Notch" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar Boring Notch"
+          }
+        }
+      }
+    },
+    "Restart Now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar Ahora"
+          }
+        }
+      }
     },
     "Running" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutándose"
+          }
+        }
+      }
     },
     "seconds" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "seconds"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "segundos"
+          }
         }
       }
     },
     "Select Calendars" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleccionar Calendarios"
+          }
+        }
+      }
     },
     "Select the music source you want to use. You can change this later in the app settings." : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona la fuente de música que quieres usar. Puedes cambiar esto más tarde en la configuración de la aplicación."
+          }
+        }
+      }
     },
     "selected" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seleccionado"
+          }
+        }
+      }
     },
     "Selected animation" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animación seleccionada"
+          }
+        }
+      }
     },
     "Settings" : {
       "localizations" : {
@@ -764,76 +1842,162 @@
             "state" : "translated",
             "value" : "Settings"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuración"
+          }
         }
       }
     },
     "Shelf" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estante"
+          }
+        }
+      }
     },
     "Shortcuts" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atajos"
+          }
+        }
+      }
     },
     "Show battery indicator" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show battery indicator"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar indicador de batería"
+          }
         }
       }
     },
     "Show charging indicator" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show charging indicator"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar indicador de carga"
+          }
         }
       }
     },
     "Show cool face animation while inactivity" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show cool face animation while inactivity"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar animación de cara genial durante la inactividad"
+          }
         }
       }
     },
     "Show download progress" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show download progress"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar progreso de descarga"
+          }
         }
       }
     },
     "Show on a specific display" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar en una pantalla específica"
+          }
+        }
+      }
     },
     "Show on all displays" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar en todas las pantallas"
+          }
+        }
+      }
     },
     "Show shuffle and repeat buttons" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar botones de aleatorio y repetir"
+          }
+        }
+      }
     },
     "Slider color" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color del deslizador"
+          }
+        }
+      }
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vista Previa muestra el título y el artista de los medios debajo del notch por unos segundos."
+          }
+        }
+      }
     },
     "Sneak Peek Style" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estilo de Vista Previa"
+          }
+        }
+      }
     },
     "Software updates" : {
       "localizations" : {
@@ -842,17 +2006,44 @@
             "state" : "translated",
             "value" : "Software updates"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizaciones de software"
+          }
         }
       }
     },
     "Speed" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velocidad"
+          }
+        }
+      }
     },
     "Square" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuadrado"
+          }
+        }
+      }
     },
     "Stopped" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detenido"
+          }
+        }
+      }
     },
     "Support Us" : {
       "localizations" : {
@@ -861,41 +2052,134 @@
             "state" : "translated",
             "value" : "Support Us"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apóyanos"
+          }
         }
       }
     },
     "System features" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Características del sistema"
+          }
+        }
+      }
+    },
+    "The language has been changed. Please restart the application to fully apply the new language settings." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El idioma ha sido cambiado. Por favor, reinicia la aplicación para aplicar completamente la nueva configuración de idioma."
+          }
+        }
+      }
     },
     "Time to Full Charge: %lld min" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo para Carga Completa: %lld min"
+          }
+        }
+      }
     },
     "Toggle Notch Open:" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alternar Apertura del Notch:"
+          }
+        }
+      }
     },
     "Toggle Sneak Peek:" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alternar Vista Previa:"
+          }
+        }
+      }
     },
     "Transform your notch truly yours" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transforma tu notch para que sea verdaderamente tuyo"
+          }
+        }
+      }
     },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desliza hacia arriba con dos dedos en el notch para cerrar, desliza hacia abajo con dos dedos en el notch para abrir cuando la opción **Abrir notch al pasar el cursor** esté desactivada"
+          }
+        }
+      }
     },
     "Uninstall" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desinstalar"
+          }
+        }
+      }
     },
     "Unlock advanced features and improve your experience. Upgrade now for more customizations!" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloquea características avanzadas y mejora tu experiencia. ¡Actualiza ahora para más personalizaciones!"
+          }
+        }
+      }
     },
     "unmuted" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sin silenciar"
+          }
+        }
+      }
     },
     "Upgrade to Pro" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar a Pro"
+          }
+        }
+      }
     },
     "Use music visualizer spectrogram" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar espectrograma del visualizador de música"
+          }
+        }
+      }
     },
     "Version" : {
       "localizations" : {
@@ -903,6 +2187,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Version"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versión"
           }
         }
       }
@@ -914,26 +2204,74 @@
             "state" : "translated",
             "value" : "Version info"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Información de versión"
+          }
         }
       }
     },
     "View on GitHub: th-ch/youtube-music" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver en GitHub: th-ch/youtube-music"
+          }
+        }
+      }
     },
     "Welcome" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenido"
+          }
+        }
+      }
     },
     "What's New" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Novedades"
+          }
+        }
+      }
     },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya puedes disfrutar de la aplicación. Si quieres ajustar más cosas, siempre puedes visitar la configuración."
+          }
+        }
+      }
     },
     "You're All Set!" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Ya estás listo!"
+          }
+        }
+      }
     },
     "YouTube Music requires this third-party app to be installed: " : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "YouTube Music requiere que esta aplicación de terceros esté instalada: "
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
