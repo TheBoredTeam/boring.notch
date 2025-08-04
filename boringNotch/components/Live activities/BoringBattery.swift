@@ -175,6 +175,9 @@ struct BoringBatteryView: View {
     
     @State private var showPopupMenu: Bool = false
     @State private var isPressed: Bool = false
+    @State private var isHoveringPopover: Bool = false
+
+    @EnvironmentObject var vm: BoringViewModel
 
     var body: some View {
         HStack {
@@ -218,9 +221,24 @@ struct BoringBatteryView: View {
                 maxCapacity: maxCapacity,
                 timeToFullCharge: timeToFullCharge,
                 isInLowPowerMode: isInLowPowerMode,
-                onDismiss: { showPopupMenu = false }
+                onDismiss: { 
+                    showPopupMenu = false
+                }
             )
+            .onHover { hovering in
+                isHoveringPopover = hovering
+            }
         }
+        .onChange(of: showPopupMenu) { _, _ in
+            updateBatteryPopoverActiveState()
+        }
+        .onChange(of: isHoveringPopover) { _, _ in
+            updateBatteryPopoverActiveState()
+        }
+    }
+
+    private func updateBatteryPopoverActiveState() {
+        vm.isBatteryPopoverActive = showPopupMenu && isHoveringPopover
     }
 }
 

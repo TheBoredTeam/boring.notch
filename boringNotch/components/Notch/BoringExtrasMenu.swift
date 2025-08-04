@@ -61,7 +61,9 @@ struct BoringExtrasMenu : View {
     }
     
     var settings: some View {
-        SettingsLink(label: {
+        Button(action: {
+            SettingsWindowController.shared.showWindow()
+        }) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)
                 VStack(spacing: 8) {
@@ -70,7 +72,7 @@ struct BoringExtrasMenu : View {
                     Text("Settings").font(.body)
                 }
             }
-        })
+        }
         .buttonStyle(PlainButtonStyle()).shadow(color: .black.opacity(0.5), radius: 10)
     }
     

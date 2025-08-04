@@ -10,7 +10,7 @@ import SwiftUI
 
 struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
-    @EnvironmentObject var batteryModel: BatteryStatusViewModel
+    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = TrayDrop.shared
     var body: some View {
@@ -32,7 +32,7 @@ struct BoringHeader: View {
                 Rectangle()
                     .fill(NSScreen.screens
                         .first(where: { $0.localizedName == coordinator.selectedScreen })?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
-                    .frame(width: vm.closedNotchSize.width - 5)
+                    .frame(width: vm.closedNotchSize.width)
                     .mask {
                         NotchShape()
                     }
@@ -40,8 +40,26 @@ struct BoringHeader: View {
 
             HStack(spacing: 4) {
                 if vm.notchState == .open {
+                    if Defaults[.showMirror] {
+                        Button(action: {
+                            vm.toggleCameraPreview()
+                        }) {
+                            Capsule()
+                                .fill(.black)
+                                .frame(width: 30, height: 30)
+                                .overlay {
+                                    Image(systemName: "web.camera")
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .imageScale(.medium)
+                                }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
                     if Defaults[.settingsIconInNotch] {
-                        SettingsLink(label: {
+                        Button(action: {
+                            SettingsWindowController.shared.showWindow()
+                        }) {
                             Capsule()
                                 .fill(.black)
                                 .frame(width: 30, height: 30)
@@ -51,7 +69,7 @@ struct BoringHeader: View {
                                         .padding()
                                         .imageScale(.medium)
                                 }
-                        })
+                        }
                         .buttonStyle(PlainButtonStyle())
                     }
                     if Defaults[.showBatteryIndicator] {
@@ -81,5 +99,5 @@ struct BoringHeader: View {
 }
 
 #Preview {
-    BoringHeader().environmentObject(BoringViewModel()).environmentObject(BatteryStatusViewModel(vm: BoringViewModel()))
+    BoringHeader().environmentObject(BoringViewModel())
 }

@@ -7,6 +7,7 @@
 
 import AVFoundation
 import Defaults
+import EventKit
 import KeyboardShortcuts
 import LaunchAtLogin
 import LottieUI
@@ -15,150 +16,137 @@ import SwiftUI
 import SwiftUIIntrospect
 
 struct SettingsView: View {
-    @Environment(\.scenePhase) private var scenePhase
     @StateObject var extensionManager = BoringExtensionManager()
-    let updaterController: SPUStandardUpdaterController
-    @StateObject private var calendarManager = CalendarManager()
-    
     @State private var selectedTab = "General"
-    
+
+    let updaterController: SPUStandardUpdaterController?
+
+    init(updaterController: SPUStandardUpdaterController? = nil) {
+        self.updaterController = updaterController
+    }
+
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
-                NavigationLink(destination: GeneralSettings()) {
+                NavigationLink(value: "General") {
                     Label("General", systemImage: "gear")
                 }
-                NavigationLink(destination: Appearance()) {
+                NavigationLink(value: "Appearance") {
                     Label("Appearance", systemImage: "eye")
                 }
-                NavigationLink(destination: Media()) {
+                NavigationLink(value: "Media") {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
-                NavigationLink(destination: CalendarSettings()) {
+                NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
                 }
                 if extensionManager.installedExtensions
-                    .contains(
-                        where: { $0.bundleIdentifier == hudExtension
-                        })
-                {
-                    NavigationLink(destination: HUD()) {
+                    .contains(where: { $0.bundleIdentifier == hudExtension }) {
+                    NavigationLink(value: "HUD") {
                         Label("HUDs", systemImage: "dial.medium.fill")
                     }
                 }
-                NavigationLink(destination: Charge()) {
+                NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
                 if extensionManager.installedExtensions
-                    .contains(
-                        where: { $0.bundleIdentifier == downloadManagerExtension
-                        })
-                {
-                    NavigationLink(destination: Downloads()) {
+                    .contains(where: { $0.bundleIdentifier == downloadManagerExtension }) {
+                    NavigationLink(value: "Downloads") {
                         Label("Downloads", systemImage: "square.and.arrow.down")
                     }
                 }
-                NavigationLink(destination: Shelf()) {
+                NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
-                NavigationLink(destination: Shortcuts()) {
+                NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-                NavigationLink(destination: Extensions()) {
+                NavigationLink(value: "Extensions") {
                     Label("Extensions", systemImage: "puzzlepiece.extension")
                 }
-                NavigationLink(
-                    destination: About(updaterController: updaterController)
-                ) {
+                NavigationLink(value: "About") {
                     Label("About", systemImage: "info.circle")
                 }
             }
-            .tint(Defaults[.accentColor])
+            .listStyle(SidebarListStyle())
+            .toolbar(removing: .sidebarToggle)
+            .navigationSplitViewColumnWidth(200)
         } detail: {
-            GeneralSettings()
+            Group {
+                switch selectedTab {
+                case "General":
+                    GeneralSettings()
+                case "Appearance":
+                    Appearance()
+                case "Media":
+                    Media()
+                case "Calendar":
+                    CalendarSettings()
+                case "HUD":
+                    HUD()
+                case "Battery":
+                    Charge()
+                case "Downloads":
+                    Downloads()
+                case "Shelf":
+                    Shelf()
+                case "Shortcuts":
+                    Shortcuts()
+                case "Extensions":
+                    Extensions()
+                case "About":
+                    if let controller = updaterController {
+                        About(updaterController: controller)
+                    } else {
+                        // Fallback with a default controller
+                        About(updaterController: SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil))
+                    }
+                default:
+                    GeneralSettings()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .navigationSplitViewStyle(.balanced)
+        .toolbar(removing: .sidebarToggle)
+        .toolbar {
+            Button("") {} // Empty label, does nothing
+                .controlSize(.extraLarge)
+                .opacity(0) // Invisible, but reserves space for a consistent look between tabs
+                .disabled(true)
         }
         .environmentObject(extensionManager)
-        .environmentObject(calendarManager)
         .formStyle(.grouped)
-        .onChange(of: scenePhase) {
-            if scenePhase == .active {
-                NSApp.setActivationPolicy(.regular)
-                NSApp.activate(ignoringOtherApps: true)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
-            NSApp.setActivationPolicy(.accessory)
-            NSApp.deactivate()
-        }
-        .introspect(.window, on: .macOS(.v14, .v15)) { window in
-            window.toolbarStyle = .unified
-            window.styleMask.update(with: .resizable)
-        }
+        .frame(width: 700)
+        .background(Color(NSColor.windowBackgroundColor))
     }
 }
 
 struct GeneralSettings: View {
     @State private var screens: [String] = NSScreen.screens.compactMap { $0.localizedName }
-    let accentColors: [Color] = [.blue, .purple, .pink, .red, .orange, .yellow, .green, .gray]
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @Default(.accentColor) var accentColor
+
     @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
-    // @State var nonNotchHeightMode: NonNotchHeightMode = .matchRealNotchSize
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
+    @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
-    @Default(.alwaysHideInFullscreen) var alwaysHideInFullscreen
-    
+
     var body: some View {
         Form {
-            Section {
-                HStack {
-                    ForEach(accentColors, id: \.self) { color in
-                        Button(action: {
-                            withAnimation {
-                                Defaults[.accentColor] = color
-                            }
-                        }) {
-                            Circle()
-                                .fill(color)
-                                .frame(width: 20, height: 20)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.white, lineWidth: Defaults[.accentColor] == color ? 2 : 0)
-                                        .overlay {
-                                            Circle()
-                                                .fill(.white)
-                                                .frame(width: 7, height: 7)
-                                                .opacity(Defaults[.accentColor] == color ? 1 : 0)
-                                        }
-                                )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    Spacer()
-                    ColorPicker("Custom color", selection: $accentColor)
-                        .labelsHidden()
-                }
-            } header: {
-                Text("Accent color")
-            }
-
             Section {
                 Defaults.Toggle("Menubar icon", key: .menubarIcon)
                 LaunchAtLogin.Toggle("Launch at login")
                 Defaults.Toggle(key: .showOnAllDisplays) {
-                    HStack {
-                        Text("Show on all displays")
-                        customBadge(text: "Beta")
-                    }
+                    Text("Show on all displays")
                 }
                 .onChange(of: showOnAllDisplays) {
                     NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
@@ -169,18 +157,21 @@ struct GeneralSettings: View {
                     }
                 }
                 .onChange(of: NSScreen.screens) {
-                    screens = NSScreen.screens.compactMap { $0.localizedName }
+                    screens =  NSScreen.screens.compactMap({$0.localizedName})
                 }
+                .disabled(showOnAllDisplays)
+                Defaults.Toggle("Automatically switch displays", key: .automaticallySwitchDisplay)
+                .onChange(of: automaticallySwitchDisplay) {
+                    NotificationCenter.default.post(name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
+                }
+                .disabled(showOnAllDisplays)
             } header: {
                 Text("System features")
             }
-            
+
             Section {
                 Picker(selection: $notchHeightMode, label:
-                    HStack {
-                        Text("Notch display height")
-                        customBadge(text: "Beta")
-                    }) {
+                    Text("Notch display height")) {
                         Text("Match real notch size")
                             .tag(WindowHeightMode.matchRealNotchSize)
                         Text("Match menubar height")
@@ -195,15 +186,15 @@ struct GeneralSettings: View {
                         case .matchMenuBar:
                             notchHeight = 44
                         case .custom:
-                            nonNotchHeight = 38
+                            notchHeight = 38
                         }
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 if notchHeightMode == .custom {
-                    Slider(value: $nonNotchHeight, in: 15...45, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                    Slider(value: $notchHeight, in: 15...45, step: 1) {
+                        Text("Custom notch size - \(notchHeight, specifier: "%.0f")")
                     }
-                    .onChange(of: nonNotchHeight) {
+                    .onChange(of: notchHeight) {
                         NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
@@ -237,12 +228,11 @@ struct GeneralSettings: View {
             } header: {
                 Text("Notch Height")
             }
-            
+
             NotchBehaviour()
-            
+
             gestureControls()
         }
-        .tint(Defaults[.accentColor])
         .toolbar {
             Button("Quit app") {
                 NSApp.terminate(self)
@@ -256,7 +246,7 @@ struct GeneralSettings: View {
             }
         }
     }
-    
+
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
@@ -287,11 +277,11 @@ struct GeneralSettings: View {
                 .font(.caption)
         }
     }
-    
+
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-			Defaults.Toggle("Extend hover area", key: .extendHoverArea)
+            Defaults.Toggle("Extend hover area", key: .extendHoverArea)
             Defaults.Toggle("Enable haptics", key: .enableHaptics)
             Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
@@ -330,7 +320,6 @@ struct Charge: View {
                 Text("Battery Information")
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Battery")
     }
 }
@@ -360,7 +349,7 @@ struct Downloads: View {
                     Text("Both")
                         .tag(DownloadIconStyle.iconAndAppIcon)
                 }
-                
+
             } header: {
                 HStack {
                     Text("Download indicators")
@@ -388,7 +377,7 @@ struct Downloads: View {
                                 .contentShape(Rectangle())
                                 .foregroundStyle(.secondary)
                         }
-                        
+
                         Divider()
                         Button {} label: {
                             Image(systemName: "minus")
@@ -405,7 +394,6 @@ struct Downloads: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Downloads")
     }
 }
@@ -451,25 +439,71 @@ struct HUD: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("HUDs")
     }
 }
 
 struct Media: View {
     @Default(.waitInterval) var waitInterval
+    @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-
     @Default(.hideNotchOption) var hideNotchOption
+    @Default(.enableSneakPeek) private var enableSneakPeek
+    @Default(.sneakPeekStyles) var sneakPeekStyles
 
     var body: some View {
         Form {
             Section {
+                Picker("Music Source", selection: $mediaController) {
+                    ForEach(availableMediaControllers) { controller in
+                        Text(controller.rawValue).tag(controller)
+                    }
+                }
+                .onChange(of: mediaController) { _, _ in
+                    NotificationCenter.default.post(
+                        name: Notification.Name.mediaControllerChanged,
+                        object: nil
+                    )
+                }
+            } header: {
+                Text("Media Source")
+            } footer: {
+                if MusicManager.shared.isNowPlayingDeprecated {
+                    HStack {
+                        Text("YouTube Music requires this third-party app to be installed: ")
+                            .foregroundStyle(.secondary)
+                            .font(.caption)
+                        Link("https://github.com/th-ch/youtube-music", destination: URL(string: "https://github.com/th-ch/youtube-music")!)
+                            .font(.caption)
+                            .foregroundColor(.blue) // Ensures it's visibly a link
+                    }
+                } else {
+                    Text("'Now Playing' was the only option on previous versions and works with all media apps.")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+            }
+            Section {
+                Defaults.Toggle(key: .showShuffleAndRepeat) {
+                    HStack {
+                        Text("Show shuffle and repeat buttons")
+                        customBadge(text: "Beta")
+                    }
+                }
+            } header: {
+                Text("Media controls")
+            }
+            Section {
                 Toggle(
                     "Enable music live activity",
-                    isOn: $coordinator.showMusicLiveActivityOnClosed.animation()
+                    isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Defaults.Toggle("Enable sneak peek", key: .enableSneakPeek)
+                Toggle("Enable sneak peek", isOn: $enableSneakPeek)
+                Picker("Sneak Peek Style", selection: $sneakPeekStyles){
+                    ForEach(SneakPeekStyle.allCases) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }.disabled(!enableSneakPeek)
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {
@@ -493,38 +527,67 @@ struct Media: View {
                     Text("Hide only when NowPlaying app is in fullscreen").tag(HideNotchOption.nowPlayingOnly)
                     Text("Never hide").tag(HideNotchOption.never)
                 }
-                .onChange(of: hideNotchOption) { _, newValue in
-                    Defaults[.alwaysHideInFullscreen] = newValue == .always
-                    Defaults[.enableFullscreenMediaDetection] = newValue != .never
+                .onChange(of: hideNotchOption) {
+                    Defaults[.enableFullscreenMediaDetection] = hideNotchOption != .never
                 }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Media")
+    }
+
+    // Only show controller options that are available on this macOS version
+    private var availableMediaControllers: [MediaControllerType] {
+        if MusicManager.shared.isNowPlayingDeprecated {
+            return MediaControllerType.allCases.filter { $0 != .nowPlaying }
+        } else {
+            return MediaControllerType.allCases
+        }
     }
 }
 
 struct CalendarSettings: View {
-    @ObservedObject private var calendarManager = CalendarManager()
+    @ObservedObject private var calendarManager = CalendarManager.shared
     @Default(.showCalendar) var showCalendar: Bool
-    
+
     var body: some View {
         Form {
-            Toggle("Show calendar", isOn: $showCalendar)
-            Section(header: Text("Select Calendars")) {
-                List {
-                    ForEach(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
-                        Toggle(isOn: Binding(
-                            get: { calendarManager.getCalendarSelected(calendar) },
-                            set: { isSelected in
-                                calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+            if calendarManager.authorizationStatus != .fullAccess {
+                Text("Calendar access is denied. Please enable it in System Settings.")
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                Button("Open System Settings") {
+                    if let settingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                        NSWorkspace.shared.open(settingsURL)
+                    }
+                }
+            } else {
+                Defaults.Toggle("Show calendar", key: .showCalendar)
+                Section(header: Text("Select Calendars")) {
+                    List {
+                        ForEach(calendarManager.allCalendars, id: \.id) { calendar in
+                            Toggle(isOn: Binding(
+                                get: { calendarManager.getCalendarSelected(calendar) },
+                                set: { isSelected in
+                                    Task {
+                                        await calendarManager.setCalendarSelected(calendar, isSelected: isSelected)
+                                    }
+                                }
+                            )) {
+                                Text(calendar.title)
                             }
-                        )) {
-                            Text(calendar.title)
+                            .disabled(!showCalendar)
                         }
                     }
                 }
             }
         }
+        .onAppear {
+            Task {
+                await calendarManager.checkCalendarAuthorization()
+            }
+        }
+        // Add navigation title if it's missing or adjust as needed
+        .navigationTitle("Calendar")
     }
 }
 
@@ -560,9 +623,9 @@ struct About: View {
                 } header: {
                     Text("Version info")
                 }
-                
+
                 UpdaterSettingsView(updater: updaterController.updater)
-                
+
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
@@ -606,13 +669,12 @@ struct About: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .toolbar {
-            Button("Welcome window") {
-                openWindow(id: "onboarding")
-            }
-            .controlSize(.extraLarge)
+//            Button("Welcome window") {
+//                openWindow(id: "onboarding")
+//            }
+//            .controlSize(.extraLarge)
             CheckForUpdatesView(updater: updaterController.updater)
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("About")
     }
 }
@@ -629,7 +691,6 @@ struct Shelf: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Shelf")
     }
 }
@@ -639,7 +700,7 @@ struct Extensions: View {
     @State private var effectTrigger: Bool = false
     var body: some View {
         Form {
-            warningBadge("We don't support extensions yet", "It will be supported later on.")
+            //warningBadge("We don't support extensions yet") // Uhhhh You do? <><><> Oori.S
             Section {
                 List {
                     ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
@@ -667,15 +728,15 @@ struct Extensions: View {
                                     .font(.footnote)
                             }
                             .frame(width: 60, alignment: .leading)
-                            
+
                             Menu(content: {
                                 Button("Restart") {
                                     let ws = NSWorkspace.shared
-                                    
+
                                     if let ext = ws.runningApplications.first(where: { $0.bundleIdentifier == item.bundleIdentifier }) {
                                         ext.terminate()
                                     }
-                                    
+
                                     if let appURL = ws.urlForApplication(withBundleIdentifier: item.bundleIdentifier) {
                                         ws.openApplication(at: appURL, configuration: .init(), completionHandler: nil)
                                     }
@@ -747,7 +808,6 @@ struct Extensions: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Extensions")
         // TipsView()
         // .padding(.horizontal, 19)
@@ -764,7 +824,7 @@ struct Appearance: View {
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
-    
+
     @State private var isPresented: Bool = false
     @State private var name: String = ""
     @State private var url: String = ""
@@ -780,7 +840,7 @@ struct Appearance: View {
             } header: {
                 Text("General")
             }
-            
+
             Section {
                 Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
                 Defaults
@@ -794,7 +854,7 @@ struct Appearance: View {
             } header: {
                 Text("Media")
             }
-            
+
             Section {
                 Toggle(
                     "Use music visualizer spectrogram",
@@ -830,7 +890,7 @@ struct Appearance: View {
                     customBadge(text: "Coming soon")
                 }
             }
-            
+
             Section {
                 List {
                     ForEach(customVisualizers, id: \.self) { visualizer in
@@ -850,7 +910,7 @@ struct Appearance: View {
                         .buttonStyle(PlainButtonStyle())
                         .padding(.vertical, 2)
                         .background(
-                            selectedListVisualizer != nil ? selectedListVisualizer == visualizer ? Defaults[.accentColor] : Color.clear : Color.clear,
+                            selectedListVisualizer != nil ? selectedListVisualizer == visualizer ? Color.accentColor : Color.clear : Color.clear,
                             in: RoundedRectangle(cornerRadius: 5)
                         )
                         .contentShape(Rectangle())
@@ -928,7 +988,7 @@ struct Appearance: View {
                                 Text("Cancel")
                                     .frame(maxWidth: .infinity, alignment: .center)
                             }
-                            
+
                             Button {
                                 let visualizer: CustomVisualizer = .init(
                                     UUID: UUID(),
@@ -936,11 +996,11 @@ struct Appearance: View {
                                     url: URL(string: url)!,
                                     speed: speed
                                 )
-                                
+
                                 if !customVisualizers.contains(visualizer) {
                                     customVisualizers.append(visualizer)
                                 }
-                                
+
                                 isPresented.toggle()
                             } label: {
                                 Text("Add")
@@ -962,7 +1022,7 @@ struct Appearance: View {
                     }
                 }
             }
-            
+
             Section {
                 Defaults.Toggle("Enable boring mirror", key: .showMirror)
                     .disabled(!checkVideoInput())
@@ -978,7 +1038,7 @@ struct Appearance: View {
                     Text("Additional features")
                 }
             }
-            
+
             Section {
                 HStack {
                     ForEach(icons, id: \.self) { icon in
@@ -990,11 +1050,11 @@ struct Appearance: View {
                                 .background(
                                     RoundedRectangle(cornerRadius: 20, style: .circular)
                                         .strokeBorder(
-                                            icon == selectedIcon ? Defaults[.accentColor] : .clear,
+                                            icon == selectedIcon ? Color.accentColor : .clear,
                                             lineWidth: 2.5
                                         )
                                 )
-                            
+
                             Text("Default")
                                 .fontWeight(.medium)
                                 .font(.caption)
@@ -1003,7 +1063,7 @@ struct Appearance: View {
                                 .padding(.vertical, 3)
                                 .background(
                                     Capsule()
-                                        .fill(icon == selectedIcon ? Defaults[.accentColor] : .clear)
+                                        .fill(icon == selectedIcon ? Color.accentColor : .clear)
                                 )
                         }
                         .onTapGesture {
@@ -1023,15 +1083,14 @@ struct Appearance: View {
                 }
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Appearance")
     }
-    
+
     func checkVideoInput() -> Bool {
         if let _ = AVCaptureDevice.default(for: .video) {
             return true
         }
-        
+
         return false
     }
 }
@@ -1053,7 +1112,6 @@ struct Shortcuts: View {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
         }
-        .tint(Defaults[.accentColor])
         .navigationTitle("Shortcuts")
     }
 }
@@ -1105,5 +1163,5 @@ func warningBadge(_ text: String, _ description: String) -> some View {
 }
 
 #Preview {
-    Extensions()
+    HUD()
 }

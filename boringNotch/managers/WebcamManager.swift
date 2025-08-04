@@ -8,6 +8,8 @@ import AVFoundation
 import SwiftUI
 
 class WebcamManager: NSObject, ObservableObject {
+    static let shared = WebcamManager()
+    
     @Published var previewLayer: AVCaptureVideoPreviewLayer? {
         didSet {
             objectWillChange.send()
@@ -58,31 +60,24 @@ class WebcamManager: NSObject, ObservableObject {
     
     // MARK: - Properties
     
-    override init() {
+    private override init() {
         super.init()
-        checkAndRequestVideoAuthorization()
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasDisconnected), name: .AVCaptureDeviceWasDisconnected, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasConnected), name: .AVCaptureDeviceWasConnected, object: nil)
         checkCameraAvailability()
     }
     
     deinit {
-        // Remove notification observers
         NotificationCenter.default.removeObserver(self)
         
-        // Clean up capture session on the session queue to avoid threading issues
-        sessionQueue.async { [weak self] in
-            guard let self = self else { return }
-            if let session = self.captureSession, session.isRunning {
+        if let session = captureSession {
+            if session.isRunning {
                 session.stopRunning()
             }
-            self.captureSession = nil
         }
-        
-        // Clear preview layer on main thread
-        DispatchQueue.main.async {
-            self.previewLayer = nil
-        }
+        captureSession = nil
+            
+        previewLayer = nil
     }
 
     // MARK: - Camera Management
