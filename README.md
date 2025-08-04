@@ -104,9 +104,6 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 3. **Build and Run**:
     - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
 
-### Icon credits: [@maxtron95](https://github.com/maxtron95)
-### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
-
 ## 🤝 Contributing
 
 We’re all about good vibes and awesome contributions! Here’s how you can join the fun:
@@ -159,6 +156,9 @@ See the THIRD_PARTY_LICENSES file for details on licenses of third-party depende
 ## 🎉 Acknowledgments
 
 We would like to express our appreciation to the developers of [NotchDrop](https://github.com/Lakr233/NotchDrop), an open-source project that has been instrumental in developing the "Shelf" feature in Boring Notch. Special thanks to Lakr233 for their contributions to NotchDrop and to [Hugo Persson](https://github.com/Hugo-Persson) for integrating it into our project.
+
+### Icon credits: [@maxtron95](https://github.com/maxtron95)
+### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
