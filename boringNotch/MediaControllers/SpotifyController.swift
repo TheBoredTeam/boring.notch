@@ -15,81 +15,77 @@ class SpotifyController: MediaControllerProtocol {
         bundleIdentifier: "com.spotify.client"
     )
     
-    var playbackStatePublisher: Published<PlaybackState>.Publisher { $playbackState }
+    var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
+        $playbackState.eraseToAnyPublisher()
+    }
+    
+    private var notificationTask: Task<Void, Never>?
     
     //Constant for time between command and update
     let commandUpdateDelay: Duration = .milliseconds(25)
     
     init() {
         setupPlaybackStateChangeObserver()
-        DispatchQueue.main.async { [weak self] in
-            if self?.isActive() == true {
-                self?.updatePlaybackInfo()
+        Task {
+            if isActive() {
+                await updatePlaybackInfo()
             }
         }
     }
     
     private func setupPlaybackStateChangeObserver() {
-        DistributedNotificationCenter.default().addObserver(
-            self,
-            selector: #selector(updatePlaybackInfo),
-            name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
-            object: nil
-        )
+        notificationTask = Task { @Sendable [weak self] in
+            let notifications = DistributedNotificationCenter.default().notifications(
+                named: NSNotification.Name("com.spotify.client.PlaybackStateChanged")
+            )
+            
+            for await _ in notifications {
+                await self?.updatePlaybackInfo()
+            }
+        }
     }
     
     deinit {
-        // Remove notification observer when controller is deallocated
-        DistributedNotificationCenter.default().removeObserver(
-            self,
-            name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
-            object: nil
-        )
+        notificationTask?.cancel()
     }
     
     // MARK: - Protocol Implementation
-    func play() {
-        executeCommand("play")
+    func play() async {
+        await executeCommand("play")
     }
     
-    func pause() {
-        executeCommand("pause")
+    func pause() async {
+        await executeCommand("pause")
     }
     
-    func togglePlay() {
-        executeCommand("playpause")
+    func togglePlay() async {
+        await executeCommand("playpause")
     }
     
-    func nextTrack() {
-        executeCommand("next track")
+    func nextTrack() async {
+        await executeCommand("next track")
     }
     
-    func previousTrack() {
-        executeCommand("previous track")
+    func previousTrack() async {
+        await executeCommand("previous track")
     }
     
-    func seek(to time: Double) {
-        executeCommand("set player position to \(time)")
-        Task {
-            try? await Task.sleep(for: commandUpdateDelay)
-            updatePlaybackInfo()
-        }
+    func seek(to time: Double) async {
+        await executeCommand("set player position to \(time)")
+        try? await Task.sleep(for: commandUpdateDelay)
+        await updatePlaybackInfo()
     }
     
-    func toggleShuffle() {
-        executeCommand("set shuffling to not shuffling")
-        Task {
-            try? await Task.sleep(for: commandUpdateDelay)
-            updatePlaybackInfo()
-        }
+    func toggleShuffle() async {
+        await executeCommand("set shuffling to not shuffling")
+        try? await Task.sleep(for: commandUpdateDelay)
+        await updatePlaybackInfo()
     }
     
-    func toggleRepeat() {
-        executeCommand("set repeating to not repeating")
-        Task {
-            try? await Task.sleep(for: commandUpdateDelay)
-            updatePlaybackInfo()
-        }
+    func toggleRepeat() async {
+        await executeCommand("set repeating to not repeating")
+        try? await Task.sleep(for: commandUpdateDelay)
+        await updatePlaybackInfo()
     }
     
     func isActive() -> Bool {
@@ -97,9 +93,8 @@ class SpotifyController: MediaControllerProtocol {
         return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
     }
     
-    // MARK: - Private Methods
-    @objc func updatePlaybackInfo() {
-        guard let descriptor = fetchPlaybackInfo() else { return }
+    func updatePlaybackInfo() async {
+        guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
         guard descriptor.numberOfItems >= 9 else { return }
         
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
@@ -126,38 +121,31 @@ class SpotifyController: MediaControllerProtocol {
             lastUpdated: Date()
         )
         
-        DispatchQueue.main.async { [weak self] in
-            self?.playbackState = state
-        }
+        self.playbackState = state
         
         // Load artwork asynchronously and update the state when complete
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
-            DispatchQueue.global(qos: .background).async { [weak self] in
-                do {
-                    let artworkData = try Data(contentsOf: url)
-                    DispatchQueue.main.async {
-                        // Create a new state with the artwork data and update
-                        var updatedState = state
-                        updatedState.artwork = artworkData
-                        self?.playbackState = updatedState
-                    }
-                } catch {
-                    print("Failed to load artwork: \(error)")
-                }
+            let currentState = state
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                // Create a new state with the artwork data and update
+                var updatedState = currentState
+                updatedState.artwork = data
+                playbackState = updatedState
+            } catch {
+                print("Failed to load artwork: \(error)")
             }
-        } else {
-            self.playbackState = state
         }
     }
     
-    private func executeCommand(_ command: String) {
+// MARK: - Private Methods
+    
+    private func executeCommand(_ command: String) async {
         let script = "tell application \"Spotify\" to \(command)"
-        Task {
-            try? await AppleScriptHelper.executeVoid(script)
-        }
+        try? await AppleScriptHelper.executeVoid(script)
     }
     
-    private func fetchPlaybackInfo() -> NSAppleEventDescriptor? {
+    private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {
         let script = """
         tell application "Spotify"
             set isRunning to true
@@ -178,13 +166,6 @@ class SpotifyController: MediaControllerProtocol {
         end tell
         """
         
-        var descriptor: NSAppleEventDescriptor? = nil
-        let semaphore = DispatchSemaphore(value: 0)
-        Task {
-            descriptor = try? await AppleScriptHelper.execute(script)
-            semaphore.signal()
-        }
-        semaphore.wait()
-        return descriptor
+        return try await AppleScriptHelper.execute(script)
     }
 }
