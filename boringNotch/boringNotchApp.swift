@@ -63,11 +63,11 @@ struct DynamicNotchApp: App {
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
 
-        Window("Activation", id: "activation") {
-            ActivationWindow()
-        }
-        .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
+//        Window("Activation", id: "activation") {
+//            ActivationWindow()
+//        }
+//        .windowStyle(.hiddenTitleBar)
+//        .windowResizability(.contentSize)
     }
 }
 
@@ -403,6 +403,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared.terminate(self)
     }
 
+    // Handle files received via AirDrop or "Open With"
+    func application(_ sender: NSApplication, openFiles filenames: [String]) {
+        let urls = filenames.map { URL(fileURLWithPath: $0) }
+        let drop = AirDrop(files: urls)
+        drop.begin()
+        sender.reply(toOpenOrPrint: .success)
+    }
+
     private func showOnboardingWindow(step: OnboardingStep = .welcome) {
         if onboardingWindowController == nil {
             let window = NSWindow(
@@ -419,10 +427,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 rootView: OnboardingView(
                     step: step,
                     onFinish: {
-                        window.orderOut(nil)
-                        NSApp.setActivationPolicy(.accessory)
-                        window.close()
-                        NSApp.deactivate()
+//                        window.orderOut(nil)
+//                        NSApp.setActivationPolicy(.accessory)
+//                        window.close()
+//                        NSApp.deactivate()
                     },
                     onOpenSettings: {
                         window.close()
@@ -435,10 +443,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             onboardingWindowController = NSWindowController(window: window)
         }
 
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-        onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
-        onboardingWindowController?.window?.orderFrontRegardless()
+//        NSApp.setActivationPolicy(.regular)
+//        NSApp.activate(ignoringOtherApps: true)
+//        onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
+//        onboardingWindowController?.window?.orderFrontRegardless()
     }
 }
 
