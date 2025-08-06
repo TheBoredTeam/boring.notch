@@ -126,6 +126,21 @@ struct GeneralSettings: View {
     @State private var screens: [String] = NSScreen.screens.compactMap { $0.localizedName }
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @StateObject private var localizationManager = LocalizationManager.shared
+    
+    // State for language change alert
+    @State private var showLanguageChangeAlert = false
+    @State private var previousLanguage: AppLanguage = Defaults[.appLanguage]
+    
+    // Ensure the selected screen is valid
+    private var validPreferredScreen: String {
+        let available = NSScreen.screens.compactMap { $0.localizedName }
+        if available.contains(coordinator.preferredScreen) {
+            return coordinator.preferredScreen
+        } else {
+            return available.first ?? "Unknown"
+        }
+    }
 
     @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
@@ -139,6 +154,7 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    @Default(.appLanguage) var appLanguage
 
     var body: some View {
         Form {
@@ -151,9 +167,12 @@ struct GeneralSettings: View {
                 .onChange(of: showOnAllDisplays) {
                     NotificationCenter.default.post(name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
-                Picker("Show on a specific display", selection: $coordinator.preferredScreen) {
+                Picker("Show on a specific display", selection: Binding(
+                    get: { validPreferredScreen },
+                    set: { coordinator.preferredScreen = $0 }
+                )) {
                     ForEach(screens, id: \.self) { screen in
-                        Text(screen)
+                        Text(screen).tag(screen)
                     }
                 }
                 .onChange(of: NSScreen.screens) {
@@ -165,6 +184,18 @@ struct GeneralSettings: View {
                     NotificationCenter.default.post(name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
                 }
                 .disabled(showOnAllDisplays)
+                Picker("Language", selection: $appLanguage) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(language.displayName).tag(language)
+                    }
+                }
+                .onChange(of: appLanguage) { oldValue, newValue in
+                    if oldValue != newValue {
+                        previousLanguage = oldValue
+                        localizationManager.currentLanguage = newValue
+                        showLanguageChangeAlert = true
+                    }
+                }
             } header: {
                 Text("System features")
             }
@@ -244,6 +275,17 @@ struct GeneralSettings: View {
             if !openNotchOnHover {
                 enableGestures = true
             }
+        }
+        .alert("Language Changed", isPresented: $showLanguageChangeAlert) {
+            Button("Quit Now") {
+                // Restart the application
+                NSApp.terminate(nil)
+            }
+            Button("Later", role: .cancel) {
+                // User chose to restart later
+            }
+        } message: {
+            Text("The language has been changed. Please restart the application to fully apply the new language settings.")
         }
     }
 

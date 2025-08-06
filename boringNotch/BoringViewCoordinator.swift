@@ -96,6 +96,11 @@ class BoringViewCoordinator: ObservableObject {
     @Published var optionKeyPressed: Bool = true
 
     private init() {
+        // Validate preferred screen on init
+        let availableScreens = NSScreen.screens.compactMap { $0.localizedName }
+        if !availableScreens.contains(preferredScreen), let firstScreen = availableScreens.first {
+            preferredScreen = firstScreen
+        }
         selectedScreen = preferredScreen
         notifier = TheBoringWorkerNotifier()
     }
