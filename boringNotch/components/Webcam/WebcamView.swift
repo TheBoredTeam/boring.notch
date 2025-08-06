@@ -68,8 +68,6 @@ struct CameraPreviewView: View {
             }
         case .denied, .restricted:
             DispatchQueue.main.async {
-                NSApp.setActivationPolicy(.regular)
-                NSApp.activate(ignoringOtherApps: true)
                 let alert = NSAlert()
                 alert.messageText = "Camera Access Required"
                 alert.informativeText = "Please allow camera access in System Settings to use the mirror feature."
@@ -81,8 +79,6 @@ struct CameraPreviewView: View {
                         NSWorkspace.shared.open(settingsURL)
                     }
                 }
-                NSApp.setActivationPolicy(.accessory)
-                NSApp.deactivate()
             }
         case .notDetermined:
             isRequestingAuthorization = true
