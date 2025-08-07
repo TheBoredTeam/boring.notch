@@ -227,6 +227,7 @@ struct EmptyEventsView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
+        .padding(.bottom, 4)
         Spacer(minLength: 0)
     }
 }
