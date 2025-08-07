@@ -12,10 +12,10 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 <!--https://github.com/user-attachments/assets/19b87973-4b3a-4853-b532-7e82d1d6b040-->
 
 ## Table of Contents
-- [Roadmap](#-roadmap)
-- [Extensions](#-extensions)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Roadmap](#-roadmap)
+<!-- - [Extensions](#-extensions) -->
 - [Building from Source](#building-from-source)
 - [Contributing](#-contributing)
 - [Join our Discord Server](#join-our-discord-server)
@@ -23,27 +23,6 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 - [Buy us a coffee!](#buy-us-a-coffee)
 - [License](#-license)
 - [Acknowledgments](#-acknowledgments)
-
-## 📋 Roadmap
-- [x] Playback live activity 🎧
-- [x] Calendar integration 📆
-- [x] Mirror 📷
-- [x] Charging indicator and current percentage 🔋
-- [x] Customizable gesture control 👆🏻
-- [x] Shelf functionality with AirDrop 📚
-- [x] Notch sizing customization, finetuning on different display sizes 🖥️
-- [ ] Layout options 🛠️
-- [ ] Extension system 🧩
-- [ ] Clipboard history manager 📌 `Extension`
-- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Extension`
-- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`
-- [ ] Customizable function buttons 🎛️
-- [ ] App switcher 🪄
-- [ ] Notifications (under consideration) 🔔
-
-## 🧩 Extensions
-> [!NOTE]
-> We’re hard at work on some awesome extensions! Stay tuned, and we’ll keep you updated as soon as they’re released.
 
 ## Installation
 
@@ -80,6 +59,27 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - Launch the app, and voilà—your notch is now the coolest part of your screen.
 - Hover over the notch to see it expand and reveal all its secrets.
 - Use the controls to manage your music like a rockstar.
+
+## 📋 Roadmap
+- [x] Playback live activity 🎧
+- [x] Calendar integration 📆
+- [x] Mirror 📷
+- [x] Charging indicator and current percentage 🔋
+- [x] Customizable gesture control 👆🏻
+- [x] Shelf functionality with AirDrop 📚
+- [x] Notch sizing customization, finetuning on different display sizes 🖥️
+- [ ] Layout options 🛠️
+- [ ] Extension system 🧩
+- [ ] Clipboard history manager 📌 `Extension`
+- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Extension`
+- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`
+- [ ] Customizable function buttons 🎛️
+- [ ] App switcher 🪄
+- [ ] Notifications (under consideration) 🔔
+
+<!-- ## 🧩 Extensions
+> [!NOTE]
+> We’re hard at work on some awesome extensions! Stay tuned, and we’ll keep you updated as soon as they’re released. -->
 
 ## Building from Source
 
