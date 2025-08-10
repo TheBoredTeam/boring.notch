@@ -140,7 +140,13 @@ We’re all about good vibes and awesome contributions! Here’s how you can joi
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline)](https://star-history.com/#TheBoredTeam/boring.notch&Timeline)
+<a href="https://www.star-history.com/#TheBoredTeam/boring.notch&Timeline">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline" />
+ </picture>
+</a>
 
 ## Buy us a coffee!
 
