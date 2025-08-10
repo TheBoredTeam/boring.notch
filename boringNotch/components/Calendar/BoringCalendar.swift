@@ -5,17 +5,17 @@
 //  Created by Harsh Vardhan  Goswami  on 08/09/24.
 //
 
-import SwiftUI
 import Defaults
+import SwiftUI
 
 struct Config: Equatable {
-//    var count: Int = 10  // 3 days past + today + 7 days future
+    //    var count: Int = 10  // 3 days past + today + 7 days future
     var past: Int = 7
     var future: Int = 14
     var steps: Int = 1  // Each step is one day
     var spacing: CGFloat = 0
     var showsText: Bool = true
-    var offset: Int = 2 // Number of dates to the left of the selected date
+    var offset: Int = 2  // Number of dates to the left of the selected date
 }
 
 struct WheelPicker: View {
@@ -32,19 +32,19 @@ struct WheelPicker: View {
                 let totalSteps = config.steps * (config.past + config.future)
                 let spacerNum = config.offset
                 ForEach(0..<totalSteps + 2 * spacerNum + 1, id: \.self) { index in
-                    if(index < spacerNum || index > totalSteps + spacerNum - 1){
+                    if index < spacerNum || index > totalSteps + spacerNum - 1 {
                         Spacer().frame(width: 24, height: 24).id(index)
                     } else {
                         let offset = -config.offset - config.past
                         let date = dateForIndex(index, offset: offset)
                         let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
-                        dateButton(date: date, isSelected: isSelected, offset: offset){
+                        dateButton(date: date, isSelected: isSelected, offset: offset) {
                             selectedDate = date
                             byClick = true
-                            withAnimation{
+                            withAnimation {
                                 scrollPosition = indexForDate(date, offset: offset) - config.offset
                             }
-                            if (Defaults[.enableHaptics]) {
+                            if Defaults[.enableHaptics] {
                                 haptics.toggle()
                             }
                         }
@@ -56,13 +56,13 @@ struct WheelPicker: View {
         }
         .scrollIndicators(.never)
         .scrollPosition(id: $scrollPosition, anchor: .leading)
-        .scrollTargetBehavior(.viewAligned)   // Ensures scroll view snaps to button center
+        .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps to button center
         .safeAreaPadding(.horizontal)
         .sensoryFeedback(.alignment, trigger: haptics)
         .onChange(of: scrollPosition) { oldValue, newValue in
-            if(!byClick){
+            if !byClick {
                 handleScrollChange(newValue: newValue, config: config)
-            }else{
+            } else {
                 byClick = false
             }
         }
@@ -71,30 +71,34 @@ struct WheelPicker: View {
         }
     }
 
-    private func dateButton(date: Date, isSelected: Bool, offset: Int, onClick:@escaping()->Void) -> some View {
-        Button(action: onClick) {
+    private func dateButton(
+        date: Date, isSelected: Bool, offset: Int, onClick: @escaping () -> Void
+    ) -> some View {
+        let isToday = Calendar.current.isDateInToday(date)
+        return Button(action: onClick) {
             VStack(spacing: 8) {
-                dayText(date: dateToString(for: date), isSelected: isSelected)
-                dateCircle(date: date, isSelected: isSelected)
+                dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
+                dateCircle(date: date, isToday: isToday, isSelected: isSelected)
             }
             .padding(.vertical, 4)
             .padding(.horizontal, 4)
             .background(isSelected ? Color.accentColor.opacity(0.25) : Color.clear)
-            .cornerRadius(8)}
+            .cornerRadius(8)
+        }
         .buttonStyle(PlainButtonStyle())
         .id(indexForDate(date, offset: offset))
     }
 
-    private func dayText(date: String, isSelected: Bool) -> some View {
+    private func dayText(date: String, isToday: Bool, isSelected: Bool) -> some View {
         Text(date)
             .font(.caption)
-            .foregroundStyle(isSelected ? .primary : .secondary)
+            .foregroundColor(isSelected ? .white : Color(white: 0.65))
     }
 
-    private func dateCircle(date: Date, isSelected: Bool) -> some View {
+    private func dateCircle(date: Date, isToday: Bool, isSelected: Bool) -> some View {
         ZStack {
             Circle()
-                .fill(isSelected ? Color.accentColor : .clear)
+                .fill(isToday ? Color.accentColor : .clear)
                 .frame(width: 20, height: 20)
                 .overlay(
                     Circle()
@@ -103,7 +107,7 @@ struct WheelPicker: View {
             Text("\(date.date)")
                 .font(.body)
                 .fontWeight(.medium)
-                .foregroundStyle(isSelected ? .white : .primary)
+                .foregroundColor(isSelected ? .white : Color(white: isToday ? 0.9 : 0.65))
         }
     }
 
@@ -113,9 +117,9 @@ struct WheelPicker: View {
         guard let newIndex = newValue else { return }
         let targetDateIndex = newIndex + config.offset
         switch targetDateIndex {
-        case todayIndex - config.past ..< todayIndex + config.future:
+        case todayIndex - config.past..<todayIndex + config.future:
             selectedDate = dateForIndex(targetDateIndex, offset: offset)
-            if (Defaults[.enableHaptics]) {
+            if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
         default:
@@ -133,9 +137,11 @@ struct WheelPicker: View {
 
     private func indexForDate(_ date: Date, offset: Int) -> Int {
         let calendar = Calendar.current
-        let startDate = calendar.startOfDay(for: calendar.date(byAdding: .day, value: offset, to: Date()) ?? Date())
+        let startDate = calendar.startOfDay(
+            for: calendar.date(byAdding: .day, value: offset, to: Date()) ?? Date())
         let targetDate = calendar.startOfDay(for: date)
-        let daysDifference = calendar.dateComponents([.day], from: startDate, to: targetDate).day ?? 0
+        let daysDifference =
+            calendar.dateComponents([.day], from: startDate, to: targetDate).day ?? 0
         return daysDifference
     }
 
@@ -157,44 +163,44 @@ struct CalendarView: View {
     @State private var selectedDate = Date()
 
     var body: some View {
-        VStack(spacing: 4) {
-            HStack(alignment: .center, spacing: 8) {
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading) {
                     Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
                         .font(.title3)
                         .fontWeight(.semibold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                     Text(selectedDate.formatted(.dateTime.year()))
                         .font(.title3)
                         .fontWeight(.light)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color(white: 0.65))
                 }
-                
-                ZStack {
+
+                ZStack (alignment: .top) {
                     WheelPicker(selectedDate: $selectedDate, config: Config())
-                    HStack {
+                    HStack(alignment: .top) {
                         LinearGradient(
-                            colors: [.black, .clear], startPoint: .leading, endPoint: .trailing
+                            colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
                         )
                         .frame(width: 20)
                         Spacer()
                         LinearGradient(
-                            colors: [.clear, .black], startPoint: .leading, endPoint: .trailing
+                            colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
                         )
                         .frame(width: 20)
                     }
                 }
             }
-            .padding(.vertical, 4)
-
 
             if calendarManager.events.isEmpty {
                 EmptyEventsView()
+                Spacer(minLength: 0)
             } else {
                 EventListView(events: calendarManager.events)
             }
         }
         .listRowBackground(Color.clear)
+        .frame(height: 120)
         .onChange(of: selectedDate) {
             Task {
                 await calendarManager.updateCurrentDate(selectedDate)
@@ -203,11 +209,13 @@ struct CalendarView: View {
         .onChange(of: vm.notchState) { _, _ in
             Task {
                 await calendarManager.updateCurrentDate(Date.now)
+                selectedDate = Date.now
             }
         }
         .onAppear {
             Task {
                 await calendarManager.updateCurrentDate(Date.now)
+                selectedDate = Date.now
             }
         }
     }
@@ -215,20 +223,17 @@ struct CalendarView: View {
 
 struct EmptyEventsView: View {
     var body: some View {
-        Spacer(minLength: 0)
         VStack {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.title)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(white: 0.65))
             Text("No events today")
                 .font(.subheadline)
-                .foregroundStyle(.primary)
+                .foregroundColor(.white)
             Text("Enjoy your free time!")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(white: 0.65))
         }
-        .padding(.bottom, 4)
-        Spacer(minLength: 0)
     }
 }
 
@@ -237,7 +242,6 @@ struct EventListView: View {
     let events: [EventModel]
 
     var body: some View {
-        Spacer(minLength: 0)
         List {
             ForEach(events) { event in
                 Button(action: {
@@ -247,8 +251,10 @@ struct EventListView: View {
                 }) {
                     eventRow(event)
                 }
+                .padding(.leading, -5)
                 .buttonStyle(PlainButtonStyle())
-                .listRowSeparator(.hidden)
+                .listRowSeparator(.automatic)
+                .listRowSeparatorTint(.gray.opacity(0.2))
                 .listRowBackground(Color.clear)
             }
         }
@@ -261,45 +267,46 @@ struct EventListView: View {
 
     private func eventRow(_ event: EventModel) -> some View {
         HStack(alignment: .top, spacing: 4) {
-            VStack(spacing: 4) {
+            Rectangle()
+                .fill(Color(event.calendar.color))
+                .frame(width: 3)
+                .cornerRadius(1.5)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(event.title)
+                    .font(.callout)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .lineLimit(2)
+
+                if let location = event.location, !location.isEmpty {
+                    Text(location)
+                        .font(.caption)
+                        .foregroundColor(Color(white: 0.65))
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 0)
+            VStack(alignment: .trailing, spacing: 4) {
                 if event.isAllDay {
                     Text("All-day")
                         .font(.caption)
                         .fontWeight(.medium)
+                        .foregroundColor(.white)
                         .lineLimit(1)
                 } else {
                     Text(event.start, style: .time)
+                        .foregroundColor(.white)
                     Text(event.end, style: .time)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color(white: 0.65))
                 }
             }
             .font(.caption)
-            .frame(width: 44, alignment: .trailing)
-
-            HStack(alignment: .top, spacing: 4) {
-                Rectangle()
-                    .fill(Color(event.calendar.color))
-                    .frame(width: 3)
-                    .cornerRadius(1.5)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(event.title)
-                        .font(.callout)
-                        .fontWeight(.medium)
-                        .lineLimit(2)
-
-                    if let location = event.location, !location.isEmpty {
-                        Text(location)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
-                }
-            }
-            Spacer(minLength: 0)
+            .frame(minWidth: 44, alignment: .trailing)
         }
-        .padding(.vertical, 1)
-        .opacity(event.eventStatus == .ended ? 0.6 : 1)
+        //Only make opacity 0.6 if it is the same date as calendars current date
+        .opacity(event.eventStatus == .ended && Calendar.current.isDateInToday(event.start) ? 0.6 : 1.0)
+        
     }
 }
 

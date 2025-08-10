@@ -15,11 +15,12 @@ import SwiftUI
 struct MusicPlayerView: View {
     @EnvironmentObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
+    let showShuffleAndRepeat: Bool
 
     var body: some View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
-            MusicControlsView().drawingGroup().compositingGroup()
+            MusicControlsView(showShuffleAndRepeat: showShuffleAndRepeat).drawingGroup().compositingGroup()
         }
     }
 }
@@ -47,7 +48,12 @@ struct AlbumArtView: View {
                     .aspectRatio(contentMode: .fill)
             )
             .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: Defaults[.cornerRadiusScaling]
+                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
+                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+            )
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 35)
@@ -75,10 +81,17 @@ struct AlbumArtView: View {
                 Image(nsImage: musicManager.albumArt)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: musicManager.isFlipping)
+                    .animation(
+                        .spring(response: 0.4, dampingFraction: 0.8), value: musicManager.isFlipping
+                    )
             )
             .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.opened : MusicPlayerImageSizes.cornerRadiusInset.closed))
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: Defaults[.cornerRadiusScaling]
+                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
+                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+            )
             .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
     }
 
@@ -100,7 +113,8 @@ struct MusicControlsView: View {
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
-    
+    let showShuffleAndRepeat: Bool
+
     var body: some View {
         VStack(alignment: .leading) {
             songInfoAndSlider
@@ -123,13 +137,16 @@ struct MusicControlsView: View {
 
     private func songInfo(width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            MarqueeText($musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white, frameWidth: width)
+            MarqueeText(
+                $musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white,
+                frameWidth: width)
             MarqueeText(
                 $musicManager.artistName,
                 font: .headline,
                 nsFont: .headline,
-                textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor)
-                    .ensureMinimumBrightness(factor: 0.6) : .gray,
+                textColor: Defaults[.playerColorTinting]
+                    ? Color(nsColor: musicManager.avgColor)
+                        .ensureMinimumBrightness(factor: 0.6) : .gray,
                 frameWidth: width
             )
             .fontWeight(.medium)
@@ -137,7 +154,8 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) {
+            timeline in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
@@ -159,8 +177,11 @@ struct MusicControlsView: View {
 
     private var playbackControls: some View {
         HStack(spacing: 8) {
-            if Defaults[.showShuffleAndRepeat] {
-                HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .white, scale: .medium) {
+            if showShuffleAndRepeat {
+                HoverButton(
+                    icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .white,
+                    scale: .medium
+                ) {
                     MusicManager.shared.toggleShuffle()
                 }
             }
@@ -173,7 +194,7 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
-            if Defaults[.showShuffleAndRepeat] {
+            if showShuffleAndRepeat {
                 HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
                     MusicManager.shared.toggleRepeat()
                 }
@@ -211,7 +232,7 @@ struct NotchHomeView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
-    
+
     var body: some View {
         Group {
             if !coordinator.firstLaunch {
@@ -224,11 +245,15 @@ struct NotchHomeView: View {
     private var shouldShowCamera: Bool {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
+    
+    private var showShuffleAndRepeat: Bool {
+        !(shouldShowCamera && Defaults[.showCalendar]) && Defaults[.showShuffleAndRepeat]
+    }
 
     private var mainContent: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
-            
+            MusicPlayerView(albumArtNamespace: albumArtNamespace, showShuffleAndRepeat: showShuffleAndRepeat)
+
             if Defaults[.showCalendar] {
                 CalendarView()
                     .frame(width: shouldShowCamera ? 170 : 215)
@@ -237,7 +262,7 @@ struct NotchHomeView: View {
                     }
                     .environmentObject(vm)
             }
-            
+
             if shouldShowCamera {
                 CameraPreviewView(webcamManager: webcamManager)
                     .scaledToFit()
@@ -245,9 +270,11 @@ struct NotchHomeView: View {
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
             }
         }
-        .transition(.opacity.animation(.smooth.speed(0.9))
-            .combined(with: .blurReplace.animation(.smooth.speed(0.9)))
-            .combined(with: .move(edge: .top)))
+        .transition(
+            .opacity.animation(.smooth.speed(0.9))
+                .combined(with: .blurReplace.animation(.smooth.speed(0.9)))
+                .combined(with: .move(edge: .top))
+        )
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
 }
@@ -267,7 +294,9 @@ struct MusicSliderView: View {
 
     var currentElapsedTime: Double {
         // A small buffer is needed to ensure a meaningful difference between the two dates
-        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return sliderValue }
+        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else {
+            return sliderValue
+        }
         let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
         let elapsed = elapsedTime + (timeDifference * playbackRate)
         return min(elapsed, duration)
@@ -277,10 +306,12 @@ struct MusicSliderView: View {
         VStack {
             CustomSlider(
                 value: $sliderValue,
-                range: 0 ... duration,
-                color: Defaults[.sliderColor] == SliderColorEnum.albumArt ? Color(
-                    nsColor: color
-                ).ensureMinimumBrightness(factor: 0.8) : Defaults[.sliderColor] == SliderColorEnum.accent ? .accentColor : .white,
+                range: 0...duration,
+                color: Defaults[.sliderColor] == SliderColorEnum.albumArt
+                    ? Color(
+                        nsColor: color
+                    ).ensureMinimumBrightness(factor: 0.8)
+                    : Defaults[.sliderColor] == SliderColorEnum.accent ? .accentColor : .white,
                 dragging: $dragging,
                 lastDragged: $lastDragged,
                 onValueChange: onValueChange
@@ -292,8 +323,11 @@ struct MusicSliderView: View {
                 Text(timeString(from: duration))
             }
             .fontWeight(.medium)
-            .foregroundColor(Defaults[.playerColorTinting] ? Color(nsColor: color)
-                .ensureMinimumBrightness(factor: 0.6) : .gray)
+            .foregroundColor(
+                Defaults[.playerColorTinting]
+                    ? Color(nsColor: color)
+                        .ensureMinimumBrightness(factor: 0.6) : .gray
+            )
             .font(.caption)
         }
         .onChange(of: currentDate) {
@@ -330,7 +364,6 @@ struct CustomSlider: View {
             let height = CGFloat(dragging ? 9 : 5)
             let rangeSpan = range.upperBound - range.lowerBound
 
-
             let progress = rangeSpan == .zero ? 0 : (value - range.lowerBound) / rangeSpan
             let filledTrackWidth = min(max(progress, 0), 1) * width
 
@@ -354,7 +387,8 @@ struct CustomSlider: View {
                         withAnimation {
                             dragging = true
                         }
-                        let newValue = range.lowerBound + Double(gesture.location.x / width) * rangeSpan
+                        let newValue =
+                            range.lowerBound + Double(gesture.location.x / width) * rangeSpan
                         value = min(max(newValue, range.lowerBound), range.upperBound)
                     }
                     .onEnded { _ in
