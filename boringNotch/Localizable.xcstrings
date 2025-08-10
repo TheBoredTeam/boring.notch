@@ -199,6 +199,9 @@
     "Calendar access is denied. Please enable it in System Settings." : {
 
     },
+    "Calendars" : {
+
+    },
     "Cancel" : {
 
     },
@@ -497,6 +500,12 @@
         }
       }
     },
+    "Mark as complete" : {
+
+    },
+    "Mark as incomplete" : {
+
+    },
     "Match menubar height" : {
 
     },
@@ -722,6 +731,9 @@
     "Remember last tab" : {
 
     },
+    "Reminders" : {
+
+    },
     "Restart" : {
 
     },
@@ -741,9 +753,6 @@
           }
         }
       }
-    },
-    "Select Calendars" : {
-
     },
     "Select the music source you want to use. You can change this later in the app settings." : {
 

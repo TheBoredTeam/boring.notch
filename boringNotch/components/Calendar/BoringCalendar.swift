@@ -176,7 +176,7 @@ struct CalendarView: View {
                         .foregroundColor(Color(white: 0.65))
                 }
 
-                ZStack (alignment: .top) {
+                ZStack(alignment: .top) {
                     WheelPicker(selectedDate: $selectedDate, config: Config())
                     HStack(alignment: .top) {
                         LinearGradient(
@@ -239,6 +239,7 @@ struct EmptyEventsView: View {
 
 struct EventListView: View {
     @Environment(\.openURL) private var openURL
+    @ObservedObject private var calendarManager = CalendarManager.shared
     let events: [EventModel]
 
     var body: some View {
@@ -266,47 +267,106 @@ struct EventListView: View {
     }
 
     private func eventRow(_ event: EventModel) -> some View {
-        HStack(alignment: .top, spacing: 4) {
-            Rectangle()
-                .fill(Color(event.calendar.color))
-                .frame(width: 3)
-                .cornerRadius(1.5)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(event.title)
-                    .font(.callout)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                    .lineLimit(2)
-
-                if let location = event.location, !location.isEmpty {
-                    Text(location)
-                        .font(.caption)
-                        .foregroundColor(Color(white: 0.65))
-                        .lineLimit(1)
-                }
+        if event.type.isReminder {
+            let isCompleted: Bool
+            if case .reminder(let completed) = event.type {
+                isCompleted = completed
+            } else {
+                isCompleted = false
             }
-            Spacer(minLength: 0)
-            VStack(alignment: .trailing, spacing: 4) {
-                if event.isAllDay {
-                    Text("All-day")
-                        .font(.caption)
-                        .fontWeight(.medium)
+            return AnyView(
+                HStack(spacing: 8) {
+                    ReminderToggle(
+                        isOn: Binding(
+                            get: { isCompleted },
+                            set: { newValue in
+                                Task {
+                                    await calendarManager.setReminderCompleted(reminderID: event.id, completed: newValue)
+                                }
+                            }
+                        ),
+                        color: Color(event.calendar.color)
+                    )
+                    Text(event.title)
+                        .font(.callout)
                         .foregroundColor(.white)
                         .lineLimit(1)
-                } else {
-                    Text(event.start, style: .time)
-                        .foregroundColor(.white)
-                    Text(event.end, style: .time)
-                        .foregroundColor(Color(white: 0.65))
+                    Spacer(minLength: 0)
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text(event.start, style: .time)
+                            .foregroundColor(.white)
+                            .font(.caption)
+                    }
                 }
-            }
-            .font(.caption)
-            .frame(minWidth: 44, alignment: .trailing)
+                .padding(.vertical, 4)
+                .opacity(
+                    isCompleted ? 0.4 : event.start < Date.now && Calendar.current.isDateInToday(event.start)
+                        ? 0.6 : 1.0)
+            )
+        } else {
+            return AnyView(
+                HStack(alignment: .top, spacing: 4) {
+                    Rectangle()
+                        .fill(Color(event.calendar.color))
+                        .frame(width: 3)
+                        .cornerRadius(1.5)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(event.title)
+                            .font(.callout)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .lineLimit(2)
+
+                        if let location = event.location, !location.isEmpty {
+                            Text(location)
+                                .font(.caption)
+                                .foregroundColor(Color(white: 0.65))
+                                .lineLimit(1)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    VStack(alignment: .trailing, spacing: 4) {
+                        if event.isAllDay {
+                            Text("All-day")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                        } else {
+                            Text(event.start, style: .time)
+                                .foregroundColor(.white)
+                            Text(event.end, style: .time)
+                                .foregroundColor(Color(white: 0.65))
+                        }
+                    }
+                    .font(.caption)
+                    .frame(minWidth: 44, alignment: .trailing)
+                }
+                .opacity(
+                    event.eventStatus == .ended && Calendar.current.isDateInToday(event.start)
+                        ? 0.6 : 1.0)
+            )
         }
-        //Only make opacity 0.6 if it is the same date as calendars current date
-        .opacity(event.eventStatus == .ended && Calendar.current.isDateInToday(event.start) ? 0.6 : 1.0)
-        
+    }
+}
+
+struct ReminderToggle: View {
+    @Binding var isOn: Bool
+    var color: Color
+
+    var body: some View {
+        Button(action: {
+            isOn.toggle()
+        }) {
+            Circle()
+                .fill(isOn ? color : Color.black, )
+                .strokeBorder(isOn ? Color.clear : Color.gray.opacity(0.4), lineWidth: 2.5)
+                .frame(width: 14, height: 14)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .padding(0)
+        .accessibilityLabel(isOn ? "Mark as incomplete" : "Mark as complete")
     }
 }
 

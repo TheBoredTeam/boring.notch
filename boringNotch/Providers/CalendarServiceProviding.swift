@@ -136,6 +136,16 @@ class CalendarService: CalendarServiceProviding {
             return Array(uniqueReminders.compactMap { EventModel(from: $0) })
         }
     }
+    
+    func setReminderCompleted(reminderID: String, completed: Bool) async {
+        guard let reminder = store.calendarItem(withIdentifier: reminderID) as? EKReminder else { return }
+        reminder.isCompleted = completed
+        do {
+            try store.save(reminder, commit: true)
+        } catch {
+            print("Failed to update reminder completion: \(error)")
+        }
+    }
 }
 
 // MARK: - Model Extensions
@@ -147,7 +157,8 @@ extension CalendarModel {
             account: calendar.accountTitle,
             title: calendar.title,
             color: calendar.color,
-            isSubscribed: calendar.isSubscribed || calendar.isDelegate
+            isSubscribed: calendar.isSubscribed || calendar.isDelegate,
+            isReminder: calendar.allowedEntityTypes.contains(.reminder),
         )
     }
 }
