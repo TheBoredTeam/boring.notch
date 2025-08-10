@@ -8,7 +8,7 @@
 //
 
 import Foundation
-import EventKit
+@preconcurrency import EventKit
 
 protocol CalendarServiceProviding {
     func requestAccess() async -> Bool

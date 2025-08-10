@@ -242,9 +242,20 @@ struct EventListView: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     let events: [EventModel]
 
+    private var filteredEvents: [EventModel] {
+        events.filter { event in
+            if event.type.isReminder {
+                if case .reminder(let completed) = event.type {
+                    return !completed || !Defaults[.hideCompletedReminders]
+                }
+            }
+            return true
+        }
+    }
+
     var body: some View {
         List {
-            ForEach(events) { event in
+            ForEach(filteredEvents) { event in
                 Button(action: {
                     if let url = event.calendarAppURL() {
                         openURL(url)
@@ -281,27 +292,35 @@ struct EventListView: View {
                             get: { isCompleted },
                             set: { newValue in
                                 Task {
-                                    await calendarManager.setReminderCompleted(reminderID: event.id, completed: newValue)
+                                    await calendarManager.setReminderCompleted(
+                                        reminderID: event.id, completed: newValue
+                                    )
                                 }
                             }
                         ),
                         color: Color(event.calendar.color)
                     )
-                    Text(event.title)
-                        .font(.callout)
-                        .foregroundColor(.white)
-                        .lineLimit(1)
-                    Spacer(minLength: 0)
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text(event.start, style: .time)
+                    .opacity(1.0)  // Ensure the toggle is always fully opaque
+                    HStack {
+                        Text(event.title)
+                            .font(.callout)
                             .foregroundColor(.white)
-                            .font(.caption)
+                            .lineLimit(1)
+                        Spacer(minLength: 0)
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(event.start, style: .time)
+                                .foregroundColor(.white)
+                                .font(.caption)
+                        }
                     }
+                    .opacity(
+                        isCompleted
+                            ? 0.4
+                            : event.start < Date.now && Calendar.current.isDateInToday(event.start)
+                                ? 0.6 : 1.0
+                    )
                 }
                 .padding(.vertical, 4)
-                .opacity(
-                    isCompleted ? 0.4 : event.start < Date.now && Calendar.current.isDateInToday(event.start)
-                        ? 0.6 : 1.0)
             )
         } else {
             return AnyView(
@@ -359,10 +378,21 @@ struct ReminderToggle: View {
         Button(action: {
             isOn.toggle()
         }) {
-            Circle()
-                .fill(isOn ? color : Color.black, )
-                .strokeBorder(isOn ? Color.clear : Color.gray.opacity(0.4), lineWidth: 2.5)
-                .frame(width: 14, height: 14)
+            ZStack {
+                // Outer ring
+                Circle()
+                    .strokeBorder(color, lineWidth: 2)
+                    .frame(width: 14, height: 14)
+                // Inner fill
+                if isOn {
+                    Circle()
+                        .fill(color)
+                        .frame(width: 8, height: 8)
+                }
+                Circle()
+                    .fill(Color.black.opacity(0.001))
+                    .frame(width: 14, height: 14)
+            }
         }
         .buttonStyle(PlainButtonStyle())
         .padding(0)

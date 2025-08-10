@@ -579,7 +579,6 @@ struct Media: View {
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     @Default(.showCalendar) var showCalendar: Bool
-    @Default(.showScheduledReminders) var showScheduledReminders
     @Default(.hideCompletedReminders) var hideCompletedReminders
 
     var body: some View {
@@ -599,7 +598,6 @@ struct CalendarSettings: View {
                 }
             } else {
                 Defaults.Toggle("Show calendar", key: .showCalendar)
-                Defaults.Toggle("Show scheduled reminders", key: .showScheduledReminders)
                 Defaults.Toggle("Hide completed reminders", key: .hideCompletedReminders)
                 Section(header: Text("Calendars")) {
                     List {
