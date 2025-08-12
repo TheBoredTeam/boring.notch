@@ -1,4 +1,14 @@
-# Boring Notch
+<h1 align="center">
+  <br>
+  <a href="http://thebored.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Markdownify" width="150"></a>
+  <br>
+  Boring Notch
+  <br>
+</h1>
+
+
+[![](https://dcbadge.limes.pink/api/server/https://discord.gg/3zSxSZ9FWt?style=flat)]([https://discord.gg/INVITE](https://discord.gg/3zSxSZ9FWt))
+
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
 
 Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with AirDrop support and more!
