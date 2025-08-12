@@ -7,7 +7,8 @@
 </h1>
 
 
-[![](https://dcbadge.limes.pink/api/server/https://discord.gg/3zSxSZ9FWt?style=flat)]([https://discord.gg/INVITE](https://discord.gg/3zSxSZ9FWt))
+![TheBoringNotch Build & Test](https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg)
+[![](https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat)](https://discord.gg/c8JXA7qrPm)
 
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
 
