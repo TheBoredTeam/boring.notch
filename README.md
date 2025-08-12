@@ -15,7 +15,6 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 - [Installation](#installation)
 - [Usage](#usage)
 - [Roadmap](#-roadmap)
-<!-- - [Extensions](#-extensions) -->
 - [Building from Source](#building-from-source)
 - [Contributing](#-contributing)
 - [Join our Discord Server](#join-our-discord-server)
@@ -68,14 +67,14 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - [x] Customizable gesture control 👆🏻
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
-- [ ] Layout options 🛠️
+- [ ] Customizable Layout options 🛠️
 - [ ] Extension system 🧩
-- [ ] Clipboard history manager 📌 `Extension`
-- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️ `Extension`
-- [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`
-- [ ] Customizable function buttons 🎛️
-- [ ] App switcher 🪄
+- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
 - [ ] Notifications (under consideration) 🔔
+<!-- - [ ] Clipboard history manager 📌 `Extension` -->
+<!-- - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`-->
+<!-- - [ ] Customizable function buttons 🎛️ -->
+<!-- - [ ] App switcher 🪄 -->
 
 <!-- ## 🧩 Extensions
 > [!NOTE]
