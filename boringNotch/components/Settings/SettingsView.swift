@@ -583,26 +583,25 @@ struct CalendarSettings: View {
 
     var body: some View {
         Form {
-            if calendarManager.authorizationStatus != .fullAccess {
-                Text("Calendar access is denied. Please enable it in System Settings.")
-                    .foregroundColor(.red)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                Button("Open System Settings") {
-                    if let settingsURL = URL(
-                        string:
-                            "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars"
-                    ) {
-                        NSWorkspace.shared.open(settingsURL)
+            Defaults.Toggle("Show calendar", key: .showCalendar)
+            Defaults.Toggle("Hide completed reminders", key: .hideCompletedReminders)
+            Section(header: Text("Calendars")) {
+                if calendarManager.calendarAuthorizationStatus != .fullAccess {
+                    Text("Calendar access is denied. Please enable it in System Settings.")
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    Button("Open Calendar Settings") {
+                        if let settingsURL = URL(
+                            string:
+                                "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars"
+                        ) {
+                            NSWorkspace.shared.open(settingsURL)
+                        }
                     }
-                }
-            } else {
-                Defaults.Toggle("Show calendar", key: .showCalendar)
-                Defaults.Toggle("Hide completed reminders", key: .hideCompletedReminders)
-                Section(header: Text("Calendars")) {
+                } else {
                     List {
-                        ForEach(calendarManager.allCalendars.filter { !$0.isReminder }, id: \.id) {
-                            calendar in
+                        ForEach(calendarManager.eventCalendars, id: \.id) { calendar in
                             Toggle(
                                 isOn: Binding(
                                     get: { calendarManager.getCalendarSelected(calendar) },
@@ -620,10 +619,24 @@ struct CalendarSettings: View {
                         }
                     }
                 }
-                Section(header: Text("Reminders")) {
+            }
+            Section(header: Text("Reminders")) {
+                if calendarManager.reminderAuthorizationStatus != .fullAccess {
+                    Text("Reminder access is denied. Please enable it in System Settings.")
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    Button("Open Reminder Settings") {
+                        if let settingsURL = URL(
+                            string:
+                                "x-apple.systempreferences:com.apple.preference.security?Privacy_Reminders"
+                        ) {
+                            NSWorkspace.shared.open(settingsURL)
+                        }
+                    }
+                } else {
                     List {
-                        ForEach(calendarManager.allCalendars.filter { $0.isReminder }, id: \.id) {
-                            calendar in
+                        ForEach(calendarManager.reminderLists, id: \.id) { calendar in
                             Toggle(
                                 isOn: Binding(
                                     get: { calendarManager.getCalendarSelected(calendar) },
@@ -646,9 +659,9 @@ struct CalendarSettings: View {
         .onAppear {
             Task {
                 await calendarManager.checkCalendarAuthorization()
+                await calendarManager.checkReminderAuthorization()
             }
         }
-        .navigationTitle("Calendar")
     }
 }
 

@@ -71,12 +71,6 @@
     "Access Denied" : {
 
     },
-    "Activate" : {
-
-    },
-    "Activate your license" : {
-
-    },
     "Add" : {
 
     },
@@ -337,9 +331,6 @@
     "Edit layout" : {
 
     },
-    "Email address" : {
-
-    },
     "Enable colored spectrograms" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -476,9 +467,6 @@
 
     },
     "Later" : {
-
-    },
-    "License key" : {
 
     },
     "Lottie JSON URL" : {
@@ -665,7 +653,10 @@
         }
       }
     },
-    "Open System Settings" : {
+    "Open Calendar Settings" : {
+
+    },
+    "Open Reminder Settings" : {
 
     },
     "Percentage" : {
@@ -729,6 +720,9 @@
       }
     },
     "Remember last tab" : {
+
+    },
+    "Reminder access is denied. Please enable it in System Settings." : {
 
     },
     "Reminders" : {
@@ -880,9 +874,6 @@
 
     },
     "Toggle Sneak Peek:" : {
-
-    },
-    "Transform your notch truly yours" : {
 
     },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
