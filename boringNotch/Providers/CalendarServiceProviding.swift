@@ -158,7 +158,7 @@ extension CalendarModel {
             title: calendar.title,
             color: calendar.color,
             isSubscribed: calendar.isSubscribed || calendar.isDelegate,
-            isReminder: calendar.allowedEntityTypes.contains(.reminder),
+            isReminder: calendar.allowedEntityTypes.contains(.reminder)
         )
     }
 }
