@@ -11,7 +11,7 @@ import Foundation
 @preconcurrency import EventKit
 
 protocol CalendarServiceProviding {
-    func requestAccess() async -> Bool
+    func requestAccess(to type: EKEntityType) async throws -> Bool
     func calendars() async -> [CalendarModel]
     func events(from start: Date, to end: Date, calendars: [String]) async -> [EventModel]
 }
@@ -20,18 +20,7 @@ class CalendarService: CalendarServiceProviding {
     private let store = EKEventStore()
     
     @MainActor
-    func requestAccess() async -> Bool {
-        do {
-            let eventsAccess = try await requestAccess(to: .event)
-            let remindersAccess = try await requestAccess(to: .reminder)
-            return eventsAccess || remindersAccess // At least one should work
-        } catch {
-            print("Calendar access error: \(error)")
-            return false
-        }
-    }
-    
-    private func requestAccess(to type: EKEntityType) async throws -> Bool {
+    func requestAccess(to type: EKEntityType) async throws -> Bool {
         if #available(macOS 14.0, *) {
             switch type {
             case .event:

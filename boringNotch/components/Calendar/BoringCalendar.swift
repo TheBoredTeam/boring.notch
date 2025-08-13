@@ -192,7 +192,10 @@ struct CalendarView: View {
                 }
             }
 
-            if calendarManager.events.isEmpty {
+            let filteredEvents = EventListView.filteredEvents(
+                events: calendarManager.events
+            )
+            if filteredEvents.isEmpty {
                 EmptyEventsView()
                 Spacer(minLength: 0)
             } else {
@@ -242,7 +245,8 @@ struct EventListView: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     let events: [EventModel]
 
-    private var filteredEvents: [EventModel] {
+
+    static func filteredEvents(events: [EventModel]) -> [EventModel] {
         events.filter { event in
             if event.type.isReminder {
                 if case .reminder(let completed) = event.type {
@@ -251,6 +255,10 @@ struct EventListView: View {
             }
             return true
         }
+    }
+
+    private var filteredEvents: [EventModel] {
+        Self.filteredEvents(events: events)
     }
 
     var body: some View {

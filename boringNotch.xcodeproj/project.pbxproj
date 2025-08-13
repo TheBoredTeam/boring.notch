@@ -86,7 +86,6 @@
 		B10A848A2C7BCC940088BFFC /* AirDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10A84892C7BCC940088BFFC /* AirDropView.swift */; };
 		B10A848C2C7BCD150088BFFC /* AirDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10A848B2C7BCD150088BFFC /* AirDrop.swift */; };
 		B10F84A32C6C9596009F3026 /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10F84A22C6C9596009F3026 /* TestView.swift */; };
-		B141C23D2CA5F51200AC8CC8 /* ActivationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B141C23C2CA5F50F00AC8CC8 /* ActivationView.swift */; };
 		B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */; };
 		B1628B922CC260C0003D8DF3 /* SwiftUIIntrospect in Frameworks */ = {isa = PBXBuildFile; productRef = B1628B912CC260C0003D8DF3 /* SwiftUIIntrospect */; };
 		B1628BA82CC40C4F003D8DF3 /* DragDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1628BA72CC40C4F003D8DF3 /* DragDropView.swift */; };
@@ -215,7 +214,6 @@
 		B10A84892C7BCC940088BFFC /* AirDropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropView.swift; sourceTree = "<group>"; };
 		B10A848B2C7BCD150088BFFC /* AirDrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDrop.swift; sourceTree = "<group>"; };
 		B10F84A22C6C9596009F3026 /* TestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestView.swift; sourceTree = "<group>"; };
-		B141C23C2CA5F50F00AC8CC8 /* ActivationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationView.swift; sourceTree = "<group>"; };
 		B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleView.swift; sourceTree = "<group>"; };
 		B1628BA72CC40C4F003D8DF3 /* DragDropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragDropView.swift; sourceTree = "<group>"; };
 		B17266DE2C64DFA00031BA0D /* BundleInfos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleInfos.swift; sourceTree = "<group>"; };
@@ -528,7 +526,6 @@
 				11CFC65E2E097F2100748C80 /* OnboardingView.swift */,
 				11CFC65A2E097E9D00748C80 /* WelcomeView.swift */,
 				B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */,
-				B141C23C2CA5F50F00AC8CC8 /* ActivationView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -796,7 +793,6 @@
 				1153BD982D9881F900979FB0 /* AppleScriptHelper.swift in Sources */,
 				11CFC6612E097F6800748C80 /* PermissionsRequestView.swift in Sources */,
 				14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */,
-				B141C23D2CA5F51200AC8CC8 /* ActivationView.swift in Sources */,
 				14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */,
 				149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */,
 				14288E0C2C6F8EC000B9F80C /* AppIcons.swift in Sources */,
