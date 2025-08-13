@@ -7,8 +7,12 @@
 </h1>
 
 
-![TheBoringNotch Build & Test](https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg)
-[![](https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat)](https://discord.gg/c8JXA7qrPm)
+<p align="center">
+  <img src="https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg" alt="TheBoringNotch Build & Test" style="margin-right: 10px;" />
+  <a href="https://discord.gg/c8JXA7qrPm">
+    <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat" alt="Discord Badge" />
+  </a>
+</p>
 
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
 
@@ -34,7 +38,6 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 - [Join our Discord Server](#join-our-discord-server)
 - [Star History](#star-history)
 - [Buy us a coffee!](#buy-us-a-coffee)
-- [License](#-license)
 - [Acknowledgments](#-acknowledgments)
 
 ## Installation
