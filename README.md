@@ -22,14 +22,9 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
   <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo GIF" />
 </p>
 
-
-
-<!--![Boring Notch Build & Test](https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg)-->
-
-
 <!--https://github.com/user-attachments/assets/19b87973-4b3a-4853-b532-7e82d1d6b040-->
-
-## Table of Contents
+---
+<!--## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
 - [Roadmap](#-roadmap)
@@ -38,7 +33,7 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 - [Join our Discord Server](#join-our-discord-server)
 - [Star History](#star-history)
 - [Buy us a coffee!](#buy-us-a-coffee)
-- [Acknowledgments](#-acknowledgments)
+- [Acknowledgments](#-acknowledgments)-->
 
 ## Installation
 
