@@ -163,13 +163,6 @@ We’re all about good vibes and awesome contributions! Here’s how you can joi
 
 <a href="https://www.buymeacoffee.com/jfxh67wvfxq" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
-
-## 📝 License
-
-This project is licensed under the GNU General Public License v3.0.
-See the THIRD_PARTY_LICENSES file for details on licenses of third-party dependencies.
-
-
 ## 🎉 Acknowledgments
 
 We would like to express our appreciation to the developers of [NotchDrop](https://github.com/Lakr233/NotchDrop), an open-source project that has been instrumental in developing the "Shelf" feature in Boring Notch. Special thanks to Lakr233 for their contributions to NotchDrop and to [Hugo Persson](https://github.com/Hugo-Persson) for integrating it into our project.
