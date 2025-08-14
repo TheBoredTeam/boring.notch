@@ -1,4 +1,4 @@
 files:
-  - source: "/boringNotch/*.xcstrings"
-    translation: "/boringNotch/%original_file_name%"
-    multilingual: true
+  - source: /boringNotch/*.xcstrings
+    translation: /boringNotch/%original_file_name%
+    multilingual: 1
