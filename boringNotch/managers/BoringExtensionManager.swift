@@ -34,7 +34,8 @@ class BoringExtensionManager: ObservableObject {
     
     var extensions = [
         clipboardExtension,
-        hudExtension
+        hudExtension,
+        downloadManagerExtension
     ]
 
     init() {

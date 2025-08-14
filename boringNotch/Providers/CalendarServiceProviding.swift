@@ -8,10 +8,10 @@
 //
 
 import Foundation
-import EventKit
+@preconcurrency import EventKit
 
 protocol CalendarServiceProviding {
-    func requestAccess() async -> Bool
+    func requestAccess(to type: EKEntityType) async throws -> Bool
     func calendars() async -> [CalendarModel]
     func events(from start: Date, to end: Date, calendars: [String]) async -> [EventModel]
 }
@@ -20,18 +20,7 @@ class CalendarService: CalendarServiceProviding {
     private let store = EKEventStore()
     
     @MainActor
-    func requestAccess() async -> Bool {
-        do {
-            let eventsAccess = try await requestAccess(to: .event)
-            let remindersAccess = try await requestAccess(to: .reminder)
-            return eventsAccess || remindersAccess // At least one should work
-        } catch {
-            print("Calendar access error: \(error)")
-            return false
-        }
-    }
-    
-    private func requestAccess(to type: EKEntityType) async throws -> Bool {
+    func requestAccess(to type: EKEntityType) async throws -> Bool {
         if #available(macOS 14.0, *) {
             switch type {
             case .event:
@@ -136,6 +125,16 @@ class CalendarService: CalendarServiceProviding {
             return Array(uniqueReminders.compactMap { EventModel(from: $0) })
         }
     }
+    
+    func setReminderCompleted(reminderID: String, completed: Bool) async {
+        guard let reminder = store.calendarItem(withIdentifier: reminderID) as? EKReminder else { return }
+        reminder.isCompleted = completed
+        do {
+            try store.save(reminder, commit: true)
+        } catch {
+            print("Failed to update reminder completion: \(error)")
+        }
+    }
 }
 
 // MARK: - Model Extensions
@@ -147,7 +146,8 @@ extension CalendarModel {
             account: calendar.accountTitle,
             title: calendar.title,
             color: calendar.color,
-            isSubscribed: calendar.isSubscribed || calendar.isDelegate
+            isSubscribed: calendar.isSubscribed || calendar.isDelegate,
+            isReminder: calendar.allowedEntityTypes.contains(.reminder)
         )
     }
 }
@@ -170,7 +170,7 @@ extension EventModel {
             participants: .init(from: event),
             timeZone: calendar.isSubscribed || calendar.isDelegate ? nil : event.timeZone,
             hasRecurrenceRules: event.hasRecurrenceRules || event.isDetached,
-            priority: nil,
+            priority: nil
         )
     }
     
@@ -194,7 +194,7 @@ extension EventModel {
             participants: [],
             timeZone: calendar.isSubscribed || calendar.isDelegate ? nil : reminder.timeZone,
             hasRecurrenceRules: reminder.hasRecurrenceRules,
-            priority: .init(from: reminder.priority),
+            priority: .init(from: reminder.priority)
         )
     }
 }

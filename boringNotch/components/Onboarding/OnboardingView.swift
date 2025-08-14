@@ -12,6 +12,7 @@ enum OnboardingStep {
     case welcome
     case cameraPermission
     case calendarPermission
+    case remindersPermission
     case musicPermission
     case finished
 }
@@ -64,19 +65,41 @@ struct OnboardingView: View {
                     privacyNote: "Your calendar data is only used to show your events and is never shared.",
                     onAllow: {
                         Task {
-                            await requestCalendarPermission()
+                                await requestCalendarPermission()
+                                withAnimation(.easeInOut(duration: 0.6)) {
+                                    step = .remindersPermission
+                                }
+                        }
+                    },
+                    onSkip: {
+                            withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .remindersPermission
+                            }
+                    }
+                )
+                .transition(.opacity)
+
+                case .remindersPermission:
+                    PermissionRequestView(
+                        icon: Image(systemName: "checklist"),
+                        title: "Enable Reminders Access",
+                        description: "Boring Notch can show your scheduled reminders alongside your calendar events. Access to Reminders is needed to display your reminders.",
+                        privacyNote: "Your reminders data is only used to show your reminders and is never shared.",
+                        onAllow: {
+                            Task {
+                                await requestRemindersPermission()
+                                withAnimation(.easeInOut(duration: 0.6)) {
+                                    step = .musicPermission
+                                }
+                            }
+                        },
+                        onSkip: {
                             withAnimation(.easeInOut(duration: 0.6)) {
                                 step = .musicPermission
                             }
                         }
-                    },
-                    onSkip: {
-                        withAnimation(.easeInOut(duration: 0.6)) {
-                            step = .musicPermission
-                        }
-                    }
-                )
-                .transition(.opacity)
+                    )
+                    .transition(.opacity)
                 
             case .musicPermission:
                 MusicControllerSelectionView(
@@ -102,6 +125,10 @@ struct OnboardingView: View {
     }
 
     func requestCalendarPermission() async {
-        await calendarService.requestAccess()
+        _ = try? await calendarService.requestAccess(to: .event)
+    }
+
+    func requestRemindersPermission() async {
+        _ = try? await calendarService.requestAccess(to: .reminder)
     }
 }
