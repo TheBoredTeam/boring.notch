@@ -20,10 +20,9 @@ jobs:
       - name: Get latest 5 versions with placeholder
         id: tags
         run: |
-          TAGS=$(git tag --sort=-v:refname | head -n 5 | jq -R . | jq -sc .)
-          PLACEHOLDER='["Select a version"]'
-          # Merge placeholder + tags
-          VERSIONS=$(jq -s -c '.[0] + .[1]' <(echo "$PLACEHOLDER") <(echo "$TAGS"))
+          TAGS=$(git tag --sort=-v:refname | head -n 5 | jq -R -s -c 'split("\n")[:-1]')
+          VERSIONS=$(echo '["Select a version"]' | jq -c --argjson tags "$TAGS" '. + $tags')
+          echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
 
       - name: Issue Forms Dropdown Options
         uses: ShaMan123/gha-form-dropdown-options@v2.1.0
