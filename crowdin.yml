@@ -1,0 +1,3 @@
+files:
+  - source: /boringNotch/*.xcstrings
+    translation: /boringNotch/%osx_code%/%original_file_name%
