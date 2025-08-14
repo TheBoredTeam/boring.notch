@@ -24,7 +24,6 @@ struct WheelPicker: View {
     @State private var scrollPosition: Int?
     @State private var haptics: Bool = false
     @State private var byClick: Bool = false
-    @State private var cellWidth: CGFloat = 0  // used to match spacer width to cell without changing sizing
     let config: Config
 
     var body: some View {
@@ -37,7 +36,7 @@ struct WheelPicker: View {
                     if index < spacerNum || index >= spacerNum + dateCount {
                         // Leading/trailing spacers sized to match a date cell
                         Spacer()
-                            .frame(width: max(cellWidth, 24), height: 24)
+                            .frame(width: 24, height: 24)
                             .id(index)
                     } else {
                         let date = dateForItemIndex(index: index, spacerNum: spacerNum)
@@ -98,16 +97,6 @@ struct WheelPicker: View {
             .padding(.horizontal, 4)
             .background(isSelected ? Color.accentColor.opacity(0.25) : Color.clear)
             .cornerRadius(8)
-            .background(
-                GeometryReader { proxy in
-                    Color.clear
-                        .onAppear {
-                            if proxy.size.width > 0 {
-                                cellWidth = max(cellWidth, proxy.size.width)
-                            }
-                        }
-                }
-            )
         }
         .buttonStyle(PlainButtonStyle())
         .id(id)
@@ -139,7 +128,6 @@ struct WheelPicker: View {
         guard let newIndex = newValue else { return }
         let spacerNum = config.offset
         let dateCount = totalDateItems()
-        // Only react when the centered view is an actual date cell (not a spacer)
         guard (spacerNum..<(spacerNum + dateCount)).contains(newIndex) else { return }
         let date = dateForItemIndex(index: newIndex, spacerNum: spacerNum)
         if !Calendar.current.isDate(date, inSameDayAs: selectedDate) {
@@ -178,7 +166,6 @@ struct WheelPicker: View {
     }
 
     private func totalDateItems() -> Int {
-        // Number of date cells, inclusive of both ends (today included). Applies steps consistently.
         let range = config.past + config.future
         let step = max(config.steps, 1)
         return Int(ceil(Double(range) / Double(step))) + 1
