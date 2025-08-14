@@ -1,10 +1,9 @@
 name: Update Version Dropdown in Issue Form
-
+permissions: write-all
 on:
   push:
     tags:
       - '*'
-
 jobs:
   update-dropdown:
     runs-on: ubuntu-latest
