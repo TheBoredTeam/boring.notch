@@ -29,20 +29,23 @@ struct WheelPicker: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: config.spacing) {
-                let totalSteps = config.steps * (config.past + config.future)
                 let spacerNum = config.offset
-                ForEach(0..<totalSteps + 2 * spacerNum + 1, id: \.self) { index in
-                    if index < spacerNum || index > totalSteps + spacerNum - 1 {
-                        Spacer().frame(width: 24, height: 24).id(index)
+                let dateCount = totalDateItems()
+                let totalItems = dateCount + 2 * spacerNum
+                ForEach(0..<totalItems, id: \.self) { index in
+                    if index < spacerNum || index >= spacerNum + dateCount {
+                        // Leading/trailing spacers sized to match a date cell
+                        Spacer()
+                            .frame(width: 24, height: 24)
+                            .id(index)
                     } else {
-                        let offset = -config.offset - config.past
-                        let date = dateForIndex(index, offset: offset)
+                        let date = dateForItemIndex(index: index, spacerNum: spacerNum)
                         let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
-                        dateButton(date: date, isSelected: isSelected, offset: offset) {
+                        dateButton(date: date, isSelected: isSelected, id: index) {
                             selectedDate = date
                             byClick = true
                             withAnimation {
-                                scrollPosition = indexForDate(date, offset: offset) - config.offset
+                                scrollPosition = index
                             }
                             if Defaults[.enableHaptics] {
                                 haptics.toggle()
@@ -55,8 +58,8 @@ struct WheelPicker: View {
             .scrollTargetLayout()
         }
         .scrollIndicators(.never)
-        .scrollPosition(id: $scrollPosition, anchor: .leading)
-        .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps to button center
+        .scrollPosition(id: $scrollPosition, anchor: .center)
+        .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps the centered view
         .safeAreaPadding(.horizontal)
         .sensoryFeedback(.alignment, trigger: haptics)
         .onChange(of: scrollPosition) { oldValue, newValue in
@@ -69,10 +72,20 @@ struct WheelPicker: View {
         .onAppear {
             scrollToToday(config: config)
         }
+        // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
+        .onChange(of: selectedDate) { _, newValue in
+            let targetIndex = indexForDate(newValue)
+            if scrollPosition != targetIndex {
+                byClick = true
+                withAnimation {
+                    scrollPosition = targetIndex
+                }
+            }
+        }
     }
 
     private func dateButton(
-        date: Date, isSelected: Bool, offset: Int, onClick: @escaping () -> Void
+        date: Date, isSelected: Bool, id: Int, onClick: @escaping () -> Void
     ) -> some View {
         let isToday = Calendar.current.isDateInToday(date)
         return Button(action: onClick) {
@@ -86,7 +99,7 @@ struct WheelPicker: View {
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
-        .id(indexForDate(date, offset: offset))
+        .id(id)
     }
 
     private func dayText(date: String, isToday: Bool, isSelected: Bool) -> some View {
@@ -112,42 +125,50 @@ struct WheelPicker: View {
     }
 
     func handleScrollChange(newValue: Int?, config: Config) {
-        let offset = -config.offset - config.past
-        let todayIndex = indexForDate(Date(), offset: offset)
         guard let newIndex = newValue else { return }
-        let targetDateIndex = newIndex + config.offset
-        switch targetDateIndex {
-        case todayIndex - config.past..<todayIndex + config.future:
-            selectedDate = dateForIndex(targetDateIndex, offset: offset)
+        let spacerNum = config.offset
+        let dateCount = totalDateItems()
+        guard (spacerNum..<(spacerNum + dateCount)).contains(newIndex) else { return }
+        let date = dateForItemIndex(index: newIndex, spacerNum: spacerNum)
+        if !Calendar.current.isDate(date, inSameDayAs: selectedDate) {
+            selectedDate = date
             if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
-        default:
-            return
         }
     }
 
     private func scrollToToday(config: Config) {
         let today = Date()
-        let todayIndex = indexForDate(today, offset: -config.offset - config.past)
         byClick = true
-        scrollPosition = todayIndex - config.offset
+        scrollPosition = indexForDate(today)
         selectedDate = today
     }
 
-    private func indexForDate(_ date: Date, offset: Int) -> Int {
-        let calendar = Calendar.current
-        let startDate = calendar.startOfDay(
-            for: calendar.date(byAdding: .day, value: offset, to: Date()) ?? Date())
-        let targetDate = calendar.startOfDay(for: date)
-        let daysDifference =
-            calendar.dateComponents([.day], from: startDate, to: targetDate).day ?? 0
-        return daysDifference
+    // MARK: - Index/Date mapping with steps and spacers
+    private func indexForDate(_ date: Date) -> Int {
+        let spacerNum = config.offset
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let startDate = cal.startOfDay(for: cal.date(byAdding: .day, value: -config.past, to: today) ?? today)
+        let target = cal.startOfDay(for: date)
+        let days = cal.dateComponents([.day], from: startDate, to: target).day ?? 0
+        let stepIndex = max(0, min(days / max(config.steps, 1), totalDateItems() - 1))
+        return spacerNum + stepIndex
     }
 
-    private func dateForIndex(_ index: Int, offset: Int) -> Date {
-        let startDate = Calendar.current.date(byAdding: .day, value: offset, to: Date()) ?? Date()
-        return Calendar.current.date(byAdding: .day, value: index, to: startDate) ?? Date()
+    private func dateForItemIndex(index: Int, spacerNum: Int) -> Date {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let startDate = cal.date(byAdding: .day, value: -config.past, to: today) ?? today
+        let stepIndex = index - spacerNum
+        return cal.date(byAdding: .day, value: stepIndex * max(config.steps, 1), to: startDate) ?? today
+    }
+
+    private func totalDateItems() -> Int {
+        let range = config.past + config.future
+        let step = max(config.steps, 1)
+        return Int(ceil(Double(range) / Double(step))) + 1
     }
 
     private func dateToString(for date: Date) -> String {
