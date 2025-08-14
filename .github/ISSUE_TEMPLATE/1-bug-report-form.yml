@@ -1,7 +1,10 @@
+---
 name: Bug Report
 description: File a bug report.
-title: "[Bug] "
-labels: ["bug", "unconfirmed"]
+title: '[Bug] '
+labels:
+  - bug
+  - unconfirmed
 body:
   - type: markdown
     attributes:
@@ -11,11 +14,12 @@ body:
     id: what-happened
     attributes:
       label: What happened? What are the steps to reproduce the issue?
-      description: Describe the bug and include the steps to replicate the issue. Issues with images or videos will be resolved faster.
+      description: >-
+        Describe the bug and include the steps to replicate the issue. Issues
+        with images or videos will be resolved faster.
       placeholder: Clearly explain the issue. Please limit each post to one issue.
     validations:
       required: true
-
   - type: textarea
     id: expected-behaviour
     attributes:
@@ -23,24 +27,21 @@ body:
       description: A clear and concise description of what you expected to happen.
     validations:
       required: true
-
   - type: dropdown
     id: version
     attributes:
       label: BoringNotch Version
-      description: What version of our software are you running? (Go to ✦ in the menu bar > Settings > About)
+      description: >-
+        What version of our software are you running? (Go to ✦ in the menu bar >
+        Settings > About)
       options:
-        - Select an option
-        - 2.7-rc.2
-        - 2.7-rc.1
-        - 2.7-rc.0
-        - 2.6
-        - 2.5
-        - 2.4
-        - 2.3
+        - v2.7-rc.3
+        - v2.7-rc.2
+        - v2.7-rc.1
+        - v2.7-rc.0
+        - v2.6
     validations:
       required: true
-
   - type: input
     id: operating-system
     attributes:
@@ -48,19 +49,19 @@ body:
       description: Go to  > About This Mac
     validations:
       required: true
-
   - type: textarea
     id: logs
     attributes:
       label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      description: >-
+        Please copy and paste any relevant log output. This will be
+        automatically formatted into code, so no need for backticks.
       render: shell
-
   - type: checkboxes
     id: checks
     attributes:
       label: Checks
-      description:
+      description: 
       options:
         - label: I haven't found any duplicates with my issue.
           required: true
