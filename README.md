@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="http://thebored.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Markdownify" width="150"></a>
+  <a href="http://thebored.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Boring Notch" width="150"></a>
   <br>
   Boring Notch
   <br>
@@ -80,6 +80,7 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - [x] Customizable gesture control 👆🏻
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
+- [ ] Reminders integration ☑️
 - [ ] Customizable Layout options 🛠️
 - [ ] Extension system 🧩
 - [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
