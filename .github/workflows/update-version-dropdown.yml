@@ -21,7 +21,7 @@ jobs:
         id: tags
         run: |
           TAGS=$(git tag --sort=-v:refname | head -n 5 | jq -R . | jq -sc .)
-          PLACEHOLDER=$(echo '"Select a version"' | jq -s .)
+          PLACEHOLDER='["Select a version"]'
           # Merge placeholder + tags
           VERSIONS=$(jq -s '.[0] + .[1]' <(echo "$PLACEHOLDER") <(echo "$TAGS"))
           echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
