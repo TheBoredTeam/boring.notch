@@ -71,15 +71,6 @@
     "Access Denied" : {
 
     },
-    "Activate" : {
-
-    },
-    "Activate your license" : {
-
-    },
-    "Activation" : {
-
-    },
     "Add" : {
 
     },
@@ -200,6 +191,9 @@
 
     },
     "Calendar access is denied. Please enable it in System Settings." : {
+
+    },
+    "Calendars" : {
 
     },
     "Cancel" : {
@@ -335,9 +329,6 @@
 
     },
     "Edit layout" : {
-
-    },
-    "Email address" : {
 
     },
     "Enable colored spectrograms" : {
@@ -478,9 +469,6 @@
     "Later" : {
 
     },
-    "License key" : {
-
-    },
     "Lottie JSON URL" : {
 
     },
@@ -499,6 +487,12 @@
           }
         }
       }
+    },
+    "Mark as complete" : {
+
+    },
+    "Mark as incomplete" : {
+
     },
     "Match menubar height" : {
 
@@ -659,7 +653,10 @@
         }
       }
     },
-    "Open System Settings" : {
+    "Open Calendar Settings" : {
+
+    },
+    "Open Reminder Settings" : {
 
     },
     "Percentage" : {
@@ -725,6 +722,12 @@
     "Remember last tab" : {
 
     },
+    "Reminder access is denied. Please enable it in System Settings." : {
+
+    },
+    "Reminders" : {
+
+    },
     "Restart" : {
 
     },
@@ -744,9 +747,6 @@
           }
         }
       }
-    },
-    "Select Calendars" : {
-
     },
     "Select the music source you want to use. You can change this later in the app settings." : {
 
@@ -874,9 +874,6 @@
 
     },
     "Toggle Sneak Peek:" : {
-
-    },
-    "Transform your notch truly yours" : {
 
     },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
