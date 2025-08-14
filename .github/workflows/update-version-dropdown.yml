@@ -23,8 +23,7 @@ jobs:
           TAGS=$(git tag --sort=-v:refname | head -n 5 | jq -R . | jq -sc .)
           PLACEHOLDER='["Select a version"]'
           # Merge placeholder + tags
-          VERSIONS=$(jq -s '.[0] + .[1]' <(echo "$PLACEHOLDER") <(echo "$TAGS"))
-          echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
+          VERSIONS=$(jq -s -c '.[0] + .[1]' <(echo "$PLACEHOLDER") <(echo "$TAGS"))
 
       - name: Issue Forms Dropdown Options
         uses: ShaMan123/gha-form-dropdown-options@v2.1.0
