@@ -13,13 +13,14 @@ use File::Basename;
 sub print_help() {
   print <<'HELP';
 Usage:
-  mediaremote-adapter.pl FRAMEWORK_PATH [NOWPLAYING_CLIENT_PATH] [FUNCTION [PARAMS|OPTIONS...]]
+  mediaremote-adapter.pl FRAMEWORK_PATH [TEST_CLIENT_PATH]
+                         [FUNCTION [PARAMS|OPTIONS...]]
 
 FRAMEWORK_PATH:
-  Absolute path to MediaRemoteAdapter.framework
+  Absolute path to the MediaRemoteAdapter.framework directory
 
-NOWPLAYING_CLIENT_PATH (optional):
-  Path to the NowPlayingTestClient executable (used for test mode)
+TEST_CLIENT_PATH: (optional)
+  Absolute path to the MediaRemoteAdapterTestClient executable. Only for "test"
 
 FUNCTION:
   stream   Streams now playing information (as diff by default)
@@ -29,6 +30,8 @@ FUNCTION:
   shuffle  Sets the shuffle mode
   repeat   Sets the repeat mode
   speed    Sets the playback speed
+  test     Tests if the adapter is entitled to use the MediaRemote framework.
+           An exit code other than 0 indicates the adapter is non-functional
 
 PARAMS:
   send(command)
@@ -44,8 +47,11 @@ PARAMS:
 
 OPTIONS:
   get
-    --now: Sets "elapsedTime" to the current elapsed time. By default,
-      this value is the elapsed time at the time of the given "timestamp"
+    --now: Adds an "elapsedTimeNow" key with an estimation of the current
+      elapsed playback time. This estimation may be off by up to a second.
+      To determine a more accurate time without polling "get" continuously,
+      calculate it using the "elapsedTime" and "timestamp" keys. "elapsedTime"
+      contains the elapsed time at the time that is stored in "timestamp".
   stream
     --no-diff: Disable diffing and always dump all metadata
     --debounce=N: Delay in milliseconds to prevent spam (0 by default)
@@ -53,6 +59,7 @@ OPTIONS:
     --micros: Replaces the following time keys with microsecond equivalents
       "duration" -> "durationMicros"
       "elapsedTime" -> "elapsedTimeMicros"
+      "elapsedTimeNow" -> "elapsedTimeNowMicros"
       "timestamp" -> "timestampEpochMicros" (converted to epoch time)
     --human-readable, -h: Makes values human-readable. Use only for debugging.
       The JSON output is pretty-printed and the following keys are adapted:
@@ -81,11 +88,15 @@ fail "Framework path not provided" unless @ARGV >= 1;
 
 my $framework_path = shift @ARGV;
 
-# Optionally accept NOWPLAYING_CLIENT path as second argument
+# Optionally accept MEDIAREMOTEADAPTER_TEST_CLIENT_PATH path as second argument
 my $maybe_helper_path = $ARGV[0] // '';
-if ($maybe_helper_path =~ m{NowPlayingTestClient} || $maybe_helper_path =~ m{/}) {
-    my $helper_path = shift @ARGV;
-    $ENV{NOWPLAYING_CLIENT} = $helper_path;
+if ($maybe_helper_path =~ m{/}){
+  my $helper_path = shift @ARGV;
+  $ENV{MEDIAREMOTEADAPTER_TEST_CLIENT_PATH} = $helper_path;
+}
+
+if (!defined $ARGV[0]) {
+  print_help();
 }
 
 my $framework_basename = File::Basename::basename($framework_path);
@@ -237,7 +248,7 @@ elsif ($function_name eq "speed") {
   $symbol_name = env_func($symbol_name);
 }
 elsif ($function_name eq "test") {
-  $symbol_name = "_adapter_is_it_broken_yet";
+  $symbol_name = "adapter_test";
 }
 
 if (defined shift @ARGV) {
