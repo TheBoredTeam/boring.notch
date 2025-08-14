@@ -17,11 +17,14 @@ jobs:
       - name: Fetch tags
         run: git fetch --tags
 
-      - name: Get latest 5 versions
+      - name: Get latest 5 versions with placeholder
         id: tags
         run: |
           TAGS=$(git tag --sort=-v:refname | head -n 5 | jq -R . | jq -sc .)
-          echo "versions=$TAGS" >> $GITHUB_OUTPUT
+          PLACEHOLDER=$(echo '"Select a version"' | jq -s .)
+          # Merge placeholder + tags
+          VERSIONS=$(jq -s '.[0] + .[1]' <(echo "$PLACEHOLDER") <(echo "$TAGS"))
+          echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
 
       - name: Issue Forms Dropdown Options
         uses: ShaMan123/gha-form-dropdown-options@v2.1.0
@@ -39,6 +42,6 @@ jobs:
             echo "No changes to commit."
           else
             git add .github/ISSUE_TEMPLATE/1-bug-report-form.yml
-            git commit -m "Update issue form version dropdown with latest tags"
+            git commit -m "Update issue form version dropdown with placeholder and latest tags"
             git push
           fi
