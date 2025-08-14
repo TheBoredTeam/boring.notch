@@ -93,13 +93,13 @@
             "value" : ""
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : ""
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : ""
@@ -271,13 +271,13 @@
             "value" : " – %lld"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : " – %lld"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : " – %lld"
@@ -450,13 +450,13 @@
             "value" : "'Now Playing' was the only option on previous versions and works with all media apps."
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "'Now Playing' was the only option on previous versions and works with all media apps."
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "'Now Playing' was the only option on previous versions and works with all media apps."
@@ -538,9 +538,51 @@
     },
     "(%@)" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "(%@)"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "(%@)"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "(%@)"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "(%@)"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "(%@)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "(%@)"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "(%@)"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "(%@)"
           }
         },
@@ -592,13 +634,13 @@
             "value" : "(%@)"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "(%@)"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "(%@)"
@@ -771,13 +813,13 @@
             "value" : "%.0f seconds"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%.0f seconds"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%.0f seconds"
@@ -949,13 +991,13 @@
             "value" : "%.1fs"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%.1fs"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%.1fs"
@@ -1128,13 +1170,13 @@
             "value" : "%@"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%@"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%@"
@@ -1307,13 +1349,13 @@
             "value" : "%d%%"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%d%%"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%d%%"
@@ -1486,13 +1528,13 @@
             "value" : "%lld"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%lld"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%lld"
@@ -1665,13 +1707,13 @@
             "value" : "%lld%%"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%lld%%"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%lld%%"
@@ -1844,13 +1886,13 @@
             "value" : "• Bug fixes"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "• Bug fixes"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "• Bug fixes"
@@ -2022,13 +2064,13 @@
             "value" : "• Improved performance"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "• Improved performance"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "• Improved performance"
@@ -2200,13 +2242,13 @@
             "value" : "• New feature 1"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "• New feature 1"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "• New feature 1"
@@ -2288,9 +2330,51 @@
     },
     "About" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "About"
           }
         },
@@ -2342,13 +2426,13 @@
             "value" : "About"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "About"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "About"
@@ -2431,9 +2515,51 @@
     "Accent color" : {
       "extractionState" : "stale",
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Accent color"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Accent color"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Accent color"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Accent color"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Accent color"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Accent color"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Accent color"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Accent color"
           }
         },
@@ -2485,13 +2611,13 @@
             "value" : "Accent color"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Accent color"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Accent color"
@@ -2663,13 +2789,13 @@
             "value" : "Access Denied"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Access Denied"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Access Denied"
@@ -2841,13 +2967,13 @@
             "value" : "Add"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Add"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Add"
@@ -3019,13 +3145,13 @@
             "value" : "Add manually"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Add manually"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Add manually"
@@ -3197,13 +3323,13 @@
             "value" : "Add new visualizer"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Add new visualizer"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Add new visualizer"
@@ -3375,13 +3501,13 @@
             "value" : "Additional features"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Additional features"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Additional features"
@@ -3553,13 +3679,13 @@
             "value" : "AirDrop"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "AirDrop"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "AirDrop"
@@ -3731,13 +3857,13 @@
             "value" : "AirDrop service not available"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "AirDrop service not available"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "AirDrop service not available"
@@ -3909,13 +4035,13 @@
             "value" : "All-day"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "All-day"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "All-day"
@@ -4087,13 +4213,13 @@
             "value" : "Allow Access"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Allow Access"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Allow Access"
@@ -4265,13 +4391,13 @@
             "value" : "Always hide in fullscreen"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Always hide in fullscreen"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Always hide in fullscreen"
@@ -4443,13 +4569,13 @@
             "value" : "Always show tabs"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Always show tabs"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Always show tabs"
@@ -4621,13 +4747,13 @@
             "value" : "App icon"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "App icon"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "App icon"
@@ -4799,13 +4925,13 @@
             "value" : "Appearance"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Appearance"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Appearance"
@@ -4887,9 +5013,51 @@
     },
     "Automatically check for updates" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically check for updates"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically check for updates"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically check for updates"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically check for updates"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically check for updates"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically check for updates"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically check for updates"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Automatically check for updates"
           }
         },
@@ -4941,13 +5109,13 @@
             "value" : "Automatically check for updates"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Automatically check for updates"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Automatically check for updates"
@@ -5119,13 +5287,13 @@
             "value" : "Automatically download updates"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Automatically download updates"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Automatically download updates"
@@ -5207,9 +5375,51 @@
     },
     "Battery" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Battery"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Battery"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Battery"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Battery"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Battery"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Battery"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Battery"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Battery"
           }
         },
@@ -5261,13 +5471,13 @@
             "value" : "Battery"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Battery"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Battery"
@@ -5439,13 +5649,13 @@
             "value" : "Battery Information"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Battery Information"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Battery Information"
@@ -5617,13 +5827,13 @@
             "value" : "Battery Settings"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Battery Settings"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Battery Settings"
@@ -5795,13 +6005,13 @@
             "value" : "Battery Status"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Battery Status"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Battery Status"
@@ -5973,13 +6183,13 @@
             "value" : "Boost your productivity with Clipboard Manager"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Boost your productivity with Clipboard Manager"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Boost your productivity with Clipboard Manager"
@@ -6062,9 +6272,51 @@
     "Boring Controls" : {
       "extractionState" : "stale",
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Boring Controls"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Boring Controls"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Boring Controls"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Boring Controls"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Boring Controls"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Boring Controls"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Boring Controls"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Boring Controls"
           }
         },
@@ -6116,13 +6368,13 @@
             "value" : "Boring Controls"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Boring Controls"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Boring Controls"
@@ -6294,13 +6546,13 @@
             "value" : "Boring Notch"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Boring Notch"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Boring Notch"
@@ -6382,9 +6634,51 @@
     },
     "boring.notch" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "boring.notch"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "boring.notch"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "boring.notch"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "boring.notch"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "boring.notch"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "boring.notch"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "boring.notch"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "boring.notch"
           }
         },
@@ -6436,13 +6730,13 @@
             "value" : "boring.notch"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "boring.notch"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "boring.notch"
@@ -6524,9 +6818,51 @@
     },
     "Both" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Both"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Both"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Both"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Both"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Both"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Both"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Both"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Both"
           }
         },
@@ -6578,13 +6914,13 @@
             "value" : "Both"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Both"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Both"
@@ -6756,13 +7092,13 @@
             "value" : "Calendar"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Calendar"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Calendar"
@@ -6934,13 +7270,13 @@
             "value" : "Calendar access is denied. Please enable it in System Settings."
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Calendar access is denied. Please enable it in System Settings."
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Calendar access is denied. Please enable it in System Settings."
@@ -7112,13 +7448,13 @@
             "value" : "Calendars"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Calendars"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Calendars"
@@ -7290,13 +7626,13 @@
             "value" : "Cancel"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Cancel"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Cancel"
@@ -7378,9 +7714,51 @@
     },
     "Charging" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Charging"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Charging"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Charging"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Charging"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Charging"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Charging"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Charging"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Charging"
           }
         },
@@ -7432,13 +7810,13 @@
             "value" : "Charging"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Charging"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Charging"
@@ -7610,13 +7988,13 @@
             "value" : "Charging on Hold: Desktop Mode"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Charging on Hold: Desktop Mode"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Charging on Hold: Desktop Mode"
@@ -7788,13 +8166,13 @@
             "value" : "Check for Updates…"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Check for Updates…"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Check for Updates…"
@@ -7966,13 +8344,13 @@
             "value" : "Choose a Music Source"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Choose a Music Source"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Choose a Music Source"
@@ -8144,13 +8522,13 @@
             "value" : "Circle"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Circle"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Circle"
@@ -8322,13 +8700,13 @@
             "value" : "Close"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Close"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Close"
@@ -8410,9 +8788,51 @@
     },
     "Coming soon" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Coming soon"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Coming soon"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Coming soon"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Coming soon"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Coming soon"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Coming soon"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Coming soon"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Coming soon"
           }
         },
@@ -8464,13 +8884,13 @@
             "value" : "Coming soon"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Coming soon"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Coming soon"
@@ -8642,13 +9062,13 @@
             "value" : "Continue"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Continue"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Continue"
@@ -8820,13 +9240,13 @@
             "value" : "Custom height"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Custom height"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Custom height"
@@ -8998,13 +9418,13 @@
             "value" : "Custom music live activity animation"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Custom music live activity animation"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Custom music live activity animation"
@@ -9176,13 +9596,13 @@
             "value" : "Custom notch size - %.0f"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Custom notch size - %.0f"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Custom notch size - %.0f"
@@ -9354,13 +9774,13 @@
             "value" : "Custom vizualizers (Lottie)"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Custom vizualizers (Lottie)"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Custom vizualizers (Lottie)"
@@ -9532,13 +9952,13 @@
             "value" : "Customize in Settings"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Customize in Settings"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Customize in Settings"
@@ -9710,13 +10130,13 @@
             "value" : "Default"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Default"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Default"
@@ -9888,13 +10308,13 @@
             "value" : "Description"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Description"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Description"
@@ -10066,13 +10486,13 @@
             "value" : "Disable"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Disable"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Disable"
@@ -10244,13 +10664,13 @@
             "value" : "Disabled"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Disabled"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Disabled"
@@ -10422,13 +10842,13 @@
             "value" : "Download"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Download"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Download"
@@ -10510,9 +10930,51 @@
     },
     "Download icon style" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download icon style"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download icon style"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download icon style"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download icon style"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download icon style"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download icon style"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download icon style"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Download icon style"
           }
         },
@@ -10564,13 +11026,13 @@
             "value" : "Download icon style"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Download icon style"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Download icon style"
@@ -10652,9 +11114,51 @@
     },
     "Download indicator style" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download indicator style"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download indicator style"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download indicator style"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download indicator style"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download indicator style"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download indicator style"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download indicator style"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Download indicator style"
           }
         },
@@ -10706,13 +11210,13 @@
             "value" : "Download indicator style"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Download indicator style"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Download indicator style"
@@ -10884,13 +11388,13 @@
             "value" : "Download indicators"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Download indicators"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Download indicators"
@@ -10972,9 +11476,51 @@
     },
     "Downloads" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloads"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloads"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloads"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloads"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloads"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloads"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloads"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Downloads"
           }
         },
@@ -11026,13 +11572,13 @@
             "value" : "Downloads"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Downloads"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Downloads"
@@ -11204,13 +11750,13 @@
             "value" : "Drop files here"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Drop files here"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Drop files here"
@@ -11382,13 +11928,13 @@
             "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
@@ -11560,13 +12106,13 @@
             "value" : "Edit layout"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Edit layout"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Edit layout"
@@ -11738,13 +12284,13 @@
             "value" : "Enable HUD replacement"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enable HUD replacement"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enable HUD replacement"
@@ -11916,13 +12462,13 @@
             "value" : "Enable music live activity"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enable music live activity"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enable music live activity"
@@ -12094,13 +12640,13 @@
             "value" : "Enable sneak peek"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enable sneak peek"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enable sneak peek"
@@ -12272,13 +12818,13 @@
             "value" : "Enhance your experience with HUDs"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enhance your experience with HUDs"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enhance your experience with HUDs"
@@ -12450,13 +12996,13 @@
             "value" : "Enjoy your free time!"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enjoy your free time!"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Enjoy your free time!"
@@ -12628,13 +13174,13 @@
             "value" : "Error"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Error"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Error"
@@ -12716,9 +13262,51 @@
     },
     "Exclude apps" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exclude apps"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exclude apps"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exclude apps"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exclude apps"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exclude apps"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exclude apps"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exclude apps"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Exclude apps"
           }
         },
@@ -12770,13 +13358,13 @@
             "value" : "Exclude apps"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Exclude apps"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Exclude apps"
@@ -12948,13 +13536,13 @@
             "value" : "Exit"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Exit"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Exit"
@@ -13126,13 +13714,13 @@
             "value" : "Extensions"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Extensions"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Extensions"
@@ -13304,13 +13892,13 @@
             "value" : "Finish"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Finish"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Finish"
@@ -13392,9 +13980,51 @@
     },
     "General" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "General"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "General"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "General"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "General"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "General"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "General"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "General"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "General"
           }
         },
@@ -13446,13 +14076,13 @@
             "value" : "General"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "General"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "General"
@@ -13624,13 +14254,13 @@
             "value" : "Gesture control"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Gesture control"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Gesture control"
@@ -13802,13 +14432,13 @@
             "value" : "Gesture sensitivity"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Gesture sensitivity"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Gesture sensitivity"
@@ -13980,13 +14610,13 @@
             "value" : "Get started"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Get started"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Get started"
@@ -14068,9 +14698,51 @@
     },
     "GitHub" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "GitHub"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "GitHub"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "GitHub"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "GitHub"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "GitHub"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "GitHub"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "GitHub"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "GitHub"
           }
         },
@@ -14122,13 +14794,13 @@
             "value" : "GitHub"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "GitHub"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "GitHub"
@@ -14300,13 +14972,13 @@
             "value" : "Got it!"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Got it!"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Got it!"
@@ -14478,13 +15150,13 @@
             "value" : "Gradient"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Gradient"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Gradient"
@@ -14656,13 +15328,13 @@
             "value" : "Hide BoringNotch Options"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Hide BoringNotch Options"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Hide BoringNotch Options"
@@ -14834,13 +15506,13 @@
             "value" : "Hide only when NowPlaying app is in fullscreen"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Hide only when NowPlaying app is in fullscreen"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Hide only when NowPlaying app is in fullscreen"
@@ -15012,13 +15684,13 @@
             "value" : "Hierarchical"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Hierarchical"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Hierarchical"
@@ -15190,13 +15862,13 @@
             "value" : "High"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "High"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "High"
@@ -15368,13 +16040,13 @@
             "value" : "https://github.com/th-ch/youtube-music"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "https://github.com/th-ch/youtube-music"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "https://github.com/th-ch/youtube-music"
@@ -15546,13 +16218,13 @@
             "value" : "HUD style"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "HUD style"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "HUD style"
@@ -15724,13 +16396,13 @@
             "value" : "HUDs"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "HUDs"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "HUDs"
@@ -15902,13 +16574,13 @@
             "value" : "In progress"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "In progress"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "In progress"
@@ -16080,13 +16752,13 @@
             "value" : "Inline"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Inline"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Inline"
@@ -16258,13 +16930,13 @@
             "value" : "Installed extensions"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Installed extensions"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Installed extensions"
@@ -16436,13 +17108,13 @@
             "value" : "Later"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Later"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Later"
@@ -16614,13 +17286,13 @@
             "value" : "Lottie JSON URL"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Lottie JSON URL"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Lottie JSON URL"
@@ -16792,13 +17464,13 @@
             "value" : "Low"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Low"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Low"
@@ -16970,13 +17642,13 @@
             "value" : "Low Power Mode"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Low Power Mode"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Low Power Mode"
@@ -17058,9 +17730,51 @@
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Made with 🫶🏻 by not so boring not.people"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Made with 🫶🏻 by not so boring not.people"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Made with 🫶🏻 by not so boring not.people"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Made with 🫶🏻 by not so boring not.people"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Made with 🫶🏻 by not so boring not.people"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Made with 🫶🏻 by not so boring not.people"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Made with 🫶🏻 by not so boring not.people"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Made with 🫶🏻 by not so boring not.people"
           }
         },
@@ -17112,13 +17826,13 @@
             "value" : "Made with 🫶🏻 by not so boring not.people"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Made with 🫶🏻 by not so boring not.people"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Made with 🫶🏻 by not so boring not.people"
@@ -17290,13 +18004,13 @@
             "value" : "Mark as complete"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mark as complete"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mark as complete"
@@ -17468,13 +18182,13 @@
             "value" : "Mark as incomplete"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mark as incomplete"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mark as incomplete"
@@ -17646,13 +18360,13 @@
             "value" : "Match menubar height"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Match menubar height"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Match menubar height"
@@ -17824,13 +18538,13 @@
             "value" : "Match real notch size"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Match real notch size"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Match real notch size"
@@ -18002,13 +18716,13 @@
             "value" : "Max Capacity: %lld%%"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Max Capacity: %lld%%"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Max Capacity: %lld%%"
@@ -18090,9 +18804,51 @@
     },
     "Media" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Media"
           }
         },
@@ -18144,13 +18900,13 @@
             "value" : "Media"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media"
@@ -18322,13 +19078,13 @@
             "value" : "Media change with horizontal gestures"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media change with horizontal gestures"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media change with horizontal gestures"
@@ -18500,13 +19256,13 @@
             "value" : "Media controls"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media controls"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media controls"
@@ -18588,9 +19344,51 @@
     },
     "Media inactivity timeout" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media inactivity timeout"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media inactivity timeout"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media inactivity timeout"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media inactivity timeout"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media inactivity timeout"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media inactivity timeout"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media inactivity timeout"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Media inactivity timeout"
           }
         },
@@ -18642,13 +19440,13 @@
             "value" : "Media inactivity timeout"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media inactivity timeout"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media inactivity timeout"
@@ -18730,9 +19528,51 @@
     },
     "Media playback live activity" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media playback live activity"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media playback live activity"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media playback live activity"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media playback live activity"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media playback live activity"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media playback live activity"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Media playback live activity"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Media playback live activity"
           }
         },
@@ -18784,13 +19624,13 @@
             "value" : "Media playback live activity"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media playback live activity"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media playback live activity"
@@ -18962,13 +19802,13 @@
             "value" : "Media Source"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media Source"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Media Source"
@@ -19140,13 +19980,13 @@
             "value" : "Medium"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Medium"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Medium"
@@ -19318,13 +20158,13 @@
             "value" : "Mic %@"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mic %@"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mic %@"
@@ -19496,13 +20336,13 @@
             "value" : "Minimum hover duration"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Minimum hover duration"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Minimum hover duration"
@@ -19674,13 +20514,13 @@
             "value" : "Mirror"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mirror"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mirror"
@@ -19852,13 +20692,13 @@
             "value" : "Mirror shape"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mirror shape"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Mirror shape"
@@ -20030,13 +20870,13 @@
             "value" : "More"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "More"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "More"
@@ -20208,13 +21048,13 @@
             "value" : "Music Source"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Music Source"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Music Source"
@@ -20386,13 +21226,13 @@
             "value" : "muted"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "muted"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "muted"
@@ -20564,13 +21404,13 @@
             "value" : "Name"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Name"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Name"
@@ -20742,13 +21582,13 @@
             "value" : "Need Restart"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Need Restart"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Need Restart"
@@ -20920,13 +21760,13 @@
             "value" : "Never hide"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Never hide"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Never hide"
@@ -21098,13 +21938,13 @@
             "value" : "No custom animation available"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No custom animation available"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No custom animation available"
@@ -21276,13 +22116,13 @@
             "value" : "No custom visualizer"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No custom visualizer"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No custom visualizer"
@@ -21454,13 +22294,13 @@
             "value" : "No events today"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No events today"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No events today"
@@ -21632,13 +22472,13 @@
             "value" : "No excluded apps"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No excluded apps"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No excluded apps"
@@ -21810,13 +22650,13 @@
             "value" : "No extension installed"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No extension installed"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "No extension installed"
@@ -21988,13 +22828,13 @@
             "value" : "Non-notch display height"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Non-notch display height"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Non-notch display height"
@@ -22166,13 +23006,13 @@
             "value" : "Not Now"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Not Now"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Not Now"
@@ -22344,13 +23184,13 @@
             "value" : "Notch behavior"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Notch behavior"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Notch behavior"
@@ -22522,13 +23362,13 @@
             "value" : "Notch display height"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Notch display height"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Notch display height"
@@ -22700,13 +23540,13 @@
             "value" : "Notch Height"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Notch Height"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Notch Height"
@@ -22878,13 +23718,13 @@
             "value" : "OK"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "OK"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "OK"
@@ -23056,13 +23896,13 @@
             "value" : "One or more files failed to load"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "One or more files failed to load"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "One or more files failed to load"
@@ -23144,9 +23984,51 @@
     },
     "Only app icon" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only app icon"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only app icon"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only app icon"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only app icon"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only app icon"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only app icon"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only app icon"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Only app icon"
           }
         },
@@ -23198,13 +24080,13 @@
             "value" : "Only app icon"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Only app icon"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Only app icon"
@@ -23286,9 +24168,51 @@
     },
     "Only download icon" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only download icon"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only download icon"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only download icon"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only download icon"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only download icon"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only download icon"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only download icon"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Only download icon"
           }
         },
@@ -23340,13 +24264,13 @@
             "value" : "Only download icon"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Only download icon"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Only download icon"
@@ -23518,13 +24442,13 @@
             "value" : "Open Calendar Settings"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Open Calendar Settings"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Open Calendar Settings"
@@ -23696,13 +24620,13 @@
             "value" : "Open Reminder Settings"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Open Reminder Settings"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Open Reminder Settings"
@@ -23784,9 +24708,51 @@
     },
     "Percentage" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Percentage"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Percentage"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Percentage"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Percentage"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Percentage"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Percentage"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Percentage"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Percentage"
           }
         },
@@ -23838,13 +24804,13 @@
             "value" : "Percentage"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Percentage"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Percentage"
@@ -24016,13 +24982,13 @@
             "value" : "Plugged In"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Plugged In"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Plugged In"
@@ -24104,9 +25070,51 @@
     },
     "Progress bar" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Progress bar"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Progress bar"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Progress bar"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Progress bar"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Progress bar"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Progress bar"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Progress bar"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Progress bar"
           }
         },
@@ -24158,13 +25166,13 @@
             "value" : "Progress bar"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Progress bar"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Progress bar"
@@ -24336,13 +25344,13 @@
             "value" : "Progressbar style"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Progressbar style"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Progressbar style"
@@ -24424,9 +25432,51 @@
     },
     "Quit" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Quit"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Quit"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Quit"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Quit"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Quit"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Quit"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Quit"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Quit"
           }
         },
@@ -24478,13 +25528,13 @@
             "value" : "Quit"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Quit"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Quit"
@@ -24656,13 +25706,13 @@
             "value" : "Quit app"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Quit app"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Quit app"
@@ -24744,9 +25794,51 @@
     },
     "Release name" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Release name"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Release name"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Release name"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Release name"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Release name"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Release name"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Release name"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Release name"
           }
         },
@@ -24798,13 +25890,13 @@
             "value" : "Release name"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Release name"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Release name"
@@ -24976,13 +26068,13 @@
             "value" : "Remember last tab"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Remember last tab"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Remember last tab"
@@ -25154,13 +26246,13 @@
             "value" : "Reminder access is denied. Please enable it in System Settings."
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Reminder access is denied. Please enable it in System Settings."
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Reminder access is denied. Please enable it in System Settings."
@@ -25332,13 +26424,13 @@
             "value" : "Reminders"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Reminders"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Reminders"
@@ -25510,13 +26602,13 @@
             "value" : "Restart"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Restart"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Restart"
@@ -25688,13 +26780,13 @@
             "value" : "Restart Boring Notch"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Restart Boring Notch"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Restart Boring Notch"
@@ -25866,13 +26958,13 @@
             "value" : "Running"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Running"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Running"
@@ -26044,13 +27136,13 @@
             "value" : "Select the music source you want to use. You can change this later in the app settings."
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Select the music source you want to use. You can change this later in the app settings."
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Select the music source you want to use. You can change this later in the app settings."
@@ -26222,13 +27314,13 @@
             "value" : "selected"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "selected"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "selected"
@@ -26400,13 +27492,13 @@
             "value" : "Selected animation"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Selected animation"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Selected animation"
@@ -26488,9 +27580,51 @@
     },
     "Settings" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Settings"
           }
         },
@@ -26542,13 +27676,13 @@
             "value" : "Settings"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Settings"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Settings"
@@ -26720,13 +27854,13 @@
             "value" : "Shelf"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Shelf"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Shelf"
@@ -26898,13 +28032,13 @@
             "value" : "Shortcuts"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Shortcuts"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Shortcuts"
@@ -27076,13 +28210,13 @@
             "value" : "Show on a specific display"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Show on a specific display"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Show on a specific display"
@@ -27254,13 +28388,13 @@
             "value" : "Show on all displays"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Show on all displays"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Show on all displays"
@@ -27432,13 +28566,13 @@
             "value" : "Show shuffle and repeat buttons"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Show shuffle and repeat buttons"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Show shuffle and repeat buttons"
@@ -27610,13 +28744,13 @@
             "value" : "Slider color"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Slider color"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Slider color"
@@ -27788,13 +28922,13 @@
             "value" : "Sneak Peek shows the media title and artist under the notch for a few seconds."
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Sneak Peek shows the media title and artist under the notch for a few seconds."
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Sneak Peek shows the media title and artist under the notch for a few seconds."
@@ -27966,13 +29100,13 @@
             "value" : "Sneak Peek Style"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Sneak Peek Style"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Sneak Peek Style"
@@ -28054,9 +29188,51 @@
     },
     "Software updates" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software updates"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software updates"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software updates"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software updates"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software updates"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software updates"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software updates"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Software updates"
           }
         },
@@ -28108,13 +29284,13 @@
             "value" : "Software updates"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Software updates"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Software updates"
@@ -28286,13 +29462,13 @@
             "value" : "Speed"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Speed"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Speed"
@@ -28464,13 +29640,13 @@
             "value" : "Square"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Square"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Square"
@@ -28642,13 +29818,13 @@
             "value" : "Stopped"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Stopped"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Stopped"
@@ -28730,9 +29906,51 @@
     },
     "Support Us" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Support Us"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Support Us"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Support Us"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Support Us"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Support Us"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Support Us"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Support Us"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Support Us"
           }
         },
@@ -28784,13 +30002,13 @@
             "value" : "Support Us"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Support Us"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Support Us"
@@ -28962,13 +30180,13 @@
             "value" : "System features"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "System features"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "System features"
@@ -29140,13 +30358,13 @@
             "value" : "Time to Full Charge: %lld min"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Time to Full Charge: %lld min"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Time to Full Charge: %lld min"
@@ -29318,13 +30536,13 @@
             "value" : "Toggle Notch Open:"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Toggle Notch Open:"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Toggle Notch Open:"
@@ -29496,13 +30714,13 @@
             "value" : "Toggle Sneak Peek:"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Toggle Sneak Peek:"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Toggle Sneak Peek:"
@@ -29674,13 +30892,13 @@
             "value" : "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
@@ -29852,13 +31070,13 @@
             "value" : "Uninstall"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Uninstall"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Uninstall"
@@ -30030,13 +31248,13 @@
             "value" : "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
@@ -30208,13 +31426,13 @@
             "value" : "unmuted"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "unmuted"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "unmuted"
@@ -30386,13 +31604,13 @@
             "value" : "Upgrade to Pro"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Upgrade to Pro"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Upgrade to Pro"
@@ -30564,13 +31782,13 @@
             "value" : "Use music visualizer spectrogram"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Use music visualizer spectrogram"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Use music visualizer spectrogram"
@@ -30652,9 +31870,51 @@
     },
     "Version" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Version"
           }
         },
@@ -30706,13 +31966,13 @@
             "value" : "Version"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Version"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Version"
@@ -30794,9 +32054,51 @@
     },
     "Version info" : {
       "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version info"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version info"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version info"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version info"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version info"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version info"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version info"
+          }
+        },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Version info"
           }
         },
@@ -30848,13 +32150,13 @@
             "value" : "Version info"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Version info"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Version info"
@@ -31026,13 +32328,13 @@
             "value" : "View on GitHub: th-ch/youtube-music"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "View on GitHub: th-ch/youtube-music"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "View on GitHub: th-ch/youtube-music"
@@ -31204,13 +32506,13 @@
             "value" : "Welcome"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Welcome"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Welcome"
@@ -31382,13 +32684,13 @@
             "value" : "What's New"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "What's New"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "What's New"
@@ -31560,13 +32862,13 @@
             "value" : "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
@@ -31738,13 +33040,13 @@
             "value" : "You're All Set!"
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "You're All Set!"
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "You're All Set!"
@@ -31916,13 +33218,13 @@
             "value" : "YouTube Music requires this third-party app to be installed: "
           }
         },
-        "nb" : {
+        "nl" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "YouTube Music requires this third-party app to be installed: "
           }
         },
-        "nl" : {
+        "no" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "YouTube Music requires this third-party app to be installed: "
