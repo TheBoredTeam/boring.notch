@@ -3637,7 +3637,8 @@
             "value" : "AirDrop"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "AirDrop service not available" : {
       "localizations" : {
@@ -4887,12 +4888,6 @@
     },
     "Automatically check for updates" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatically check for updates"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "new",
@@ -6059,149 +6054,6 @@
         }
       }
     },
-    "Boring Controls" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boring Controls"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "sr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Boring Controls"
-          }
-        }
-      }
-    },
     "Boring Notch" : {
       "localizations" : {
         "af" : {
@@ -6378,16 +6230,11 @@
             "value" : "Boring Notch"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "boring.notch" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "boring.notch"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "new",
@@ -6520,16 +6367,11 @@
             "value" : "boring.notch"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Both" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Both"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "new",
@@ -8410,12 +8252,6 @@
     },
     "Coming soon" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Coming soon"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "new",
@@ -14068,12 +13904,6 @@
     },
     "GitHub" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GitHub"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "new",
@@ -14206,7 +14036,8 @@
             "value" : "GitHub"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Got it!" : {
       "localizations" : {
@@ -15452,7 +15283,8 @@
             "value" : "https://github.com/th-ch/youtube-music"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "HUD style" : {
       "localizations" : {
