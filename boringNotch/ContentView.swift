@@ -512,6 +512,9 @@ struct ContentView: View {
     // MARK: - Gesture Handling
 
     private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        // Prevent gestures if Clipboard view is active
+        if coordinator.currentView == .clipboard { return }
+
         guard vm.notchState == .closed else { return }
 
         withAnimation(.smooth) {
@@ -536,6 +539,9 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        // Prevent gestures if Clipboard view is active
+        if coordinator.currentView == .clipboard { return }
+
         if vm.notchState == .open && !vm.isHoveringCalendar {
             withAnimation(.smooth) {
                 gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
