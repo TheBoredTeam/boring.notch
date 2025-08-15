@@ -26,6 +26,7 @@ struct DynamicNotchApp: App {
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
+        ClipboardManager.shared.startMonitoring()
     }
 
     var body: some Scene {
