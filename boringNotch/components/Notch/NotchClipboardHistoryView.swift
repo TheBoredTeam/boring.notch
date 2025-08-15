@@ -24,30 +24,16 @@ struct NotchClipboardHistoryView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(viewModel.items) { item in
-                            HStack(spacing: 12) {
-                                
-                                // Preview
-                                preview(for: item)
-                                    .onTapGesture {
-                                        copyToClipboard(item)
-                                        viewModel.setActiveItem(item)
-                                    }
-                                
-                                Spacer()
-                                
-                                // Delete button
-                                Button {
+                            ClipboardHistoryRow(
+                                item: item,
+                                isActive: item.id == viewModel.activeItemID,
+                                onCopy: {
+                                    copyToClipboard(item)
+                                    viewModel.setActiveItem(item)
+                                },
+                                onDelete: {
                                     viewModel.delete(item)
-                                } label: {
-                                    Image(systemName: "trash")
-                                        .foregroundStyle(.red)
                                 }
-                                .buttonStyle(.plain)
-                            }
-                            .padding(8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(item.id == viewModel.activeItemID ? Color.accentColor.opacity(0.2) : Color.clear)
                             )
                         }
                     }
@@ -58,23 +44,6 @@ struct NotchClipboardHistoryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    // Preview renderer for text or image
-    @ViewBuilder
-    private func preview(for item: ClipboardItem) -> some View {
-        switch item.content {
-        case .text(let str):
-            Text(str)
-                .lineLimit(2)
-                .foregroundColor(.white)
-        case .image(let img):
-            Image(nsImage: img)
-                .resizable()
-                .scaledToFit()
-                .frame(maxHeight: 60)
-        }
-    }
-    
-    // Copy back to system clipboard
     private func copyToClipboard(_ item: ClipboardItem) {
         let pb = NSPasteboard.general
         pb.clearContents()
@@ -87,5 +56,68 @@ struct NotchClipboardHistoryView: View {
                 pb.setData(tiffData, forType: .tiff)
             }
         }
+    }
+}
+
+struct ClipboardHistoryRow: View {
+    let item: ClipboardItem
+    let isActive: Bool
+    let onCopy: () -> Void
+    let onDelete: () -> Void
+    
+    @State private var isHovered = false
+    @State private var isPressed = false
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Preview
+            switch item.content {
+            case .text(let str):
+                Text(str)
+                    .lineLimit(2)
+                    .foregroundColor(.white)
+            case .image(let img):
+                Image(nsImage: img)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 60)
+            }
+            
+            Spacer()
+            
+            // Delete button
+            Button(action: onDelete) {
+                Image(systemName: "trash")
+                    .foregroundColor(Color.white.opacity(0.6))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(isActive ? Color.accentColor.opacity(0.2) :
+                      (isPressed ? Color.white.opacity(0.15) :
+                       (isHovered ? Color.white.opacity(0.08) : Color.clear)))
+        )
+        .focusable(false) // disables macOS focus ring
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.white.opacity(0.7), lineWidth: 0.3)
+        )
+        .contentShape(Rectangle()) // clickable anywhere
+        .onHover { hovering in
+            isHovered = hovering
+        }
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !isPressed { isPressed = true }
+                }
+                .onEnded { _ in
+                    isPressed = false
+                    onCopy()
+                }
+        )
     }
 }
