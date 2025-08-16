@@ -1989,7 +1989,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Fehlerbehebungen"
+            "value": "• Fehlerbehebungen"
           }
         },
         "el": {
@@ -2180,7 +2180,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Verbesserte Performance"
+            "value": "• Verbesserte Leistung"
           }
         },
         "el": {
@@ -2371,7 +2371,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Neue Funktion 1"
+            "value": "• Neue Funktion 1"
           }
         },
         "el": {
@@ -2753,7 +2753,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Akzent Farbe"
+            "value": "Akzentfarbe"
           }
         },
         "el": {
