@@ -460,7 +460,7 @@
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "\"Jetzt läuft\" war die einzige Option auf vorherigen Versionen und funktioniert mit allen Medien-Apps."
           }
         },
@@ -21471,7 +21471,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Minimale Hover Dauer"
+            "value": "Minimale Schwebedauer"
           }
         },
         "el": {
@@ -24145,7 +24145,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Ohne-Notch Display Höhe"
+            "value": "Displayhöhe ohne Noch"
           }
         },
         "el": {
