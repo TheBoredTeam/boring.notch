@@ -563,7 +563,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "'Now Playing' was the only option on previous versions and works with all media apps."
+            "value": "'Зараз грає' був єдиним варіантом на попередніх версіях і працює з усіма медіа застосунками."
           }
         },
         "vi": {
@@ -945,7 +945,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "%.0f seconds"
+            "value": "%.0f секунд"
           }
         },
         "vi": {
@@ -2091,7 +2091,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "• Bug fixes"
+            "value": "• Виправлення помилок"
           }
         },
         "vi": {
@@ -2282,7 +2282,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "• Improved performance"
+            "value": "• Покращено продуктивність"
           }
         },
         "vi": {
@@ -2473,7 +2473,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "• New feature 1"
+            "value": "• Нова функція 1"
           }
         },
         "vi": {
@@ -2664,7 +2664,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "About"
+            "value": "Про додаток"
           }
         },
         "vi": {
@@ -2855,7 +2855,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Accent color"
+            "value": "Колір відтінку"
           }
         },
         "vi": {
@@ -3046,7 +3046,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Access Denied"
+            "value": "Доступ заборонено"
           }
         },
         "vi": {
@@ -3237,7 +3237,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add"
+            "value": "Додати"
           }
         },
         "vi": {
@@ -3428,7 +3428,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add manually"
+            "value": "Додати вручну"
           }
         },
         "vi": {
@@ -3619,7 +3619,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add new visualizer"
+            "value": "Додати новий візуалізатор"
           }
         },
         "vi": {
@@ -3810,7 +3810,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Additional features"
+            "value": "Додаткові можливості"
           }
         },
         "vi": {
@@ -4192,7 +4192,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "AirDrop service not available"
+            "value": "Служба AirDrop недоступна"
           }
         },
         "vi": {
@@ -4383,7 +4383,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "All-day"
+            "value": "Увесь день"
           }
         },
         "vi": {
@@ -4574,7 +4574,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Allow Access"
+            "value": "Надати доступ"
           }
         },
         "vi": {
@@ -4765,7 +4765,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always hide in fullscreen"
+            "value": "Завжди приховувати в повноекранному режимі"
           }
         },
         "vi": {
@@ -4956,7 +4956,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always show tabs"
+            "value": "Завжди показувати вкладки"
           }
         },
         "vi": {
@@ -5147,7 +5147,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "App icon"
+            "value": "Значок додатка"
           }
         },
         "vi": {
@@ -5338,7 +5338,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Appearance"
+            "value": "Вигляд"
           }
         },
         "vi": {
@@ -5529,7 +5529,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically check for updates"
+            "value": "Автоматично перевіряти наявність оновлень"
           }
         },
         "vi": {
@@ -5720,7 +5720,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically download updates"
+            "value": "Автоматично завантажувати оновлення"
           }
         },
         "vi": {
@@ -5911,7 +5911,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery"
+            "value": "Акумулятор"
           }
         },
         "vi": {
@@ -6102,7 +6102,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Information"
+            "value": "Інформація про акумулятор"
           }
         },
         "vi": {
@@ -6293,7 +6293,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Settings"
+            "value": "Налаштування акумулятора"
           }
         },
         "vi": {
@@ -6484,7 +6484,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Status"
+            "value": "Стан заряду акумулятора"
           }
         },
         "vi": {
@@ -6675,7 +6675,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Boost your productivity with Clipboard Manager"
+            "value": "Підвищіть продуктивність за допомогою менеджера буфера обміну"
           }
         },
         "vi": {
@@ -7248,7 +7248,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Both"
+            "value": "Обидва"
           }
         },
         "vi": {
@@ -7439,7 +7439,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendar"
+            "value": "Календар"
           }
         },
         "vi": {
@@ -7630,7 +7630,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendar access is denied. Please enable it in System Settings."
+            "value": "Доступ до календаря заборонений. Будь ласка, увімкніть його в Налаштуваннях Системи."
           }
         },
         "vi": {
@@ -7821,7 +7821,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendars"
+            "value": "Календарі"
           }
         },
         "vi": {
@@ -8012,7 +8012,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Cancel"
+            "value": "Скасувати"
           }
         },
         "vi": {
@@ -8203,7 +8203,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Charging"
+            "value": "Заряджається"
           }
         },
         "vi": {
@@ -8394,7 +8394,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Charging on Hold: Desktop Mode"
+            "value": "Заряджання в Режимі очікування: Режим робочого столу"
           }
         },
         "vi": {
@@ -8585,7 +8585,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Check for Updates…"
+            "value": "Перевірка наявності оновлень…"
           }
         },
         "vi": {
@@ -8776,7 +8776,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose a Music Source"
+            "value": "Оберіть джерело музики"
           }
         },
         "vi": {
@@ -8967,7 +8967,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Circle"
+            "value": "Коло"
           }
         },
         "vi": {
@@ -9158,7 +9158,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close"
+            "value": "Закрити"
           }
         },
         "vi": {
@@ -9349,7 +9349,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Coming soon"
+            "value": "Незабаром"
           }
         },
         "vi": {
@@ -9540,7 +9540,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Continue"
+            "value": "Далі"
           }
         },
         "vi": {
@@ -9731,7 +9731,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom height"
+            "value": "Користувацька висота"
           }
         },
         "vi": {
@@ -9922,7 +9922,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom music live activity animation"
+            "value": "Власна анімація музики в реальному часі"
           }
         },
         "vi": {
@@ -10113,7 +10113,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom notch size - %.0f"
+            "value": "Користувацький розмір брові - %.0f"
           }
         },
         "vi": {
@@ -10304,7 +10304,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom vizualizers (Lottie)"
+            "value": "Користувацькі візуалізатори (Лотті)"
           }
         },
         "vi": {
@@ -10495,7 +10495,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Customize in Settings"
+            "value": "Змінити в Налаштуваннях"
           }
         },
         "vi": {
@@ -10686,7 +10686,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Default"
+            "value": "Типово"
           }
         },
         "vi": {
@@ -10877,7 +10877,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Description"
+            "value": "Опис"
           }
         },
         "vi": {
@@ -11068,7 +11068,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Disable"
+            "value": "Вимкнути"
           }
         },
         "vi": {
