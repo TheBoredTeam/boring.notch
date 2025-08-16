@@ -2789,7 +2789,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Accent color"
+            "value": "강조 색상"
           }
         },
         "no": {
@@ -13103,7 +13103,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable music live activity"
+            "value": "음악 실시간 현황 켜기"
           }
         },
         "no": {
@@ -15777,7 +15777,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Got it!"
+            "value": "알겠습니다!"
           }
         },
         "no": {
@@ -16350,7 +16350,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide only when NowPlaying app is in fullscreen"
+            "value": "현재 재생 중인 앱이 전체 화면일 때만 숨기기"
           }
         },
         "no": {
@@ -19788,7 +19788,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Max Capacity: %lld%%"
+            "value": "최대 용량: %lld%%"
           }
         },
         "no": {
@@ -24372,7 +24372,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Not Now"
+            "value": "나중에"
           }
         },
         "no": {
