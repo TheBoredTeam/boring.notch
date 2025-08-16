@@ -2980,7 +2980,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "엑세스 거부됨"
+            "value": "권한 거부됨"
           }
         },
         "no": {
@@ -4126,7 +4126,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "에어드랍 서비스 불가"
+            "value": "AirDrop 서비스 불가"
           }
         },
         "no": {
@@ -4699,7 +4699,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "풀스크린에서 항상 숨기기"
+            "value": "전체화면에서 항상 숨기기"
           }
         },
         "no": {
