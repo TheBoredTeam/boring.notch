@@ -32203,7 +32203,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "완충까지 남은 시간:  %lld 분"
+            "value": "완충 까지 남은 시간: %lld 분"
           }
         },
         "no": {
