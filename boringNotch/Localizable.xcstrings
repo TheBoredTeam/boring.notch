@@ -413,7 +413,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "'Now Playing' was the only option on previous versions and works with all media apps."
+            "value": "“当前播放”是以前版本中唯一的选项，并适用于所有媒体应用。"
           }
         },
         "zh-Hant": {
@@ -795,7 +795,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "%.0f seconds"
+            "value": "%.0f 秒"
           }
         },
         "zh-Hant": {
@@ -1941,7 +1941,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "• Bug fixes"
+            "value": "• Bug 修复"
           }
         },
         "zh-Hant": {
@@ -2132,7 +2132,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "• Improved performance"
+            "value": "• 提升性能"
           }
         },
         "zh-Hant": {
@@ -2323,7 +2323,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "• New feature 1"
+            "value": "• 新功能1"
           }
         },
         "zh-Hant": {
@@ -2514,7 +2514,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "About"
+            "value": "关于"
           }
         },
         "zh-Hant": {
@@ -2705,7 +2705,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Accent color"
+            "value": "首选颜色"
           }
         },
         "zh-Hant": {
@@ -2896,7 +2896,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Access Denied"
+            "value": "被拒绝访问"
           }
         },
         "zh-Hant": {
@@ -3087,7 +3087,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add"
+            "value": "添加"
           }
         },
         "zh-Hant": {
@@ -3278,7 +3278,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add manually"
+            "value": "手动添加"
           }
         },
         "zh-Hant": {
@@ -3469,7 +3469,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add new visualizer"
+            "value": "添加新的可视化器"
           }
         },
         "zh-Hant": {
@@ -3660,7 +3660,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Additional features"
+            "value": "其他功能"
           }
         },
         "zh-Hant": {
@@ -4042,7 +4042,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "AirDrop service not available"
+            "value": "AirDrop 服务不可用"
           }
         },
         "zh-Hant": {
@@ -4233,7 +4233,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "All-day"
+            "value": "全天"
           }
         },
         "zh-Hant": {
@@ -4424,7 +4424,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Allow Access"
+            "value": "允许访问"
           }
         },
         "zh-Hant": {
@@ -4615,7 +4615,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always hide in fullscreen"
+            "value": "总是隐藏在全屏"
           }
         },
         "zh-Hant": {
@@ -4806,7 +4806,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always show tabs"
+            "value": "总是显示标签页"
           }
         },
         "zh-Hant": {
@@ -4997,7 +4997,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "App icon"
+            "value": "应用图标"
           }
         },
         "zh-Hant": {
@@ -5188,7 +5188,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Appearance"
+            "value": "外观"
           }
         },
         "zh-Hant": {
@@ -5379,7 +5379,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically check for updates"
+            "value": "自动检查更新"
           }
         },
         "zh-Hant": {
@@ -5570,7 +5570,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically download updates"
+            "value": "自动下载更新"
           }
         },
         "zh-Hant": {
@@ -5761,7 +5761,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery"
+            "value": "电池"
           }
         },
         "zh-Hant": {
@@ -5952,7 +5952,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Information"
+            "value": "电池信息"
           }
         },
         "zh-Hant": {
@@ -6143,7 +6143,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Settings"
+            "value": "电池设置"
           }
         },
         "zh-Hant": {
@@ -6334,7 +6334,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Status"
+            "value": "电池状态"
           }
         },
         "zh-Hant": {
@@ -6525,7 +6525,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Boost your productivity with Clipboard Manager"
+            "value": "使用剪贴板管理器提升你的效率"
           }
         },
         "zh-Hant": {
@@ -7098,7 +7098,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Both"
+            "value": "两者"
           }
         },
         "zh-Hant": {
@@ -7289,7 +7289,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendar"
+            "value": "日历"
           }
         },
         "zh-Hant": {
@@ -7480,7 +7480,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendar access is denied. Please enable it in System Settings."
+            "value": "日历访问被拒绝。请在系统设置中启用它。"
           }
         },
         "zh-Hant": {
@@ -7671,7 +7671,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendars"
+            "value": "日历"
           }
         },
         "zh-Hant": {
@@ -7862,7 +7862,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Cancel"
+            "value": "取消"
           }
         },
         "zh-Hant": {
@@ -8053,7 +8053,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Charging"
+            "value": "充电中"
           }
         },
         "zh-Hant": {
@@ -8244,7 +8244,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Charging on Hold: Desktop Mode"
+            "value": "暂停充电：桌面模式"
           }
         },
         "zh-Hant": {
@@ -8435,7 +8435,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Check for Updates…"
+            "value": "检查更新…"
           }
         },
         "zh-Hant": {
@@ -8626,7 +8626,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose a Music Source"
+            "value": "选择音乐来源"
           }
         },
         "zh-Hant": {
@@ -8817,7 +8817,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Circle"
+            "value": "圆形"
           }
         },
         "zh-Hant": {
@@ -9008,7 +9008,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close"
+            "value": "关闭"
           }
         },
         "zh-Hant": {
@@ -9199,7 +9199,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Coming soon"
+            "value": "即将上线"
           }
         },
         "zh-Hant": {
@@ -9390,7 +9390,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Continue"
+            "value": "继续"
           }
         },
         "zh-Hant": {
@@ -9581,7 +9581,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom height"
+            "value": "自定义高度"
           }
         },
         "zh-Hant": {
@@ -9772,7 +9772,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom music live activity animation"
+            "value": "自定义音乐实时动画"
           }
         },
         "zh-Hant": {
@@ -9963,7 +9963,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom notch size - %.0f"
+            "value": "自定义刘海大小 - %.0f"
           }
         },
         "zh-Hant": {
@@ -10154,7 +10154,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom vizualizers (Lottie)"
+            "value": "自定义可视化器（Lottie）"
           }
         },
         "zh-Hant": {
@@ -10345,7 +10345,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Customize in Settings"
+            "value": "在设置中自定义"
           }
         },
         "zh-Hant": {
@@ -10536,7 +10536,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Default"
+            "value": "默认"
           }
         },
         "zh-Hant": {
@@ -10727,7 +10727,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Description"
+            "value": "描述"
           }
         },
         "zh-Hant": {
@@ -10918,7 +10918,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Disable"
+            "value": "禁用"
           }
         },
         "zh-Hant": {
@@ -11109,7 +11109,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Disabled"
+            "value": "已禁用"
           }
         },
         "zh-Hant": {
@@ -11300,7 +11300,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download"
+            "value": "下载"
           }
         },
         "zh-Hant": {
@@ -11491,7 +11491,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download icon style"
+            "value": "下载图标样式"
           }
         },
         "zh-Hant": {
@@ -11682,7 +11682,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": ""
+            "value": "下载指示器样式"
           }
         },
         "zh-Hant": {
@@ -11873,7 +11873,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download indicators"
+            "value": "下载指示器"
           }
         },
         "zh-Hant": {
@@ -12064,7 +12064,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Downloads"
+            "value": "下载"
           }
         },
         "zh-Hant": {
@@ -12255,7 +12255,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drop files here"
+            "value": "拖放文件到这里"
           }
         },
         "zh-Hant": {
@@ -12446,7 +12446,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+            "value": "轻松复制、存储和管理您最常用的内容。升级后可解锁高级功能，如多项目存储和快速访问！"
           }
         },
         "zh-Hant": {
@@ -12637,7 +12637,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Edit layout"
+            "value": "编辑布局"
           }
         },
         "zh-Hant": {
@@ -12828,7 +12828,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable HUD replacement"
+            "value": "启用 HUD 替换"
           }
         },
         "zh-Hant": {
@@ -13019,7 +13019,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable music live activity"
+            "value": "启用音乐实时动态"
           }
         },
         "zh-Hant": {
@@ -13210,7 +13210,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable sneak peek"
+            "value": "启用 Sneak Peek"
           }
         },
         "zh-Hant": {
@@ -13401,7 +13401,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enhance your experience with HUDs"
+            "value": "用 HUD 提升您的体验"
           }
         },
         "zh-Hant": {
@@ -13592,7 +13592,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enjoy your free time!"
+            "value": "享受您的闲暇时光！"
           }
         },
         "zh-Hant": {
@@ -13783,7 +13783,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Error"
+            "value": "错误"
           }
         },
         "zh-Hant": {
@@ -13974,7 +13974,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Exclude apps"
+            "value": "不包括应用"
           }
         },
         "zh-Hant": {
@@ -14165,7 +14165,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Exit"
+            "value": "退出"
           }
         },
         "zh-Hant": {
@@ -14356,7 +14356,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extensions"
+            "value": "扩展"
           }
         },
         "zh-Hant": {
@@ -14547,7 +14547,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Finish"
+            "value": "完成"
           }
         },
         "zh-Hant": {
@@ -14738,7 +14738,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "General"
+            "value": "通用"
           }
         },
         "zh-Hant": {
@@ -14929,7 +14929,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gesture control"
+            "value": "手势控制"
           }
         },
         "zh-Hant": {
@@ -15120,7 +15120,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gesture sensitivity"
+            "value": "手势灵敏度"
           }
         },
         "zh-Hant": {
@@ -15311,7 +15311,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Get started"
+            "value": "开始使用"
           }
         },
         "zh-Hant": {
@@ -15693,7 +15693,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Got it!"
+            "value": "明白了！"
           }
         },
         "zh-Hant": {
@@ -15884,7 +15884,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gradient"
+            "value": "渐变"
           }
         },
         "zh-Hant": {
@@ -16075,7 +16075,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide BoringNotch Options"
+            "value": "隐藏 Boring Notch 选项"
           }
         },
         "zh-Hant": {
@@ -16266,7 +16266,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide only when NowPlaying app is in fullscreen"
+            "value": "仅在“当前播放”全屏时隐藏"
           }
         },
         "zh-Hant": {
@@ -16457,7 +16457,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hierarchical"
+            "value": "分级"
           }
         },
         "zh-Hant": {
@@ -16648,7 +16648,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "High"
+            "value": "高"
           }
         },
         "zh-Hant": {
@@ -17030,7 +17030,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "HUD style"
+            "value": "HUD 样式"
           }
         },
         "zh-Hant": {
@@ -17221,7 +17221,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "HUDs"
+            "value": "HUD"
           }
         },
         "zh-Hant": {
@@ -17412,7 +17412,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "In progress"
+            "value": "进行中"
           }
         },
         "zh-Hant": {
@@ -17603,7 +17603,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Inline"
+            "value": "内嵌"
           }
         },
         "zh-Hant": {
@@ -17794,7 +17794,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Installed extensions"
+            "value": "已安装扩展"
           }
         },
         "zh-Hant": {
@@ -17985,7 +17985,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Later"
+            "value": "稍后再说"
           }
         },
         "zh-Hant": {
@@ -18176,7 +18176,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Lottie JSON URL"
+            "value": "Lottie JSON 链接"
           }
         },
         "zh-Hant": {
@@ -18367,7 +18367,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Low"
+            "value": "低"
           }
         },
         "zh-Hant": {
@@ -18558,7 +18558,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Low Power Mode"
+            "value": "低电量模式"
           }
         },
         "zh-Hant": {
@@ -18749,7 +18749,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Made with 🫶🏻 by not so boring not.people"
+            "value": "由 not.people 团队用心制作 🫶🏻"
           }
         },
         "zh-Hant": {
@@ -18940,7 +18940,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mark as complete"
+            "value": "标记为已完成"
           }
         },
         "zh-Hant": {
@@ -19131,7 +19131,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mark as incomplete"
+            "value": "标记为未完成"
           }
         },
         "zh-Hant": {
@@ -19322,7 +19322,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match menubar height"
+            "value": "匹配菜单栏高度"
           }
         },
         "zh-Hant": {
@@ -19513,7 +19513,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match real notch size"
+            "value": "匹配刘海真实大小"
           }
         },
         "zh-Hant": {
@@ -19704,7 +19704,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Max Capacity: %lld%%"
+            "value": "最大容量：%lld%%"
           }
         },
         "zh-Hant": {
@@ -19895,7 +19895,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media"
+            "value": "媒体"
           }
         },
         "zh-Hant": {
@@ -20086,7 +20086,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media change with horizontal gestures"
+            "value": "横向手势改变媒体"
           }
         },
         "zh-Hant": {
@@ -20277,7 +20277,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media controls"
+            "value": "媒体控制"
           }
         },
         "zh-Hant": {
@@ -20468,7 +20468,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media inactivity timeout"
+            "value": "媒体非活动超时"
           }
         },
         "zh-Hant": {
@@ -20659,7 +20659,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media playback live activity"
+            "value": "媒体播放实时动态"
           }
         },
         "zh-Hant": {
@@ -20850,7 +20850,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media Source"
+            "value": "媒体来源"
           }
         },
         "zh-Hant": {
@@ -21041,7 +21041,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Medium"
+            "value": "中"
           }
         },
         "zh-Hant": {
@@ -21232,7 +21232,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mic %@"
+            "value": "麦克风 %@"
           }
         },
         "zh-Hant": {
@@ -21423,7 +21423,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Minimum hover duration"
+            "value": "悬停最短时长"
           }
         },
         "zh-Hant": {
@@ -21614,7 +21614,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mirror"
+            "value": "镜子"
           }
         },
         "zh-Hant": {
@@ -21805,7 +21805,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mirror shape"
+            "value": "镜子大小"
           }
         },
         "zh-Hant": {
@@ -21996,7 +21996,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "More"
+            "value": "更多"
           }
         },
         "zh-Hant": {
@@ -22187,7 +22187,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Music Source"
+            "value": "音乐源"
           }
         },
         "zh-Hant": {
@@ -22378,7 +22378,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "muted"
+            "value": "已静音"
           }
         },
         "zh-Hant": {
@@ -22569,7 +22569,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Name"
+            "value": "名称"
           }
         },
         "zh-Hant": {
@@ -22760,7 +22760,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Need Restart"
+            "value": "需要重启"
           }
         },
         "zh-Hant": {
@@ -22951,7 +22951,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Never hide"
+            "value": "永不隐藏"
           }
         },
         "zh-Hant": {
@@ -23142,7 +23142,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom animation available"
+            "value": "没有可用的自定义动画"
           }
         },
         "zh-Hant": {
@@ -23333,7 +23333,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom visualizer"
+            "value": "没有自定义可视化器"
           }
         },
         "zh-Hant": {
@@ -23524,7 +23524,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No events today"
+            "value": "今天无日程"
           }
         },
         "zh-Hant": {
@@ -23715,7 +23715,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No excluded apps"
+            "value": "无排除的应用"
           }
         },
         "zh-Hant": {
@@ -23906,7 +23906,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No extension installed"
+            "value": "未安装扩展"
           }
         },
         "zh-Hant": {
@@ -24097,7 +24097,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Non-notch display height"
+            "value": "非刘海显示高度"
           }
         },
         "zh-Hant": {
@@ -24288,7 +24288,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Not Now"
+            "value": "不是现在"
           }
         },
         "zh-Hant": {
@@ -24479,7 +24479,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch behavior"
+            "value": "刘海行为"
           }
         },
         "zh-Hant": {
@@ -24670,7 +24670,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch display height"
+            "value": "刘海显示高度"
           }
         },
         "zh-Hant": {
@@ -24861,7 +24861,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch Height"
+            "value": "刘海高度"
           }
         },
         "zh-Hant": {
@@ -25052,7 +25052,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "OK"
+            "value": "好的"
           }
         },
         "zh-Hant": {
@@ -25243,7 +25243,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "One or more files failed to load"
+            "value": "一个或多个文件加载失败"
           }
         },
         "zh-Hant": {
@@ -25434,7 +25434,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Only app icon"
+            "value": "仅应用图标"
           }
         },
         "zh-Hant": {
@@ -25625,7 +25625,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Only download icon"
+            "value": "仅下载图标"
           }
         },
         "zh-Hant": {
@@ -25816,7 +25816,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Calendar Settings"
+            "value": "打开日历设置"
           }
         },
         "zh-Hant": {
@@ -26007,7 +26007,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Reminder Settings"
+            "value": "打开提醒事项设置"
           }
         },
         "zh-Hant": {
@@ -26198,7 +26198,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "百分比"
           }
         },
         "zh-Hant": {
@@ -26389,7 +26389,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Plugged In"
+            "value": "已插入"
           }
         },
         "zh-Hant": {
@@ -26580,7 +26580,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Progress bar"
+            "value": "进度条"
           }
         },
         "zh-Hant": {
@@ -26771,7 +26771,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Progressbar style"
+            "value": "进度条样式"
           }
         },
         "zh-Hant": {
@@ -26962,7 +26962,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quit"
+            "value": "退出"
           }
         },
         "zh-Hant": {
@@ -27153,7 +27153,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quit app"
+            "value": "退出应用"
           }
         },
         "zh-Hant": {
@@ -27344,7 +27344,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Release name"
+            "value": "版本名称"
           }
         },
         "zh-Hant": {
@@ -27535,7 +27535,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Remember last tab"
+            "value": "记住上一个标签页"
           }
         },
         "zh-Hant": {
@@ -27726,7 +27726,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reminder access is denied. Please enable it in System Settings."
+            "value": "提醒事项访问被拒绝。请在系统设置中启用它。"
           }
         },
         "zh-Hant": {
@@ -27917,7 +27917,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reminders"
+            "value": "提醒事项"
           }
         },
         "zh-Hant": {
@@ -28108,7 +28108,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Restart"
+            "value": "重启"
           }
         },
         "zh-Hant": {
@@ -28299,7 +28299,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Restart Boring Notch"
+            "value": "重启 Boring Notch"
           }
         },
         "zh-Hant": {
@@ -28490,7 +28490,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Running"
+            "value": "运行中"
           }
         },
         "zh-Hant": {
@@ -28681,7 +28681,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Select the music source you want to use. You can change this later in the app settings."
+            "value": "选择您想要使用的音乐源。您可以稍后在应用设置中更改此项。"
           }
         },
         "zh-Hant": {
@@ -28872,7 +28872,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "selected"
+            "value": "已选择"
           }
         },
         "zh-Hant": {
@@ -29063,7 +29063,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Selected animation"
+            "value": "所选动画"
           }
         },
         "zh-Hant": {
@@ -29254,7 +29254,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings"
+            "value": "设置"
           }
         },
         "zh-Hant": {
@@ -29445,7 +29445,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Shelf"
+            "value": "书架"
           }
         },
         "zh-Hant": {
@@ -29636,7 +29636,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Shortcuts"
+            "value": "快捷方式"
           }
         },
         "zh-Hant": {
@@ -29827,7 +29827,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show on a specific display"
+            "value": "在指定显示器上显示"
           }
         },
         "zh-Hant": {
@@ -30018,7 +30018,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show on all displays"
+            "value": "在所有显示器上显示"
           }
         },
         "zh-Hant": {
@@ -30209,7 +30209,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show shuffle and repeat buttons"
+            "value": "显示随机播放和重复按钮"
           }
         },
         "zh-Hant": {
@@ -30400,7 +30400,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Slider color"
+            "value": "滑块颜色"
           }
         },
         "zh-Hant": {
@@ -30591,7 +30591,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek shows the media title and artist under the notch for a few seconds."
+            "value": "Sneak Peek 在刘海下显示媒体标题和艺术家几秒钟。"
           }
         },
         "zh-Hant": {
@@ -30782,7 +30782,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek Style"
+            "value": "Sneak Peek 样式"
           }
         },
         "zh-Hant": {
@@ -30973,7 +30973,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Software updates"
+            "value": "软件更新"
           }
         },
         "zh-Hant": {
@@ -31164,7 +31164,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Speed"
+            "value": "速度"
           }
         },
         "zh-Hant": {
@@ -31355,7 +31355,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Square"
+            "value": "方形"
           }
         },
         "zh-Hant": {
@@ -31546,7 +31546,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Stopped"
+            "value": "已停止"
           }
         },
         "zh-Hant": {
@@ -31737,7 +31737,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Support Us"
+            "value": "支持我们"
           }
         },
         "zh-Hant": {
@@ -31928,7 +31928,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "System features"
+            "value": "系统功能"
           }
         },
         "zh-Hant": {
@@ -32119,7 +32119,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Time to Full Charge: %lld min"
+            "value": "充电时间：%lld 分钟"
           }
         },
         "zh-Hant": {
@@ -32310,7 +32310,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Notch Open:"
+            "value": "切换刘海："
           }
         },
         "zh-Hant": {
@@ -32501,7 +32501,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Sneak Peek:"
+            "value": "切换 Sneak Peek："
           }
         },
         "zh-Hant": {
@@ -32692,7 +32692,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+            "value": "在刘海里双指向上滑动以关闭。当**悬停在刘海时打开**选项禁用时，双指向下滑动即可打开"
           }
         },
         "zh-Hant": {
@@ -32883,7 +32883,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Uninstall"
+            "value": "卸载"
           }
         },
         "zh-Hant": {
@@ -33074,7 +33074,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
+            "value": "解锁高级功能并提升您的体验。现在升级以获取更多自定义功能！"
           }
         },
         "zh-Hant": {
@@ -33265,7 +33265,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "unmuted"
+            "value": "已取消静音"
           }
         },
         "zh-Hant": {
@@ -33456,7 +33456,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Upgrade to Pro"
+            "value": "升级至 Pro"
           }
         },
         "zh-Hant": {
@@ -33647,7 +33647,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use music visualizer spectrogram"
+            "value": "使用音乐可视化器谱图"
           }
         },
         "zh-Hant": {
@@ -33838,7 +33838,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Version"
+            "value": "版本"
           }
         },
         "zh-Hant": {
@@ -34029,7 +34029,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Version info"
+            "value": "版本信息"
           }
         },
         "zh-Hant": {
@@ -34220,7 +34220,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "View on GitHub: th-ch/youtube-music"
+            "value": "在 GitHub 上查看：th-ch/youtube-music"
           }
         },
         "zh-Hant": {
@@ -34411,7 +34411,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Welcome"
+            "value": "欢迎"
           }
         },
         "zh-Hant": {
@@ -34602,7 +34602,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "What's New"
+            "value": "更新内容"
           }
         },
         "zh-Hant": {
@@ -34793,7 +34793,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
+            "value": "如果您想进一步调整内容，您可以随时访问设置。"
           }
         },
         "zh-Hant": {
@@ -34984,7 +34984,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You're All Set!"
+            "value": "一切都准备好了！"
           }
         },
         "zh-Hant": {
@@ -35175,7 +35175,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "YouTube Music requires this third-party app to be installed: "
+            "value": "YouTube 音乐需要安装此第三方应用程序： "
           }
         },
         "zh-Hant": {
