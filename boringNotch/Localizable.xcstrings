@@ -497,7 +497,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "'Now Playing' was the only option on previous versions and works with all media apps."
+            "value": "이전 버전에서는 ‘Now Playing’만 선택할 수 있었으며, 모든 미디어 앱과 호환됩니다."
           }
         },
         "no": {
@@ -879,7 +879,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "%.0f seconds"
+            "value": "%.0f 초"
           }
         },
         "no": {
@@ -3553,7 +3553,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add new visualizer"
+            "value": "새 시각화 도구 추가"
           }
         },
         "no": {
@@ -4317,7 +4317,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "All-day"
+            "value": "하루 종일"
           }
         },
         "no": {
@@ -4699,7 +4699,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "전체화면에서 항상 숨기기"
+            "value": "전체 화면에서 항상 숨기기"
           }
         },
         "no": {
@@ -5272,7 +5272,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Appearance"
+            "value": "외관"
           }
         },
         "no": {
@@ -6609,7 +6609,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "클립보드 매니저로 생산성을 높이세요"
+            "value": "클립보드 매니저로 업무 효율을 높이세요"
           }
         },
         "no": {
@@ -8710,7 +8710,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "음악소스 선택"
+            "value": "음악 소스 선택"
           }
         },
         "no": {
@@ -8901,7 +8901,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Circle"
+            "value": "원형의"
           }
         },
         "no": {
@@ -10238,7 +10238,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom vizualizers (Lottie)"
+            "value": "사용자 지정 시각화 도구(Lottie)"
           }
         },
         "no": {
@@ -11766,7 +11766,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "다운로드 표시 스타일"
+            "value": "다운로드 표시기 스타일"
           }
         },
         "no": {
@@ -11957,7 +11957,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "다운로드 표시들"
+            "value": "다운로드 표시기"
           }
         },
         "no": {
@@ -12530,7 +12530,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "자주쓰는 파일들을 쉽게 복사, 저장, 관리하세요. 업그레이드 해서 다중 저장 기능과 빠른 접근 기능을 활성화하세요!"
+            "value": "자주 사용하는 파일들을 쉽게 복사, 저장, 관리하세요. 업그레이드 해서 다중 저장 기능과 빠른 접근 기능을 활성화하세요!"
           }
         },
         "no": {
@@ -13294,7 +13294,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "몰래보기 켜기"
+            "value": "훔쳐보기 켜기"
           }
         },
         "no": {
@@ -13485,7 +13485,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "HUD로 경험을 향상시키세요"
+            "value": "HUD로 경험을 향상 하세요"
           }
         },
         "no": {
@@ -13676,7 +13676,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enjoy your free time!"
+            "value": "즐거운 시간 되세요!"
           }
         },
         "no": {
@@ -14440,7 +14440,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "확장프로그램"
+            "value": "확장기능들"
           }
         },
         "no": {
@@ -15968,7 +15968,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gradient"
+            "value": "그라디언트"
           }
         },
         "no": {
@@ -16541,7 +16541,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hierarchical"
+            "value": "계층적"
           }
         },
         "no": {
@@ -16732,7 +16732,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "High"
+            "value": "높음"
           }
         },
         "no": {
@@ -17687,7 +17687,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Inline"
+            "value": "인라인"
           }
         },
         "no": {
@@ -17878,7 +17878,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "설치된 확장프로그램"
+            "value": "설치된 확장기능들"
           }
         },
         "no": {
@@ -18451,7 +18451,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Low"
+            "value": "낮음"
           }
         },
         "no": {
@@ -18833,7 +18833,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Made with 🫶🏻 by not so boring not.people"
+            "value": "지루하지 않은 비사람들이 🫶🏻 마음을 담아 만들었습니다"
           }
         },
         "no": {
@@ -20170,7 +20170,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media change with horizontal gestures"
+            "value": "가로 방향 제스처로 미디어 변경"
           }
         },
         "no": {
@@ -20552,7 +20552,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media inactivity timeout"
+            "value": "미디어 비활성화 시간 초과"
           }
         },
         "no": {
@@ -20743,7 +20743,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media playback live activity"
+            "value": "미디어 재생 실시간 활동"
           }
         },
         "no": {
@@ -21125,7 +21125,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Medium"
+            "value": "중간"
           }
         },
         "no": {
@@ -21316,7 +21316,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mic %@"
+            "value": "마이크 %@"
           }
         },
         "no": {
@@ -21507,7 +21507,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Minimum hover duration"
+            "value": "가져다 대기 최소 시간"
           }
         },
         "no": {
@@ -23226,7 +23226,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom animation available"
+            "value": "사용자 정의 애니메이션 없음"
           }
         },
         "no": {
@@ -23417,7 +23417,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom visualizer"
+            "value": "사용자 지정 시각화 도구 없음"
           }
         },
         "no": {
@@ -23990,7 +23990,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "설치된 확장프로그램 없음"
+            "value": "설치된 확장기능 없음"
           }
         },
         "no": {
@@ -24181,7 +24181,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Non-notch display height"
+            "value": "비노치 디스플레이 높이"
           }
         },
         "no": {
@@ -24563,7 +24563,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch behavior"
+            "value": "노치 동작"
           }
         },
         "no": {
@@ -25518,7 +25518,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Only app icon"
+            "value": "앱 아이콘만"
           }
         },
         "no": {
@@ -25709,7 +25709,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Only download icon"
+            "value": "다운로드 아이콘만"
           }
         },
         "no": {
@@ -26282,7 +26282,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "퍼센트"
           }
         },
         "no": {
@@ -26473,7 +26473,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Plugged In"
+            "value": "충전 중"
           }
         },
         "no": {
@@ -27428,7 +27428,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Release name"
+            "value": "릴리즈 이름"
           }
         },
         "no": {
@@ -31439,7 +31439,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Square"
+            "value": "사각형"
           }
         },
         "no": {
@@ -32776,7 +32776,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+            "value": "노치에 가져다 대서 열기 옵션이 꺼져있을 때, 노치를 두 손가락을 위로 밀어서 닫고, 두 손가락을 아래로 내려서 열기"
           }
         },
         "no": {
@@ -33158,7 +33158,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
+            "value": "고급 설정을 해제해 경험을 향상하세요. 더 많은 맞춤화 설정을 지금 바로 업그레이드해서 즐기세요!"
           }
         },
         "no": {
@@ -33349,7 +33349,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "unmuted"
+            "value": "음소거 해제됨"
           }
         },
         "no": {
@@ -33731,7 +33731,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use music visualizer spectrogram"
+            "value": "음악 시각화 스펙트로그램 사용"
           }
         },
         "no": {
@@ -34304,7 +34304,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "View on GitHub: th-ch/youtube-music"
+            "value": "GitHub에서 보기: th-ch/youtube-music"
           }
         },
         "no": {
@@ -34877,7 +34877,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
+            "value": "이제 앱을 즐기실 수 있습니다. 추가로 설정을 조정하고 싶으시면 언제든지 설정 메뉴를 방문하시면 됩니다."
           }
         },
         "no": {
