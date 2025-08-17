@@ -3129,7 +3129,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Ajout"
+            "value": "Ajouter"
           }
         },
         "de": {
@@ -4275,7 +4275,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Tous les jours"
+            "value": "Toute la journée"
           }
         },
         "de": {
@@ -4466,7 +4466,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Autoriser l'accès"
+            "value": "Accorder l'accès"
           }
         },
         "de": {
@@ -4657,7 +4657,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toujours cacher en mode plein écran"
+            "value": "Toujours cacher en plein écran"
           }
         },
         "de": {
@@ -4848,7 +4848,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toujours afficher des onglets"
+            "value": "Toujours afficher les onglets"
           }
         },
         "de": {
@@ -11682,7 +11682,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download indicator style"
+            "value": ""
           }
         },
         "zh-Hant": {
