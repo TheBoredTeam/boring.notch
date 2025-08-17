@@ -5731,6 +5731,197 @@
         }
       }
     },
+    "Automatically switch displays": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatically switch displays"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        }
+      }
+    },
     "Battery": {
       "comment": null,
       "localizations": {
@@ -7064,197 +7255,6 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "boring.notch"
-          }
-        }
-      }
-    },
-    "Both": {
-      "comment": null,
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Both"
-          }
-        },
-        "af": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "两者"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Obojí"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Both"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Les deux"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Beide"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "hu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Entrambi"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "둘 다"
-          }
-        },
-        "no": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Obydwa"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Ambos"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "sr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Ambos"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "İkisi birden"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Обидва"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Both"
           }
         }
       }
@@ -9169,6 +9169,197 @@
         }
       }
     },
+    "Close gesture": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close gesture"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        }
+      }
+    },
     "Coming soon": {
       "comment": null,
       "localizations": {
@@ -9547,6 +9738,197 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Continue"
+          }
+        }
+      }
+    },
+    "Corner radius scaling": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corner radius scaling"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
           }
         }
       }
@@ -11461,579 +11843,6 @@
         }
       }
     },
-    "Download icon style": {
-      "comment": null,
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Download icon style"
-          }
-        },
-        "af": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "下载图标样式"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Stáhnout styl ikony"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Télécharger un style d'icône"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download Icon-Stil"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "hu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Scarica stile icona"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "다운로드 아이콘 스타일"
-          }
-        },
-        "no": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Pobierz styl ikony"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "sr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Descargar estilo de icono"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Simge şeklini indir"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download icon style"
-          }
-        }
-      }
-    },
-    "Download indicator style": {
-      "comment": null,
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Download indicator style"
-          }
-        },
-        "af": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "下载指示器样式"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Stáhnout styl indikátoru"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Télécharger un style d'indicateur"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download Indikator-Stil"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "hu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Scarica stile indicatore"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "다운로드 표시기 스타일"
-          }
-        },
-        "no": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Pobierz styl wskaźników"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "sr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Descargar estilo de indicador"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicator style"
-          }
-        }
-      }
-    },
-    "Download indicators": {
-      "comment": null,
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Download indicators"
-          }
-        },
-        "af": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "下载指示器"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Stáhnout indikátory"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Télécharger des indicateurs"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download Indikatoren"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "hu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Scarica indicatori"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "다운로드 표시기"
-          }
-        },
-        "no": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Pobierz wskaźniki"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "sr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Indicadores de descarga"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Download indicators"
-          }
-        }
-      }
-    },
     "Downloads": {
       "comment": null,
       "localizations": {
@@ -12798,6 +12607,1152 @@
         }
       }
     },
+    "Enable blur effect behind album art": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        }
+      }
+    },
+    "Enable boring mirror": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable boring mirror"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        }
+      }
+    },
+    "Enable colored spectrograms": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        }
+      }
+    },
+    "Enable gestures": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable gestures"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        }
+      }
+    },
+    "Enable glowing effect": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable glowing effect"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        }
+      }
+    },
+    "Enable haptics": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable haptics"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        }
+      }
+    },
     "Enable HUD replacement": {
       "comment": null,
       "localizations": {
@@ -13180,6 +14135,197 @@
         }
       }
     },
+    "Enable shelf": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable shelf"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        }
+      }
+    },
     "Enable sneak peek": {
       "comment": null,
       "localizations": {
@@ -13367,6 +14513,197 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Enable sneak peek"
+          }
+        }
+      }
+    },
+    "Enable window shadow": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable window shadow"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
           }
         }
       }
@@ -13944,197 +15281,6 @@
         }
       }
     },
-    "Exclude apps": {
-      "comment": null,
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exclude apps"
-          }
-        },
-        "af": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "不包括应用"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Vyloučit aplikace"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclure les apps"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Apps ausschließen"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "hu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Escludi app"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "앱 제외"
-          }
-        },
-        "no": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Wyklucz aplikacje"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "sr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Excluir apps"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Exclude apps"
-          }
-        }
-      }
-    },
     "Exit": {
       "comment": null,
       "localizations": {
@@ -14322,6 +15468,197 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Exit"
+          }
+        }
+      }
+    },
+    "Extend hover area": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extend hover area"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
           }
         }
       }
@@ -16232,6 +17569,197 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Hide BoringNotch Options"
+          }
+        }
+      }
+    },
+    "Hide completed reminders": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide completed reminders"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
           }
         }
       }
@@ -21202,6 +22730,197 @@
         }
       }
     },
+    "Menubar icon": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menubar icon"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        }
+      }
+    },
     "Mic %@": {
       "comment": null,
       "localizations": {
@@ -23685,197 +25404,6 @@
         }
       }
     },
-    "No excluded apps": {
-      "comment": null,
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No excluded apps"
-          }
-        },
-        "af": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "无排除的应用"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Aucune application exclue"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Keine ausgeschlossenen Apps"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "hu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Nessuna app escluse"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "제외된 앱 없음"
-          }
-        },
-        "no": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Brak wykluczonych aplikacji"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "sr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "No excluded apps"
-          }
-        }
-      }
-    },
     "No extension installed": {
       "comment": null,
       "localizations": {
@@ -25404,388 +26932,6 @@
         }
       }
     },
-    "Only app icon": {
-      "comment": null,
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Only app icon"
-          }
-        },
-        "af": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "仅应用图标"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Uniquement l'icône de l'application"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Nur App Icon"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "hu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Solo icona dell'app"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "앱 아이콘만"
-          }
-        },
-        "no": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Tylko ikona aplikacji"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "sr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sadece uygulama simgesi"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only app icon"
-          }
-        }
-      }
-    },
-    "Only download icon": {
-      "comment": null,
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Only download icon"
-          }
-        },
-        "af": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "仅下载图标"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Icône de téléchargement uniquement"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Nur Download Icon"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "hu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Solo icone scaricate"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "다운로드 아이콘만"
-          }
-        },
-        "no": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Tylko ikona pobierania"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "sr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sadece simgeyi indir"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Only download icon"
-          }
-        }
-      }
-    },
     "Open Calendar Settings": {
       "comment": null,
       "localizations": {
@@ -25973,6 +27119,197 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Open Calendar Settings"
+          }
+        }
+      }
+    },
+    "Open notch on hover": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open notch on hover"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
           }
         }
       }
@@ -26168,193 +27505,193 @@
         }
       }
     },
-    "Percentage": {
+    "Open shelf by default if items are present": {
       "comment": null,
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "af": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "百分比"
+            "value": "Open shelf by default if items are present"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Procento"
+            "value": "Open shelf by default if items are present"
           }
         },
         "da": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "fi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Pourcentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Prozentsatz"
+            "value": "Open shelf by default if items are present"
           }
         },
         "el": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "he": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "hu": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentuale"
+            "value": "Open shelf by default if items are present"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "퍼센트"
+            "value": "Open shelf by default if items are present"
           }
         },
         "no": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Procent"
+            "value": "Open shelf by default if items are present"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "sr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Yüzde"
+            "value": "Open shelf by default if items are present"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Open shelf by default if items are present"
           }
         }
       }
@@ -26546,197 +27883,6 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Plugged In"
-          }
-        }
-      }
-    },
-    "Progress bar": {
-      "comment": null,
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Progress bar"
-          }
-        },
-        "af": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "进度条"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Barre de progression"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Ladebalken"
-          }
-        },
-        "el": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "hu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Barra di avanzamento"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "진행 바"
-          }
-        },
-        "no": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Pasek postępu"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "sr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Progress bar"
           }
         }
       }
@@ -29415,6 +30561,197 @@
         }
       }
     },
+    "Settings icon in notch": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings icon in notch"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        }
+      }
+    },
     "Shelf": {
       "comment": null,
       "localizations": {
@@ -29797,6 +31134,770 @@
         }
       }
     },
+    "Show battery indicator": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show battery indicator"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        }
+      }
+    },
+    "Show battery percentage": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show battery percentage"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        }
+      }
+    },
+    "Show calendar": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show calendar"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        }
+      }
+    },
+    "Show cool face animation while inactivity": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        }
+      }
+    },
     "Show on a specific display": {
       "comment": null,
       "localizations": {
@@ -30175,6 +32276,388 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Show on all displays"
+          }
+        }
+      }
+    },
+    "Show power status icons": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show power status icons"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        }
+      }
+    },
+    "Show power status notifications": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show power status notifications"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
           }
         }
       }
@@ -33617,6 +36100,197 @@
         }
       }
     },
+    "Use accent color": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use accent color"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        }
+      }
+    },
     "Use music visualizer spectrogram": {
       "comment": null,
       "localizations": {
@@ -33804,6 +36478,197 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Use music visualizer spectrogram"
+          }
+        }
+      }
+    },
+    "Use simpler close animation": {
+      "comment": null,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use simpler close animation"
+          }
+        },
+        "af": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "no": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "sr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
           }
         }
       }
