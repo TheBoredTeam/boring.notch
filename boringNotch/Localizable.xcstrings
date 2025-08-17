@@ -9904,7 +9904,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom music live activity animation"
+            "value": "Animación de actividad de música en vivo personalizada"
           }
         },
         "sv": {
@@ -10095,7 +10095,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom notch size - %.0f"
+            "value": "Tamaño de notch personalizado - %.0f"
           }
         },
         "sv": {
@@ -10286,7 +10286,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom vizualizers (Lottie)"
+            "value": "Visualizadores personalizados (Lottie)"
           }
         },
         "sv": {
@@ -10477,7 +10477,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Customize in Settings"
+            "value": "Personalizar en ajustes"
           }
         },
         "sv": {
@@ -10668,7 +10668,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Default"
+            "value": "Por defecto"
           }
         },
         "sv": {
@@ -10859,7 +10859,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Description"
+            "value": "Descripción"
           }
         },
         "sv": {
@@ -11050,7 +11050,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Disable"
+            "value": "Deshabilitar"
           }
         },
         "sv": {
@@ -11241,7 +11241,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Disabled"
+            "value": "Deshabilitado"
           }
         },
         "sv": {
@@ -11432,7 +11432,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download"
+            "value": "Descargar"
           }
         },
         "sv": {
@@ -11623,7 +11623,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download icon style"
+            "value": "Descargar estilo de icono"
           }
         },
         "sv": {
@@ -11814,7 +11814,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download indicator style"
+            "value": "Descargar estilo de indicador"
           }
         },
         "sv": {
@@ -12005,7 +12005,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download indicators"
+            "value": "Indicadores de descarga"
           }
         },
         "sv": {
@@ -12196,7 +12196,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Downloads"
+            "value": "Descargas"
           }
         },
         "sv": {
@@ -12387,7 +12387,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drop files here"
+            "value": "Soltar archivos aquí"
           }
         },
         "sv": {
@@ -12578,7 +12578,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+            "value": "Copia, almacena y gestiona fácilmente tu contenido más usado. ¡Actualiza ahora para funciones avanzadas como almacenamiento de múltiples elementos y acceso rápido!"
           }
         },
         "sv": {
@@ -12769,7 +12769,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Edit layout"
+            "value": "Editar diseño"
           }
         },
         "sv": {
@@ -12960,7 +12960,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable HUD replacement"
+            "value": "Habilitar reemplazo HUD"
           }
         },
         "sv": {
@@ -13151,7 +13151,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable music live activity"
+            "value": "Habilitar actividad de música en vivo"
           }
         },
         "sv": {
@@ -13342,7 +13342,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable sneak peek"
+            "value": "Habilitar sneak peek"
           }
         },
         "sv": {
@@ -13533,7 +13533,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enhance your experience with HUDs"
+            "value": "Mejora tu experiencia con HUDs"
           }
         },
         "sv": {
@@ -13724,7 +13724,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enjoy your free time!"
+            "value": "¡Disfruta de tu tiempo libre!"
           }
         },
         "sv": {
@@ -14106,7 +14106,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Exclude apps"
+            "value": "Excluir apps"
           }
         },
         "sv": {
@@ -14297,7 +14297,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Exit"
+            "value": "Salir"
           }
         },
         "sv": {
@@ -14679,7 +14679,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Finish"
+            "value": "Finalizar"
           }
         },
         "sv": {
@@ -15061,7 +15061,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gesture control"
+            "value": "Control de gestos"
           }
         },
         "sv": {
@@ -15252,7 +15252,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gesture sensitivity"
+            "value": "Sensibilidad del gesto"
           }
         },
         "sv": {
@@ -15443,7 +15443,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Get started"
+            "value": "Comenzar"
           }
         },
         "sv": {
@@ -15825,7 +15825,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Got it!"
+            "value": "¡Entendido!"
           }
         },
         "sv": {
@@ -16016,7 +16016,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gradient"
+            "value": "Gradiente"
           }
         },
         "sv": {
@@ -16207,7 +16207,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide BoringNotch Options"
+            "value": "Ocultar opciones de BoringNotch"
           }
         },
         "sv": {
@@ -26210,7 +26210,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Procento"
           }
         },
         "da": {
@@ -34805,7 +34805,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
+            "value": ""
           }
         },
         "da": {
