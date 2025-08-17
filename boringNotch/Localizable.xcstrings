@@ -12208,7 +12208,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Downloads"
+            "value": "İndirilenler"
           }
         },
         "uk": {
@@ -12399,7 +12399,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drop files here"
+            "value": "Doslayarı buraya bırak"
           }
         },
         "uk": {
@@ -12781,7 +12781,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Edit layout"
+            "value": "Yerleşimi düzenle"
           }
         },
         "uk": {
@@ -13736,7 +13736,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enjoy your free time!"
+            "value": "Kıymetli vaktinizin keyfini çıkarın!"
           }
         },
         "uk": {
@@ -13927,7 +13927,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Error"
+            "value": "Hata"
           }
         },
         "uk": {
@@ -14309,7 +14309,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Exit"
+            "value": "Çıkış yap"
           }
         },
         "uk": {
@@ -14500,7 +14500,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extensions"
+            "value": "Genişletmeler"
           }
         },
         "uk": {
@@ -33600,7 +33600,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": ""
+            "value": "Pro sürümüne Yükselt"
           }
         },
         "uk": {
