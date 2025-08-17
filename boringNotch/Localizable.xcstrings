@@ -2658,7 +2658,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "About"
+            "value": "Hakkında"
           }
         },
         "uk": {
@@ -3040,7 +3040,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Access Denied"
+            "value": "Erişim Reddedildi"
           }
         },
         "uk": {
@@ -3231,7 +3231,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add"
+            "value": "Ekle"
           }
         },
         "uk": {
@@ -3422,7 +3422,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add manually"
+            "value": "Manuel ekle"
           }
         },
         "uk": {
@@ -3613,7 +3613,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add new visualizer"
+            "value": "Yeni görselleştirici ekle"
           }
         },
         "uk": {
@@ -3804,7 +3804,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Additional features"
+            "value": "Ek özellikler"
           }
         },
         "uk": {
@@ -4186,7 +4186,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "AirDrop service not available"
+            "value": "AirDrop hizmetine kullanılamıyor"
           }
         },
         "uk": {
@@ -4377,7 +4377,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "All-day"
+            "value": "Gün boyu"
           }
         },
         "uk": {
@@ -4568,7 +4568,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Allow Access"
+            "value": "Erişime izin ver"
           }
         },
         "uk": {
@@ -4759,7 +4759,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always hide in fullscreen"
+            "value": "Tam ekranda daima gizle"
           }
         },
         "uk": {
@@ -4950,7 +4950,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always show tabs"
+            "value": "Sekmeleri daima göster"
           }
         },
         "uk": {
@@ -5141,7 +5141,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "App icon"
+            "value": "Uygulama simgesi"
           }
         },
         "uk": {
@@ -5332,7 +5332,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Appearance"
+            "value": "Belirme"
           }
         },
         "uk": {
@@ -5523,7 +5523,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically check for updates"
+            "value": "Güncellemeleri otomatik kontrol et"
           }
         },
         "uk": {
@@ -5714,7 +5714,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically download updates"
+            "value": "Güncellemeleri otomatik indir"
           }
         },
         "uk": {
@@ -5905,7 +5905,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery"
+            "value": "Pil"
           }
         },
         "uk": {
@@ -6096,7 +6096,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Information"
+            "value": "Pil bilgisi"
           }
         },
         "uk": {
@@ -6287,7 +6287,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Settings"
+            "value": "Pil ayarları"
           }
         },
         "uk": {
@@ -6478,7 +6478,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Status"
+            "value": "Pil durumu"
           }
         },
         "uk": {
@@ -6669,7 +6669,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Boost your productivity with Clipboard Manager"
+            "value": "Pano Yöneticisiyle üretkenliğinizi arttırın"
           }
         },
         "uk": {
@@ -7242,7 +7242,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Both"
+            "value": "İkisi birden"
           }
         },
         "uk": {
@@ -7433,7 +7433,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendar"
+            "value": "Takvim"
           }
         },
         "uk": {
@@ -7624,7 +7624,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendar access is denied. Please enable it in System Settings."
+            "value": "Takvim erişimi reddedildi. Lütfen Sistem Ayarlarından aktifleştiriniz."
           }
         },
         "uk": {
@@ -7815,7 +7815,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendars"
+            "value": "Takvimler"
           }
         },
         "uk": {
@@ -8006,7 +8006,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Cancel"
+            "value": "İptal et"
           }
         },
         "uk": {
@@ -8197,7 +8197,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Charging"
+            "value": "Şarj oluyor"
           }
         },
         "uk": {
@@ -8388,7 +8388,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Charging on Hold: Desktop Mode"
+            "value": "Şarj beklemede: Masaüstü Modu"
           }
         },
         "uk": {
@@ -8579,7 +8579,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Check for Updates…"
+            "value": "Güncellemeleri Kontrol et…"
           }
         },
         "uk": {
@@ -8770,7 +8770,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose a Music Source"
+            "value": "Müzik kaynağı seç"
           }
         },
         "uk": {
@@ -9343,7 +9343,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Coming soon"
+            "value": "Çok yakında geliyor"
           }
         },
         "uk": {
@@ -11444,7 +11444,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download"
+            "value": "İndir"
           }
         },
         "uk": {
@@ -11635,7 +11635,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download icon style"
+            "value": "Simge şeklini indir"
           }
         },
         "uk": {
@@ -18702,7 +18702,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Low Power Mode"
+            "value": "Düşük Güç Modu"
           }
         },
         "uk": {
@@ -19084,7 +19084,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mark as complete"
+            "value": "Tamamlanmış olarak işaretle"
           }
         },
         "uk": {
@@ -19275,7 +19275,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mark as incomplete"
+            "value": "Tamamlanmamış olarak işaretle"
           }
         },
         "uk": {
@@ -19466,7 +19466,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match menubar height"
+            "value": "Menubar yüksekliğini eşle"
           }
         },
         "uk": {
@@ -19657,7 +19657,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match real notch size"
+            "value": "Gerçek çentik boyutunu eşle"
           }
         },
         "uk": {
@@ -20039,7 +20039,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media"
+            "value": "Medya"
           }
         },
         "uk": {
@@ -20994,7 +20994,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media Source"
+            "value": "Medya kaynağı"
           }
         },
         "uk": {
@@ -21567,7 +21567,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Minimum hover duration"
+            "value": "Minimum asılı kalma süresi"
           }
         },
         "uk": {
@@ -21758,7 +21758,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mirror"
+            "value": "Ayna"
           }
         },
         "uk": {
@@ -21949,7 +21949,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mirror shape"
+            "value": "Ayna şekli"
           }
         },
         "uk": {
@@ -22331,7 +22331,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Music Source"
+            "value": "Müzik kaynağı"
           }
         },
         "uk": {
@@ -22522,7 +22522,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "muted"
+            "value": "susturuldu"
           }
         },
         "uk": {
@@ -22713,7 +22713,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Name"
+            "value": "İsim"
           }
         },
         "uk": {
@@ -23095,7 +23095,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Never hide"
+            "value": "Asla gizleme"
           }
         },
         "uk": {
@@ -24432,7 +24432,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Not Now"
+            "value": "Şimdi Değil"
           }
         },
         "uk": {
@@ -25005,7 +25005,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch Height"
+            "value": "Çentik yüksekliği"
           }
         },
         "uk": {
@@ -25578,7 +25578,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Only app icon"
+            "value": "Sadece uygulama simgesi"
           }
         },
         "uk": {
@@ -25769,7 +25769,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Only download icon"
+            "value": "Sadece simgeyi indir"
           }
         },
         "uk": {
@@ -25960,7 +25960,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Calendar Settings"
+            "value": "Takvim Ayarlarını Aç"
           }
         },
         "uk": {
@@ -26151,7 +26151,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Reminder Settings"
+            "value": "Anımsatıcı Ayarlarını Aç"
           }
         },
         "uk": {
@@ -26342,7 +26342,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Percentage"
+            "value": "Yüzde"
           }
         },
         "uk": {
@@ -27106,7 +27106,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quit"
+            "value": "Çık"
           }
         },
         "uk": {
@@ -27297,7 +27297,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quit app"
+            "value": "Uygulamadan Çık"
           }
         },
         "uk": {
@@ -28061,7 +28061,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reminders"
+            "value": "Anımsatıcılar"
           }
         },
         "uk": {
@@ -28252,7 +28252,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Restart"
+            "value": "Yeniden başlat"
           }
         },
         "uk": {
@@ -28443,7 +28443,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Restart Boring Notch"
+            "value": "Boring Notch'u yeniden başlat"
           }
         },
         "uk": {
@@ -29398,7 +29398,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings"
+            "value": "Ayarlar"
           }
         },
         "uk": {
@@ -29780,7 +29780,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Shortcuts"
+            "value": "Kestirmeler"
           }
         },
         "uk": {
@@ -31117,7 +31117,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Software updates"
+            "value": "Yazılım güncellemeleri"
           }
         },
         "uk": {
@@ -31881,7 +31881,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Support Us"
+            "value": "Bizi Destekle"
           }
         },
         "uk": {
@@ -32072,7 +32072,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "System features"
+            "value": "Sistem özellikleri"
           }
         },
         "uk": {
@@ -33600,7 +33600,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Upgrade to Pro"
+            "value": ""
           }
         },
         "uk": {
@@ -33982,7 +33982,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Version"
+            "value": "Versiyon"
           }
         },
         "uk": {
@@ -34173,7 +34173,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Version info"
+            "value": "Versiyon bilgisi"
           }
         },
         "uk": {
@@ -34555,7 +34555,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Welcome"
+            "value": "Hoş geldiniz"
           }
         },
         "uk": {
@@ -34746,7 +34746,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "What's New"
+            "value": "Neler Yeni"
           }
         },
         "uk": {
@@ -35128,7 +35128,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You're All Set!"
+            "value": "Tamamen Hazırsın!"
           }
         },
         "uk": {
