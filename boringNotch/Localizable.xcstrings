@@ -142,6 +142,12 @@
             "value": ""
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": ""
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -328,6 +334,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": " – %lld"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": " – %lld"
@@ -524,6 +536,12 @@
             "value": "'Tocando agora' era a única opção em versões anteriores e funciona em todos os aplicativos de mídia."
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "'Now Playing' was the only option on previous versions and works with all media apps."
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -710,6 +728,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "(%@)"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "(%@)"
@@ -906,6 +930,12 @@
             "value": "%.0f segundos"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%.0f seconds"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -1092,6 +1122,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%.1fs"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "%.1fs"
@@ -1288,6 +1324,12 @@
             "value": "%@"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -1474,6 +1516,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%d%%"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "%d%%"
@@ -1670,6 +1718,12 @@
             "value": "%lld"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -1856,6 +1910,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld%%"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "%lld%%"
@@ -2052,6 +2112,12 @@
             "value": "Correções de bugs"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "• Bug fixes"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -2241,6 +2307,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Desempenho melhorado"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "• Improved performance"
           }
         },
         "ro": {
@@ -2434,6 +2506,12 @@
             "value": "Novo recurso 1"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "• New feature 1"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -2623,6 +2701,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Sobre"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "About"
           }
         },
         "ro": {
@@ -2816,6 +2900,12 @@
             "value": "Cor de destaque"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Accent color"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -3005,6 +3095,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Acesso Negado"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Access Denied"
           }
         },
         "ro": {
@@ -3198,6 +3294,12 @@
             "value": "Adicionar"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Add"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -3387,6 +3489,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Adicionar manualmente"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Add manually"
           }
         },
         "ro": {
@@ -3580,6 +3688,12 @@
             "value": "Adicionar novo visualizador"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Add new visualizer"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -3771,6 +3885,12 @@
             "value": "Recursos adicionais"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Additional features"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -3957,6 +4077,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "AirDrop"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "AirDrop"
@@ -4153,6 +4279,12 @@
             "value": "AirDrop não disponível"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "AirDrop service not available"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -4342,6 +4474,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Dia inteiro"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "All-day"
           }
         },
         "ro": {
@@ -4535,6 +4673,12 @@
             "value": "Permitir acesso"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Allow Access"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -4724,6 +4868,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Sempre esconder em tela cheia"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Always hide in fullscreen"
           }
         },
         "ro": {
@@ -4917,6 +5067,12 @@
             "value": "Permitir mostrar guias"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Always show tabs"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -5106,6 +5262,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Ícone do App"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "App icon"
           }
         },
         "ro": {
@@ -5299,6 +5461,12 @@
             "value": "Aparência"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Appearance"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -5488,6 +5656,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Procurar por atualizações automaticamente"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically check for updates"
           }
         },
         "ro": {
@@ -5681,6 +5855,12 @@
             "value": "Baixar atualizações automaticamente"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically download updates"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -5867,6 +6047,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Automatically switch displays"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Automatically switch displays"
@@ -6063,6 +6249,12 @@
             "value": "Bateria"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Battery"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -6252,6 +6444,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Informações da Bateria"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Battery Information"
           }
         },
         "ro": {
@@ -6445,6 +6643,12 @@
             "value": "Configurações da Bateria"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Battery Settings"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -6634,6 +6838,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Status da bateria"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Battery Status"
           }
         },
         "ro": {
@@ -6827,6 +7037,12 @@
             "value": "Aumente sua produtividade com o Clipboard Manager"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Boost your productivity with Clipboard Manager"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -7013,6 +7229,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Boring Notch"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Boring Notch"
@@ -7209,6 +7431,12 @@
             "value": "boring.notch"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "boring.notch"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -7398,6 +7626,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Calendário"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Calendar"
           }
         },
         "ro": {
@@ -7591,6 +7825,12 @@
             "value": "Acesso ao Calendário negado. Por favor, autorize nas Configurações do Sistema."
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Calendar access is denied. Please enable it in System Settings."
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -7780,6 +8020,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Calendários"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Calendars"
           }
         },
         "ro": {
@@ -7973,6 +8219,12 @@
             "value": "Cancelar"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cancel"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -8162,6 +8414,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Carregando"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Charging"
           }
         },
         "ro": {
@@ -8355,6 +8613,12 @@
             "value": "Carregando em espera: Modo Desktop"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Charging on Hold: Desktop Mode"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -8544,6 +8808,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Verificar atualizações…"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Check for Updates…"
           }
         },
         "ro": {
@@ -8737,6 +9007,12 @@
             "value": "Escolha fonte da música"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Choose a Music Source"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -8926,6 +9202,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Círculo"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Circle"
           }
         },
         "ro": {
@@ -9119,6 +9401,12 @@
             "value": "Fechar"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -9305,6 +9593,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close gesture"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Close gesture"
@@ -9501,6 +9795,12 @@
             "value": "Em breve"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Coming soon"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -9687,6 +9987,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Continue"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Continue"
@@ -9883,6 +10189,12 @@
             "value": "Corner radius scaling"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Corner radius scaling"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -10072,6 +10384,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Customizar altura"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Custom height"
           }
         },
         "ro": {
@@ -10265,6 +10583,12 @@
             "value": "Customizar animação da música"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Custom music live activity animation"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -10454,6 +10778,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Descrição"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Custom notch size - %.0f"
           }
         },
         "ro": {
@@ -10647,6 +10977,12 @@
             "value": "Customizar visualizadores (Lottie)"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Custom vizualizers (Lottie)"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -10836,6 +11172,12 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "Customizar em Configurações"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Customize in Settings"
           }
         },
         "ro": {
@@ -11029,6 +11371,12 @@
             "value": "Padrão"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Default"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -11220,6 +11568,12 @@
             "value": "Descrição"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Description"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -11406,6 +11760,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Disable"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Disable"
@@ -11602,6 +11962,12 @@
             "value": "Disabled"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Disabled"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -11788,6 +12154,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Download"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Download"
@@ -11984,6 +12356,12 @@
             "value": "Downloads"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Downloads"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -12170,6 +12548,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Drop files here"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Drop files here"
@@ -12366,6 +12750,12 @@
             "value": "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -12552,6 +12942,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Edit layout"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Edit layout"
@@ -12748,6 +13144,12 @@
             "value": "Enable blur effect behind album art"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable blur effect behind album art"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -12934,6 +13336,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable boring mirror"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Enable boring mirror"
@@ -13130,6 +13538,12 @@
             "value": "Enable colored spectrograms"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable colored spectrograms"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -13316,6 +13730,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable gestures"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Enable gestures"
@@ -13512,6 +13932,12 @@
             "value": "Enable glowing effect"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable glowing effect"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -13698,6 +14124,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable haptics"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Enable haptics"
@@ -13894,6 +14326,12 @@
             "value": "Enable HUD replacement"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable HUD replacement"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -14080,6 +14518,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable music live activity"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Enable music live activity"
@@ -14276,6 +14720,12 @@
             "value": "Enable shelf"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable shelf"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -14462,6 +14912,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable sneak peek"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Enable sneak peek"
@@ -14658,6 +15114,12 @@
             "value": "Enable window shadow"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enable window shadow"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -14844,6 +15306,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enhance your experience with HUDs"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Enhance your experience with HUDs"
@@ -15040,6 +15508,12 @@
             "value": "Enjoy your free time!"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enjoy your free time!"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -15226,6 +15700,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Error"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Error"
@@ -15422,6 +15902,12 @@
             "value": "Exit"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Exit"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -15608,6 +16094,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extend hover area"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Extend hover area"
@@ -15804,6 +16296,12 @@
             "value": "Extensions"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Extensions"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -15990,6 +16488,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Finish"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Finish"
@@ -16186,6 +16690,12 @@
             "value": "General"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "General"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -16372,6 +16882,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Gesture control"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Gesture control"
@@ -16568,6 +17084,12 @@
             "value": "Gesture sensitivity"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Gesture sensitivity"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -16754,6 +17276,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Get started"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Get started"
@@ -16950,6 +17478,12 @@
             "value": "GitHub"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "GitHub"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -17136,6 +17670,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Got it!"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Got it!"
@@ -17332,6 +17872,12 @@
             "value": "Gradient"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Gradient"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -17518,6 +18064,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide BoringNotch Options"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Hide BoringNotch Options"
@@ -17714,6 +18266,12 @@
             "value": "Hide completed reminders"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide completed reminders"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -17900,6 +18458,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hide only when NowPlaying app is in fullscreen"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Hide only when NowPlaying app is in fullscreen"
@@ -18096,6 +18660,12 @@
             "value": "Hierarchical"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hierarchical"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -18282,6 +18852,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "High"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "High"
@@ -18478,6 +19054,12 @@
             "value": "https://github.com/th-ch/youtube-music"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "https://github.com/th-ch/youtube-music"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -18664,6 +19246,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "HUD style"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "HUD style"
@@ -18860,6 +19448,12 @@
             "value": "HUDs"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "HUDs"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -19046,6 +19640,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "In progress"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "In progress"
@@ -19242,6 +19842,12 @@
             "value": "Inline"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inline"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -19428,6 +20034,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Installed extensions"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Installed extensions"
@@ -19624,6 +20236,12 @@
             "value": "Later"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Later"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -19810,6 +20428,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Lottie JSON URL"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Lottie JSON URL"
@@ -20006,6 +20630,12 @@
             "value": "Low"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Low"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -20192,6 +20822,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Low Power Mode"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Low Power Mode"
@@ -20388,6 +21024,12 @@
             "value": "Made with 🫶🏻 by not so boring not.people"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Made with 🫶🏻 by not so boring not.people"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -20574,6 +21216,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mark as complete"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Mark as complete"
@@ -20770,6 +21418,12 @@
             "value": "Mark as incomplete"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mark as incomplete"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -20956,6 +21610,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Match menubar height"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Match menubar height"
@@ -21152,6 +21812,12 @@
             "value": "Match real notch size"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Match real notch size"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -21338,6 +22004,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Max Capacity: %lld%%"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Max Capacity: %lld%%"
@@ -21534,6 +22206,12 @@
             "value": "Media"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Media"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -21720,6 +22398,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Media change with horizontal gestures"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Media change with horizontal gestures"
@@ -21916,6 +22600,12 @@
             "value": "Media controls"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Media controls"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -22102,6 +22792,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Media inactivity timeout"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Media inactivity timeout"
@@ -22298,6 +22994,12 @@
             "value": "Atividade ao vivo da reprodução de mídia"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Media playback live activity"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -22484,6 +23186,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Media Source"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Media Source"
@@ -22680,6 +23388,12 @@
             "value": "Medium"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Medium"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -22866,6 +23580,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menubar icon"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Menubar icon"
@@ -23062,6 +23782,12 @@
             "value": "Mic %@"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mic %@"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -23248,6 +23974,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Minimum hover duration"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Minimum hover duration"
@@ -23444,6 +24176,12 @@
             "value": "Mirror"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mirror"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -23630,6 +24368,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mirror shape"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Mirror shape"
@@ -23826,6 +24570,12 @@
             "value": "More"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "More"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -24012,6 +24762,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Music Source"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Music Source"
@@ -24208,6 +24964,12 @@
             "value": "muted"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "muted"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -24394,6 +25156,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Name"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Name"
@@ -24590,6 +25358,12 @@
             "value": "Need Restart"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Need Restart"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -24776,6 +25550,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Never hide"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Never hide"
@@ -24972,6 +25752,12 @@
             "value": "No custom animation available"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No custom animation available"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -25158,6 +25944,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No custom visualizer"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "No custom visualizer"
@@ -25354,6 +26146,12 @@
             "value": "No events today"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No events today"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -25540,6 +26338,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No extension installed"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "No extension installed"
@@ -25736,6 +26540,12 @@
             "value": "Non-notch display height"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Non-notch display height"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -25922,6 +26732,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Not Now"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Not Now"
@@ -26118,6 +26934,12 @@
             "value": "Notch behavior"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Notch behavior"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -26304,6 +27126,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Notch display height"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Notch display height"
@@ -26500,6 +27328,12 @@
             "value": "Notch Height"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Notch Height"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -26686,6 +27520,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "OK"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "OK"
@@ -26882,6 +27722,12 @@
             "value": "One or more files failed to load"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "One or more files failed to load"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -27068,6 +27914,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open Calendar Settings"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Open Calendar Settings"
@@ -27264,6 +28116,12 @@
             "value": "Open notch on hover"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open notch on hover"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -27450,6 +28308,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open Reminder Settings"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Open Reminder Settings"
@@ -27646,6 +28510,12 @@
             "value": "Open shelf by default if items are present"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Open shelf by default if items are present"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -27832,6 +28702,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Plugged In"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Plugged In"
@@ -28028,6 +28904,12 @@
             "value": "Progressbar style"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Progressbar style"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -28214,6 +29096,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Quit"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Quit"
@@ -28410,6 +29298,12 @@
             "value": "Quit app"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Quit app"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -28596,6 +29490,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Release name"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Release name"
@@ -28792,6 +29692,12 @@
             "value": "Remember last tab"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Remember last tab"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -28978,6 +29884,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminder access is denied. Please enable it in System Settings."
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Reminder access is denied. Please enable it in System Settings."
@@ -29174,6 +30086,12 @@
             "value": "Reminders"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminders"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -29360,6 +30278,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Restart"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Restart"
@@ -29556,6 +30480,12 @@
             "value": "Restart Boring Notch"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Restart Boring Notch"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -29742,6 +30672,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Running"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Running"
@@ -29938,6 +30874,12 @@
             "value": "Select the music source you want to use. You can change this later in the app settings."
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Select the music source you want to use. You can change this later in the app settings."
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -30124,6 +31066,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "selected"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "selected"
@@ -30320,6 +31268,12 @@
             "value": "Selected animation"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Selected animation"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -30506,6 +31460,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Settings"
@@ -30702,6 +31662,12 @@
             "value": "Settings icon in notch"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Settings icon in notch"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -30888,6 +31854,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Shelf"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Shelf"
@@ -31084,6 +32056,12 @@
             "value": "Shortcuts"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Shortcuts"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -31270,6 +32248,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery indicator"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Show battery indicator"
@@ -31466,6 +32450,12 @@
             "value": "Show battery percentage"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show battery percentage"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -31652,6 +32642,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show calendar"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Show calendar"
@@ -31848,6 +32844,12 @@
             "value": "Show cool face animation while inactivity"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show cool face animation while inactivity"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -32034,6 +33036,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show on a specific display"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Show on a specific display"
@@ -32230,6 +33238,12 @@
             "value": "Show on all displays"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show on all displays"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -32416,6 +33430,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status icons"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Show power status icons"
@@ -32612,6 +33632,12 @@
             "value": "Show power status notifications"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show power status notifications"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -32798,6 +33824,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Show shuffle and repeat buttons"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Show shuffle and repeat buttons"
@@ -32994,6 +34026,12 @@
             "value": "Slider color"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Slider color"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -33180,6 +34218,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sneak Peek shows the media title and artist under the notch for a few seconds."
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Sneak Peek shows the media title and artist under the notch for a few seconds."
@@ -33376,6 +34420,12 @@
             "value": "Sneak Peek Style"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sneak Peek Style"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -33562,6 +34612,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Software updates"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Software updates"
@@ -33758,6 +34814,12 @@
             "value": "Speed"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Speed"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -33944,6 +35006,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Square"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Square"
@@ -34140,6 +35208,12 @@
             "value": "Stopped"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Stopped"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -34326,6 +35400,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Support Us"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Support Us"
@@ -34522,6 +35602,12 @@
             "value": "System features"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "System features"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -34708,6 +35794,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Time to Full Charge: %lld min"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Time to Full Charge: %lld min"
@@ -34904,6 +35996,12 @@
             "value": "Toggle Notch Open:"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Toggle Notch Open:"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -35090,6 +36188,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Toggle Sneak Peek:"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Toggle Sneak Peek:"
@@ -35286,6 +36390,12 @@
             "value": "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -35472,6 +36582,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Uninstall"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Uninstall"
@@ -35668,6 +36784,12 @@
             "value": "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -35854,6 +36976,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "unmuted"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "unmuted"
@@ -36050,6 +37178,12 @@
             "value": "Upgrade to Pro"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Upgrade to Pro"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -36236,6 +37370,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use accent color"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Use accent color"
@@ -36432,6 +37572,12 @@
             "value": "Use music visualizer spectrogram"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use music visualizer spectrogram"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -36618,6 +37764,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use simpler close animation"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Use simpler close animation"
@@ -36814,6 +37966,12 @@
             "value": "Version"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Version"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -37000,6 +38158,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Version info"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Version info"
@@ -37196,6 +38360,12 @@
             "value": "View on GitHub: th-ch/youtube-music"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "View on GitHub: th-ch/youtube-music"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -37382,6 +38552,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Welcome"
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Welcome"
@@ -37578,6 +38754,12 @@
             "value": "What's New"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "What's New"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -37764,6 +38946,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
@@ -37960,6 +39148,12 @@
             "value": "You're All Set!"
           }
         },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "You're All Set!"
+          }
+        },
         "ro": {
           "stringUnit": {
             "state": "needs_review",
@@ -38146,6 +39340,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "YouTube Music requires this third-party app to be installed: "
+          }
+        },
+        "pa": {
           "stringUnit": {
             "state": "needs_review",
             "value": "YouTube Music requires this third-party app to be installed: "
