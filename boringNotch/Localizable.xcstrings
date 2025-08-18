@@ -5809,7 +5809,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "Automatisch Bildschirm wechseln"
           }
         },
         "el": {
@@ -9247,7 +9247,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "Schließgeste"
           }
         },
         "el": {
