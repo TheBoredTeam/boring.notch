@@ -13762,7 +13762,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "Habilitar gestos"
           }
         },
         "sv": {
@@ -13959,7 +13959,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable glowing effect"
+            "value": "Habilitar efecto de resplandor"
           }
         },
         "sv": {
@@ -18884,7 +18884,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "High"
+            "value": "Alto"
           }
         },
         "sv": {
@@ -19672,7 +19672,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "In progress"
+            "value": "En curso"
           }
         },
         "sv": {
@@ -20657,7 +20657,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Low"
+            "value": "Bajo"
           }
         },
         "sv": {
@@ -20854,7 +20854,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Low Power Mode"
+            "value": "Modo de bajo consumo"
           }
         },
         "sv": {
@@ -21051,7 +21051,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Made with 🫶🏻 by not so boring not.people"
+            "value": "Hecho con 🫶🏻 no tan aburrido no.people"
           }
         },
         "sv": {
@@ -21248,7 +21248,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mark as complete"
+            "value": "Marcar como completado"
           }
         },
         "sv": {
@@ -21445,7 +21445,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mark as incomplete"
+            "value": "Marcar como incompleto"
           }
         },
         "sv": {
@@ -23415,7 +23415,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Medium"
+            "value": "Mediano"
           }
         },
         "sv": {
@@ -24597,7 +24597,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "More"
+            "value": "Más"
           }
         },
         "sv": {
@@ -24794,7 +24794,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Music Source"
+            "value": "Fuente de música"
           }
         },
         "sv": {
@@ -24991,7 +24991,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "muted"
+            "value": "silenciado"
           }
         },
         "sv": {
@@ -25188,7 +25188,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Name"
+            "value": "Nombre"
           }
         },
         "sv": {
@@ -26764,7 +26764,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Not Now"
+            "value": "Ahora no"
           }
         },
         "sv": {
@@ -26961,7 +26961,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch behavior"
+            "value": "Comportamiento de Notch"
           }
         },
         "sv": {
@@ -27552,7 +27552,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "OK"
+            "value": "Ok"
           }
         },
         "sv": {
