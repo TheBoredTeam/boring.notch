@@ -6377,7 +6377,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Information de la batterie"
+            "value": "Informations de la batterie"
           }
         },
         "de": {
@@ -10317,7 +10317,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hauteur personnalisée"
+            "value": "Personnaliser la hauteur"
           }
         },
         "de": {
@@ -10514,7 +10514,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Animation d'activité musicale customisée"
+            "value": "Personnaliser l'animation d'activité musicale"
           }
         },
         "de": {
@@ -10711,7 +10711,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Taille de la Notch personnalisée - %.0f"
+            "value": "Personnaliser la taille de l'encoche - %.0f"
           }
         },
         "de": {
@@ -10908,7 +10908,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Vizualizers personnalisés (Lottie)"
+            "value": "Visualiseurs personnalisés (Lottie)"
           }
         },
         "de": {
@@ -17606,7 +17606,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Compris!"
+            "value": "Compris !"
           }
         },
         "de": {
@@ -18394,7 +18394,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Masquer seulement quand lorsque l'app NowPlaying est en plein écran"
+            "value": "Masquer seulement quand lorsque l'app en train de jouer est en plein écran"
           }
         },
         "de": {
@@ -19182,7 +19182,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Style HUD"
+            "value": "Style de l'HUD"
           }
         },
         "de": {
@@ -20364,7 +20364,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Lottie JSON URL"
+            "value": "Lien URL Lottie JSON"
           }
         },
         "de": {
@@ -21743,7 +21743,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Correspondre à la vraie hauteur de la Notch"
+            "value": "Correspondre à la vraie hauteur de l'encoche"
           }
         },
         "de": {
@@ -21940,7 +21940,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Capacité Max: %lld%%"
+            "value": "Capacité maximale : %lld%%"
           }
         },
         "de": {
@@ -33760,7 +33760,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Afficher les boutons aléatoire et répéter"
+            "value": "Afficher les boutons \"aléatoire\" et \"répéter\""
           }
         },
         "de": {
