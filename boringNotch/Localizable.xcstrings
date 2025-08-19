@@ -5983,7 +5983,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "Basculer automatiquement d'écran"
           }
         },
         "de": {
@@ -9529,7 +9529,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "Geste de fermeture"
           }
         },
         "de": {
@@ -10120,7 +10120,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Corner radius scaling"
+            "value": "Redimensionnement du rayon des angles"
           }
         },
         "de": {
@@ -13075,7 +13075,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "Activer l'effet de flou derrière la pochette d'album"
           }
         },
         "de": {
@@ -13469,7 +13469,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "Activer les spectrogrammes de couleurs"
           }
         },
         "de": {
@@ -13666,7 +13666,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "Activer les gestes"
           }
         },
         "de": {
@@ -13863,7 +13863,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable glowing effect"
+            "value": "Activer l'effet lumineux"
           }
         },
         "de": {
@@ -14060,7 +14060,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "Activer les retours haptiques"
           }
         },
         "de": {
@@ -14651,7 +14651,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "Activer la bibliothèque"
           }
         },
         "de": {
@@ -15045,7 +15045,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable window shadow"
+            "value": "Activer l'ombre de la fenêtre"
           }
         },
         "de": {
@@ -16030,7 +16030,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extend hover area"
+            "value": "Étendre la zone de survol"
           }
         },
         "de": {
@@ -18197,7 +18197,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": "Cacher les rappels terminés"
           }
         },
         "de": {
@@ -23516,7 +23516,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Menubar icon"
+            "value": "Icône dans la barre des menus"
           }
         },
         "de": {
@@ -28047,7 +28047,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open notch on hover"
+            "value": "Ouvrir l'encoche au survol"
           }
         },
         "de": {
@@ -28441,7 +28441,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open shelf by default if items are present"
+            "value": "Ouvrir la bibliothèque par défaut si des éléments sont présents"
           }
         },
         "de": {
@@ -31593,7 +31593,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings icon in notch"
+            "value": "Paramètres de l'icône dans l'encoche"
           }
         },
         "de": {
@@ -32184,7 +32184,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery indicator"
+            "value": "Afficher l'indicateur de la batterie"
           }
         },
         "de": {
@@ -32381,7 +32381,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery percentage"
+            "value": "Afficher le pourcentage de la batterie"
           }
         },
         "de": {
@@ -32578,7 +32578,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show calendar"
+            "value": "Afficher le calendrier"
           }
         },
         "de": {
@@ -33366,7 +33366,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status icons"
+            "value": "Afficher les icônes d'états de chargement"
           }
         },
         "de": {
@@ -33563,7 +33563,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status notifications"
+            "value": "Afficher les notifications d'état de chargement"
           }
         },
         "de": {
@@ -37306,7 +37306,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use accent color"
+            "value": "Utiliser la couleur d'accentuation"
           }
         },
         "de": {
@@ -37700,7 +37700,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use simpler close animation"
+            "value": "Utiliser une animation de fermeture simplifiée"
           }
         },
         "de": {
