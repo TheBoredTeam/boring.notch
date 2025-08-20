@@ -6097,7 +6097,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "Автоматично перемикати екрани"
           }
         },
         "vi": {
@@ -9643,7 +9643,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "Жест вимкнення"
           }
         },
         "vi": {
@@ -10234,7 +10234,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Corner radius scaling"
+            "value": "Масштабування радіусу кутів"
           }
         },
         "vi": {
@@ -12007,7 +12007,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Disabled"
+            "value": "Вимкнено"
           }
         },
         "vi": {
@@ -12204,7 +12204,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Download"
+            "value": "Завантажити"
           }
         },
         "vi": {
@@ -12401,7 +12401,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Downloads"
+            "value": "Завантаження"
           }
         },
         "vi": {
@@ -12598,7 +12598,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drop files here"
+            "value": "Перетягніть файл сюди"
           }
         },
         "vi": {
@@ -12992,7 +12992,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Edit layout"
+            "value": "Редагувати розташування"
           }
         },
         "vi": {
@@ -13189,7 +13189,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "Увімкнути ефект розмиття позаду обкладинки альбому"
           }
         },
         "vi": {
@@ -13780,7 +13780,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "Увімкнути жести"
           }
         },
         "vi": {
@@ -14174,7 +14174,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "Увімкнути тактильний відгук"
           }
         },
         "vi": {
@@ -14765,7 +14765,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "Активувати полицю"
           }
         },
         "vi": {
@@ -15553,7 +15553,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enjoy your free time!"
+            "value": "Насолоджуйтесь своїм вільним часом!"
           }
         },
         "vi": {
@@ -15750,7 +15750,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Error"
+            "value": "Помилка"
           }
         },
         "vi": {
@@ -15947,7 +15947,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Exit"
+            "value": "Вихід"
           }
         },
         "vi": {
@@ -16341,7 +16341,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extensions"
+            "value": "Розширення"
           }
         },
         "vi": {
@@ -16538,7 +16538,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Finish"
+            "value": "Завершити"
           }
         },
         "vi": {
@@ -16932,7 +16932,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gesture control"
+            "value": "Керування жестами"
           }
         },
         "vi": {
@@ -17129,7 +17129,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gesture sensitivity"
+            "value": "Чутливість жестів"
           }
         },
         "vi": {
@@ -17917,7 +17917,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gradient"
+            "value": "Градієнт"
           }
         },
         "vi": {
@@ -18114,7 +18114,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide BoringNotch Options"
+            "value": "Приховати параметри BoringNotch"
           }
         },
         "vi": {
@@ -18311,7 +18311,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": "Приховати завершені нагадування"
           }
         },
         "vi": {
@@ -18902,7 +18902,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "High"
+            "value": "Високий"
           }
         },
         "vi": {
@@ -19690,7 +19690,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "In progress"
+            "value": "В процесі"
           }
         },
         "vi": {
@@ -20084,7 +20084,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Installed extensions"
+            "value": "Встановлені розширення"
           }
         },
         "vi": {
@@ -20281,7 +20281,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Later"
+            "value": "Пізніше"
           }
         },
         "vi": {
@@ -20872,7 +20872,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Low Power Mode"
+            "value": "Режим економії енергії"
           }
         },
         "vi": {
@@ -21266,7 +21266,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mark as complete"
+            "value": "Позначити як виконане"
           }
         },
         "vi": {
@@ -21463,7 +21463,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mark as incomplete"
+            "value": "Позначити як незавершене"
           }
         },
         "vi": {
