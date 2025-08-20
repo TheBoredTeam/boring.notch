@@ -18,6 +18,7 @@
 		1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD992D98824300979FB0 /* SpotifyController.swift */; };
 		1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */; };
 		1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */; };
+		1153BDA92D99B22400979FB0 /* TidalController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BDA82D99B22400979FB0 /* TidalController.swift */; };
 		1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1160F8D72DD98230006FBB94 /* NotchShape.swift */; };
 		1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988C2DF5CAB40052E6AF /* EventModel.swift */; };
 		1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988E2DF5CC870052E6AF /* CalendarModel.swift */; };
@@ -141,6 +142,7 @@
 		1153BD992D98824300979FB0 /* SpotifyController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyController.swift; sourceTree = "<group>"; };
 		1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingController.swift; sourceTree = "<group>"; };
 		1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicController.swift; sourceTree = "<group>"; };
+		1153BDA82D99B22400979FB0 /* TidalController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidalController.swift; sourceTree = "<group>"; };
 		1160F8D72DD98230006FBB94 /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
 		1163988C2DF5CAB40052E6AF /* EventModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModel.swift; sourceTree = "<group>"; };
 		1163988E2DF5CC870052E6AF /* CalendarModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarModel.swift; sourceTree = "<group>"; };
@@ -285,6 +287,7 @@
 				1153BD992D98824300979FB0 /* SpotifyController.swift */,
 				1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */,
 				1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */,
+				1153BDA82D99B22400979FB0 /* TidalController.swift */,
 			);
 			path = MediaControllers;
 			sourceTree = "<group>";
@@ -732,6 +735,7 @@
 				1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */,
 				1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */,
 				1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */,
+				1153BDA92D99B22400979FB0 /* TidalController.swift in Sources */,
 				B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */,
 				9A987A072C73CA66005CA465 /* Ext+NSImage.swift in Sources */,
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,

@@ -21,11 +21,19 @@ struct DynamicNotchApp: App {
     let updaterController: SPUStandardUpdaterController
 
     init() {
-        updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-
-        // Initialize the settings window controller with the updater controller
-        SettingsWindowController.shared.setUpdaterController(updaterController)
+        // Initialize Sparkle updater with error handling
+        do {
+            updaterController = SPUStandardUpdaterController(
+                startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            
+            // Initialize the settings window controller with the updater controller
+            SettingsWindowController.shared.setUpdaterController(updaterController)
+        } catch {
+            print("Failed to initialize Sparkle updater: \(error)")
+            // Create a dummy updater controller to prevent crashes
+            updaterController = SPUStandardUpdaterController(
+                startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
+        }
     }
 
     var body: some Scene {
