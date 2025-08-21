@@ -6079,7 +6079,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "Cambiar automáticamente las pantallas"
           }
         },
         "sv": {
@@ -9625,7 +9625,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "Gesto de cerrar"
           }
         },
         "sv": {
@@ -29325,7 +29325,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quit app"
+            "value": "Cerrar app"
           }
         },
         "sv": {
@@ -39175,7 +39175,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You're All Set!"
+            "value": "¡Todo listo!"
           }
         },
         "sv": {
