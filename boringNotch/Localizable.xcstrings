@@ -4604,7 +4604,7 @@
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Accorder l'accès"
+            "value": "Autoriser l'accès"
           }
         },
         "de": {
@@ -14609,7 +14609,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "启用暂存区"
           }
         },
         "zh-Hant": {
@@ -15003,7 +15003,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable window shadow"
+            "value": "启用窗口阴影"
           }
         },
         "zh-Hant": {
