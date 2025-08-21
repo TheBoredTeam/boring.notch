@@ -2030,7 +2030,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "• Bug fixes"
           }
         },
@@ -2227,7 +2227,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "• Improved performance"
           }
         },
@@ -2424,7 +2424,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "• New feature 1"
           }
         },
@@ -2621,7 +2621,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "About"
           }
         },
@@ -3015,7 +3015,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Access Denied"
           }
         },
@@ -3212,7 +3212,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Add"
           }
         },
@@ -3409,7 +3409,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Add manually"
           }
         },
@@ -3606,7 +3606,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Add new visualiser"
           }
         },
@@ -3803,7 +3803,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Additional features"
           }
         },
@@ -4197,7 +4197,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "AirDrop service not available"
           }
         },
@@ -4394,7 +4394,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "All-day"
           }
         },
@@ -4591,7 +4591,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Allow Access"
           }
         },
@@ -4788,7 +4788,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Always hide in full-screen"
           }
         },
@@ -4985,7 +4985,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Always show tabs"
           }
         },
@@ -5182,7 +5182,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "App icon"
           }
         },
@@ -5379,7 +5379,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Appearance"
           }
         },
@@ -5576,7 +5576,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Automatically check for updates"
           }
         },
@@ -5773,7 +5773,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Automatically download updates"
           }
         },
@@ -5970,7 +5970,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Automatically switch displays"
           }
         },
@@ -6167,7 +6167,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Battery"
           }
         },
@@ -6364,7 +6364,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Battery Information"
           }
         },
@@ -6561,7 +6561,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Battery Settings"
           }
         },
@@ -6758,7 +6758,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Battery Status"
           }
         },
@@ -6955,7 +6955,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Boost your productivity with Clipboard Manager"
           }
         },
@@ -7546,7 +7546,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Calendar"
           }
         },
@@ -7743,7 +7743,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Calendar access is denied. Please enable it in System Settings."
           }
         },
@@ -7940,7 +7940,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Calendars"
           }
         },
@@ -8137,7 +8137,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Cancel"
           }
         },
@@ -8334,7 +8334,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Charging"
           }
         },
@@ -8531,7 +8531,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Charging on Hold: Desktop Mode"
           }
         },
@@ -8728,7 +8728,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Check for Updates…"
           }
         },
@@ -8925,7 +8925,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Choose a Music Source"
           }
         },
@@ -9122,7 +9122,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Circle"
           }
         },
@@ -9319,7 +9319,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Close"
           }
         },
@@ -9516,7 +9516,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Close gesture"
           }
         },
@@ -9713,7 +9713,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Coming soon"
           }
         },
@@ -9910,7 +9910,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Continue"
           }
         },
@@ -10107,7 +10107,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Corner radius scaling"
           }
         },
@@ -10304,7 +10304,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Custom height"
           }
         },
@@ -10501,7 +10501,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Custom music live activity animation"
           }
         },
@@ -10698,7 +10698,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Custom notch size - %.0f"
           }
         },
@@ -10895,7 +10895,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Custom visualisers (Lottie)"
           }
         },
@@ -11092,7 +11092,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Customise in Settings"
           }
         },
@@ -11289,7 +11289,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Default"
           }
         },
@@ -11486,7 +11486,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Description"
           }
         },
@@ -11683,7 +11683,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Disable"
           }
         },
@@ -11880,7 +11880,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Disabled"
           }
         },
@@ -12077,7 +12077,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Download"
           }
         },
@@ -12274,7 +12274,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Downloads"
           }
         },
@@ -12471,7 +12471,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Drop files here"
           }
         },
@@ -12668,7 +12668,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
           }
         },
@@ -12865,7 +12865,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Edit layout"
           }
         },
@@ -13062,7 +13062,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable blur effect behind album art"
           }
         },
@@ -13259,7 +13259,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable boring mirror"
           }
         },
@@ -13456,7 +13456,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable coloured spectrograms"
           }
         },
@@ -13653,7 +13653,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable gestures"
           }
         },
@@ -13850,7 +13850,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable glowing effect"
           }
         },
@@ -14047,7 +14047,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable haptics"
           }
         },
@@ -14244,7 +14244,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable HUD replacement"
           }
         },
@@ -14441,7 +14441,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable music live activity"
           }
         },
@@ -14638,7 +14638,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable shelf"
           }
         },
@@ -14835,7 +14835,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable sneak peek"
           }
         },
@@ -15032,7 +15032,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable window shadow"
           }
         },
@@ -15229,7 +15229,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enhance your experience with HUDs"
           }
         },
@@ -15426,7 +15426,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enjoy your free time!"
           }
         },
@@ -15623,7 +15623,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Error"
           }
         },
@@ -15820,7 +15820,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Exit"
           }
         },
@@ -16017,7 +16017,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Extend hover area"
           }
         },
@@ -16214,7 +16214,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Extensions"
           }
         },
@@ -16411,7 +16411,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Finish"
           }
         },
@@ -16608,7 +16608,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "General"
           }
         },
@@ -16805,7 +16805,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Gesture control"
           }
         },
@@ -17002,7 +17002,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Gesture sensitivity"
           }
         },
@@ -17199,7 +17199,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Get started"
           }
         },
@@ -17593,7 +17593,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Got it!"
           }
         },
@@ -17790,7 +17790,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Gradient"
           }
         },
@@ -17987,7 +17987,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Hide BoringNotch Options"
           }
         },
@@ -18184,7 +18184,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Hide completed reminders"
           }
         },
@@ -18381,7 +18381,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Hide only when NowPlaying app is in full-screen"
           }
         },
@@ -18578,7 +18578,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Hierarchical"
           }
         },
@@ -18775,7 +18775,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "High"
           }
         },
@@ -19169,7 +19169,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "HUD style"
           }
         },
@@ -19366,7 +19366,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "HUDs"
           }
         },
@@ -19563,7 +19563,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "In progress"
           }
         },
@@ -19760,7 +19760,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Inline"
           }
         },
@@ -19957,7 +19957,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Installed extensions"
           }
         },
@@ -20154,7 +20154,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Later"
           }
         },
@@ -20351,7 +20351,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Lottie JSON URL"
           }
         },
@@ -20548,7 +20548,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Low"
           }
         },
@@ -20745,7 +20745,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Low Power Mode"
           }
         },
@@ -20942,7 +20942,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Made with 🫶🏻 by not so boring not.people"
           }
         },
@@ -21139,7 +21139,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Mark as complete"
           }
         },
@@ -21336,7 +21336,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Mark as incomplete"
           }
         },
@@ -21533,7 +21533,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Match menubar height"
           }
         },
@@ -21730,7 +21730,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Match real notch size"
           }
         },
@@ -21927,7 +21927,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Max Capacity: %lld%%"
           }
         },
@@ -22124,7 +22124,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Media"
           }
         },
@@ -22321,7 +22321,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Media change with horizontal gestures"
           }
         },
@@ -22518,7 +22518,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Media controls"
           }
         },
@@ -22715,7 +22715,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Media inactivity timeout"
           }
         },
@@ -22912,7 +22912,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Media playback live activity"
           }
         },
@@ -23109,7 +23109,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Media Source"
           }
         },
@@ -23306,7 +23306,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Medium"
           }
         },
@@ -23503,7 +23503,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Menubar icon"
           }
         },
@@ -23700,7 +23700,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Mic %@"
           }
         },
@@ -23897,7 +23897,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Minimum hover duration"
           }
         },
@@ -24094,7 +24094,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Mirror"
           }
         },
@@ -24291,7 +24291,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Mirror shape"
           }
         },
@@ -24488,7 +24488,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "More"
           }
         },
@@ -24685,7 +24685,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Music Source"
           }
         },
@@ -24882,7 +24882,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "muted"
           }
         },
@@ -25079,7 +25079,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Name"
           }
         },
@@ -25276,7 +25276,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Need Restart"
           }
         },
@@ -25473,7 +25473,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Never hide"
           }
         },
@@ -25670,7 +25670,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "No custom animation available"
           }
         },
@@ -25867,7 +25867,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "No custom visualiser"
           }
         },
@@ -26064,7 +26064,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "No events today"
           }
         },
@@ -26261,7 +26261,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "No extension installed"
           }
         },
@@ -26458,7 +26458,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Non-notch display height"
           }
         },
@@ -26655,7 +26655,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Not Now"
           }
         },
@@ -26852,7 +26852,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Notch behavior"
           }
         },
@@ -27049,7 +27049,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Notch display height"
           }
         },
@@ -27246,7 +27246,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Notch Height"
           }
         },
@@ -27443,7 +27443,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "OK"
           }
         },
@@ -27640,7 +27640,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "One or more files failed to load"
           }
         },
@@ -27837,7 +27837,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Open Calendar Settings"
           }
         },
@@ -28034,7 +28034,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Open notch on hover"
           }
         },
@@ -28231,7 +28231,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Open Reminder Settings"
           }
         },
@@ -28428,7 +28428,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Open shelf by default if items are present"
           }
         },
@@ -28625,7 +28625,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Plugged In"
           }
         },
@@ -28822,7 +28822,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Progress bar style"
           }
         },
@@ -29019,7 +29019,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Quit"
           }
         },
@@ -29216,7 +29216,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Quit app"
           }
         },
@@ -29413,7 +29413,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Release name"
           }
         },
@@ -29610,7 +29610,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Remember last tab"
           }
         },
@@ -29807,7 +29807,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Reminder access is denied. Please enable it in System Settings."
           }
         },
@@ -30004,7 +30004,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Reminders"
           }
         },
@@ -30201,7 +30201,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Restart"
           }
         },
@@ -30398,7 +30398,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Restart Boring Notch"
           }
         },
@@ -30595,7 +30595,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Running"
           }
         },
@@ -30792,7 +30792,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Select the music source you want to use. You can change this later in the app settings."
           }
         },
@@ -30989,7 +30989,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "selected"
           }
         },
@@ -31186,7 +31186,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Selected animation"
           }
         },
@@ -31383,7 +31383,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Settings"
           }
         },
@@ -31580,7 +31580,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Settings icon in notch"
           }
         },
@@ -31777,7 +31777,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Shelf"
           }
         },
@@ -31974,7 +31974,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Shortcuts"
           }
         },
@@ -32171,7 +32171,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Show battery indicator"
           }
         },
@@ -32368,7 +32368,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Show battery percentage"
           }
         },
@@ -32565,7 +32565,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Show calendar"
           }
         },
@@ -32762,7 +32762,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Show cool face animation while inactivity"
           }
         },
@@ -32959,7 +32959,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Show on a specific display"
           }
         },
@@ -33156,7 +33156,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Show on all displays"
           }
         },
@@ -33353,7 +33353,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Show power status icons"
           }
         },
@@ -33550,7 +33550,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Show power status notifications"
           }
         },
@@ -33747,7 +33747,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Show shuffle and repeat buttons"
           }
         },
@@ -33944,7 +33944,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Slider colour"
           }
         },
@@ -34141,7 +34141,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Sneak Peek shows the media title and artist under the notch for a few seconds."
           }
         },
@@ -34338,7 +34338,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Sneak Peek Style"
           }
         },
@@ -34535,7 +34535,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Software updates"
           }
         },
@@ -34732,7 +34732,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Speed"
           }
         },
@@ -34912,7 +34912,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Square"
+            "value": "Čtvercový"
           }
         },
         "da": {
@@ -34929,7 +34929,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Square"
           }
         },
@@ -35126,7 +35126,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Stopped"
           }
         },
@@ -35323,7 +35323,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Support Us"
           }
         },
@@ -35520,7 +35520,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "System features"
           }
         },
@@ -35717,7 +35717,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Time to Full Charge: %lld min"
           }
         },
@@ -35914,7 +35914,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Toggle Notch Open:"
           }
         },
@@ -36111,7 +36111,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Toggle Sneak Peek:"
           }
         },
@@ -36308,7 +36308,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
           }
         },
@@ -36505,7 +36505,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Uninstall"
           }
         },
@@ -36702,7 +36702,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
           }
         },
@@ -36899,7 +36899,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "unmuted"
           }
         },
@@ -37096,7 +37096,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Upgrade to Pro"
           }
         },
@@ -37293,7 +37293,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Use accent colour"
           }
         },
@@ -37490,7 +37490,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Use music visualiser spectrogram"
           }
         },
@@ -37687,7 +37687,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Use simpler close animation"
           }
         },
@@ -37884,7 +37884,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Version"
           }
         },
@@ -38081,7 +38081,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Version info"
           }
         },
@@ -38278,7 +38278,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "View on GitHub: th-ch/youtube-music"
           }
         },
@@ -38475,7 +38475,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Welcome"
           }
         },
@@ -38672,7 +38672,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "What's New"
           }
         },
@@ -38869,7 +38869,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
           }
         },
@@ -39066,7 +39066,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "You're All Set!"
           }
         },
@@ -39263,7 +39263,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "YouTube Music requires this third-party app to be installed: "
           }
         },
