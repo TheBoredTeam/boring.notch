@@ -3607,7 +3607,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add new visualizer"
+            "value": "Add new visualiser"
           }
         },
         "fi": {
@@ -4789,7 +4789,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always hide in fullscreen"
+            "value": "Always hide in full-screen"
           }
         },
         "fi": {
@@ -10896,7 +10896,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom vizualizers (Lottie)"
+            "value": "Custom visualisers (Lottie)"
           }
         },
         "fi": {
@@ -11093,7 +11093,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Customize in Settings"
+            "value": "Customise in Settings"
           }
         },
         "fi": {
@@ -13457,7 +13457,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "Enable coloured spectrograms"
           }
         },
         "fi": {
@@ -18382,7 +18382,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide only when NowPlaying app is in fullscreen"
+            "value": "Hide only when NowPlaying app is in full-screen"
           }
         },
         "fi": {
@@ -25868,7 +25868,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom visualizer"
+            "value": "No custom visualiser"
           }
         },
         "fi": {
@@ -28823,7 +28823,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Progressbar style"
+            "value": "Progress bar style"
           }
         },
         "fi": {
@@ -33945,7 +33945,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Slider color"
+            "value": "Slider colour"
           }
         },
         "fi": {
@@ -37294,7 +37294,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use accent color"
+            "value": "Use accent colour"
           }
         },
         "fi": {
@@ -37491,7 +37491,7 @@
         "en-GB": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use music visualizer spectrogram"
+            "value": "Use music visualiser spectrogram"
           }
         },
         "fi": {
