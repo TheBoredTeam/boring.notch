@@ -5941,7 +5941,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "自动切换显示器"
           }
         },
         "zh-Hant": {
@@ -6013,7 +6013,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "Cambiamento automatico display"
           }
         },
         "ja": {
@@ -9487,7 +9487,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "关闭手势"
           }
         },
         "zh-Hant": {
@@ -10669,7 +10669,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "自定义刘海大小 - %.0f"
+            "value": "自定义Notch大小 - %.0f"
           }
         },
         "zh-Hant": {
@@ -13033,7 +13033,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "启用专辑封面的模糊效果"
           }
         },
         "zh-Hant": {
@@ -13230,7 +13230,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable boring mirror"
+            "value": "启用虚拟镜像"
           }
         },
         "zh-Hant": {
@@ -13427,7 +13427,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "启用彩色谱图"
           }
         },
         "zh-Hant": {
@@ -13624,7 +13624,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "启用手势"
           }
         },
         "zh-Hant": {
@@ -13821,7 +13821,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable glowing effect"
+            "value": "启用发光效果"
           }
         },
         "zh-Hant": {
@@ -14018,7 +14018,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "启用触觉"
           }
         },
         "zh-Hant": {
@@ -15988,7 +15988,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extend hover area"
+            "value": "扩展悬停区域"
           }
         },
         "zh-Hant": {
@@ -18155,7 +18155,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": "隐藏已完成提醒"
           }
         },
         "zh-Hant": {
@@ -18227,7 +18227,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": ""
           }
         },
         "ja": {
@@ -21701,7 +21701,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "匹配刘海真实大小"
+            "value": "匹配Notch真实大小"
           }
         },
         "zh-Hant": {
@@ -23474,7 +23474,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Menubar icon"
+            "value": "菜单栏图标"
           }
         },
         "zh-Hant": {
@@ -26429,7 +26429,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "非刘海显示高度"
+            "value": "非Notch显示高度"
           }
         },
         "zh-Hant": {
@@ -26823,7 +26823,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "刘海行为"
+            "value": "Notch行为"
           }
         },
         "zh-Hant": {
@@ -27020,7 +27020,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "刘海显示高度"
+            "value": "Notch显示高度"
           }
         },
         "zh-Hant": {
@@ -27217,7 +27217,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "刘海高度"
+            "value": "Notch高度"
           }
         },
         "zh-Hant": {
@@ -28005,7 +28005,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open notch on hover"
+            "value": "悬停时打开Notch"
           }
         },
         "zh-Hant": {
@@ -28399,7 +28399,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open shelf by default if items are present"
+            "value": "当项目存在时默认打开暂存器"
           }
         },
         "zh-Hant": {
@@ -31551,7 +31551,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings icon in notch"
+            "value": "Notch中的设置图标"
           }
         },
         "zh-Hant": {
@@ -31748,7 +31748,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "书架"
+            "value": "暂存器"
           }
         },
         "zh-Hant": {
@@ -32142,7 +32142,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery indicator"
+            "value": "显示电量"
           }
         },
         "zh-Hant": {
@@ -32339,7 +32339,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery percentage"
+            "value": "显示电量百分比"
           }
         },
         "zh-Hant": {
@@ -32536,7 +32536,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show calendar"
+            "value": "显示日历"
           }
         },
         "zh-Hant": {
@@ -32733,7 +32733,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show cool face animation while inactivity"
+            "value": "不活动时显示动画"
           }
         },
         "zh-Hant": {
@@ -33324,7 +33324,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status icons"
+            "value": "显示电源状态图标"
           }
         },
         "zh-Hant": {
@@ -33521,7 +33521,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status notifications"
+            "value": "显示电源状态通知"
           }
         },
         "zh-Hant": {
@@ -34112,7 +34112,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek 在刘海下显示媒体标题和艺术家几秒钟。"
+            "value": "Sneak Peek 在Notch下显示媒体标题和艺术家几秒钟。"
           }
         },
         "zh-Hant": {
@@ -35885,7 +35885,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "切换刘海："
+            "value": "切换Notch："
           }
         },
         "zh-Hant": {
@@ -36279,7 +36279,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "在刘海里双指向上滑动以关闭。当**悬停在刘海时打开**选项禁用时，双指向下滑动即可打开"
+            "value": "在Notch里双指向上滑动以关闭。当**悬停在Notch时打开**选项禁用时，双指向下滑动即可打开"
           }
         },
         "zh-Hant": {
@@ -37264,7 +37264,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use accent color"
+            "value": "使用强调色"
           }
         },
         "zh-Hant": {
@@ -37658,7 +37658,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use simpler close animation"
+            "value": "使用更简单的关闭动画"
           }
         },
         "zh-Hant": {
