@@ -3509,6 +3509,9 @@
         }
       }
     },
+    "Boring brightness animation" : {
+
+    },
     "Boring Notch" : {
       "localizations" : {
         "ar" : {
@@ -3608,6 +3611,9 @@
           }
         }
       }
+    },
+    "Boring volume animation" : {
+
     },
     "boring.notch" : {
       "localizations" : {

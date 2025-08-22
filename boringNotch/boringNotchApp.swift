@@ -277,6 +277,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.showOnboardingWindow(step: .musicPermission)
             }
         }
+        if (Defaults[.boringBrightness] || Defaults[.boringVolume]) {
+            MediaKeyInterceptor.shared.start()
+        }
 
         previousScreens = NSScreen.screens
     }
