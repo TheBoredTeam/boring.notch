@@ -6025,7 +6025,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "디스플레이 자동 변경"
           }
         },
         "no": {
@@ -9571,7 +9571,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "닫기 제스처"
           }
         },
         "no": {
@@ -13117,7 +13117,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "앨범 커버 뒤 블러효과 켜기"
           }
         },
         "no": {
@@ -13314,7 +13314,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable boring mirror"
+            "value": "Boring 거울 켜기"
           }
         },
         "no": {
@@ -13708,7 +13708,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "제스처 켜기"
           }
         },
         "no": {
@@ -13905,7 +13905,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable glowing effect"
+            "value": "발광 효과 켜기"
           }
         },
         "no": {
@@ -14102,7 +14102,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "햅틱 켜기"
           }
         },
         "no": {
@@ -14693,7 +14693,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "서랍 켜기"
           }
         },
         "no": {
@@ -15087,7 +15087,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable window shadow"
+            "value": "윈도우 그림자 켜기"
           }
         },
         "no": {
@@ -16072,7 +16072,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extend hover area"
+            "value": "갖다대기 범위 늘이기"
           }
         },
         "no": {
@@ -23558,7 +23558,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Menubar icon"
+            "value": "메뉴바 아이콘"
           }
         },
         "no": {
@@ -28089,7 +28089,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open notch on hover"
+            "value": "갖다대서 노치 열기"
           }
         },
         "no": {
@@ -31635,7 +31635,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings icon in notch"
+            "value": "노치에 설정 아이콘"
           }
         },
         "no": {
@@ -32226,7 +32226,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery indicator"
+            "value": "배터리 상태 표시하기"
           }
         },
         "no": {
@@ -32423,7 +32423,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery percentage"
+            "value": "배터리 퍼센트 표시하기"
           }
         },
         "no": {
@@ -32620,7 +32620,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show calendar"
+            "value": "캘린더 보이기"
           }
         },
         "no": {
@@ -33408,7 +33408,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status icons"
+            "value": "전원 상태 아이콘 보이기"
           }
         },
         "no": {
@@ -33605,7 +33605,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status notifications"
+            "value": "전원 상태 알림 켜기"
           }
         },
         "no": {
@@ -37348,7 +37348,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use accent color"
+            "value": "강조 색상 사용하기"
           }
         },
         "no": {
@@ -37742,7 +37742,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use simpler close animation"
+            "value": "닫기 효과 간단하게"
           }
         },
         "no": {
