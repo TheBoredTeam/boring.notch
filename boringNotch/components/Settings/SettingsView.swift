@@ -140,6 +140,8 @@ struct GeneralSettings: View {
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
+    @Default(.boringBrightness) var boringBrightness
+    @Default(.boringVolume) var boringVolume
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
 
@@ -174,6 +176,26 @@ struct GeneralSettings: View {
                             name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
                     }
                     .disabled(showOnAllDisplays)
+                Defaults.Toggle(key: .boringBrightness) {
+                    Text("Boring brightness animation")
+                    .onChange(of: boringBrightness) { newValue in
+                        if newValue {
+                            MediaKeyInterceptor.shared.start()
+                        } else {
+                            MediaKeyInterceptor.shared.stop()
+                        }
+                    }
+                }
+                Defaults.Toggle(key: .boringVolume) {
+                    Text("Boring volume animation")
+                    .onChange(of: boringVolume) { newValue in
+                        if newValue {
+                            MediaKeyInterceptor.shared.start()
+                        } else {
+                            MediaKeyInterceptor.shared.stop()
+                        }
+                    }
+                }
             } header: {
                 Text("System features")
             }

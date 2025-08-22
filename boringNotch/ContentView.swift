@@ -20,7 +20,8 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
-
+    @ObservedObject var brightnessManager = BrightnessManager.shared
+    @ObservedObject var volumeManager = VolumeManager.shared
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var debounceWorkItem: DispatchWorkItem?
@@ -201,7 +202,7 @@ struct ContentView: View {
                     })
                     .padding(.top, 40)
                     Spacer()
-                } else {
+                } else {     
                     if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {
@@ -267,6 +268,12 @@ struct ContentView: View {
                                   .padding(.bottom, 10)
                               }
                           }
+                      }
+                      if brightnessManager.shouldShowOverlay && vm.notchState == .closed {
+                        BrightnessView()
+                      }
+                      if volumeManager.shouldShowOverlay && vm.notchState == .closed {
+                          VolumeView()
                       }
                   }
               }
