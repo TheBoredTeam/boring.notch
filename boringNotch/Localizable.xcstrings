@@ -10914,7 +10914,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Eigener Visualisierer (Lottie)"
+            "value": "Eigene Audiovisualisierung (via Lottie)"
           }
         },
         "el": {
@@ -14657,7 +14657,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "Ablage aktivieren"
           }
         },
         "el": {
@@ -23522,7 +23522,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Menubar icon"
+            "value": "Icon in Menüleiste anzeigen"
           }
         },
         "el": {
@@ -25886,7 +25886,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Keine Benutzerdefinierten Visualisierer"
+            "value": "Keine benutzerdefinierte Audiovisualisierung"
           }
         },
         "el": {
@@ -28053,7 +28053,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open notch on hover"
+            "value": "Notch bei Mausberührung öffnen"
           }
         },
         "el": {
@@ -28447,7 +28447,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open shelf by default if items are present"
+            "value": "Standardmäßig Ablage öffnen, wenn Dateien abgelegt sind"
           }
         },
         "el": {
@@ -31599,7 +31599,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings icon in notch"
+            "value": "Einstellungs-Symbol in der Notch"
           }
         },
         "el": {
@@ -32387,7 +32387,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery percentage"
+            "value": "Batterieanzeige in Prozent"
           }
         },
         "el": {
@@ -32584,7 +32584,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show calendar"
+            "value": "Kalender anzeigen"
           }
         },
         "el": {
@@ -33372,7 +33372,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status icons"
+            "value": "Symbole zum Ladestatus anzeigen"
           }
         },
         "el": {
@@ -33569,7 +33569,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status notifications"
+            "value": "Benachrichtigungen zum Ladestatus anzeigen"
           }
         },
         "el": {
