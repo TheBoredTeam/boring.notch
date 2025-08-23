@@ -13081,7 +13081,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "Blur-Effekt hinter dem Albumcover aktivieren"
           }
         },
         "el": {
@@ -13278,7 +13278,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable boring mirror"
+            "value": "Spiegelfunktion aktivieren"
           }
         },
         "el": {
@@ -13475,7 +13475,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "Farbe für Audiovisualisierung aktivieren"
           }
         },
         "el": {
@@ -13672,7 +13672,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "Gestensteuerung aktivieren"
           }
         },
         "el": {
@@ -13869,7 +13869,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable glowing effect"
+            "value": "Leutchteffekt aktivieren"
           }
         },
         "el": {
@@ -14066,7 +14066,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "Haptisches Feedback aktivieren"
           }
         },
         "el": {
@@ -16036,7 +16036,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extend hover area"
+            "value": "Bereich für Mausberührung erweitern"
           }
         },
         "el": {
@@ -18203,7 +18203,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": "Erledigte Erinnerungen verbergen"
           }
         },
         "el": {
@@ -26871,7 +26871,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch Verhalten"
+            "value": "Verhalten der Notch"
           }
         },
         "el": {
@@ -27068,7 +27068,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch Display Höhe"
+            "value": "Anzeigehöhe der Notch"
           }
         },
         "el": {
@@ -27265,7 +27265,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch Höhe"
+            "value": "Größe der Notch"
           }
         },
         "el": {
@@ -32190,7 +32190,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery indicator"
+            "value": "Batterie-Symbol anzeigen"
           }
         },
         "el": {
@@ -36327,7 +36327,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Zwei-Finger Wischen nach oben zum Schließen der Notch, zwei-Finger wischen nach unten um die Notch zu öffnen, wenn **Öffne Notch beim hovern** Option deaktiviert ist"
+            "value": "Zwei-Finger Wischen nach oben zum Schließen der Notch, zwei-Finger wischen nach unten um die Notch zu öffnen, wenn die Option **Notch bei Mausberührung öffnen** deaktiviert ist"
           }
         },
         "el": {
@@ -37706,7 +37706,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use simpler close animation"
+            "value": "Vereinfachte Animation beim Schließen verwenden"
           }
         },
         "el": {
