@@ -138,10 +138,9 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
-    // Idle auto-collapse settings
-    @AppStorage("idleEnabled") private var idleEnabled: Bool = true
-    @AppStorage("idleSeconds") private var idleSeconds: Double = 5
-    @AppStorage("idleTolerancePx") private var idleTol: Double = 2
+    @Default(.idleEnabled) var idleEnabled
+    @Default(.idleSeconds) var idleSeconds
+    @Default(.idleTolerancePx) var idleTol
 
     var body: some View {
         Form {

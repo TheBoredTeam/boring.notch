@@ -7,56 +7,59 @@
 
 import Cocoa
 
-// Notification name fired when pointer is still for N seconds
 extension Notification.Name {
     static let bnPointerDidGoIdle = Notification.Name("bnPointerDidGoIdle")
 }
 
-/// Watches global mouse movement and posts a notification
-/// after `idleInterval` seconds of stillness.
 final class IdlePointerManager {
     private var idleTimer: Timer?
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
     private var lastPoint: NSPoint = NSEvent.mouseLocation
 
-    /// Seconds of stillness before idle is triggered
+    /// Seconds of stillness before considered idle
     var idleInterval: TimeInterval = 5.0
 
-    /// Pixels of allowable jitter (to ignore trackpad noise)
+    /// Pixels of allowable jitter before we consider it movement
     var movementTolerance: CGFloat = 2.0
 
-    /// Enable/disable the detector
+    /// If true, detector is active
     var isEnabled: Bool = true {
         didSet { isEnabled ? start() : stop() }
     }
 
-    // MARK: - Lifecycle
+    /// Install monitors (once) and arm the timer
     func start() {
-        guard globalMouseMonitor == nil else { return }
-
+        // Always re-arm timer so callers can reset the idle window via start()
         lastPoint = NSEvent.mouseLocation
         resetIdleTimer()
 
-        // Global monitor (when app is not key)
-        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(
-            matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
-        ) { [weak self] _ in
-            self?.handleMouseMoved()
+        // Install monitors only once
+        if globalMouseMonitor == nil {
+            globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(
+                matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
+            ) { [weak self] _ in
+                self?.handleMouseMoved()
+            }
         }
-
-        // Local monitor (when app is key)
-        localMouseMonitor = NSEvent.addLocalMonitorForEvents(
-            matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
-        ) { [weak self] e in
-            self?.handleMouseMoved()
-            return e
+        if localMouseMonitor == nil {
+            localMouseMonitor = NSEvent.addLocalMonitorForEvents(
+                matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
+            ) { [weak self] e in
+                self?.handleMouseMoved()
+                return e
+            }
         }
     }
 
+    /// Re-arm the timer without touching monitors
+    func arm() {
+        lastPoint = NSEvent.mouseLocation
+        resetIdleTimer()
+    }
+
     func stop() {
-        idleTimer?.invalidate()
-        idleTimer = nil
+        idleTimer?.invalidate(); idleTimer = nil
         if let gm = globalMouseMonitor { NSEvent.removeMonitor(gm) }
         if let lm = localMouseMonitor { NSEvent.removeMonitor(lm) }
         globalMouseMonitor = nil
@@ -66,6 +69,7 @@ final class IdlePointerManager {
     deinit { stop() }
 
     // MARK: - Private
+
     private func handleMouseMoved() {
         guard isEnabled else { return }
         let p = NSEvent.mouseLocation
@@ -81,6 +85,9 @@ final class IdlePointerManager {
             guard let self = self, self.isEnabled else { return }
             let cur = NSEvent.mouseLocation
             if self.distance(cur, self.lastPoint) <= self.movementTolerance {
+                #if DEBUG
+                print("[IdlePointer] idle fired → posting bnPointerDidGoIdle")
+                #endif
                 NotificationCenter.default.post(name: .bnPointerDidGoIdle, object: nil)
             } else {
                 self.lastPoint = cur

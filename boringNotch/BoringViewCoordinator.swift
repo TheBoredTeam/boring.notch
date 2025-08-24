@@ -94,9 +94,9 @@ class BoringViewCoordinator: ObservableObject {
     @Published var selectedScreen: String = NSScreen.main?.localizedName ?? "Unknown"
 
     // Idle detector: collapses the notch after pointer stillness
-    @AppStorage("idleEnabled") private var idleEnabled: Bool = true
-    @AppStorage("idleSeconds") private var idleSeconds: Double = 5
-    @AppStorage("idleTolerancePx") private var idleTol: Double = 2
+    @Default(.idleEnabled) private var idleEnabled
+    @Default(.idleSeconds) private var idleSeconds
+    @Default(.idleTolerancePx) private var idleTol
 
     @Published var optionKeyPressed: Bool = true
     // Idle detector: collapses the notch after pointer stillness
