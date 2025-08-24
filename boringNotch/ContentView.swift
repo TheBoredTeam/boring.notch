@@ -78,8 +78,8 @@ struct ContentView: View {
 
             mainLayout
                 .conditionalModifier(!useModernCloseAnimation) { view in
-                    let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
-                    let notchStateAnimation = Animation.spring.speed(1.2)
+                    let hoverAnimationAnimation = Animation.bouncy.speed(4.0)
+                    let notchStateAnimation = Animation.spring.speed(4.0)
                     return
                         view
                         .animation(hoverAnimationAnimation, value: isHovering)
@@ -160,6 +160,12 @@ struct ContentView: View {
                         if !newPopoverState && !isHovering && vm.notchState == .open {
                             vm.close()
                         }
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .bnPointerDidGoIdle)) { _ in
+                    withAnimation(vm.animation) {
+                        isHovering = false
+                        vm.close()
                     }
                 }
                 .sensoryFeedback(.alignment, trigger: haptics)

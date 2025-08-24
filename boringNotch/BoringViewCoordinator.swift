@@ -93,11 +93,31 @@ class BoringViewCoordinator: ObservableObject {
 
     @Published var selectedScreen: String = NSScreen.main?.localizedName ?? "Unknown"
 
+    // Idle detector: collapses the notch after pointer stillness
+    @AppStorage("idleEnabled") private var idleEnabled: Bool = true
+    @AppStorage("idleSeconds") private var idleSeconds: Double = 5
+    @AppStorage("idleTolerancePx") private var idleTol: Double = 2
+
     @Published var optionKeyPressed: Bool = true
+    // Idle detector: collapses the notch after pointer stillness
+    private let idle = IdlePointerManager()
 
     private init() {
         selectedScreen = preferredScreen
         notifier = TheBoringWorkerNotifier()
+
+        // --- auto-shrink on pointer stillness ---
+        idle.isEnabled = idleEnabled
+        idle.idleInterval = idleSeconds
+        idle.movementTolerance = CGFloat(idleTol)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(pointerDidGoIdle),
+            name: .bnPointerDidGoIdle,
+            object: nil
+        )
+        idle.start() // start once; re-armed on expand
+        // --- end auto-shrink setup ---
     }
 
     func setupWorkersNotificationObservers() {
@@ -147,6 +167,7 @@ class BoringViewCoordinator: ObservableObject {
             }
         }
         DispatchQueue.main.async {
+            if status { self.idle.arm() } // start idle countdown when any peek opens
             withAnimation(.smooth) {
                 self.sneakPeek.show = status
                 self.sneakPeek.type = type
@@ -210,6 +231,7 @@ class BoringViewCoordinator: ObservableObject {
     @Published var expandingView: ExpandedItem = .init() {
         didSet {
             if expandingView.show {
+                idle.arm()   // reset the 5s idle timer on expand
                 expandingViewTask?.cancel()
                 let duration: TimeInterval = (expandingView.type == .download ? 2 : 3)
                 expandingViewTask = Task { [weak self] in
@@ -223,6 +245,29 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
+    @objc private func pointerDidGoIdle() {
+        #if DEBUG
+        print("[IdlePointer] pointerDidGoIdle received. expandingView.show=\(expandingView.show), sneakPeek.show=\(sneakPeek.show), currentView=\(currentView)")
+        #endif
+
+        DispatchQueue.main.async {
+            // Cancel any pending auto-hide tasks
+            self.expandingViewTask?.cancel()
+            self.sneakPeekTask?.cancel()
+
+            // Use the existing API methods to ensure collapse animations/state
+            if self.expandingView.show {
+                self.toggleExpandingView(status: false, type: self.expandingView.type, value: self.expandingView.value, browser: self.expandingView.browser)
+            }
+            if self.sneakPeek.show {
+                self.toggleSneakPeek(status: false, type: self.sneakPeek.type)
+            }
+
+            // Return to home
+            self.showEmpty()
+        }
+    }
+
     @objc func initialMicStatus(_ notification: Notification) {
         currentMicStatus = notification.userInfo?.first?.value as! Bool
     }
@@ -233,5 +278,13 @@ class BoringViewCoordinator: ObservableObject {
     
     func showEmpty() {
         currentView = .home
+    }
+    
+    func applyIdleSettings() {
+        // Reads the @AppStorage values and applies them to the manager
+        idle.isEnabled = idleEnabled
+        idle.idleInterval = idleSeconds
+        idle.movementTolerance = CGFloat(idleTol)
+        if idle.isEnabled { idle.arm() } else { idle.stop() }
     }
 }

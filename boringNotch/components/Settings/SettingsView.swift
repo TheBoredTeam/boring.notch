@@ -114,12 +114,6 @@ struct SettingsView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .toolbar(removing: .sidebarToggle)
-        .toolbar {
-            Button("") {}  // Empty label, does nothing
-                .controlSize(.extraLarge)
-                .opacity(0)  // Invisible, but reserves space for a consistent look between tabs
-                .disabled(true)
-        }
         .environmentObject(extensionManager)
         .formStyle(.grouped)
         .frame(width: 700)
@@ -144,6 +138,10 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    // Idle auto-collapse settings
+    @AppStorage("idleEnabled") private var idleEnabled: Bool = true
+    @AppStorage("idleSeconds") private var idleSeconds: Double = 5
+    @AppStorage("idleTolerancePx") private var idleTol: Double = 2
 
     var body: some View {
         Form {
@@ -318,6 +316,33 @@ struct GeneralSettings: View {
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
             }
+            // --- Auto-collapse on idle ---
+            Toggle("Auto-collapse on idle", isOn: $idleEnabled)
+                .onChange(of: idleEnabled) { _ in coordinator.applyIdleSettings() }
+
+            // Idle delay — styled like Minimum hover duration; 0.5 … 5.0 seconds
+            Slider(value: $idleSeconds, in: 1.5...5, step: 0.5) {
+                HStack {
+                    Text("Idle delay")
+                    Spacer()
+                    Text(String(format: "%.1fs", idleSeconds))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .onChange(of: idleSeconds) { _ in
+                BoringViewCoordinator.shared.applyIdleSettings()
+            }
+
+            Slider(value: $idleTol, in: 0...8, step: 1) {
+                HStack {
+                    Text("Pointer tolerance")
+                    Spacer()
+                    Text("\(Int(idleTol)) px")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .onChange(of: idleTol) { _ in coordinator.applyIdleSettings() }
+            // --- end Auto-collapse on idle ---
         } header: {
             Text("Notch behavior")
         }
