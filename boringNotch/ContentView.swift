@@ -176,7 +176,7 @@ struct ContentView: View {
                     })
                     .padding(.top, 40)
                     Spacer()
-                } else {     
+                } else {
                     if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {

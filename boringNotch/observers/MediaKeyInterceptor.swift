@@ -26,9 +26,8 @@ final class MediaKeyInterceptor {
     func start() {
         guard eventTap == nil else { return }
         guard isAccessibilityAuthorized() else {
-            showAccessibilityAlert()
             let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-             _ = AXIsProcessTrustedWithOptions(options) 
+            _ = AXIsProcessTrustedWithOptions(options)
             return
         }
 
@@ -99,55 +98,5 @@ final class MediaKeyInterceptor {
                 BrightnessManager.shared.setRelative(delta: -brightnessStep)
                 return nil
             }
-    }
-
-
-    func showAccessibilityAlert() {
-        let title = "Accessibility Permission Required"
-        let fullText = """
-        BoringNotch needs Accessibility permission.
-
-        1. Open System Settings > Privacy & Security > Accessibility.
-        2. Enable (toggle on) BoringNotch in the list.
-        3. Quit and relaunch the app for the change to take effect.
-        """
-        let targetLine = "3. Quit and relaunch the app for the change to take effect."
-
-        let present: () -> Void = {
-            let alert = NSAlert()
-            alert.messageText = title
-            alert.alertStyle = .informational
-
-            let baseFont = NSFont.systemFont(ofSize: NSFont.systemFontSize)
-            let boldFont = NSFont.boldSystemFont(ofSize: baseFont.pointSize)
-
-            let paragraph = NSMutableParagraphStyle()
-            paragraph.lineSpacing = 2
-            paragraph.alignment = .left
-
-            let attributed = NSMutableAttributedString(
-                string: fullText,
-                attributes: [
-                    .font: baseFont,
-                    .paragraphStyle: paragraph
-                ]
-            )
-
-            let nsFull = fullText as NSString
-            let range = nsFull.range(of: targetLine)
-            if range.location != NSNotFound {
-                attributed.addAttribute(.font, value: boldFont, range: range)
-            }
-
-            alert.setValue(attributed, forKey: "attributedInformativeText")
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-        }
-
-        if Thread.isMainThread {
-            present()
-        } else {
-            DispatchQueue.main.async(execute: present)
-        }
     }
 }

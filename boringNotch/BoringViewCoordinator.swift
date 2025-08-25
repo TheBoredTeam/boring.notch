@@ -5,6 +5,7 @@
 //  Created by Alexander on 2024-11-20.
 //
 
+import AppKit
 import Combine
 import Defaults
 import SwiftUI
@@ -53,6 +54,7 @@ class BoringViewCoordinator: ObservableObject {
     @Published var currentView: NotchViews = .home
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
+    private var accessibilityPermissionTimer: Timer?
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
@@ -80,7 +82,38 @@ class BoringViewCoordinator: ObservableObject {
     
     @AppStorage("hudReplacement") var hudReplacement: Bool = true {
         didSet {
-            notifier.postNotification(name: notifier.toggleHudReplacementNotification.name, userInfo: nil)
+            guard hudReplacement != oldValue else { return }
+
+            notifier.postNotification(
+                name: notifier.toggleHudReplacementNotification.name, userInfo: nil)
+
+            accessibilityPermissionTimer?.invalidate()
+            accessibilityPermissionTimer = nil
+
+            if hudReplacement {
+                MediaKeyInterceptor.shared.start()
+                if MediaKeyInterceptor.shared.isAccessibilityAuthorized() {
+                    ApplicationRelauncher.restart()
+                } else {
+                    let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] timer in
+                        guard let self = self else {
+                            timer.invalidate()
+                            return
+                        }
+
+                        if MediaKeyInterceptor.shared.isAccessibilityAuthorized() {
+                            timer.invalidate()
+                            self.accessibilityPermissionTimer = nil
+                            ApplicationRelauncher.restart()
+                        }
+                    }
+
+                    accessibilityPermissionTimer = timer
+                    RunLoop.main.add(timer, forMode: .common)
+                }
+            } else {
+                MediaKeyInterceptor.shared.stop()
+            }
         }
     }
     
