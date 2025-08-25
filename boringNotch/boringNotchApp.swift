@@ -272,7 +272,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.showOnboardingWindow(step: .musicPermission)
             }
         }
-        if (Defaults[.boringBrightness] || Defaults[.boringVolume]) {
+        if Defaults[.boringHUD] {
             MediaKeyInterceptor.shared.start()
         }
 

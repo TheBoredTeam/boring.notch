@@ -13,15 +13,14 @@ import Foundation
 final class VolumeManager: NSObject, ObservableObject {
     static let shared = VolumeManager()
 
-    @Published private(set) var rawVolume: Float = 0 
-    @Published private(set) var animatedVolume: Float = 0 
+    @Published private(set) var rawVolume: Float = 0
     @Published private(set) var isMuted: Bool = false
     @Published private(set) var lastChangeAt: Date = .distantPast
 
     let visibleDuration: TimeInterval = 1.2
 
     private var didInitialFetch = false
-    // Step (HUD Apple is using 1/32)
+    // Step (HUD Apple is using 1/32) 
     private let step: Float32 = 1.0 / 32.0
     // Fallback software if hardware mute is not supported
     private var previousVolumeBeforeMute: Float32 = 0.2
@@ -36,14 +35,22 @@ final class VolumeManager: NSObject, ObservableObject {
     var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
     // MARK: - Public Control API
-    func increase() { adjustRelative(delta: step) }
-    func decrease() { adjustRelative(delta: -step) }
-    func toggleMuteAction() { toggleMuteInternal() }
-    func refresh() { fetchCurrentVolume() }
-    func handleWake() {
-        setupAudioListener()
-        fetchCurrentVolume()
+    func increase() {
+        adjustRelative(delta: step)
+        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(self.rawVolume))
     }
+
+    func decrease() {
+        adjustRelative(delta: -step)
+        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(self.rawVolume))
+    }
+
+    func toggleMuteAction() {
+        toggleMuteInternal()
+        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(isMuted ? self.rawVolume : 0))
+    }
+    
+    func refresh() { fetchCurrentVolume() }
 
     func adjustRelative(delta: Float32) {
         if isMutedInternal() { toggleMuteInternal() }
@@ -96,7 +103,6 @@ final class VolumeManager: NSObject, ObservableObject {
                     }
                 }
                 self.rawVolume = avg
-                self.animatedVolume = avg
                 self.didInitialFetch = true
 
             }
@@ -192,7 +198,7 @@ final class VolumeManager: NSObject, ObservableObject {
     private func writeVolumeInternal(_ value: Float32) {
         let deviceID = systemOutputDeviceID()
         if deviceID == kAudioObjectUnknown { return }
-        var newVal = max(0, min(1, value))
+        let newVal = max(0, min(1, value))
 
         var written = false
         if writeValidatedScalar(
@@ -323,7 +329,6 @@ final class VolumeManager: NSObject, ObservableObject {
         DispatchQueue.main.async {
             if touchDate { self.lastChangeAt = Date() }
             self.rawVolume = volume
-            self.animatedVolume = volume
             self.isMuted = muted
         }
     }

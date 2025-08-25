@@ -6058,7 +6058,7 @@
         }
       }
     },
-    "Boring brightness animation" : {
+    "Boring HUD animation (only volume & brightness)" : {
 
     },
     "Boring Notch" : {
@@ -6239,9 +6239,6 @@
         }
       },
       "shouldTranslate" : false
-    },
-    "Boring volume animation" : {
-
     },
     "boring.notch" : {
       "localizations" : {

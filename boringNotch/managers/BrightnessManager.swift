@@ -23,9 +23,10 @@ final class BrightnessManager: ObservableObject {
 
 	func refresh() { if let current = readSystemBrightness() { publish(brightness: current, touchDate: false) } }
 
-	func handleWake() { refresh() }
-
-	func setRelative(delta: Float) { setAbsolute(value: rawBrightness + delta) }
+    func setRelative(delta: Float) {
+        setAbsolute(value: rawBrightness + delta)
+        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(BrightnessManager.shared.rawBrightness))
+    }
 
 	func setAbsolute(value: Float) {
 		let clamped = max(0, min(1, value))
