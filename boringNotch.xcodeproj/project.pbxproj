@@ -258,8 +258,6 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		112FB72F2CCF12CC0015238C /* private */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = private; sourceTree = "<group>"; };
-		5917FD012E577F2D00E87F1C /* Brightness */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Brightness; sourceTree = "<group>"; };
-		59D8C2422E58A05000147B33 /* Volume */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Volume; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -355,8 +353,6 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
-				59D8C2422E58A05000147B33 /* Volume */,
-				5917FD012E577F2D00E87F1C /* Brightness */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				B1C448992C97375A001F0858 /* Tips */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
@@ -660,8 +656,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				112FB72F2CCF12CC0015238C /* private */,
-				5917FD012E577F2D00E87F1C /* Brightness */,
-				59D8C2422E58A05000147B33 /* Volume */,
 			);
 			name = boringNotch;
 			packageProductDependencies = (

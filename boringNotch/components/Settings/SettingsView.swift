@@ -140,8 +140,6 @@ struct GeneralSettings: View {
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
-    @Default(.boringBrightness) var boringBrightness
-    @Default(.boringVolume) var boringVolume
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
 
@@ -176,26 +174,6 @@ struct GeneralSettings: View {
                             name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
                     }
                     .disabled(showOnAllDisplays)
-                Defaults.Toggle(key: .boringBrightness) {
-                    Text("Boring brightness animation")
-                    .onChange(of: boringBrightness) { newValue in
-                        if newValue {
-                            MediaKeyInterceptor.shared.start()
-                        } else {
-                            MediaKeyInterceptor.shared.stop()
-                        }
-                    }
-                }
-                Defaults.Toggle(key: .boringVolume) {
-                    Text("Boring volume animation")
-                    .onChange(of: boringVolume) { newValue in
-                        if newValue {
-                            MediaKeyInterceptor.shared.start()
-                        } else {
-                            MediaKeyInterceptor.shared.stop()
-                        }
-                    }
-                }
             } header: {
                 Text("System features")
             }
@@ -982,6 +960,8 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.boringHUD) var boringHUD
+
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
@@ -1002,6 +982,16 @@ struct Appearance: View {
                 }
                 Defaults.Toggle(key: .cornerRadiusScaling) {
                     Text("Corner radius scaling")
+                }
+                Defaults.Toggle(key: .boringHUD) {
+                    Text("Boring HUD animation (only volume & brightness)")
+                    .onChange(of: boringHUD) { _ ,newValue in
+                        if newValue {
+                            MediaKeyInterceptor.shared.start()
+                        } else {
+                            MediaKeyInterceptor.shared.stop()
+                        }
+                    }
                 }
                 Defaults.Toggle(key: .useModernCloseAnimation) {
                     Text("Use simpler close animation")

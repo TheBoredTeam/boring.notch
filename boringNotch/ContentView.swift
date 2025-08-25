@@ -243,12 +243,6 @@ struct ContentView: View {
                               }
                           }
                       }
-                      if brightnessManager.shouldShowOverlay && vm.notchState == .closed {
-                        BrightnessView()
-                      }
-                      if volumeManager.shouldShowOverlay && vm.notchState == .closed {
-                          VolumeView()
-                      }
                   }
               }
               .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (vm.notchState == .closed))) { view in
