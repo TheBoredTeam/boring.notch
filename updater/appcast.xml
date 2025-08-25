@@ -27,11 +27,10 @@
             🔗 <b>Full Changelog:</b> v2.7-rc.2...v2.7-rc.3<br>
             Thanks to all contributors: @Alexander5015, @naq7826, @CrossTR15YT<br><br>
 
-            💾 <b>Download:</b> <a href="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.3/BeautifulCow.dmg">BeautifulCow.dmg</a><br>
             Update now and hop into the new features! 🐰✨
             ]]></description>
 
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.3/BeautifulCow.dmg" length="9218986" type="application/octet-stream" sparkle:edSignature="JsTdTjcyl2cGkc1wnYyKU5JLzp1j9LBfSXrFBZ115/JUP/g6+PzXejldTYKih/w1DLrOvpuW/gJbDrDGbUawAw=="/>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.3/boringNotch.dmg" length="9218986" type="application/octet-stream" sparkle:edSignature="JsTdTjcyl2cGkc1wnYyKU5JLzp1j9LBfSXrFBZ115/JUP/g6+PzXejldTYKih/w1DLrOvpuW/gJbDrDGbUawAw=="/>
         </item>      
     <item>
             <title>2.7-rc.2 Flying Rabbit 🐇🪽</title>
@@ -372,3 +371,4 @@
         </item>
     </channel>
 </rss>
+
