@@ -99,7 +99,8 @@
             "value" : ""
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     " – %lld" : {
       "localizations" : {
@@ -199,7 +200,8 @@
             "value" : " – %lld"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
       "localizations" : {
@@ -399,7 +401,8 @@
             "value" : "(%@)"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%.0f seconds" : {
       "localizations" : {
@@ -599,7 +602,8 @@
             "value" : "%.1fs"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%@" : {
       "localizations" : {
@@ -699,7 +703,8 @@
             "value" : "%@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%d%%" : {
       "localizations" : {
@@ -799,7 +804,8 @@
             "value" : "%d%%"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%lld" : {
       "extractionState" : "stale",
@@ -900,7 +906,8 @@
             "value" : "%lld"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%lld%%" : {
       "localizations" : {
@@ -1000,7 +1007,8 @@
             "value" : "%lld%%"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "• Bug fixes" : {
       "localizations" : {
@@ -8901,7 +8909,8 @@
             "value" : "GitHub"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Got it!" : {
       "localizations" : {
@@ -9701,7 +9710,8 @@
             "value" : "https://github.com/th-ch/youtube-music"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "HUD style" : {
       "localizations" : {
