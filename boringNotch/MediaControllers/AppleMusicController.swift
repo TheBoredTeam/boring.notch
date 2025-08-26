@@ -118,6 +118,7 @@ class AppleMusicController: MediaControllerProtocol {
         let repeatModeValue = descriptor.atIndex(8)?.int32Value ?? 0
         updatedState.repeatMode = RepeatMode(rawValue: Int(repeatModeValue)) ?? .off
         updatedState.artwork = descriptor.atIndex(9)?.data as Data?
+        updatedState.lastUpdated = Date()
 
         self.playbackState = updatedState
     }
