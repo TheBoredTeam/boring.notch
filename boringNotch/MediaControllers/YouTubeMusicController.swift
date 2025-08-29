@@ -43,7 +43,6 @@ class YouTubeMusicController: MediaControllerProtocol {
     deinit {
         stopPeriodicUpdates()
         notificationTask?.cancel()
-        cancellables.forEach { $0.cancel() }
     }
     
     // MARK: - Authentication
