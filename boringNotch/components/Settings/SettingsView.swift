@@ -951,6 +951,8 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.boringHUD) var boringHUD
+
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
@@ -971,6 +973,16 @@ struct Appearance: View {
                 }
                 Defaults.Toggle(key: .cornerRadiusScaling) {
                     Text("Corner radius scaling")
+                }
+                Defaults.Toggle(key: .boringHUD) {
+                    Text("Boring HUD animation (only volume & brightness)")
+                    .onChange(of: boringHUD) { _ ,newValue in
+                        if newValue {
+                            MediaKeyInterceptor.shared.start()
+                        } else {
+                            MediaKeyInterceptor.shared.stop()
+                        }
+                    }
                 }
                 Defaults.Toggle(key: .useModernCloseAnimation) {
                     Text("Use simpler close animation")
