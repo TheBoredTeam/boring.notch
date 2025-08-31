@@ -13,6 +13,7 @@ import KeyboardShortcuts
 import SwiftUI
 import SwiftUIIntrospect
 
+@MainActor
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager = WebcamManager.shared
@@ -20,11 +21,11 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
-
+    
+    @State private var hoverTask: Task<Void, Never>?
+    @State private var debounceTask: Task<Void, Never>?
+    
     @State private var isHovering: Bool = false
-    @State private var hoverWorkItem: DispatchWorkItem?
-    @State private var debounceWorkItem: DispatchWorkItem?
-
     @State private var isHoverStateChanging: Bool = false
 
     @State private var gestureProgress: CGFloat = .zero
@@ -172,11 +173,6 @@ struct ContentView: View {
 //                        let dn = DynamicNotch(content: EditPanelView())
 //                        dn.toggle()
 //                    }
-//                    #if DEBUG
-//                    .disabled(false)
-//                    #else
-//                    .disabled(true)
-//                    #endif
 //                    .keyboardShortcut("E", modifiers: .command)
                 }
         }
@@ -196,7 +192,7 @@ struct ContentView: View {
             VStack(alignment: .leading) {
                 if coordinator.firstLaunch {
                     Spacer()
-                    HelloAnimation().frame(width: 200, height: 80).onAppear(perform: {
+                    HelloAnimation().frame(width: getClosedNotchSize().width, height: 80).onAppear(perform: {
                         vm.closeHello()
                     })
                     .padding(.top, 40)
@@ -313,29 +309,18 @@ struct ContentView: View {
     @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack {
-            HStack {
-                Color.clear
-                    .aspectRatio(1, contentMode: .fit)
-                    .background(
-                        Image(nsImage: musicManager.albumArt)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    )
-                    .clipped()
-                    .clipShape(
-                        RoundedRectangle(
-                            cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
-                    )
-                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                    .frame(
-                        width: max(0, vm.effectiveClosedNotchHeight - 12),
-                        height: max(0, vm.effectiveClosedNotchHeight - 12))
-            }
-            .frame(
-                width: max(
-                    0, vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12) + gestureProgress / 2),
-                height: max(0, vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)))
-
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .clipped()
+                .clipShape(
+                    RoundedRectangle(
+                        cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
+                )
+                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                .frame(
+                    width: max(0, vm.effectiveClosedNotchHeight - 12),
+                    height: max(0, vm.effectiveClosedNotchHeight - 12))
+            
             Rectangle()
                 .fill(.black)
                 .overlay(
@@ -374,7 +359,7 @@ struct ContentView: View {
                     width: (coordinator.expandingView.show
                         && coordinator.expandingView.type == .music && Defaults[.enableSneakPeek]
                         && Defaults[.sneakPeekStyles] == .inline)
-                        ? 380 : vm.closedNotchSize.width + (isHovering ? 8 : 0))
+                    ? 380 : vm.closedNotchSize.width + (isHovering ? 8 : -cornerRadiusInsets.closed.top))
 
             HStack {
                 if useMusicVisualizer {
@@ -390,13 +375,6 @@ struct ContentView: View {
                             AudioSpectrumView(isPlaying: $musicManager.isPlaying)
                                 .frame(width: 16, height: 12)
                         }
-                        .frame(
-                            width: max(
-                                0,
-                                vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
-                                    + gestureProgress / 2),
-                            height: max(0, vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)),
-                            alignment: .center)
                 } else {
                     LottieAnimationView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -452,10 +430,8 @@ struct ContentView: View {
         if isHoverStateChanging { return }
 
         // Cancel any pending tasks
-        hoverWorkItem?.cancel()
-        hoverWorkItem = nil
-        debounceWorkItem?.cancel()
-        debounceWorkItem = nil
+        hoverTask?.cancel()
+        debounceTask?.cancel()
 
         if hovering {
             // Handle mouse enter
@@ -469,41 +445,26 @@ struct ContentView: View {
             }
 
             // Don't open notch if there's a sneak peek showing
-            if coordinator.sneakPeek.show {
-                return
-            }
+            if coordinator.sneakPeek.show { return }
 
             // Delay opening the notch
-            let task = DispatchWorkItem {
-                // ContentView is a struct, so we don't use weak self here
+            hoverTask = Task {
+                try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
                 guard vm.notchState == .closed, isHovering else { return }
                 doOpen()
             }
-
-            hoverWorkItem = task
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + Defaults[.minimumHoverDuration],
-                execute: task
-            )
         } else {
             // Handle mouse exit with debounce to prevent flickering
-            let debounce = DispatchWorkItem {
-                // ContentView is a struct, so we don't use weak self here
-
-                // Update visual state
+            debounceTask = Task {
+                try? await Task.sleep(for: .milliseconds(100))
                 withAnimation(.bouncy.speed(1.2)) {
                     isHovering = false
                 }
 
-                // Close the notch if it's open and battery popover is not active
                 if vm.notchState == .open && !vm.isBatteryPopoverActive {
                     vm.close()
                 }
             }
-
-            debounceWorkItem = debounce
-            // Add a small delay to debounce rapid mouse movements
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: debounce)
         }
     }
 

@@ -133,7 +133,6 @@ struct MusicControlsView: View {
             playbackControls
         }
         .buttonStyle(PlainButtonStyle())
-        .frame(minWidth: Defaults[.showMirror] && Defaults[.showCalendar] ? 140 : 180)
     }
 
     private var songInfoAndSlider: some View {
