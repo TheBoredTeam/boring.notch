@@ -1,24 +1,26 @@
-	//  NotesManager.swift
-	//  boringNotch
-	//
-	//  Created by Adon Omeri on 31/8/2025.
-	//
-
-
+//  NotesManager.swift
+//  boringNotch
+//
+//  Created by Adon Omeri on 31/8/2025.
+//
 
 import Foundation
 
-struct Note: Identifiable {
+// MARK: - Model + Manager
+
+struct Note: Identifiable, Codable {
 	let id: Int
 	var content: String
+	var lastEdited: Date
+	var isMonospaced: Bool
 }
 
-class NotesManager: ObservableObject {
+final class NotesManager: ObservableObject {
+	@Published var notes: [Note] = []
+	@Published var selectedNoteIndex: Int = 0
+
 	private let notesFolderURL: URL
 	private let fileManager = FileManager.default
-
-	@Published var selectedNoteIndex = 0
-	@Published var notes: [Note] = []
 
 	init() {
 		let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
@@ -34,18 +36,11 @@ class NotesManager: ObservableObject {
 	func loadAllNotes() {
 		do {
 			let fileURLs = try fileManager.contentsOfDirectory(at: notesFolderURL, includingPropertiesForKeys: nil)
-			let txtFiles = fileURLs
-				.filter { $0.pathExtension == "txt" }
-				.compactMap { url -> (Int, URL)? in
-					let nameWithoutExtension = url.deletingPathExtension().lastPathComponent
-					guard let index = Int(nameWithoutExtension) else { return nil }
-					return (index, url)
-				}
-				.sorted { $0.0 < $1.0 }
+			let jsonFiles = fileURLs.filter { $0.pathExtension.lowercased() == "json" }
 
-			notes = txtFiles.map { index, url in
-				let content = (try? String(contentsOf: url, encoding: .utf8)) ?? ""
-				return Note(id: index, content: content)
+			notes = try jsonFiles.compactMap { url in
+				let data = try Data(contentsOf: url)
+				return try JSONDecoder().decode(Note.self, from: data)
 			}
 		} catch {
 			notes = []
@@ -53,37 +48,65 @@ class NotesManager: ObservableObject {
 
 		if notes.isEmpty {
 			addNote()
+		} else {
+			sortNotesByEdited()
 		}
 	}
 
-	func save(note: String, at index: Int) {
-		guard index >= 0 && index < notes.count else { return }
-		let noteID = notes[index].id
-		let url = notesFolderURL.appendingPathComponent("\(noteID).txt")
-		try? note.write(to: url, atomically: true, encoding: .utf8)
-		notes[index].content = note
+	func save(note: Note) {
+		guard let index = notes.firstIndex(where: { $0.id == note.id }) else { return }
+		notes[index] = note
+		let url = notesFolderURL.appendingPathComponent("\(note.id).json")
+		if let data = try? JSONEncoder().encode(note) {
+			try? data.write(to: url, options: .atomic)
+		}
+	}
+
+	func save(note content: String, at index: Int) {
+		guard index >= 0, index < notes.count else { return }
+		var note = notes[index]
+		note.content = content
+		note.lastEdited = Date()
+		save(note: note)
+		sortNotesByEdited(preserveSelectedID: note.id)
 	}
 
 	func addNote() {
 		let newID = (notes.map(\.id).max() ?? -1) + 1
-		let newNote = Note(id: newID, content: "")
+		let newNote = Note(id: newID, content: "", lastEdited: Date(), isMonospaced: false)
 		notes.append(newNote)
-
-		let url = notesFolderURL.appendingPathComponent("\(newID).txt")
-		try? "".write(to: url, atomically: true, encoding: .utf8)
+		save(note: newNote)
+		sortNotesByEdited(preserveSelectedID: newNote.id)
 	}
 
 	func removeNote(at index: Int) {
-		guard index >= 0 && index < notes.count && notes.count > 1 else { return }
-
+		guard index >= 0, index < notes.count, notes.count > 1 else { return }
 		let noteID = notes[index].id
-		let url = notesFolderURL.appendingPathComponent("\(noteID).txt")
+		let url = notesFolderURL.appendingPathComponent("\(noteID).json")
 		try? fileManager.removeItem(at: url)
-
 		notes.remove(at: index)
 
 		if selectedNoteIndex >= notes.count {
 			selectedNoteIndex = notes.count - 1
+		}
+	}
+
+	func toggleMonospaced(at index: Int) {
+		guard index >= 0, index < notes.count else { return }
+		var note = notes[index]
+		note.isMonospaced.toggle()
+		note.lastEdited = Date()
+		save(note: note)
+		sortNotesByEdited(preserveSelectedID: note.id)
+	}
+
+	private func sortNotesByEdited(preserveSelectedID preservedID: Int? = nil) {
+		let selectedIDBefore: Int? = preservedID ?? (notes.indices.contains(selectedNoteIndex) ? notes[selectedNoteIndex].id : nil)
+		notes.sort { $0.lastEdited > $1.lastEdited }
+		if let id = selectedIDBefore, let newIndex = notes.firstIndex(where: { $0.id == id }) {
+			selectedNoteIndex = newIndex
+		} else {
+			selectedNoteIndex = min(selectedNoteIndex, notes.count - 1)
 		}
 	}
 }
