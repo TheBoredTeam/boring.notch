@@ -3097,7 +3097,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "Automatycznie przełączaj wyświetlacze"
           }
         },
         "pt-BR": {
@@ -4915,7 +4915,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "Gest zamknięcia"
           }
         },
         "pt-BR": {
@@ -5218,7 +5218,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Corner radius scaling"
+            "value": "Skalowanie zaokrąglenia narożników"
           }
         },
         "pt-BR": {
@@ -6733,7 +6733,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "Włącz efekt rozmycia za okładką albumu"
           }
         },
         "pt-BR": {
@@ -6834,7 +6834,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable boring mirror"
+            "value": "Włącz boring mirror"
           }
         },
         "pt-BR": {
@@ -6935,7 +6935,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "Włącz kolorowe spektrogramy"
           }
         },
         "pt-BR": {
@@ -7036,7 +7036,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "Włącz obsługę gestów"
           }
         },
         "pt-BR": {
@@ -7137,7 +7137,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable glowing effect"
+            "value": "Włącz efekt poświaty"
           }
         },
         "pt-BR": {
@@ -7238,7 +7238,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "Włącz wibracje"
           }
         },
         "pt-BR": {
@@ -7541,7 +7541,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "Włącz półkę"
           }
         },
         "pt-BR": {
@@ -7743,7 +7743,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable window shadow"
+            "value": "Włącz cień okna"
           }
         },
         "pt-BR": {
@@ -8248,7 +8248,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extend hover area"
+            "value": "Rozszerz obszar najechania kursorem"
           }
         },
         "pt-BR": {
@@ -9359,7 +9359,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": "Ukryj zakończone przypomnienia"
           }
         },
         "pt-BR": {
@@ -12086,7 +12086,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Menubar icon"
+            "value": "Ikona paska menu"
           }
         },
         "pt-BR": {
@@ -14409,7 +14409,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open notch on hover"
+            "value": "Otwórz notch po najechaniu kursorem"
           }
         },
         "pt-BR": {
@@ -14611,7 +14611,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open shelf by default if items are present"
+            "value": "Otwórz półkę domyślnie, jeśli pliki są obecne"
           }
         },
         "pt-BR": {
@@ -16227,7 +16227,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings icon in notch"
+            "value": "Ikona ustawień w notchu"
           }
         },
         "pt-BR": {
@@ -16530,7 +16530,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery indicator"
+            "value": "Pokaż wskaźnik baterii"
           }
         },
         "pt-BR": {
@@ -16631,7 +16631,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery percentage"
+            "value": "Pokaż procent baterii"
           }
         },
         "pt-BR": {
@@ -16732,7 +16732,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show calendar"
+            "value": "Pokaż kalendarz"
           }
         },
         "pt-BR": {
@@ -16833,7 +16833,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show cool face animation while inactivity"
+            "value": "Wyświetlaj fajną animację twarzy podczas bezczynności"
           }
         },
         "pt-BR": {
@@ -17136,7 +17136,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status icons"
+            "value": "Pokaż ikony stanu zasilania"
           }
         },
         "pt-BR": {
@@ -17237,7 +17237,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status notifications"
+            "value": "Pokaż powiadomienia o stanie zasilania"
           }
         },
         "pt-BR": {
@@ -19156,7 +19156,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use accent color"
+            "value": "Użyj koloru akcentów"
           }
         },
         "pt-BR": {
@@ -19358,7 +19358,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use simpler close animation"
+            "value": "Użyj prostszej animacji zamknięcia"
           }
         },
         "pt-BR": {
