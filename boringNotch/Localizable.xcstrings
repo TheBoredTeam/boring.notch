@@ -2,6 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -808,7 +809,6 @@
       "shouldTranslate" : false
     },
     "%lld" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1612,6 +1612,7 @@
       }
     },
     "Add" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1812,6 +1813,7 @@
       }
     },
     "Add new visualizer" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3012,6 +3014,7 @@
       }
     },
     "Automatically switch displays" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3811,6 +3814,9 @@
         }
       }
     },
+    "Both" : {
+
+    },
     "Calendar" : {
       "localizations" : {
         "ar" : {
@@ -4112,6 +4118,7 @@
       }
     },
     "Cancel" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -4812,6 +4819,7 @@
       }
     },
     "Close gesture" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5112,6 +5120,7 @@
       }
     },
     "Corner radius scaling" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6211,6 +6220,15 @@
         }
       }
     },
+    "Download icon style" : {
+
+    },
+    "Download indicator style" : {
+
+    },
+    "Download indicators" : {
+
+    },
     "Downloads" : {
       "localizations" : {
         "ar" : {
@@ -6612,6 +6630,7 @@
       }
     },
     "Enable blur effect behind album art" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6712,6 +6731,7 @@
       }
     },
     "Enable boring mirror" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6812,6 +6832,7 @@
       }
     },
     "Enable colored spectrograms" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6912,6 +6933,7 @@
       }
     },
     "Enable gestures" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7012,6 +7034,7 @@
       }
     },
     "Enable glowing effect" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7112,6 +7135,7 @@
       }
     },
     "Enable haptics" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7412,6 +7436,7 @@
       }
     },
     "Enable shelf" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7612,6 +7637,7 @@
       }
     },
     "Enable window shadow" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7911,6 +7937,9 @@
         }
       }
     },
+    "Enter your note..." : {
+
+    },
     "Error" : {
       "localizations" : {
         "ar" : {
@@ -8010,6 +8039,9 @@
           }
         }
       }
+    },
+    "Exclude apps" : {
+
     },
     "Exit" : {
       "localizations" : {
@@ -8112,6 +8144,7 @@
       }
     },
     "Extend hover area" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -9213,6 +9246,7 @@
       }
     },
     "Hide completed reminders" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10314,6 +10348,7 @@
       }
     },
     "Lottie JSON URL" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -11914,6 +11949,7 @@
       }
     },
     "Menubar icon" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12714,6 +12750,7 @@
       }
     },
     "Name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -13312,6 +13349,9 @@
           }
         }
       }
+    },
+    "No excluded apps" : {
+
     },
     "No extension installed" : {
       "localizations" : {
@@ -14113,6 +14153,12 @@
         }
       }
     },
+    "Only app icon" : {
+
+    },
+    "Only download icon" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -14214,6 +14260,7 @@
       }
     },
     "Open notch on hover" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14414,6 +14461,7 @@
       }
     },
     "Open shelf by default if items are present" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14512,6 +14560,9 @@
           }
         }
       }
+    },
+    "Percentage" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -14612,6 +14663,9 @@
           }
         }
       }
+    },
+    "Progress bar" : {
+
     },
     "Progressbar style" : {
       "localizations" : {
@@ -16014,6 +16068,7 @@
       }
     },
     "Settings icon in notch" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16314,6 +16369,7 @@
       }
     },
     "Show battery indicator" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16414,6 +16470,7 @@
       }
     },
     "Show battery percentage" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16514,6 +16571,7 @@
       }
     },
     "Show calendar" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16614,6 +16672,7 @@
       }
     },
     "Show cool face animation while inactivity" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16914,6 +16973,7 @@
       }
     },
     "Show power status icons" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -17014,6 +17074,7 @@
       }
     },
     "Show power status notifications" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -17614,6 +17675,7 @@
       }
     },
     "Speed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18914,6 +18976,7 @@
       }
     },
     "Use accent color" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19114,6 +19177,7 @@
       }
     },
     "Use simpler close animation" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
