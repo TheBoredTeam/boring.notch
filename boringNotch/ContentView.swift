@@ -21,10 +21,10 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
-    
+
     @State private var hoverTask: Task<Void, Never>?
     @State private var debounceTask: Task<Void, Never>?
-    
+
     @State private var isHovering: Bool = false
     @State private var isHoverStateChanging: Bool = false
 
@@ -87,7 +87,10 @@ struct ContentView: View {
                         .animation(notchStateAnimation, value: vm.notchState)
                         .animation(.smooth, value: gestureProgress)
                         .transition(
-                            .blurReplace.animation(.interactiveSpring(dampingFraction: 1.2)))
+                            .blurReplace.animation(
+                                .interactiveSpring(dampingFraction: 1.2)
+                            )
+                        )
                 }
                 .conditionalModifier(useModernCloseAnimation) { view in
                     let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
@@ -122,8 +125,13 @@ struct ContentView: View {
                         }
                         .conditionalModifier(Defaults[.enableGestures]) { view in
                             view
-                                .panGesture(direction: .down) { translation, phase in
-                                    handleDownGesture(translation: translation, phase: phase)
+                                .panGesture(direction: .down) {
+                                    translation,
+                                    phase in
+                                    handleDownGesture(
+                                        translation: translation,
+                                        phase: phase
+                                    )
                                 }
                         }
                 }
@@ -192,7 +200,10 @@ struct ContentView: View {
             VStack(alignment: .leading) {
                 if coordinator.firstLaunch {
                     Spacer()
-                    HelloAnimation().frame(width: getClosedNotchSize().width, height: 80).onAppear(perform: {
+                    HelloAnimation().frame(
+                        width: getClosedNotchSize().width,
+                        height: 80
+                    ).onAppear(perform: {
                         vm.closeHello()
                     })
                     .padding(.top, 40)
@@ -284,8 +295,14 @@ struct ContentView: View {
             }
             .zIndex(1)
             .allowsHitTesting(vm.notchState == .open)
-            .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
-            .opacity(abs(gestureProgress) > 0.3 ? min(abs(gestureProgress * 2), 0.8) : 1)
+            .blur(
+                radius: abs(gestureProgress) > 0.3
+                    ? min(abs(gestureProgress), 8) : 0
+            )
+            .opacity(
+                abs(gestureProgress) > 0.3
+                    ? min(abs(gestureProgress * 2), 0.8) : 1
+            )
         }
     }
 
@@ -297,13 +314,17 @@ struct ContentView: View {
                     .fill(.clear)
                     .frame(
                         width: max(0, vm.effectiveClosedNotchHeight - 12),
-                        height: max(0, vm.effectiveClosedNotchHeight - 12))
+                        height: max(0, vm.effectiveClosedNotchHeight - 12)
+                    )
                 Rectangle()
                     .fill(.black)
                     .frame(width: vm.closedNotchSize.width - 20)
                 MinimalFaceFeatures()
             }
-        }.frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
+        }.frame(
+            height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0),
+            alignment: .center
+        )
     }
 
     @ViewBuilder
@@ -319,8 +340,9 @@ struct ContentView: View {
                 .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                 .frame(
                     width: max(0, vm.effectiveClosedNotchHeight - 12),
-                    height: max(0, vm.effectiveClosedNotchHeight - 12))
-            
+                    height: max(0, vm.effectiveClosedNotchHeight - 12)
+                )
+
             Rectangle()
                 .fill(.black)
                 .overlay(
@@ -336,8 +358,10 @@ struct ContentView: View {
                                 frameWidth: 100
                             )
                             .opacity(
-                                (coordinator.expandingView.show && Defaults[.enableSneakPeek]
-                                    && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
+                                (coordinator.expandingView.show
+                                    && Defaults[.sneakPeekStyles] == .inline)
+                                    ? 1 : 0
+                            )
                             Spacer(minLength: vm.closedNotchSize.width)
                             // Song Artist
                             Text(musicManager.artistName)
@@ -345,21 +369,26 @@ struct ContentView: View {
                                 .truncationMode(.tail)
                                 .foregroundStyle(
                                     Defaults[.coloredSpectrogram]
-                                        ? Color(nsColor: musicManager.avgColor) : Color.gray
+                                        ? Color(nsColor: musicManager.avgColor)
+                                        : Color.gray
                                 )
                                 .opacity(
                                     (coordinator.expandingView.show
                                         && coordinator.expandingView.type == .music
-                                        && Defaults[.enableSneakPeek]
-                                        && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
+                                        && Defaults[.sneakPeekStyles] == .inline)
+                                        ? 1 : 0
+                                )
                         }
                     }
                 )
                 .frame(
                     width: (coordinator.expandingView.show
-                        && coordinator.expandingView.type == .music && Defaults[.enableSneakPeek]
+                        && coordinator.expandingView.type == .music
                         && Defaults[.sneakPeekStyles] == .inline)
-                    ? 380 : vm.closedNotchSize.width + (isHovering ? 8 : -cornerRadiusInsets.closed.top))
+                        ? 380
+                        : vm.closedNotchSize.width
+                            + (isHovering ? 8 : -cornerRadiusInsets.closed.top)
+                )
 
             HStack {
                 if useMusicVisualizer {
@@ -382,11 +411,21 @@ struct ContentView: View {
             }
             .frame(
                 width: max(
-                    0, vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12) + gestureProgress / 2),
-                height: max(0, vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)),
-                alignment: .center)
+                    0,
+                    vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                        + gestureProgress / 2
+                ),
+                height: max(
+                    0,
+                    vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                ),
+                alignment: .center
+            )
         }
-        .frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
+        .frame(
+            height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0),
+            alignment: .center
+        )
     }
 
     @ViewBuilder
