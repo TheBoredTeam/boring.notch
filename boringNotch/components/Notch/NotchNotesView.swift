@@ -9,15 +9,17 @@ import SwiftUI
 
 struct NotchNotesView: View {
 	@StateObject var notesManager = NotesManager()
+	@State private var searchText: String = ""
 
 	var body: some View {
 		GeometryReader { geo in
 			HStack(spacing: 0) {
-				// editor panel
 				VStack {
 					if notesManager.notes.indices.contains(notesManager.selectedNoteIndex) {
 						ZStack(alignment: .topLeading) {
-							if notesManager.notes[notesManager.selectedNoteIndex].content.isEmpty {
+							let currentNote = notesManager.notes[notesManager.selectedNoteIndex]
+
+							if currentNote.content.isEmpty {
 								Text("Enter your note...")
 									.foregroundColor(.gray)
 									.padding(.leading, 8)
@@ -27,24 +29,57 @@ struct NotchNotesView: View {
 									.allowsHitTesting(false)
 							}
 
-							TextEditor(
-								text: Binding(
-									get: {
-										guard notesManager.selectedNoteIndex < notesManager.notes.count else { return "" }
-										return notesManager.notes[notesManager.selectedNoteIndex].content
-									},
-									set: { newValue in
-										guard notesManager.selectedNoteIndex < notesManager.notes.count else { return }
-										notesManager.save(note: newValue, at: notesManager.selectedNoteIndex)
-									}
+							ZStack(alignment: .bottomTrailing) {
+								TextEditor(
+									text: Binding(
+										get: {
+											guard notesManager.selectedNoteIndex < notesManager.notes.count else { return "" }
+											return notesManager.notes[notesManager.selectedNoteIndex].content
+										},
+										set: { newValue in
+											guard notesManager.selectedNoteIndex < notesManager.notes.count else { return }
+											notesManager.save(note: newValue, at: notesManager.selectedNoteIndex)
+										}
+									)
 								)
-							)
-							.fontWeight(.ultraLight)
-							.fontWidth(.expanded)
-							.textEditorStyle(.plain)
-							.transition(.opacity.combined(with: .blurReplace))
-							.id(notesManager.selectedNoteIndex)
-							.padding(4)
+								.fontWeight(.thin)
+								.font(
+									notesManager.notes.indices.contains(notesManager.selectedNoteIndex) &&
+										notesManager.notes[notesManager.selectedNoteIndex].isMonospaced
+										? .system(.caption, design: .monospaced)
+										: .caption
+								)
+								.animation(
+									.easeInOut(duration: 0.2),
+									value: notesManager.notes[notesManager.selectedNoteIndex].isMonospaced
+								)
+								.textEditorStyle(.plain)
+								.transition(.opacity.combined(with: .blurReplace))
+								.id(notesManager.selectedNoteIndex)
+								.padding(4)
+
+								Button {
+									notesManager.toggleMonospaced(at: notesManager.selectedNoteIndex)
+								} label: {
+									Image(systemName: "textformat")
+										.padding(5)
+										.background(
+											ZStack {
+												Rectangle()
+													.fill(.ultraThinMaterial)
+												if notesManager.notes.indices.contains(notesManager.selectedNoteIndex) &&
+													notesManager.notes[notesManager.selectedNoteIndex].isMonospaced
+												{
+													Rectangle()
+														.fill(Color.white.opacity(0.15))
+												}
+											}
+										)
+										.clipShape(RoundedRectangle(cornerRadius: 8))
+										.padding(3)
+								}
+								.buttonStyle(.plain)
+							}
 						}
 						.background(
 							RoundedRectangle(cornerRadius: 10)
@@ -55,30 +90,40 @@ struct NotchNotesView: View {
 				.animation(.easeInOut, value: notesManager.selectedNoteIndex)
 				.frame(width: (geo.size.width / 3) * 2)
 
-				// sidebar
 				VStack {
 					ScrollView(.vertical) {
-						Button {
-							notesManager.addNote()
-							notesManager.selectedNoteIndex = notesManager.notes.count - 1
-						} label: {
-							Image(systemName: "plus")
+						HStack {
+							TextField("Search", text: $searchText)
+								.textFieldStyle(.plain)
 								.frame(maxWidth: .infinity)
+								.padding(3)
+								.padding(.leading, 3)
 								.frame(height: 25)
-								.padding(.vertical, 1)
 								.background(Color.white.opacity(0.1))
 								.clipShape(RoundedRectangle(cornerRadius: 8))
 								.contentShape(RoundedRectangle(cornerRadius: 8))
+
+							Button {
+								notesManager.addNote()
+							} label: {
+								Image(systemName: "plus")
+									.frame(width: 25, height: 25)
+									.padding(.bottom, 1)
+									.background(Color.white.opacity(0.1))
+									.clipShape(RoundedRectangle(cornerRadius: 8))
+									.contentShape(RoundedRectangle(cornerRadius: 8))
+							}
+							.buttonStyle(.plain)
 						}
-						.buttonStyle(.plain)
 
 						LazyVStack(spacing: 4) {
-							ForEach(Array(notesManager.notes.enumerated()), id: \.element.id) {
-								index,
-									note in
+							let displayed = Array(notesManager.notes.enumerated())
+								.filter { searchText.isEmpty || $0.element.content.localizedCaseInsensitiveContains(searchText) }
+
+							ForEach(displayed, id: \.element.id) { originalIndex, note in
 								HStack {
 									Button {
-										notesManager.selectedNoteIndex = index
+										notesManager.selectedNoteIndex = originalIndex
 									} label: {
 										HStack {
 											if !note.content.isEmpty {
@@ -96,7 +141,7 @@ struct NotchNotesView: View {
 										.animation(.easeInOut, value: note.content)
 										.frame(maxWidth: .infinity, alignment: .center)
 										.background(
-											notesManager.selectedNoteIndex == index
+											notesManager.selectedNoteIndex == originalIndex
 												? Color.accentColor.opacity(0.4)
 												: Color.white.opacity(0.1)
 										)
@@ -106,7 +151,7 @@ struct NotchNotesView: View {
 									.buttonStyle(.plain)
 
 									Button {
-										notesManager.removeNote(at: index)
+										notesManager.removeNote(at: originalIndex)
 									} label: {
 										Label("Delete", systemImage: "trash")
 											.foregroundStyle(.white.opacity(0.7))
@@ -131,12 +176,9 @@ struct NotchNotesView: View {
 				.frame(width: geo.size.width / 3)
 				.clipShape(RoundedRectangle(cornerRadius: 8))
 			}
+			.preferredColorScheme(.dark)
 			.frame(height: geo.size.height)
 		}
 		.transition(.opacity.combined(with: .blurReplace))
 	}
-}
-
-#Preview {
-	NotchNotesView()
 }
