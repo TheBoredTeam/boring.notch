@@ -21,6 +21,8 @@ struct ContentView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
 
+	@StateObject var notesManager = NotesManager()
+
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var debounceWorkItem: DispatchWorkItem?
@@ -284,7 +286,7 @@ struct ContentView: View {
                     case .shelf:
                         NotchShelfView()
 						case .notes:
-							NotchNotesView()
+							NotchNotesView().environmentObject(notesManager)
 
                     }
                 }

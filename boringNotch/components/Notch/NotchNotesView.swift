@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct NotchNotesView: View {
-	@StateObject var notesManager = NotesManager()
+	@EnvironmentObject var notesManager: NotesManager
 	@State private var searchText: String = ""
 
 	var body: some View {
@@ -24,7 +24,12 @@ struct NotchNotesView: View {
 									.foregroundColor(.gray)
 									.padding(.leading, 8)
 									.padding(.top, 4)
-									.font(.caption)
+									.font(
+										notesManager.notes.indices.contains(notesManager.selectedNoteIndex) &&
+											notesManager.notes[notesManager.selectedNoteIndex].isMonospaced
+											? .system(.caption, design: .monospaced)
+											: .caption
+									)
 									.frame(maxWidth: .infinity, alignment: .leading)
 									.allowsHitTesting(false)
 							}
@@ -33,11 +38,13 @@ struct NotchNotesView: View {
 								TextEditor(
 									text: Binding(
 										get: {
-											guard notesManager.selectedNoteIndex < notesManager.notes.count else { return "" }
+											guard notesManager.selectedNoteIndex < notesManager.notes.count,
+											      !notesManager.notes.isEmpty else { return "" }
 											return notesManager.notes[notesManager.selectedNoteIndex].content
 										},
 										set: { newValue in
-											guard notesManager.selectedNoteIndex < notesManager.notes.count else { return }
+											guard notesManager.selectedNoteIndex < notesManager.notes.count,
+											      !notesManager.notes.isEmpty else { return }
 											notesManager.save(note: newValue, at: notesManager.selectedNoteIndex)
 										}
 									)
