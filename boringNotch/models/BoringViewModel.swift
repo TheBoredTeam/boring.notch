@@ -17,7 +17,7 @@ class BoringViewModel: NSObject, ObservableObject {
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
 
-    @Published var contentType: ContentType = .normal
+	@Published var contentType: ContentType = .normal
     @Published private(set) var notchState: NotchState = .closed
 
     @Published var dragDetectorTargeting: Bool = false

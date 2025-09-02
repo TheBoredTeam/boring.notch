@@ -11,6 +11,8 @@ struct NotchNotesView: View {
 	@EnvironmentObject var notesManager: NotesManager
 	@State private var searchText: String = ""
 
+	@FocusState private var editorIsFocused: Bool
+
 	var body: some View {
 		GeometryReader { geo in
 			HStack(spacing: 0) {
@@ -43,12 +45,18 @@ struct NotchNotesView: View {
 											return notesManager.notes[notesManager.selectedNoteIndex].content
 										},
 										set: { newValue in
+											guard notesManager.editorCanFocus else { return }
 											guard notesManager.selectedNoteIndex < notesManager.notes.count,
 											      !notesManager.notes.isEmpty else { return }
 											notesManager.save(note: newValue, at: notesManager.selectedNoteIndex)
 										}
 									)
 								)
+								.focused($editorIsFocused)
+								.onChange(of: notesManager.editorCanFocus) { _, canFocus in
+									editorIsFocused = canFocus
+								}
+								.disabled(!notesManager.editorCanFocus)
 								.fontWeight(.thin)
 								.font(
 									notesManager.notes.indices.contains(notesManager.selectedNoteIndex) &&

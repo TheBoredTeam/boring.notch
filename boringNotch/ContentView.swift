@@ -21,7 +21,7 @@ struct ContentView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
 
-	@StateObject var notesManager = NotesManager()
+	@StateObject var notesManager = NotesManager.shared
 
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
@@ -285,12 +285,23 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         NotchShelfView()
-						case .notes:
-							NotchNotesView().environmentObject(notesManager)
+					case .notes:
+						NotchNotesView().environmentObject(notesManager)
 
                     }
                 }
             }
+			.onChange(of: coordinator.currentView) {
+				if coordinator.currentView != .notes {
+					notesManager.editorCanFocus = false
+					NSApp.hide(nil)
+					
+					NSApp.keyWindow?.makeFirstResponder(nil)
+				} else {
+					notesManager.editorCanFocus = true
+					NSApp.keyWindow?.makeFirstResponder(nil)
+				}
+			}
             .zIndex(1)
             .allowsHitTesting(vm.notchState == .open)
             .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)

@@ -19,12 +19,17 @@ final class NotesManager: ObservableObject {
 	@Published var notes: [Note] = []
 	@Published var selectedNoteIndex: Int = 0
 
+	@Published var editorCanFocus: Bool = false
+
 	private let notesFolderURL: URL
 	private let fileManager = FileManager.default
 
 	private var saveWorkItem: DispatchWorkItem?
 
-	init() {
+	static let shared = NotesManager()
+
+
+	private init() {
 		print("NotesManager init started")
 		let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
 		notesFolderURL = appSupport.appendingPathComponent("Notes")

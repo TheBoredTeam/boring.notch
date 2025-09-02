@@ -2,6 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
+      "extractionState" : "stale",
       "localizations" : {
         "af" : {
           "stringUnit" : {
@@ -2750,6 +2751,7 @@
       }
     },
     "Add" : {
+      "extractionState" : "stale",
       "localizations" : {
         "af" : {
           "stringUnit" : {
@@ -3106,6 +3108,7 @@
       }
     },
     "Add new visualizer" : {
+      "extractionState" : "stale",
       "localizations" : {
         "af" : {
           "stringUnit" : {
@@ -7199,6 +7202,7 @@
       }
     },
     "Cancel" : {
+      "extractionState" : "stale",
       "localizations" : {
         "af" : {
           "stringUnit" : {
@@ -9795,6 +9799,9 @@
           }
         }
       }
+    },
+    "Delete" : {
+
     },
     "Description" : {
       "localizations" : {
@@ -12535,6 +12542,9 @@
           }
         }
       }
+    },
+    "Enter your note..." : {
+
     },
     "Error" : {
       "localizations" : {
@@ -16523,6 +16533,7 @@
       }
     },
     "Lottie JSON URL" : {
+      "extractionState" : "stale",
       "localizations" : {
         "af" : {
           "stringUnit" : {
@@ -20473,6 +20484,7 @@
       }
     },
     "Name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "af" : {
           "stringUnit" : {
@@ -25952,6 +25964,9 @@
         }
       }
     },
+    "Search" : {
+
+    },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
         "af" : {
@@ -28195,6 +28210,7 @@
       }
     },
     "Speed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "af" : {
           "stringUnit" : {

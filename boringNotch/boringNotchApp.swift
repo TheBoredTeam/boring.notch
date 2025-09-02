@@ -18,6 +18,7 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
 
+
     let updaterController: SPUStandardUpdaterController
 
     init() {
@@ -67,11 +68,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow?
     let vm: BoringViewModel = .init()
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+	let notesManager = NotesManager.shared
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     var closeNotchWorkItem: DispatchWorkItem?
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
+	var cancellables = Set<AnyCancellable>()
+
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -121,6 +125,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             backing: .buffered,
             defer: false
         )
+
+		window.notesManager = notesManager
+
+		NotesManager.shared.$editorCanFocus
+			.sink { canFocus in
+				if canFocus {
+					self.window?.makeKeyAndOrderFront(nil)
+				} else {
+					self.window?.resignKey()
+				}
+			}
+			.store(in: &cancellables)
+
 
         window.contentView = NSHostingView(
             rootView: ContentView()
