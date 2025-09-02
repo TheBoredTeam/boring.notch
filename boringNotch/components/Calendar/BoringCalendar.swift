@@ -217,7 +217,7 @@ struct CalendarView: View {
                 events: calendarManager.events
             )
             if filteredEvents.isEmpty {
-                EmptyEventsView()
+                EmptyEventsView(selectedDate: selectedDate)
                 Spacer(minLength: 0)
             } else {
                 EventListView(events: calendarManager.events)
@@ -246,12 +246,14 @@ struct CalendarView: View {
 }
 
 struct EmptyEventsView: View {
+    let selectedDate: Date
+    
     var body: some View {
         VStack {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.title)
                 .foregroundColor(Color(white: 0.65))
-            Text("No events today")
+            Text(Calendar.current.isDateInToday(selectedDate) ? NSLocalizedString("No events today", comment: "") : NSLocalizedString("No events", comment: ""))
                 .font(.subheadline)
                 .foregroundColor(.white)
             Text("Enjoy your free time!")
