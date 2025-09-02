@@ -9,10 +9,7 @@ import SwiftUI
 
 extension View {
 	func fastFadeTransition() -> some View {
-		self.transition(.asymmetric(
-			insertion: .opacity,
-			removal: .opacity
-		))
+		self.transition(.opacity)
 	}
 }
 
