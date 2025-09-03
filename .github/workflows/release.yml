@@ -1,4 +1,6 @@
 name: "Build boringNotch"
+permissions:
+  members: read
 on:
   issue_comment:
     types: [created]
