@@ -33,22 +33,6 @@ jobs:
           fi
       - uses: xt0rted/pull-request-comment-branch@v1 # check out branch of PR
         id: comment-branch
-      - name: start deployment
-        uses: bobheadxi/deployments@v1.3.0
-        id: deployment
-        with:
-          step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ steps.check-beta.outputs.env }}
-          ref: ${{ steps.comment-branch.outputs.head_ref }}
-      - name: Save deployment id to file
-        run: echo ${{ steps.deployment.outputs.deployment_id }} > deployment_id
-      - name: Save deployment info
-        uses: actions/upload-artifact@master
-        with:
-          name: deployment-info
-          path: |
-            deployment_id
       - name: Add reactions # adding reactions to the comment to show that the action is running
         uses: peter-evans/create-or-update-comment@v2
         with:
