@@ -10,6 +10,7 @@ concurrency:
 env:
   projname: boringNotch
   beta-channel-name: "beta"
+  EXPORT_METHOD: "developer-id"
 
 jobs:
   preparation:
@@ -144,7 +145,23 @@ jobs:
       - name: Build and archive # create archive
         run: xcodebuild clean archive -project ${{ env.projname }}.xcodeproj -scheme ${{ env.projname }} -archivePath ${{ env.projname }}
       - name: Export app # create .app
-        run: xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "Configuration/export_options.plist"
+        run: |
+          # Create export options plist in temporary directory to avoid modifying the repo
+          TEMP_PLIST="$RUNNER_TEMP/export_options.plist"
+          cat > "$TEMP_PLIST" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>${EXPORT_METHOD}</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
       - name: Sign with Sparkle EdDSA key (for future use)
         env:
           PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
