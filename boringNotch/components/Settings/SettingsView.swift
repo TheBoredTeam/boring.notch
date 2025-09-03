@@ -19,6 +19,8 @@ struct SettingsView: View {
 	@StateObject var extensionManager = BoringExtensionManager()
 	@State private var selectedTab = "General"
 
+	@EnvironmentObject var focusManager: FocusManager
+
 	let updaterController: SPUStandardUpdaterController?
 
 	init(updaterController: SPUStandardUpdaterController? = nil) {
@@ -142,6 +144,8 @@ struct SettingsView: View {
 				.controlSize(.extraLarge)
 			}
 		}
+		.onAppear { focusManager.settingsIsOpen = true }
+		.onDisappear() { focusManager.settingsIsOpen = false }
 		.navigationSplitViewStyle(.balanced)
 		.toolbar(removing: .sidebarToggle)
 		.environmentObject(extensionManager)

@@ -68,13 +68,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow?
     let vm: BoringViewModel = .init()
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-	let notesManager = NotesManager.shared
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     var closeNotchWorkItem: DispatchWorkItem?
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
-	var cancellables = Set<AnyCancellable>()
+	@ObservedObject var focusManager = FocusManager.shared
 
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -126,17 +125,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             defer: false
         )
 
-		window.notesManager = notesManager
 
-		NotesManager.shared.$editorCanFocus
-			.sink { canFocus in
-				if canFocus {
-					self.window?.makeKeyAndOrderFront(nil)
-				} else {
-					self.window?.resignKey()
-				}
-			}
-			.store(in: &cancellables)
+//		NotesManager.shared.$editorCanFocus
+//			.sink { canFocus in
+//				if canFocus {
+//					self.window?.makeKeyAndOrderFront(nil)
+//				} else {
+//					self.window?.resignKey()
+//				}
+//			}
+//			.store(in: &cancellables)
 
 
         window.contentView = NSHostingView(

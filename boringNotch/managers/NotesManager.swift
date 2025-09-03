@@ -19,8 +19,6 @@ final class NotesManager: ObservableObject {
 	@Published var notes: [Note] = []
 	@Published var selectedNoteIndex: Int = 0
 
-	@Published var editorCanFocus: Bool = false
-
 	private let notesFolderURL: URL
 	private let fileManager = FileManager.default
 
@@ -98,12 +96,10 @@ final class NotesManager: ObservableObject {
 	}
 
 	private func saveToFile(note: Note) {
-		print("Saving note \(note.id) to file")
 		let url = notesFolderURL.appendingPathComponent("\(note.id).json")
 		do {
 			let data = try JSONEncoder().encode(note)
 			try data.write(to: url, options: .atomic)
-			print("Successfully saved note \(note.id)")
 		} catch {
 			print("Failed to save note \(note.id): \(error)")
 		}
@@ -127,7 +123,6 @@ final class NotesManager: ObservableObject {
 		print("Cancelled previous save work item")
 		let noteToSave = notes[index]
 		let workItem = DispatchWorkItem { [weak self] in
-			print("Executing save work item for note \(noteToSave.id)")
 			self?.saveToFile(note: noteToSave)
 		}
 		saveWorkItem = workItem

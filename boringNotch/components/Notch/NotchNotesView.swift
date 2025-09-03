@@ -9,6 +9,9 @@ import SwiftUI
 
 struct NotchNotesView: View {
 	@EnvironmentObject var notesManager: NotesManager
+
+	@EnvironmentObject var focusManager: FocusManager
+
 	@State private var searchText: String = ""
 
 	@FocusState private var editorIsFocused: Bool
@@ -40,23 +43,29 @@ struct NotchNotesView: View {
 								TextEditor(
 									text: Binding(
 										get: {
-											guard notesManager.selectedNoteIndex < notesManager.notes.count,
-											      !notesManager.notes.isEmpty else { return "" }
+											guard
+												notesManager.selectedNoteIndex < notesManager.notes.count,
+												!notesManager.notes.isEmpty
+											else { return "" }
 											return notesManager.notes[notesManager.selectedNoteIndex].content
 										},
 										set: { newValue in
-											guard notesManager.editorCanFocus else { return }
-											guard notesManager.selectedNoteIndex < notesManager.notes.count,
-											      !notesManager.notes.isEmpty else { return }
+											guard focusManager.editorCanFocus else { return }
+											guard
+												notesManager.selectedNoteIndex < notesManager.notes.count,
+												!notesManager.notes.isEmpty
+											else { return }
 											notesManager.save(note: newValue, at: notesManager.selectedNoteIndex)
 										}
 									)
 								)
 								.focused($editorIsFocused)
-								.onChange(of: notesManager.editorCanFocus) { _, canFocus in
-									editorIsFocused = canFocus
+								.disabled(!focusManager.editorCanFocus)
+								.onChange(
+									of: focusManager.editorCanFocus
+								) { _, editorCanFocus in
+									editorIsFocused = editorCanFocus
 								}
-								.disabled(!notesManager.editorCanFocus)
 								.fontWeight(.thin)
 								.font(
 									notesManager.notes.indices.contains(notesManager.selectedNoteIndex) &&
@@ -146,6 +155,12 @@ struct NotchNotesView: View {
 													.lineLimit(1)
 													.padding(4)
 													.transition(.opacity.combined(with: .blurReplace))
+													.font(
+														notesManager.notes.indices.contains(notesManager.selectedNoteIndex) &&
+															notesManager.notes[notesManager.selectedNoteIndex].isMonospaced
+															? .system(.caption, design: .monospaced)
+															: .caption
+													)
 											} else {
 												Text("\(note.id + 1)")
 													.padding(.horizontal, 2)

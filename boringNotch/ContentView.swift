@@ -22,6 +22,8 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
 
 	@StateObject var notesManager = NotesManager.shared
+	@StateObject var focusManager = FocusManager.shared
+
 
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
@@ -286,21 +288,22 @@ struct ContentView: View {
                     case .shelf:
                         NotchShelfView()
 					case .notes:
-						NotchNotesView().environmentObject(notesManager)
+						NotchNotesView()
+								.environmentObject(notesManager)
+								.environmentObject(focusManager)
 
                     }
                 }
             }
 			.onChange(of: coordinator.currentView) {
-				if coordinator.currentView != .notes {
-					notesManager.editorCanFocus = false
-					NSApp.hide(nil)
-					
-					NSApp.keyWindow?.makeFirstResponder(nil)
+				if coordinator.currentView == .notes {
+					focusManager.notesTabIsOpen = true
 				} else {
-					notesManager.editorCanFocus = true
-					NSApp.keyWindow?.makeFirstResponder(nil)
+					focusManager.notesTabIsOpen = false
 				}
+			}
+			.onChange(of: vm.notchState) { _, notchState in
+				focusManager.notchIsOpen = (notchState == .open ? true : false)
 			}
             .zIndex(1)
             .allowsHitTesting(vm.notchState == .open)

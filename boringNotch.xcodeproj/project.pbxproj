@@ -82,6 +82,7 @@
 		9A987A0D2C73CA66005CA465 /* NotchShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* NotchShelfView.swift */; };
 		9A987A102C73CA8D005CA465 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9A987A0F2C73CA8D005CA465 /* Collections */; };
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
+		A72821CD2E67DD2300ECD38F /* FocusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72821CC2E67DD2300ECD38F /* FocusManager.swift */; };
 		A7F023092E65797000EC5858 /* NotchNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F023082E65797000EC5858 /* NotchNotesView.swift */; };
 		A7F0230F2E6579D600EC5858 /* FastFadeTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F0230E2E6579D600EC5858 /* FastFadeTransition.swift */; };
 		A7F023112E657A2700EC5858 /* NotesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F023102E657A2700EC5858 /* NotesManager.swift */; };
@@ -213,6 +214,7 @@
 		9A987A022C73CA66005CA465 /* DropItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropItemView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* NotchShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotchShelfView.swift; sourceTree = "<group>"; };
 		9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotchHomeView.swift; sourceTree = "<group>"; };
+		A72821CC2E67DD2300ECD38F /* FocusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusManager.swift; sourceTree = "<group>"; };
 		A7F023082E65797000EC5858 /* NotchNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchNotesView.swift; sourceTree = "<group>"; };
 		A7F0230E2E6579D600EC5858 /* FastFadeTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastFadeTransition.swift; sourceTree = "<group>"; };
 		A7F023102E657A2700EC5858 /* NotesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesManager.swift; sourceTree = "<group>"; };
@@ -364,6 +366,7 @@
 				147CB9562C8CCC980094C254 /* BoringExtensionManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
 				A7F023102E657A2700EC5858 /* NotesManager.swift */,
+				A72821CC2E67DD2300ECD38F /* FocusManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -727,6 +730,7 @@
 				11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */,
 				B1D365CE2C6A979C0047BDBC /* LiveActivityModifier.swift in Sources */,
 				11CFC65B2E097E9D00748C80 /* WelcomeView.swift in Sources */,
+				A72821CD2E67DD2300ECD38F /* FocusManager.swift in Sources */,
 				14D570C02C5EA5870011E668 /* AnimatedFace.swift in Sources */,
 				B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */,
 				B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */,

@@ -13,7 +13,8 @@ import Sparkle
 class SettingsWindowController: NSWindowController {
     static let shared = SettingsWindowController()
     private var updaterController: SPUStandardUpdaterController?
-    
+
+	let focusManager = FocusManager.shared
     private init() {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 700, height: 600),
@@ -59,9 +60,11 @@ class SettingsWindowController: NSWindowController {
         
         // Create the SwiftUI content
         let settingsView = SettingsView(updaterController: updaterController)
+			.environmentObject(focusManager)
         let hostingView = NSHostingView(rootView: settingsView)
         window.contentView = hostingView
-        
+
+
         // Handle window closing
         window.delegate = self
     }
