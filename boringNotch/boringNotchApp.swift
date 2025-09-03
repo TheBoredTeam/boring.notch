@@ -60,16 +60,11 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
-        // SwiftUI WindowGroup for Settings
-
 
 		Settings {
 			SettingsView(updaterController: updaterController)
 				.environmentObject(FocusManager.shared)
-
 		}
-
-
     }
 }
 
@@ -89,6 +84,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 	var cancellables = Set<AnyCancellable>()
 
+	@Environment(\.openSettings) private var openSettings
 
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -494,7 +490,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     },
                     onOpenSettings: {
                         window.close()
-                        SettingsWindowController.shared.showWindow()
+						self.openSettings()
                     }
                 ))
             window.isRestorable = false

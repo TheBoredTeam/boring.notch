@@ -13,7 +13,7 @@ import LaunchAtLogin
 import LottieUI
 import Sparkle
 import SwiftUI
-import SwiftUIIntrospect
+@_spi(Advanced) import SwiftUIIntrospect
 
 struct SettingsView: View {
 	@StateObject var extensionManager = BoringExtensionManager()
@@ -72,6 +72,8 @@ struct SettingsView: View {
 					Label("About", systemImage: "info.circle")
 				}
 			}
+			
+			.navigationSplitViewColumnWidth(250)
 			.listStyle(SidebarListStyle())
 			.toolbar(removing: .sidebarToggle)
 			.navigationSplitViewColumnWidth(200)
@@ -135,14 +137,16 @@ struct SettingsView: View {
 					}
 				}
 			}
+
+			.navigationSplitViewColumnWidth(500)
 			.animation(.easeInOut(duration: 0.15), value: selectedTab)
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
-			.toolbar {
-				Button("Quit app") {
-					NSApp.terminate(self)
-				}
-				.controlSize(.extraLarge)
-			}
+		}
+		.introspect(
+			.navigationSplitView,
+			on: .macOS(.v14...)
+		) { navigationSplitView in
+			navigationSplitView.
 		}
 		.onAppear { focusManager.settingsIsOpen = true }
 		.onDisappear() { focusManager.settingsIsOpen = false }
@@ -150,9 +154,13 @@ struct SettingsView: View {
 		.toolbar(removing: .sidebarToggle)
 		.environmentObject(extensionManager)
 		.formStyle(.grouped)
-		.frame(width: 700)
-		.frame(minHeight: 450)
-		.background(Color(NSColor.windowBackgroundColor))
+		.toolbar {
+			ToolbarItem(placement: .cancellationAction) {
+				Button("Quit app") {
+					NSApp.terminate(self)
+				}
+			}
+		}
 	}
 }
 
