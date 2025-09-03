@@ -1,6 +1,4 @@
 name: "Build boringNotch"
-permissions:
-  members: read
 on:
   issue_comment:
     types: [created]
@@ -18,6 +16,10 @@ jobs:
     name: Preparation job
     if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/build') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
     outputs:
       is_beta: ${{ steps.check-beta.outputs.is_beta }}
       version: ${{ steps.extract-version.outputs.version }}
@@ -40,7 +42,7 @@ jobs:
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: eyes
-      - uses: actions/github-script@v6 # check if the commenter is an org admin (if repo is owned by an org) and if the PR is ready to be merged
+      - uses: actions/github-script@v6
         with:
           result-encoding: string
           script: |
@@ -48,18 +50,15 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // If the repo owner is an Organization, ensure the commenter is an org admin
-            const repoInfo = await github.rest.repos.get({ owner, repo });
-            if (repoInfo.data.owner && repoInfo.data.owner.type === 'Organization') {
-              try {
-                const membership = await github.rest.orgs.getMembershipForUser({ org: owner, username: commenter });
-                if (!membership.data || membership.data.role !== 'admin') {
-                  core.setFailed("Commenter is not an organization admin");
-                }
-              } catch (err) {
-                // Not a member or cannot access membership info
-                core.setFailed("Commenter is not an organization member/admin");
+            // Check the commenter's repository permission level (need write or admin)
+            try {
+              const perm = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: commenter });
+              const level = perm.data.permission; // admin, write, read, none
+              if (level !== 'admin') {
+                core.setFailed("Commenter is not an admin on the repository");
               }
+            } catch (err) {
+              core.setFailed("Failed to determine collaborator permission level: " + err.message);
             }
 
             // Check if the PR is ready to be merged
