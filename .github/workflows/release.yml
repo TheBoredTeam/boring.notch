@@ -105,6 +105,9 @@ jobs:
     name: Build and sign app
     runs-on: macos-latest
     needs: preparation
+    env:
+      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
+      CODE_SIGN_IDENTITY: "Developer ID Application"
     steps:
       - uses: xt0rted/pull-request-comment-branch@v1 # check out branch of PR
         id: comment-branch
@@ -143,8 +146,18 @@ jobs:
           sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${{ needs.preparation.outputs.build_number }}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
           echo "Set build number to: ${{ needs.preparation.outputs.build_number }}"
       - name: Build and archive # create archive
-        run: xcodebuild clean archive -project ${{ env.projname }}.xcodeproj -scheme ${{ env.projname }} -archivePath ${{ env.projname }}
+        run: |
+          # Ensure the archive is created with an explicit team and code sign identity
+          xcodebuild clean archive \
+            -project ${{ env.projname }}.xcodeproj \
+            -scheme ${{ env.projname }} \
+            -archivePath ${{ env.projname }} \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            -allowProvisioningUpdates
       - name: Export app # create .app
+        env:
+          DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
         run: |
           # Create export options plist in temporary directory to avoid modifying the repo
           TEMP_PLIST="$RUNNER_TEMP/export_options.plist"
@@ -157,6 +170,8 @@ jobs:
             <string>${EXPORT_METHOD}</string>
             <key>signingStyle</key>
             <string>automatic</string>
+            <key>teamID</key>
+            <string>$DEVELOPMENT_TEAM</string>
           </dict>
           </plist>
           EOF
