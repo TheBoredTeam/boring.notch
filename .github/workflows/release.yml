@@ -10,7 +10,7 @@ concurrency:
 env:
   projname: boringNotch
   beta-channel-name: "beta"
-  EXPORT_METHOD: "developer-id"
+  EXPORT_METHOD: "development"
 
 jobs:
   preparation:
@@ -107,7 +107,7 @@ jobs:
     needs: preparation
     env:
       DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
-      CODE_SIGN_IDENTITY: "Developer ID Application"
+      CODE_SIGN_IDENTITY: "Apple Development"
     steps:
       - uses: xt0rted/pull-request-comment-branch@v1 # check out branch of PR
         id: comment-branch
