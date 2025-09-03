@@ -32,6 +32,10 @@ class StatsManager: ObservableObject {
     private let maxHistoryPoints = 30
     private var cancellables = Set<AnyCancellable>()
     
+    // CPU tracking variables for delta calculation
+    private var previousCPUInfo: host_cpu_load_info?
+    private var lastCPUUpdateTime: Date?
+    
     // MARK: - Initialization
     private init() {
         // Initialize with empty history
@@ -125,11 +129,11 @@ class StatsManager: ObservableObject {
     // MARK: - System Monitoring Functions
     
     private func getCPUUsage() -> Double {
-        // Simplified CPU usage monitoring using host_statistics
-        var hostStats = host_cpu_load_info()
+        // Get current CPU info
+        var currentCPUInfo = host_cpu_load_info()
         var count = mach_msg_type_number_t(MemoryLayout<host_cpu_load_info>.size / MemoryLayout<integer_t>.size)
         
-        let result = withUnsafeMutablePointer(to: &hostStats) {
+        let result = withUnsafeMutablePointer(to: &currentCPUInfo) {
             $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
                 host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, $0, &count)
             }
@@ -139,17 +143,38 @@ class StatsManager: ObservableObject {
             return 0.0
         }
         
-        let totalTicks = hostStats.cpu_ticks.0 + hostStats.cpu_ticks.1 + 
-                        hostStats.cpu_ticks.2 + hostStats.cpu_ticks.3
-        guard totalTicks > 0 else { return 0.0 }
+        // Calculate delta-based CPU usage
+        guard let prevCPUInfo = previousCPUInfo else {
+            // First measurement - store current values and return 0
+            previousCPUInfo = currentCPUInfo
+            lastCPUUpdateTime = Date()
+            return 0.0
+        }
         
-        let idleTicks = hostStats.cpu_ticks.2 // CPU_STATE_IDLE
-        let usage = Double(totalTicks - idleTicks) / Double(totalTicks) * 100.0
+        // Calculate differences in CPU ticks
+        let userDiff = currentCPUInfo.cpu_ticks.0 - prevCPUInfo.cpu_ticks.0
+        let systemDiff = currentCPUInfo.cpu_ticks.1 - prevCPUInfo.cpu_ticks.1
+        let idleDiff = currentCPUInfo.cpu_ticks.2 - prevCPUInfo.cpu_ticks.2
+        let niceDiff = currentCPUInfo.cpu_ticks.3 - prevCPUInfo.cpu_ticks.3
+        
+        let totalDiff = userDiff + systemDiff + idleDiff + niceDiff
+        
+        guard totalDiff > 0 else {
+            return 0.0
+        }
+        
+        // Calculate CPU usage percentage (100% - idle%)
+        let usage = Double(totalDiff - idleDiff) / Double(totalDiff) * 100.0
+        
+        // Store current values for next calculation
+        previousCPUInfo = currentCPUInfo
+        lastCPUUpdateTime = Date()
+        
         return min(100.0, max(0.0, usage))
     }
     
     private func getMemoryUsage() -> Double {
-        // Simplified memory usage monitoring using host_statistics
+        // Get VM statistics
         var vmStatistics = vm_statistics64()
         var size = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)
         
@@ -164,14 +189,32 @@ class StatsManager: ObservableObject {
         }
         
         let pageSize = UInt64(vm_kernel_page_size)
-        let totalMemory = (UInt64(vmStatistics.free_count) + UInt64(vmStatistics.active_count) + 
-                          UInt64(vmStatistics.inactive_count) + UInt64(vmStatistics.wire_count)) * pageSize
-        let usedMemory = (UInt64(vmStatistics.active_count) + UInt64(vmStatistics.inactive_count) + 
-                         UInt64(vmStatistics.wire_count)) * pageSize
         
-        guard totalMemory > 0 else { return 0.0 }
+        // Calculate memory usage correctly
+        // Active: currently being used by applications
+        // Wired: kernel and essential system memory that cannot be swapped
+        // Compressed: memory that has been compressed (part of used memory)
+        let activeMemory = UInt64(vmStatistics.active_count) * pageSize
+        let wiredMemory = UInt64(vmStatistics.wire_count) * pageSize
+        let compressedMemory = UInt64(vmStatistics.compressor_page_count) * pageSize
         
-        let usage = Double(usedMemory) / Double(totalMemory) * 100.0
+        // Free memory: available for use
+        let freeMemory = UInt64(vmStatistics.free_count) * pageSize
+        
+        // Inactive memory: cached but can be quickly freed
+        let inactiveMemory = UInt64(vmStatistics.inactive_count) * pageSize
+        
+        // Total physical memory is the sum of all memory types
+        // Note: compressed memory is not additional physical memory, it's compressed active memory
+        let totalPhysicalMemory = activeMemory + wiredMemory + inactiveMemory + freeMemory
+        
+        // Used memory calculation - what Activity Monitor considers "used"
+        // Active + Wired memory (compressed is already counted in active)
+        let usedMemory = activeMemory + wiredMemory
+        
+        guard totalPhysicalMemory > 0 else { return 0.0 }
+        
+        let usage = Double(usedMemory) / Double(totalPhysicalMemory) * 100.0
         return min(100.0, max(0.0, usage))
     }
     
@@ -243,5 +286,9 @@ class StatsManager: ObservableObject {
         memoryUsage = 0.0
         gpuUsage = 0.0
         lastUpdated = Date()
+        
+        // Reset CPU tracking for accurate delta calculation
+        previousCPUInfo = nil
+        lastCPUUpdateTime = nil
     }
 }
