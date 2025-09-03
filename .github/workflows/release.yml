@@ -90,22 +90,7 @@ jobs:
           
           # Generate build number from version
           # Convert version like "2.6" -> "2060000" or "1.3.2-rc.5" -> "1030205"
-          BUILD_NUMBER=$(python3 -c "
-import re
-version = '$VERSION'
-# Parse version components
-match = re.match(r'(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-rc\.(\d+))?', version)
-if match:
-    major = int(match.group(1) or 0)
-    minor = int(match.group(2) or 0)
-    patch = int(match.group(3) or 0)
-    rc = int(match.group(4) or 0)
-    # Format: MMmmpprc (2 digits each: major, minor, patch, rc)
-    build_num = major * 1000000 + minor * 10000 + patch * 100 + rc
-    print(f'{build_num:08d}')
-else:
-    print('1000000')  # fallback
-")
+          BUILD_NUMBER=$(python3 .github/scripts/generate_build_number.py "$VERSION")
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
