@@ -13,7 +13,6 @@ import LaunchAtLogin
 import LottieUI
 import Sparkle
 import SwiftUI
-@_spi(Advanced) import SwiftUIIntrospect
 
 struct SettingsView: View {
 	@StateObject var extensionManager = BoringExtensionManager()
@@ -141,12 +140,6 @@ struct SettingsView: View {
 			.navigationSplitViewColumnWidth(500)
 			.animation(.easeInOut(duration: 0.15), value: selectedTab)
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
-		}
-		.introspect(
-			.navigationSplitView,
-			on: .macOS(.v14...)
-		) { navigationSplitView in
-			navigationSplitView.
 		}
 		.onAppear { focusManager.settingsIsOpen = true }
 		.onDisappear() { focusManager.settingsIsOpen = false }
