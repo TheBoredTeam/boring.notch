@@ -30,6 +30,7 @@ class StatsManager: ObservableObject {
     
     private var monitoringTimer: Timer?
     private let maxHistoryPoints = 30
+    private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Initialization
     private init() {
@@ -37,10 +38,32 @@ class StatsManager: ObservableObject {
         cpuHistory = Array(repeating: 0.0, count: maxHistoryPoints)
         memoryHistory = Array(repeating: 0.0, count: maxHistoryPoints)
         gpuHistory = Array(repeating: 0.0, count: maxHistoryPoints)
+        
+        // Listen for update interval changes
+        setupSettingsObserver()
     }
     
     deinit {
         stopMonitoring()
+        cancellables.removeAll()
+    }
+    
+    // MARK: - Settings Observer
+    private func setupSettingsObserver() {
+        // Listen for changes to the update interval setting
+        Defaults.publisher(.statsUpdateInterval)
+            .sink { [weak self] _ in
+                self?.restartMonitoringIfNeeded()
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func restartMonitoringIfNeeded() {
+        // Only restart if currently monitoring
+        if isMonitoring {
+            stopMonitoring()
+            startMonitoring()
+        }
     }
     
     // MARK: - Public Methods
@@ -50,13 +73,17 @@ class StatsManager: ObservableObject {
         isMonitoring = true
         lastUpdated = Date()
         
-        // Start periodic monitoring (every 1 second)
-        monitoringTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            
+        // Use the update interval from settings
+        let updateInterval = Defaults[.statsUpdateInterval]
+        monitoringTimer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
-                self.updateSystemStats()
+                self?.updateSystemStats()
             }
+        }
+        
+        // Immediate update
+        Task { @MainActor in
+            updateSystemStats()
         }
     }
     
@@ -206,8 +233,15 @@ class StatsManager: ObservableObject {
     
     // MARK: - Clear History Method
     func clearHistory() {
+        // Clear historical data arrays
         cpuHistory = Array(repeating: 0.0, count: maxHistoryPoints)
         memoryHistory = Array(repeating: 0.0, count: maxHistoryPoints)
         gpuHistory = Array(repeating: 0.0, count: maxHistoryPoints)
+        
+        // Reset current values to zero as well
+        cpuUsage = 0.0
+        memoryUsage = 0.0
+        gpuUsage = 0.0
+        lastUpdated = Date()
     }
 }

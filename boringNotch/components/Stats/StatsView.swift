@@ -70,10 +70,10 @@ struct StatsView: View {
     // Smart grid layout system for 3 graphs
     @ViewBuilder
     var statsGridLayout: some View {
-        // 3 graphs: Single row with equal spacing
+        // 3 graphs: Single row with equal spacing - reduced spacing for smaller layout
         LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3),
-            spacing: 12
+            columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3),
+            spacing: 8
         ) {
             ForEach(0..<availableGraphs.count, id: \.self) { index in
                 UnifiedStatsCard(graphData: availableGraphs[index])
@@ -108,10 +108,10 @@ struct StatsView: View {
                 .padding()
             } else {
                 // Stats content - simplified layout without controls
-                VStack(spacing: 12) {
+                VStack(spacing: 8) {
                     statsGridLayout
                 }
-                .padding(16)
+                .padding(12)
                 .animation(.easeInOut(duration: 0.4), value: availableGraphs.count)
                 .transition(.asymmetric(
                     insertion: .scale.combined(with: .opacity).animation(.easeInOut(duration: 0.4)),
@@ -138,7 +138,7 @@ struct UnifiedStatsCard: View {
     let graphData: GraphData
     
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             // Header - consistent across all card types
             HStack(spacing: 4) {
                 Image(systemName: graphData.icon)
@@ -157,12 +157,12 @@ struct UnifiedStatsCard: View {
             Group {
                 if let singleData = graphData as? SingleGraphData {
                     Text(singleData.value)
-                        .font(.title3)
+                        .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
                 }
             }
-            .frame(height: 22) // Fixed height for consistent card sizing
+            .frame(height: 16) // Reduced height for smaller layout
             
             // Graph section - single data only
             Group {
@@ -170,11 +170,11 @@ struct UnifiedStatsCard: View {
                     MiniGraph(data: singleData.data, color: singleData.color)
                 }
             }
-            .frame(height: 50) // Fixed height for consistent card sizing
+            .frame(height: 35) // Reduced height for smaller layout
         }
-        .padding(10)
+        .padding(8)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
