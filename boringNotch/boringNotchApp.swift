@@ -18,6 +18,8 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
 
 	@Environment(\.openSettings) private var openSettings
+	
+	@ObservedObject var focusManager = FocusManager.shared
 
 
     let updaterController: SPUStandardUpdaterController
@@ -32,6 +34,8 @@ struct DynamicNotchApp: App {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             Button("Settings") {
 				openSettings()
+				focusManager.frontToggle.toggle()
+
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)
@@ -66,10 +70,7 @@ struct DynamicNotchApp: App {
 
 		}
 
-//        WindowGroup("Settings", id: "settings") {
-//            SettingsView(updaterController: updaterController)
-//                .environmentObject(FocusManager.shared)
-//        }
+
     }
 }
 
@@ -86,6 +87,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
 	@ObservedObject var focusManager = FocusManager.shared
+
+	var cancellables = Set<AnyCancellable>()
+
 
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -158,6 +162,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
         return window
     }
+
+	func resign() {
+		window?.resignFirstResponder()
+		window?.resignKey()
+		window?.resignMain()
+		print("resigning")
+	}
+
+	func front() {
+		window?.makeKeyAndOrderFront(nil)
+		window?.makeFirstResponder(NSResponder.init())
+
+		NSApp.activate(ignoringOtherApps: true)
+		NSApp.windows.first?.makeKeyAndOrderFront(nil)
+
+		print("fronting")
+
+	}
+
+	func bringAppToFront() {
+		NSApp.activate(ignoringOtherApps: true)
+		NSApp.windows.first?.makeKeyAndOrderFront(nil)
+	}
+
+
+
 
     private func positionWindow(_ window: NSWindow, on screen: NSScreen, changeAlpha: Bool = false)
     {
@@ -276,6 +306,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 viewModel.close()
             }
         }
+
+
+		focusManager.$resignToggle
+			.sink { [weak self] _ in
+					self?.resign()
+			}
+			.store(in: &cancellables)
+
+		focusManager.$frontToggle
+			.sink { [weak self] _ in
+					self?.front()
+			}
+			.store(in: &cancellables)
 
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm

@@ -47,6 +47,6 @@ class BoringNotchWindow: NSPanel {
 	}
 
 	override var canBecomeMain: Bool {
-		false
+		focusManager.canBecomeKey
 	}
 }

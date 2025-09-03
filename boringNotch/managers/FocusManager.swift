@@ -21,7 +21,8 @@ final class FocusManager: ObservableObject {
 	}
 
 	@Published var notesTabIsOpen: Bool = false {
-		didSet { updateFocus()
+		didSet {
+			updateFocus()
 			print("notesTabIsOpen: \(notesTabIsOpen)")
 
 		}
@@ -36,6 +37,11 @@ final class FocusManager: ObservableObject {
 	var editorCanFocus: Bool {
 		notesTabIsOpen
 	}
+
+	@Published var resignToggle = false
+
+	@Published var frontToggle = false
+
 
 	var canBecomeKey: Bool {
 		if settingsIsOpen {
@@ -54,37 +60,35 @@ final class FocusManager: ObservableObject {
 	}
 
 	private func updateFocus() {
-//		if notchIsOpen {
-//		} else {
-//			if settingsIsOpen {
-//				NSApp.keyWindow?.makeFirstResponder(NSResponder())
-//			}
-//		}
-//
-//		if settingsIsOpen {
-//			// settings is open, push to front
-//			// do nothing for now
-////			NSApp.keyWindow?.makeFirstResponder(NSResponder())
-//		} else {
-//			// settings is not open, normal routing
-//			if notesTabIsOpen {
-//				// when switching to notes tab
-//				NSApp.activate(ignoringOtherApps: true)
-//			} else {
-//				// when switching away from notes tab, reverts focus to foreground app
-//				NSApp.hide(nil)
-//				NSApp.keyWindow?.makeFirstResponder(nil)
-//			}
-//		}
-
 
 		if notchIsOpen {
+			if settingsIsOpen {
+				if notesTabIsOpen {
+					NSApp.keyWindow?.makeFirstResponder(NSResponder.init())
+					frontToggle.toggle()
+				} else {
+					resignToggle.toggle()
+				}
+			} else {
+				if notesTabIsOpen {
+					NSApp.keyWindow?.makeFirstResponder(NSResponder.init())
+					frontToggle.toggle()
+				} else {
+					NSApp.hide(nil)
+					NSApp.keyWindow?.makeFirstResponder(nil)
 
+						resignToggle.toggle()
+
+				}
+			}
 		} else {
 			if settingsIsOpen {
-
+				NSApp.keyWindow?.makeFirstResponder(NSResponder.init())
+				frontToggle.toggle()
 			} else {
-
+				NSApp.hide(nil)
+				NSApp.keyWindow?.makeFirstResponder(nil)
+				resignToggle.toggle()
 			}
 		}
 

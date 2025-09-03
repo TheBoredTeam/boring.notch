@@ -14,6 +14,8 @@ struct BoringHeader: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = TrayDrop.shared
 
+	@ObservedObject var focusManager = FocusManager.shared
+
 	@Environment(\.openSettings) private var openSettings
     var body: some View {
         HStack(spacing: 0) {
@@ -61,6 +63,8 @@ struct BoringHeader: View {
                     if Defaults[.settingsIconInNotch] {
                             Button(action: {
 								openSettings()
+								focusManager.frontToggle.toggle()
+
                             }) {
                             Capsule()
                                 .fill(.black)

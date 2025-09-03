@@ -171,6 +171,8 @@ struct ContentView: View {
                 .contextMenu {
                     Button("Settings") {
 						openSettings()
+						focusManager.frontToggle.toggle()
+
                     }
                     .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
 //                    Button("Edit") { // Doesnt work....
@@ -305,6 +307,14 @@ struct ContentView: View {
 			}
 			.onChange(of: vm.notchState) { _, notchState in
 				focusManager.notchIsOpen = (notchState == .open ? true : false)
+				if notchState == .open {
+					if coordinator.currentView == .notes {
+						focusManager.notesTabIsOpen = true
+					} else {
+						focusManager.notesTabIsOpen = false
+
+					}
+				}
 			}
             .zIndex(1)
             .allowsHitTesting(vm.notchState == .open)

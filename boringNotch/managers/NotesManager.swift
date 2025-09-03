@@ -70,25 +70,20 @@ final class NotesManager: ObservableObject {
 
 		DispatchQueue.main.async { [weak self] in
 			guard let self = self else { return }
-			print("Updating notes on main thread")
 			self.notes = loaded
 			if self.notes.isEmpty {
-				print("No notes found, adding first note")
 				self.addNote()
 			} else {
-				print("Sorting existing notes")
 				self.sortNotesByEdited()
 			}
 		}
 	}
 
 	private func sortNotesByEdited(preserveSelectedID preservedID: Int? = nil) {
-		print("Sorting notes by edit date")
 		let selectedIDBefore: Int? = preservedID ?? (notes.indices.contains(selectedNoteIndex) ? notes[selectedNoteIndex].id : nil)
 		notes.sort { $0.lastEdited > $1.lastEdited }
 		if let id = selectedIDBefore, let newIndex = notes.firstIndex(where: { $0.id == id }) {
 			selectedNoteIndex = newIndex
-			print("Preserved selected note ID \(id) at new index \(newIndex)")
 		} else {
 			selectedNoteIndex = min(selectedNoteIndex, notes.count - 1)
 			print("Updated selected index to \(selectedNoteIndex)")
@@ -108,7 +103,6 @@ final class NotesManager: ObservableObject {
 	// MARK: - Public functions
 
 	func save(note content: String, at index: Int) {
-		print("Save called for index \(index) with content length \(content.count)")
 		guard index >= 0, index < notes.count else {
 			print("Invalid index \(index) for notes count \(notes.count)")
 			return
@@ -116,17 +110,14 @@ final class NotesManager: ObservableObject {
 
 		notes[index].content = content
 		notes[index].lastEdited = Date()
-		print("Updated note \(notes[index].id) content and date")
 		sortNotesByEdited(preserveSelectedID: notes[index].id)
 
 		saveWorkItem?.cancel()
-		print("Cancelled previous save work item")
 		let noteToSave = notes[index]
 		let workItem = DispatchWorkItem { [weak self] in
 			self?.saveToFile(note: noteToSave)
 		}
 		saveWorkItem = workItem
-		print("Scheduling save in 0.5 seconds")
 		DispatchQueue
 			.global(qos: .userInitiated)
 			.asyncAfter(deadline: .now() + 0.5, execute: workItem)

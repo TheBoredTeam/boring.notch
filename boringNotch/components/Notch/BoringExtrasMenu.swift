@@ -30,6 +30,8 @@ struct BoringLargeButtons: View {
 struct BoringExtrasMenu : View {
     @ObservedObject var vm: BoringViewModel
 
+	@ObservedObject var focusManager = FocusManager.shared
+
 	@Environment(\.openSettings) private var openSettings
 
     var body: some View {
@@ -65,6 +67,8 @@ struct BoringExtrasMenu : View {
     var settings: some View {
         Button(action: {
 			openSettings()
+			focusManager.frontToggle.toggle()
+
         }) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)

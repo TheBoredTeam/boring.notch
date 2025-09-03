@@ -60,7 +60,7 @@ struct NotchNotesView: View {
 									)
 								)
 								.focused($editorIsFocused)
-								.disabled(!focusManager.editorCanFocus)
+//								.disabled(!focusManager.editorCanFocus)
 								.onChange(
 									of: focusManager.editorCanFocus
 								) { _, editorCanFocus in
@@ -194,10 +194,12 @@ struct NotchNotesView: View {
 											.fill(Color.red.opacity(0.2))
 									)
 								}
+								.transition(.opacity.combined(with: .blurReplace))
 								.frame(height: 25)
 								.padding(.vertical, 1)
 							}
 						}
+						.animation(.easeInOut, value: notesManager.notes.count)
 					}
 					.scrollIndicators(.never)
 					.transition(.opacity.combined(with: .blurReplace))
