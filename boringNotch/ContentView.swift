@@ -24,7 +24,6 @@ struct ContentView: View {
 	@StateObject var notesManager = NotesManager.shared
 	@StateObject var focusManager = FocusManager.shared
 
-
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var debounceWorkItem: DispatchWorkItem?
@@ -36,6 +35,8 @@ struct ContentView: View {
     @State private var haptics: Bool = false
 
     @Namespace var albumArtNamespace
+
+	@Environment(\.openSettings) private var openSettings
 
     @Default(.useMusicVisualizer) var useMusicVisualizer
 
@@ -169,7 +170,7 @@ struct ContentView: View {
                 .sensoryFeedback(.alignment, trigger: haptics)
                 .contextMenu {
                     Button("Settings") {
-                        SettingsWindowController.shared.showWindow()
+						openSettings()
                     }
                     .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
 //                    Button("Edit") { // Doesnt work....

@@ -16,7 +16,8 @@ import SwiftUI
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Default(.menubarIcon) var showMenuBarIcon
-    @Environment(\.openWindow) var openWindow
+
+	@Environment(\.openSettings) private var openSettings
 
 
     let updaterController: SPUStandardUpdaterController
@@ -24,15 +25,13 @@ struct DynamicNotchApp: App {
     init() {
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-
-        // Initialize the settings window controller with the updater controller
-        SettingsWindowController.shared.setUpdaterController(updaterController)
+        // Settings view will be presented via SwiftUI WindowGroup
     }
 
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             Button("Settings") {
-                SettingsWindowController.shared.showWindow()
+				openSettings()
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)
@@ -58,6 +57,19 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
+        // SwiftUI WindowGroup for Settings
+
+
+		Settings {
+			SettingsView(updaterController: updaterController)
+				.environmentObject(FocusManager.shared)
+
+		}
+
+//        WindowGroup("Settings", id: "settings") {
+//            SettingsView(updaterController: updaterController)
+//                .environmentObject(FocusManager.shared)
+//        }
     }
 }
 

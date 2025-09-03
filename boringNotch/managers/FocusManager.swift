@@ -78,17 +78,14 @@ final class FocusManager: ObservableObject {
 //		}
 
 
-		guard notchIsOpen else { return }
+		if notchIsOpen {
 
-		if notesTabIsOpen {
-			NSApp.keyWindow?.makeFirstResponder(NSResponder.init())
+		} else {
+			if settingsIsOpen {
 
-			return
-		}
+			} else {
 
-		if !settingsIsOpen {
-			NSApp.hide(nil)
-			NSApp.keyWindow?.makeFirstResponder(nil)
+			}
 		}
 
 

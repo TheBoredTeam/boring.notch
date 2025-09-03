@@ -13,6 +13,8 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = TrayDrop.shared
+
+	@Environment(\.openSettings) private var openSettings
     var body: some View {
         HStack(spacing: 0) {
             HStack {
@@ -57,9 +59,9 @@ struct BoringHeader: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     if Defaults[.settingsIconInNotch] {
-                        Button(action: {
-                            SettingsWindowController.shared.showWindow()
-                        }) {
+                            Button(action: {
+								openSettings()
+                            }) {
                             Capsule()
                                 .fill(.black)
                                 .frame(width: 30, height: 30)

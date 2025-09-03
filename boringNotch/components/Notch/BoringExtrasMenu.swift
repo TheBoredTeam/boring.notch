@@ -29,7 +29,9 @@ struct BoringLargeButtons: View {
 
 struct BoringExtrasMenu : View {
     @ObservedObject var vm: BoringViewModel
-    
+
+	@Environment(\.openSettings) private var openSettings
+
     var body: some View {
         VStack{
             HStack(spacing: 20)  {
@@ -62,7 +64,7 @@ struct BoringExtrasMenu : View {
     
     var settings: some View {
         Button(action: {
-            SettingsWindowController.shared.showWindow()
+			openSettings()
         }) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)

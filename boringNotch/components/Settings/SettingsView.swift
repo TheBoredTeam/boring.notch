@@ -694,7 +694,6 @@ struct CalendarSettings: View {
 struct About: View {
 	@State private var showBuildNumber: Bool = false
 	let updaterController: SPUStandardUpdaterController
-	@Environment(\.openWindow) var openWindow
 	var body: some View {
 		VStack {
 			Form {
