@@ -1,0 +1,242 @@
+name: "Build boringNotch"
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: build-boringnotch-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  projname: boringNotch
+  beta-channel-name: "beta"
+
+jobs:
+  preparation:
+    name: Preparation job
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/build') && github.event.comment.user.login == github.repository_owner }}
+    runs-on: ubuntu-latest
+    outputs:
+      is_beta: ${{ steps.check-beta.outputs.is_beta }}
+      version: ${{ steps.extract-version.outputs.version }}
+      build_number: ${{ steps.extract-version.outputs.build_number }}
+    steps:
+      - name: Check if beta
+        id: check-beta
+        run: |
+          if [[ "${{ contains(github.event.comment.body, 'beta') }}" == "true" ]]; then
+            echo "is_beta=true" >> $GITHUB_OUTPUT
+            echo "env=build-beta" >> $GITHUB_OUTPUT
+          else
+            echo "is_beta=false" >> $GITHUB_OUTPUT
+            echo "env=build-release" >> $GITHUB_OUTPUT
+          fi
+      - uses: xt0rted/pull-request-comment-branch@v1 # check out branch of PR
+        id: comment-branch
+      - name: start deployment
+        uses: bobheadxi/deployments@v1.3.0
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: ${{ steps.check-beta.outputs.env }}
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+      - name: Save deployment id to file
+        run: echo ${{ steps.deployment.outputs.deployment_id }} > deployment_id
+      - name: Save deployment info
+        uses: actions/upload-artifact@master
+        with:
+          name: deployment-info
+          path: |
+            deployment_id
+      - name: Add reactions # adding reactions to the comment to show that the action is running
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: eyes
+      - uses: actions/github-script@v6 # check if the PR is ready to be merged
+        with:
+          result-encoding: string
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            if (pr.data.draft) {
+              core.setFailed("PR is draft");
+            }
+      - uses: actions/checkout@v3
+        if: success()
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+      - name: Extract version from comment or Xcode project
+        id: extract-version
+        run: |
+          # Check if version is provided in comment
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          
+          # Extract version from comment using regex (supports formats like v2.6, 1.3, 2.6-rc.5)
+          VERSION_FROM_COMMENT=$(echo "$COMMENT_BODY" | grep -oE 'v?[0-9]+(\.[0-9]+)*(-rc\.[0-9]+)?' | head -1 | sed 's/^v//')
+          
+          if [[ -n "$VERSION_FROM_COMMENT" ]]; then
+            echo "Using version from comment: $VERSION_FROM_COMMENT"
+            VERSION="$VERSION_FROM_COMMENT"
+          else
+            # Extract from Xcode project
+            VERSION=$(grep -m1 'MARKETING_VERSION = ' ${{ env.projname }}.xcodeproj/project.pbxproj | sed 's/.*MARKETING_VERSION = \([^;]*\);.*/\1/' | tr -d '"')
+            echo "Using version from Xcode: $VERSION"
+          fi
+          
+          # Generate build number from version
+          # Convert version like "2.6" -> "2060000" or "1.3.2-rc.5" -> "1030205"
+          BUILD_NUMBER=$(python3 -c "
+import re
+version = '$VERSION'
+# Parse version components
+match = re.match(r'(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-rc\.(\d+))?', version)
+if match:
+    major = int(match.group(1) or 0)
+    minor = int(match.group(2) or 0)
+    patch = int(match.group(3) or 0)
+    rc = int(match.group(4) or 0)
+    # Format: MMmmpprc (2 digits each: major, minor, patch, rc)
+    build_num = major * 1000000 + minor * 10000 + patch * 100 + rc
+    print(f'{build_num:08d}')
+else:
+    print('1000000')  # fallback
+")
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+          echo "Generated build number: $BUILD_NUMBER for version: $VERSION"
+
+  build:
+    name: Build and sign app
+    runs-on: macos-latest
+    needs: preparation
+    steps:
+      - uses: xt0rted/pull-request-comment-branch@v1 # check out branch of PR
+        id: comment-branch
+      - uses: actions/checkout@v3
+        if: success()
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+      - name: Install the Apple certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificate from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+      - name: Switch Xcode version
+        run: |
+          sudo xcode-select -s "/Applications/Xcode_16.4.app"
+          /usr/bin/xcodebuild -version
+      - name: Set build number in project
+        run: |
+          # Set the build number (CURRENT_PROJECT_VERSION)
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${{ needs.preparation.outputs.build_number }}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
+          echo "Set build number to: ${{ needs.preparation.outputs.build_number }}"
+      - name: Build and archive # create archive
+        run: xcodebuild clean archive -project ${{ env.projname }}.xcodeproj -scheme ${{ env.projname }} -archivePath ${{ env.projname }}
+      - name: Export app # create .app
+        run: xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "Configuration/export_options.plist"
+      - name: Sign with Sparkle EdDSA key (for future use)
+        env:
+          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+        run: |
+          echo -n "$PRIVATE_SPARKLE_KEY" > ./sparkle_private_key
+          # Create signature file for future Sparkle integration
+          if command -v ./Configuration/generate_appcast >/dev/null 2>&1; then
+            ./Configuration/generate_appcast --ed-key-file sparkle_private_key --generate-signatures Release/
+          else
+            echo "Sparkle generate_appcast not found - skipping signature generation"
+          fi
+          rm sparkle_private_key
+      - name: Create DMG
+        run: |
+          cd Release
+          # Create a simple DMG (you may want to customize this with a background image, etc.)
+          hdiutil create -volname "boringNotch ${{ needs.preparation.outputs.version }}" \
+                          -srcfolder "${{ env.projname }}.app" \
+                          -ov -format UDZO \
+                          "${{ env.projname }}.dmg"
+      - name: Upload built app
+        uses: actions/upload-artifact@master
+        with:
+          name: app-${{ needs.preparation.outputs.version }}
+          path: |
+            Release/${{ env.projname }}.dmg
+            Release/${{ env.projname }}.app
+
+  ending:
+    name: Ending job
+    if: ${{ always() && github.event.issue.pull_request && contains(github.event.comment.body, '/build') && github.event.comment.user.login == github.repository_owner }}
+    runs-on: ubuntu-latest
+    needs: [preparation, build]
+    steps:
+      - uses: actions/download-artifact@master
+        with:
+          path: artifacts
+      - name: Parse deployment info
+        id: info
+        run: |
+          echo "deployment_id=$(cat artifacts/deployment-info/deployment_id)" >> $GITHUB_OUTPUT
+      - name: Add success reactions
+        if: ${{ needs.build.result == 'success' }}
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: rocket
+      - name: Update deployment status (success)
+        uses: bobheadxi/deployments@v1
+        if: ${{ needs.build.result == 'success' }}
+        with:
+            step: finish
+            token: ${{ secrets.GITHUB_TOKEN }}
+            status: success
+            env: ${{ needs.preparation.outputs.is_beta == 'true' && 'build-beta' || 'build-release' }}
+            deployment_id: ${{ steps.info.outputs.deployment_id }}
+      - name: Add negative reaction
+        if: ${{ needs.build.result == 'failure' }}
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: confused
+      - name: Update deployment status (failure)
+        uses: bobheadxi/deployments@v1
+        if: ${{ needs.build.result == 'failure' }}
+        with:
+            step: finish
+            token: ${{ secrets.GITHUB_TOKEN }}
+            status: failure
+            env: ${{ needs.preparation.outputs.is_beta == 'true' && 'build-beta' || 'build-release' }}
+            deployment_id: ${{ steps.info.outputs.deployment_id }}
+      - name: Create summary
+        run: |
+          BUILD_TYPE="stable"
+          if [[ "${{ needs.preparation.outputs.is_beta }}" == "true" ]]; then
+            BUILD_TYPE="beta"
+          fi
+          
+          if [[ "${{ needs.build.result }}" == "success" ]]; then
+            echo "✅ Successfully built boringNotch v${{ needs.preparation.outputs.version }} ($BUILD_TYPE build ${{ needs.preparation.outputs.build_number }})" >> $GITHUB_STEP_SUMMARY
+            echo "📦 DMG and app files are available in the artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Build failed for boringNotch v${{ needs.preparation.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          fi
