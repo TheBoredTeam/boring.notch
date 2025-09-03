@@ -68,6 +68,7 @@ jobs:
             });
             if (pr.data.draft || !pr.data.mergeable) {
               core.setFailed("PR is not ready to be merged");
+            }
       - uses: actions/checkout@v3
         if: success()
         with:
