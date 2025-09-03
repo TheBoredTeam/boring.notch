@@ -21,7 +21,6 @@ struct DynamicNotchApp: App {
 	
 	@ObservedObject var focusManager = FocusManager.shared
 
-
     let updaterController: SPUStandardUpdaterController
 
     init() {
@@ -317,6 +316,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 		focusManager.$frontToggle
 			.sink { [weak self] _ in
 					self?.front()
+			}
+			.store(in: &cancellables)
+
+		focusManager.$airDropFileDialogIsOpen
+			.sink { [weak self] airDropFileDialogIsOpen in
+				if airDropFileDialogIsOpen {
+					self?.front()
+				} else {
+					self?.resign()
+				}
 			}
 			.store(in: &cancellables)
 

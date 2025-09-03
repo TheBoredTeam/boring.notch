@@ -292,6 +292,7 @@ struct ContentView: View {
                         NotchShelfView()
 					case .notes:
 						NotchNotesView()
+								.environmentObject(vm)
 								.environmentObject(notesManager)
 								.environmentObject(focusManager)
 
@@ -300,18 +301,18 @@ struct ContentView: View {
             }
 			.onChange(of: coordinator.currentView) {
 				if coordinator.currentView == .notes {
-					focusManager.notesTabIsOpen = true
+					focusManager.frontRequiringTabIsOpen = true
 				} else {
-					focusManager.notesTabIsOpen = false
+					focusManager.frontRequiringTabIsOpen = false
 				}
 			}
 			.onChange(of: vm.notchState) { _, notchState in
 				focusManager.notchIsOpen = (notchState == .open ? true : false)
 				if notchState == .open {
 					if coordinator.currentView == .notes {
-						focusManager.notesTabIsOpen = true
+						focusManager.frontRequiringTabIsOpen = true
 					} else {
-						focusManager.notesTabIsOpen = false
+						focusManager.frontRequiringTabIsOpen = false
 
 					}
 				}

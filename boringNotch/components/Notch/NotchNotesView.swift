@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct NotchNotesView: View {
-	@EnvironmentObject var notesManager: NotesManager
 
+	@EnvironmentObject var vm: BoringViewModel
+	@EnvironmentObject var notesManager: NotesManager
 	@EnvironmentObject var focusManager: FocusManager
 
 	@State private var searchText: String = ""

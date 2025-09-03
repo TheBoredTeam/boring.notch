@@ -18,7 +18,11 @@ class BoringViewModel: NSObject, ObservableObject {
     let animation: Animation?
 
 	@Published var contentType: ContentType = .normal
+
 	@Published private(set) var notchState: NotchState = .closed
+	@Published var lockOpen = false
+
+	private var cancellable: AnyCancellable?
 
     @Published var dragDetectorTargeting: Bool = false
     @Published var dropZoneTargeting: Bool = false
@@ -38,7 +42,8 @@ class BoringViewModel: NSObject, ObservableObject {
     let webcamManager = WebcamManager.shared
     @Published var isCameraExpanded: Bool = false
     @Published var isRequestingAuthorization: Bool = false
-    
+
+
     deinit {
         destroy()
     }
@@ -49,10 +54,19 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     init(screen: String? = nil) {
+
         animation = animationLibrary.animation
 
         super.init()
-        
+
+		cancellable = Defaults.publisher(.showLockOption)
+			.sink { [weak self] change in
+				if !change.newValue {
+					self?.lockOpen = false
+					self?.close()
+				}
+			}
+
         self.screen = screen
         notchSize = getClosedNotchSize(screen: screen)
         closedNotchSize = notchSize
@@ -178,20 +192,22 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func close() {
-        withAnimation(.smooth) { [weak self] in
-            guard let self = self else { return }
-            self.notchSize = getClosedNotchSize(screen: self.screen)
-            self.closedNotchSize = self.notchSize
-            self.notchState = .closed
-        }
+		if !lockOpen {
+			withAnimation(.smooth) { [weak self] in
+				guard let self = self else { return }
+				self.notchSize = getClosedNotchSize(screen: self.screen)
+				self.closedNotchSize = self.notchSize
+				self.notchState = .closed
+			}
 
-        // Set the current view to shelf if it contains files and the user enables openShelfByDefault
-        // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-        if !TrayDrop.shared.isEmpty && Defaults[.openShelfByDefault] {
-            coordinator.currentView = .shelf
-        } else if !coordinator.openLastTabByDefault {
-            coordinator.currentView = .home
-        }
+				// Set the current view to shelf if it contains files and the user enables openShelfByDefault
+				// Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
+			if !TrayDrop.shared.isEmpty && Defaults[.openShelfByDefault] {
+				coordinator.currentView = .shelf
+			} else if !coordinator.openLastTabByDefault {
+				coordinator.currentView = .home
+			}
+		}
     }
 
     func closeHello() {

@@ -20,10 +20,10 @@ final class FocusManager: ObservableObject {
 		}
 	}
 
-	@Published var notesTabIsOpen: Bool = false {
+	@Published var frontRequiringTabIsOpen: Bool = false {
 		didSet {
 			updateFocus()
-			print("notesTabIsOpen: \(notesTabIsOpen)")
+			print("notesTabIsOpen: \(frontRequiringTabIsOpen)")
 
 		}
 	}
@@ -34,8 +34,14 @@ final class FocusManager: ObservableObject {
 		}
 	}
 
+	@Published var airDropFileDialogIsOpen = false {
+		didSet {
+			print("airDropFileDialogIsOpen: \(airDropFileDialogIsOpen)")
+		}
+	}
+
 	var editorCanFocus: Bool {
-		notesTabIsOpen
+		frontRequiringTabIsOpen
 	}
 
 	@Published var resignToggle = false
@@ -48,7 +54,7 @@ final class FocusManager: ObservableObject {
 			return true
 		} else {
 			if notchIsOpen {
-				if notesTabIsOpen {
+				if frontRequiringTabIsOpen {
 					return true
 				} else {
 					return false
@@ -63,14 +69,14 @@ final class FocusManager: ObservableObject {
 
 		if notchIsOpen {
 			if settingsIsOpen {
-				if notesTabIsOpen {
+				if frontRequiringTabIsOpen {
 					NSApp.keyWindow?.makeFirstResponder(NSResponder.init())
 					frontToggle.toggle()
 				} else {
 					resignToggle.toggle()
 				}
 			} else {
-				if notesTabIsOpen {
+				if frontRequiringTabIsOpen {
 					NSApp.keyWindow?.makeFirstResponder(NSResponder.init())
 					frontToggle.toggle()
 				} else {
