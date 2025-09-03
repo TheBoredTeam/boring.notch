@@ -909,6 +909,16 @@
       },
       "shouldTranslate" : false
     },
+    "%lld second%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld second%2$@"
+          }
+        }
+      }
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -1610,6 +1620,9 @@
           }
         }
       }
+    },
+    "Active" : {
+
     },
     "Add" : {
       "localizations" : {
@@ -2811,6 +2824,9 @@
         }
       }
     },
+    "Auto-start monitoring when Stats tab is opened" : {
+
+    },
     "Automatically check for updates" : {
       "localizations" : {
         "ar" : {
@@ -3110,6 +3126,9 @@
           }
         }
       }
+    },
+    "Average" : {
+
     },
     "Battery" : {
       "localizations" : {
@@ -4711,6 +4730,12 @@
         }
       }
     },
+    "Clear" : {
+
+    },
+    "Clear History" : {
+
+    },
     "Close" : {
       "localizations" : {
         "ar" : {
@@ -5210,6 +5235,12 @@
           }
         }
       }
+    },
+    "Current" : {
+
+    },
+    "Current Status" : {
+
     },
     "Custom height" : {
       "localizations" : {
@@ -7610,6 +7641,12 @@
           }
         }
       }
+    },
+    "Enable Stats feature" : {
+
+    },
+    "Enable stats monitoring in Settings to view system performance data." : {
+
     },
     "Enable window shadow" : {
       "localizations" : {
@@ -10213,6 +10250,9 @@
         }
       }
     },
+    "Last updated: %@" : {
+
+    },
     "Later" : {
       "localizations" : {
         "ar" : {
@@ -10312,6 +10352,9 @@
           }
         }
       }
+    },
+    "Live" : {
+
     },
     "Lottie JSON URL" : {
       "localizations" : {
@@ -10612,6 +10655,9 @@
           }
         }
       }
+    },
+    "Lower update intervals provide more responsive monitoring but may use more system resources." : {
+
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
@@ -12413,6 +12459,9 @@
         }
       }
     },
+    "Monitoring Status" : {
+
+    },
     "More" : {
       "localizations" : {
         "ar" : {
@@ -13913,6 +13962,9 @@
         }
       }
     },
+    "Off" : {
+
+    },
     "OK" : {
       "localizations" : {
         "ar" : {
@@ -14512,6 +14564,12 @@
           }
         }
       }
+    },
+    "Peak" : {
+
+    },
+    "Performance" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -17813,6 +17871,27 @@
         }
       }
     },
+    "Start" : {
+
+    },
+    "Start Monitoring" : {
+
+    },
+    "Stats" : {
+
+    },
+    "Stats Disabled" : {
+
+    },
+    "Stats feature provides real-time CPU, Memory, and GPU usage monitoring." : {
+
+    },
+    "Stop" : {
+
+    },
+    "Stop Monitoring" : {
+
+    },
     "Stopped" : {
       "localizations" : {
         "ar" : {
@@ -18812,6 +18891,12 @@
           }
         }
       }
+    },
+    "Update interval" : {
+
+    },
+    "Update interval: %lld seconds" : {
+
     },
     "Upgrade to Pro" : {
       "localizations" : {

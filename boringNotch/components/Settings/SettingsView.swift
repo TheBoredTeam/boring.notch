@@ -60,6 +60,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Stats") {
+                    Label("Stats", systemImage: "chart.line.uptrend.xyaxis")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -90,6 +93,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Stats":
+                    Stats()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1316,6 +1321,200 @@ func warningBadge(_ text: String, _ description: String) -> some View {
             }
             Spacer()
         }
+    }
+}
+
+struct Stats: View {
+    @ObservedObject var statsManager = StatsManager.shared
+    @Default(.enableStatsFeature) var enableStatsFeature
+    @Default(.autoStartStatsMonitoring) var autoStartStatsMonitoring
+    @Default(.statsUpdateInterval) var statsUpdateInterval
+    
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .enableStatsFeature) {
+                    Text("Enable Stats feature")
+                }
+                .onChange(of: enableStatsFeature) {
+                    if !enableStatsFeature && statsManager.isMonitoring {
+                        statsManager.stopMonitoring()
+                    }
+                }
+                
+                Defaults.Toggle(key: .autoStartStatsMonitoring) {
+                    Text("Auto-start monitoring when Stats tab is opened")
+                }
+                .disabled(!enableStatsFeature)
+                
+            } header: {
+                Text("General")
+            } footer: {
+                Text("Stats feature provides real-time CPU, Memory, and GPU usage monitoring.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            
+            Section {
+                HStack {
+                    Text("Update interval")
+                    Spacer()
+                    Text("\(Int(statsUpdateInterval)) second\(statsUpdateInterval == 1 ? "" : "s")")
+                        .foregroundStyle(.secondary)
+                }
+                
+                Slider(value: $statsUpdateInterval, in: 1...5, step: 1) {
+                    Text("Update interval: \(Int(statsUpdateInterval)) seconds")
+                }
+                .disabled(!enableStatsFeature)
+                
+            } header: {
+                Text("Performance")
+            } footer: {
+                Text("Lower update intervals provide more responsive monitoring but may use more system resources.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            
+            Section {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Monitoring Status")
+                            .font(.headline)
+                        
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(statsManager.isMonitoring ? .green : .red)
+                                .frame(width: 8, height: 8)
+                            
+                            Text(statsManager.isMonitoring ? "Active" : "Stopped")
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        if statsManager.isMonitoring {
+                            Text("Last updated: \(formatLastUpdated(statsManager.lastUpdated))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(spacing: 8) {
+                        if statsManager.isMonitoring {
+                            Button("Stop Monitoring") {
+                                statsManager.stopMonitoring()
+                            }
+                            .buttonStyle(.bordered)
+                        } else {
+                            Button("Start Monitoring") {
+                                statsManager.startMonitoring()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(!enableStatsFeature)
+                        }
+                        
+                        Button("Clear History") {
+                            statsManager.clearHistory()
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(statsManager.isMonitoring)
+                    }
+                }
+                
+                if enableStatsFeature && statsManager.isMonitoring {
+                    Divider()
+                    
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
+                        StatsSummaryCard(
+                            title: "CPU",
+                            current: statsManager.cpuUsageString,
+                            average: String(format: "%.1f%%", statsManager.avgCpuUsage),
+                            peak: String(format: "%.1f%%", statsManager.maxCpuUsage),
+                            color: .blue
+                        )
+                        
+                        StatsSummaryCard(
+                            title: "Memory",
+                            current: statsManager.memoryUsageString,
+                            average: String(format: "%.1f%%", statsManager.avgMemoryUsage),
+                            peak: String(format: "%.1f%%", statsManager.maxMemoryUsage),
+                            color: .green
+                        )
+                        
+                        StatsSummaryCard(
+                            title: "GPU",
+                            current: statsManager.gpuUsageString,
+                            average: String(format: "%.1f%%", statsManager.avgGpuUsage),
+                            peak: String(format: "%.1f%%", statsManager.maxGpuUsage),
+                            color: .purple
+                        )
+                    }
+                }
+                
+            } header: {
+                Text("Current Status")
+            }
+        }
+        .navigationTitle("Stats")
+    }
+    
+    private func formatLastUpdated(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .medium
+        return formatter.string(from: date)
+    }
+}
+
+struct StatsSummaryCard: View {
+    let title: String
+    let current: String
+    let average: String
+    let peak: String
+    let color: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("Current")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(current)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(color)
+                }
+                
+                HStack {
+                    Text("Average")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(average)
+                        .font(.caption)
+                        .foregroundColor(color)
+                }
+                
+                HStack {
+                    Text("Peak")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(peak)
+                        .font(.caption)
+                        .foregroundColor(color)
+                }
+            }
+        }
+        .padding(8)
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(6)
     }
 }
 

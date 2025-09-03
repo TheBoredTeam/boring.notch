@@ -283,6 +283,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         NotchShelfView()
+                    case .stats:
+                        StatsView()
                     }
                 }
             }
