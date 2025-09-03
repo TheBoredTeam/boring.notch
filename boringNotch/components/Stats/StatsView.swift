@@ -107,66 +107,19 @@ struct StatsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding()
             } else {
-                // Stats content with improved animation coordination
-                ZStack(alignment: .topTrailing) {
-                    VStack(spacing: 12) {
-                        // Simplified consistent layout
-                        statsGridLayout
-                    }
-                    .padding(16)
-                    .animation(.easeInOut(duration: 0.4), value: availableGraphs.count)
-                    .transition(.asymmetric(
-                        insertion: .scale.combined(with: .opacity).animation(.easeInOut(duration: 0.4)),
-                        removal: .scale.combined(with: .opacity).animation(.easeInOut(duration: 0.4))
-                    ))
-                    
-                    // Live indicator and controls in top-right corner
-                    HStack(spacing: 8) {
-                        // Control buttons
-                        HStack(spacing: 4) {
-                            if statsManager.isMonitoring {
-                                Button("Stop") {
-                                    statsManager.stopMonitoring()
-                                }
-                                .buttonStyle(.bordered)
-                                .foregroundColor(.red)
-                                .controlSize(.mini)
-                            } else {
-                                Button("Start") {
-                                    statsManager.startMonitoring()
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .controlSize(.mini)
-                            }
-                            
-                            Button("Clear") {
-                                statsManager.clearHistory()
-                            }
-                            .buttonStyle(.bordered)
-                            .disabled(statsManager.isMonitoring)
-                            .controlSize(.mini)
-                        }
-                        .font(.caption2)
-                        
-                        // Live indicator
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(statsManager.isMonitoring ? .green : .red)
-                                .frame(width: 6, height: 6)
-                            
-                            Text(statsManager.isMonitoring ? "Live" : "Off")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding(.top, 8)
-                    .padding(.trailing, 12)
+                // Stats content - simplified layout without controls
+                VStack(spacing: 12) {
+                    statsGridLayout
                 }
+                .padding(16)
+                .animation(.easeInOut(duration: 0.4), value: availableGraphs.count)
+                .transition(.asymmetric(
+                    insertion: .scale.combined(with: .opacity).animation(.easeInOut(duration: 0.4)),
+                    removal: .scale.combined(with: .opacity).animation(.easeInOut(duration: 0.4))
+                ))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.windowBackgroundColor).opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
         .onAppear {
             if enableStatsFeature && Defaults[.autoStartStatsMonitoring] && !statsManager.isMonitoring {
                 statsManager.startMonitoring()

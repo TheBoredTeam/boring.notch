@@ -4730,9 +4730,6 @@
         }
       }
     },
-    "Clear" : {
-
-    },
     "Clear History" : {
 
     },
@@ -10353,9 +10350,6 @@
         }
       }
     },
-    "Live" : {
-
-    },
     "Lottie JSON URL" : {
       "localizations" : {
         "ar" : {
@@ -13961,9 +13955,6 @@
           }
         }
       }
-    },
-    "Off" : {
-
     },
     "OK" : {
       "localizations" : {
@@ -17871,9 +17862,6 @@
         }
       }
     },
-    "Start" : {
-
-    },
     "Start Monitoring" : {
 
     },
@@ -17884,9 +17872,6 @@
 
     },
     "Stats feature provides real-time CPU, Memory, and GPU usage monitoring." : {
-
-    },
-    "Stop" : {
 
     },
     "Stop Monitoring" : {
