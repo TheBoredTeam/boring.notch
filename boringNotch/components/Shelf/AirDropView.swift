@@ -13,7 +13,9 @@ struct AirDropView: View {
     
     @State var trigger: UUID = .init()
     @State var targeting = false
-    
+
+	@ObservedObject var focusManager = FocusManager.shared
+
     var body: some View {
         dropArea
             .onDrop(of: [.data], isTargeted: $vm.dropZoneTargeting) { providers in
@@ -34,30 +36,36 @@ struct AirDropView: View {
             .contentShape(Rectangle())
     }
     
-    var dropLabel: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "airplayaudio")
-            Text("AirDrop")
-        }
-        .foregroundStyle(.gray)
-        .font(.system(.headline, design: .rounded))
-        .contentShape(Rectangle())
-        .onTapGesture {
-            trigger = .init()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                let picker = NSOpenPanel()
-                picker.allowsMultipleSelection = true
-                picker.canChooseDirectories = true
-                picker.canChooseFiles = true
-                picker.begin { response in
-                    if response == .OK {
-                        let drop = AirDrop(files: picker.urls)
-                        drop.begin()
-                    }
-                }
-            }
-        }
-    }
+	var dropLabel: some View {
+		VStack(spacing: 8) {
+			Image(systemName: "airplayaudio")
+			Text("AirDrop")
+		}
+		.foregroundStyle(.gray)
+		.font(.system(.headline, design: .rounded))
+		.contentShape(Rectangle())
+		.onTapGesture {
+			let previousLockState = vm.lockOpen
+			vm.lockOpen = true
+			trigger = .init()
+			DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+				focusManager.frontRequiringTabIsOpen = true
+				let picker = NSOpenPanel()
+				picker.allowsMultipleSelection = true
+				picker.canChooseDirectories = true
+				picker.canChooseFiles = true
+				picker.begin { response in
+					if response == .OK {
+						let drop = AirDrop(files: picker.urls)
+						drop.begin()
+					}
+					vm.lockOpen = previousLockState
+					focusManager.frontRequiringTabIsOpen = false
+					vm.close()
+				}
+			}
+		}
+	}
     
     func beginDrop(_ providers: [NSItemProvider]) {
         assert(!Thread.isMainThread)

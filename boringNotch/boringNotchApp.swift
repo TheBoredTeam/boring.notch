@@ -16,22 +16,25 @@ import SwiftUI
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Default(.menubarIcon) var showMenuBarIcon
-    @Environment(\.openWindow) var openWindow
+
+	@Environment(\.openSettings) private var openSettings
+	
+	@ObservedObject var focusManager = FocusManager.shared
 
     let updaterController: SPUStandardUpdaterController
 
     init() {
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-
-        // Initialize the settings window controller with the updater controller
-        SettingsWindowController.shared.setUpdaterController(updaterController)
+        // Settings view will be presented via SwiftUI WindowGroup
     }
 
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             Button("Settings") {
-                SettingsWindowController.shared.showWindow()
+				openSettings()
+				focusManager.frontToggle.toggle()
+
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)
@@ -57,6 +60,11 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
+
+		Settings {
+			SettingsView(updaterController: updaterController)
+				.environmentObject(FocusManager.shared)
+		}
     }
 }
 
@@ -72,6 +80,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var closeNotchWorkItem: DispatchWorkItem?
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
+	@ObservedObject var focusManager = FocusManager.shared
+
+	var cancellables = Set<AnyCancellable>()
+
+	@Environment(\.openSettings) private var openSettings
+
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -131,6 +145,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
         return window
     }
+
+	func resign() {
+		window?.resignFirstResponder()
+		window?.resignKey()
+		window?.resignMain()
+		print("resigning")
+	}
+
+	func front() {
+		window?.makeKeyAndOrderFront(nil)
+		window?.makeFirstResponder(NSResponder.init())
+		NSApp.activate(ignoringOtherApps: true)
+		NSApp.windows.first?.makeKeyAndOrderFront(nil)
+		print("fronting")
+	}
+
+	func bringAppToFront() {
+		NSApp.activate(ignoringOtherApps: true)
+		NSApp.windows.first?.makeKeyAndOrderFront(nil)
+	}
+
+
+
 
     private func positionWindow(_ window: NSWindow, on screen: NSScreen, changeAlpha: Bool = false)
     {
@@ -249,6 +286,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 viewModel.close()
             }
         }
+
+
+		focusManager.$resignToggle
+			.sink { [weak self] _ in
+					self?.resign()
+			}
+			.store(in: &cancellables)
+
+		focusManager.$frontToggle
+			.sink { [weak self] _ in
+					self?.front()
+			}
+			.store(in: &cancellables)
+
+		focusManager.$airDropFileDialogIsOpen
+			.sink { [weak self] airDropFileDialogIsOpen in
+				if airDropFileDialogIsOpen {
+					self?.front()
+				} else {
+					self?.resign()
+				}
+			}
+			.store(in: &cancellables)
 
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
@@ -415,7 +475,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     },
                     onOpenSettings: {
                         window.close()
-                        SettingsWindowController.shared.showWindow()
+						self.openSettings()
                     }
                 ))
             window.isRestorable = false

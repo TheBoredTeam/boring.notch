@@ -13,6 +13,10 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = TrayDrop.shared
+
+	@ObservedObject var focusManager = FocusManager.shared
+
+	@Environment(\.openSettings) private var openSettings
     var body: some View {
         HStack(spacing: 0) {
             HStack {
@@ -40,6 +44,12 @@ struct BoringHeader: View {
 
             HStack(spacing: 4) {
                 if vm.notchState == .open {
+
+					if Defaults[.showLockOption] {
+						HoverLockButton()
+							.environmentObject(vm)
+					}
+
                     if Defaults[.showMirror] {
                         Button(action: {
                             vm.toggleCameraPreview()
@@ -57,9 +67,11 @@ struct BoringHeader: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     if Defaults[.settingsIconInNotch] {
-                        Button(action: {
-                            SettingsWindowController.shared.showWindow()
-                        }) {
+                            Button(action: {
+								openSettings()
+								focusManager.frontToggle.toggle()
+
+                            }) {
                             Capsule()
                                 .fill(.black)
                                 .frame(width: 30, height: 30)
