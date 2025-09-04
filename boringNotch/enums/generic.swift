@@ -67,3 +67,9 @@ enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
     case albumArt = "Match album art"
     case accent = "Accent color"
 }
+
+enum Background: String, CaseIterable, Defaults.Serializable {
+	case black = "Black"
+	case ultraThinMaterial = "Thin Material"
+	case blur = "Liquid Glass"
+}

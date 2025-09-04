@@ -959,7 +959,11 @@ struct Appearance: View {
     @State private var name: String = ""
     @State private var url: String = ""
     @State private var speed: CGFloat = 1.0
+
+
     var body: some View {
+		@Default(.background) var background: Background
+
         Form {
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
@@ -978,6 +982,19 @@ struct Appearance: View {
             } header: {
                 Text("General")
             }
+
+			Section {
+				Picker("", selection: $background) {
+					ForEach(Background.allCases, id: \.self) { option in
+
+								Text(option.rawValue).tag(option)
+
+						}
+				}
+				.pickerStyle(.inline)
+			} header: {
+				Text("Background")
+			}
 
             Section {
                 Defaults.Toggle(key: .coloredSpectrogram) {

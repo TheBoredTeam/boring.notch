@@ -3111,6 +3111,9 @@
         }
       }
     },
+    "Background" : {
+
+    },
     "Battery" : {
       "localizations" : {
         "ar" : {

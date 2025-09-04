@@ -20,6 +20,7 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+	@ObservedObject var backgroundManager = BackgroundManager()
 
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
@@ -53,7 +54,7 @@ struct ContentView: View {
                         : cornerRadiusInsets.closed.bottom
                 )
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                .background(.black)
+				.background(backgroundManager.background)
                 .mask {
                     ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
                         ? NotchShape(
@@ -188,6 +189,7 @@ struct ContentView: View {
         )
         .background(dragDetector)
         .environmentObject(vm)
+		preferredColorScheme(.dark)
     }
 
     @ViewBuilder
