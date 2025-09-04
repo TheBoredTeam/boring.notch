@@ -199,17 +199,26 @@ struct CalendarView: View {
 
                 ZStack(alignment: .top) {
                     WheelPicker(selectedDate: $selectedDate, config: Config())
-                    HStack(alignment: .top) {
-                        LinearGradient(
-                            colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
-                        Spacer()
-                        LinearGradient(
-                            colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
-                    }
+						.mask(
+							HStack(spacing: 0) {
+
+								LinearGradient(gradient:
+												Gradient(
+													colors: [Color.black.opacity(0), Color.black]),
+											   startPoint: .leading, endPoint: .trailing
+								)
+								.frame(width: 30)
+
+								Rectangle().fill(Color.black)
+
+								LinearGradient(gradient:
+												Gradient(
+													colors: [Color.black, Color.black.opacity(0)]),
+											   startPoint: .leading, endPoint: .trailing
+								)
+								.frame(width: 30)
+							}
+						)
                 }
             }
 
