@@ -71,7 +71,6 @@ struct SettingsView: View {
 					Label("About", systemImage: "info.circle")
 				}
 			}
-			
 			.navigationSplitViewColumnWidth(250)
 			.listStyle(SidebarListStyle())
 			.toolbar(removing: .sidebarToggle)
@@ -136,24 +135,20 @@ struct SettingsView: View {
 					}
 				}
 			}
-
+			.toolbar {
+				ToolbarItem(placement: .navigation) {
+					Button("Quit app") {
+						NSApp.terminate(self)
+					}
+				}
+			}
 			.navigationSplitViewColumnWidth(500)
 			.animation(.easeInOut(duration: 0.15), value: selectedTab)
-			.frame(maxWidth: .infinity, maxHeight: .infinity)
 		}
 		.onAppear { focusManager.settingsIsOpen = true }
 		.onDisappear() { focusManager.settingsIsOpen = false }
-		.navigationSplitViewStyle(.balanced)
-		.toolbar(removing: .sidebarToggle)
 		.environmentObject(extensionManager)
 		.formStyle(.grouped)
-		.toolbar {
-			ToolbarItem(placement: .cancellationAction) {
-				Button("Quit app") {
-					NSApp.terminate(self)
-				}
-			}
-		}
 	}
 }
 
@@ -446,7 +441,7 @@ struct Downloads: View {
 			}
 		}
 		.navigationTitle("Downloads")
-	}
+
 }
 
 struct HUD: View {

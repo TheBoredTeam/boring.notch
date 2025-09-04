@@ -136,18 +136,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             defer: false
         )
 
-
-//		NotesManager.shared.$editorCanFocus
-//			.sink { canFocus in
-//				if canFocus {
-//					self.window?.makeKeyAndOrderFront(nil)
-//				} else {
-//					self.window?.resignKey()
-//				}
-//			}
-//			.store(in: &cancellables)
-
-
         window.contentView = NSHostingView(
             rootView: ContentView()
                 .environmentObject(viewModel)
@@ -168,12 +156,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	func front() {
 		window?.makeKeyAndOrderFront(nil)
 		window?.makeFirstResponder(NSResponder.init())
-
 		NSApp.activate(ignoringOtherApps: true)
 		NSApp.windows.first?.makeKeyAndOrderFront(nil)
-
 		print("fronting")
-
 	}
 
 	func bringAppToFront() {
