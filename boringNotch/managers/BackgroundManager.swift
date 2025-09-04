@@ -10,7 +10,9 @@ import SwiftUI
 
 @MainActor
 class BackgroundManager: ObservableObject {
-	let vm = BoringViewModel()
+	static let shared = BackgroundManager()
+
+	private init() {}
 
 	var background: some View {
 		switch Defaults[.background] {
@@ -24,20 +26,6 @@ class BackgroundManager: ObservableObject {
 				Color.clear
 					.background(.ultraThinMaterial)
 			)
-
-		case .blur:
-
-				if #available(macOS 26.0, *) {
-					return AnyView(
-					Color.clear
-						.glassEffect(.clear, in: Rectangle())
-					)
-				} else {
-					return AnyView(
-					Color.clear
-					)
-				}
-
 		}
 	}
 }

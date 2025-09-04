@@ -951,6 +951,7 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+	@Default(.background) var background
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
@@ -962,7 +963,6 @@ struct Appearance: View {
 
 
     var body: some View {
-		@Default(.background) var background: Background
 
         Form {
             Section {

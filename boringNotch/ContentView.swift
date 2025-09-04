@@ -20,7 +20,7 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
-	@ObservedObject var backgroundManager = BackgroundManager()
+	@ObservedObject var backgroundManager = BackgroundManager.shared
 
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
@@ -189,7 +189,7 @@ struct ContentView: View {
         )
         .background(dragDetector)
         .environmentObject(vm)
-		preferredColorScheme(.dark)
+		.preferredColorScheme(.dark)
     }
 
     @ViewBuilder
