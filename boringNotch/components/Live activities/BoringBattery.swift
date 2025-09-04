@@ -28,6 +28,19 @@ struct BatteryView: View {
         }
     }
 
+		/// Determines the icon to display when charging.
+	var iconStatusView: Image {
+		if isCharging {
+			return Image(systemName: "bolt")
+		}
+		else if isPluggedIn {
+			return Image(systemName: "powerplug.portrait.fill")
+		}
+		else {
+			return Image(systemName: "")
+		}
+	}
+
     /// Determines the color of the battery based on its status.
     var batteryColor: Color {
         if isInLowPowerMode {
@@ -41,41 +54,88 @@ struct BatteryView: View {
         }
     }
 
-    var body: some View {
-        ZStack(alignment: .leading) {
+//    var body: some View {
+//        ZStack(alignment: .leading) {
+//
+//            Image(systemName: icon)
+//                .resizable()
+//                .fontWeight(.thin)
+//                .aspectRatio(contentMode: .fit)
+//                .foregroundColor(.white.opacity(0.5))
+//                .frame(
+//                    width: batteryWidth + 1
+//                )
+//
+//            RoundedRectangle(cornerRadius: 2.5)
+//                .fill(batteryColor)
+//                .frame(
+//                    width: CGFloat(((CGFloat(CFloat(levelBattery)) / 100) * (batteryWidth - 6))),
+//                    height: (batteryWidth - 2.75) - 18
+//                )
+//                .padding(.leading, 2)
+//
+//            if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
+//                ZStack {
+//                    iconStatusView
+//                        .resizable()
+//                        .aspectRatio(contentMode: .fit)
+//                        .foregroundColor(.white)
+//                        .frame(
+//                            width: 17,
+//                            height: 17
+//                        )
+//						.mask(
+//							iconStatusView
+//								.resizable()
+//								.frame(
+//									width: 17,
+//									height: 17
+//								)
+//								.padding(4) // expands the mask
+//								.compositingGroup()
+//								.luminanceToAlpha()
+//						)
+//						.blendMode(.destinationOut) // removes underlying pixels
+//
+//
+//                }
+//                .frame(width: batteryWidth, height: batteryWidth)
+//            }
+//        }
+//    }
+	var body: some View {
+		ZStack(alignment: .center) {
 
-            Image(systemName: icon)
-                .resizable()
-                .fontWeight(.thin)
-                .aspectRatio(contentMode: .fit)
-                .foregroundColor(.white.opacity(0.5))
-                .frame(
-                    width: batteryWidth + 1
-                )
+			ZStack(alignment: .leading) {
+				Image(systemName: icon)
+					.resizable()
+					.fontWeight(.thin)
+					.aspectRatio(contentMode: .fit)
+					.foregroundColor(.white.opacity(0.5))
+					.frame(width: batteryWidth + 1)
 
-            RoundedRectangle(cornerRadius: 2.5)
-                .fill(batteryColor)
-                .frame(
-                    width: CGFloat(((CGFloat(CFloat(levelBattery)) / 100) * (batteryWidth - 6))),
-                    height: (batteryWidth - 2.75) - 18
-                )
-                .padding(.leading, 2)
 
-            if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
-                ZStack {
-                    Image(iconStatus)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .foregroundColor(.white)
-                        .frame(
-                            width: 17,
-                            height: 17
-                        )
-                }
-                .frame(width: batteryWidth, height: batteryWidth)
-            }
-        }
-    }
+				RoundedRectangle(cornerRadius: 2.5)
+					.fill(batteryColor)
+					.frame(
+						width: CGFloat((CGFloat(CFloat(levelBattery)) / 100) * (batteryWidth - 6)),
+						height: (batteryWidth - 2.75) - 18
+					)
+					.padding(.leading, 2)
+
+			}
+			if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
+				iconStatusView
+					.resizable()
+					.aspectRatio(contentMode: .fit)
+					.foregroundStyle(.white)
+					.frame(width: 17, height: 17)
+
+			}
+
+		}
+	}
+
 }
 
 /// A view that displays detailed battery information and settings.
