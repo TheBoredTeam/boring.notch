@@ -395,7 +395,7 @@ struct Downloads: View {
 					Text("Both")
 						.tag(DownloadIconStyle.iconAndAppIcon)
 				}
-
+				
 			} header: {
 				HStack {
 					Text("Download indicators")
@@ -423,7 +423,7 @@ struct Downloads: View {
 								.contentShape(Rectangle())
 								.foregroundStyle(.secondary)
 						}
-
+						
 						Divider()
 						Button {} label: {
 							Image(systemName: "minus")
@@ -441,7 +441,8 @@ struct Downloads: View {
 			}
 		}
 		.navigationTitle("Downloads")
-
+		
+	}
 }
 
 struct HUD: View {
