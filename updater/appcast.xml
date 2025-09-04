@@ -1,6 +1,37 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
-    <channel>        
+    <channel>  
+        <item>
+            <title>v2.7 – Flying Rabbit RC 3</title>
+            <pubDate>Mon, 25 Aug 2025 10:05:48 +0530</pubDate>
+            <sparkle:version>2.7-rc.3+1</sparkle:version>
+            <sparkle:shortVersionString>2.7-rc.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+            🚀 <b>v2.7 Flying Rabbit RC 3 – Release Highlights!</b> 🐇🪽<br><br>
+
+            ✨ <b>What's New?</b><br>
+            🛠️ Fixed LSUIElement issues for a better experience<br>
+            🎛️ Updated Media Remote Adapter for improved device support<br>
+            👀 Default sneak peek enabled – easier previews!<br>
+            🛡️ New SECURITY.md for better project safety<br>
+            📆 Calendar UI fixes and scrolling improvements for effortless scheduling<br>
+            🖼️ Artwork UI enhancements for a prettier look<br>
+            📢 Improved calendar reminders so you never miss a thing<br>
+            🌍 Localization & dependency updates for global users<br><br>
+
+            🙌 <b>New Contributors</b><br>
+            🎉 @CrossTR15YT joined the team!<br>
+            🎉 @naq7826 made their first contribution!<br><br>
+
+            🔗 <b>Full Changelog:</b> v2.7-rc.2...v2.7-rc.3<br>
+            Thanks to all contributors: @Alexander5015, @naq7826, @CrossTR15YT<br><br>
+
+            Update now and hop into the new features! 🐰✨
+            ]]></description>
+
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.3/boringNotch.dmg" length="9218986" type="application/octet-stream" sparkle:edSignature="JsTdTjcyl2cGkc1wnYyKU5JLzp1j9LBfSXrFBZ115/JUP/g6+PzXejldTYKih/w1DLrOvpuW/gJbDrDGbUawAw=="/>
+        </item>      
     <item>
             <title>2.7-rc.2 Flying Rabbit 🐇🪽</title>
             <pubDate>Mon, 04 Aug 2025 11:50:17 +0530</pubDate>
@@ -340,3 +371,4 @@
         </item>
     </channel>
 </rss>
+

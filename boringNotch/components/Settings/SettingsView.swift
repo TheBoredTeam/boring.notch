@@ -501,6 +501,8 @@ struct Media: View {
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
+    @Default(.enableLyrics) var enableLyrics
+
     var body: some View {
         Form {
             Section {
@@ -539,6 +541,12 @@ struct Media: View {
                 }
             }
             Section {
+                Defaults.Toggle(key: .enableLyrics) {
+                    HStack {
+                        Text("Show lyrics under player")
+                        customBadge(text: "Beta")
+                    }
+                }
                 Defaults.Toggle(key: .showShuffleAndRepeat) {
                     HStack {
                         Text("Show shuffle and repeat buttons")
