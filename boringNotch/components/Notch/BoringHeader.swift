@@ -99,5 +99,5 @@ struct BoringHeader: View {
 }
 
 #Preview {
-    BoringHeader().environmentObject(BoringViewModel())
+    BoringHeader().environmentObject(BoringViewModel.shared)
 }
