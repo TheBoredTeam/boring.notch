@@ -207,7 +207,7 @@ struct CalendarView: View {
 													colors: [Color.black.opacity(0), Color.black]),
 											   startPoint: .leading, endPoint: .trailing
 								)
-								.frame(width: 30)
+								.frame(width: 15)
 
 								Rectangle().fill(Color.black)
 
@@ -216,7 +216,7 @@ struct CalendarView: View {
 													colors: [Color.black, Color.black.opacity(0)]),
 											   startPoint: .leading, endPoint: .trailing
 								)
-								.frame(width: 30)
+								.frame(width: 15)
 							}
 						)
                 }
@@ -226,6 +226,7 @@ struct CalendarView: View {
                 events: calendarManager.events
             )
             if filteredEvents.isEmpty {
+				Spacer(minLength: 0)
                 EmptyEventsView()
                 Spacer(minLength: 0)
             } else {
@@ -292,6 +293,7 @@ struct EventListView: View {
     }
 
     var body: some View {
+		
         List {
             ForEach(filteredEvents) { event in
                 Button(action: {
@@ -312,7 +314,25 @@ struct EventListView: View {
         .scrollIndicators(.never)
         .scrollContentBackground(.hidden)
         .background(Color.clear)
-        Spacer(minLength: 0)
+		.mask {
+			VStack(spacing: 0) {
+				LinearGradient(gradient:
+								Gradient(
+									colors: [Color.black.opacity(0), Color.black]),
+							   startPoint: .top, endPoint: .bottom
+				)
+				.frame(height: 10)
+
+				Rectangle().fill(Color.black)
+
+				LinearGradient(gradient:
+								Gradient(
+									colors: [Color.black, Color.black.opacity(0)]),
+							   startPoint: .top, endPoint: .bottom
+				)
+				.frame(height: 10)
+			}
+		}
     }
 
     private func eventRow(_ event: EventModel) -> some View {
