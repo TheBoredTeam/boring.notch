@@ -955,6 +955,7 @@ struct Appearance: View {
 	@Default(.useMusicVisualizer) var useMusicVisualizer
 	@Default(.customVisualizers) var customVisualizers
 	@Default(.selectedVisualizer) var selectedVisualizer
+	@Default(.backgroundIsBlack) var backgroundIsBlack
 	@Default(.backgroundBlackGradient) var backgroundBlackGradient
 	let icons: [String] = ["logo2"]
 	@State private var selectedIcon: String = "logo2"
@@ -988,9 +989,15 @@ struct Appearance: View {
 
 			Section {
 
+				Picker("Background", selection: $backgroundIsBlack) {
+					Text("Black").tag(true)
+					Text("Translucent").tag(false)
+				}
+				.pickerStyle(.segmented)
+
 				Slider(
 					value: $backgroundBlackGradient,
-					in: 0...1,
+					in: 0...0.65,
 				) {
 					ZStack(alignment: .top) {
 						Image("wallpaper")
@@ -1001,6 +1008,10 @@ struct Appearance: View {
 
 						Rectangle()
 							.fill(Color.clear)
+							.overlay(alignment: .center) {
+								Text("Content")
+									.foregroundStyle(.white)
+							}
 							.background(backgroundManager.background)
 							.frame(width: 150, height: 40)
 							.mask {
@@ -1014,8 +1025,9 @@ struct Appearance: View {
 				} minimumValueLabel: {
 					Text("Translucent")
 				} maximumValueLabel: {
-					Text("Black")
+					Text("Dark")
 				}
+				.disabled(Defaults[.backgroundIsBlack])
 			} header: {
 				Text("Background")
 			}
