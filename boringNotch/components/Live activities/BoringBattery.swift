@@ -31,7 +31,7 @@ struct BatteryView: View {
 		/// Determines the icon to display when charging.
 	var iconStatusView: Image {
 		if isCharging {
-			return Image(systemName: "bolt")
+			return Image(systemName: "bolt.fill")
 		}
 		else if isPluggedIn {
 			return Image(systemName: "powerplug.portrait.fill")
