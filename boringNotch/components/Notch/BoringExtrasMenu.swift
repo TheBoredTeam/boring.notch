@@ -105,5 +105,5 @@ struct BoringExtrasMenu : View {
 
 
 #Preview {
-	BoringExtrasMenu(vm: BoringViewModel.shared)
+	BoringExtrasMenu(vm: BoringViewModel())
 }

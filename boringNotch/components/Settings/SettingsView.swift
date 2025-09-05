@@ -78,9 +78,10 @@ struct SettingsView: View {
 				switch selectedTab {
 					case "General":
 						GeneralSettings()
+							.environmentObject(BoringViewModel())
 					case "Appearance":
 						Appearance()
-							.environmentObject(BoringViewModel.shared)
+							.environmentObject(BoringViewModel())
 					case "Media":
 						Media()
 					case "Calendar":
