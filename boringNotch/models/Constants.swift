@@ -84,7 +84,7 @@ extension Defaults.Keys {
         //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     
         // MARK: Appearance
-	static let background = Key<Background>("background", default: .black)
+	static let backgroundBlackGradient = Key<Double>("backgroundBlackGradient", default: 1)
     static let showEmojis = Key<Bool>("showEmojis", default: false)
         //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)
