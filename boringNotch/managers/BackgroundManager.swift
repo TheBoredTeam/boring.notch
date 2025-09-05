@@ -1,9 +1,9 @@
-//
-//  BackgroundManager.swift
-//  boringNotch
-//
-//  Created by Adon Omeri on 4/9/2025.
-//
+	//
+	//  BackgroundManager.swift
+	//  boringNotch
+	//
+	//  Created by Adon Omeri on 4/9/2025.
+	//
 
 import Defaults
 import SwiftUI
@@ -15,17 +15,9 @@ class BackgroundManager: ObservableObject {
 	private init() {}
 
 	var background: some View {
-		switch Defaults[.background] {
-		case .black:
-			return AnyView(
-				Color.black
-			)
-
-		case .ultraThinMaterial:
-			return AnyView(
-				Color.clear
-					.background(.ultraThinMaterial)
-			)
-		}
+		return AnyView(
+			Color.black.opacity(Defaults[.backgroundBlackGradient])
+				.background(.ultraThinMaterial)
+		)
 	}
 }

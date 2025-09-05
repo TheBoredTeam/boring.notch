@@ -580,7 +580,7 @@ struct FullScreenDropDelegate: DropDelegate {
 }
 
 #Preview {
-    let vm = BoringViewModel()
+	let vm = BoringViewModel.shared
     vm.open()
     return ContentView()
         .environmentObject(vm)
