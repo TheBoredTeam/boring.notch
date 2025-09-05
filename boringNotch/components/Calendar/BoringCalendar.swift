@@ -442,5 +442,5 @@ struct ReminderToggle: View {
     CalendarView()
         .frame(width: 215, height: 130)
         .background(.black)
-		.environmentObject(BoringViewModel.shared)
+		.environmentObject(BoringViewModel())
 }

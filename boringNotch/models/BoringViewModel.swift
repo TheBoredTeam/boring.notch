@@ -11,7 +11,6 @@ import SwiftUI
 import TheBoringWorkerNotifier
 
 class BoringViewModel: NSObject, ObservableObject {
-	static let shared = BoringViewModel() // Singleton instance
 
 	var coordinator = BoringViewCoordinator.shared
 	var detector = FullscreenMediaDetector.shared
@@ -59,7 +58,7 @@ class BoringViewModel: NSObject, ObservableObject {
 		updateCancellable = nil
 	}
 
-	private override init() {
+	override init() {
 		animation = animationLibrary.animation
 		super.init()
 

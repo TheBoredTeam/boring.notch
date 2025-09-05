@@ -65,7 +65,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var windows: [NSScreen: NSWindow] = [:]
     var viewModels: [NSScreen: BoringViewModel] = [:]
     var window: NSWindow?
-	let vm = BoringViewModel.shared
+	let vm = BoringViewModel()
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var whatsNewWindow: NSWindow?
     var timer: Timer?
@@ -326,7 +326,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             for screen in currentScreens {
                 if windows[screen] == nil {
-					let viewModel = BoringViewModel.shared
+					let viewModel = BoringViewModel()
 					viewModel.screen = screen.localizedName
                     let window = createBoringNotchWindow(for: screen, with: viewModel)
 
