@@ -43,10 +43,16 @@ struct ContentView: View {
     private let zeroHeightHoverPadding: CGFloat = 10
 
 	var effectiveBackground: some View {
-		backgroundManager.background
-			.opacity(vm.notchState == .open ? 1 : 0)
-			.background(Color.black.opacity(vm.notchState == .open ? 0 : 1))
-			.animation(.easeInOut, value: vm.notchState)
+		if Defaults[.backgroundIsBlack] {
+			return AnyView(Color.black)
+		} else {
+			return AnyView(
+				backgroundManager.background
+				.opacity(vm.notchState == .open ? 1 : 0)
+				.background(Color.black.opacity(vm.notchState == .open ? 0 : 1))
+				.animation(.easeInOut, value: vm.notchState)
+				)
+		}
 	}
 
     var body: some View {
