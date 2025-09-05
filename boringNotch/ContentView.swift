@@ -207,12 +207,10 @@ struct ContentView: View {
                     if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {
-                        HStack(spacing: 0) {
-                            HStack {
                                 Text(batteryModel.statusText)
                                     .font(.subheadline)
                                     .foregroundStyle(.white)
-                            }
+                    HStack(spacing: 0) {
 
                             Rectangle()
                                 .fill(.black)
