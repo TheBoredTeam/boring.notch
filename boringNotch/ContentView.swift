@@ -42,6 +42,13 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
+	var effectiveBackground: some View {
+		backgroundManager.background
+			.opacity(vm.notchState == .open ? 1 : 0)
+			.background(Color.black.opacity(vm.notchState == .open ? 0 : 1))
+			.animation(.easeInOut, value: vm.notchState)
+	}
+
     var body: some View {
         ZStack(alignment: .top) {
             let mainLayout = NotchLayout()
@@ -54,7 +61,7 @@ struct ContentView: View {
                         : cornerRadiusInsets.closed.bottom
                 )
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-				.background(backgroundManager.background)
+				.background(effectiveBackground)
                 .mask {
                     ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
                         ? NotchShape(
@@ -133,7 +140,7 @@ struct ContentView: View {
                             handleUpGesture(translation: translation, phase: phase)
                         }
                 }
-                .onAppear(perform: {
+                .onAppear {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                         withAnimation(vm.animation) {
                             if coordinator.firstLaunch {
@@ -141,7 +148,7 @@ struct ContentView: View {
                             }
                         }
                     }
-                })
+                }
                 .onChange(of: vm.notchState) { _, newState in
                     // Reset hover state when notch state changes
                     if newState == .closed && isHovering {
@@ -213,8 +220,8 @@ struct ContentView: View {
                     HStack(spacing: 0) {
 
                             Rectangle()
-                                .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 10)
+								.fill(Color.clear)
+								.frame(width: vm.closedNotchSize.width + 10)
 
                             HStack {
                                 BoringBatteryView(
@@ -242,7 +249,12 @@ struct ContentView: View {
                               .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
                               .animation(.spring(response: 1, dampingFraction: 1, blendDuration: 0.8), value: vm.notchState)
                        } else {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
+						   Rectangle()
+							   .fill(Color.clear)
+							   .frame(
+								width: vm.closedNotchSize.width - 20,
+								height: vm.effectiveClosedNotchHeight
+							   )
                        }
 
                       if coordinator.sneakPeek.show {
