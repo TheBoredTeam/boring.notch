@@ -319,21 +319,21 @@ struct ContentView: View {
                     .frame(width: vm.closedNotchSize.width - 20)
                 MinimalFaceFeatures()
             }
-        }.frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
+        }
+		.frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
     }
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack {
             HStack {
-                Color.clear
+				Color.clear
                     .aspectRatio(1, contentMode: .fit)
                     .background(
                         Image(nsImage: musicManager.albumArt)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     )
-                    .clipped()
                     .clipShape(
                         RoundedRectangle(
                             cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
@@ -349,7 +349,9 @@ struct ContentView: View {
                 height: max(0, vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)))
 
             Rectangle()
-                .fill(.black)
+				.fill(.clear)
+
+
                 .overlay(
                     HStack(alignment: .top) {
                         if coordinator.expandingView.show
