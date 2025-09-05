@@ -20,6 +20,7 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+	@ObservedObject var backgroundManager = BackgroundManager.shared
 
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
@@ -41,6 +42,19 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
+	var effectiveBackground: some View {
+		if Defaults[.backgroundIsBlack] {
+			return AnyView(Color.black)
+		} else {
+			return AnyView(
+				backgroundManager.background
+				.opacity(vm.notchState == .open ? 1 : 0)
+				.background(Color.black.opacity(vm.notchState == .open ? 0 : 1))
+				.animation(.easeInOut, value: vm.notchState)
+				)
+		}
+	}
+
     var body: some View {
         ZStack(alignment: .top) {
             let mainLayout = NotchLayout()
@@ -53,7 +67,7 @@ struct ContentView: View {
                         : cornerRadiusInsets.closed.bottom
                 )
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                .background(.black)
+				.background(effectiveBackground)
                 .mask {
                     ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
                         ? NotchShape(
@@ -132,7 +146,7 @@ struct ContentView: View {
                             handleUpGesture(translation: translation, phase: phase)
                         }
                 }
-                .onAppear(perform: {
+                .onAppear {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                         withAnimation(vm.animation) {
                             if coordinator.firstLaunch {
@@ -140,7 +154,7 @@ struct ContentView: View {
                             }
                         }
                     }
-                })
+                }
                 .onChange(of: vm.notchState) { _, newState in
                     // Reset hover state when notch state changes
                     if newState == .closed && isHovering {
@@ -188,6 +202,7 @@ struct ContentView: View {
         )
         .background(dragDetector)
         .environmentObject(vm)
+		.preferredColorScheme(.dark)
     }
 
     @ViewBuilder
@@ -205,16 +220,14 @@ struct ContentView: View {
                     if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {
-                        HStack(spacing: 0) {
-                            HStack {
                                 Text(batteryModel.statusText)
                                     .font(.subheadline)
                                     .foregroundStyle(.white)
-                            }
+                    HStack(spacing: 0) {
 
                             Rectangle()
-                                .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 10)
+								.fill(Color.clear)
+								.frame(width: vm.closedNotchSize.width + 10)
 
                             HStack {
                                 BoringBatteryView(
@@ -242,7 +255,12 @@ struct ContentView: View {
                               .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
                               .animation(.spring(response: 1, dampingFraction: 1, blendDuration: 0.8), value: vm.notchState)
                        } else {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
+						   Rectangle()
+							   .fill(Color.clear)
+							   .frame(
+								width: vm.closedNotchSize.width - 20,
+								height: vm.effectiveClosedNotchHeight
+							   )
                        }
 
                       if coordinator.sneakPeek.show {
@@ -307,21 +325,21 @@ struct ContentView: View {
                     .frame(width: vm.closedNotchSize.width - 20)
                 MinimalFaceFeatures()
             }
-        }.frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
+        }
+		.frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
     }
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack {
             HStack {
-                Color.clear
+				Color.clear
                     .aspectRatio(1, contentMode: .fit)
                     .background(
                         Image(nsImage: musicManager.albumArt)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     )
-                    .clipped()
                     .clipShape(
                         RoundedRectangle(
                             cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
@@ -337,7 +355,9 @@ struct ContentView: View {
                 height: max(0, vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)))
 
             Rectangle()
-                .fill(.black)
+				.fill(.clear)
+
+
                 .overlay(
                     HStack(alignment: .top) {
                         if coordinator.expandingView.show
@@ -580,7 +600,7 @@ struct FullScreenDropDelegate: DropDelegate {
 }
 
 #Preview {
-    let vm = BoringViewModel()
+	let vm = BoringViewModel()
     vm.open()
     return ContentView()
         .environmentObject(vm)
