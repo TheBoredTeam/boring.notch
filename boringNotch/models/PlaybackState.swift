@@ -26,4 +26,5 @@ struct PlaybackState {
     var repeatMode: RepeatMode = .off
     var lastUpdated: Date = Date.distantPast
     var artwork: Data?
+    var volume: Double = 0.5
 }
