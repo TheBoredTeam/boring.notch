@@ -104,6 +104,14 @@ class YouTubeMusicController: MediaControllerProtocol {
     func toggleShuffle() async { await sendCommand(endpoint: "/shuffle", method: "POST", refresh: true) }
     func toggleRepeat() async { await sendCommand(endpoint: "/switch-repeat", method: "POST", refresh: true) }
     func fetchRepeatMode() async { await sendCommand(endpoint: "/repeat-mode", method: "GET", refresh: false) }
+    
+    func setVolume(_ level: Double) async {
+        let clampedLevel = max(0.0, min(1.0, level))
+        let volumePercentage = Int(clampedLevel * 100)
+        let payload = ["volume": volumePercentage]
+        guard let jsonData = try? JSONEncoder().encode(payload) else { return }
+        await sendCommand(endpoint: "/volume", method: "POST", body: jsonData, refresh: true)
+    }
 
     func isActive() -> Bool {
         NSWorkspace.shared.runningApplications.contains {
@@ -238,6 +246,7 @@ class YouTubeMusicController: MediaControllerProtocol {
         updatedState.lastUpdated = now
 
         if let shuffled = response.isShuffled { updatedState.isShuffled = shuffled }
+        if let volume = response.volume { updatedState.volume = Double(volume) / 100.0 }
 
         if let artworkURL = response.imageSrc, let url = URL(string: artworkURL) {
             Task.detached { [weak self] in
@@ -257,8 +266,11 @@ class YouTubeMusicController: MediaControllerProtocol {
         
         await fetchRepeatMode()
         await fetchShuffleState()
+        await fetchVolume()
         await updatePlaybackInfo()
     }
+    
+    func fetchVolume() async { await sendCommand(endpoint: "/volume", method: "GET", refresh: false) }
 
 
     private func sendCommand(endpoint: String, method: String = "GET", body: Data? = nil, refresh: Bool) async {
@@ -287,6 +299,10 @@ class YouTubeMusicController: MediaControllerProtocol {
             } else if endpoint == "/repeat-mode" {
                 if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                 if let mode = json["mode"] as? String { updateRepeatMode(mode) }
+                }
+            } else if endpoint == "/volume" {
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let volume = json["volume"] as? Int {
+                    playbackState.volume = Double(volume) / 100.0
                 }
             }
 
@@ -333,4 +349,5 @@ struct PlaybackResponse: Codable {
     let imageSrc: String?
     let repeatMode: Int?
     let isShuffled: Bool?
+    let volume: Int?
 }
