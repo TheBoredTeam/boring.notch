@@ -9112,6 +9112,9 @@
         }
       }
     },
+    "Hide all-day events" : {
+
+    },
     "Hide BoringNotch Options" : {
       "localizations" : {
         "ar" : {

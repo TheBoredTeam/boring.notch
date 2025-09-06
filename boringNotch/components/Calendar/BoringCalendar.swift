@@ -274,6 +274,10 @@ struct EventListView: View {
                     return !completed || !Defaults[.hideCompletedReminders]
                 }
             }
+            // Filter out all-day events if setting is enabled
+            if event.isAllDay && Defaults[.hideAllDayEvents] {
+                return false
+            }
             return true
         }
     }
