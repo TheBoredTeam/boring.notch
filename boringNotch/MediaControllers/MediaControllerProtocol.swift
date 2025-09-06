@@ -19,6 +19,7 @@ protocol MediaControllerProtocol: ObservableObject {
     func togglePlay() async
     func toggleShuffle() async
     func toggleRepeat() async
+    func setVolume(_ level: Double) async
     func isActive() -> Bool
     func updatePlaybackInfo() async
 }

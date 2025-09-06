@@ -20,7 +20,9 @@ class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var controllerCancellables = Set<AnyCancellable>()
     private var debounceIdleTask: Task<Void, Never>?
-
+    
+    private var volumeSyncTask: Task<Void, Never>?
+    
     // Helper to check if macOS has removed support for NowPlayingController
     public private(set) var isNowPlayingDeprecated: Bool = false
     private let mediaChecker = MediaChecker()
@@ -44,6 +46,8 @@ class MusicManager: ObservableObject {
     @Published var playbackRate: Double = 1
     @Published var isShuffled: Bool = false
     @Published var repeatMode: RepeatMode = .off
+    @Published var volume: Double = 0.5
+    @Published var volumeControlSupported: Bool = true
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
 
@@ -91,6 +95,7 @@ class MusicManager: ObservableObject {
     
     public func destroy() {
         debounceIdleTask?.cancel()
+        volumeSyncTask?.cancel()
         cancellables.removeAll()
         controllerCancellables.removeAll()
         flipWorkItem?.cancel()
@@ -167,6 +172,9 @@ class MusicManager: ObservableObject {
 
         // Get current state from active controller
         forceUpdate()
+        
+        // Start periodic volume synchronization
+        startVolumeSyncTask()
     }
 
     // MARK: - Update Methods
@@ -229,7 +237,8 @@ class MusicManager: ObservableObject {
         let playbackRateChanged = state.playbackRate != self.playbackRate
         let shuffleChanged = state.isShuffled != self.isShuffled
         let repeatModeChanged = state.repeatMode != self.repeatMode
-
+        let volumeChanged = state.volume != self.volume
+        
         if state.title != self.songTitle {
             self.songTitle = state.title
         }
@@ -260,10 +269,16 @@ class MusicManager: ObservableObject {
 
         if state.bundleIdentifier != self.bundleIdentifier {
             self.bundleIdentifier = state.bundleIdentifier
+            // Update volume control support based on bundle identifier
+            self.volumeControlSupported = isVolumeControlSupported(for: state.bundleIdentifier)
         }
 
         if repeatModeChanged {
             self.repeatMode = state.repeatMode
+        }
+        
+        if volumeChanged {
+            self.volume = state.volume
         }
         
         self.timestampDate = state.lastUpdated
@@ -412,7 +427,14 @@ class MusicManager: ObservableObject {
             await activeController?.seek(to: position)
         }
     }
-
+    
+    func setVolume(to level: Double) {
+        if let controller = activeController {
+            Task {
+                await controller.setVolume(level)
+            }
+        }
+    }
     func openMusicApp() {
         guard let bundleID = bundleIdentifier else {
             print("Error: appBundleIdentifier is nil")
@@ -445,5 +467,51 @@ class MusicManager: ObservableObject {
                 }
             }
         }
+    }
+    
+    func startVolumeSyncTask() {
+        volumeSyncTask?.cancel()
+        volumeSyncTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(2))
+                if !Task.isCancelled {
+                    await self?.syncVolumeFromActiveApp()
+                }
+            }
+        }
+    }
+    
+    func syncVolumeFromActiveApp() async {
+        guard let bundleID = bundleIdentifier, !bundleID.isEmpty else { return }
+        
+        var script: String?
+        if bundleID == "com.apple.Music" {
+            script = "tell application \"Music\" to get sound volume"
+        } else if bundleID == "com.spotify.client" {
+            script = "tell application \"Spotify\" to get sound volume"
+        } else {
+            // For unsupported apps, don't sync volume
+            return
+        }
+        
+        if let volumeScript = script,
+           let result = try? await AppleScriptHelper.execute(volumeScript) {
+            let volumeValue = result.int32Value
+            let currentVolume = Double(volumeValue) / 100.0
+            
+            await MainActor.run {
+                if abs(currentVolume - self.volume) > 0.01 {
+                    self.volume = currentVolume
+                }
+            }
+        }
+    }
+    
+    func isVolumeControlSupported(for bundleIdentifier: String) -> Bool {
+        let supportedApps = [
+            "com.apple.Music",
+            "com.spotify.client"
+        ]
+        return supportedApps.contains(bundleIdentifier)
     }
 }

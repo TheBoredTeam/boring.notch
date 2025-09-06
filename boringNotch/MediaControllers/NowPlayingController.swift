@@ -8,6 +8,8 @@
 import AppKit
 import Combine
 import Foundation
+import AVFoundation
+import CoreAudio
 
 final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     // Stub for now to conform with ControllerProtocol
@@ -126,6 +128,34 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         MRMediaRemoteSetRepeatModeFunction(newRepeatMode)
     }
     
+    func setVolume(_ level: Double) async {
+        // MediaRemote framework doesn't provide direct volume control for the active audio session
+        // As a workaround, try to control the currently active music app directly
+        let clampedLevel = max(0.0, min(1.0, level))
+        let volumePercentage = Int(clampedLevel * 100)
+        
+        let bundleID = playbackState.bundleIdentifier
+        if !bundleID.isEmpty {
+            if bundleID == "com.apple.Music" {
+                let script = "tell application \"Music\" to set sound volume to \(volumePercentage)"
+                do {
+                    try await AppleScriptHelper.executeVoid(script)
+                } catch {
+                    // Silently handle error
+                }
+            } else if bundleID == "com.spotify.client" {
+                let script = "tell application \"Spotify\" to set sound volume to \(volumePercentage)"
+                do {
+                    try await AppleScriptHelper.executeVoid(script)
+                } catch {
+                    // Silently handle error
+                }
+            }
+        }
+        
+        playbackState.volume = clampedLevel
+    }
+    
     // MARK: - Setup Methods
     private func setupNowPlayingObserver() async {
         let process = Process()
@@ -231,7 +261,41 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             (diff ? self.playbackState.bundleIdentifier : "")
         )
         
+        newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
+        
+        // If no volume data from MediaRemote, poll it separately for known apps
+        if payload.volume == nil {
+            await pollVolumeForApp(bundleID: newPlaybackState.bundleIdentifier)
+        }
+        
         self.playbackState = newPlaybackState
+    }
+    
+    private func pollVolumeForApp(bundleID: String) async {
+        guard !bundleID.isEmpty else { return }
+        
+        var volumeScript: String?
+        if bundleID == "com.apple.Music" {
+            volumeScript = "tell application \"Music\" to get sound volume"
+        } else if bundleID == "com.spotify.client" {
+            volumeScript = "tell application \"Spotify\" to get sound volume"
+        } else {
+            // For unsupported apps, don't poll volume
+            return
+        }
+        
+        if let script = volumeScript,
+           let volumeResult = try? await AppleScriptHelper.execute(script) {
+            let volumeValue = volumeResult.int32Value
+            let currentVolume = Double(volumeValue) / 100.0
+            
+            if abs(currentVolume - playbackState.volume) > 0.01 {
+                var updatedState = playbackState
+                updatedState.volume = currentVolume
+                updatedState.lastUpdated = Date()
+                self.playbackState = updatedState
+            }
+        }
     }
 }
 
@@ -254,6 +318,7 @@ struct NowPlayingPayload: Codable {
     let playing: Bool?
     let parentApplicationBundleIdentifier: String?
     let bundleIdentifier: String?
+    let volume: Double?
 }
 
 actor JSONLinesPipeHandler {

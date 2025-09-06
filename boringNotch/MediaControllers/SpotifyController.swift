@@ -20,6 +20,7 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     private var notificationTask: Task<Void, Never>?
+    private var volumeMonitorTask: Task<Void, Never>?
     
     // Constant for time between command and update
     private let commandUpdateDelay: Duration = .milliseconds(25)
@@ -32,6 +33,7 @@ class SpotifyController: MediaControllerProtocol {
         Task {
             if isActive() {
                 await updatePlaybackInfo()
+                await startVolumeMonitoring()
             }
         }
     }
@@ -44,12 +46,16 @@ class SpotifyController: MediaControllerProtocol {
             
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
+                if self?.isActive() == true {
+                    await self?.startVolumeMonitoring()
+                }
             }
         }
     }
     
     deinit {
         notificationTask?.cancel()
+        volumeMonitorTask?.cancel()
         artworkFetchTask?.cancel()
     }
     
@@ -74,13 +80,21 @@ class SpotifyController: MediaControllerProtocol {
         await executeAndRefresh("set repeating to not repeating")
     }
     
+    func setVolume(_ level: Double) async {
+        let clampedLevel = max(0.0, min(1.0, level))
+        let volumePercentage = Int(clampedLevel * 100)
+        await executeCommand("set sound volume to \(volumePercentage)")
+        try? await Task.sleep(for: commandUpdateDelay)
+        await updatePlaybackInfo()
+    }
+    
     func isActive() -> Bool {
         NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
     }
     
     func updatePlaybackInfo() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
-        guard descriptor.numberOfItems >= 9 else { return }
+        guard descriptor.numberOfItems >= 10 else { return }
         
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
         let currentTrack = descriptor.atIndex(2)?.stringValue ?? "Unknown"
@@ -90,7 +104,8 @@ class SpotifyController: MediaControllerProtocol {
         let duration = (descriptor.atIndex(6)?.doubleValue ?? 0)/1000
         let isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
         let isRepeating = descriptor.atIndex(8)?.booleanValue ?? false
-        let artworkURL = descriptor.atIndex(9)?.stringValue ?? ""
+        let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
+        let artworkURL = descriptor.atIndex(10)?.stringValue ?? ""
         
         var state = PlaybackState(
             bundleIdentifier: "com.spotify.client",
@@ -103,7 +118,9 @@ class SpotifyController: MediaControllerProtocol {
             playbackRate: 1,
             isShuffled: isShuffled,
             repeatMode: isRepeating ? .all : .off,
-            lastUpdated: Date()
+            lastUpdated: Date(),
+            artwork: nil,
+            volume: Double(volumePercentage) / 100.0
         )
 
         if artworkURL == lastArtworkURL, let existingArtwork = self.playbackState.artwork {
@@ -143,7 +160,17 @@ class SpotifyController: MediaControllerProtocol {
     
     private func executeCommand(_ command: String) async {
         let script = "tell application \"Spotify\" to \(command)"
-        try? await AppleScriptHelper.executeVoid(script)
+        do {
+            try? await AppleScriptHelper.executeVoid(script)
+        } catch {
+            // Silently handle error
+        }
+    }
+
+    private func executeAndRefresh(_ command: String) async {
+        await executeCommand(command)
+        try? await Task.sleep(for: commandUpdateDelay)
+        await updatePlaybackInfo()
     }
 
     private func executeAndRefresh(_ command: String) async {
@@ -165,14 +192,42 @@ class SpotifyController: MediaControllerProtocol {
                 set trackDuration to duration of current track
                 set shuffleState to shuffling
                 set repeatState to repeating
+                set currentVolume to sound volume
                 set artworkURL to artwork url of current track
-                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatState, artworkURL}
+                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatState, currentVolume, artworkURL}
             on error
-                return {false, "Unknown", "Unknown", "Unknown", 0, 0, false, false, ""}
+                return {false, "Unknown", "Unknown", "Unknown", 0, 0, false, false, 50, ""}
             end try
         end tell
         """
         
         return try await AppleScriptHelper.execute(script)
+    }
+    
+    private func startVolumeMonitoring() async {
+        volumeMonitorTask?.cancel()
+        volumeMonitorTask = Task { [weak self] in
+            while !Task.isCancelled && self?.isActive() == true {
+                try? await Task.sleep(for: .seconds(2))
+                if !Task.isCancelled {
+                    await self?.checkVolumeChange()
+                }
+            }
+        }
+    }
+    
+    private func checkVolumeChange() async {
+        guard let volumeScript = try? await AppleScriptHelper.execute(
+            "tell application \"Spotify\" to get sound volume"
+        ) else { return }
+        
+        let volumeValue = volumeScript.int32Value
+        let currentVolume = Double(volumeValue) / 100.0
+        if abs(currentVolume - playbackState.volume) > 0.01 {
+            var updatedState = playbackState
+            updatedState.volume = currentVolume
+            updatedState.lastUpdated = Date()
+            self.playbackState = updatedState
+        }
     }
 }

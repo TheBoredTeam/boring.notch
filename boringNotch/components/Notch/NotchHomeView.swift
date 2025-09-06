@@ -200,6 +200,7 @@ struct MusicControlsView: View {
                     MusicManager.shared.toggleRepeat()
                 }
             }
+            VolumeControlView()
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
@@ -221,6 +222,96 @@ struct MusicControlsView: View {
             return .white
         case .all, .one:
             return .red
+        }
+    }
+}
+
+// MARK: - Volume Control View
+
+struct VolumeControlView: View {
+    @ObservedObject var musicManager = MusicManager.shared
+    @State private var volumeSliderValue: Double = 0.5
+    @State private var dragging: Bool = false
+    @State private var showVolumeSlider: Bool = false
+    @State private var lastVolumeUpdateTime: Date = Date.distantPast
+    @State private var volumeUpdateTask: Task<Void, Never>?
+    private let volumeUpdateThrottle: TimeInterval = 0.05 // 50ms throttle
+    
+    var body: some View {
+        ZStack {
+            HStack(spacing: 4) {
+                Button(action: {
+                    if musicManager.volumeControlSupported {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showVolumeSlider.toggle()
+                        }
+                    }
+                }) {
+                    Image(systemName: volumeIcon)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .disabled(!musicManager.volumeControlSupported)
+                
+                    if showVolumeSlider && musicManager.volumeControlSupported {
+                        CustomSlider(
+                            value: $volumeSliderValue,
+                            range: 0.0...1.0,
+                            color: .white,
+                            dragging: $dragging,
+                            lastDragged: .constant(Date.distantPast),
+                            onValueChange: { newValue in
+                                MusicManager.shared.setVolume(to: newValue)
+                            },
+                            onDragChange: { newValue in
+                                // Cancel any pending volume update
+                                volumeUpdateTask?.cancel()
+                                
+                                // Schedule a new throttled update
+                                volumeUpdateTask = Task {
+                                    try? await Task.sleep(for: .seconds(volumeUpdateThrottle))
+                                    if !Task.isCancelled {
+                                        MusicManager.shared.setVolume(to: newValue)
+                                    }
+                                }
+                            },
+                            thumbSize: 8
+                        )
+                        .frame(width: 60, height: 8)
+                        .transition(.scale)
+                    }
+            } // End HStack
+        }
+        .onReceive(musicManager.$volume) { volume in
+            if !dragging {
+                volumeSliderValue = volume
+            }
+        }
+        .onReceive(musicManager.$volumeControlSupported) { supported in
+            if !supported {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showVolumeSlider = false
+                }
+            }
+        }
+        .onDisappear {
+            volumeUpdateTask?.cancel()
+        }
+    }
+    
+    
+    private var volumeIcon: String {
+        if !musicManager.volumeControlSupported {
+            return "speaker.slash"
+        } else if volumeSliderValue == 0 {
+            return "speaker.slash.fill"
+        } else if volumeSliderValue < 0.33 {
+            return "speaker.1.fill"
+        } else if volumeSliderValue < 0.66 {
+            return "speaker.2.fill"
+        } else {
+            return "speaker.3.fill"
         }
     }
 }
@@ -349,6 +440,7 @@ struct CustomSlider: View {
     @Binding var dragging: Bool
     @Binding var lastDragged: Date
     var onValueChange: ((Double) -> Void)?
+    var onDragChange: ((Double) -> Void)?
     var thumbSize: CGFloat = 12
 
     var body: some View {
@@ -383,6 +475,7 @@ struct CustomSlider: View {
                         let newValue =
                             range.lowerBound + Double(gesture.location.x / width) * rangeSpan
                         value = min(max(newValue, range.lowerBound), range.upperBound)
+                        onDragChange?(value)
                     }
                     .onEnded { _ in
                         onValueChange?(value)
