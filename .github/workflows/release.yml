@@ -214,25 +214,12 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           path: artifacts
-      - name: Parse deployment info
-        id: info
-        run: |
-          echo "deployment_id=$(cat artifacts/deployment-info/deployment_id)" >> $GITHUB_OUTPUT
       - name: Add success reactions
         if: ${{ needs.build.result == 'success' }}
         uses: peter-evans/create-or-update-comment@v2
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: rocket
-      - name: Update deployment status (success)
-        uses: bobheadxi/deployments@v1
-        if: ${{ needs.build.result == 'success' }}
-        with:
-            step: finish
-            token: ${{ secrets.GITHUB_TOKEN }}
-            status: success
-            env: ${{ needs.preparation.outputs.is_beta == 'true' && 'build-beta' || 'build-release' }}
-            deployment_id: ${{ steps.info.outputs.deployment_id }}
       - name: Add negative reaction
         if: ${{ needs.build.result == 'failure' }}
         uses: peter-evans/create-or-update-comment@v2
