@@ -3111,6 +3111,9 @@
         }
       }
     },
+    "Background" : {
+
+    },
     "Battery" : {
       "localizations" : {
         "ar" : {
@@ -3510,6 +3513,9 @@
           }
         }
       }
+    },
+    "Black" : {
+
     },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
@@ -5011,6 +5017,9 @@
         }
       }
     },
+    "Content" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -5710,6 +5719,9 @@
           }
         }
       }
+    },
+    "Dark" : {
+
     },
     "Default" : {
       "localizations" : {
@@ -18412,6 +18424,9 @@
           }
         }
       }
+    },
+    "Translucent" : {
+
     },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
       "localizations" : {
