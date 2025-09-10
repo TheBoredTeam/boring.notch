@@ -14,7 +14,7 @@ env:
 permissions:
   contents: read
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   preparation:
@@ -22,9 +22,7 @@ jobs:
     if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/release') }}
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      issues: write
-      pull-requests: read
+      contents: write
     outputs:
       is_beta: ${{ steps.check-beta.outputs.is_beta }}
       is_test: ${{ steps.check-beta.outputs.is_test }}
