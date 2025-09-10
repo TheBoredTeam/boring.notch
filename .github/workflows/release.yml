@@ -1,4 +1,4 @@
-name: "Build boringNotch"
+name: "Deploy Boring Notch"
 on:
   issue_comment:
     types: [created]
@@ -32,7 +32,6 @@ jobs:
       build_number: ${{ steps.extract-version.outputs.build_number }}
       title: ${{ steps.generate-release-notes.outputs.title }}
       release_notes: ${{ steps.generate-release-notes.outputs.release_notes }}
-      deployment_id: ${{ steps.deployment.outputs.deployment_id }}
     steps:
       - name: Check if beta or test
         id: check-beta
@@ -51,15 +50,6 @@ jobs:
           fi
       - uses: xt0rted/pull-request-comment-branch@v1 # check out branch of PR
         id: comment-branch
-        
-      - name: start deployment
-        uses: bobheadxi/deployments@v1.3.0
-        id: deployment
-        with:
-          step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ steps.check-beta.outputs.env }}
-          ref: ${{ steps.comment-branch.outputs.head_ref }}
 
       - name: Add reactions # adding reactions to the comment to show that the action is running
         uses: peter-evans/create-or-update-comment@v2
@@ -150,7 +140,7 @@ jobs:
             const fs = require('fs');
             fs.writeFileSync('release_notes.md', body);
       - name: Upload release notes artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-notes-${{ steps.extract-version.outputs.version }}
           path: release_notes.md
@@ -290,7 +280,7 @@ jobs:
                           -ov -format UDZO \
                           "${{ env.projname }}.dmg"
       - name: Upload built app
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         with:
           name: app-${{ needs.preparation.outputs.version }}
           path: |
@@ -352,7 +342,7 @@ jobs:
             echo "Sparkle generate_appcast not found - skipping appcast generation"
           fi
       - name: Upload appcast artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: appcast-beta-${{ needs.preparation.outputs.version }}
           path: updater/appcast.xml
@@ -438,7 +428,7 @@ jobs:
             echo "Sparkle generate_appcast not found - skipping appcast generation"
           fi
       - name: Upload appcast artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: appcast-release-${{ needs.preparation.outputs.version }}
           path: updater/appcast.xml
@@ -481,7 +471,7 @@ jobs:
           end
           EOF
       - name: Upload Homebrew cask artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: homebrew-cask-${{ needs.preparation.outputs.version }}
           path: boring-notch.rb
@@ -506,7 +496,7 @@ jobs:
           end
           EOF
       - name: Upload Homebrew beta cask artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: homebrew-cask-beta-${{ needs.preparation.outputs.version }}
           path: boring-notch@rc.rb
@@ -538,30 +528,12 @@ jobs:
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: rocket
-      - name: Update deployment status (success)
-        uses: bobheadxi/deployments@v1
-        if: ${{ contains(join(needs.*.result, ','), 'success') }}
-        with:
-            step: finish
-            token: ${{ secrets.GITHUB_TOKEN }}
-            status: success
-            env: ${{ needs.preparation.outputs.is_beta == 'true' && 'build-beta' || 'build-release' }}
-            deployment_id: ${{ needs.preparation.outputs.deployment_id }}
       - name: Add negative reaction
         if: ${{ contains(join(needs.*.result, ','), 'failure') }}
         uses: peter-evans/create-or-update-comment@v2
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: confused
-      - name: Update deployment status (failure)
-        uses: bobheadxi/deployments@v1
-        if: ${{ contains(join(needs.*.result, ','), 'failure') }}
-        with:
-            step: finish
-            token: ${{ secrets.GITHUB_TOKEN }}
-            status: failure
-            env: ${{ needs.preparation.outputs.is_beta == 'true' && 'build-beta' || 'build-release' }}
-            deployment_id: ${{ needs.preparation.outputs.deployment_id }}
       - name: Create summary
         run: |
           BUILD_TYPE="stable"
