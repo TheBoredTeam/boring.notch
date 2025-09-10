@@ -14,7 +14,7 @@ env:
 permissions:
   contents: read
   issues: write
-  pull-requests: write
+  pull-requests: read
 
 jobs:
   preparation:
@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
     outputs:
       is_beta: ${{ steps.check-beta.outputs.is_beta }}
       is_test: ${{ steps.check-beta.outputs.is_test }}
@@ -137,11 +138,6 @@ jobs:
             // Also write the release notes to a file for tools that expect a file
             const fs = require('fs');
             fs.writeFileSync('release_notes.md', body);
-      - name: Upload release notes artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes-${{ steps.extract-version.outputs.version }}
-          path: release_notes.md
 
       - name: Check if version already released
         run: |
@@ -301,10 +297,7 @@ jobs:
         with:
           path: artifacts
       - name: Prepare Sparkle update creation
-        env:
-          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
         run: |
-          echo -n "$PRIVATE_SPARKLE_KEY" > ./Configuration/sparkle_private_key
           mkdir -p Release
           mv artifacts/app-${{ needs.preparation.outputs.version }}/boringNotch.dmg Release/
       - name: Generate Sparkle notes
@@ -381,10 +374,7 @@ jobs:
         with:
           path: artifacts
       - name: Prepare Sparkle update creation
-        env:
-          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
         run: |
-          echo -n "$PRIVATE_SPARKLE_KEY" > ./Configuration/sparkle_private_key
           mkdir -p Release
           mv artifacts/app-${{ needs.preparation.outputs.version }}/boringNotch.dmg Release/
       - name: Generate Sparkle notes
@@ -521,7 +511,7 @@ jobs:
           github_token: ${{ github.token }}
           message: "Release version v${{ needs.preparation.outputs.version }}"
       - name: Add success reactions
-        if: ${{ needs.build.result == 'success' }}
+        if: ${{ !contains(join(needs.*.result, ','), 'failure') }}
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ github.event.comment.id }}
