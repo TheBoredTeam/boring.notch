@@ -218,8 +218,6 @@ jobs:
 
       - name: Commit version changes to source branch
         run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
           git add ${{ env.projname }}.xcodeproj/project.pbxproj
           git commit -m "Set version to v${{ needs.preparation.outputs.version }} (build ${{ needs.preparation.outputs.build_number }})" || echo "No changes to commit"
           # Push back to the PR branch (head_ref)
@@ -256,35 +254,18 @@ jobs:
           EOF
 
           xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
-      - name: Build Sparkle generate_appcast from SPM
+      - name: Use committed Sparkle generate_appcast binary
         run: |
-          # Find the Sparkle checkout from resolved Swift packages and build the provided generate_appcast tool.
-          SPARKLE_CHECKOUT=$(find . -type d -path './SourcePackages/checkouts/Sparkle' | head -n1)
-          if [ -z "$SPARKLE_CHECKOUT" ]; then
-            echo "Sparkle checkout not found under SourcePackages/checkouts; attempting to locate in Xcode DerivedData"
-            SPARKLE_CHECKOUT=$(find ~/Library/Developer/Xcode/DerivedData -type d -path '*/SourcePackages/checkouts/Sparkle' 2>/dev/null | head -n1)
-          fi
-          if [ -z "$SPARKLE_CHECKOUT" ]; then
-            echo "Unable to find Sparkle checkout; failing workflow" >&2
-            exit 1
-          fi
-
-          echo "Found Sparkle at: $SPARKLE_CHECKOUT"
-          # Build the generate_appcast executable from the Sparkle repo's generate_appcast package
-          if [ -d "$SPARKLE_CHECKOUT/generate_appcast" ]; then
-            (cd "$SPARKLE_CHECKOUT/generate_appcast" && swift build -c release)
-            BUILT_BIN="$SPARKLE_CHECKOUT/generate_appcast/.build/release/generate_appcast"
-            if [ -f "$BUILT_BIN" ]; then
-              mkdir -p $RUNNER_TEMP/sparkle-tools
-              cp "$BUILT_BIN" $RUNNER_TEMP/sparkle-tools/generate_appcast
-              chmod +x $RUNNER_TEMP/sparkle-tools/generate_appcast
-              echo "Built generate_appcast copied to $RUNNER_TEMP/sparkle-tools/generate_appcast"
-            else
-              echo "generate_appcast build failed: $BUILT_BIN missing" >&2
-              exit 1
-            fi
+          # The generate_appcast binary should be committed to the repository at the path
+          # Configuration/sparkle/generate_appcast. The maintainer will place it there.
+          TOOL_PATH="Configuration/sparkle/generate_appcast"
+          if [ -x "$TOOL_PATH" ]; then
+            mkdir -p "$RUNNER_TEMP/sparkle-tools"
+            cp "$TOOL_PATH" "$RUNNER_TEMP/sparkle-tools/generate_appcast"
+            chmod +x "$RUNNER_TEMP/sparkle-tools/generate_appcast"
+            echo "Copied committed generate_appcast to runner temp"
           else
-            echo "generate_appcast package not found in Sparkle checkout" >&2
+            echo "Error: $TOOL_PATH not found or not executable. Please add the generate_appcast binary at that path." >&2
             exit 1
           fi
       - name: Upload sparkle tools artifact
