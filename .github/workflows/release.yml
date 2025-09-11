@@ -281,13 +281,17 @@ jobs:
                           -srcfolder "${{ env.projname }}.app" \
                           -ov -format UDZO \
                           "${{ env.projname }}.dmg"
-      - name: Upload built app
+      - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-${{ needs.preparation.outputs.version }}
-          path: |
-            Release/${{ env.projname }}.dmg
-            Release/${{ env.projname }}.app
+          name: ${{ env.projname }}.dmg
+          path: Release/${{ env.projname }}.dmg
+
+      - name: Upload .app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.projname }}.app
+          path: Release/${{ env.projname }}.app
 
   pre-release:
     name: Create pre-release
@@ -301,21 +305,23 @@ jobs:
         if: success()
         with:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
-      - uses: actions/download-artifact@master
+      - name: Download DMG artifact
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: ${{ env.projname }}.dmg
+          path: Release
       - name: Prepare Sparkle update creation
         run: |
           mkdir -p Release
-          mv artifacts/app-${{ needs.preparation.outputs.version }}/boringNotch.dmg Release/
       - name: Download generated Sparkle tools artifact
         uses: actions/download-artifact@v4
         with:
           name: sparkle-tools-${{ needs.preparation.outputs.version }}
           path: sparkle-tools
       - name: Generate Sparkle notes and create signed appcast
+        env:
+          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
         run: |
-          PRIVATE_SPARKLE_KEY="${{ secrets.PRIVATE_SPARKLE_KEY }}"
           GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
           DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
           CHANNEL="${{ env.beta-channel-name }}"
@@ -414,21 +420,23 @@ jobs:
         if: success()
         with:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
-      - uses: actions/download-artifact@master
+      - name: Download DMG artifact
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: ${{ env.projname }}.dmg
+          path: Release
       - name: Prepare Sparkle update creation
         run: |
           mkdir -p Release
-          mv artifacts/app-${{ needs.preparation.outputs.version }}/boringNotch.dmg Release/
       - name: Download generated Sparkle tools artifact
         uses: actions/download-artifact@v4
         with:
           name: sparkle-tools-${{ needs.preparation.outputs.version }}
           path: sparkle-tools
       - name: Generate Sparkle notes and create signed appcast (from built SPM tool)
+        env:
+          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
         run: |
-          PRIVATE_SPARKLE_KEY="${{ secrets.PRIVATE_SPARKLE_KEY }}"
           GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
           DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
 
