@@ -258,6 +258,8 @@ jobs:
     name: Publish Release
     runs-on: macos-latest
     needs: [preparation, build]
+    permissions:
+      contents: write
     steps:
       - uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
@@ -323,14 +325,13 @@ jobs:
             git add ${{ env.projname }}.xcodeproj/project.pbxproj || true
             git commit -m "Update version to v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
           else
-            # git checkout main
-            # git add updater/appcast.xml
-            # git commit -m "Update appcast with beta release for v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
-            # git push origin main
+            git checkout main
+            git add updater/appcast.xml
+            git commit -m "Update appcast with beta release for v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
+            git push origin main
           fi
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
-        if: false
+        uses: softprops/action-gh-release@v2
         with:
           name: v${{ needs.preparation.outputs.version }} - ${{ needs.preparation.outputs.title }}
           tag_name: v${{ needs.preparation.outputs.version }}
@@ -438,7 +439,7 @@ jobs:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
       - name: Merge PR (for stable releases)
         uses: devmasx/merge-branch@master
-        if: ${{ needs.preparation.outputs.is_beta == 'false' && contains(join(needs.*.result, ','), 'success') && false }}
+        if: ${{ needs.preparation.outputs.is_beta == 'false' && contains(join(needs.*.result, ','), 'success') }}
         with:
           type: now
           from_branch: ${{ steps.comment-branch.outputs.head_ref }}
