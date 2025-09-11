@@ -81,8 +81,6 @@ jobs:
           # Ensure semver is installed deterministically
           python3 -m pip install --upgrade --no-cache-dir semver
 
-          chmod +x .github/scripts/extract_version.py
-
           export COMMENT="${{ github.event.comment.body }}"
           export projname="${{ env.projname }}"
 
