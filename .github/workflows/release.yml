@@ -25,24 +25,11 @@ jobs:
       pull-requests: write
     outputs:
       is_beta: ${{ steps.check-beta.outputs.is_beta }}
-      is_test: ${{ steps.check-beta.outputs.is_test }}
       version: ${{ steps.extract-version.outputs.version }}
       build_number: ${{ steps.extract-version.outputs.build_number }}
       title: ${{ steps.generate-release-notes.outputs.title }}
       release_notes: ${{ steps.generate-release-notes.outputs.release_notes }}
     steps:
-      - name: Check if beta or test
-        id: check-beta
-        run: |
-          if ${{ contains(github.event.comment.body, 'beta') }}; then
-            echo "is_beta=true" >> $GITHUB_OUTPUT
-          elif ${{ contains(github.event.comment.body, 'test') }}; then
-            echo "is_beta=false" >> $GITHUB_OUTPUT
-            echo "is_test=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_beta=false" >> $GITHUB_OUTPUT
-            echo "is_test=false" >> $GITHUB_OUTPUT
-          fi
       - uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
 
@@ -87,16 +74,29 @@ jobs:
           
       - name: Extract version from comment or Xcode project
         id: extract-version
+        shell: bash
         run: |
-          VERSION=$(echo "${{ github.event.comment.body }}" | grep -oE 'v?[0-9]+(\.[0-9]+)*(-rc\.[0-9]+)?' | head -1 | sed 's/^v//')
-          if [ -z "$VERSION" ]; then
-            VERSION=$(grep -m1 'MARKETING_VERSION = ' ${{ env.projname }}.xcodeproj/project.pbxproj | sed 's/.*MARKETING_VERSION = \([^;]*\);.*/\1/' | tr -d '"')
-            echo "Using version from Xcode: $VERSION"
-          fi
-          
+          set -euo pipefail
+
+          # Ensure semver is installed deterministically
+          python3 -m pip install --upgrade --no-cache-dir semver
+
+          chmod +x scripts/extract_version.py
+
+          export COMMENT="${{ github.event.comment.body }}"
+          export projname="${{ env.projname }}"
+
+          # Run script: if it exits non-zero, this step will fail and stop the job
+          OUTPUT=$(python3 scripts/extract_version.py -c "$COMMENT")
+
+          # Parse outputs (script prints version=... and is_beta=...)
+          VERSION=$(echo "$OUTPUT" | grep -m1 '^version=' | sed 's/^version=//')
+          IS_BETA=$(echo "$OUTPUT" | grep -m1 '^is_beta=' | sed 's/^is_beta=//')
+
           BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_beta=$IS_BETA" >> $GITHUB_OUTPUT
           echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
           echo "Using Actions run number as build number: $BUILD_NUMBER for version: $VERSION"
 
@@ -248,11 +248,10 @@ jobs:
           name: ${{ env.projname }}.app
           path: Release/${{ env.projname }}.app
 
-  pre-release:
-    name: Create pre-release
+  publish:
+    name: Publish Release
     runs-on: macos-latest
     needs: [preparation, build]
-    if: ${{ needs.preparation.outputs.is_beta == 'true' }}
     steps:
       - uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
@@ -265,155 +264,80 @@ jobs:
         with:
           name: ${{ env.projname }}.dmg
           path: Release
-      - name: Generate Sparkle notes and create signed appcast
-        env:
-          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+      - name: Create HTML release notes
         run: |
-          GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
-          DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
-          CHANNEL="${{ env.beta-channel-name }}"
-
-          # Create basic HTML release notes
-          cat > Release/boringNotch.html <<'EOF'
+          mkdir -p Release
+          cat > Release/boringNotch.html <<EOF
           <!DOCTYPE html>
           <html>
           <head>
             <meta charset="utf-8">
-            <title>boringNotch ${{ needs.preparation.outputs.version }} Beta</title>
+            <title>Boring Notch ${{ needs.preparation.outputs.version }}</title>
           </head>
           <body>
-            <h2>boringNotch ${{ needs.preparation.outputs.version }} Beta</h2>
-            <ul>
-              <li>Beta release for testing</li>
-              <li>Please report any issues on GitHub</li>
-            </ul>
-          </body>
-          </html>
-          EOF
-
-
-          if [ ! -x ./Configuration/sparkle/generate_appcast ]; then
-            echo "Configuration/sparkle/generate_appcast not found" >&2
-            exit 1
-          fi
-
-          printf '%s' "$PRIVATE_SPARKLE_KEY" | ./Configuration/sparkle/generate_appcast \
-            --ed-key-file - \
-            --link "$GITHUB_REPO" \
-            --download-url-prefix "$DOWNLOAD_PREFIX" \
-            --channel "$CHANNEL" \
-            -o updater/appcast.xml \
-            Release/
-
-          unset PRIVATE_SPARKLE_KEY
-      - name: Upload appcast artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: appcast-beta-${{ needs.preparation.outputs.version }}
-          path: updater/appcast.xml
-      - name: Create GitHub beta release
-        if: ${{ needs.preparation.outputs.is_test != 'true' }}
-        uses: softprops/action-gh-release@v1
-        with:
-          name: v${{ needs.preparation.outputs.version }}b - ${{ needs.preparation.outputs.title }}
-          tag_name: v${{ needs.preparation.outputs.version }}-beta
-          fail_on_unmatched_files: true
-          body: ${{ needs.preparation.outputs.release_notes }}
-          files: Release/boringNotch.dmg
-          prerelease: true
-          draft: false
-      - name: Update appcast on main branch
-        if: ${{ needs.preparation.outputs.is_test != 'true' }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout main
-          git add docs/Support/appcast.xml
-          git commit -m "Update appcast with beta release for v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
-          git push origin main
-
-  release:
-    name: "Create Release"
-    runs-on: macos-latest
-    needs: [preparation, build]
-    if: ${{ needs.preparation.outputs.is_beta == 'false' }}
-    steps:
-      - uses: xt0rted/pull-request-comment-branch@v1
-        id: comment-branch
-      - uses: actions/checkout@v3
-        if: success()
-        with:
-          ref: ${{ steps.comment-branch.outputs.head_ref }}
-      - name: Download DMG artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.projname }}.dmg
-          path: Release
-      - name: Generate Sparkle notes and create signed appcast (from built SPM tool)
-        env:
-          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
-        run: |
-          GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
-          DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
-
-          # Create HTML release notes for Sparkle
-          cat > Release/boringNotch.html <<'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <title>boringNotch ${{ needs.preparation.outputs.version }}</title>
-          </head>
-          <body>
-            <h2>boringNotch ${{ needs.preparation.outputs.version }}</h2>
+            <h2>BoringNotch ${{ needs.preparation.outputs.version }}</h2>
             <div>
               ${{ needs.preparation.outputs.release_notes }}
             </div>
           </body>
           </html>
           EOF
-
-          if [ ! -x ./Configuration/sparkle/generate_appcast ]; then
-            echo "Configuration/sparkle/generate_appcast not found" >&2
+      - name: Check for generate_appcast in repository
+        run: |
+          TOOL_PATH="Configuration/sparkle/generate_appcast"
+          if [ ! -x "$TOOL_PATH" ]; then
+            echo "Configuration/sparkle/generate_appcast missing or not executable" >&2
             exit 1
           fi
+          echo "Found generate_appcast at $TOOL_PATH"
+      - name: Generate signed appcast
+        run: |
+          set -euo pipefail
+          GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
+          DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
 
-          printf '%s' "$PRIVATE_SPARKLE_KEY" | ./Configuration/sparkle/generate_appcast \
+          CHANNEL_ARG=""
+          if [[ "${{ needs.preparation.outputs.is_beta }}" == "true" ]]; then
+            CHANNEL_ARG="--channel ${{ env.beta-channel-name }}"
+          fi
+
+          printf '%s' "${{ secrets.PRIVATE_SPARKLE_KEY }}" | ./Configuration/sparkle/generate_appcast \
             --ed-key-file - \
             --link "$GITHUB_REPO" \
             --download-url-prefix "$DOWNLOAD_PREFIX" \
+            $CHANNEL_ARG \
             -o updater/appcast.xml \
             Release/
-
-          unset PRIVATE_SPARKLE_KEY
-      - name: Upload appcast artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: appcast-release-${{ needs.preparation.outputs.version }}
-          path: updater/appcast.xml
-      - name: Commit version changes and appcast
-        if: ${{ needs.preparation.outputs.is_test != 'true' }}
+      - name: Commit appcast (and pbxproj for stable)
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add updater/appcast.xml ${{ env.projname }}.xcodeproj/project.pbxproj
-          git commit -m "Update version to v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
+          git add updater/appcast.xml
+          if [[ "${{ needs.preparation.outputs.is_beta }}" == "false" ]]; then
+            git add ${{ env.projname }}.xcodeproj/project.pbxproj || true
+            git commit -m "Update version to v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
+          else
+            # git checkout main
+            # git add updater/appcast.xml
+            # git commit -m "Update appcast with beta release for v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
+            # git push origin main
+          fi
       - name: Create GitHub release
-        if: ${{ needs.preparation.outputs.is_test != 'true' }}
         uses: softprops/action-gh-release@v1
+        if: false
         with:
           name: v${{ needs.preparation.outputs.version }} - ${{ needs.preparation.outputs.title }}
           tag_name: v${{ needs.preparation.outputs.version }}
           fail_on_unmatched_files: true
           body: ${{ needs.preparation.outputs.release_notes }}
           files: Release/boringNotch.dmg
-          prerelease: false
+          prerelease: ${{ needs.preparation.outputs.is_beta }}
           draft: false
 
   upgrade-brew:
     name: Upgrade Homebrew formula
     runs-on: macos-latest
-    needs: [preparation, release]
+    needs: [preparation, publish]
     if: ${{ needs.preparation.outputs.is_beta == 'false' }}
     steps:
       - name: Generate Homebrew cask
@@ -424,9 +348,26 @@ jobs:
           cask "boring-notch" do
             version "${{ needs.preparation.outputs.version }}"
             sha256 "$NEW_SHA256"
+
             url "$DMG_URL"
-            name "boringNotch"
+            name "Boring Notch"
+            desc "Not so boring notch That Rocks 🎸🎶 "
             homepage "https://github.com/TheBoredTeam/boring.notch"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            auto_updates true
+            depends_on macos: ">= :sonoma"
+
+            app "boringNotch.app"
+
+            zap trash: [
+              "~/Library/Application Scripts/theboringteam.boringnotch/",
+              "~/Library/Containers/theboringteam.boringnotch/",
+            ]
           end
           EOF
       - name: Upload Homebrew cask artifact
@@ -438,33 +379,50 @@ jobs:
   upgrade-brew-beta:
     name: Upgrade Homebrew beta formula
     runs-on: macos-latest
-    needs: [preparation, pre-release]
+    needs: [preparation, publish]
     if: ${{ needs.preparation.outputs.is_beta == 'true' }}
     steps:
       - name: Generate Homebrew beta cask
         run: |
-          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}-beta/boringNotch.dmg"
+          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/boringNotch.dmg"
           NEW_SHA256=$(curl -sL "$DMG_URL" | shasum -a 256 | cut -d' ' -f1)
           cat > boring-notch@rc.rb <<EOF
           cask "boring-notch@rc" do
             version "${{ needs.preparation.outputs.version }}"
             sha256 "$NEW_SHA256"
+
             url "$DMG_URL"
-            name "boringNotch RC"
+            name "Boring Notch RC"
+            desc "Not so boring notch That Rocks 🎸🎶 (Release Candidate)"
             homepage "https://github.com/TheBoredTeam/boring.notch"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            auto_updates true
+            depends_on macos: ">= :sonoma"
+
+            app "boringNotch.app"
+
+            zap trash: [
+              "~/Library/Application Scripts/theboringteam.boringnotch/",
+              "~/Library/Containers/theboringteam.boringnotch/",
+            ]
           end
           EOF
       - name: Upload Homebrew beta cask artifact
         uses: actions/upload-artifact@v4
         with:
-          name: homebrew-cask-beta-${{ needs.preparation.outputs.version }}
+          name: homebrew-cask-${{ needs.preparation.outputs.version }}
           path: boring-notch@rc.rb
 
   ending:
     name: Ending job
     if: ${{ always() && github.event.issue.pull_request && (contains(github.event.comment.body, '/build') || contains(github.event.comment.body, '/release')) }}
     runs-on: ubuntu-latest
-    needs: [preparation, build, pre-release, release, upgrade-brew]
+    needs: [preparation, build, publish, upgrade-brew]
     steps:
       - uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
@@ -474,7 +432,7 @@ jobs:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
       - name: Merge PR (for stable releases)
         uses: devmasx/merge-branch@master
-        if: ${{ needs.preparation.outputs.is_beta == 'false' && contains(join(needs.*.result, ','), 'success') && needs.preparation.outputs.is_test != 'true' }}
+        if: ${{ needs.preparation.outputs.is_beta == 'false' && contains(join(needs.*.result, ','), 'success') && false }}
         with:
           type: now
           from_branch: ${{ steps.comment-branch.outputs.head_ref }}
