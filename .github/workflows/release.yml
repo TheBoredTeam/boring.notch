@@ -34,22 +34,19 @@ jobs:
       - name: Check if beta or test
         id: check-beta
         run: |
-          if [[ "${{ contains(github.event.comment.body, 'beta') }}" == "true" ]]; then
+          if ${{ contains(github.event.comment.body, 'beta') }}; then
             echo "is_beta=true" >> $GITHUB_OUTPUT
-            echo "env=build-beta" >> $GITHUB_OUTPUT
-          elif [[ "${{ contains(github.event.comment.body, 'test') }}" == "true" ]]; then
+          elif ${{ contains(github.event.comment.body, 'test') }}; then
             echo "is_beta=false" >> $GITHUB_OUTPUT
             echo "is_test=true" >> $GITHUB_OUTPUT
-            echo "env=build-test" >> $GITHUB_OUTPUT
           else
             echo "is_beta=false" >> $GITHUB_OUTPUT
             echo "is_test=false" >> $GITHUB_OUTPUT
-            echo "env=build-release" >> $GITHUB_OUTPUT
           fi
-      - uses: xt0rted/pull-request-comment-branch@v1 # check out branch of PR
+      - uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
 
-      - name: Add reactions # adding reactions to the comment to show that the action is running
+      - name: Add reaction to comment
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ github.event.comment.id }}
@@ -91,24 +88,12 @@ jobs:
       - name: Extract version from comment or Xcode project
         id: extract-version
         run: |
-          # Check if version is provided in comment
-          COMMENT_BODY="${{ github.event.comment.body }}"
-          
-          # Extract version from comment using regex (supports formats like v2.6, 1.3, 2.6-rc.5)
-          VERSION_FROM_COMMENT=$(echo "$COMMENT_BODY" | grep -oE 'v?[0-9]+(\.[0-9]+)*(-rc\.[0-9]+)?' | head -1 | sed 's/^v//')
-          
-          if [[ -n "$VERSION_FROM_COMMENT" ]]; then
-            echo "Using version from comment: $VERSION_FROM_COMMENT"
-            VERSION="$VERSION_FROM_COMMENT"
-          else
-            # Extract from Xcode project
+          VERSION=$(echo "${{ github.event.comment.body }}" | grep -oE 'v?[0-9]+(\.[0-9]+)*(-rc\.[0-9]+)?' | head -1 | sed 's/^v//')
+          if [ -z "$VERSION" ]; then
             VERSION=$(grep -m1 'MARKETING_VERSION = ' ${{ env.projname }}.xcodeproj/project.pbxproj | sed 's/.*MARKETING_VERSION = \([^;]*\);.*/\1/' | tr -d '"')
             echo "Using version from Xcode: $VERSION"
           fi
           
-          # Use the GitHub Actions run number as the build number to ensure it is
-          # monotonic and tied to the workflow run.
-          # GITHUB_RUN_NUMBER is provided by Actions and increments for each run.
           BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -141,8 +126,6 @@ jobs:
       - name: Check if version already released
         run: |
           NEW_VERSION="v${{ steps.extract-version.outputs.version }}"
-          
-          # Fetch all tags from the remote
           git fetch --tags
 
           if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
@@ -153,8 +136,8 @@ jobs:
           fi
 
       - name: Sync branch (for stable releases)
-        uses: devmasx/merge-branch@master
         if: ${{ steps.check-beta.outputs.is_beta == 'false' }}
+        uses: devmasx/merge-branch@master
         with:
           type: now
           from_branch: ${{ steps.comment-branch.outputs.base_ref }}
@@ -172,7 +155,7 @@ jobs:
       DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
       CODE_SIGN_IDENTITY: "Apple Development"
     steps:
-      - uses: xt0rted/pull-request-comment-branch@v1 # check out branch of PR
+      - uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
       - uses: actions/checkout@v3
         if: success()
@@ -180,51 +163,37 @@ jobs:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
           persist-credentials: true
       - name: Resolve Swift packages
-        run: |
-          # Ensure SPM dependencies (including Sparkle) are fetched so we can build tools from the same SPM version
-          xcodebuild -resolvePackageDependencies -project ${{ env.projname }}.xcodeproj
-      - name: Install the Apple certificate
+        run: xcodebuild -resolvePackageDependencies -project ${{ env.projname }}.xcodeproj
+      - name: Install Apple certificate
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          # create variables
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-
-          # import certificate from secrets
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
-
-          # create temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # import certificate to keychain
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+          CERT_PATH=$RUNNER_TEMP/build_certificate.p12
+          KC=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security list-keychain -d user -s "$KC"
       - name: Switch Xcode version
         run: |
           sudo xcode-select -s "/Applications/Xcode_16.4.app"
           /usr/bin/xcodebuild -version
       - name: Set version and build number in project
         run: |
-          # Set marketing version
           sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${{ needs.preparation.outputs.version }}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
-          # Set the build number (CURRENT_PROJECT_VERSION)
           sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${{ needs.preparation.outputs.build_number }}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
-          echo "Set version to: ${{ needs.preparation.outputs.version }} and build number to: ${{ needs.preparation.outputs.build_number }}"
 
-      - name: Commit version changes to source branch
+      - name: Commit version changes
         run: |
           git add ${{ env.projname }}.xcodeproj/project.pbxproj
           git commit -m "Set version to v${{ needs.preparation.outputs.version }} (build ${{ needs.preparation.outputs.build_number }})" || echo "No changes to commit"
-          # Push back to the PR branch (head_ref)
-          git push origin HEAD:${{ steps.comment-branch.outputs.head_ref }}
-      - name: Build and archive # create archive
+          git push origin HEAD:${{ steps.comment-branch.outputs.head_ref }} || true
+      - name: Build and archive
         run: |
-          # Ensure the archive is created with an explicit team and code sign identity
           xcodebuild clean archive \
             -project ${{ env.projname }}.xcodeproj \
             -scheme ${{ env.projname }} \
@@ -232,11 +201,10 @@ jobs:
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
             -allowProvisioningUpdates
-      - name: Export app # create .app
+      - name: Export app
         env:
           DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
         run: |
-          # Create export options plist in temporary directory to avoid modifying the repo
           TEMP_PLIST="$RUNNER_TEMP/export_options.plist"
           cat > "$TEMP_PLIST" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -252,31 +220,17 @@ jobs:
           </dict>
           </plist>
           EOF
-
           xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
-      - name: Use committed Sparkle generate_appcast binary
+      - name: Prepare generate_appcast
         run: |
-          # The generate_appcast binary should be committed to the repository at the path
-          # Configuration/sparkle/generate_appcast. The maintainer will place it there.
           TOOL_PATH="Configuration/sparkle/generate_appcast"
-          if [ -x "$TOOL_PATH" ]; then
-            mkdir -p "$RUNNER_TEMP/sparkle-tools"
-            cp "$TOOL_PATH" "$RUNNER_TEMP/sparkle-tools/generate_appcast"
-            chmod +x "$RUNNER_TEMP/sparkle-tools/generate_appcast"
-            echo "Copied committed generate_appcast to runner temp"
-          else
-            echo "Error: $TOOL_PATH not found or not executable. Please add the generate_appcast binary at that path." >&2
-            exit 1
-          fi
-      - name: Upload sparkle tools artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sparkle-tools-${{ needs.preparation.outputs.version }}
-          path: $RUNNER_TEMP/sparkle-tools/generate_appcast
+          [ -x "$TOOL_PATH" ] || { echo "generate_appcast missing" >&2; exit 1; }
+          mkdir -p "$RUNNER_TEMP/sparkle-tools"
+          cp "$TOOL_PATH" "$RUNNER_TEMP/sparkle-tools/generate_appcast"
+          chmod +x "$RUNNER_TEMP/sparkle-tools/generate_appcast"
       - name: Create DMG
         run: |
           cd Release
-          # Create a simple DMG (you may want to customize this with a background image, etc.)
           hdiutil create -volname "boringNotch ${{ needs.preparation.outputs.version }}" \
                           -srcfolder "${{ env.projname }}.app" \
                           -ov -format UDZO \
@@ -313,11 +267,6 @@ jobs:
       - name: Prepare Sparkle update creation
         run: |
           mkdir -p Release
-      - name: Download generated Sparkle tools artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: sparkle-tools-${{ needs.preparation.outputs.version }}
-          path: sparkle-tools
       - name: Generate Sparkle notes and create signed appcast
         env:
           PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
