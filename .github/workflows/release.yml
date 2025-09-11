@@ -13,8 +13,7 @@ env:
   EXPORT_METHOD: "development"
 permissions:
   contents: read
-  issues: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   preparation:
@@ -23,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: write
+      pull-requests: write
     outputs:
       is_beta: ${{ steps.check-beta.outputs.is_beta }}
       is_test: ${{ steps.check-beta.outputs.is_test }}
@@ -180,6 +179,10 @@ jobs:
         with:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
           persist-credentials: true
+      - name: Resolve Swift packages
+        run: |
+          # Ensure SPM dependencies (including Sparkle) are fetched so we can build tools from the same SPM version
+          xcodebuild -resolvePackageDependencies -project ${{ env.projname }}.xcodeproj
       - name: Install the Apple certificate
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -253,18 +256,42 @@ jobs:
           EOF
 
           xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
-      - name: Sign with Sparkle EdDSA key (for future use)
-        env:
-          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+      - name: Build Sparkle generate_appcast from SPM
         run: |
-          echo -n "$PRIVATE_SPARKLE_KEY" > ./sparkle_private_key
-          # Create signature file for future Sparkle integration
-          if command -v ./Configuration/generate_appcast >/dev/null 2>&1; then
-            ./Configuration/generate_appcast --ed-key-file sparkle_private_key --generate-signatures Release/
-          else
-            echo "Sparkle generate_appcast not found - skipping signature generation"
+          # Find the Sparkle checkout from resolved Swift packages and build the provided generate_appcast tool.
+          SPARKLE_CHECKOUT=$(find . -type d -path './SourcePackages/checkouts/Sparkle' | head -n1)
+          if [ -z "$SPARKLE_CHECKOUT" ]; then
+            echo "Sparkle checkout not found under SourcePackages/checkouts; attempting to locate in Xcode DerivedData"
+            SPARKLE_CHECKOUT=$(find ~/Library/Developer/Xcode/DerivedData -type d -path '*/SourcePackages/checkouts/Sparkle' 2>/dev/null | head -n1)
           fi
-          rm sparkle_private_key
+          if [ -z "$SPARKLE_CHECKOUT" ]; then
+            echo "Unable to find Sparkle checkout; failing workflow" >&2
+            exit 1
+          fi
+
+          echo "Found Sparkle at: $SPARKLE_CHECKOUT"
+          # Build the generate_appcast executable from the Sparkle repo's generate_appcast package
+          if [ -d "$SPARKLE_CHECKOUT/generate_appcast" ]; then
+            (cd "$SPARKLE_CHECKOUT/generate_appcast" && swift build -c release)
+            BUILT_BIN="$SPARKLE_CHECKOUT/generate_appcast/.build/release/generate_appcast"
+            if [ -f "$BUILT_BIN" ]; then
+              mkdir -p $RUNNER_TEMP/sparkle-tools
+              cp "$BUILT_BIN" $RUNNER_TEMP/sparkle-tools/generate_appcast
+              chmod +x $RUNNER_TEMP/sparkle-tools/generate_appcast
+              echo "Built generate_appcast copied to $RUNNER_TEMP/sparkle-tools/generate_appcast"
+            else
+              echo "generate_appcast build failed: $BUILT_BIN missing" >&2
+              exit 1
+            fi
+          else
+            echo "generate_appcast package not found in Sparkle checkout" >&2
+            exit 1
+          fi
+      - name: Upload sparkle tools artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sparkle-tools-${{ needs.preparation.outputs.version }}
+          path: $RUNNER_TEMP/sparkle-tools/generate_appcast
       - name: Create DMG
         run: |
           cd Release
@@ -300,10 +327,20 @@ jobs:
         run: |
           mkdir -p Release
           mv artifacts/app-${{ needs.preparation.outputs.version }}/boringNotch.dmg Release/
-      - name: Generate Sparkle notes
+      - name: Download generated Sparkle tools artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sparkle-tools-${{ needs.preparation.outputs.version }}
+          path: sparkle-tools
+      - name: Generate Sparkle notes and create signed appcast
         run: |
-          # Create basic HTML release notes for Sparkle
-          cat > Release/boringNotch.html <<EOF
+          PRIVATE_SPARKLE_KEY="${{ secrets.PRIVATE_SPARKLE_KEY }}"
+          GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
+          DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
+          CHANNEL="${{ env.beta-channel-name }}"
+
+          # Create basic HTML release notes
+          cat > Release/boringNotch.html <<'EOF'
           <!DOCTYPE html>
           <html>
           <head>
@@ -319,19 +356,45 @@ jobs:
           </body>
           </html>
           EOF
-      - name: Update appcast
-        run: |
-          if [[ -f "./Configuration/generate_appcast" ]]; then
-            ./Configuration/generate_appcast \
-                --ed-key-file Configuration/sparkle_private_key \
-                --link https://github.com/TheBoredTeam/boring.notch/releases \
-                --download-url-prefix https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}-beta/ \
-                --channel ${{ env.beta-channel-name }} \
-                -o updater/appcast.xml \
-                Release/
-          else
-            echo "Sparkle generate_appcast not found - skipping appcast generation"
+
+          # Download the generate_appcast built in the build job
+          echo "Using built Sparkle tool artifact at ./sparkle-tools/generate_appcast"
+
+          # Securely import the private key into a temporary keychain and let generate_appcast read it from there
+          KEYCHAIN_PATH="$RUNNER_TEMP/sparkle_keychain.keychain-db"
+          KEYCHAIN_PASS=$(openssl rand -base64 32)
+
+          security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+
+          # Ensure the temporary keychain is in the keychain search list
+          EXISTING_KCS=$(security list-keychains -d user | tr -d '"' | xargs)
+          security list-keychains -s "$KEYCHAIN_PATH" $EXISTING_KCS
+
+          # Add the private key string as a generic password item (generate_appcast expects base64-encoded secret data)
+          # Use account name 'ed25519' (default) unless overridden
+          ACCOUNT_NAME="ed25519"
+          security add-generic-password -a "$ACCOUNT_NAME" -s "https://sparkle-project.org" -w "$PRIVATE_SPARKLE_KEY" -U "$KEYCHAIN_PATH"
+
+          if [ ! -x ./sparkle-tools/generate_appcast ]; then
+            echo "sparkle-tools/generate_appcast not found; ensure build job uploaded the artifact" >&2
+            # Cleanup keychain before exit
+            security delete-keychain "$KEYCHAIN_PATH" || true
+            exit 1
           fi
+
+          # Run generate_appcast without --ed-key-file so it reads private key from Keychain
+          ./sparkle-tools/generate_appcast \
+            --account "$ACCOUNT_NAME" \
+            --link "$GITHUB_REPO" \
+            --download-url-prefix "$DOWNLOAD_PREFIX" \
+            --channel "$CHANNEL" \
+            -o updater/appcast.xml \
+            Release/
+
+          # Cleanup: remove the temporary keychain
+          security delete-keychain "$KEYCHAIN_PATH" || true
       - name: Upload appcast artifact
         uses: actions/upload-artifact@v4
         with:
@@ -377,10 +440,19 @@ jobs:
         run: |
           mkdir -p Release
           mv artifacts/app-${{ needs.preparation.outputs.version }}/boringNotch.dmg Release/
-      - name: Generate Sparkle notes
+      - name: Download generated Sparkle tools artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sparkle-tools-${{ needs.preparation.outputs.version }}
+          path: sparkle-tools
+      - name: Generate Sparkle notes and create signed appcast (from built SPM tool)
         run: |
+          PRIVATE_SPARKLE_KEY="${{ secrets.PRIVATE_SPARKLE_KEY }}"
+          GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
+          DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
+
           # Create HTML release notes for Sparkle
-          cat > Release/boringNotch.html <<EOF
+          cat > Release/boringNotch.html <<'EOF'
           <!DOCTYPE html>
           <html>
           <head>
@@ -395,26 +467,36 @@ jobs:
           </body>
           </html>
           EOF
-      - name: Remove beta item from appcast
-        run: |
-          # Remove the last beta item if present
-          if [[ -f "docs/Support/appcast.xml" ]] && grep -q "beta" docs/Support/appcast.xml; then
-            python3 .github/scripts/remove_beta.py docs/Support/appcast.xml
-          else
-            echo "No beta entries found in appcast"
+
+          # Securely import the private key into a temporary keychain and run generate_appcast reading from it
+          KEYCHAIN_PATH="$RUNNER_TEMP/sparkle_keychain.keychain-db"
+          KEYCHAIN_PASS=$(openssl rand -base64 32)
+
+          security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+
+          # Ensure the temporary keychain is in the keychain search list
+          EXISTING_KCS=$(security list-keychains -d user | tr -d '"' | xargs)
+          security list-keychains -s "$KEYCHAIN_PATH" $EXISTING_KCS
+
+          ACCOUNT_NAME="ed25519"
+          security add-generic-password -a "$ACCOUNT_NAME" -s "https://sparkle-project.org" -w "$PRIVATE_SPARKLE_KEY" -U "$KEYCHAIN_PATH"
+
+          if [ ! -x ./sparkle-tools/generate_appcast ]; then
+            echo "sparkle-tools/generate_appcast not found; ensure build job uploaded the artifact" >&2
+            security delete-keychain "$KEYCHAIN_PATH" || true
+            exit 1
           fi
-      - name: Update appcast
-        run: |
-          if [[ -f "./Configuration/generate_appcast" ]]; then
-            ./Configuration/generate_appcast \
-                --ed-key-file Configuration/sparkle_private_key \
-                --link https://github.com/TheBoredTeam/boring.notch/releases \
-                --download-url-prefix https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/ \
-                -o updater/appcast.xml \
-                Release/
-          else
-            echo "Sparkle generate_appcast not found - skipping appcast generation"
-          fi
+
+          ./sparkle-tools/generate_appcast \
+            --account "$ACCOUNT_NAME" \
+            --link "$GITHUB_REPO" \
+            --download-url-prefix "$DOWNLOAD_PREFIX" \
+            -o updater/appcast.xml \
+            Release/
+
+          security delete-keychain "$KEYCHAIN_PATH" || true
       - name: Upload appcast artifact
         uses: actions/upload-artifact@v4
         with:
