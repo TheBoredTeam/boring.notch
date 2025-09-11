@@ -284,13 +284,13 @@ jobs:
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.projname }}-dmg-${{ needs.preparation.outputs.version }}
+          name: ${{ env.projname }}.dmg
           path: Release/${{ env.projname }}.dmg
 
       - name: Upload .app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.projname }}-app-${{ needs.preparation.outputs.version }}
+          name: ${{ env.projname }}.app
           path: Release/${{ env.projname }}.app
 
   pre-release:
@@ -305,28 +305,23 @@ jobs:
         if: success()
         with:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
-      - uses: actions/download-artifact@v4
+      - name: Download DMG artifact
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: ${{ env.projname }}.dmg
+          path: Release
       - name: Prepare Sparkle update creation
         run: |
           mkdir -p Release
-          # Find the DMG in the downloaded artifacts and copy it into Release/
-          DMG_PATH=$(find artifacts -type f -name "*.dmg" | head -n1 || true)
-          if [ -z "$DMG_PATH" ]; then
-            echo "DMG not found in artifacts directory"
-            ls -R artifacts || true
-            exit 1
-          fi
-          cp "$DMG_PATH" Release/ || true
       - name: Download generated Sparkle tools artifact
         uses: actions/download-artifact@v4
         with:
           name: sparkle-tools-${{ needs.preparation.outputs.version }}
           path: sparkle-tools
       - name: Generate Sparkle notes and create signed appcast
+        env:
+          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
         run: |
-          PRIVATE_SPARKLE_KEY="${{ secrets.PRIVATE_SPARKLE_KEY }}"
           GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
           DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
           CHANNEL="${{ env.beta-channel-name }}"
@@ -425,28 +420,23 @@ jobs:
         if: success()
         with:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
-      - uses: actions/download-artifact@v4
+      - name: Download DMG artifact
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: ${{ env.projname }}.dmg
+          path: Release
       - name: Prepare Sparkle update creation
         run: |
           mkdir -p Release
-          # Find the DMG in the downloaded artifacts and copy it into Release/
-          DMG_PATH=$(find artifacts -type f -name "*.dmg" | head -n1 || true)
-          if [ -z "$DMG_PATH" ]; then
-            echo "DMG not found in artifacts directory"
-            ls -R artifacts || true
-            exit 1
-          fi
-          cp "$DMG_PATH" Release/ || true
       - name: Download generated Sparkle tools artifact
         uses: actions/download-artifact@v4
         with:
           name: sparkle-tools-${{ needs.preparation.outputs.version }}
           path: sparkle-tools
       - name: Generate Sparkle notes and create signed appcast (from built SPM tool)
+        env:
+          PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
         run: |
-          PRIVATE_SPARKLE_KEY="${{ secrets.PRIVATE_SPARKLE_KEY }}"
           GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
           DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
 
