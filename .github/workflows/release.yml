@@ -221,13 +221,14 @@ jobs:
           </plist>
           EOF
           xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
-      - name: Prepare generate_appcast
+      - name: Check for generate_appcast in repository
         run: |
           TOOL_PATH="Configuration/sparkle/generate_appcast"
-          [ -x "$TOOL_PATH" ] || { echo "generate_appcast missing" >&2; exit 1; }
-          mkdir -p "$RUNNER_TEMP/sparkle-tools"
-          cp "$TOOL_PATH" "$RUNNER_TEMP/sparkle-tools/generate_appcast"
-          chmod +x "$RUNNER_TEMP/sparkle-tools/generate_appcast"
+          if [ ! -x "$TOOL_PATH" ]; then
+            echo "Configuration/sparkle/generate_appcast missing or not executable" >&2
+            exit 1
+          fi
+          echo "Found generate_appcast at $TOOL_PATH"
       - name: Create DMG
         run: |
           cd Release
@@ -264,9 +265,6 @@ jobs:
         with:
           name: ${{ env.projname }}.dmg
           path: Release
-      - name: Prepare Sparkle update creation
-        run: |
-          mkdir -p Release
       - name: Generate Sparkle notes and create signed appcast
         env:
           PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
@@ -293,8 +291,6 @@ jobs:
           </html>
           EOF
 
-          # Download the generate_appcast built in the build job
-          echo "Using built Sparkle tool artifact at ./sparkle-tools/generate_appcast"
 
           if [ ! -x ./Configuration/sparkle/generate_appcast ]; then
             echo "Configuration/sparkle/generate_appcast not found" >&2
@@ -353,14 +349,6 @@ jobs:
         with:
           name: ${{ env.projname }}.dmg
           path: Release
-      - name: Prepare Sparkle update creation
-        run: |
-          mkdir -p Release
-      - name: Download generated Sparkle tools artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: sparkle-tools-${{ needs.preparation.outputs.version }}
-          path: sparkle-tools
       - name: Generate Sparkle notes and create signed appcast (from built SPM tool)
         env:
           PRIVATE_SPARKLE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
