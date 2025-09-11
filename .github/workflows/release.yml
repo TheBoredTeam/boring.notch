@@ -296,41 +296,20 @@ jobs:
           # Download the generate_appcast built in the build job
           echo "Using built Sparkle tool artifact at ./sparkle-tools/generate_appcast"
 
-          # Securely import the private key into a temporary keychain and let generate_appcast read it from there
-          KEYCHAIN_PATH="$RUNNER_TEMP/sparkle_keychain.keychain-db"
-          KEYCHAIN_PASS=$(openssl rand -base64 32)
-
-          security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
-
-          # Ensure the temporary keychain is in the keychain search list
-          EXISTING_KCS=$(security list-keychains -d user | tr -d '"' | xargs)
-          security list-keychains -s "$KEYCHAIN_PATH" $EXISTING_KCS
-
-          # Add the private key string as a generic password item (generate_appcast expects base64-encoded secret data)
-          # Use account name 'ed25519' (default) unless overridden
-          ACCOUNT_NAME="ed25519"
-          security add-generic-password -a "$ACCOUNT_NAME" -s "https://sparkle-project.org" -w "$PRIVATE_SPARKLE_KEY" -U "$KEYCHAIN_PATH"
-
-          if [ ! -x ./sparkle-tools/generate_appcast ]; then
-            echo "sparkle-tools/generate_appcast not found; ensure build job uploaded the artifact" >&2
-            # Cleanup keychain before exit
-            security delete-keychain "$KEYCHAIN_PATH" || true
+          if [ ! -x ./Configuration/sparkle/generate_appcast ]; then
+            echo "Configuration/sparkle/generate_appcast not found" >&2
             exit 1
           fi
 
-          # Run generate_appcast without --ed-key-file so it reads private key from Keychain
-          ./sparkle-tools/generate_appcast \
-            --account "$ACCOUNT_NAME" \
+          printf '%s' "$PRIVATE_SPARKLE_KEY" | ./Configuration/sparkle/generate_appcast \
+            --ed-key-file - \
             --link "$GITHUB_REPO" \
             --download-url-prefix "$DOWNLOAD_PREFIX" \
             --channel "$CHANNEL" \
             -o updater/appcast.xml \
             Release/
 
-          # Cleanup: remove the temporary keychain
-          security delete-keychain "$KEYCHAIN_PATH" || true
+          unset PRIVATE_SPARKLE_KEY
       - name: Upload appcast artifact
         uses: actions/upload-artifact@v4
         with:
@@ -406,35 +385,19 @@ jobs:
           </html>
           EOF
 
-          # Securely import the private key into a temporary keychain and run generate_appcast reading from it
-          KEYCHAIN_PATH="$RUNNER_TEMP/sparkle_keychain.keychain-db"
-          KEYCHAIN_PASS=$(openssl rand -base64 32)
-
-          security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
-
-          # Ensure the temporary keychain is in the keychain search list
-          EXISTING_KCS=$(security list-keychains -d user | tr -d '"' | xargs)
-          security list-keychains -s "$KEYCHAIN_PATH" $EXISTING_KCS
-
-          ACCOUNT_NAME="ed25519"
-          security add-generic-password -a "$ACCOUNT_NAME" -s "https://sparkle-project.org" -w "$PRIVATE_SPARKLE_KEY" -U "$KEYCHAIN_PATH"
-
-          if [ ! -x ./sparkle-tools/generate_appcast ]; then
-            echo "sparkle-tools/generate_appcast not found; ensure build job uploaded the artifact" >&2
-            security delete-keychain "$KEYCHAIN_PATH" || true
+          if [ ! -x ./Configuration/sparkle/generate_appcast ]; then
+            echo "Configuration/sparkle/generate_appcast not found" >&2
             exit 1
           fi
 
-          ./sparkle-tools/generate_appcast \
-            --account "$ACCOUNT_NAME" \
+          printf '%s' "$PRIVATE_SPARKLE_KEY" | ./Configuration/sparkle/generate_appcast \
+            --ed-key-file - \
             --link "$GITHUB_REPO" \
             --download-url-prefix "$DOWNLOAD_PREFIX" \
             -o updater/appcast.xml \
             Release/
 
-          security delete-keychain "$KEYCHAIN_PATH" || true
+          unset PRIVATE_SPARKLE_KEY
       - name: Upload appcast artifact
         uses: actions/upload-artifact@v4
         with:
@@ -548,8 +511,9 @@ jobs:
           if [[ "${{ needs.preparation.outputs.is_beta }}" == "true" ]]; then
             BUILD_TYPE="beta"
           fi
-          
-          if [[ "${{ contains(join(needs.*.result, ','), 'success') }}" == "true" ]]; then
+          ALL_RESULTS="${{ join(needs.*.result, ',') }}"
+
+          if [[ "${ALL_RESULTS}" != *"failure"* ]]; then
             echo "✅ Successfully released boringNotch v${{ needs.preparation.outputs.version }} ($BUILD_TYPE build ${{ needs.preparation.outputs.build_number }})" >> $GITHUB_STEP_SUMMARY
             echo "🍺 Homebrew cask updated" >> $GITHUB_STEP_SUMMARY
             echo "📱 Sparkle appcast updated" >> $GITHUB_STEP_SUMMARY
