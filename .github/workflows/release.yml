@@ -72,6 +72,14 @@ jobs:
         with:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
           
+      - name: Ensure scripts directory exists
+        run: |
+          if [ ! -f ".github/scripts/extract_version.py" ]; then
+            echo "Script not found in PR branch, fetching from base branch"
+            git fetch origin ${{ steps.comment-branch.outputs.base_ref }}
+            git checkout origin/${{ steps.comment-branch.outputs.base_ref }} -- .github/scripts/
+          fi
+          
       - name: Extract version from comment or Xcode project
         id: extract-version
         shell: bash
