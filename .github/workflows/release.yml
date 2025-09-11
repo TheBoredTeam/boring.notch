@@ -81,13 +81,13 @@ jobs:
           # Ensure semver is installed deterministically
           python3 -m pip install --upgrade --no-cache-dir semver
 
-          chmod +x scripts/extract_version.py
+          chmod +x .github/scripts/extract_version.py
 
           export COMMENT="${{ github.event.comment.body }}"
           export projname="${{ env.projname }}"
 
           # Run script: if it exits non-zero, this step will fail and stop the job
-          OUTPUT=$(python3 scripts/extract_version.py -c "$COMMENT")
+          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
 
           # Parse outputs (script prints version=... and is_beta=...)
           VERSION=$(echo "$OUTPUT" | grep -m1 '^version=' | sed 's/^version=//')
