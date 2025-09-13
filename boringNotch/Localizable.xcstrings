@@ -495,7 +495,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "%.0f seconds"
+            "value": "%.0f saniye"
           }
         },
         "uk": {
@@ -1000,7 +1000,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "• Bug fixes"
+            "value": "• Hata düzeltmeleri"
           }
         },
         "uk": {
@@ -1101,7 +1101,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "• Improved performance"
+            "value": "Geliştirilmiş performans"
           }
         },
         "uk": {
@@ -1202,7 +1202,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "• New feature 1"
+            "value": "Yeni özellik 1"
           }
         },
         "uk": {
@@ -1404,7 +1404,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Accent color"
+            "value": "Vurgu rengi"
           }
         },
         "uk": {
@@ -3020,7 +3020,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "Ekranları otomatik olarak değiştir"
           }
         },
         "uk": {
@@ -4636,7 +4636,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Circle"
+            "value": "Çember"
           }
         },
         "uk": {
@@ -4737,7 +4737,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close"
+            "value": "Kapat"
           }
         },
         "uk": {
@@ -4838,7 +4838,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "El hareketlerini kapat"
           }
         },
         "uk": {
@@ -5040,7 +5040,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Continue"
+            "value": "Devam Et"
           }
         },
         "uk": {
@@ -5141,7 +5141,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Corner radius scaling"
+            "value": "Köşe yarıçap ölçeklendirmesi"
           }
         },
         "uk": {
@@ -5242,7 +5242,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom height"
+            "value": "Özel yükseklik"
           }
         },
         "uk": {
@@ -5343,7 +5343,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom music live activity animation"
+            "value": "Özel canlı müzik aktivite animasyonu"
           }
         },
         "uk": {
@@ -5444,7 +5444,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom notch size - %.0f"
+            "value": "Özel çentik boyutu - %.0f"
           }
         },
         "uk": {
@@ -5545,7 +5545,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom vizualizers (Lottie)"
+            "value": "Özel görselleştirmeler (Lottie)"
           }
         },
         "uk": {
@@ -5646,7 +5646,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Customize in Settings"
+            "value": "Ayarlarda özelleştir"
           }
         },
         "uk": {
@@ -5747,7 +5747,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Default"
+            "value": "Varsayılan"
           }
         },
         "uk": {
@@ -5848,7 +5848,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Description"
+            "value": "Açıklama"
           }
         },
         "uk": {
@@ -5949,7 +5949,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Disable"
+            "value": "Devre dışı bırak"
           }
         },
         "uk": {
@@ -6050,7 +6050,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Disabled"
+            "value": "Devre dışı bırakıldı"
           }
         },
         "uk": {
@@ -6858,7 +6858,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable boring mirror"
+            "value": "Sıkıcı aynayı aktifleştir"
           }
         },
         "uk": {
@@ -7060,7 +7060,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "El hareketlerini etkinleştir"
           }
         },
         "uk": {
@@ -7161,7 +7161,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable glowing effect"
+            "value": "Parlama efektini etkinleştir"
           }
         },
         "uk": {
@@ -7262,7 +7262,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "Haptic geri bildirimi etkinleştir"
           }
         },
         "uk": {
@@ -7464,7 +7464,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable music live activity"
+            "value": "Canlı müzik aktivitesini etkinleştir"
           }
         },
         "uk": {
@@ -7565,7 +7565,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "Rafı etkinleştir"
           }
         },
         "uk": {
@@ -7666,7 +7666,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable window shadow"
+            "value": "Pencere gölgesini etkinleştir"
           }
         },
         "uk": {
@@ -7767,7 +7767,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enhance your experience with HUDs"
+            "value": "BÜG ile deneyiminizi artırın"
           }
         },
         "uk": {
@@ -8171,7 +8171,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extend hover area"
+            "value": "Sürükleme alanını genişlet"
           }
         },
         "uk": {
@@ -8373,7 +8373,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Finish"
+            "value": "Bitir"
           }
         },
         "uk": {
@@ -8474,7 +8474,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "General"
+            "value": "Genel"
           }
         },
         "uk": {
@@ -8575,7 +8575,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gesture control"
+            "value": "Hareketle Kontrol"
           }
         },
         "uk": {
@@ -8676,7 +8676,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gesture sensitivity"
+            "value": "Hareket hassasiyeti"
           }
         },
         "uk": {
@@ -8777,7 +8777,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Get started"
+            "value": "Başlayın"
           }
         },
         "uk": {
@@ -8979,7 +8979,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Got it!"
+            "value": "Anlaşıldı!"
           }
         },
         "uk": {
@@ -9080,7 +9080,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gradient"
+            "value": "Gradyan"
           }
         },
         "uk": {
@@ -9181,7 +9181,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide BoringNotch Options"
+            "value": "BoringNotch Seçeneklerini Gizle"
           }
         },
         "uk": {
@@ -9282,7 +9282,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": "Tamamlanan Hatırlatıcıları gizle"
           }
         },
         "uk": {
@@ -9484,7 +9484,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hierarchical"
+            "value": "Hiyerarşik"
           }
         },
         "uk": {
@@ -9585,7 +9585,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "High"
+            "value": "Yüksek"
           }
         },
         "uk": {
@@ -9787,7 +9787,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "HUD style"
+            "value": "BÜG stili"
           }
         },
         "uk": {
@@ -9888,7 +9888,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "HUDs"
+            "value": "BÜG (Baş Üstü Göstergesi)"
           }
         },
         "uk": {
@@ -9989,7 +9989,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "In progress"
+            "value": "İşleniyor"
           }
         },
         "uk": {
@@ -10090,7 +10090,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Inline"
+            "value": "Hiza"
           }
         },
         "uk": {
@@ -10191,7 +10191,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Installed extensions"
+            "value": "Yüklenmiş eklentiler"
           }
         },
         "uk": {
@@ -10292,7 +10292,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Later"
+            "value": "Daha Sonra"
           }
         },
         "uk": {
