@@ -172,9 +172,7 @@ class MusicManager: ObservableObject {
     // MARK: - Update Methods
     @MainActor
     private func updateFromPlaybackState(_ state: PlaybackState) {
-        // Check for playback state changes (playing/paused)
         if state.isPlaying != self.isPlaying {
-            NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
             withAnimation(.smooth) {
                 self.isPlaying = state.isPlaying
                 self.updateIdleState(state: state.isPlaying)
