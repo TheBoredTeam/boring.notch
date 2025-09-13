@@ -88,8 +88,6 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
-                case "Downloads":
-                    Downloads()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -148,7 +146,9 @@ struct GeneralSettings: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Menubar icon", key: .menubarIcon)
+                Defaults.Toggle(key: .menubarIcon) {
+                    Text("Menubar icon")
+                }
                 LaunchAtLogin.Toggle("Launch at login")
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
@@ -166,7 +166,9 @@ struct GeneralSettings: View {
                     screens = NSScreen.screens.compactMap({ $0.localizedName })
                 }
                 .disabled(showOnAllDisplays)
-                Defaults.Toggle("Automatically switch displays", key: .automaticallySwitchDisplay)
+                Defaults.Toggle(key: .automaticallySwitchDisplay) {
+                    Text("Automatically switch displays")
+                }
                     .onChange(of: automaticallySwitchDisplay) {
                         NotificationCenter.default.post(
                             name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
@@ -264,12 +266,16 @@ struct GeneralSettings: View {
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
-            Defaults.Toggle("Enable gestures", key: .enableGestures)
+            Defaults.Toggle(key: .enableGestures) {
+                Text("Enable gestures")
+            }
                 .disabled(!openNotchOnHover)
             if enableGestures {
                 Toggle("Media change with horizontal gestures", isOn: .constant(false))
                     .disabled(true)
-                Defaults.Toggle("Close gesture", key: .closeGestureEnabled)
+                Defaults.Toggle(key: .closeGestureEnabled) {
+                    Text("Close gesture")
+                }
                 Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
                     HStack {
                         Text("Gesture sensitivity")
@@ -300,9 +306,15 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-            Defaults.Toggle("Extend hover area", key: .extendHoverArea)
-            Defaults.Toggle("Enable haptics", key: .enableHaptics)
-            Defaults.Toggle("Open notch on hover", key: .openNotchOnHover)
+            Defaults.Toggle(key: .extendHoverArea) {
+                Text("Extend hover area")
+            }
+            Defaults.Toggle(key: .enableHaptics) {
+                Text("Enable haptics")
+            }
+            Defaults.Toggle(key: .openNotchOnHover) {
+                Text("Open notch on hover")
+            }
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
@@ -338,13 +350,19 @@ struct Charge: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Show battery indicator", key: .showBatteryIndicator)
+                Defaults.Toggle(key: .showBatteryIndicator) {
+                    Text("Show battery indicator")
+                }
             } header: {
                 Text("General")
             }
             Section {
-                Defaults.Toggle("Show percentage", key: .showBatteryPercentage)
-                Defaults.Toggle("Show power status icons", key: .showPowerStatusIcons)
+                Defaults.Toggle(key: .showBatteryPercentage) {
+                    Text("Show percentage")
+                }
+                Defaults.Toggle(key: .showPowerStatusIcons) {
+                    Text("Show power status icons")
+                }
             } header: {
                 Text("Information")
             }
@@ -425,81 +443,85 @@ struct Charge: View {
     
 }
 
-struct Downloads: View {
-    @Default(.selectedDownloadIndicatorStyle) var selectedDownloadIndicatorStyle
-    @Default(.selectedDownloadIconStyle) var selectedDownloadIconStyle
-    var body: some View {
-        Form {
-            warningBadge("We don't support downloads yet", "It will be supported later on.")
-            Section {
-                Defaults.Toggle("Show download progress", key: .enableDownloadListener)
-                    .disabled(true)
-                Defaults.Toggle("Enable Safari Downloads", key: .enableSafariDownloads)
-                    .disabled(!Defaults[.enableDownloadListener])
-                Picker("Download indicator style", selection: $selectedDownloadIndicatorStyle) {
-                    Text("Progress bar")
-                        .tag(DownloadIndicatorStyle.progress)
-                    Text("Percentage")
-                        .tag(DownloadIndicatorStyle.percentage)
-                }
-                Picker("Download icon style", selection: $selectedDownloadIconStyle) {
-                    Text("Only app icon")
-                        .tag(DownloadIconStyle.onlyAppIcon)
-                    Text("Only download icon")
-                        .tag(DownloadIconStyle.onlyIcon)
-                    Text("Both")
-                        .tag(DownloadIconStyle.iconAndAppIcon)
-                }
-
-            } header: {
-                HStack {
-                    Text("Download indicators")
-                    comingSoonTag()
-                }
-            }
-            Section {
-                List {
-                    ForEach([].indices, id: \.self) { index in
-                        Text("\(index)")
-                    }
-                }
-                .frame(minHeight: 96)
-                .overlay {
-                    if true {
-                        Text("No excluded apps")
-                            .foregroundStyle(Color(.secondaryLabelColor))
-                    }
-                }
-                .actionBar(padding: 0) {
-                    Group {
-                        Button {
-                        } label: {
-                            Image(systemName: "plus")
-                                .frame(width: 25, height: 16, alignment: .center)
-                                .contentShape(Rectangle())
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Divider()
-                        Button {
-                        } label: {
-                            Image(systemName: "minus")
-                                .frame(width: 20, height: 16, alignment: .center)
-                                .contentShape(Rectangle())
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            } header: {
-                HStack(spacing: 4) {
-                    Text("Exclude apps")
-                    comingSoonTag()
-                }
-            }
-        }
-        .navigationTitle("Downloads")
-    }
-}
+//struct Downloads: View {
+//    @Default(.selectedDownloadIndicatorStyle) var selectedDownloadIndicatorStyle
+//    @Default(.selectedDownloadIconStyle) var selectedDownloadIconStyle
+//    var body: some View {
+//        Form {
+//            warningBadge("We don't support downloads yet", "It will be supported later on.")
+//            Section {
+//                Defaults.Toggle(key: .enableDownloadListener) {
+//                    Text("Show download progress")
+//                }
+//                    .disabled(true)
+//                Defaults.Toggle(key: .enableSafariDownloads) {
+//                    Text("Enable Safari Downloads")
+//                }
+//                    .disabled(!Defaults[.enableDownloadListener])
+//                Picker("Download indicator style", selection: $selectedDownloadIndicatorStyle) {
+//                    Text("Progress bar")
+//                        .tag(DownloadIndicatorStyle.progress)
+//                    Text("Percentage")
+//                        .tag(DownloadIndicatorStyle.percentage)
+//                }
+//                Picker("Download icon style", selection: $selectedDownloadIconStyle) {
+//                    Text("Only app icon")
+//                        .tag(DownloadIconStyle.onlyAppIcon)
+//                    Text("Only download icon")
+//                        .tag(DownloadIconStyle.onlyIcon)
+//                    Text("Both")
+//                        .tag(DownloadIconStyle.iconAndAppIcon)
+//                }
+//
+//            } header: {
+//                HStack {
+//                    Text("Download indicators")
+//                    comingSoonTag()
+//                }
+//            }
+//            Section {
+//                List {
+//                    ForEach([].indices, id: \.self) { index in
+//                        Text("\(index)")
+//                    }
+//                }
+//                .frame(minHeight: 96)
+//                .overlay {
+//                    if true {
+//                        Text("No excluded apps")
+//                            .foregroundStyle(Color(.secondaryLabelColor))
+//                    }
+//                }
+//                .actionBar(padding: 0) {
+//                    Group {
+//                        Button {
+//                        } label: {
+//                            Image(systemName: "plus")
+//                                .frame(width: 25, height: 16, alignment: .center)
+//                                .contentShape(Rectangle())
+//                                .foregroundStyle(.secondary)
+//                        }
+//
+//                        Divider()
+//                        Button {
+//                        } label: {
+//                            Image(systemName: "minus")
+//                                .frame(width: 20, height: 16, alignment: .center)
+//                                .contentShape(Rectangle())
+//                                .foregroundStyle(.secondary)
+//                        }
+//                    }
+//                }
+//            } header: {
+//                HStack(spacing: 4) {
+//                    Text("Exclude apps")
+//                    comingSoonTag()
+//                }
+//            }
+//        }
+//        .navigationTitle("Downloads")
+//    }
+//}
 
 struct HUD: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -534,8 +556,12 @@ struct HUD: View {
                     Text("Gradient")
                         .tag(true)
                 }
-                Defaults.Toggle("Enable glowing effect", key: .systemEventIndicatorShadow)
-                Defaults.Toggle("Use accent color", key: .systemEventIndicatorUseAccent)
+                Defaults.Toggle(key: .systemEventIndicatorShadow) {
+                    Text("Enable glowing effect")
+                }
+                Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
+                    Text("Use accent color")
+                }
             } header: {
                 HStack {
                     Text("Appearance")
@@ -663,8 +689,12 @@ struct CalendarSettings: View {
 
     var body: some View {
         Form {
-            Defaults.Toggle("Show calendar", key: .showCalendar)
-            Defaults.Toggle("Hide completed reminders", key: .hideCompletedReminders)
+            Defaults.Toggle(key: .showCalendar) {
+                Text("Show calendar")
+            }
+            Defaults.Toggle(key: .hideCompletedReminders) {
+                Text("Hide completed reminders")
+            }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
                     Text("Calendar access is denied. Please enable it in System Settings.")
@@ -837,9 +867,12 @@ struct Shelf: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Enable shelf", key: .boringShelf)
-                Defaults.Toggle(
-                    "Open shelf tab by default if items added", key: .openShelfByDefault)
+                Defaults.Toggle(key: .boringShelf) {
+                    Text("Enable shelf")
+                }
+                Defaults.Toggle(key: .openShelfByDefault) {
+                    Text("Open shelf by default if items are present")
+                }
             } header: {
                 HStack {
                     Text("General")
@@ -1009,19 +1042,31 @@ struct Appearance: View {
         Form {
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
-                Defaults.Toggle("Settings icon in notch", key: .settingsIconInNotch)
-                Defaults.Toggle("Enable window shadow", key: .enableShadow)
-                Defaults.Toggle("Corner radius scaling", key: .cornerRadiusScaling)
-                Defaults.Toggle("Use simpler close animation", key: .useModernCloseAnimation)
+                Defaults.Toggle(key: .settingsIconInNotch) {
+                    Text("Settings icon in notch")
+                }
+                Defaults.Toggle(key: .enableShadow) {
+                    Text("Enable window shadow")
+                }
+                Defaults.Toggle(key: .cornerRadiusScaling) {
+                    Text("Corner radius scaling")
+                }
+                Defaults.Toggle(key: .useModernCloseAnimation) {
+                    Text("Use simpler close animation")
+                }
             } header: {
                 Text("General")
             }
 
             Section {
-                Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
+                Defaults.Toggle(key: .coloredSpectrogram) {
+                    Text("Enable colored spectrograms")
+                }
                 Defaults
                     .Toggle("Player tinting", key: .playerColorTinting)
-                Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
+                Defaults.Toggle(key: .lightingEffect) {
+                    Text("Enable blur effect behind album art")
+                }
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
                         Text(option.rawValue)
@@ -1207,7 +1252,9 @@ struct Appearance: View {
             }
 
             Section {
-                Defaults.Toggle("Enable boring mirror", key: .showMirror)
+                Defaults.Toggle(key: .showMirror) {
+                    Text("Enable boring mirror")
+                }
                     .disabled(!checkVideoInput())
                 Picker("Mirror shape", selection: $mirrorShape) {
                     Text("Circle")
@@ -1215,7 +1262,9 @@ struct Appearance: View {
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
-                Defaults.Toggle("Show cool face animation while inactivity", key: .showNotHumanFace)
+                Defaults.Toggle(key: .showNotHumanFace) {
+                    Text("Show cool face animation while inactivity")
+                }
             } header: {
                 HStack {
                     Text("Additional features")
