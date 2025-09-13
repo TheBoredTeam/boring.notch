@@ -293,7 +293,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "'Now Playing' was the only option on previous versions and works with all media apps."
+            "value": "'Şimdi Çalınan' önceki sürümlerdeki tek seçenekti ve tüm medya uygulamalarıyla çalışır."
           }
         },
         "uk": {
@@ -2111,7 +2111,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "AirDrop hizmetine kullanılamıyor"
+            "value": "AirDrop hizmeti kullanılamıyor"
           }
         },
         "uk": {
@@ -6454,7 +6454,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+            "value": "En sık kullandığınız içerikleri kolayca kopyalayın, saklayın ve yönetin. Çoklu öğe depolama ve hızlı erişim gibi gelişmiş özellikler için şimdi yükseltin!"
           }
         },
         "uk": {
@@ -6656,7 +6656,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable automatic sneak peek (show on media changes)"
+            "value": "Otomatik ön izlemeyi aktifleştir (medya değişikliklerinde göster)"
           }
         },
         "uk": {
@@ -6757,7 +6757,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "Albüm kapağının arkasındaki bulanıklık efektini aktifleştir"
           }
         },
         "uk": {
@@ -6959,7 +6959,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "Renkli spektrogramları aktifleştir"
           }
         },
         "uk": {
@@ -7363,7 +7363,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable HUD replacement"
+            "value": "BÜE değiştirmeyi aktifleştir"
           }
         },
         "uk": {
@@ -9383,7 +9383,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide only when NowPlaying app is in fullscreen"
+            "value": "Şimdi Çalınan uygulaması tam ekran modunda gizle"
           }
         },
         "uk": {
@@ -10696,7 +10696,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Made with 🫶🏻 by not so boring not.people"
+            "value": "O kadar da sıkıcı olmayan insanlar tarafından 🫶🏻 ile yapılmıştır"
           }
         },
         "uk": {
@@ -11605,7 +11605,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media inactivity timeout"
+            "value": "Medya etkin olmayan zaman aşımı"
           }
         },
         "uk": {
@@ -11706,7 +11706,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media playback live activity"
+            "value": "Medya oynatma canlı etkinliği"
           }
         },
         "uk": {
@@ -13120,7 +13120,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom animation available"
+            "value": "Özel animasyon mevcut değil"
           }
         },
         "uk": {
@@ -13524,7 +13524,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Non-notch display height"
+            "value": "Çentiksiz ekran yüksekliği"
           }
         },
         "uk": {
@@ -13827,7 +13827,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch display height"
+            "value": "Çentik ekran yüksekliği"
           }
         },
         "uk": {
@@ -14534,7 +14534,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open shelf by default if items are present"
+            "value": "Öğeler varsa varsayılan olarak rafı aç"
           }
         },
         "uk": {
@@ -15746,7 +15746,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Select the music source you want to use. You can change this later in the app settings."
+            "value": "Kullanmak istediğiniz müzik kaynağını seçin. Bunu daha sonra uygulama ayarlarından değiştirebilirsiniz."
           }
         },
         "uk": {
@@ -16150,7 +16150,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings icon in notch"
+            "value": "Çentikteki ayarlar simgesi"
           }
         },
         "uk": {
@@ -16453,7 +16453,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery indicator"
+            "value": "Pil göstergesini göster"
           }
         },
         "uk": {
@@ -16756,7 +16756,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show cool face animation while inactivity"
+            "value": "Hareketsizken havalı yüz animasyonu göster"
           }
         },
         "uk": {
@@ -16857,7 +16857,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show on a specific display"
+            "value": "Belirli bir ekranda göster"
           }
         },
         "uk": {
@@ -16958,7 +16958,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show on all displays"
+            "value": "Tüm ekranlarda göster"
           }
         },
         "uk": {
@@ -17059,7 +17059,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status icons"
+            "value": "Güç durumu simgelerini göster"
           }
         },
         "uk": {
@@ -17160,7 +17160,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status notifications"
+            "value": "Güç durumu bildirimlerini göster"
           }
         },
         "uk": {
@@ -17261,7 +17261,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show shuffle and repeat buttons"
+            "value": "Karıştır ve tekrarla düğmelerini göster"
           }
         },
         "uk": {
@@ -17362,7 +17362,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Slider color"
+            "value": "Kaydırıcı rengi"
           }
         },
         "uk": {
@@ -17463,7 +17463,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek shows the media title and artist under the notch for a few seconds."
+            "value": "Ön izleme, birkaç saniye boyunca çentik altında medya başlığını ve sanatçıyı gösterir."
           }
         },
         "uk": {
@@ -17564,7 +17564,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek Style"
+            "value": "Ön izleme stili"
           }
         },
         "uk": {
@@ -18271,7 +18271,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Time to Full Charge: %lld min"
+            "value": "Tam Şarj Süresi: %lld dakika"
           }
         },
         "uk": {
@@ -18372,7 +18372,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Notch Open:"
+            "value": "Çentik Aç/Kapat:"
           }
         },
         "uk": {
@@ -18473,7 +18473,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Sneak Peek:"
+            "value": "Ön izlemeyi Aç/Kapat:"
           }
         },
         "uk": {
@@ -18574,7 +18574,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+            "value": "**Fareyi üzerine getirdiğinde aç** seçeneği devre dışı bırakıldığında, kapatmak için çentiği iki parmağınızla yukarı kaydırın, açmak için çentiği iki parmağınızla aşağı kaydırın."
           }
         },
         "uk": {
@@ -18776,7 +18776,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
+            "value": "Gelişmiş özelliklerin kilidini açın ve deneyiminizi iyileştirin. Daha fazla özelleştirme için şimdi yükseltin!"
           }
         },
         "uk": {
@@ -18877,7 +18877,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "unmuted"
+            "value": "sesi açılmış"
           }
         },
         "uk": {
@@ -19180,7 +19180,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use music visualizer spectrogram"
+            "value": "Müzik görselleştirici spektrogram kullanın"
           }
         },
         "uk": {
@@ -19281,7 +19281,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use simpler close animation"
+            "value": "Daha basit kapatma animasyonu kullanın"
           }
         },
         "uk": {
@@ -19584,7 +19584,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "View on GitHub: th-ch/youtube-music"
+            "value": "GitHub'da görüntüle: th-ch/youtube-music"
           }
         },
         "uk": {
@@ -19887,7 +19887,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
+            "value": "Artık uygulamanın keyfini çıkarabilirsiniz. Daha fazla ayar yapmak isterseniz, her zaman ayarlar bölümünü ziyaret edebilirsiniz."
           }
         },
         "uk": {
@@ -20089,7 +20089,7 @@
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "YouTube Music requires this third-party app to be installed: "
+            "value": "YouTube Music, bu üçüncü taraf uygulamanın yüklenmesini gerektirir: "
           }
         },
         "uk": {
