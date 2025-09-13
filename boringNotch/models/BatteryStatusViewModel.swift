@@ -4,44 +4,57 @@ import Foundation
 import IOKit.ps
 import SwiftUI
 
-/// A view model that manages and monitors the battery status of the device
+/// A view model that manages and monitors the battery status of the device.
 class BatteryStatusViewModel: ObservableObject {
 
-    private var wasCharging: Bool = false
+    /// Callback for power source changes.
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
+    /// Run loop source for battery monitoring.
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
+    /// Animations handler for UI updates.
     var animations: BoringAnimations = BoringAnimations()
 
+    /// Shared coordinator for view updates.
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
+    /// Current battery level (0.0 - 100.0).
     @Published private(set) var levelBattery: Float = 0.0
+    /// Maximum battery capacity.
     @Published private(set) var maxCapacity: Float = 0.0
+    /// Indicates if the device is plugged in.
     @Published private(set) var isPluggedIn: Bool = false
+    /// Indicates if the device is charging.
     @Published private(set) var isCharging: Bool = false
+    /// Indicates if low power mode is enabled.
     @Published private(set) var isInLowPowerMode: Bool = false
+    /// Indicates if the initial battery info has been loaded.
     @Published private(set) var isInitial: Bool = false
+    /// Estimated time to full charge (in minutes).
     @Published private(set) var timeToFullCharge: Int = 0
+    /// Textual status of the battery, often with emojis.
     @Published private(set) var statusText: String = ""
 
+    /// Shared battery manager instance.
     private let managerBattery = BatteryActivityManager.shared
+    /// Observer ID for battery manager events.
     private var managerBatteryId: Int?
 
+    /// Singleton instance of the view model.
     static let shared = BatteryStatusViewModel()
 
-    /// Initializes the view model with a given BoringViewModel instance
-    /// - Parameter vm: The BoringViewModel instance
+    /// Initializes the view model and sets up battery monitoring.
     private init() {
         setupPowerStatus()
         setupMonitor()
     }
 
-    /// Sets up the initial power status by fetching battery information
+    /// Fetches initial battery information and updates properties.
     private func setupPowerStatus() {
         let batteryInfo = managerBattery.initializeBatteryInfo()
         updateBatteryInfo(batteryInfo)
     }
 
-    /// Sets up the monitor to observe battery events
+    /// Registers observer for battery events.
     private func setupMonitor() {
         managerBatteryId = managerBattery.addObserver { [weak self] event in
             guard let self = self else { return }
@@ -49,8 +62,8 @@ class BatteryStatusViewModel: ObservableObject {
         }
     }
 
-    /// Handles battery events and updates the corresponding properties
-    /// - Parameter event: The battery event to handle
+    /// Handles battery events and updates published properties.
+    /// - Parameter event: The battery event to process.
     private func handleBatteryEvent(_ event: BatteryActivityManager.BatteryEvent) {
         switch event {
         case .powerSourceChanged(let isPluggedIn):
@@ -63,8 +76,21 @@ class BatteryStatusViewModel: ObservableObject {
 
         case .batteryLevelChanged(let level):
             print("🔋 Battery level: \(Int(level))%")
+            let lowThreshold = Float(Defaults[.lowBatteryNotificationLevel])
+            let highThreshold = Float(Defaults[.highBatteryNotificationLevel])
+            var text = ""
+
+            if !isCharging && level == lowThreshold {
+                notifyImportanChangeStatus()
+                text = "Low Battery"
+            } else if isCharging && level == highThreshold {
+                notifyImportanChangeStatus()
+                text = "High Battery"
+            }
+
             withAnimation {
-                self.levelBattery = level
+                statusText = text
+                levelBattery = level
             }
 
         case .lowPowerModeChanged(let isEnabled):
@@ -84,8 +110,8 @@ class BatteryStatusViewModel: ObservableObject {
                 self.isCharging = isCharging
                 self.statusText =
                     isCharging
-                    ? "Charging battery"
-                    : (self.levelBattery < self.maxCapacity ? "Not charging" : "Full charge")
+                    ? "Charging"
+                    : (self.levelBattery < self.maxCapacity ? "Not Charging" : "Full Charge")
             }
 
         case .timeToFullChargeChanged(let time):
@@ -105,8 +131,8 @@ class BatteryStatusViewModel: ObservableObject {
         }
     }
 
-    /// Updates the battery information with the given BatteryInfo instance
-    /// - Parameter batteryInfo: The BatteryInfo instance containing the battery data
+    /// Updates all battery properties from a BatteryInfo instance.
+    /// - Parameter batteryInfo: The battery information to apply.
     private func updateBatteryInfo(_ batteryInfo: BatteryInfo) {
         withAnimation {
             self.levelBattery = batteryInfo.currentCapacity
@@ -119,8 +145,8 @@ class BatteryStatusViewModel: ObservableObject {
         }
     }
 
-    /// Notifies important changes in the battery status with an optional delay
-    /// - Parameter delay: The delay before notifying the change, default is 0.0
+    /// Notifies the coordinator about important battery status changes.
+    /// - Parameter delay: Optional delay before notification (default: 0.0 seconds).
     private func notifyImportanChangeStatus(delay: Double = 0.0) {
         Task {
             try? await Task.sleep(for: .seconds(delay))
@@ -128,6 +154,7 @@ class BatteryStatusViewModel: ObservableObject {
         }
     }
 
+    /// Cleans up battery monitoring observers on deinitialization.
     deinit {
         print("🔌 Cleaning up battery monitoring...")
         if let managerBatteryId: Int = managerBatteryId {

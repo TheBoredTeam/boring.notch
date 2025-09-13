@@ -325,20 +325,41 @@ struct GeneralSettings: View {
 }
 
 struct Charge: View {
+    @Default(.lowBatteryNotificationLevel) var lowBatteryNotificationLevel
+    @Default(.highBatteryNotificationLevel) var highBatteryNotificationLevel
+    let batteryLevels: [Int] = [3, 5] + Array(stride(from: 10, through: 90, by: 1)) + [95, 97, 100]
     var body: some View {
         Form {
             Section {
                 Defaults.Toggle("Show battery indicator", key: .showBatteryIndicator)
-                Defaults.Toggle(
-                    "Show power status notifications", key: .showPowerStatusNotifications)
             } header: {
                 Text("General")
             }
             Section {
-                Defaults.Toggle("Show battery percentage", key: .showBatteryPercentage)
+                Defaults.Toggle("Show percentage", key: .showBatteryPercentage)
                 Defaults.Toggle("Show power status icons", key: .showPowerStatusIcons)
             } header: {
-                Text("Battery Information")
+                Text("Information")
+            }
+            Section {
+                Defaults.Toggle(
+                    "Power status notifications",
+                    key: .showPowerStatusNotifications
+                )
+                Picker("Low level notification", selection: $lowBatteryNotificationLevel) {
+                    Text("Disabled").tag(0)
+                    ForEach(batteryLevels, id: \.self) { level in
+                        Text("\(level)%").tag(level)
+                    }
+                }
+                Picker("High level notification", selection: $highBatteryNotificationLevel) {
+                    Text("Disabled").tag(0)
+                    ForEach(batteryLevels, id: \.self) { level in
+                        Text("\(level)%").tag(level)
+                    }
+                }
+            } header: {
+                Text("Notifications")
             }
         }
         .navigationTitle("Battery")

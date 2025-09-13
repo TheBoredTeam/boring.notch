@@ -124,6 +124,8 @@ extension Defaults.Keys {
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
     static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
+    static let lowBatteryNotificationLevel = Key<Int>("lowBatteryNotificationLevel", default: 0)
+    static let highBatteryNotificationLevel = Key<Int>("highBatteryNotificationLevel", default: 0)
     
         // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)

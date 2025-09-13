@@ -104,7 +104,9 @@ class BatteryActivityManager {
         
         // Check for changes
         if let previousInfo = previousBatteryInfo {
-            // Usar la función auxiliar para cada propiedad
+            
+            // Compare each property and notify if changed
+            
             checkAndNotify(
                 previous: previousInfo.isPluggedIn,
                 current: batteryInfo.isPluggedIn,

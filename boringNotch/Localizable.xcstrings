@@ -5348,6 +5348,7 @@
       }
     },
     "Battery Information" : {
+      "extractionState" : "stale",
       "localizations" : {
         "af" : {
           "stringUnit" : {
@@ -15276,6 +15277,9 @@
         }
       }
     },
+    "High level notification" : {
+
+    },
     "https://github.com/th-ch/youtube-music" : {
       "localizations" : {
         "af" : {
@@ -15987,6 +15991,9 @@
           }
         }
       }
+    },
+    "Information" : {
+
     },
     "Inline" : {
       "localizations" : {
@@ -16877,6 +16884,9 @@
           }
         }
       }
+    },
+    "Low level notification" : {
+
     },
     "Low Power Mode" : {
       "localizations" : {
@@ -22785,6 +22795,9 @@
           }
         }
       }
+    },
+    "Notifications" : {
+
     },
     "OK" : {
       "localizations" : {
