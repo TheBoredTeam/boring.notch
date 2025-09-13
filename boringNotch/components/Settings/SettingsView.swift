@@ -325,9 +325,16 @@ struct GeneralSettings: View {
 }
 
 struct Charge: View {
+    
+    @Default(.powerStatusNotificationSound) var powerStatusNotificationSound
     @Default(.lowBatteryNotificationLevel) var lowBatteryNotificationLevel
+    @Default(.lowBatteryNotificationSound) var lowBatteryNotificationSound
     @Default(.highBatteryNotificationLevel) var highBatteryNotificationLevel
+    @Default(.highBatteryNotificationSound) var highBatteryNotificationSound
+    
     let batteryLevels: [Int] = [3, 5] + Array(stride(from: 10, through: 90, by: 1)) + [95, 97, 100]
+    let sounds: [String] = ["Disabled"] + SystemSoundHelper.availableSystemSounds()
+    
     var body: some View {
         Form {
             Section {
@@ -342,28 +349,80 @@ struct Charge: View {
                 Text("Information")
             }
             Section {
-                Defaults.Toggle(
-                    "Power status notifications",
-                    key: .showPowerStatusNotifications
+                HStack {
+                    Defaults.Toggle(
+                        "Power status",
+                        key: .showPowerStatusNotifications
+                    )
+                    Divider()
+                    PickerSoundAlert(sounds: sounds, sound: $powerStatusNotificationSound)
+                }
+                BatteryNotificationConf(
+                    title: "Low level",
+                    batteryLevels: batteryLevels,
+                    sounds: sounds,
+                    level: $lowBatteryNotificationLevel,
+                    sound: $lowBatteryNotificationSound
                 )
-                Picker("Low level notification", selection: $lowBatteryNotificationLevel) {
-                    Text("Disabled").tag(0)
-                    ForEach(batteryLevels, id: \.self) { level in
-                        Text("\(level)%").tag(level)
-                    }
-                }
-                Picker("High level notification", selection: $highBatteryNotificationLevel) {
-                    Text("Disabled").tag(0)
-                    ForEach(batteryLevels, id: \.self) { level in
-                        Text("\(level)%").tag(level)
-                    }
-                }
+                BatteryNotificationConf(
+                    title: "High level",
+                    batteryLevels: batteryLevels,
+                    sounds: sounds,
+                    level: $highBatteryNotificationLevel,
+                    sound: $highBatteryNotificationSound
+                )
+                
             } header: {
                 Text("Notifications")
             }
         }
         .navigationTitle("Battery")
     }
+    
+    /// A view for configuring battery notifications.
+    /// - title: Picker label for battery level.
+    /// - batteryLevels: List of selectable battery levels.
+    /// - sounds: List of available sounds.
+    /// - level: Selected battery level (binding).
+    /// - sound: Selected sound (binding).
+    struct BatteryNotificationConf: View {
+        
+        let title: String
+        let batteryLevels: [Int]
+        let sounds: [String]
+        @Binding var level: Int
+        @Binding var sound: String
+        
+        var body: some View {
+            HStack {
+                Picker(title, selection: $level) {
+                    Text("Disabled").tag(0)
+                    ForEach(batteryLevels, id: \.self) { level in
+                        Text("\(level)%").tag(level)
+                    }
+                }
+                Divider()
+                PickerSoundAlert(sounds: sounds, sound: $sound)
+            }
+        }
+    }
+    
+    /// A picker for selecting a sound alert.
+    /// - sounds: List of available sounds.
+    /// - sound: Currently selected sound (binding).
+    struct PickerSoundAlert: View {
+        
+        let sounds: [String]
+        @Binding var sound: String
+        var body: some View {
+            Picker("Sound", selection: $sound) {
+                ForEach(sounds, id: \.self) { sound in
+                    Text(sound).tag(sound)
+                }
+            }
+        }
+    }
+    
 }
 
 struct Downloads: View {

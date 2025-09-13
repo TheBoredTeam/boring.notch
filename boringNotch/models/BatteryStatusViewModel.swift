@@ -68,34 +68,22 @@ class BatteryStatusViewModel: ObservableObject {
         switch event {
         case .powerSourceChanged(let isPluggedIn):
             print("🔌 Power source: \(isPluggedIn ? "Connected" : "Disconnected")")
+            self.notifyImportanChangeStatus(sound: Defaults[.powerStatusNotificationSound])
             withAnimation {
                 self.isPluggedIn = isPluggedIn
                 self.statusText = isPluggedIn ? "Plugged In" : "Unplugged"
-                self.notifyImportanChangeStatus()
             }
 
         case .batteryLevelChanged(let level):
             print("🔋 Battery level: \(Int(level))%")
-            let lowThreshold = Float(Defaults[.lowBatteryNotificationLevel])
-            let highThreshold = Float(Defaults[.highBatteryNotificationLevel])
-            var text = ""
-
-            if !isCharging && level == lowThreshold {
-                notifyImportanChangeStatus()
-                text = "Low Battery"
-            } else if isCharging && level == highThreshold {
-                notifyImportanChangeStatus()
-                text = "High Battery"
-            }
-
             withAnimation {
-                statusText = text
-                levelBattery = level
+                self.levelBattery = level
             }
+            self.batteryLevelNotification(level: Int(level))
 
         case .lowPowerModeChanged(let isEnabled):
             print("⚡ Low power mode: \(isEnabled ? "Enabled" : "Disabled")")
-            self.notifyImportanChangeStatus()
+            self.notifyImportanChangeStatus(sound: Defaults[.powerStatusNotificationSound])
             withAnimation {
                 self.isInLowPowerMode = isEnabled
                 self.statusText = "Low Power: \(self.isInLowPowerMode ? "On" : "Off")"
@@ -105,7 +93,7 @@ class BatteryStatusViewModel: ObservableObject {
             print("🔌 Charging: \(isCharging ? "Yes" : "No")")
             print("maxCapacity: \(self.maxCapacity)")
             print("levelBattery: \(self.levelBattery)")
-            self.notifyImportanChangeStatus()
+            self.notifyImportanChangeStatus(sound: Defaults[.powerStatusNotificationSound])
             withAnimation {
                 self.isCharging = isCharging
                 self.statusText =
@@ -134,6 +122,7 @@ class BatteryStatusViewModel: ObservableObject {
     /// Updates all battery properties from a BatteryInfo instance.
     /// - Parameter batteryInfo: The battery information to apply.
     private func updateBatteryInfo(_ batteryInfo: BatteryInfo) {
+        self.notifyImportanChangeStatus(sound: Defaults[.powerStatusNotificationSound])
         withAnimation {
             self.levelBattery = batteryInfo.currentCapacity
             self.isPluggedIn = batteryInfo.isPluggedIn
@@ -143,14 +132,43 @@ class BatteryStatusViewModel: ObservableObject {
             self.maxCapacity = batteryInfo.maxCapacity
             self.statusText = batteryInfo.isPluggedIn ? "Plugged In" : "Unplugged"
         }
+        Task {
+            try? await Task.sleep(for: .seconds(2.0))
+            self.batteryLevelNotification(level: Int(self.levelBattery), initial: true)
+        }
     }
 
+    private func batteryLevelNotification(level: Int, initial: Bool = false) {
+        guard let text = notificationText(for: level, initial: initial) else { return }
+        
+        let sound = text == "Low Battery"
+            ? Defaults[.lowBatteryNotificationSound]
+            : Defaults[.highBatteryNotificationSound]
+            
+        self.notifyImportanChangeStatus(sound: sound)
+        withAnimation {
+            self.statusText = text
+        }
+    }
+    
+    private func notificationText(for level: Int, initial: Bool) -> String? {
+        let lowThreshold = Defaults[.lowBatteryNotificationLevel]
+        let highThreshold = Defaults[.highBatteryNotificationLevel]
+        
+        if !self.isCharging && (level == lowThreshold || (initial && level <= lowThreshold)) {
+            return "Low Battery"
+        }
+        if self.isCharging && (level == highThreshold || (initial && level >= highThreshold)) {
+            return "High Battery"
+        }
+        return nil
+    }
+    
     /// Notifies the coordinator about important battery status changes.
-    /// - Parameter delay: Optional delay before notification (default: 0.0 seconds).
-    private func notifyImportanChangeStatus(delay: Double = 0.0) {
-        Task {
-            try? await Task.sleep(for: .seconds(delay))
-            self.coordinator.toggleExpandingView(status: true, type: .battery)
+    private func notifyImportanChangeStatus(sound: String) {
+        self.coordinator.toggleExpandingView(status: true, type: .battery)
+        if sound != "Disabled" {
+            NSSound(named: NSSound.Name(sound))?.play()
         }
     }
 

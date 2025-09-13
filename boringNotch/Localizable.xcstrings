@@ -15277,9 +15277,6 @@
         }
       }
     },
-    "High level notification" : {
-
-    },
     "https://github.com/th-ch/youtube-music" : {
       "localizations" : {
         "af" : {
@@ -16884,9 +16881,6 @@
           }
         }
       }
-    },
-    "Low level notification" : {
-
     },
     "Low Power Mode" : {
       "localizations" : {
@@ -28206,6 +28200,9 @@
           }
         }
       }
+    },
+    "Sound" : {
+
     },
     "Speed" : {
       "localizations" : {
