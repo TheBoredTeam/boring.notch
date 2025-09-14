@@ -21,6 +21,7 @@ class SpotifyController: MediaControllerProtocol {
     
     private var notificationTask: Task<Void, Never>?
     
+    
     //Constant for time between command and update
     let commandUpdateDelay: Duration = .milliseconds(25)
     
@@ -127,8 +128,7 @@ class SpotifyController: MediaControllerProtocol {
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
             let currentState = state
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                // Create a new state with the artwork data and update
+                let data = try await ImageService.shared.fetchImageData(from: url)
                 var updatedState = currentState
                 updatedState.artwork = data
                 playbackState = updatedState

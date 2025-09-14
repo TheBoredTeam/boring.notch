@@ -26,6 +26,7 @@ class YouTubeMusicController: MediaControllerProtocol {
     private var notificationTask: Task<Void, Never>?
     private var isAuthenticating = false
     private let decoder = JSONDecoder()
+    
     private let urlSession: URLSession = {
         let config = URLSessionConfiguration.default
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
@@ -34,6 +35,7 @@ class YouTubeMusicController: MediaControllerProtocol {
         config.timeoutIntervalForResource = 10
         return URLSession(configuration: config)
     }()
+    
     
     init() {
         setupAppStateObservers()
@@ -242,7 +244,7 @@ class YouTubeMusicController: MediaControllerProtocol {
         if let artworkURL = response.imageSrc, let url = URL(string: artworkURL) {
             Task.detached { [weak self] in
                 do {
-                    let (data, _) = try await URLSession.shared.data(from: url)
+                    let data = try await ImageService.shared.fetchImageData(from: url)
                     await MainActor.run { [weak self] in self?.playbackState.artwork = data }
                 } catch { /* ignore */ }
             }

@@ -161,4 +161,6 @@ extension Defaults.Keys {
             return .nowPlaying
         }
     }
+
+    static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
 }
