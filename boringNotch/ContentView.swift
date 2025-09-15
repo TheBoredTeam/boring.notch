@@ -21,6 +21,9 @@ struct ContentView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
 
+	@StateObject var notesManager = NotesManager.shared
+	@StateObject var focusManager = FocusManager.shared
+
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
     @State private var debounceWorkItem: DispatchWorkItem?
@@ -32,6 +35,8 @@ struct ContentView: View {
     @State private var haptics: Bool = false
 
     @Namespace var albumArtNamespace
+
+	@Environment(\.openSettings) private var openSettings
 
     @Default(.useMusicVisualizer) var useMusicVisualizer
 
@@ -165,7 +170,9 @@ struct ContentView: View {
                 .sensoryFeedback(.alignment, trigger: haptics)
                 .contextMenu {
                     Button("Settings") {
-                        SettingsWindowController.shared.showWindow()
+						openSettings()
+						focusManager.frontToggle.toggle()
+
                     }
                     .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
 //                    Button("Edit") { // Doesnt work....
@@ -283,9 +290,33 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         NotchShelfView()
+					case .notes:
+						NotchNotesView()
+								.environmentObject(vm)
+								.environmentObject(notesManager)
+								.environmentObject(focusManager)
+
                     }
                 }
             }
+			.onChange(of: coordinator.currentView) {
+				if coordinator.currentView == .notes {
+					focusManager.frontRequiringTabIsOpen = true
+				} else {
+					focusManager.frontRequiringTabIsOpen = false
+				}
+			}
+			.onChange(of: vm.notchState) { _, notchState in
+				focusManager.notchIsOpen = (notchState == .open ? true : false)
+				if notchState == .open {
+					if coordinator.currentView == .notes {
+						focusManager.frontRequiringTabIsOpen = true
+					} else {
+						focusManager.frontRequiringTabIsOpen = false
+
+					}
+				}
+			}
             .zIndex(1)
             .allowsHitTesting(vm.notchState == .open)
             .blur(radius: abs(gestureProgress) > 0.3 ? min(abs(gestureProgress), 8) : 0)
