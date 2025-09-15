@@ -11,7 +11,7 @@ import Foundation
 
 final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     // Stub for now to conform with ControllerProtocol
-    func updatePlaybackInfo() {}
+    func updatePlaybackInfo() async {}
 
     // MARK: - Properties
     @Published private(set) var playbackState: PlaybackState = .init(
