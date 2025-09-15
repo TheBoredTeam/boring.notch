@@ -21,9 +21,11 @@ class SpotifyController: MediaControllerProtocol {
     
     private var notificationTask: Task<Void, Never>?
     
-    
-    //Constant for time between command and update
+    // Constant for time between command and update
     let commandUpdateDelay: Duration = .milliseconds(25)
+
+    private var lastArtworkURL: String?
+    private var artworkFetchTask: Task<Void, Never>?
     
     init() {
         setupPlaybackStateChangeObserver()
@@ -48,6 +50,7 @@ class SpotifyController: MediaControllerProtocol {
     
     deinit {
         notificationTask?.cancel()
+        artworkFetchTask?.cancel()
     }
     
     // MARK: - Protocol Implementation
@@ -69,6 +72,8 @@ class SpotifyController: MediaControllerProtocol {
     
     func previousTrack() async {
         await executeCommand("previous track")
+        try? await Task.sleep(for: commandUpdateDelay)
+        await updatePlaybackInfo()
     }
     
     func seek(to time: Double) async {
@@ -108,7 +113,7 @@ class SpotifyController: MediaControllerProtocol {
         let isRepeating = descriptor.atIndex(8)?.booleanValue ?? false
         let artworkURL = descriptor.atIndex(9)?.stringValue ?? ""
         
-        let state = PlaybackState(
+        var state = PlaybackState(
             bundleIdentifier: "com.spotify.client",
             isPlaying: isPlaying,
             title: currentTrack,
@@ -121,19 +126,36 @@ class SpotifyController: MediaControllerProtocol {
             repeatMode: isRepeating ? .all : .off,
             lastUpdated: Date()
         )
-        
+
+        if artworkURL == lastArtworkURL, let existingArtwork = self.playbackState.artwork {
+            state.artwork = existingArtwork
+        }
+
         self.playbackState = state
-        
-        // Load artwork asynchronously and update the state when complete
+
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
+            guard artworkURL != lastArtworkURL || state.artwork == nil else { return }
+            artworkFetchTask?.cancel()
+
             let currentState = state
-            do {
-                let data = try await ImageService.shared.fetchImageData(from: url)
-                var updatedState = currentState
-                updatedState.artwork = data
-                playbackState = updatedState
-            } catch {
-                print("Failed to load artwork: \(error)")
+            
+            artworkFetchTask = Task {
+                do {
+                    let data = try await ImageService.shared.fetchImageData(from: url)
+
+                    await MainActor.run { [weak self] in
+                        guard let self = self else { return }
+                        var updatedState = currentState
+                        updatedState.artwork = data
+                        self.playbackState = updatedState
+                        self.lastArtworkURL = artworkURL
+                        self.artworkFetchTask = nil
+                    }
+                } catch {
+                    await MainActor.run { [weak self] in
+                        self?.artworkFetchTask = nil
+                    }
+                }
             }
         }
     }
