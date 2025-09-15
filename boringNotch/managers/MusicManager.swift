@@ -172,6 +172,19 @@ class MusicManager: ObservableObject {
     // MARK: - Update Methods
     @MainActor
     private func updateFromPlaybackState(_ state: PlaybackState) {
+        // Check for playback state changes (playing/paused)
+        if state.isPlaying != self.isPlaying {
+            NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
+            withAnimation(.smooth) {
+                self.isPlaying = state.isPlaying
+                self.updateIdleState(state: state.isPlaying)
+            }
+
+            if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
+                self.updateSneakPeek()
+            }
+        }
+        
         // Determine if anything changed
         let titleChanged = state.title != self.lastArtworkTitle
         let artistChanged = state.artist != self.lastArtworkArtist
@@ -181,6 +194,8 @@ class MusicManager: ObservableObject {
         let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged || bundleChanged
 
         if hasContentChange {
+            self.triggerFlipAnimation()
+            
             // Update last values
             self.lastArtworkTitle = state.title
             self.lastArtworkArtist = state.artist
@@ -248,23 +263,11 @@ class MusicManager: ObservableObject {
         var finalArtwork: NSImage = defaultImage
 
         if let data = artworkData, let image = NSImage(data: data) {
-            let targetSize = NSSize(width: 200, height: 200)
-            let resizedImage = NSImage(size: targetSize)
-            resizedImage.lockFocus()
-            image.draw(
-                in: NSRect(origin: .zero, size: targetSize),
-                from: NSRect(origin: .zero, size: image.size),
-                operation: .copy,
-                fraction: 1.0
-            )
-            resizedImage.unlockFocus()
-            finalArtwork = resizedImage
+            finalArtwork = image
             self.usingAppIconForArtwork = false
         } else if let bundleID = bundleIdentifier,
                   let appIcon = AppIconAsNSImage(for: bundleID) {
             finalArtwork = appIcon
-            self.usingAppIconForArtwork = true
-        } else {
             self.usingAppIconForArtwork = true
         }
 
@@ -276,10 +279,6 @@ class MusicManager: ObservableObject {
 
         self.triggerFlipAnimation()
     }
-
-
-
-
 
     private func updateIdleState(state: Bool) {
         if state {
