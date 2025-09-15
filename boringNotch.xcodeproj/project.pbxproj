@@ -285,17 +285,25 @@
 			path = "mediaremote-adapter";
 			sourceTree = "<group>";
 		};
-		1153BD8E2D986B1F00979FB0 /* MediaControllers */ = {
+		1132E5232E78D6DA0068732D /* YouTube Music Controller */ = {
 			isa = PBXGroup;
 			children = (
 				1132E5152E777C140068732D /* YouTubeMusicAuthentication.swift */,
 				1132E5132E777B920068732D /* YouTubeMusicNetworking.swift */,
 				1132E5102E777B6E0068732D /* YouTubeMusicModels.swift */,
+				1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */,
+			);
+			path = "YouTube Music Controller";
+			sourceTree = "<group>";
+		};
+		1153BD8E2D986B1F00979FB0 /* MediaControllers */ = {
+			isa = PBXGroup;
+			children = (
+				1132E5232E78D6DA0068732D /* YouTube Music Controller */,
 				1153BD8D2D986B1F00979FB0 /* MediaControllerProtocol.swift */,
 				1153BD922D986E4300979FB0 /* AppleMusicController.swift */,
 				1153BD992D98824300979FB0 /* SpotifyController.swift */,
 				1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */,
-				1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */,
 			);
 			path = MediaControllers;
 			sourceTree = "<group>";
