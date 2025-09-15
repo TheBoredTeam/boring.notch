@@ -21,8 +21,11 @@ class SpotifyController: MediaControllerProtocol {
     
     private var notificationTask: Task<Void, Never>?
     
-    //Constant for time between command and update
-    let commandUpdateDelay: Duration = .milliseconds(25)
+    // Constant for time between command and update
+    private let commandUpdateDelay: Duration = .milliseconds(25)
+
+    private var lastArtworkURL: String?
+    private var artworkFetchTask: Task<Void, Never>?
     
     init() {
         setupPlaybackStateChangeObserver()
@@ -50,47 +53,28 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     // MARK: - Protocol Implementation
-    func play() async {
-        await executeCommand("play")
-    }
-    
-    func pause() async {
-        await executeCommand("pause")
-    }
-    
-    func togglePlay() async {
-        await executeCommand("playpause")
-    }
-    
-    func nextTrack() async {
-        await executeCommand("next track")
-    }
-    
+    func play() async { await executeCommand("play") }
+    func pause() async { await executeCommand("pause") }
+    func togglePlay() async { await executeCommand("playpause") }
+    func nextTrack() async { await executeCommand("next track") }
     func previousTrack() async {
-        await executeCommand("previous track")
+        await executeAndRefresh("previous track")
     }
     
     func seek(to time: Double) async {
-        await executeCommand("set player position to \(time)")
-        try? await Task.sleep(for: commandUpdateDelay)
-        await updatePlaybackInfo()
+        await executeAndRefresh("set player position to \(time)")
     }
     
     func toggleShuffle() async {
-        await executeCommand("set shuffling to not shuffling")
-        try? await Task.sleep(for: commandUpdateDelay)
-        await updatePlaybackInfo()
+        await executeAndRefresh("set shuffling to not shuffling")
     }
     
     func toggleRepeat() async {
-        await executeCommand("set repeating to not repeating")
-        try? await Task.sleep(for: commandUpdateDelay)
-        await updatePlaybackInfo()
+        await executeAndRefresh("set repeating to not repeating")
     }
     
     func isActive() -> Bool {
-        let runningApps = NSWorkspace.shared.runningApplications
-        return runningApps.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
+        NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
     }
     
     func updatePlaybackInfo() async {
@@ -120,20 +104,33 @@ class SpotifyController: MediaControllerProtocol {
             repeatMode: isRepeating ? .all : .off,
             lastUpdated: Date()
         )
-        
-        self.playbackState = state
-        
-        // Load artwork asynchronously and update the state when complete
+
+        if artworkURL == lastArtworkURL, let existingArtwork = self.playbackState.artwork {
+            state.artwork = existingArtwork
+        }
+
+        playbackState = state
+
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
             let currentState = state
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                // Create a new state with the artwork data and update
-                var updatedState = currentState
-                updatedState.artwork = data
-                playbackState = updatedState
-            } catch {
-                print("Failed to load artwork: \(error)")
+
+            artworkFetchTask = Task {
+                do {
+                    let data = try await ImageService.shared.fetchImageData(from: url)
+
+                    await MainActor.run { [weak self] in
+                        guard let self = self else { return }
+                        var updatedState = currentState
+                        updatedState.artwork = data
+                        self.playbackState = updatedState
+                        self.lastArtworkURL = artworkURL
+                        self.artworkFetchTask = nil
+                    }
+                } catch {
+                    await MainActor.run { [weak self] in
+                        self?.artworkFetchTask = nil
+                    }
+                }
             }
         }
     }
@@ -143,6 +140,12 @@ class SpotifyController: MediaControllerProtocol {
     private func executeCommand(_ command: String) async {
         let script = "tell application \"Spotify\" to \(command)"
         try? await AppleScriptHelper.executeVoid(script)
+    }
+
+    private func executeAndRefresh(_ command: String) async {
+        await executeCommand(command)
+        try? await Task.sleep(for: commandUpdateDelay)
+        await updatePlaybackInfo()
     }
     
     private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {
