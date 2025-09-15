@@ -429,8 +429,7 @@ class MusicManager: ObservableObject {
         // Request immediate update from the active controller
         Task { [weak self] in
             if self?.activeController?.isActive() == true {
-                if  type(of: self?.activeController) == YouTubeMusicController.self,
-                let youtubeController = self?.activeController as? YouTubeMusicController {
+                if let youtubeController = self?.activeController as? YouTubeMusicController {
                     await youtubeController.pollPlaybackState()
                 } else {
                     await self?.activeController?.updatePlaybackInfo()
