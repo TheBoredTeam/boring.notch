@@ -1,0 +1,29 @@
+//
+//  BackgroundManager.swift
+//  boringNotch
+//
+//  Created by Adon Omeri on 4/9/2025.
+//
+
+import Defaults
+import SwiftUI
+
+@MainActor
+class BackgroundManager: ObservableObject {
+	static let shared = BackgroundManager()
+
+	private init() {}
+
+	var background: some View {
+		if Defaults[.backgroundIsBlack] {
+			return AnyView(
+				Color.black
+			)
+		} else {
+			return AnyView(
+				Color.black.opacity(Defaults[.backgroundBlackGradient])
+					.background(.ultraThinMaterial)
+			)
+		}
+	}
+}
