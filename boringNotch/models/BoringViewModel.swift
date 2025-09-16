@@ -183,6 +183,8 @@ class BoringViewModel: NSObject, ObservableObject {
             self.notchSize = getClosedNotchSize(screen: self.screen)
             self.closedNotchSize = self.notchSize
             self.notchState = .closed
+            self.isBatteryPopoverActive = false
+            self.coordinator.sneakPeek.show = false
         }
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
