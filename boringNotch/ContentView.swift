@@ -23,14 +23,13 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
 
     @State private var hoverTask: Task<Void, Never>?
-    @State private var debounceTask: Task<Void, Never>?
-
     @State private var isHovering: Bool = false
-    @State private var isHoverStateChanging: Bool = false
 
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
+    
+    @State private var gestureHapticFired: Bool = false
 
     @Namespace var albumArtNamespace
 
@@ -38,9 +37,6 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.useModernCloseAnimation) var useModernCloseAnimation
-
-    private let extendedHoverPadding: CGFloat = 30
-    private let zeroHeightHoverPadding: CGFloat = 10
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -70,11 +66,7 @@ struct ContentView: View {
                 }
                 .padding(
                     .bottom,
-                    vm.notchState == .open && Defaults[.extendHoverArea]
-                        ? 0
-                        : (vm.effectiveClosedNotchHeight == 0)
-                            ? zeroHeightHoverPadding
-                            : 0
+                    vm.effectiveClosedNotchHeight == 0 ? 10 : 0
                 )
 
             mainLayout
@@ -93,46 +85,20 @@ struct ContentView: View {
                         )
                 }
                 .conditionalModifier(useModernCloseAnimation) { view in
-                    let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
                     let notchStateAnimation = Animation.spring.speed(1.2)
                     return view
-                        .animation(hoverAnimationAnimation, value: isHovering)
                         .animation(notchStateAnimation, value: vm.notchState)
                 }
-                .conditionalModifier(Defaults[.openNotchOnHover]) { view in
-                    view.onHover { hovering in
-                        handleHover(hovering)
-                    }
+                .onHover { hovering in
+                    handleHover(hovering)
                 }
-                .conditionalModifier(!Defaults[.openNotchOnHover]) { view in
+                .onTapGesture {
+                    doOpen()
+                }
+                .conditionalModifier(Defaults[.enableGestures]) { view in
                     view
-                        .onHover { hovering in
-                            if (vm.notchState == .closed) && Defaults[.enableHaptics] {
-                                haptics.toggle()
-                            }
-
-                            withAnimation(vm.animation) {
-                                isHovering = hovering
-                            }
-
-                            // Only close if mouse leaves and the notch is open
-                            if !hovering && vm.notchState == .open {
-                                vm.close()
-                            }
-                        }
-                        .onTapGesture {
-                            doOpen()
-                        }
-                        .conditionalModifier(Defaults[.enableGestures]) { view in
-                            view
-                                .panGesture(direction: .down) {
-                                    translation,
-                                    phase in
-                                    handleDownGesture(
-                                        translation: translation,
-                                        phase: phase
-                                    )
-                                }
+                        .panGesture(direction: .down) { translation, phase in
+                            handleDownGesture(translation: translation, phase: phase)
                         }
                 }
                 .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
@@ -141,33 +107,36 @@ struct ContentView: View {
                             handleUpGesture(translation: translation, phase: phase)
                         }
                 }
-                .onAppear(perform: {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                        withAnimation(vm.animation) {
+                .onAppear {
+                    Task {
+                        try? await Task.sleep(for: .seconds(1))
+                        await MainActor.run {
                             if coordinator.firstLaunch {
-                                doOpen()
+                                withAnimation(vm.animation) {
+                                    doOpen()
+                                }
                             }
                         }
                     }
-                })
+                }
                 .onChange(of: vm.notchState) { _, newState in
-                    // Reset hover state when notch state changes
                     if newState == .closed && isHovering {
-                        // Only reset visually, without triggering the hover logic again
-                        isHoverStateChanging = true
                         withAnimation {
                             isHovering = false
                         }
-                        // Reset the flag after the animation completes
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            isHoverStateChanging = false
-                        }
                     }
                 }
-                .onChange(of: vm.isBatteryPopoverActive) { _, newPopoverState in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        if !newPopoverState && !isHovering && vm.notchState == .open {
-                            vm.close()
+                .onChange(of: vm.isBatteryPopoverActive) {
+                    if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open {
+                        hoverTask?.cancel()
+                        hoverTask = Task {
+                            try? await Task.sleep(for: .milliseconds(100))
+                            guard !Task.isCancelled else { return }
+                            await MainActor.run {
+                                if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open {
+                                    self.vm.close()
+                                }
+                            }
                         }
                     }
                 }
@@ -463,45 +432,47 @@ struct ContentView: View {
 
     // MARK: - Hover Management
 
-    /// Handle hover state changes with debouncing
     private func handleHover(_ hovering: Bool) {
-        // Don't process events if we're already transitioning
-        if isHoverStateChanging { return }
-
-        // Cancel any pending tasks
         hoverTask?.cancel()
-        debounceTask?.cancel()
-
+        
         if hovering {
-            // Handle mouse enter
             withAnimation(.bouncy.speed(1.2)) {
                 isHovering = true
             }
-
-            // Only provide haptic feedback if notch is closed
+            
             if vm.notchState == .closed && Defaults[.enableHaptics] {
                 haptics.toggle()
             }
-
-            // Don't open notch if there's a sneak peek showing
-            if coordinator.sneakPeek.show { return }
-
-            // Delay opening the notch
+            
+            guard vm.notchState == .closed,
+                  !coordinator.sneakPeek.show,
+                  Defaults[.openNotchOnHover] else { return }
+            
             hoverTask = Task {
                 try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
-                guard vm.notchState == .closed, isHovering else { return }
-                doOpen()
+                guard !Task.isCancelled else { return }
+                
+                await MainActor.run {
+                    guard self.vm.notchState == .closed,
+                          self.isHovering,
+                          !self.coordinator.sneakPeek.show else { return }
+                    
+                    self.doOpen()
+                }
             }
         } else {
-            // Handle mouse exit with debounce to prevent flickering
-            debounceTask = Task {
+            hoverTask = Task {
                 try? await Task.sleep(for: .milliseconds(100))
-                withAnimation(.bouncy.speed(1.2)) {
-                    isHovering = false
-                }
-
-                if vm.notchState == .open && !vm.isBatteryPopoverActive {
-                    vm.close()
+                guard !Task.isCancelled else { return }
+                
+                await MainActor.run {
+                    withAnimation(.bouncy.speed(1.2)) {
+                        self.isHovering = false
+                    }
+                    
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive {
+                        self.vm.close()
+                    }
                 }
             }
         }
@@ -511,20 +482,27 @@ struct ContentView: View {
 
     private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
         guard vm.notchState == .closed else { return }
+        if phase == .began { gestureHapticFired = false }
+
+        if phase == .ended {
+            withAnimation(.smooth) { gestureProgress = .zero }
+            gestureHapticFired = false
+            return
+        }
 
         withAnimation(.smooth) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
         }
 
-        if phase == .ended {
-            withAnimation(.smooth) {
-                gestureProgress = .zero
-            }
-        }
-
         if translation > Defaults[.gestureSensitivity] {
-            if Defaults[.enableHaptics] {
+            if Defaults[.enableHaptics] && !gestureHapticFired {
+                gestureHapticFired = true
                 haptics.toggle()
+
+                Task {
+                    try? await Task.sleep(for: .milliseconds(120))
+                    haptics = false
+                }
             }
             withAnimation(.smooth) {
                 gestureProgress = .zero
@@ -534,26 +512,33 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        if vm.notchState == .open && !vm.isHoveringCalendar {
+        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        if phase == .began { gestureHapticFired = false }
+        if phase == .ended { gestureHapticFired = false }
+
+        withAnimation(.smooth) {
+            gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
+        }
+
+        if phase == .ended {
             withAnimation(.smooth) {
-                gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
+                gestureProgress = .zero
             }
+        }
 
-            if phase == .ended {
-                withAnimation(.smooth) {
-                    gestureProgress = .zero
-                }
+        if translation > Defaults[.gestureSensitivity] {
+            withAnimation(.smooth) {
+                gestureProgress = .zero
+                isHovering = false
             }
+            vm.close()
 
-            if translation > Defaults[.gestureSensitivity] {
-                withAnimation(.smooth) {
-                    gestureProgress = .zero
-                    isHovering = false
-                }
-                vm.close()
-
-                if Defaults[.enableHaptics] {
-                    haptics.toggle()
+            if Defaults[.enableHaptics] && !gestureHapticFired {
+                gestureHapticFired = true
+                haptics.toggle()
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(120))
+                    haptics = false
                 }
             }
         }
