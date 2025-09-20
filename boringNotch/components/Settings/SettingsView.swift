@@ -350,8 +350,11 @@ struct Charge: View {
                 Text("General")
             }
             Section {
-                Defaults.Toggle(key: .showBatteryPercentage) {
-                    Text("Show battery percentage")
+//              toggle won't show if device is wall powered device
+                if deviceHasBattery() {
+                    Defaults.Toggle(key: .showBatteryPercentage) {
+                        Text("Show battery percentage")
+                    }
                 }
                 Defaults.Toggle(key: .showPowerStatusIcons) {
                     Text("Show power status icons")
