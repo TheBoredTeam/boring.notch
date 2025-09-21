@@ -140,6 +140,7 @@ extension Defaults.Keys {
         // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
+    static let shelfTapToOpen = Key<Bool>("shelfTapToOpen", default: true)
     
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

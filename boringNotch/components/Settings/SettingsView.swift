@@ -785,15 +785,20 @@ struct About: View {
 }
 
 struct Shelf: View {
+    
+    @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
+    
     var body: some View {
         Form {
             Section {
+
                 Defaults.Toggle(key: .boringShelf) {
                     Text("Enable shelf")
                 }
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
                 }
+
             } header: {
                 HStack {
                     Text("General")
