@@ -37,7 +37,7 @@ struct AlbumArtView: View {
             }
             albumArtButton
         }
-    }
+            }
 
     private var albumArtBackground: some View {
         Color.clear
@@ -87,24 +87,17 @@ struct AlbumArtView: View {
                 
 
     private var albumArtImage: some View {
-        Color.clear
-            .aspectRatio(1, contentMode: .fit)
-            .background(
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .animation(
-                        .spring(response: 0.4, dampingFraction: 0.8), value: musicManager.isFlipping
-                    )
-            )
-            .clipped()
-            .clipShape(
-                RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
-            )
+        Image(nsImage: musicManager.albumArt)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
             .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+        .clipped()
+        .clipShape(
+            RoundedRectangle(
+                cornerRadius: Defaults[.cornerRadiusScaling]
+                    ? MusicPlayerImageSizes.cornerRadiusInset.opened
+                    : MusicPlayerImageSizes.cornerRadiusInset.closed)
+        )
     }
 
     @ViewBuilder
@@ -116,6 +109,7 @@ struct AlbumArtView: View {
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
                 .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
+                .zIndex(2)
         }
     }
 }
