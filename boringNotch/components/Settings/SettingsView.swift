@@ -607,6 +607,7 @@ struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     @Default(.showCalendar) var showCalendar: Bool
     @Default(.hideCompletedReminders) var hideCompletedReminders
+    @Default(.hideAllDayEvents) var hideAllDayEvents
 
     var body: some View {
         Form {
@@ -615,6 +616,9 @@ struct CalendarSettings: View {
             }
             Defaults.Toggle(key: .hideCompletedReminders) {
                 Text("Hide completed reminders")
+            }
+            Defaults.Toggle(key: .hideAllDayEvents) {
+                Text("Hide all-day events")
             }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
