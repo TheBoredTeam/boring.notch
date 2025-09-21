@@ -28,8 +28,6 @@ struct ContentView: View {
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
-    
-    @State private var gestureHapticFired: Bool = false
 
     @Namespace var albumArtNamespace
 
@@ -482,11 +480,9 @@ struct ContentView: View {
 
     private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
         guard vm.notchState == .closed else { return }
-        if phase == .began { gestureHapticFired = false }
 
         if phase == .ended {
             withAnimation(.smooth) { gestureProgress = .zero }
-            gestureHapticFired = false
             return
         }
 
@@ -495,8 +491,7 @@ struct ContentView: View {
         }
 
         if translation > Defaults[.gestureSensitivity] {
-            if Defaults[.enableHaptics] && !gestureHapticFired {
-                gestureHapticFired = true
+            if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
             withAnimation(.smooth) {
@@ -508,8 +503,6 @@ struct ContentView: View {
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
         guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
-        if phase == .began { gestureHapticFired = false }
-        if phase == .ended { gestureHapticFired = false }
 
         withAnimation(.smooth) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
@@ -523,13 +516,11 @@ struct ContentView: View {
 
         if translation > Defaults[.gestureSensitivity] {
             withAnimation(.smooth) {
-                gestureProgress = .zero
                 isHovering = false
             }
             vm.close()
 
-            if Defaults[.enableHaptics] && !gestureHapticFired {
-                gestureHapticFired = true
+            if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
         }
