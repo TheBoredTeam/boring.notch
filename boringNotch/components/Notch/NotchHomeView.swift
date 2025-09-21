@@ -293,15 +293,6 @@ struct MusicSliderView: View {
     let isPlaying: Bool
     var onValueChange: (Double) -> Void
 
-    var currentElapsedTime: Double {
-        // A small buffer is needed to ensure a meaningful difference between the two dates
-        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else {
-            return sliderValue
-        }
-        let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
-        let elapsed = elapsedTime + (timeDifference * playbackRate)
-        return min(elapsed, duration)
-    }
 
     var body: some View {
         VStack {
@@ -331,8 +322,9 @@ struct MusicSliderView: View {
             )
             .font(.caption)
         }
-        .onChange(of: currentDate) {
-            sliderValue = currentElapsedTime
+        .onChange(of: currentDate) { newDate in
+           guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
+            sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: newDate)
         }
     }
 

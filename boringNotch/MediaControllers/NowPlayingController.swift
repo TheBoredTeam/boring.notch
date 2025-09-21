@@ -176,7 +176,20 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         newPlaybackState.artist = payload.artist ?? (diff ? self.playbackState.artist : "")
         newPlaybackState.album = payload.album ?? (diff ? self.playbackState.album : "")
         newPlaybackState.duration = payload.duration ?? (diff ? self.playbackState.duration : 0)
-        newPlaybackState.currentTime = payload.elapsedTime ?? (diff ? self.playbackState.currentTime : 0)
+        
+        if let elapsedTime = payload.elapsedTime {
+            newPlaybackState.currentTime = elapsedTime
+        } else if diff {
+            if payload.playing == false {
+                let timeSinceLastUpdate = Date().timeIntervalSince(self.playbackState.lastUpdated)
+                newPlaybackState.currentTime = self.playbackState.currentTime + (self.playbackState.playbackRate * timeSinceLastUpdate)
+            } else {
+                newPlaybackState.currentTime = self.playbackState.currentTime
+            }
+        } else {
+            newPlaybackState.currentTime = 0
+        }
+
         
         if let shuffleMode = payload.shuffleMode {
             newPlaybackState.isShuffled = shuffleMode != 1

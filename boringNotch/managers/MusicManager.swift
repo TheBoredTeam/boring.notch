@@ -329,6 +329,15 @@ class MusicManager: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: workItem!)
     }
 
+    // MARK: - Playback Position Estimation
+    public func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
+        guard isPlaying else { return min(elapsedTime, songDuration) }
+
+        let timeDifference = date.timeIntervalSince(timestampDate)
+        let estimated = elapsedTime + (timeDifference * playbackRate)
+        return min(max(0, estimated), songDuration)
+    }
+
     func calculateAverageColor() {
         albumArt.averageColor { [weak self] color in
             DispatchQueue.main.async {
