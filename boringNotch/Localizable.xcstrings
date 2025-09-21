@@ -221,7 +221,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "“当前播放”是以前版本中唯一的选项，并适用于所有媒体应用。"
+            "value": "“当前播放”是历史版本中的唯一选项。该选项可兼容所有媒体应用。"
           }
         },
         "cs": {
@@ -1433,7 +1433,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "被拒绝访问"
+            "value": "访问被拒绝"
           }
         },
         "cs": {
@@ -2342,7 +2342,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "总是隐藏在全屏"
+            "value": "总是在全屏时隐藏"
           }
         },
         "cs": {
@@ -5069,7 +5069,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Corner radius scaling"
+            "value": "圆角半径"
           }
         },
         "cs": {
@@ -6584,7 +6584,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable automatic sneak peek (show on media changes)"
+            "value": "启用自动 Sneak Peak（仅在媒体切换时显示）"
           }
         },
         "cs": {
@@ -17391,7 +17391,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek 在Notch下显示媒体标题和艺术家几秒钟。"
+            "value": "Sneak Peek 在 Notch 下显示媒体标题和艺术家几秒钟。"
           }
         },
         "cs": {
@@ -18401,7 +18401,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "切换 Sneak Peek："
+            "value": "触发 Sneak Peek："
           }
         },
         "cs": {
