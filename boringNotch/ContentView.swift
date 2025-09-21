@@ -498,11 +498,6 @@ struct ContentView: View {
             if Defaults[.enableHaptics] && !gestureHapticFired {
                 gestureHapticFired = true
                 haptics.toggle()
-
-                Task {
-                    try? await Task.sleep(for: .milliseconds(120))
-                    haptics = false
-                }
             }
             withAnimation(.smooth) {
                 gestureProgress = .zero
@@ -536,10 +531,6 @@ struct ContentView: View {
             if Defaults[.enableHaptics] && !gestureHapticFired {
                 gestureHapticFired = true
                 haptics.toggle()
-                Task { @MainActor in
-                    try? await Task.sleep(for: .milliseconds(120))
-                    haptics = false
-                }
             }
         }
     }
