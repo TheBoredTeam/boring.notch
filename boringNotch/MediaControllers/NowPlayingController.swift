@@ -115,7 +115,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     
     func toggleShuffle() async {
         // MRMediaRemoteSendCommandFunction(6, nil)
-        MRMediaRemoteSetShuffleModeFunction(playbackState.isShuffled ? 3 : 1)
+        MRMediaRemoteSetShuffleModeFunction(playbackState.isShuffled ? 1 : 3)
         playbackState.isShuffled.toggle()
     }
     
