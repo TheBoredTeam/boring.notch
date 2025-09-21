@@ -24,7 +24,7 @@ class AudioSpectrum: NSView {
         wantsLayer = true
         setupBars()
     }
-    
+
     private func setupBars() {
         let barWidth: CGFloat = 2
         let barCount = 4
@@ -32,7 +32,7 @@ class AudioSpectrum: NSView {
         let totalWidth = CGFloat(barCount) * (barWidth + spacing)
         let totalHeight: CGFloat = 14
         frame.size = CGSize(width: totalWidth, height: totalHeight)
-        
+
         for i in 0 ..< barCount {
             let xPosition = CGFloat(i) * (barWidth + spacing)
             let barLayer = CAShapeLayer()
@@ -72,7 +72,9 @@ class AudioSpectrum: NSView {
             animation.autoreverses = true
             animation.fillMode = .forwards
             animation.isRemovedOnCompletion = false
-            
+            if #available(macOS 13.0, *) {
+                animation.preferredFrameRateRange = CAFrameRateRange(minimum: 24, maximum: 24, preferred: 24)
+            }
             barLayer.add(animation, forKey: "scaleY")
         }
     }

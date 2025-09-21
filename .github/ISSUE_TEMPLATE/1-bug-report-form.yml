@@ -1,17 +1,22 @@
+---
 name: Bug Report
 description: File a bug report.
-title: "[Bug] "
-labels: ["bug", "unconfirmed"]
+title: '[Bug] '
+labels:
+  - bug
+  - unconfirmed
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! Before filing a bug report, please make sure to have the [latest version of TheBoringNotch](https://github.com/TheBoredTeam/boring.notch/releases) installed.
+        Thanks for taking the time to fill out this bug report!
   - type: textarea
     id: what-happened
     attributes:
       label: What happened? What are the steps to reproduce the issue?
-      description: Describe the bug and include the steps to replicate the issue. Issues with images or videos will be resolved faster.
+      description: >-
+        Describe the bug and include the steps to replicate the issue. Issues
+        with images or videos will be resolved faster.
       placeholder: Clearly explain the issue. Please limit each post to one issue.
     validations:
       required: true
@@ -26,22 +31,21 @@ body:
     id: version
     attributes:
       label: BoringNotch Version
-      description: What version of our software are you running?
+      description: >-
+        What version of our software are you running? (Go to ✦ in the menu bar >
+        Settings > About)
       options:
-        - 2.6
-        - 2.5
-        - 2.4
-        - 2.3
-        - 2.2
-        - 2.1
-        - 2.0
-        - 1.8
+        - v2.7-rc.3
+        - v2.7-rc.2
+        - v2.7-rc.1
+        - v2.7-rc.0
+        - v2.6
     validations:
       required: true
   - type: input
     id: operating-system
     attributes:
-      label: MacOS Version
+      label: macOS Version
       description: Go to  > About This Mac
     validations:
       required: true
@@ -49,7 +53,9 @@ body:
     id: logs
     attributes:
       label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      description: >-
+        Please copy and paste any relevant log output. This will be
+        automatically formatted into code, so no need for backticks.
       render: shell
   - type: checkboxes
     id: checks

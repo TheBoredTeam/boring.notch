@@ -79,9 +79,9 @@ struct BoringSystemTiles: View {
     var body: some View {
         Grid {
             GridRow {
-                SystemItemButton(icon: "clipboard", onTap: {
-                    vm.openClipboard()
-                }, label: "Clipboard History", showEmojis: Defaults[.showEmojis], emoji: "✨")
+//                SystemItemButton(icon: "clipboard", onTap: {
+//                    vm.openClipboard()
+//                }, label: "Clipboard History", showEmojis: Defaults[.showEmojis], emoji: "✨")
                 //                SystemItemButton(icon: "keyboard", onTap: {
                 //                    vm?.close()
                 //                    vm?.togglesneakPeek(status: true, type: .backlight, value: 1)
