@@ -553,12 +553,12 @@ struct Media: View {
                     "Enable music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Toggle("Enable sneak peek", isOn: $enableSneakPeek)
+                Toggle("Enable automatic sneak peek (show on media changes)", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
                         Text(style.rawValue).tag(style)
                     }
-                }.disabled(!enableSneakPeek)
+                }
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {

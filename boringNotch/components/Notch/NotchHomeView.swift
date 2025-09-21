@@ -37,16 +37,11 @@ struct AlbumArtView: View {
             }
             albumArtButton
         }
-    }
+            }
 
     private var albumArtBackground: some View {
-        Color.clear
-            .aspectRatio(1, contentMode: .fit)
-            .background(
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            )
+        Image(nsImage: musicManager.albumArt)
+            .resizable()
             .clipped()
             .clipShape(
                 RoundedRectangle(
@@ -54,6 +49,7 @@ struct AlbumArtView: View {
                         ? MusicPlayerImageSizes.cornerRadiusInset.opened
                         : MusicPlayerImageSizes.cornerRadiusInset.closed)
             )
+            .aspectRatio(1, contentMode: .fit)
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 40)
@@ -87,24 +83,17 @@ struct AlbumArtView: View {
                 
 
     private var albumArtImage: some View {
-        Color.clear
+        Image(nsImage: musicManager.albumArt)
+            .resizable()
             .aspectRatio(1, contentMode: .fit)
-            .background(
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .animation(
-                        .spring(response: 0.4, dampingFraction: 0.8), value: musicManager.isFlipping
-                    )
-            )
-            .clipped()
-            .clipShape(
-                RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
-            )
             .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+        .clipped()
+        .clipShape(
+            RoundedRectangle(
+                cornerRadius: Defaults[.cornerRadiusScaling]
+                    ? MusicPlayerImageSizes.cornerRadiusInset.opened
+                    : MusicPlayerImageSizes.cornerRadiusInset.closed)
+        )
     }
 
     @ViewBuilder
@@ -116,6 +105,7 @@ struct AlbumArtView: View {
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
                 .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
+                .zIndex(2)
         }
     }
 }
@@ -133,7 +123,6 @@ struct MusicControlsView: View {
             playbackControls
         }
         .buttonStyle(PlainButtonStyle())
-        .frame(minWidth: Defaults[.showMirror] && Defaults[.showCalendar] ? 140 : 180)
     }
 
     private var songInfoAndSlider: some View {
@@ -304,15 +293,6 @@ struct MusicSliderView: View {
     let isPlaying: Bool
     var onValueChange: (Double) -> Void
 
-    var currentElapsedTime: Double {
-        // A small buffer is needed to ensure a meaningful difference between the two dates
-        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else {
-            return sliderValue
-        }
-        let timeDifference = isPlaying ? currentDate.timeIntervalSince(timestampDate) : 0
-        let elapsed = elapsedTime + (timeDifference * playbackRate)
-        return min(elapsed, duration)
-    }
 
     var body: some View {
         VStack {
@@ -342,8 +322,9 @@ struct MusicSliderView: View {
             )
             .font(.caption)
         }
-        .onChange(of: currentDate) {
-            sliderValue = currentElapsedTime
+        .onChange(of: currentDate) { newDate in
+           guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
+            sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: newDate)
         }
     }
 

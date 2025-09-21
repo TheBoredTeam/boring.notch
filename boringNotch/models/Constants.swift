@@ -153,9 +153,9 @@ extension Defaults.Keys {
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     
-    // Helper to determine the default media controller based on macOS version
+    // Helper to determine the default media controller based on NowPlaying deprecation status
     static var defaultMediaController: MediaControllerType {
-        if #available(macOS 15.4, *) {
+        if MusicManager.shared.isNowPlayingDeprecated {
             return .appleMusic
         } else {
             return .nowPlaying
