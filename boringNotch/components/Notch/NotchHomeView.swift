@@ -40,13 +40,8 @@ struct AlbumArtView: View {
             }
 
     private var albumArtBackground: some View {
-        Color.clear
-            .aspectRatio(1, contentMode: .fit)
-            .background(
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            )
+        Image(nsImage: musicManager.albumArt)
+            .resizable()
             .clipped()
             .clipShape(
                 RoundedRectangle(
@@ -54,6 +49,7 @@ struct AlbumArtView: View {
                         ? MusicPlayerImageSizes.cornerRadiusInset.opened
                         : MusicPlayerImageSizes.cornerRadiusInset.closed)
             )
+            .aspectRatio(contentMode: .fit)
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 40)
