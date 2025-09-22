@@ -21,7 +21,6 @@ class AppleMusicController: MediaControllerProtocol {
     }
     
     private var notificationTask: Task<Void, Never>?
-    private var volumeMonitorTask: Task<Void, Never>?
     
     // MARK: - Initialization
     init() {
@@ -29,7 +28,6 @@ class AppleMusicController: MediaControllerProtocol {
         Task {
             if isActive() {
                 await updatePlaybackInfo()
-                await startVolumeMonitoring()
             }
         }
     }
@@ -42,16 +40,12 @@ class AppleMusicController: MediaControllerProtocol {
             
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
-                if self?.isActive() == true {
-                    await self?.startVolumeMonitoring()
-                }
             }
         }
     }
     
     deinit {
         notificationTask?.cancel()
-        volumeMonitorTask?.cancel()
     }
     
     // MARK: - Protocol Implementation
@@ -138,11 +132,7 @@ class AppleMusicController: MediaControllerProtocol {
     
     private func executeCommand(_ command: String) async {
         let script = "tell application \"Music\" to \(command)"
-        do {
-            try await AppleScriptHelper.executeVoid(script)
-        } catch {
-            // Silently handle error
-        }
+        try? await AppleScriptHelper.executeVoid(script)
     }
     
     private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {
@@ -183,33 +173,4 @@ class AppleMusicController: MediaControllerProtocol {
         return try await AppleScriptHelper.execute(script)
     }
     
-    private func startVolumeMonitoring() async {
-        volumeMonitorTask?.cancel()
-        volumeMonitorTask = Task { [weak self] in
-            while !Task.isCancelled && self?.isActive() == true {
-                try? await Task.sleep(for: .seconds(1)) // Increased frequency to 1 second
-                if !Task.isCancelled {
-                    await self?.checkVolumeChange()
-                }
-            }
-        }
-    }
-    
-    private func checkVolumeChange() async {
-        guard let volumeScript = try? await AppleScriptHelper.execute(
-            "tell application \"Music\" to get sound volume"
-        ) else { 
-            return 
-        }
-        
-        let volumeValue = volumeScript.int32Value
-        let currentVolume = Double(volumeValue) / 100.0
-        
-        if abs(currentVolume - playbackState.volume) > 0.01 {
-            var updatedState = playbackState
-            updatedState.volume = currentVolume
-            updatedState.lastUpdated = Date()
-            self.playbackState = updatedState
-        }
-    }
 }

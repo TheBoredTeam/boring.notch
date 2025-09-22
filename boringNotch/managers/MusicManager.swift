@@ -172,9 +172,6 @@ class MusicManager: ObservableObject {
 
         // Get current state from active controller
         forceUpdate()
-        
-        // Start periodic volume synchronization
-        startVolumeSyncTask()
     }
 
     // MARK: - Update Methods
@@ -465,21 +462,12 @@ class MusicManager: ObservableObject {
                 } else {
                     await self?.activeController?.updatePlaybackInfo()
                 }
+                // Sync volume after update
+                await self?.syncVolumeFromActiveApp()
             }
         }
     }
     
-    func startVolumeSyncTask() {
-        volumeSyncTask?.cancel()
-        volumeSyncTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(2))
-                if !Task.isCancelled {
-                    await self?.syncVolumeFromActiveApp()
-                }
-            }
-        }
-    }
     
     func syncVolumeFromActiveApp() async {
         guard let bundleID = bundleIdentifier, !bundleID.isEmpty else { return }
@@ -510,7 +498,8 @@ class MusicManager: ObservableObject {
     func isVolumeControlSupported(for bundleIdentifier: String) -> Bool {
         let supportedApps = [
             "com.apple.Music",
-            "com.spotify.client"
+            "com.spotify.client",
+            "com.github.th-ch.youtube-music"
         ]
         return supportedApps.contains(bundleIdentifier)
     }

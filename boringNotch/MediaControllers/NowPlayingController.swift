@@ -263,40 +263,9 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         
         newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
         
-        // If no volume data from MediaRemote, poll it separately for known apps
-        if payload.volume == nil {
-            await pollVolumeForApp(bundleID: newPlaybackState.bundleIdentifier)
-        }
-        
         self.playbackState = newPlaybackState
     }
     
-    private func pollVolumeForApp(bundleID: String) async {
-        guard !bundleID.isEmpty else { return }
-        
-        var volumeScript: String?
-        if bundleID == "com.apple.Music" {
-            volumeScript = "tell application \"Music\" to get sound volume"
-        } else if bundleID == "com.spotify.client" {
-            volumeScript = "tell application \"Spotify\" to get sound volume"
-        } else {
-            // For unsupported apps, don't poll volume
-            return
-        }
-        
-        if let script = volumeScript,
-           let volumeResult = try? await AppleScriptHelper.execute(script) {
-            let volumeValue = volumeResult.int32Value
-            let currentVolume = Double(volumeValue) / 100.0
-            
-            if abs(currentVolume - playbackState.volume) > 0.01 {
-                var updatedState = playbackState
-                updatedState.volume = currentVolume
-                updatedState.lastUpdated = Date()
-                self.playbackState = updatedState
-            }
-        }
-    }
 }
 
 struct NowPlayingUpdate: Codable {

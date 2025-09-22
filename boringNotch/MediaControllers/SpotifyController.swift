@@ -20,7 +20,6 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     private var notificationTask: Task<Void, Never>?
-    private var volumeMonitorTask: Task<Void, Never>?
     
     // Constant for time between command and update
     private let commandUpdateDelay: Duration = .milliseconds(25)
@@ -33,7 +32,6 @@ class SpotifyController: MediaControllerProtocol {
         Task {
             if isActive() {
                 await updatePlaybackInfo()
-                await startVolumeMonitoring()
             }
         }
     }
@@ -46,16 +44,12 @@ class SpotifyController: MediaControllerProtocol {
             
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
-                if self?.isActive() == true {
-                    await self?.startVolumeMonitoring()
-                }
             }
         }
     }
     
     deinit {
         notificationTask?.cancel()
-        volumeMonitorTask?.cancel()
         artworkFetchTask?.cancel()
     }
     
@@ -160,17 +154,7 @@ class SpotifyController: MediaControllerProtocol {
     
     private func executeCommand(_ command: String) async {
         let script = "tell application \"Spotify\" to \(command)"
-        do {
-            try? await AppleScriptHelper.executeVoid(script)
-        } catch {
-            // Silently handle error
-        }
-    }
-
-    private func executeAndRefresh(_ command: String) async {
-        await executeCommand(command)
-        try? await Task.sleep(for: commandUpdateDelay)
-        await updatePlaybackInfo()
+        try? await AppleScriptHelper.executeVoid(script)
     }
 
     private func executeAndRefresh(_ command: String) async {
@@ -204,30 +188,4 @@ class SpotifyController: MediaControllerProtocol {
         return try await AppleScriptHelper.execute(script)
     }
     
-    private func startVolumeMonitoring() async {
-        volumeMonitorTask?.cancel()
-        volumeMonitorTask = Task { [weak self] in
-            while !Task.isCancelled && self?.isActive() == true {
-                try? await Task.sleep(for: .seconds(2))
-                if !Task.isCancelled {
-                    await self?.checkVolumeChange()
-                }
-            }
-        }
-    }
-    
-    private func checkVolumeChange() async {
-        guard let volumeScript = try? await AppleScriptHelper.execute(
-            "tell application \"Spotify\" to get sound volume"
-        ) else { return }
-        
-        let volumeValue = volumeScript.int32Value
-        let currentVolume = Double(volumeValue) / 100.0
-        if abs(currentVolume - playbackState.volume) > 0.01 {
-            var updatedState = playbackState
-            updatedState.volume = currentVolume
-            updatedState.lastUpdated = Date()
-            self.playbackState = updatedState
-        }
-    }
 }
