@@ -257,6 +257,10 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         NotchShelfView()
+                    case .notes:
+                        NotchNotesView()
+                    case .clipboard:
+                        NotchClipboardView()
                     }
                 }
             }
