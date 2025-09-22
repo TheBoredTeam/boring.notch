@@ -117,13 +117,6 @@
 		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
-		4FE1DB2D7EEFED053B532466 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = 414CD641EB6D5FB3744A39CC /* Note.swift */; };
-		67C6D19FF4A05CF117B8FADE /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3365ED066F8195C12271BE /* ClipboardItem.swift */; };
-		A3C18519B5AD6C4EAB732349 /* NotesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916220DCD8B4C4D58C9AF400 /* NotesManager.swift */; };
-		58A5C4D827454B5577722C2A /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0BB900699E45C9B6C57F69D /* ClipboardManager.swift */; };
-		B47BA39A4E404BA6F1E6440B /* NotchNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E50A104454AD58224725A73 /* NotchNotesView.swift */; };
-		E11BB313197800BAC919D625 /* NotchClipboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F382AA1CC5B768EFB6E40454 /* NotchClipboardView.swift */; };
-		D23981D002AAD488350F7F7E /* NotesClipboardSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7062E9BACEF76833B4B524F3 /* NotesClipboardSettings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -255,13 +248,6 @@
 		B1ECFA032C6FE58A002ACD87 /* CoreDisplay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreDisplay.framework; path = ../../../../../System/Library/Frameworks/CoreDisplay.framework; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
-		1E50A104454AD58224725A73 /* NotchNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchNotesView.swift; sourceTree = "<group>"; };
-		F382AA1CC5B768EFB6E40454 /* NotchClipboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchClipboardView.swift; sourceTree = "<group>"; };
-		916220DCD8B4C4D58C9AF400 /* NotesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesManager.swift; sourceTree = "<group>"; };
-		C0BB900699E45C9B6C57F69D /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
-		414CD641EB6D5FB3744A39CC /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
-		3B3365ED066F8195C12271BE /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
-		7062E9BACEF76833B4B524F3 /* NotesClipboardSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesClipboardSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -388,8 +374,6 @@
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
-				916220DCD8B4C4D58C9AF400 /* NotesManager.swift */,
-				C0BB900699E45C9B6C57F69D /* ClipboardManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
 				147CB9562C8CCC980094C254 /* BoringExtensionManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
@@ -509,8 +493,6 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
-				414CD641EB6D5FB3744A39CC /* Note.swift */,
-				3B3365ED066F8195C12271BE /* ClipboardItem.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
 				1163988C2DF5CAB40052E6AF /* EventModel.swift */,
 				B19016232CC15B4D00E3F12E /* Constants.swift */,
@@ -599,8 +581,6 @@
 				1160F8D72DD98230006FBB94 /* NotchShape.swift */,
 				9A987A032C73CA66005CA465 /* NotchShelfView.swift */,
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
-				1E50A104454AD58224725A73 /* NotchNotesView.swift */,
-				F382AA1CC5B768EFB6E40454 /* NotchClipboardView.swift */,
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
 				1471A8582C6281BD0058408D /* BoringNotchWindow.swift */,
@@ -616,7 +596,6 @@
 				B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */,
 				B1B112902C6A572100093D8F /* EditPanelView.swift */,
 				B1C448972C972CC4001F0858 /* ListItemPopover.swift */,
-				7062E9BACEF76833B4B524F3 /* NotesClipboardSettings.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -772,8 +751,6 @@
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
 				1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */,
 				1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */,
-				4FE1DB2D7EEFED053B532466 /* Note.swift in Sources */,
-				67C6D19FF4A05CF117B8FADE /* ClipboardItem.swift in Sources */,
 				1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */,
 				B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */,
 				9A987A072C73CA66005CA465 /* Ext+NSImage.swift in Sources */,
@@ -786,8 +763,6 @@
 				B10A848A2C7BCC940088BFFC /* AirDropView.swift in Sources */,
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
-				A3C18519B5AD6C4EAB732349 /* NotesManager.swift in Sources */,
-				58A5C4D827454B5577722C2A /* ClipboardManager.swift in Sources */,
 				B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */,
 				9A987A062C73CA66005CA465 /* Ext+NSAlert.swift in Sources */,
 				B1C448962C9712C4001F0858 /* ActionBar.swift in Sources */,
@@ -797,8 +772,6 @@
 				1153BD8F2D986B1F00979FB0 /* MediaControllerProtocol.swift in Sources */,
 				9A987A092C73CA66005CA465 /* Ext+URL.swift in Sources */,
 				9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */,
-				B47BA39A4E404BA6F1E6440B /* NotchNotesView.swift in Sources */,
-				E11BB313197800BAC919D625 /* NotchClipboardView.swift in Sources */,
 				B172AAC02C95DA0B001623F1 /* InlineHUD.swift in Sources */,
 				14E9FEAA2C70BF610062E83F /* DownloadView.swift in Sources */,
 				B1B112912C6A572100093D8F /* EditPanelView.swift in Sources */,
@@ -816,7 +789,6 @@
 				B10F84A32C6C9596009F3026 /* TestView.swift in Sources */,
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
 				11C5E3162DFE88510065821E /* SettingsView.swift in Sources */,
-				D23981D002AAD488350F7F7E /* NotesClipboardSettings.swift in Sources */,
 				14D570D52C5F710B0011E668 /* constants.swift in Sources */,
 				B1628BA82CC40C4F003D8DF3 /* DragDropView.swift in Sources */,
 				1153BD932D986E4300979FB0 /* AppleMusicController.swift in Sources */,

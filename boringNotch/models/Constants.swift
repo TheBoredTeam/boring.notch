@@ -141,27 +141,14 @@ extension Defaults.Keys {
     static let boringShelf = Key<Bool>("boringShelf", default: true)
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
     static let shelfTapToOpen = Key<Bool>("shelfTapToOpen", default: true)
-
+    
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
-
-        // MARK: Notes
-    static let enableNotes = Key<Bool>("enableNotes", default: true)
-    static let notesDefaultMonospace = Key<Bool>("notesDefaultMonospace", default: false)
-    static let notesAutoSaveInterval = Key<Double>("notesAutoSaveInterval", default: 2)
-
-        // MARK: Clipboard
-    static let enableClipboardHistory = Key<Bool>("enableClipboardHistory", default: true)
-    static let clipboardRetentionDays = Key<Int>("clipboardRetentionDays", default: 7)
-    static let clipboardMaxItems = Key<Int>("clipboardMaxItems", default: 1000)
-    static let clipboardCaptureImages = Key<Bool>("clipboardCaptureImages", default: true)
-    static let clipboardCaptureRichText = Key<Bool>("clipboardCaptureRichText", default: true)
-    static let clipboardExcludedApps = Key<[String]>("clipboardExcludedApps", default: [])
-
+    
         // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
-
+    
     // MARK: Wobble Animation
     static let enableWobbleAnimation = Key<Bool>("enableWobbleAnimation", default: false)
     

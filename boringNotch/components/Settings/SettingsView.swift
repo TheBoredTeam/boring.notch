@@ -60,12 +60,6 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
-                NavigationLink(value: "Notes") {
-                    Label("Notes", systemImage: "note.text")
-                }
-                NavigationLink(value: "Clipboard") {
-                    Label("Clipboard", systemImage: "doc.on.clipboard")
-                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -96,10 +90,6 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
-                case "Notes":
-                    NotesSettings()
-                case "Clipboard":
-                    ClipboardSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
