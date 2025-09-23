@@ -8,12 +8,22 @@ struct Note: Identifiable, Codable, Equatable {
     var isPinned: Bool
     var isMonospaced: Bool
 
-    var title: String {
+    var headingTitle: String {
         content
             .components(separatedBy: .newlines)
             .first?
             .trimmingCharacters(in: .whitespacesAndNewlines)
-            .nonEmpty ?? "Untitled"
+            .nonEmpty ?? "Untitled Note"
+    }
+
+    var previewText: String {
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "" }
+        let lines = trimmed.components(separatedBy: .newlines)
+        guard lines.count > 1 else { return "" }
+        let remainder = lines.dropFirst().joined(separator: " ")
+        let condensed = remainder.trimmingCharacters(in: .whitespacesAndNewlines)
+        return String(condensed.prefix(200))
     }
 
     init(

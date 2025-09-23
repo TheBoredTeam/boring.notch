@@ -116,17 +116,19 @@ struct ContentView: View {
                                 vm.close()
                             }
                         }
-                        .onTapGesture {
-                            doOpen()
+                        .conditionalModifier(vm.notchState == .closed) { view in
+                            view.onTapGesture {
+                                doOpen()
+                            }
                         }
-                        .conditionalModifier(Defaults[.enableGestures]) { view in
+                        .conditionalModifier(Defaults[.enableGestures] && vm.notchState == .closed) { view in
                             view
                                 .panGesture(direction: .down) { translation, phase in
                                     handleDownGesture(translation: translation, phase: phase)
                                 }
                         }
                 }
-                .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures] && vm.notchState == .open) { view in
                     view
                         .panGesture(direction: .up) { translation, phase in
                             handleUpGesture(translation: translation, phase: phase)
@@ -153,6 +155,13 @@ struct ContentView: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             isHoverStateChanging = false
                         }
+                    }
+                    if newState == .closed {
+                        NotificationCenter.default.post(
+                            name: .boringNotchWindowKeyboardFocus,
+                            object: nil,
+                            userInfo: ["allow": false]
+                        )
                     }
                 }
                 .onChange(of: vm.isBatteryPopoverActive) { _, newPopoverState in
