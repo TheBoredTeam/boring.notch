@@ -6,20 +6,19 @@ struct NotesSettings: View {
 
     var body: some View {
         Form {
-            Section("Notes") {
+            Section {
                 Defaults.Toggle("Enable Notes", key: .enableNotes)
                 Defaults.Toggle("Default to monospace font", key: .notesDefaultMonospace)
-                VStack(alignment: .leading, spacing: 4) {
-                
-                    Slider(value: $autoSaveInterval, in: 1...10, step: 1)
-                    Text("\(Int(autoSaveInterval)) seconds")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                Slider(value: $autoSaveInterval, in: 1...10, step: 1) {
+                    Text("Auto-save interval")
                 }
+                Text("\(Int(autoSaveInterval)) seconds")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Notes")
             }
         }
-        .padding()
-        .frame(minWidth: 400, maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Notes")
     }
 }
@@ -58,29 +57,29 @@ struct ClipboardSettings: View {
 
     var body: some View {
         Form {
-            Section("Clipboard History") {
+            Section {
                 Defaults.Toggle("Enable clipboard history", key: .enableClipboardHistory)
                 Defaults.Toggle("Capture images", key: .clipboardCaptureImages)
                 Defaults.Toggle("Capture rich text", key: .clipboardCaptureRichText)
 
-                VStack(alignment: .leading, spacing: 4) {
+                Slider(value: retentionBinding, in: 1...30, step: 1) {
                     Text("Retention period")
-                    Slider(value: retentionBinding, in: 1...30, step: 1)
-                    Text("\(retentionDays) day\(retentionDays == 1 ? "" : "s")")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
+                Text("\(retentionDays) day\(retentionDays == 1 ? "" : "s")")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
-                VStack(alignment: .leading, spacing: 4) {
+                Slider(value: maxItemsBinding, in: 100...2000, step: 50) {
                     Text("Maximum items")
-                    Slider(value: maxItemsBinding, in: 100...2000, step: 50)
-                    Text("\(maxItems) items")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
+                Text("\(maxItems) items")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Clipboard History")
             }
 
-            Section("Privacy") {
+            Section {
                 Text("Excluded applications")
                     .font(.headline)
                 Text("Clipboard events originating from these bundle identifiers are ignored. Enter one bundle ID per line.")
@@ -94,10 +93,10 @@ struct ClipboardSettings: View {
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.secondary.opacity(0.2))
                     )
+            } header: {
+                Text("Privacy")
             }
         }
-        .padding()
-        .frame(minWidth: 420, maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Clipboard")
     }
 }

@@ -14,9 +14,9 @@ struct NotchNotesView: View {
         Group {
             if notesEnabled {
                 GeometryReader { _ in
-                    HStack(spacing: 1) {
+                    HStack(spacing: 0) {
                         editorPane
-                            .frame(minWidth: 350, maxWidth: .infinity)
+                            .frame(minWidth: 360, maxWidth: .infinity)
                             .layoutPriority(1)
                             .allowsHitTesting(true)
 
@@ -24,7 +24,7 @@ struct NotchNotesView: View {
                             .background(Color.white.opacity(0.1))
 
                         sidebar
-                            .frame(minWidth: 200, idealWidth: 240, maxWidth: 320)
+                            .frame(minWidth: 180, idealWidth: 210, maxWidth: 240)
                             .allowsHitTesting(true)
                             .background(Color.black.opacity(0.04))
                     }
@@ -84,7 +84,7 @@ struct NotchNotesView: View {
                         .focused($editorFocused)
                         .font(note.isMonospaced ? .system(.body, design: .monospaced) : .system(.body))
                         .scrollContentBackground(.hidden)
-                        .padding(12)
+                        .padding(8)
                         .background(
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .fill(Color.white.opacity(editorFocused ? 0.12 : 0.08))
@@ -125,21 +125,21 @@ struct NotchNotesView: View {
                 .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity)
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 18)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
         .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity, alignment: .topLeading)
     }
 
         // MARK: - Sidebar
 
     private var sidebar: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             // Search and Add Button
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 TextField("Search notes...", text: $notesManager.searchText)
                     .textFieldStyle(.plain)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
                     .background(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .fill(Color.white.opacity(0.08))
@@ -151,9 +151,9 @@ struct NotchNotesView: View {
 
                 Button(action: createAndFocusNote) {
                     Image(systemName: "plus")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
-                        .frame(width: 38, height: 38)
+                        .frame(width: 30, height: 30)
                         .background(
                             Circle()
                                 .fill(Color.blue)
@@ -162,8 +162,8 @@ struct NotchNotesView: View {
                 .buttonStyle(.plain)
                 .help("New note")
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
 
             if notesManager.filteredNotes.isEmpty {
                 VStack(spacing: 12) {
@@ -192,7 +192,7 @@ struct NotchNotesView: View {
                             sidebarRow(for: note)
                         }
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                 }
             }
@@ -228,17 +228,10 @@ struct NotchNotesView: View {
                         Text(timestamp(note.updatedAt))
                             .font(.system(size: 11))
                             .foregroundStyle(.tertiary)
-                        
                         Spacer()
-                        
-                        if note.isPinned {
-                            Image(systemName: "pin.fill")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.yellow)
-                        }
                     }
                 }
-                
+        
                 VStack(spacing: 8) {
                     Button {
                         notesManager.togglePinned(id: note.id)

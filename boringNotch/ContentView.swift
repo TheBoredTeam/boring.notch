@@ -292,10 +292,12 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         NotchShelfView()
-                    case .notes:
+                    case .notes where Defaults[.enableNotes]:
                         NotchNotesView()
-                    case .clipboard:
+                    case .clipboard where Defaults[.enableClipboardHistory]:
                         NotchClipboardView()
+                    default:
+                        NotchHomeView(albumArtNamespace: albumArtNamespace)
                     }
                 }
             }
