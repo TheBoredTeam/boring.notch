@@ -98,8 +98,19 @@ struct ContentView: View {
                         .panGesture(direction: .down) { translation, phase in
                             handleDownGesture(translation: translation, phase: phase)
                         }
+                        .conditionalModifier(vm.notchState == .closed) { view in
+                            view.onTapGesture {
+                                doOpen()
+                            }
+                        }
+                        .conditionalModifier(Defaults[.enableGestures] && vm.notchState == .closed) { view in
+                            view
+                                .panGesture(direction: .down) { translation, phase in
+                                    handleDownGesture(translation: translation, phase: phase)
+                                }
+                        }
                 }
-                .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures] && vm.notchState == .open) { view in
                     view
                         .panGesture(direction: .up) { translation, phase in
                             handleUpGesture(translation: translation, phase: phase)
@@ -122,6 +133,13 @@ struct ContentView: View {
                         withAnimation {
                             isHovering = false
                         }
+                    }
+                    if newState == .closed {
+                        NotificationCenter.default.post(
+                            name: .boringNotchWindowKeyboardFocus,
+                            object: nil,
+                            userInfo: ["allow": false]
+                        )
                     }
                 }
                 .onChange(of: vm.isBatteryPopoverActive) {
@@ -257,6 +275,12 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         NotchShelfView()
+                    case .notes where Defaults[.enableNotes]:
+                        NotchNotesView()
+                    case .clipboard where Defaults[.enableClipboardHistory]:
+                        NotchClipboardView()
+                    default:
+                        NotchHomeView(albumArtNamespace: albumArtNamespace)
                     }
                 }
             }
