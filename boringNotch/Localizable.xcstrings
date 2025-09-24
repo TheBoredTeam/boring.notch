@@ -5135,7 +5135,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Corner radius scaling"
+            "value": "Escalado del radio de las esquinas"
           }
         },
         "tr": {
@@ -6650,7 +6650,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable automatic sneak peek (show on media changes)"
+            "value": "Habilitar sneak peek automático (Mostrar en el cambio de media)"
           }
         },
         "tr": {
@@ -6751,7 +6751,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "Habilitar el efecto difuminado detrás de la portada del album  "
           }
         },
         "tr": {
@@ -6852,7 +6852,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable boring mirror"
+            "value": "Habilitar boring mirror"
           }
         },
         "tr": {
@@ -6953,7 +6953,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "Habilitar espectrogramas de color"
           }
         },
         "tr": {
@@ -7256,7 +7256,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "Habilitar vibración"
           }
         },
         "tr": {
@@ -7559,7 +7559,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "Habilitar estantería"
           }
         },
         "tr": {
@@ -7660,7 +7660,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable window shadow"
+            "value": "Habilitar sombra de ventana"
           }
         },
         "tr": {
@@ -8165,7 +8165,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extend hover area"
+            "value": "Extender la zona de hover"
           }
         },
         "tr": {
@@ -9276,7 +9276,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": "Ocultar recordatorios completados"
           }
         },
         "tr": {
@@ -9377,7 +9377,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide only when NowPlaying app is in fullscreen"
+            "value": "Ocultar sólo cuando una aplicación esté reproduciendo en pantalla completa"
           }
         },
         "tr": {
@@ -9478,7 +9478,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hierarchical"
+            "value": "Jerárquico"
           }
         },
         "tr": {
@@ -9781,7 +9781,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "HUD style"
+            "value": "Estilo del HUD"
           }
         },
         "tr": {
@@ -10084,7 +10084,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Inline"
+            "value": "En Línea"
           }
         },
         "tr": {
@@ -10185,7 +10185,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Installed extensions"
+            "value": "Extensiones instaladas"
           }
         },
         "tr": {
@@ -10286,7 +10286,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Later"
+            "value": "Después"
           }
         },
         "tr": {
@@ -10387,7 +10387,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Lottie JSON URL"
+            "value": ""
           }
         },
         "tr": {
