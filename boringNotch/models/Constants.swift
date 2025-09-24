@@ -154,7 +154,7 @@ extension Defaults.Keys {
         // MARK: Clipboard
     static let enableClipboardHistory = Key<Bool>("enableClipboardHistory", default: true)
     static let clipboardRetentionDays = Key<Int>("clipboardRetentionDays", default: 7)
-    static let clipboardMaxItems = Key<Int>("clipboardMaxItems", default: 1000)
+    static let clipboardMaxItems = Key<Int>("clipboardMaxItems", default: 100)
     static let clipboardCaptureImages = Key<Bool>("clipboardCaptureImages", default: true)
     static let clipboardCaptureRichText = Key<Bool>("clipboardCaptureRichText", default: true)
     static let clipboardExcludedApps = Key<[String]>("clipboardExcludedApps", default: [])
