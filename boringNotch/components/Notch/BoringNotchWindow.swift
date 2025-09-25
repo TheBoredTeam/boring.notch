@@ -7,14 +7,7 @@
 
 import Cocoa
 
-extension Notification.Name {
-    static let boringNotchWindowKeyboardFocus = Notification.Name("BoringNotchWindowKeyboardFocus")
-}
-
 class BoringNotchWindow: NSPanel {
-    private static var allowsKeyboardFocus: Bool = false
-    private var keyboardObserver: NSObjectProtocol?
-
     override init(
         contentRect: NSRect,
         styleMask: NSWindow.StyleMask,
@@ -41,49 +34,17 @@ class BoringNotchWindow: NSPanel {
             .canJoinAllSpaces,
             .ignoresCycle,
         ]
-
+        
         isReleasedWhenClosed = false
         level = .mainMenu + 3
         hasShadow = false
-        becomesKeyOnlyIfNeeded = true
-
-        keyboardObserver = NotificationCenter.default.addObserver(
-            forName: .boringNotchWindowKeyboardFocus,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let self else { return }
-            let allow = notification.userInfo?["allow"] as? Bool ?? false
-            Self.allowsKeyboardFocus = allow
-            if allow {
-                if !self.isKeyWindow {
-                    NSApp.activate(ignoringOtherApps: true)
-                    self.makeKeyAndOrderFront(nil)
-                }
-            } else {
-                if self.isKeyWindow {
-                    self.resignKey()
-                }
-            }
-        }
     }
-
-    deinit {
-        if let keyboardObserver {
-            NotificationCenter.default.removeObserver(keyboardObserver)
-        }
-    }
-
+    
     override var canBecomeKey: Bool {
-        Self.allowsKeyboardFocus
+        false
     }
-
+    
     override var canBecomeMain: Bool {
-        Self.allowsKeyboardFocus
-    }
-
-    override func resignKey() {
-        super.resignKey()
-        Self.allowsKeyboardFocus = false
+        false
     }
 }

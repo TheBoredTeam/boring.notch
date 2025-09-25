@@ -20,8 +20,10 @@ jobs:
       - name: Get latest 5 versions with placeholder
         id: tags
         run: |
-          TAGS=$(git tag --sort=-v:refname | head -n 5 | jq -R -s -c 'split("\n")[:-1]')
-          VERSIONS=$(echo '["Select a version"]' | jq -c --argjson tags "$TAGS" '. + $tags')
+          TAGS=$(git tag --sort=-v:refname | head -n 5 | jq -R . | jq -sc .)
+          PLACEHOLDER=$(echo '"Select a version"' | jq -s .)
+          # Merge placeholder + tags
+          VERSIONS=$(jq -s '.[0] + .[1]' <(echo "$PLACEHOLDER") <(echo "$TAGS"))
           echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
 
       - name: Issue Forms Dropdown Options

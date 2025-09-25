@@ -24,11 +24,9 @@ public enum NotchState {
     case open
 }
 
-public enum NotchViews: Hashable {
+public enum NotchViews {
     case home
     case shelf
-    case notes
-    case clipboard
 }
 
 enum SettingsEnum {
