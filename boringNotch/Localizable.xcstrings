@@ -4659,7 +4659,7 @@
         "ar": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "قُفْل\n"
+            "value": "قُفْل"
           }
         },
         "zh-Hans": {
@@ -4861,7 +4861,7 @@
         "ar": {
           "stringUnit": {
             "state": "needs_review",
-            "value": ""
+            "value": "Coming soon"
           }
         },
         "zh-Hans": {
@@ -6595,7 +6595,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Enable automatic sneak peek (show on media changes)"
           }
         },
@@ -10387,7 +10387,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": ""
+            "value": "Lottie JSON URL"
           }
         },
         "tr": {
