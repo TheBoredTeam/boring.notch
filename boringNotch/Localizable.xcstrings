@@ -12710,7 +12710,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "silenciado"
+            "value": "audio desactivado"
           }
         },
         "tr": {
@@ -18366,7 +18366,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Notch Open:"
+            "value": "Habilitar apertura del notch:"
           }
         },
         "tr": {
@@ -18467,7 +18467,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Sneak Peek:"
+            "value": "Habilitar Vistazo Rápido:"
           }
         },
         "tr": {
@@ -18871,7 +18871,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Silenciar desactivado"
+            "value": "audio reactivado"
           }
         },
         "tr": {
