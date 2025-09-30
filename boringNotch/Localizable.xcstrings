@@ -10993,7 +10993,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match menubar height"
+            "value": "Igualar la altura de la barra de menús"
           }
         },
         "tr": {
@@ -11094,7 +11094,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match real notch size"
+            "value": "Igualar la altura del notch"
           }
         },
         "tr": {
@@ -12003,7 +12003,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Menubar icon"
+            "value": "Icono de la barra de menús"
           }
         },
         "tr": {
@@ -12407,7 +12407,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mirror shape"
+            "value": "Forma del espejo"
           }
         },
         "tr": {
@@ -13518,7 +13518,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Non-notch display height"
+            "value": "Altura en pantallas sin notch"
           }
         },
         "tr": {
