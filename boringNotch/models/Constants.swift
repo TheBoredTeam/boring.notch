@@ -120,10 +120,15 @@ extension Defaults.Keys {
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     
         // MARK: Battery
-    static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
     static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
+    static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
+    static let powerStatusNotificationSound = Key<String>("powerStatusNotificationSound", default: "Disabled")
+    static let lowBatteryNotificationLevel = Key<Int>("lowBatteryNotificationLevel", default: 0)
+    static let lowBatteryNotificationSound = Key<String>("lowBatteryNotificationSound", default: "Disabled")
+    static let highBatteryNotificationLevel = Key<Int>("highBatteryNotificationLevel", default: 0)
+    static let highBatteryNotificationSound = Key<String>("highBatteryNotificationSound", default: "Disabled")
     
         // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
