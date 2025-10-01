@@ -274,6 +274,10 @@ struct EventListView: View {
                     return !completed || !Defaults[.hideCompletedReminders]
                 }
             }
+            // Filter out all-day events if setting is enabled
+            if event.isAllDay && Defaults[.hideAllDayEvents] {
+                return false
+            }
             return true
         }
     }
@@ -337,9 +341,17 @@ struct EventListView: View {
                             .lineLimit(1)
                         Spacer(minLength: 0)
                         VStack(alignment: .trailing, spacing: 4) {
-                            Text(event.start, style: .time)
-                                .foregroundColor(.white)
-                                .font(.caption)
+                            if event.isAllDay {
+                                Text("All-day")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                            } else {
+                                Text(event.start, style: .time)
+                                    .foregroundColor(.white)
+                                    .font(.caption)
+                            }
                         }
                     }
                     .opacity(

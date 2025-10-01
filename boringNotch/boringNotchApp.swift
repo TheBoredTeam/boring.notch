@@ -207,11 +207,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
-            self.coordinator.toggleSneakPeek(
-                status: !self.coordinator.sneakPeek.show,
-                type: .music,
-                duration: 3.0
-            )
+            if Defaults[.sneakPeekStyles] == .inline {
+                let newStatus = !self.coordinator.expandingView.show
+                self.coordinator.toggleExpandingView(status: newStatus, type: .music)
+            } else {
+                self.coordinator.toggleSneakPeek(
+                    status: !self.coordinator.sneakPeek.show,
+                    type: .music,
+                    duration: 3.0
+                )
+            }
         }
 
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in

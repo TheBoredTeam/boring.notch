@@ -11,6 +11,9 @@
 		112B0EB92E30DD0F00562D6C /* mediaremote-adapter.pl in Resources */ = {isa = PBXBuildFile; fileRef = 112B0EB32E30DD0F00562D6C /* mediaremote-adapter.pl */; };
 		112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */; };
 		112FB7352CCF16F70015238C /* NotchSpaceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112FB7342CCF16F70015238C /* NotchSpaceManager.swift */; };
+		1132E5122E777B6E0068732D /* YouTubeMusicModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1132E5102E777B6E0068732D /* YouTubeMusicModels.swift */; };
+		1132E5142E777B920068732D /* YouTubeMusicNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1132E5132E777B920068732D /* YouTubeMusicNetworking.swift */; };
+		1132E5162E777C140068732D /* YouTubeMusicAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1132E5152E777C140068732D /* YouTubeMusicAuthentication.swift */; };
 		1153BD8F2D986B1F00979FB0 /* MediaControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD8D2D986B1F00979FB0 /* MediaControllerProtocol.swift */; };
 		1153BD912D986DB300979FB0 /* PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD902D986DB300979FB0 /* PlaybackState.swift */; };
 		1153BD932D986E4300979FB0 /* AppleMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD922D986E4300979FB0 /* AppleMusicController.swift */; };
@@ -32,6 +35,7 @@
 		11CFC6612E097F6800748C80 /* PermissionsRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6602E097F6800748C80 /* PermissionsRequestView.swift */; };
 		11CFC6632E09918400748C80 /* MusicControllerSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6622E09917B00748C80 /* MusicControllerSelectionView.swift */; };
 		11CFC6652E09C7B300748C80 /* OnboardingFinishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6642E09C7B300748C80 /* OnboardingFinishView.swift */; };
+		11D58EA22E760AE100FA8377 /* ImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D58EA12E760AE100FA8377 /* ImageService.swift */; };
 		14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DD62C6E015000B9F80C /* AudioPlayer.swift */; };
 		14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */; };
 		14288DFE2C6E9A4700B9F80C /* BoringSystemTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DFD2C6E9A4700B9F80C /* BoringSystemTiles.swift */; };
@@ -135,6 +139,9 @@
 		112B0EB52E30DD0F00562D6C /* MediaRemoteAdapterTestClient */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = MediaRemoteAdapterTestClient; sourceTree = "<group>"; };
 		112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaRemoteAdapter.framework; path = "mediaremote-adapter/MediaRemoteAdapter.framework"; sourceTree = "<group>"; };
 		112FB7342CCF16F70015238C /* NotchSpaceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchSpaceManager.swift; sourceTree = "<group>"; };
+		1132E5102E777B6E0068732D /* YouTubeMusicModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicModels.swift; sourceTree = "<group>"; };
+		1132E5132E777B920068732D /* YouTubeMusicNetworking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicNetworking.swift; sourceTree = "<group>"; };
+		1132E5152E777C140068732D /* YouTubeMusicAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicAuthentication.swift; sourceTree = "<group>"; };
 		1153BD8D2D986B1F00979FB0 /* MediaControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaControllerProtocol.swift; sourceTree = "<group>"; };
 		1153BD902D986DB300979FB0 /* PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackState.swift; sourceTree = "<group>"; };
 		1153BD922D986E4300979FB0 /* AppleMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicController.swift; sourceTree = "<group>"; };
@@ -155,6 +162,7 @@
 		11CFC6602E097F6800748C80 /* PermissionsRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsRequestView.swift; sourceTree = "<group>"; };
 		11CFC6622E09917B00748C80 /* MusicControllerSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicControllerSelectionView.swift; sourceTree = "<group>"; };
 		11CFC6642E09C7B300748C80 /* OnboardingFinishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFinishView.swift; sourceTree = "<group>"; };
+		11D58EA12E760AE100FA8377 /* ImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageService.swift; sourceTree = "<group>"; };
 		14288DD62C6E015000B9F80C /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressIndicator.swift; sourceTree = "<group>"; };
 		14288DFD2C6E9A4700B9F80C /* BoringSystemTiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringSystemTiles.swift; sourceTree = "<group>"; };
@@ -279,14 +287,25 @@
 			path = "mediaremote-adapter";
 			sourceTree = "<group>";
 		};
+		1132E5232E78D6DA0068732D /* YouTube Music Controller */ = {
+			isa = PBXGroup;
+			children = (
+				1132E5152E777C140068732D /* YouTubeMusicAuthentication.swift */,
+				1132E5132E777B920068732D /* YouTubeMusicNetworking.swift */,
+				1132E5102E777B6E0068732D /* YouTubeMusicModels.swift */,
+				1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */,
+			);
+			path = "YouTube Music Controller";
+			sourceTree = "<group>";
+		};
 		1153BD8E2D986B1F00979FB0 /* MediaControllers */ = {
 			isa = PBXGroup;
 			children = (
+				1132E5232E78D6DA0068732D /* YouTube Music Controller */,
 				1153BD8D2D986B1F00979FB0 /* MediaControllerProtocol.swift */,
 				1153BD922D986E4300979FB0 /* AppleMusicController.swift */,
 				1153BD992D98824300979FB0 /* SpotifyController.swift */,
 				1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */,
-				1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */,
 			);
 			path = MediaControllers;
 			sourceTree = "<group>";
@@ -354,6 +373,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
@@ -749,6 +769,7 @@
 				B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */,
 				9A987A062C73CA66005CA465 /* Ext+NSAlert.swift in Sources */,
 				B1C448962C9712C4001F0858 /* ActionBar.swift in Sources */,
+				1132E5162E777C140068732D /* YouTubeMusicAuthentication.swift in Sources */,
 				9A987A0C2C73CA66005CA465 /* DropItemView.swift in Sources */,
 				14A7E5882C64A89C008C1BE9 /* HelloAnimation.swift in Sources */,
 				1153BD8F2D986B1F00979FB0 /* MediaControllerProtocol.swift in Sources */,
@@ -784,6 +805,8 @@
 				9A987A0D2C73CA66005CA465 /* NotchShelfView.swift in Sources */,
 				F35EA7AF2E75FFCE002EB37E /* SystemSoundHelper.swift in Sources */,
 				9A987A0A2C73CA66005CA465 /* TrayDrop.swift in Sources */,
+				1132E5142E777B920068732D /* YouTubeMusicNetworking.swift in Sources */,
+				1132E5122E777B6E0068732D /* YouTubeMusicModels.swift in Sources */,
 				11CFC65F2E097F2F00748C80 /* OnboardingView.swift in Sources */,
 				14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */,
 				B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */,
@@ -797,6 +820,7 @@
 				1153BD982D9881F900979FB0 /* AppleScriptHelper.swift in Sources */,
 				11CFC6612E097F6800748C80 /* PermissionsRequestView.swift in Sources */,
 				14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */,
+				11D58EA22E760AE100FA8377 /* ImageService.swift in Sources */,
 				14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */,
 				149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */,
 				14288E0C2C6F8EC000B9F80C /* AppIcons.swift in Sources */,

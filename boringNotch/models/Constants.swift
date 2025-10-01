@@ -145,9 +145,11 @@ extension Defaults.Keys {
         // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
+    static let shelfTapToOpen = Key<Bool>("shelfTapToOpen", default: true)
     
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
+    static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
     
         // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
@@ -158,12 +160,14 @@ extension Defaults.Keys {
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     
-    // Helper to determine the default media controller based on macOS version
+    // Helper to determine the default media controller based on NowPlaying deprecation status
     static var defaultMediaController: MediaControllerType {
-        if #available(macOS 15.4, *) {
+        if MusicManager.shared.isNowPlayingDeprecated {
             return .appleMusic
         } else {
             return .nowPlaying
         }
     }
+
+    static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
 }

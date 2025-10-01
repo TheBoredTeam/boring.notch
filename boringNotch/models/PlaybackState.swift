@@ -27,3 +27,18 @@ struct PlaybackState {
     var lastUpdated: Date = Date.distantPast
     var artwork: Data?
 }
+
+extension PlaybackState: Equatable {
+    static func == (lhs: PlaybackState, rhs: PlaybackState) -> Bool {
+        return lhs.bundleIdentifier == rhs.bundleIdentifier
+            && lhs.isPlaying == rhs.isPlaying
+            && lhs.title == rhs.title
+            && lhs.artist == rhs.artist
+            && lhs.album == rhs.album
+            && lhs.currentTime == rhs.currentTime
+            && lhs.duration == rhs.duration
+            && lhs.isShuffled == rhs.isShuffled
+            && lhs.repeatMode == rhs.repeatMode
+            && lhs.artwork == rhs.artwork
+    }
+}

@@ -606,12 +606,12 @@ struct Media: View {
                     "Enable music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Toggle("Enable sneak peek", isOn: $enableSneakPeek)
+                Toggle("Enable automatic sneak peek (show on media changes)", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
                         Text(style.rawValue).tag(style)
                     }
-                }.disabled(!enableSneakPeek)
+                }
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {
@@ -660,11 +660,19 @@ struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     @Default(.showCalendar) var showCalendar: Bool
     @Default(.hideCompletedReminders) var hideCompletedReminders
+    @Default(.hideAllDayEvents) var hideAllDayEvents
 
     var body: some View {
         Form {
-            Defaults.Toggle("Show calendar", key: .showCalendar)
-            Defaults.Toggle("Hide completed reminders", key: .hideCompletedReminders)
+            Defaults.Toggle(key: .showCalendar) {
+                Text("Show calendar")
+            }
+            Defaults.Toggle(key: .hideCompletedReminders) {
+                Text("Hide completed reminders")
+            }
+            Defaults.Toggle(key: .hideAllDayEvents) {
+                Text("Hide all-day events")
+            }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
                     Text("Calendar access is denied. Please enable it in System Settings.")
@@ -834,12 +842,19 @@ struct About: View {
 }
 
 struct Shelf: View {
+    
+    @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
+    
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle("Enable shelf", key: .boringShelf)
-                Defaults.Toggle(
-                    "Open shelf tab by default if items added", key: .openShelfByDefault)
+
+                Defaults.Toggle(key: .boringShelf) {
+                    Text("Enable shelf")
+                }
+                Defaults.Toggle(key: .openShelfByDefault) {
+                    Text("Open shelf by default if items are present")
+                }
             } header: {
                 HStack {
                     Text("General")
