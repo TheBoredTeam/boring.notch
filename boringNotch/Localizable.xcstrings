@@ -1291,7 +1291,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "About"
+            "value": "О программе"
           }
         },
         "es": {
@@ -1392,7 +1392,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Accent color"
+            "value": "Основной цвет"
           }
         },
         "es": {
@@ -1493,7 +1493,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Access Denied"
+            "value": "Доступ запрещен"
           }
         },
         "es": {
@@ -1594,7 +1594,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add"
+            "value": "Добавить"
           }
         },
         "es": {
@@ -1695,7 +1695,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add manually"
+            "value": "Добавить вручную"
           }
         },
         "es": {
@@ -1796,7 +1796,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Add new visualizer"
+            "value": "Добавить визуализатор"
           }
         },
         "es": {
@@ -1897,7 +1897,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Additional features"
+            "value": "Дополнительные возможности"
           }
         },
         "es": {
@@ -2099,7 +2099,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "AirDrop service not available"
+            "value": "Служба AirDrop недоступна"
           }
         },
         "es": {
@@ -2301,7 +2301,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Allow Access"
+            "value": "Разрешить доступ"
           }
         },
         "es": {
@@ -2402,7 +2402,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always hide in fullscreen"
+            "value": "Всегда скрывать в полноэкранном режиме"
           }
         },
         "es": {
@@ -2503,7 +2503,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always show tabs"
+            "value": "Всегда показывать вкладки"
           }
         },
         "es": {
@@ -2604,7 +2604,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "App icon"
+            "value": "Значок приложения"
           }
         },
         "es": {
@@ -2705,7 +2705,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Appearance"
+            "value": "Внешний вид"
           }
         },
         "es": {
@@ -2806,7 +2806,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically check for updates"
+            "value": "Автоматически проверять наличие обновлений"
           }
         },
         "es": {
@@ -2907,7 +2907,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically download updates"
+            "value": "Автоматически скачивать обновления"
           }
         },
         "es": {
@@ -3008,7 +3008,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "Автоматически переключать экраны"
           }
         },
         "es": {
@@ -3109,7 +3109,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery"
+            "value": "Батарея"
           }
         },
         "es": {
@@ -3210,7 +3210,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Information"
+            "value": "Информация о батарее"
           }
         },
         "es": {
@@ -3311,7 +3311,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Settings"
+            "value": "Параметры батареи"
           }
         },
         "es": {
@@ -3412,7 +3412,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Battery Status"
+            "value": "Состояние батареи"
           }
         },
         "es": {
@@ -3816,7 +3816,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendar"
+            "value": "Календарь"
           }
         },
         "es": {
@@ -3917,7 +3917,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendar access is denied. Please enable it in System Settings."
+            "value": "Доступ к календарю запрещен. Пожалуйста, включите его в Системных настройках."
           }
         },
         "es": {
@@ -4018,7 +4018,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Calendars"
+            "value": "Календари"
           }
         },
         "es": {
@@ -4119,7 +4119,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Cancel"
+            "value": "Отмена"
           }
         },
         "es": {
@@ -4422,7 +4422,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Check for Updates…"
+            "value": "Проверить обновления…"
           }
         },
         "es": {
@@ -4523,7 +4523,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose a Music Source"
+            "value": "Выбрать источник музыки"
           }
         },
         "es": {
@@ -5028,7 +5028,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Continue"
+            "value": "Продолжить"
           }
         },
         "es": {
