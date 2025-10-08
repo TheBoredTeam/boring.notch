@@ -50,6 +50,16 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     
     var id: String { self.rawValue }
 }
+// User-selectable face mood for the idle face animation shown when music is idle
+enum Mood: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case happy
+    case neutral
+    case sad
+    case wink
+    case surprised
+    
+    var id: String { rawValue }
+}
 
 // Sneak peek styles for selection in settings
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
@@ -145,6 +155,9 @@ extension Defaults.Keys {
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
+    
+    // MARK: Face Mood (default can be changed here)
+    static let selectedMood = Key<Mood>("selectedMood", default: .sad)
     
         // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)

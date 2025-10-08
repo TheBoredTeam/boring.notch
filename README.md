@@ -70,6 +70,8 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - Launch the app, and voilà—your notch is now the coolest part of your screen.
 - Hover over the notch to see it expand and reveal all its secrets.
 - Use the controls to manage your music like a rockstar.
+- **Set your Mood** 😃😑😉😔 — choose from multiple moods (happy, sad, surprised, neutral) and watch the notch face react with dynamic animations (blinks, smiles, frowns).
+
 
 ## 📋 Roadmap
 - [x] Playback live activity 🎧
@@ -79,6 +81,7 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - [x] Customizable gesture control 👆🏻
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
+- [x] Mood face with dynamic expressions 😃
 - [ ] Customizable Layout options 🛠️
 - [ ] Extension system 🧩
 - [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
