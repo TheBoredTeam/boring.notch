@@ -22,6 +22,8 @@ class QuickShareService: ObservableObject {
     @Published var availableProviders: [QuickShareProvider] = []
     @Published var isPickerOpen = false
     private var cachedServices: [String: NSSharingService] = [:]
+    // Hold security-scoped URLs during sharing
+    private var sharingAccessingURLs: [URL] = []
    
     init() {
         Task {
@@ -109,22 +111,43 @@ class QuickShareService: ObservableObject {
     // MARK: - Sharing
     @MainActor
     func shareFilesOrText(_ items: [Any], using provider: QuickShareProvider, from view: NSView?) async {
-        guard let svc = cachedServices[provider.id], svc.canPerform(withItems: items) else {
-            let fileURLs = items.compactMap { $0 as? URL }.filter { $0.isFileURL }
-            await fileURLs.accessSecurityScopedResources {_ in
-                let picker = NSSharingServicePicker(items: items)
-
-                if let view {
-                    picker.show(relativeTo: .zero, of: view, preferredEdge: .minY)
-                }
-            }
-            return
-        }
         let fileURLs = items.compactMap { $0 as? URL }.filter { $0.isFileURL }
-        await fileURLs.accessSecurityScopedResources {_ in
+        // Stop any previous sharing access
+        stopSharingAccessingURLs()
+        // Start security-scoped access for all file URLs
+        sharingAccessingURLs = fileURLs.filter { $0.startAccessingSecurityScopedResource() }
+
+        let sharingDelegate = SharingServiceDelegate { [weak self] in
+            self?.stopSharingAccessingURLs()
+        }
+
+        if let svc = cachedServices[provider.id], svc.canPerform(withItems: items) {
+            svc.delegate = sharingDelegate
             svc.perform(withItems: items)
+        } else {
+            let picker = NSSharingServicePicker(items: items)
+            picker.delegate = sharingDelegate
+            if let view {
+                picker.show(relativeTo: .zero, of: view, preferredEdge: .minY)
+            }
         }
     }
+
+    private func stopSharingAccessingURLs() {
+        NSLog("Stopping sharing access to URLs")
+        for url in sharingAccessingURLs {
+            url.stopAccessingSecurityScopedResource()
+        }
+        sharingAccessingURLs.removeAll()
+    }
+// MARK: - SharingServiceDelegate
+
+private class SharingServiceDelegate: NSObject, NSSharingServiceDelegate, NSSharingServicePickerDelegate {
+    private let onEnd: () -> Void
+    init(onEnd: @escaping () -> Void) {
+        self.onEnd = onEnd
+    }
+}
     
     func shareDroppedFiles(_ providers: [NSItemProvider], using shareProvider: QuickShareProvider, from view: NSView?) async {
         var itemsToShare: [Any] = []
