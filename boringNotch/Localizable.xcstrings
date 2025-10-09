@@ -3216,7 +3216,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Información de batería"
+            "value": "Información de la batería"
           }
         },
         "tr": {
@@ -3317,7 +3317,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Configuración de batería"
+            "value": "Configuración de la batería"
           }
         },
         "tr": {
@@ -3418,7 +3418,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Estado de batería"
+            "value": "Estado de la batería"
           }
         },
         "tr": {
