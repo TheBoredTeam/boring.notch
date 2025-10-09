@@ -67,6 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow?
     let vm: BoringViewModel = .init()
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    var quickShareService = QuickShareService.shared
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     var closeNotchTask: Task<Void, Never>?
@@ -185,8 +186,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(
             forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
         ) { [weak self] _ in
+            guard let self = self, let window = self.window else { return }
             Task { @MainActor in
-                guard let self = self, let window = self.window else { return }
                 window.alphaValue = self.coordinator.selectedScreen == self.coordinator.preferredScreen ? 1 : 0
             }
         }

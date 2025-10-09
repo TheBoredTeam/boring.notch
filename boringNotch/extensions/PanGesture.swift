@@ -96,6 +96,14 @@ private struct ScrollMonitor: NSViewRepresentable {
                 return
             }
 
+            // Only consider scroll events that are primarily along the configured axis.
+            let absDX = abs(event.scrollingDeltaX)
+            let absDY = abs(event.scrollingDeltaY)
+            // Require the movement along the gesture axis to be at least 1.5x the orthogonal axis.
+            let axisDominanceFactor: CGFloat = 1.5
+            let isAxisDominant: Bool = direction.isHorizontal ? (absDX >= axisDominanceFactor * absDY) : (absDY >= axisDominanceFactor * absDX)
+            guard isAxisDominant else { return }
+
             let s = direction.signed(deltaX: event.scrollingDeltaX, deltaY: event.scrollingDeltaY)
             guard s.magnitude > noiseThreshold else { return }
             accumulated = s > 0 ? accumulated + s : 0

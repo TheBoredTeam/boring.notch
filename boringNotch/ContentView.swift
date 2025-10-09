@@ -24,6 +24,7 @@ struct ContentView: View {
 
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
+    @State private var anyDropDebounceTask: Task<Void, Never>?
 
     @State private var gestureProgress: CGFloat = .zero
 
@@ -260,7 +261,7 @@ struct ContentView: View {
                     case .home:
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
-                        NotchShelfView()
+                        ShelfView()
                     }
                 }
             }
@@ -401,17 +402,30 @@ struct ContentView: View {
 
     @ViewBuilder
     var dragDetector: some View {
-        if Defaults[.boringShelf] {
+        if Defaults[.boringShelf] && vm.notchState == .closed {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-                .onDrop(of: [.data], isTargeted: $vm.dragDetectorTargeting) { _ in true }
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+            vm.dropEvent = true
+            ShelfStateViewModel.shared.load(providers)
+            return true
+        }
                 .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
-                    if isTargeted, vm.notchState == .closed {
-                        coordinator.currentView = .shelf
-                        doOpen()
-                    } else if !isTargeted {
-                        print("DROP EVENT", vm.dropEvent)
+                    anyDropDebounceTask?.cancel()
+
+                    if isTargeted {
+                        if vm.notchState == .closed {
+                            coordinator.currentView = .shelf
+                            doOpen()
+                        }
+                        return
+                    }
+
+                    anyDropDebounceTask = Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(500))
+                        guard !Task.isCancelled else { return }
+
                         if vm.dropEvent {
                             vm.dropEvent = false
                             return
