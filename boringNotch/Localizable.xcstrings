@@ -5438,7 +5438,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Tamaño de notch personalizado - %.0f"
+            "value": "Tamaño personalizado del notch - %.0f"
           }
         },
         "tr": {
@@ -5640,7 +5640,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Personalizar en ajustes"
+            "value": "Personalizar en Ajustes"
           }
         },
         "tr": {
@@ -6347,7 +6347,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Soltar archivos aquí"
+            "value": "Suelte los archivos aquí"
           }
         },
         "tr": {
@@ -6751,7 +6751,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Habilitar el efecto difuminado detrás de la portada del album  "
+            "value": "Habilitar el efecto de difuminado detrás de la portada del álbum"
           }
         },
         "tr": {
@@ -6953,7 +6953,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Habilitar espectrogramas de color"
+            "value": "Habilitar espectrogramas de colores"
           }
         },
         "tr": {
@@ -9175,7 +9175,7 @@
         "es": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Ocultar opciones de BoringNotch"
+            "value": "Ocultar las Opciones de BoringNotch"
           }
         },
         "tr": {
