@@ -2286,6 +2286,12 @@
         }
       }
     },
+    "♪ ♫ ♪" : {
+
+    },
+    "♪ Lyrics mode ♪" : {
+
+    },
     "About" : {
       "localizations" : {
         "en" : {
@@ -16522,6 +16528,9 @@
         }
       }
     },
+    "Loading lyrics..." : {
+
+    },
     "Lottie JSON URL" : {
       "localizations" : {
         "af" : {
@@ -21895,6 +21904,9 @@
           }
         }
       }
+    },
+    "No lyrics found" : {
+
     },
     "Non-notch display height" : {
       "localizations" : {
@@ -28870,6 +28882,9 @@
         }
       }
     },
+    "SYNCED" : {
+
+    },
     "System features" : {
       "localizations" : {
         "af" : {
@@ -29581,6 +29596,9 @@
           }
         }
       }
+    },
+    "Trying LRCLIB → Lyrics.ovh" : {
+
     },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
       "localizations" : {

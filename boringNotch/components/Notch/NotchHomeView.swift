@@ -12,6 +12,180 @@ import SwiftUI
 
 // MARK: - Music Player Components
 
+struct LyricsView: View {
+    @ObservedObject var musicManager = MusicManager.shared
+    let width: CGFloat
+    
+    @State private var opacity: Double = 1.0
+    @State private var currentLyricLine: String = ""
+    @State private var nextLyricLine: String = ""
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if let lyrics = musicManager.lyricsService.currentLyrics {
+                lyricsDisplay(lyrics: lyrics)
+            } else if musicManager.lyricsService.isLoading {
+                loadingView
+            } else if musicManager.lyricsService.error != nil {
+                errorView
+            } else {
+                noLyricsView
+            }
+        }
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            updateCurrentLine()
+        }
+        .onAppear {
+            updateCurrentLine()
+        }
+    }
+    
+    private func lyricsDisplay(lyrics: LyricsResponse) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            // Current line (highlighted)
+            if !currentLyricLine.isEmpty {
+                Text(currentLyricLine)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .opacity(opacity)
+                    .animation(.easeInOut(duration: 0.3), value: currentLyricLine)
+            } else if !nextLyricLine.isEmpty {
+                // Show next upcoming line if no current line
+                Text(nextLyricLine)
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .opacity(0.7)
+            } else {
+                Text("♪ ♫ ♪")
+                    .font(.headline)
+                    .foregroundColor(.gray)
+                    .opacity(0.5)
+            }
+            
+            // Artist name with sync status (smaller, below lyrics)
+            HStack {
+                Text(musicManager.artistName)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.gray)
+                    .opacity(0.8)
+                
+                if lyrics.isTimedLyrics {
+                    Text("SYNCED")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
+                        .padding(.horizontal, 3)
+                        .padding(.vertical, 1)
+                        .background(Color.green.opacity(0.2))
+                        .cornerRadius(2)
+                }
+            }
+        }
+    }
+    
+    private var loadingView: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                ProgressView()
+                    .scaleEffect(0.8)
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Loading lyrics...")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Text("Trying LRCLIB → Lyrics.ovh")
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                        .opacity(0.7)
+                }
+            }
+            Text(musicManager.artistName)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.gray)
+        }
+    }
+    
+    private var errorView: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("No lyrics found")
+                .font(.headline)
+                .foregroundColor(.gray)
+            Text(musicManager.artistName)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.gray)
+        }
+    }
+    
+    private var noLyricsView: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text("♪ Lyrics mode ♪")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                if let lyrics = musicManager.lyricsService.currentLyrics, lyrics.isTimedLyrics {
+                    Text("SYNCED")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.green.opacity(0.2))
+                        .cornerRadius(3)
+                }
+            }
+            Text(musicManager.artistName)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.gray)
+        }
+    }
+    
+    private func updateCurrentLine() {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else {
+            currentLyricLine = ""
+            nextLyricLine = ""
+            return
+        }
+        
+        // Calculate real current time like the progress bar does
+        let timeDifference = musicManager.isPlaying ? Date().timeIntervalSince(musicManager.timestampDate) : 0
+        let currentTime = musicManager.elapsedTime + (timeDifference * musicManager.playbackRate)
+        
+        // Get current line
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            if currentLyricLine != currentLine.text {
+                currentLyricLine = currentLine.text
+                print("🎵 [LyricsView] Current line: \(currentLine.text) at \(String(format: "%.1f", currentTime))s (raw: \(String(format: "%.1f", musicManager.elapsedTime))s)")
+            }
+        } else {
+            currentLyricLine = ""
+        }
+        
+        // Get next line for preview
+        if let nextLine = lyrics.lines.first(where: { $0.startTime > currentTime }) {
+            if nextLyricLine != nextLine.text {
+                nextLyricLine = nextLine.text
+            }
+        } else {
+            nextLyricLine = ""
+        }
+        
+        // Add subtle animation to current lyrics line
+        withAnimation(.easeInOut(duration: 0.2)) {
+            opacity = opacity == 1.0 ? 0.9 : 1.0
+        }
+    }
+}
+
 struct MusicPlayerView: View {
     @EnvironmentObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
@@ -148,20 +322,26 @@ struct MusicControlsView: View {
     }
 
     private func songInfo(width: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            MarqueeText(
-                $musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white,
-                frameWidth: width)
-            MarqueeText(
-                $musicManager.artistName,
-                font: .headline,
-                nsFont: .headline,
-                textColor: Defaults[.playerColorTinting]
-                    ? Color(nsColor: musicManager.avgColor)
-                        .ensureMinimumBrightness(factor: 0.6) : .gray,
-                frameWidth: width
-            )
-            .fontWeight(.medium)
+        Group {
+            if musicManager.isLyricsMode {
+                LyricsView(width: width)
+            } else {
+                VStack(alignment: .leading, spacing: 0) {
+                    MarqueeText(
+                        $musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white,
+                        frameWidth: width)
+                    MarqueeText(
+                        $musicManager.artistName,
+                        font: .headline,
+                        nsFont: .headline,
+                        textColor: Defaults[.playerColorTinting]
+                            ? Color(nsColor: musicManager.avgColor)
+                                .ensureMinimumBrightness(factor: 0.6) : .gray,
+                        frameWidth: width
+                    )
+                    .fontWeight(.medium)
+                }
+            }
         }
     }
 

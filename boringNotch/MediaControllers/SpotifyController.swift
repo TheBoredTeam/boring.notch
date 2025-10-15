@@ -168,4 +168,5 @@ class SpotifyController: MediaControllerProtocol {
         
         return try await AppleScriptHelper.execute(script)
     }
+    
 }

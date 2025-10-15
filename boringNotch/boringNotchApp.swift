@@ -250,6 +250,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .debugLyrics) { [weak self] in
+            guard let self = self else { return }
+            print("🎵 [AppDelegate] Lyrics debugging shortcut triggered (Cmd+Shift+L)")
+            MusicManager.shared.startLyricsDebugging()
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .toggleLyricsMode) { [weak self] in
+            guard let self = self else { return }
+            print("🎵 [AppDelegate] Toggle lyrics mode shortcut triggered (Cmd+Shift+Y)")
+            MusicManager.shared.toggleLyricsMode()
+        }
+
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
             let window = createBoringNotchWindow(
@@ -274,6 +286,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousScreens = NSScreen.screens
+        
+        // Automatically test lyrics debugging after 5 seconds
+        print("🚀 [AppDelegate] App initialized, will test lyrics in 5 seconds...")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            print("⏰ [AppDelegate] 5 seconds elapsed, starting lyrics test...")
+            MusicManager.shared.startAutomaticLyricsTest()
+        }
     }
 
     func playWelcomeSound() {
