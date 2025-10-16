@@ -180,6 +180,10 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func close() {
+        // Do not close while a share picker or sharing service is active
+        if SharingStateManager.shared.preventNotchClose {
+            return
+        }
         withAnimation(.smooth) { [weak self] in
             guard let self = self else { return }
             self.notchSize = getClosedNotchSize(screen: self.screen)

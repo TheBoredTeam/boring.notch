@@ -24,6 +24,7 @@ class QuickShareService: ObservableObject {
     private var cachedServices: [String: NSSharingService] = [:]
     // Hold security-scoped URLs during sharing
     private var sharingAccessingURLs: [URL] = []
+    private var lifecycleDelegate: SharingLifecycleDelegate?
    
     init() {
         Task {
@@ -86,6 +87,7 @@ class QuickShareService: ObservableObject {
         }
 
         isPickerOpen = true
+        SharingStateManager.shared.beginInteraction()
 
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
@@ -95,7 +97,10 @@ class QuickShareService: ObservableObject {
         panel.message = "Choose files to share via \(provider.id)"
 
         let completion: (NSApplication.ModalResponse) -> Void = { [weak self] response in
-            defer { self?.isPickerOpen = false }
+            defer {
+                self?.isPickerOpen = false
+                SharingStateManager.shared.endInteraction()
+            }
 
             if response == .OK && !panel.urls.isEmpty {
                 Task {
@@ -117,16 +122,22 @@ class QuickShareService: ObservableObject {
         // Start security-scoped access for all file URLs
         sharingAccessingURLs = fileURLs.filter { $0.startAccessingSecurityScopedResource() }
 
-        let sharingDelegate = SharingServiceDelegate { [weak self] in
+        // Setup lifecycle delegate to keep notch open during picker/service
+        let delegate = SharingStateManager.shared.makeDelegate { [weak self] in
+            self?.lifecycleDelegate = nil
             self?.stopSharingAccessingURLs()
         }
+        lifecycleDelegate = delegate
 
         if let svc = cachedServices[provider.id], svc.canPerform(withItems: items) {
-            svc.delegate = sharingDelegate
+            // For direct service path, explicitly mark service interaction start
+            delegate.markServiceBegan()
+            svc.delegate = delegate
             svc.perform(withItems: items)
         } else {
             let picker = NSSharingServicePicker(items: items)
-            picker.delegate = sharingDelegate
+            picker.delegate = delegate
+            delegate.markPickerBegan()
             if let view {
                 picker.show(relativeTo: .zero, of: view, preferredEdge: .minY)
             }
@@ -142,12 +153,7 @@ class QuickShareService: ObservableObject {
     }
 // MARK: - SharingServiceDelegate
 
-private class SharingServiceDelegate: NSObject, NSSharingServiceDelegate, NSSharingServicePickerDelegate {
-    private let onEnd: () -> Void
-    init(onEnd: @escaping () -> Void) {
-        self.onEnd = onEnd
-    }
-}
+private class SharingServiceDelegate: NSObject {}
     
     func shareDroppedFiles(_ providers: [NSItemProvider], using shareProvider: QuickShareProvider, from view: NSView?) async {
         var itemsToShare: [Any] = []

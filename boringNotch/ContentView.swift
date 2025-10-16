@@ -123,6 +123,20 @@ struct ContentView: View {
                         }
                     }
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
+                    if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
+                        hoverTask?.cancel()
+                        hoverTask = Task {
+                            try? await Task.sleep(for: .milliseconds(100))
+                            guard !Task.isCancelled else { return }
+                            await MainActor.run {
+                                if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                                    self.vm.close()
+                                }
+                            }
+                        }
+                    }
+                }
                 .onChange(of: vm.notchState) { _, newState in
                     if newState == .closed && isHovering {
                         withAnimation {
@@ -131,13 +145,13 @@ struct ContentView: View {
                     }
                 }
                 .onChange(of: vm.isBatteryPopoverActive) {
-                    if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open {
+                    if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
                         hoverTask?.cancel()
                         hoverTask = Task {
                             try? await Task.sleep(for: .milliseconds(100))
                             guard !Task.isCancelled else { return }
                             await MainActor.run {
-                                if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open {
+                                if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
                                     self.vm.close()
                                 }
                             }
@@ -432,7 +446,9 @@ struct ContentView: View {
                         }
 
                         vm.dropEvent = false
-                        vm.close()
+                        if !SharingStateManager.shared.preventNotchClose {
+                            vm.close()
+                        }
                     }
                 }
         } else {
@@ -486,7 +502,7 @@ struct ContentView: View {
                         self.isHovering = false
                     }
                     
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive {
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }
                 }
@@ -536,7 +552,7 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 isHovering = false
             }
-            vm.close()
+            if !SharingStateManager.shared.preventNotchClose { vm.close() }
 
             if Defaults[.enableHaptics] {
                 haptics.toggle()

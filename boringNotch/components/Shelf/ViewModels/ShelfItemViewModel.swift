@@ -9,6 +9,7 @@ import Foundation
 import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
+import CoreServices
 
 @MainActor
 final class ShelfItemViewModel: ObservableObject {
@@ -17,6 +18,9 @@ final class ShelfItemViewModel: ObservableObject {
     @Published var isDropTargeted: Bool = false
     @Published var isRenaming: Bool = false
     @Published var draftTitle: String = ""
+    private var sharingLifecycle: SharingLifecycleDelegate?
+    private var quickShareLifecycle: SharingLifecycleDelegate?
+    private var sharingAccessingURLs: [URL] = []
 
     private let selection = ShelfSelectionModel.shared
 
@@ -145,23 +149,32 @@ final class ShelfItemViewModel: ObservableObject {
             }
             
             guard !itemsToShare.isEmpty else { return }
-
-            if !fileURLs.isEmpty {
-                await fileURLs.accessSecurityScopedResources { _ in
-                    let picker = NSSharingServicePicker(items: itemsToShare)
-
-                    if let view {
-                        picker.show(relativeTo: .zero, of: view, preferredEdge: .minY)
-                    }
-                }
-            } else {
-                let picker = NSSharingServicePicker(items: itemsToShare)
-
-                if let view {
-                    picker.show(relativeTo: .zero, of: view, preferredEdge: .minY)
-                }
+             
+            stopSharingAccessingURLs()
+            // Start security-scoped access for all file URLs and keep it active during sharing
+            sharingAccessingURLs = fileURLs.filter { $0.startAccessingSecurityScopedResource() }
+            
+            // Create and retain lifecycle delegate for the entire share operation
+            let lifecycle = SharingStateManager.shared.makeDelegate { [weak self] in
+                self?.sharingLifecycle = nil
+                self?.stopSharingAccessingURLs()
+            }
+            self.sharingLifecycle = lifecycle
+            
+            let picker = NSSharingServicePicker(items: itemsToShare)
+            picker.delegate = lifecycle
+            lifecycle.markPickerBegan()
+            if let view {
+                picker.show(relativeTo: .zero, of: view, preferredEdge: .minY)
             }
         }
+    }
+    
+    private func stopSharingAccessingURLs() {
+        for url in sharingAccessingURLs {
+            url.stopAccessingSecurityScopedResource()
+        }
+        sharingAccessingURLs.removeAll()
     }
 
     /// Call this closure to request a QuickLook preview for the given URLs.
@@ -232,9 +245,21 @@ final class ShelfItemViewModel: ObservableObject {
                 submenu.addItem(noApps)
             } else {
                 if let defaultApp = defaultApp {
-                    let def = NSMenuItem(title: appDisplayName(for: defaultApp) + " (Default)", action: nil, keyEquivalent: "")
+                    let appName = appDisplayName(for: defaultApp)
+                    let def = NSMenuItem(title: appName, action: nil, keyEquivalent: "")
                     def.representedObject = defaultApp
                     def.image = nsAppIcon(for: defaultApp, size: 16)
+
+                    let title = NSMutableAttributedString(string: appName, attributes: [
+                        .font: NSFont.menuFont(ofSize: 0),
+                        .foregroundColor: NSColor.labelColor
+                    ])
+                    let defaultPart = NSAttributedString(string: " (default)", attributes: [
+                        .font: NSFont.menuFont(ofSize: 0),
+                        .foregroundColor: NSColor.secondaryLabelColor
+                    ])
+                    title.append(defaultPart)
+                    def.attributedTitle = title
                     submenu.addItem(def)
 
                     if openWithApps.count > 1 || !openWithApps.contains(defaultApp) {
@@ -468,19 +493,135 @@ final class ShelfItemViewModel: ObservableObject {
 
             let panel = NSOpenPanel()
             panel.title = "Choose Application"
-            panel.message = "Select an application to open \"\(item.displayName)\""
+            panel.message = "Choose an application to open the document \"\(item.displayName)\"."
+            panel.prompt = "Open"
             panel.allowsMultipleSelection = false
             panel.canChooseFiles = true
             panel.canChooseDirectories = false
+            panel.resolvesAliases = true
             if #available(macOS 12.0, *) {
                 panel.allowedContentTypes = [.application]
             }
             panel.directoryURL = URL(fileURLWithPath: "/Applications")
+
+            // Compute recommended applications for the selected target
+            let recommendedApps: Set<URL> = {
+                let apps: [URL]
+                if let uti = (try? fileURL.resourceValues(forKeys: [.contentTypeKey]))?.contentType {
+                    apps = NSWorkspace.shared.urlsForApplications(toOpen: uti)
+                } else {
+                    apps = NSWorkspace.shared.urlsForApplications(toOpen: fileURL)
+                }
+                return Set(apps.map { $0.standardizedFileURL })
+            }()
+
+            // Delegate to filter entries when in "Recommended Applications" mode
+            final class AppChooserDelegate: NSObject, NSOpenSavePanelDelegate {
+                enum Mode { case recommended, all }
+                var mode: Mode = .recommended
+                let recommended: Set<URL>
+                init(recommended: Set<URL>) { self.recommended = recommended }
+                
+                func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
+                    let ext = url.pathExtension.lowercased()
+                    if ext == "app" {
+                        switch mode {
+                        case .all:
+                            return true
+                        case .recommended:
+                            // Standardize URLs for reliable comparison
+                            let std = url.standardizedFileURL
+                            return recommended.contains(std)
+                        }
+                    }
+
+                    var isDirectory: ObjCBool = false
+                    if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue {
+                        return true
+                    }
+                    
+                    return false
+                }
+            }
+
+            let chooserDelegate = AppChooserDelegate(recommended: recommendedApps)
+            panel.delegate = chooserDelegate
+
+            let enableLabel = NSTextField(labelWithString: "Enable:")
+            enableLabel.font = .systemFont(ofSize: NSFont.systemFontSize)
+            enableLabel.alignment = .natural
+            enableLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+            
+            let popup = NSPopUpButton(frame: .zero, pullsDown: false)
+            popup.addItems(withTitles: ["Recommended Applications", "All Applications"])
+            popup.font = .systemFont(ofSize: NSFont.systemFontSize)
+            popup.selectItem(at: 0)
+            
+            popup.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            popup.widthAnchor.constraint(greaterThanOrEqualToConstant: 200).isActive = true
+            
+            let alwaysCheckbox = NSButton(checkboxWithTitle: "Always Open With", target: nil, action: nil)
+            alwaysCheckbox.font = .systemFont(ofSize: NSFont.systemFontSize)
+            alwaysCheckbox.setContentHuggingPriority(.defaultLow, for: .horizontal)
+
+            let row = NSStackView(views: [enableLabel, popup])
+            row.orientation = .horizontal
+            row.spacing = 8
+            row.alignment = .centerY
+            row.distribution = .fill
+            
+            let column = NSStackView(views: [row, alwaysCheckbox])
+            column.orientation = .vertical
+            column.spacing = 12
+            column.alignment = .centerX
+            column.distribution = .fill
+            column.edgeInsets = NSEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
+            
+            panel.accessoryView = column
+            panel.isAccessoryViewDisclosed = true
+
+            // Wire up popup to switch filter mode
+            class PopupBinder: NSObject {
+                weak var popup: NSPopUpButton?
+                weak var chooserDelegate: AppChooserDelegate?
+                weak var panel: NSOpenPanel?
+                init(popup: NSPopUpButton, chooserDelegate: AppChooserDelegate, panel: NSOpenPanel) {
+                    self.popup = popup
+                    self.chooserDelegate = chooserDelegate
+                    self.panel = panel
+                }
+                @objc func changed(_ sender: Any?) {
+                    if popup?.indexOfSelectedItem == 1 {
+                        chooserDelegate?.mode = .all
+                    } else {
+                        chooserDelegate?.mode = .recommended
+                    }
+                    if let panel = panel {
+                        panel.validateVisibleColumns()
+                        let currentDir = panel.directoryURL
+                        panel.directoryURL = currentDir
+                    }
+                }
+            }
+            let binder = PopupBinder(popup: popup, chooserDelegate: chooserDelegate, panel: panel)
+            popup.target = binder
+            popup.action = #selector(PopupBinder.changed(_:))
+
             panel.begin { response in
                 if response == .OK, let appURL = panel.url {
                     Task {
                         do {
                             let config = NSWorkspace.OpenConfiguration()
+                            if alwaysCheckbox.state == .on, let bundleID = Bundle(url: appURL)?.bundleIdentifier {
+                                if let contentType = (try? fileURL.resourceValues(forKeys: [.contentTypeKey]))?.contentType {
+                                    let status = LSSetDefaultRoleHandlerForContentType(contentType.identifier as CFString, LSRolesMask.all, bundleID as CFString)
+                                    if status != noErr { print("⚠️ Failed to set default handler for \(contentType.identifier): \(status)") }
+                                } else if let scheme = fileURL.scheme {
+                                    let status = LSSetDefaultHandlerForURLScheme(scheme as CFString, bundleID as CFString)
+                                    if status != noErr { print("⚠️ Failed to set default handler for scheme \(scheme): \(status)") }
+                                }
+                            }
+
                             if needsSecurityScope {
                                 _ = try await fileURL.accessSecurityScopedResource { accessibleURL in
                                     try await NSWorkspace.shared.open([accessibleURL], withApplicationAt: appURL, configuration: config)
@@ -493,6 +634,9 @@ final class ShelfItemViewModel: ObservableObject {
                         }
                     }
                 }
+                // Keep binder/delegate alive until panel finishes
+                _ = binder
+                _ = chooserDelegate
             }
         }
         
@@ -541,7 +685,20 @@ final class ShelfItemViewModel: ObservableObject {
     }
 
     private func nsAppIcon(for appURL: URL, size: CGFloat) -> NSImage? {
-        NSWorkspace.shared.icon(forFile: appURL.path)
+        let baseIcon = NSWorkspace.shared.icon(forFile: appURL.path)
+        baseIcon.isTemplate = false
+
+        let targetSize = NSSize(width: size, height: size)
+        let rendered = NSImage(size: targetSize, flipped: false) { rect in
+            NSGraphicsContext.current?.imageInterpolation = .high
+            baseIcon.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1.0, respectFlipped: true, hints: [
+                .interpolation: NSImageInterpolation.high.rawValue
+            ])
+            return true
+        }
+
+        rendered.size = targetSize
+        return rendered
     }
 
     private func defaultAppURL() -> URL? {
