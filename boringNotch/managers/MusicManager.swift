@@ -48,30 +48,25 @@ struct LRCLIBSearchResult: Codable {
     }
 }
 
+@MainActor
 class LyricsService: ObservableObject {
     @Published var currentLyrics: LyricsResponse?
     @Published var isLoading = false
     @Published var error: String?
-    
+
     private let session = URLSession.shared
     
     func fetchLyrics(title: String, artist: String) async {
-        DispatchQueue.main.async {
-            self.isLoading = true
-            self.error = nil
-        }
-        
+        self.isLoading = true
+        self.error = nil
+
         do {
             let lyrics = try await searchLyrics(title: title, artist: artist)
-            DispatchQueue.main.async {
-                self.currentLyrics = lyrics
-                self.isLoading = false
-            }
+            self.currentLyrics = lyrics
+            self.isLoading = false
         } catch {
-            DispatchQueue.main.async {
-                self.error = error.localizedDescription
-                self.isLoading = false
-            }
+            self.error = error.localizedDescription
+            self.isLoading = false
         }
     }
     
@@ -396,20 +391,10 @@ class MusicManager: ObservableObject {
         let preferredType = Defaults[.mediaController]
         print("Preferred Media Controller: \(preferredType)")
 
-        // Check if Spotify is running
-        let spotifyRunning = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.spotify.client" }
-
         // If NowPlaying is deprecated but that's the preference, use Apple Music instead
-        var controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
+        let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
             ? .appleMusic
             : preferredType
-
-        // CRITICAL FIX: If using NowPlaying and Spotify is running, use Spotify controller instead
-        // NowPlaying often reports incorrect time (0.0s) for Spotify playback
-        if controllerType == .nowPlaying && spotifyRunning {
-            print("⚠️ [MusicManager] Spotify detected - using SpotifyController for accurate timing")
-            controllerType = .spotify
-        }
 
         if let controller = createController(for: controllerType) {
             setActiveController(controller)
@@ -434,7 +419,34 @@ class MusicManager: ObservableObject {
     @MainActor
     private func updateFromPlaybackState(_ state: PlaybackState) {
         print("📊 [MusicManager] Playback update - Playing: \(state.isPlaying), Time: \(state.currentTime)s, Duration: \(state.duration)s, Source: \(state.bundleIdentifier ?? "unknown")")
-        
+
+        // DYNAMIC CONTROLLER SWITCHING: If using NowPlaying and we detect Spotify with bad timing, switch to SpotifyController
+        if Defaults[.mediaController] == .nowPlaying,
+           type(of: activeController) == NowPlayingController.self,
+           state.bundleIdentifier == "com.spotify.client",
+           state.isPlaying,
+           state.currentTime == 0.0,
+           state.duration > 0 {
+            print("⚠️ [MusicManager] Detected Spotify with bad timing (0.0s), switching to SpotifyController")
+            if let spotifyController = createController(for: .spotify) {
+                setActiveController(spotifyController)
+                return // Let the new controller send updates
+            }
+        }
+
+        // DYNAMIC CONTROLLER SWITCHING: If using specific controller but source changed, switch back to NowPlaying
+        if Defaults[.mediaController] == .nowPlaying,
+           type(of: activeController) == SpotifyController.self,
+           !state.bundleIdentifier.isEmpty,
+           state.bundleIdentifier != "com.spotify.client",
+           state.isPlaying {
+            print("⚠️ [MusicManager] Source changed from Spotify to \(state.bundleIdentifier), switching back to NowPlayingController")
+            if let nowPlayingController = createController(for: .nowPlaying) {
+                setActiveController(nowPlayingController)
+                return // Let the new controller send updates
+            }
+        }
+
         // Check for playback state changes (playing/paused)
         if state.isPlaying != self.isPlaying {
             NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
@@ -493,6 +505,7 @@ class MusicManager: ObservableObject {
         let repeatModeChanged = state.repeatMode != self.repeatMode
 
         let trackIdentityChanged = state.title != self.songTitle || state.artist != self.artistName
+        let sourceChanged = state.bundleIdentifier != self.bundleIdentifier
 
         if state.title != self.songTitle {
             print("🎵 [MusicManager] Track title changed: '\(self.songTitle)' → '\(state.title)'")
@@ -504,8 +517,13 @@ class MusicManager: ObservableObject {
             self.artistName = state.artist
         }
 
-        // Fetch lyrics when track identity changes (title or artist)
-        if trackIdentityChanged {
+        if sourceChanged {
+            print("🎵 [MusicManager] Music source changed: '\(self.bundleIdentifier ?? "nil")' → '\(state.bundleIdentifier ?? "nil")'")
+            self.bundleIdentifier = state.bundleIdentifier
+        }
+
+        // Fetch lyrics when track identity changes (title or artist) OR when music source changes
+        if trackIdentityChanged || (sourceChanged && isLyricsMode) {
             // Clear current lyrics immediately to avoid showing stale lyrics
             self.lyricsService.currentLyrics = nil
             if !state.title.isEmpty && !state.artist.isEmpty {
@@ -543,10 +561,6 @@ class MusicManager: ObservableObject {
         
         if shuffleChanged {
             self.isShuffled = state.isShuffled
-        }
-
-        if state.bundleIdentifier != self.bundleIdentifier {
-            self.bundleIdentifier = state.bundleIdentifier
         }
 
         if repeatModeChanged {
@@ -1125,20 +1139,7 @@ class MusicManager: ObservableObject {
         if isLyricsMode {
             print("🎵 [MusicManager] Lyrics mode enabled")
 
-            // Only switch to Spotify controller if not already using one
-            let isAlreadySpotify = type(of: activeController) == SpotifyController.self
-
-            if !isAlreadySpotify {
-                print("🎵 [MusicManager] Switching to SpotifyController for accurate timing...")
-                // CRITICAL FIX: Use createController to ensure proper subscription
-                if let spotifyController = createController(for: .spotify) {
-                    setActiveController(spotifyController)
-                }
-            } else {
-                print("🎵 [MusicManager] Already using SpotifyController, keeping current state")
-            }
-
-            // Fetch lyrics for current track if available
+            // Fetch lyrics for current track if available (works with any music source)
             if !songTitle.isEmpty && !artistName.isEmpty {
                 Task {
                     await lyricsService.fetchLyrics(title: songTitle, artist: artistName)
@@ -1146,8 +1147,6 @@ class MusicManager: ObservableObject {
             }
         } else {
             print("🎵 [MusicManager] Lyrics mode disabled")
-            // Restore original controller
-            setActiveControllerBasedOnPreference()
         }
     }
     
