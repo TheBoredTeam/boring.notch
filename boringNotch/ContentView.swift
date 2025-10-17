@@ -43,6 +43,47 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
+            // Extended notch bar with lyrics (renders as one continuous element)
+            if musicManager.isLyricsMode && vm.notchState == .closed && musicManager.isPlaying {
+                ZStack(alignment: .center) {
+                    // Top fill to connect to screen edge
+                    VStack(spacing: 0) {
+                        Rectangle()
+                            .fill(.black)
+                            .frame(height: 20)
+                        Spacer()
+                    }
+
+                    // Main lyrics content - centered
+                    HStack(spacing: 0) {
+                        // Left lyrics bubble
+                        FloatingLyricsBubble()
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+
+                        // Center notch (no rounded corners - seamless connection)
+                        Rectangle()
+                            .fill(.black)
+                            .frame(width: vm.closedNotchSize.width + (cornerRadiusInsets.closed.bottom * 2))
+                            .transition(.opacity)
+
+                        // Right lyrics bubble
+                        FloatingLyricsBubbleRight()
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                    }
+                    .frame(height: vm.effectiveClosedNotchHeight)
+                }
+                .frame(height: vm.effectiveClosedNotchHeight)
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: cornerRadiusInsets.closed.bottom,
+                        bottomTrailingRadius: cornerRadiusInsets.closed.bottom,
+                        topTrailingRadius: 0
+                    )
+                )
+                .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 2)
+            }
+
             let mainLayout = NotchLayout()
                 .frame(alignment: .top)
                 .padding(
@@ -233,9 +274,7 @@ struct ContentView: View {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          if musicManager.isLyricsMode {
-                              AmbientLyricsActivity()
-                          } else {
+                          if !musicManager.isLyricsMode {
                               MusicLiveActivity()
                           }
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
@@ -759,6 +798,60 @@ struct ContentView: View {
                     haptics.toggle()
                 }
             }
+        }
+    }
+
+    // MARK: - Floating Lyrics Bubble
+
+    @ViewBuilder
+    func FloatingLyricsBubble() -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            // Music icon
+            Image(systemName: "music.note")
+                .font(.system(size: 10, weight: .regular))
+                .foregroundColor(.white)
+                .opacity(0.7)
+
+            // Current line (highlighted) - supports 2 lines
+            Text(getCurrentDisplayLine() ?? "♪ ♫ ♪")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 280, alignment: .leading)
+        }
+        .padding(.horizontal, 12)
+        .frame(maxHeight: .infinity)
+        .background(.black)
+        .frame(maxWidth: 320)
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            // Trigger UI updates for real-time lyrics
+        }
+    }
+
+    @ViewBuilder
+    func FloatingLyricsBubbleRight() -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            // Next line (dimmed) - supports 2 lines
+            Text(getNextDisplayLine() ?? "♪ ♫ ♪")
+                .font(.system(size: 11, weight: .regular))
+                .foregroundColor(.white.opacity(0.5))
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 280, alignment: .trailing)
+
+            // Music icon
+            Image(systemName: "music.note")
+                .font(.system(size: 10, weight: .regular))
+                .foregroundColor(.white)
+                .opacity(0.7)
+        }
+        .padding(.horizontal, 12)
+        .frame(maxHeight: .infinity)
+        .background(.black)
+        .frame(maxWidth: 320)
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            // Trigger UI updates for real-time lyrics
         }
     }
 }

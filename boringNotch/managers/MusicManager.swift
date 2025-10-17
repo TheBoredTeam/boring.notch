@@ -1125,17 +1125,23 @@ class MusicManager: ObservableObject {
         if isLyricsMode {
             print("🎵 [MusicManager] Lyrics mode enabled")
 
-            // Force switch to Spotify controller for accurate timing
-            print("🎵 [MusicManager] Switching to SpotifyController for accurate timing...")
-            // CRITICAL FIX: Use createController to ensure proper subscription
-            if let spotifyController = createController(for: .spotify) {
-                setActiveController(spotifyController)
+            // Only switch to Spotify controller if not already using one
+            let isAlreadySpotify = type(of: activeController) == SpotifyController.self
 
-                // Fetch lyrics for current track if available
-                if !songTitle.isEmpty && !artistName.isEmpty {
-                    Task {
-                        await lyricsService.fetchLyrics(title: songTitle, artist: artistName)
-                    }
+            if !isAlreadySpotify {
+                print("🎵 [MusicManager] Switching to SpotifyController for accurate timing...")
+                // CRITICAL FIX: Use createController to ensure proper subscription
+                if let spotifyController = createController(for: .spotify) {
+                    setActiveController(spotifyController)
+                }
+            } else {
+                print("🎵 [MusicManager] Already using SpotifyController, keeping current state")
+            }
+
+            // Fetch lyrics for current track if available
+            if !songTitle.isEmpty && !artistName.isEmpty {
+                Task {
+                    await lyricsService.fetchLyrics(title: songTitle, artist: artistName)
                 }
             }
         } else {
@@ -1155,38 +1161,47 @@ class MusicManager: ObservableObject {
             print("🎵 [MusicManager] Enabling lyrics mode...")
             isLyricsMode = true
 
-            // Force switch to Spotify controller for accurate timing
-            print("🎵 [MusicManager] Switching to SpotifyController for accurate timing...")
-            // CRITICAL FIX: Use createController to ensure proper subscription
-            if let spotifyController = createController(for: .spotify) as? SpotifyController {
-                setActiveController(spotifyController)
+            // Only switch to Spotify controller if not already using one
+            let isAlreadySpotify = type(of: activeController) == SpotifyController.self
 
-                Task {
-                    await lyricsService.fetchLyrics(title: songTitle, artist: artistName)
+            if !isAlreadySpotify {
+                print("🎵 [MusicManager] Switching to SpotifyController for accurate timing...")
+                // CRITICAL FIX: Use createController to ensure proper subscription
+                if let spotifyController = createController(for: .spotify) as? SpotifyController {
+                    setActiveController(spotifyController)
 
-                    // Update playback info after switching controller
-                    await spotifyController.updatePlaybackInfo()
+                    Task {
+                        // Update playback info after switching controller
+                        await spotifyController.updatePlaybackInfo()
+                    }
+                }
+            } else {
+                print("🎵 [MusicManager] Already using SpotifyController, keeping current state")
+            }
 
-                    await MainActor.run {
-                        print("🎵 [MusicManager] Lyrics service status - Loading: \(lyricsService.isLoading), Error: \(lyricsService.error ?? "none")")
-                        if let lyrics = lyricsService.currentLyrics {
-                            print("🎵 [MusicManager] Found \(lyrics.lines.count) lines of lyrics (Synced: \(lyrics.isTimedLyrics))")
-                            print("🎵 [MusicManager] First few lines with timing:")
-                            for (index, line) in lyrics.lines.prefix(5).enumerated() {
-                                print("🎵 [MusicManager] Line \(index + 1): [\(line.startTime)s-\(line.endTime)s] \(line.text)")
-                            }
+            // Fetch lyrics
+            Task {
+                await lyricsService.fetchLyrics(title: songTitle, artist: artistName)
 
-                            // Test current line lookup
-                            if let currentLine = lyricsService.getCurrentLine(at: elapsedTime) {
-                                print("🎵 [MusicManager] Current line at \(Int(elapsedTime))s: \(currentLine.text)")
-                            } else {
-                                print("🎵 [MusicManager] No current line found at \(Int(elapsedTime))s")
-                            }
-
-                            print("🎵 [MusicManager] Updated elapsed time after controller switch: \(Int(elapsedTime))s")
-                        } else {
-                            print("🎵 [MusicManager] No lyrics found")
+                await MainActor.run {
+                    print("🎵 [MusicManager] Lyrics service status - Loading: \(lyricsService.isLoading), Error: \(lyricsService.error ?? "none")")
+                    if let lyrics = lyricsService.currentLyrics {
+                        print("🎵 [MusicManager] Found \(lyrics.lines.count) lines of lyrics (Synced: \(lyrics.isTimedLyrics))")
+                        print("🎵 [MusicManager] First few lines with timing:")
+                        for (index, line) in lyrics.lines.prefix(5).enumerated() {
+                            print("🎵 [MusicManager] Line \(index + 1): [\(line.startTime)s-\(line.endTime)s] \(line.text)")
                         }
+
+                        // Test current line lookup
+                        if let currentLine = lyricsService.getCurrentLine(at: elapsedTime) {
+                            print("🎵 [MusicManager] Current line at \(Int(elapsedTime))s: \(currentLine.text)")
+                        } else {
+                            print("🎵 [MusicManager] No current line found at \(Int(elapsedTime))s")
+                        }
+
+                        print("🎵 [MusicManager] Updated elapsed time after controller switch: \(Int(elapsedTime))s")
+                    } else {
+                        print("🎵 [MusicManager] No lyrics found")
                     }
                 }
             }
