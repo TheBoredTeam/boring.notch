@@ -34,6 +34,7 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.useMusicVisualizer) var useMusicVisualizer
+    @Default(.lyricsGradient) var lyricsGradient
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.useModernCloseAnimation) var useModernCloseAnimation
@@ -45,34 +46,63 @@ struct ContentView: View {
         ZStack(alignment: .top) {
             // Extended notch bar with lyrics (renders as one continuous element)
             if musicManager.isLyricsMode && vm.notchState == .closed && musicManager.isPlaying {
-                ZStack(alignment: .center) {
-                    // Top fill to connect to screen edge
-                    VStack(spacing: 0) {
-                        Rectangle()
-                            .fill(.black)
-                            .frame(height: 20)
-                        Spacer()
+                // Single unified container with gradient background and content
+                GeometryReader { geometry in
+                    ZStack(alignment: .center) {
+                        // Single continuous background: top fill + gradient bar
+                        VStack(spacing: 0) {
+                            // Top extension to screen edge
+                            Rectangle()
+                                .fill(.black)
+                                .frame(height: 20)
+
+                            // Main gradient bar (conditional based on settings)
+                            if lyricsGradient {
+                                LinearGradient(
+                                    gradient: Gradient(stops: [
+                                        .init(color: Color(nsColor: musicManager.avgColor).opacity(0.3), location: 0.0),
+                                        .init(color: Color.black, location: 0.25),
+                                        .init(color: Color.black, location: 0.75),
+                                        .init(color: Color(nsColor: musicManager.avgColor).opacity(0.3), location: 1.0)
+                                    ]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                .frame(height: vm.effectiveClosedNotchHeight)
+                            } else {
+                                Rectangle()
+                                    .fill(.black)
+                                    .frame(height: vm.effectiveClosedNotchHeight)
+                            }
+                        }
+                        .frame(height: vm.effectiveClosedNotchHeight + 20)
+
+                        // Lyrics content overlaid on top
+                        HStack(spacing: 0) {
+                            // Left lyrics bubble
+                            FloatingLyricsBubble()
+                                .transition(.move(edge: .leading).combined(with: .opacity))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .onHover { hovering in
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        isHovering = hovering
+                                    }
+                                }
+
+                            // Center notch spacing
+                            Spacer()
+                                .frame(width: vm.closedNotchSize.width + (cornerRadiusInsets.closed.bottom * 2))
+
+                            // Right lyrics bubble
+                            FloatingLyricsBubbleRight()
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+                        .frame(height: vm.effectiveClosedNotchHeight)
+                        .offset(y: 20 / 2)  // Offset to align with gradient bar, not top fill
                     }
-
-                    // Main lyrics content - centered
-                    HStack(spacing: 0) {
-                        // Left lyrics bubble
-                        FloatingLyricsBubble()
-                            .transition(.move(edge: .leading).combined(with: .opacity))
-
-                        // Center notch (no rounded corners - seamless connection)
-                        Rectangle()
-                            .fill(.black)
-                            .frame(width: vm.closedNotchSize.width + (cornerRadiusInsets.closed.bottom * 2))
-                            .transition(.opacity)
-
-                        // Right lyrics bubble
-                        FloatingLyricsBubbleRight()
-                            .transition(.move(edge: .trailing).combined(with: .opacity))
-                    }
-                    .frame(height: vm.effectiveClosedNotchHeight)
                 }
-                .frame(height: vm.effectiveClosedNotchHeight)
+                .frame(height: vm.effectiveClosedNotchHeight + 20)
                 .clipShape(
                     UnevenRoundedRectangle(
                         topLeadingRadius: 0,
@@ -81,6 +111,7 @@ struct ContentView: View {
                         topTrailingRadius: 0
                     )
                 )
+                .offset(y: -20)  // Pull up by top fill height to connect to screen edge
                 .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 2)
             }
 
@@ -808,22 +839,30 @@ struct ContentView: View {
         HStack(alignment: .center, spacing: 8) {
             // Music icon
             Image(systemName: "music.note")
-                .font(.system(size: 10, weight: .regular))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.white)
                 .opacity(0.7)
 
-            // Current line (highlighted) - supports 2 lines
-            Text(getCurrentDisplayLine() ?? "♪ ♫ ♪")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.white)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: 280, alignment: .leading)
+            if isHovering {
+                // Show song name when hovering
+                Text(musicManager.songTitle)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                    .opacity(0.9)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                // Show current lyrics when not hovering
+                Text(getCurrentDisplayLine() ?? "♪ ♫ ♪")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                    .opacity(0.9)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .padding(.horizontal, 12)
         .frame(maxHeight: .infinity)
-        .background(.black)
-        .frame(maxWidth: 320)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             // Trigger UI updates for real-time lyrics
         }
@@ -834,22 +873,19 @@ struct ContentView: View {
         HStack(alignment: .center, spacing: 8) {
             // Next line (dimmed) - supports 2 lines
             Text(getNextDisplayLine() ?? "♪ ♫ ♪")
-                .font(.system(size: 11, weight: .regular))
-                .foregroundColor(.white.opacity(0.5))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.white.opacity(0.7))
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: 280, alignment: .trailing)
 
             // Music icon
             Image(systemName: "music.note")
-                .font(.system(size: 10, weight: .regular))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.white)
                 .opacity(0.7)
         }
         .padding(.horizontal, 12)
         .frame(maxHeight: .infinity)
-        .background(.black)
-        .frame(maxWidth: 320)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             // Trigger UI updates for real-time lyrics
         }

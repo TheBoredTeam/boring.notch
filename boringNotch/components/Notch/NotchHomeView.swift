@@ -68,14 +68,15 @@ struct LyricsView: View {
                     .opacity(0.5)
             }
             
-            // Artist name with sync status (smaller, below lyrics)
+            // Song name and artist name with sync status (smaller, below lyrics)
             HStack {
-                Text(musicManager.artistName)
+                Text("\(musicManager.songTitle) - \(musicManager.artistName)")
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.gray)
                     .opacity(0.8)
-                
+                    .lineLimit(1)
+
                 if lyrics.isTimedLyrics {
                     Text("SYNCED")
                         .font(.caption2)
@@ -371,7 +372,12 @@ struct MusicControlsView: View {
         HStack(spacing: 8) {
             if showShuffleAndRepeat {
                 HoverButton(
-                    icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .white,
+                    icon: "shuffle",
+                    iconColor: musicManager.isShuffled
+                        ? (Defaults[.playerColorTinting]
+                            ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.8)
+                            : .accentColor)
+                        : .white,
                     scale: .medium
                 ) {
                     MusicManager.shared.toggleShuffle()
@@ -411,7 +417,9 @@ struct MusicControlsView: View {
         case .off:
             return .white
         case .all, .one:
-            return .red
+            return Defaults[.playerColorTinting]
+                ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.8)
+                : .accentColor
         }
     }
 }

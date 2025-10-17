@@ -942,6 +942,7 @@ struct Appearance: View {
                 Defaults
                     .Toggle("Player tinting", key: .playerColorTinting)
                 Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
+                Defaults.Toggle("Enable lyrics gradient", key: .lyricsGradient)
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
                         Text(option.rawValue)
