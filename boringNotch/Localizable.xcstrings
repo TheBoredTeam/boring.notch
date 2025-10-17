@@ -2299,9 +2299,6 @@
     "♪ ♫ ♪" : {
 
     },
-    "♪ Lyrics mode ♪" : {
-
-    },
     "About" : {
       "localizations" : {
         "en" : {
@@ -17074,6 +17071,9 @@
           }
         }
       }
+    },
+    "Lyrics mode" : {
+
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
