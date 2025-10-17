@@ -19,5 +19,9 @@
 	<array>
 		<dict/>
 	</array>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>boringNotch needs Apple Events access to control music applications and extract song information including lyrics.</string>
+	<key>NSSystemAdministrationUsageDescription</key>
+	<string>boringNotch needs system administration access to interact with accessibility features for lyrics extraction from music apps.</string>
 </dict>
 </plist>

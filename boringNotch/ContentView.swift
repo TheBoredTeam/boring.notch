@@ -34,6 +34,7 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.useMusicVisualizer) var useMusicVisualizer
+    @Default(.lyricsGradient) var lyricsGradient
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.useModernCloseAnimation) var useModernCloseAnimation
@@ -43,6 +44,77 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
+            // Extended notch bar with lyrics (renders as one continuous element)
+            if musicManager.isLyricsMode && vm.notchState == .closed && musicManager.isPlaying {
+                // Single unified container with gradient background and content
+                GeometryReader { geometry in
+                    ZStack(alignment: .center) {
+                        // Single continuous background: top fill + gradient bar
+                        VStack(spacing: 0) {
+                            // Top extension to screen edge
+                            Rectangle()
+                                .fill(.black)
+                                .frame(height: 20)
+
+                            // Main gradient bar (conditional based on settings)
+                            if lyricsGradient {
+                                LinearGradient(
+                                    gradient: Gradient(stops: [
+                                        .init(color: Color(nsColor: musicManager.avgColor).opacity(0.3), location: 0.0),
+                                        .init(color: Color.black, location: 0.25),
+                                        .init(color: Color.black, location: 0.75),
+                                        .init(color: Color(nsColor: musicManager.avgColor).opacity(0.3), location: 1.0)
+                                    ]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                .frame(height: vm.effectiveClosedNotchHeight)
+                            } else {
+                                Rectangle()
+                                    .fill(.black)
+                                    .frame(height: vm.effectiveClosedNotchHeight)
+                            }
+                        }
+                        .frame(height: vm.effectiveClosedNotchHeight + 20)
+
+                        // Lyrics content overlaid on top
+                        HStack(spacing: 0) {
+                            // Left lyrics bubble
+                            FloatingLyricsBubble()
+                                .transition(.move(edge: .leading).combined(with: .opacity))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .onHover { hovering in
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        isHovering = hovering
+                                    }
+                                }
+
+                            // Center notch spacing
+                            Spacer()
+                                .frame(width: vm.closedNotchSize.width + (cornerRadiusInsets.closed.bottom * 2))
+
+                            // Right lyrics bubble
+                            FloatingLyricsBubbleRight()
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+                        .frame(height: vm.effectiveClosedNotchHeight)
+                        .offset(y: 20 / 2)  // Offset to align with gradient bar, not top fill
+                    }
+                }
+                .frame(height: vm.effectiveClosedNotchHeight + 20)
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: cornerRadiusInsets.closed.bottom,
+                        bottomTrailingRadius: cornerRadiusInsets.closed.bottom,
+                        topTrailingRadius: 0
+                    )
+                )
+                .offset(y: -20)  // Pull up by top fill height to connect to screen edge
+                .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 2)
+            }
+
             let mainLayout = NotchLayout()
                 .frame(alignment: .top)
                 .padding(
@@ -233,7 +305,9 @@ struct ContentView: View {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          MusicLiveActivity()
+                          if !musicManager.isLyricsMode {
+                              MusicLiveActivity()
+                          }
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation().animation(.interactiveSpring, value: musicManager.isPlayerIdle)
                       } else if vm.notchState == .open {
@@ -310,7 +384,206 @@ struct ContentView: View {
         }.frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
     }
 
+    // MARK: - Lyrics Grid Components
+
     @ViewBuilder
+    func AmbientLyricsActivity() -> some View {
+        let lyricsHeight: CGFloat = 38 // Height decreased by 2px
+        
+        // Left-aligned dynamic island with lyrics
+        HStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // Music icon
+                Image(systemName: "music.note")
+                    .font(.caption)
+                    .foregroundColor(.white)
+                    .opacity(0.7)
+                
+                // Lyrics content
+                VStack(spacing: 3) {
+                    // Current line
+                    Text(getCurrentDisplayLine() ?? "♪ ♫ ♪")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white.opacity(0.9))
+                        .lineLimit(1)
+                        .frame(maxWidth: 250, alignment: .leading)
+                    
+                    // Next line (smaller)
+                    Text(getNextDisplayLine() ?? "♪ ♫ ♪")
+                        .font(.caption2)
+                        .fontWeight(.regular)
+                        .foregroundColor(.white.opacity(0.6))
+                        .lineLimit(1)
+                        .frame(maxWidth: 250, alignment: .leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: lyricsHeight / 2)
+                    .fill(.black)
+            )
+            .frame(minWidth: 300, maxWidth: 400)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.leading, 20)
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            // This will trigger UI updates for real-time lyrics
+        }
+    }
+    
+    private func getCurrentLyricsTime() -> Double {
+        let timeDifference = musicManager.isPlaying ? Date().timeIntervalSince(musicManager.timestampDate) : 0
+        return musicManager.elapsedTime + (timeDifference * musicManager.playbackRate)
+    }
+    
+    private func getNextLyricLine() -> String {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return "♪ ♫ ♪" }
+        let currentTime = getCurrentLyricsTime()
+        
+        // Get current line first
+        let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime)
+        
+        // Find the next line after the current one
+        if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine?.text && $0.startTime == currentLine?.startTime }) {
+            let nextIndex = currentIndex + 1
+            if nextIndex < lyrics.lines.count {
+                return lyrics.lines[nextIndex].text
+            }
+        }
+        
+        // Fallback: find any line that starts after current time
+        if let nextLine = lyrics.lines.first(where: { $0.startTime > currentTime }) {
+            return nextLine.text
+        }
+        
+        return "♪ ♫ ♪"
+    }
+    
+    private func getUpcomingLyricLine() -> String {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return "♪ ♫ ♪" }
+        let currentTime = getCurrentLyricsTime()
+        
+        // Get current line first
+        let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime)
+        
+        // Find the line after next
+        if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine?.text && $0.startTime == currentLine?.startTime }) {
+            let upcomingIndex = currentIndex + 2
+            if upcomingIndex < lyrics.lines.count {
+                return lyrics.lines[upcomingIndex].text
+            }
+        }
+        
+        return "♪ ♫ ♪"
+    }
+    
+    private func getFurtherLyricLine() -> String {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return "♪ ♫ ♪" }
+        let currentTime = getCurrentLyricsTime()
+        
+        // Get current line first
+        let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime)
+        
+        // Find the line after upcoming
+        if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine?.text && $0.startTime == currentLine?.startTime }) {
+            let furtherIndex = currentIndex + 3
+            if furtherIndex < lyrics.lines.count {
+                return lyrics.lines[furtherIndex].text
+            }
+        }
+        
+        return "♪ ♫ ♪"
+    }
+    
+    // New display functions that handle early playback times better
+    private func getCurrentDisplayLine() -> String? {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
+        let currentTime = getCurrentLyricsTime()
+        
+        // If we have a current line at this time, use it
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            return currentLine.text
+        }
+        
+        // If no current line and we're early in the song, show the first line
+        if currentTime < 10.0 && !lyrics.lines.isEmpty {
+            return lyrics.lines[0].text
+        }
+        
+        return nil
+    }
+    
+    private func getNextDisplayLine() -> String? {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
+        let currentTime = getCurrentLyricsTime()
+        
+        // If we have a current line, find the next one
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
+                let nextIndex = currentIndex + 1
+                if nextIndex < lyrics.lines.count {
+                    return lyrics.lines[nextIndex].text
+                }
+            }
+        }
+        
+        // If no current line and we're early in the song, show the second line
+        if currentTime < 10.0 && lyrics.lines.count > 1 {
+            return lyrics.lines[1].text
+        }
+        
+        return nil
+    }
+    
+    private func getUpcomingDisplayLine() -> String? {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
+        let currentTime = getCurrentLyricsTime()
+        
+        // If we have a current line, find the line after next
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
+                let upcomingIndex = currentIndex + 2
+                if upcomingIndex < lyrics.lines.count {
+                    return lyrics.lines[upcomingIndex].text
+                }
+            }
+        }
+        
+        // If no current line and we're early in the song, show the third line
+        if currentTime < 10.0 && lyrics.lines.count > 2 {
+            return lyrics.lines[2].text
+        }
+        
+        return nil
+    }
+    
+    private func getFurtherDisplayLine() -> String? {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
+        let currentTime = getCurrentLyricsTime()
+        
+        // If we have a current line, find the line after upcoming
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
+                let furtherIndex = currentIndex + 3
+                if furtherIndex < lyrics.lines.count {
+                    return lyrics.lines[furtherIndex].text
+                }
+            }
+        }
+        
+        // If no current line and we're early in the song, show the fourth line
+        if currentTime < 10.0 && lyrics.lines.count > 3 {
+            return lyrics.lines[3].text
+        }
+        
+        return nil
+    }
+
     func MusicLiveActivity() -> some View {
         HStack {
             HStack {
@@ -556,6 +829,65 @@ struct ContentView: View {
                     haptics.toggle()
                 }
             }
+        }
+    }
+
+    // MARK: - Floating Lyrics Bubble
+
+    @ViewBuilder
+    func FloatingLyricsBubble() -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            // Music icon
+            Image(systemName: "music.note")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white)
+                .opacity(0.7)
+
+            if isHovering {
+                // Show song name when hovering
+                Text(musicManager.songTitle)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                    .opacity(0.9)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                // Show current lyrics when not hovering
+                Text(getCurrentDisplayLine() ?? "♪ ♫ ♪")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                    .opacity(0.9)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.horizontal, 12)
+        .frame(maxHeight: .infinity)
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            // Trigger UI updates for real-time lyrics
+        }
+    }
+
+    @ViewBuilder
+    func FloatingLyricsBubbleRight() -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            // Next line (dimmed) - supports 2 lines
+            Text(getNextDisplayLine() ?? "♪ ♫ ♪")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.white.opacity(0.7))
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // Music icon
+            Image(systemName: "music.note")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white)
+                .opacity(0.7)
+        }
+        .padding(.horizontal, 12)
+        .frame(maxHeight: .infinity)
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            // Trigger UI updates for real-time lyrics
         }
     }
 }
