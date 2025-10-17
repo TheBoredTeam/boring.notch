@@ -93,10 +93,12 @@ struct LyricsView: View {
     
     private var loadingView: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack {
-                ProgressView()
-                    .scaleEffect(0.8)
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+            HStack(spacing: 8) {
+                Image(systemName: "music.note.list")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .symbolEffect(.pulse)
+
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Loading lyrics...")
                         .font(.headline)
@@ -116,9 +118,15 @@ struct LyricsView: View {
     
     private var errorView: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("No lyrics found")
-                .font(.headline)
-                .foregroundColor(.gray)
+            HStack(spacing: 6) {
+                Image(systemName: "text.slash")
+                    .font(.headline)
+                    .foregroundColor(.gray)
+
+                Text("No lyrics found")
+                    .font(.headline)
+                    .foregroundColor(.gray)
+            }
             Text(musicManager.artistName)
                 .font(.caption)
                 .fontWeight(.medium)
@@ -128,10 +136,15 @@ struct LyricsView: View {
     
     private var noLyricsView: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack {
-                Text("♪ Lyrics mode ♪")
+            HStack(spacing: 6) {
+                Image(systemName: "music.quarternote.3")
                     .font(.headline)
                     .foregroundColor(.white)
+
+                Text("Lyrics mode")
+                    .font(.headline)
+                    .foregroundColor(.white)
+
                 if let lyrics = musicManager.lyricsService.currentLyrics, lyrics.isTimedLyrics {
                     Text("SYNCED")
                         .font(.caption)
