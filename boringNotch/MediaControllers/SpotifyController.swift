@@ -18,35 +18,54 @@ class SpotifyController: MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
-    
+
     private var notificationTask: Task<Void, Never>?
-    
+    private var pollingTask: Task<Void, Never>?
+
     //Constant for time between command and update
     let commandUpdateDelay: Duration = .milliseconds(25)
+    let pollingInterval: Duration = .seconds(1)
     
     init() {
         setupPlaybackStateChangeObserver()
+        startPolling()
         Task {
             if isActive() {
                 await updatePlaybackInfo()
             }
         }
     }
-    
+
     private func setupPlaybackStateChangeObserver() {
         notificationTask = Task { @Sendable [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.spotify.client.PlaybackStateChanged")
             )
-            
+
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
             }
         }
     }
-    
+
+    private func startPolling() {
+        pollingTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self = self else { return }
+
+                // Only poll if Spotify is active and playing
+                if self.isActive() && self.playbackState.isPlaying {
+                    await self.updatePlaybackInfo()
+                }
+
+                try? await Task.sleep(for: self.pollingInterval)
+            }
+        }
+    }
+
     deinit {
         notificationTask?.cancel()
+        pollingTask?.cancel()
     }
     
     // MARK: - Protocol Implementation
@@ -94,9 +113,15 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     func updatePlaybackInfo() async {
-        guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
-        guard descriptor.numberOfItems >= 9 else { return }
-        
+        guard let descriptor = try? await fetchPlaybackInfoAsync() else {
+            print("⚠️ [SpotifyController] Failed to fetch playback info")
+            return
+        }
+        guard descriptor.numberOfItems >= 9 else {
+            print("⚠️ [SpotifyController] Descriptor has insufficient items: \(descriptor.numberOfItems)")
+            return
+        }
+
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
         let currentTrack = descriptor.atIndex(2)?.stringValue ?? "Unknown"
         let currentTrackArtist = descriptor.atIndex(3)?.stringValue ?? "Unknown"
@@ -106,7 +131,9 @@ class SpotifyController: MediaControllerProtocol {
         let isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
         let isRepeating = descriptor.atIndex(8)?.booleanValue ?? false
         let artworkURL = descriptor.atIndex(9)?.stringValue ?? ""
-        
+
+        print("🎵 [SpotifyController] Raw position from Spotify: \(currentTime)s, Playing: \(isPlaying), Track: \(currentTrack)")
+
         let state = PlaybackState(
             bundleIdentifier: "com.spotify.client",
             isPlaying: isPlaying,
@@ -120,7 +147,7 @@ class SpotifyController: MediaControllerProtocol {
             repeatMode: isRepeating ? .all : .off,
             lastUpdated: Date()
         )
-        
+
         self.playbackState = state
         
         // Load artwork asynchronously and update the state when complete

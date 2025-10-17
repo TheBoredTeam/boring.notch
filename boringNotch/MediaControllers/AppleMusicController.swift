@@ -18,33 +18,52 @@ class AppleMusicController: MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
-    
+
     private var notificationTask: Task<Void, Never>?
-    
+    private var pollingTask: Task<Void, Never>?
+    let pollingInterval: Duration = .seconds(1)
+
     // MARK: - Initialization
     init() {
         setupPlaybackStateChangeObserver()
+        startPolling()
         Task {
             if isActive() {
                 await updatePlaybackInfo()
             }
         }
     }
-    
+
     private func setupPlaybackStateChangeObserver() {
         notificationTask = Task { @Sendable [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.apple.Music.playerInfo")
             )
-            
+
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
             }
         }
     }
-    
+
+    private func startPolling() {
+        pollingTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self = self else { return }
+
+                // Only poll if Apple Music is active and playing
+                if self.isActive() && self.playbackState.isPlaying {
+                    await self.updatePlaybackInfo()
+                }
+
+                try? await Task.sleep(for: self.pollingInterval)
+            }
+        }
+    }
+
     deinit {
         notificationTask?.cancel()
+        pollingTask?.cancel()
     }
     
     // MARK: - Protocol Implementation

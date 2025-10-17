@@ -233,7 +233,11 @@ struct ContentView: View {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          MusicLiveActivity()
+                          if musicManager.isLyricsMode {
+                              AmbientLyricsActivity()
+                          } else {
+                              MusicLiveActivity()
+                          }
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation().animation(.interactiveSpring, value: musicManager.isPlayerIdle)
                       } else if vm.notchState == .open {
@@ -310,7 +314,206 @@ struct ContentView: View {
         }.frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
     }
 
+    // MARK: - Lyrics Grid Components
+
     @ViewBuilder
+    func AmbientLyricsActivity() -> some View {
+        let lyricsHeight: CGFloat = 38 // Height decreased by 2px
+        
+        // Left-aligned dynamic island with lyrics
+        HStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // Music icon
+                Image(systemName: "music.note")
+                    .font(.caption)
+                    .foregroundColor(.white)
+                    .opacity(0.7)
+                
+                // Lyrics content
+                VStack(spacing: 3) {
+                    // Current line
+                    Text(getCurrentDisplayLine() ?? "♪ ♫ ♪")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white.opacity(0.9))
+                        .lineLimit(1)
+                        .frame(maxWidth: 250, alignment: .leading)
+                    
+                    // Next line (smaller)
+                    Text(getNextDisplayLine() ?? "♪ ♫ ♪")
+                        .font(.caption2)
+                        .fontWeight(.regular)
+                        .foregroundColor(.white.opacity(0.6))
+                        .lineLimit(1)
+                        .frame(maxWidth: 250, alignment: .leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: lyricsHeight / 2)
+                    .fill(.black)
+            )
+            .frame(minWidth: 300, maxWidth: 400)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.leading, 20)
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            // This will trigger UI updates for real-time lyrics
+        }
+    }
+    
+    private func getCurrentLyricsTime() -> Double {
+        let timeDifference = musicManager.isPlaying ? Date().timeIntervalSince(musicManager.timestampDate) : 0
+        return musicManager.elapsedTime + (timeDifference * musicManager.playbackRate)
+    }
+    
+    private func getNextLyricLine() -> String {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return "♪ ♫ ♪" }
+        let currentTime = getCurrentLyricsTime()
+        
+        // Get current line first
+        let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime)
+        
+        // Find the next line after the current one
+        if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine?.text && $0.startTime == currentLine?.startTime }) {
+            let nextIndex = currentIndex + 1
+            if nextIndex < lyrics.lines.count {
+                return lyrics.lines[nextIndex].text
+            }
+        }
+        
+        // Fallback: find any line that starts after current time
+        if let nextLine = lyrics.lines.first(where: { $0.startTime > currentTime }) {
+            return nextLine.text
+        }
+        
+        return "♪ ♫ ♪"
+    }
+    
+    private func getUpcomingLyricLine() -> String {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return "♪ ♫ ♪" }
+        let currentTime = getCurrentLyricsTime()
+        
+        // Get current line first
+        let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime)
+        
+        // Find the line after next
+        if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine?.text && $0.startTime == currentLine?.startTime }) {
+            let upcomingIndex = currentIndex + 2
+            if upcomingIndex < lyrics.lines.count {
+                return lyrics.lines[upcomingIndex].text
+            }
+        }
+        
+        return "♪ ♫ ♪"
+    }
+    
+    private func getFurtherLyricLine() -> String {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return "♪ ♫ ♪" }
+        let currentTime = getCurrentLyricsTime()
+        
+        // Get current line first
+        let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime)
+        
+        // Find the line after upcoming
+        if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine?.text && $0.startTime == currentLine?.startTime }) {
+            let furtherIndex = currentIndex + 3
+            if furtherIndex < lyrics.lines.count {
+                return lyrics.lines[furtherIndex].text
+            }
+        }
+        
+        return "♪ ♫ ♪"
+    }
+    
+    // New display functions that handle early playback times better
+    private func getCurrentDisplayLine() -> String? {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
+        let currentTime = getCurrentLyricsTime()
+        
+        // If we have a current line at this time, use it
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            return currentLine.text
+        }
+        
+        // If no current line and we're early in the song, show the first line
+        if currentTime < 10.0 && !lyrics.lines.isEmpty {
+            return lyrics.lines[0].text
+        }
+        
+        return nil
+    }
+    
+    private func getNextDisplayLine() -> String? {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
+        let currentTime = getCurrentLyricsTime()
+        
+        // If we have a current line, find the next one
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
+                let nextIndex = currentIndex + 1
+                if nextIndex < lyrics.lines.count {
+                    return lyrics.lines[nextIndex].text
+                }
+            }
+        }
+        
+        // If no current line and we're early in the song, show the second line
+        if currentTime < 10.0 && lyrics.lines.count > 1 {
+            return lyrics.lines[1].text
+        }
+        
+        return nil
+    }
+    
+    private func getUpcomingDisplayLine() -> String? {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
+        let currentTime = getCurrentLyricsTime()
+        
+        // If we have a current line, find the line after next
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
+                let upcomingIndex = currentIndex + 2
+                if upcomingIndex < lyrics.lines.count {
+                    return lyrics.lines[upcomingIndex].text
+                }
+            }
+        }
+        
+        // If no current line and we're early in the song, show the third line
+        if currentTime < 10.0 && lyrics.lines.count > 2 {
+            return lyrics.lines[2].text
+        }
+        
+        return nil
+    }
+    
+    private func getFurtherDisplayLine() -> String? {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
+        let currentTime = getCurrentLyricsTime()
+        
+        // If we have a current line, find the line after upcoming
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
+                let furtherIndex = currentIndex + 3
+                if furtherIndex < lyrics.lines.count {
+                    return lyrics.lines[furtherIndex].text
+                }
+            }
+        }
+        
+        // If no current line and we're early in the song, show the fourth line
+        if currentTime < 10.0 && lyrics.lines.count > 3 {
+            return lyrics.lines[3].text
+        }
+        
+        return nil
+    }
+
     func MusicLiveActivity() -> some View {
         HStack {
             HStack {

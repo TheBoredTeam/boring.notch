@@ -396,10 +396,20 @@ class MusicManager: ObservableObject {
         let preferredType = Defaults[.mediaController]
         print("Preferred Media Controller: \(preferredType)")
 
+        // Check if Spotify is running
+        let spotifyRunning = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.spotify.client" }
+
         // If NowPlaying is deprecated but that's the preference, use Apple Music instead
-        let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
+        var controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
             ? .appleMusic
             : preferredType
+
+        // CRITICAL FIX: If using NowPlaying and Spotify is running, use Spotify controller instead
+        // NowPlaying often reports incorrect time (0.0s) for Spotify playback
+        if controllerType == .nowPlaying && spotifyRunning {
+            print("⚠️ [MusicManager] Spotify detected - using SpotifyController for accurate timing")
+            controllerType = .spotify
+        }
 
         if let controller = createController(for: controllerType) {
             setActiveController(controller)
@@ -463,13 +473,12 @@ class MusicManager: ObservableObject {
             }
             self.artworkData = state.artwork
 
-            if artworkChanged || state.artwork == nil {
-                // Update last artwork change values
-                self.lastArtworkTitle = state.title
-                self.lastArtworkArtist = state.artist
-                self.lastArtworkAlbum = state.album
-                self.lastArtworkBundleIdentifier = state.bundleIdentifier
-            }
+            // CRITICAL FIX: Always update metadata cache when content changes, not just when artwork changes
+            // This ensures subsequent track changes are properly detected even if artwork is the same
+            self.lastArtworkTitle = state.title
+            self.lastArtworkArtist = state.artist
+            self.lastArtworkAlbum = state.album
+            self.lastArtworkBundleIdentifier = state.bundleIdentifier
 
             // Only update sneak peek if there's actual content and something changed
             if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
@@ -483,18 +492,27 @@ class MusicManager: ObservableObject {
         let shuffleChanged = state.isShuffled != self.isShuffled
         let repeatModeChanged = state.repeatMode != self.repeatMode
 
+        let trackIdentityChanged = state.title != self.songTitle || state.artist != self.artistName
+
         if state.title != self.songTitle {
+            print("🎵 [MusicManager] Track title changed: '\(self.songTitle)' → '\(state.title)'")
             self.songTitle = state.title
-            // Fetch lyrics when track changes
+        }
+
+        if state.artist != self.artistName {
+            print("🎵 [MusicManager] Artist changed: '\(self.artistName)' → '\(state.artist)'")
+            self.artistName = state.artist
+        }
+
+        // Fetch lyrics when track identity changes (title or artist)
+        if trackIdentityChanged {
+            // Clear current lyrics immediately to avoid showing stale lyrics
+            self.lyricsService.currentLyrics = nil
             if !state.title.isEmpty && !state.artist.isEmpty {
                 Task {
                     await self.lyricsService.fetchLyrics(title: state.title, artist: state.artist)
                 }
             }
-        }
-
-        if state.artist != self.artistName {
-            self.artistName = state.artist
         }
 
         if state.album != self.album {
@@ -1103,22 +1121,21 @@ class MusicManager: ObservableObject {
         withAnimation(.smooth) {
             isLyricsMode.toggle()
         }
-        
+
         if isLyricsMode {
             print("🎵 [MusicManager] Lyrics mode enabled")
-            
+
             // Force switch to Spotify controller for accurate timing
             print("🎵 [MusicManager] Switching to SpotifyController for accurate timing...")
-            let spotifyController = SpotifyController()
-            setActiveController(spotifyController)
-            
-            // Fetch lyrics for current track if available
-            if !songTitle.isEmpty && !artistName.isEmpty {
-                Task {
-                    await lyricsService.fetchLyrics(title: songTitle, artist: artistName)
-                    
-                    // Force update playback info for timing
-                    await spotifyController.updatePlaybackInfo()
+            // CRITICAL FIX: Use createController to ensure proper subscription
+            if let spotifyController = createController(for: .spotify) {
+                setActiveController(spotifyController)
+
+                // Fetch lyrics for current track if available
+                if !songTitle.isEmpty && !artistName.isEmpty {
+                    Task {
+                        await lyricsService.fetchLyrics(title: songTitle, artist: artistName)
+                    }
                 }
             }
         } else {
@@ -1133,41 +1150,43 @@ class MusicManager: ObservableObject {
         if !songTitle.isEmpty && !artistName.isEmpty {
             print("🎵 [MusicManager] Testing lyrics for: \(songTitle) by \(artistName)")
             print("🎵 [MusicManager] Current elapsed time: \(Int(elapsedTime))s")
-            
+
             // Enable lyrics mode first
             print("🎵 [MusicManager] Enabling lyrics mode...")
             isLyricsMode = true
-            
+
             // Force switch to Spotify controller for accurate timing
             print("🎵 [MusicManager] Switching to SpotifyController for accurate timing...")
-            let spotifyController = SpotifyController()
-            setActiveController(spotifyController)
-            
-            Task {
-                await lyricsService.fetchLyrics(title: songTitle, artist: artistName)
-                
-                // Update playback info after switching controller
-                await spotifyController.updatePlaybackInfo()
-                
-                await MainActor.run {
-                    print("🎵 [MusicManager] Lyrics service status - Loading: \(lyricsService.isLoading), Error: \(lyricsService.error ?? "none")")
-                    if let lyrics = lyricsService.currentLyrics {
-                        print("🎵 [MusicManager] Found \(lyrics.lines.count) lines of lyrics (Synced: \(lyrics.isTimedLyrics))")
-                        print("🎵 [MusicManager] First few lines with timing:")
-                        for (index, line) in lyrics.lines.prefix(5).enumerated() {
-                            print("🎵 [MusicManager] Line \(index + 1): [\(line.startTime)s-\(line.endTime)s] \(line.text)")
-                        }
-                        
-                        // Test current line lookup
-                        if let currentLine = lyricsService.getCurrentLine(at: elapsedTime) {
-                            print("🎵 [MusicManager] Current line at \(Int(elapsedTime))s: \(currentLine.text)")
+            // CRITICAL FIX: Use createController to ensure proper subscription
+            if let spotifyController = createController(for: .spotify) as? SpotifyController {
+                setActiveController(spotifyController)
+
+                Task {
+                    await lyricsService.fetchLyrics(title: songTitle, artist: artistName)
+
+                    // Update playback info after switching controller
+                    await spotifyController.updatePlaybackInfo()
+
+                    await MainActor.run {
+                        print("🎵 [MusicManager] Lyrics service status - Loading: \(lyricsService.isLoading), Error: \(lyricsService.error ?? "none")")
+                        if let lyrics = lyricsService.currentLyrics {
+                            print("🎵 [MusicManager] Found \(lyrics.lines.count) lines of lyrics (Synced: \(lyrics.isTimedLyrics))")
+                            print("🎵 [MusicManager] First few lines with timing:")
+                            for (index, line) in lyrics.lines.prefix(5).enumerated() {
+                                print("🎵 [MusicManager] Line \(index + 1): [\(line.startTime)s-\(line.endTime)s] \(line.text)")
+                            }
+
+                            // Test current line lookup
+                            if let currentLine = lyricsService.getCurrentLine(at: elapsedTime) {
+                                print("🎵 [MusicManager] Current line at \(Int(elapsedTime))s: \(currentLine.text)")
+                            } else {
+                                print("🎵 [MusicManager] No current line found at \(Int(elapsedTime))s")
+                            }
+
+                            print("🎵 [MusicManager] Updated elapsed time after controller switch: \(Int(elapsedTime))s")
                         } else {
-                            print("🎵 [MusicManager] No current line found at \(Int(elapsedTime))s")
+                            print("🎵 [MusicManager] No lyrics found")
                         }
-                        
-                        print("🎵 [MusicManager] Updated elapsed time after controller switch: \(Int(elapsedTime))s")
-                    } else {
-                        print("🎵 [MusicManager] No lyrics found")
                     }
                 }
             }
