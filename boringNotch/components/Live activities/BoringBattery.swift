@@ -11,8 +11,6 @@ struct BatteryView: View {
     var batteryWidth: CGFloat = 26
     var isForNotification: Bool
 
-    var animationStyle: BoringAnimations = BoringAnimations()
-
     var icon: String = "battery.0"
 
     /// Determines the icon to display when charging.
