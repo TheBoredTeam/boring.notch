@@ -306,14 +306,17 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-            Defaults.Toggle(key: .extendHoverArea) {
-                Text("Extend hover area")
+            Defaults.Toggle(key: .showOnLockScreen) {
+                Text("Show notch on lock screen")
+            }
+            Defaults.Toggle(key: .openNotchOnHover) {
+                Text("Open notch on hover")
             }
             Defaults.Toggle(key: .enableHaptics) {
                 Text("Enable haptics")
             }
-            Defaults.Toggle(key: .openNotchOnHover) {
-                Text("Open notch on hover")
+            Defaults.Toggle(key: .extendHoverArea) {
+                Text("Extend hover area")
             }
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {

@@ -16517,6 +16517,9 @@
         }
       }
     },
+    "Show notch on lock screen" : {
+
+    },
     "Show on a specific display" : {
       "localizations" : {
         "ar" : {
