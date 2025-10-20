@@ -65,6 +65,8 @@ extension Defaults.Keys {
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
+    static let enableScreenRecordingDetection = Key<Bool>("enableScreenRecordingDetection", default: true)
+    static let showRecordingIndicator = Key<Bool>("showRecordingIndicator", default: true)
     
         // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)

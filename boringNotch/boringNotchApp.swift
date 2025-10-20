@@ -72,6 +72,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var closeNotchWorkItem: DispatchWorkItem?
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
+    private var cancellables = Set<AnyCancellable>()
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -80,6 +81,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         NotificationCenter.default.removeObserver(self)
         MusicManager.shared.destroy()
+        ScreenRecordingManager.shared.stopMonitoring()
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
         cleanupWindows()
     }
 
@@ -153,6 +157,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
 
         coordinator.setupWorkersNotificationObservers()
+
+        if Defaults[.enableScreenRecordingDetection] {
+            ScreenRecordingManager.shared.startMonitoring()
+        }
+
+        Defaults.publisher(.enableScreenRecordingDetection, options: []).sink { _ in
+            if Defaults[.enableScreenRecordingDetection] {
+                ScreenRecordingManager.shared.startMonitoring()
+            } else {
+                ScreenRecordingManager.shared.stopMonitoring()
+            }
+        }.store(in: &cancellables)
 
         NotificationCenter.default.addObserver(
             self,

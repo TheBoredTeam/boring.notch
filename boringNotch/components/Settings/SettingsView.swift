@@ -131,6 +131,7 @@ struct GeneralSettings: View {
     @State private var screens: [String] = NSScreen.screens.compactMap { $0.localizedName }
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var recordingManager = ScreenRecordingManager.shared
 
     @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
@@ -144,6 +145,8 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    @Default(.enableScreenRecordingDetection) var enableScreenRecordingDetection
+    @Default(.showRecordingIndicator) var showRecordingIndicator
 
     var body: some View {
         Form {
@@ -174,6 +177,35 @@ struct GeneralSettings: View {
                     .disabled(showOnAllDisplays)
             } header: {
                 Text("System features")
+            }
+
+            Section {
+                Defaults.Toggle("Enable Screen Recording Detection", key: .enableScreenRecordingDetection)
+                Defaults.Toggle("Show Recording Indicator", key: .showRecordingIndicator)
+                    .disabled(!enableScreenRecordingDetection)
+
+                if recordingManager.isMonitoring {
+                    HStack {
+                        Text("Detection Status")
+                        Spacer()
+                        if recordingManager.isRecording {
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 8, height: 8)
+                                Text("Recording Detected")
+                                    .foregroundColor(.red)
+                            }
+                        } else {
+                            Text("Active - No Recording")
+                                .foregroundColor(.green)
+                        }
+                    }
+                }
+            } header: {
+                Text("Screen Recording Detection")
+            } footer: {
+                Text("Uses event-driven private APIs for real-time screen recording detection.")
             }
 
             Section {
