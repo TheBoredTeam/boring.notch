@@ -149,7 +149,6 @@ struct AlbumArtView: View {
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
                 .transition(.scale.combined(with: .opacity))
-                .animation(.interpolatingSpring(stiffness: 400, damping: 18).delay(0.12), value: vm.notchState)
                 .zIndex(2)
         }
     }
@@ -286,7 +285,6 @@ struct NotchHomeView: View {
         }
         // simplified: use a straightforward opacity transition
         .transition(.opacity)
-        .animation(.easeInOut(duration: 0.22), value: coordinator.firstLaunch)
     }
 
     private var shouldShowCamera: Bool {
@@ -316,11 +314,9 @@ struct NotchHomeView: View {
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
-                    .animation(.easeInOut(duration: 0.25), value: vm.notchState)
             }
         }
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
-        .animation(.easeInOut(duration: 0.22), value: vm.notchState)
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
 }

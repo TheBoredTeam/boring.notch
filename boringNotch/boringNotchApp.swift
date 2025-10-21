@@ -262,7 +262,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                     let task = Task { [weak viewModel] in
                         do {
-                            try await Task.sleep(nanoseconds: 3_000_000_000)
+                            try await Task.sleep(for: .seconds(3))
                             await MainActor.run {
                                 viewModel?.close()
                             }
