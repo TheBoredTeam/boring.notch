@@ -35,7 +35,7 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.useModernCloseAnimation) var useModernCloseAnimation
-
+    @Default(.selectedMood) private var selectedMood
     var body: some View {
         ZStack(alignment: .top) {
             let mainLayout = NotchLayout()
@@ -143,6 +143,14 @@ struct ContentView: View {
                     Button("Settings") {
                         SettingsWindowController.shared.showWindow()
                     }
+                    Divider()
+                    Menu("Face mood") {
+                                            ForEach(Mood.allCases, id: \.self) { mood in
+                                                Button(mood.rawValue.capitalized) {
+                                                    selectedMood = mood
+                                                }
+                                            }
+                                        }
                     .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
 //                    Button("Edit") { // Doesnt work....
 //                        let dn = DynamicNotch(content: EditPanelView())
