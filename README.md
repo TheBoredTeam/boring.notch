@@ -15,9 +15,52 @@
   </a>
 </p>
 
+> **⚠️ This is a personal fork with experimental features**
+>
+> This repository is based on the amazing work by [TheBoredTeam](https://github.com/TheBoredTeam/boring.notch). All credit for the original Boring Notch application goes to them.
+>
+> **Custom Features Added in This Fork:**
+> 1. **Real-time Scrolling Lyrics** - Live synchronized lyrics display in the notch area with automatic timing
+> 2. **Multiple Lyrics Display Modes:**
+>    - **Flowing Mode** - Current line on left, next line on right (classic side-by-side)
+>    - **Alternating Mode** - Lyrics alternate between left and right sides as they progress
+>    - **Stacked Mode** - Adaptive layout:
+>      - On displays WITH notch: 2x2 grid showing 4 lines (current + next highlighted, upcoming + further dimmed)
+>      - On displays WITHOUT notch: Centered vertical stack with 2 lines
+> 3. **Per-Display Lyrics Configuration** - Set independent lyrics modes for each connected monitor
+> 4. **Automatic Display Detection** - Detects notch presence and adapts layout automatically
+> 5. **User-Configurable Lyrics Timing Offset** - Fine-tune lyrics synchronization with +/- time adjustments
+> 6. **Enhanced Lyrics UI** - Gradient effects, improved typography, seamless notch extension design
+> 7. **Fixed Hover Detection** - Proper hover behavior for notch opening when lyrics mode is active
+> 8. **Improved Music Playback Tracking** - Better song change detection and state management
+>
+> These features are experimental and developed for personal use. For the official, stable version, please visit the [original repository](https://github.com/TheBoredTeam/boring.notch).
+
+### 📸 Custom Features Screenshots
+
+#### Per-Display Lyrics Configuration
+<img width="696" alt="Per-Display Settings" src="https://github.com/user-attachments/assets/38a52830-6a5f-41d0-8e82-68c49433c0c9" />
+
+#### Lyrics Display Modes in Action
+<img width="1798" alt="Lyrics Modes Overview" src="https://github.com/user-attachments/assets/8e4b0c53-4f18-48bb-8efd-563f28ef3c37" />
+
+#### Flowing Mode (Side-by-Side)
+<img width="1172" alt="Flowing Mode Lyrics" src="https://github.com/user-attachments/assets/85fe4288-95c4-4318-b574-422c9d6be11e" />
+
+#### Alternating Mode
+<img width="1468" alt="Alternating Mode Lyrics" src="https://github.com/user-attachments/assets/90f03f50-0e09-46e1-8f35-b4c8bb8aab52" />
+
+#### Stacked Mode Grid Layout (2x2 on Notch Display)
+<img width="662" alt="Stacked Mode Grid" src="https://github.com/user-attachments/assets/4c73ffb1-91b5-4e47-be80-2a6ff48a5018" />
+
+#### Lyrics Feature Demo
+https://github.com/user-attachments/assets/f99843f4-af1d-4944-8359-827181271c9a
+
+---
+
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
 
-Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with AirDrop support and more!
+Say hello to **Boring Notch**, the coolest way to make your MacBook's notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that's just the start! Boring Notch also offers calendar integration, a handy file shelf with AirDrop support and more!
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo GIF" />
