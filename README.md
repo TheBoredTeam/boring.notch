@@ -38,22 +38,16 @@
 
 ### 📸 Custom Features Screenshots
 
-#### Per-Display Lyrics Configuration
 <img width="696" alt="Per-Display Settings" src="https://github.com/user-attachments/assets/38a52830-6a5f-41d0-8e82-68c49433c0c9" />
 
-#### Lyrics Display Modes in Action
 <img width="1798" alt="Lyrics Modes Overview" src="https://github.com/user-attachments/assets/8e4b0c53-4f18-48bb-8efd-563f28ef3c37" />
 
-#### Flowing Mode (Side-by-Side)
 <img width="1172" alt="Flowing Mode Lyrics" src="https://github.com/user-attachments/assets/85fe4288-95c4-4318-b574-422c9d6be11e" />
 
-#### Alternating Mode
 <img width="1468" alt="Alternating Mode Lyrics" src="https://github.com/user-attachments/assets/90f03f50-0e09-46e1-8f35-b4c8bb8aab52" />
 
-#### Stacked Mode Grid Layout (2x2 on Notch Display)
 <img width="662" alt="Stacked Mode Grid" src="https://github.com/user-attachments/assets/4c73ffb1-91b5-4e47-be80-2a6ff48a5018" />
 
-#### Lyrics Feature Demo
 https://github.com/user-attachments/assets/f99843f4-af1d-4944-8359-827181271c9a
 
 ---
