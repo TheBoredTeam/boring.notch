@@ -42,6 +42,10 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
+    // Lyrics state for active updates
+    @State private var currentLyricDisplay: String = ""
+    @State private var nextLyricDisplay: String = ""
+
     var body: some View {
         ZStack(alignment: .top) {
             // Extended notch bar with lyrics (renders as one continuous element)
@@ -565,7 +569,7 @@ struct ContentView: View {
     private func getFurtherDisplayLine() -> String? {
         guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
         let currentTime = getCurrentLyricsTime()
-        
+
         // If we have a current line, find the line after upcoming
         if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
             if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
@@ -575,13 +579,48 @@ struct ContentView: View {
                 }
             }
         }
-        
+
         // If no current line and we're early in the song, show the fourth line
         if currentTime < 10.0 && lyrics.lines.count > 3 {
             return lyrics.lines[3].text
         }
-        
+
         return nil
+    }
+
+    // Update lyrics display for real-time updates
+    private func updateLyricsDisplay() {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else {
+            currentLyricDisplay = ""
+            nextLyricDisplay = ""
+            return
+        }
+
+        let currentTime = getCurrentLyricsTime()
+
+        // Update current line
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
+            if currentLyricDisplay != currentLine.text {
+                currentLyricDisplay = currentLine.text
+            }
+        } else {
+            currentLyricDisplay = ""
+        }
+
+        // Update next line
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime),
+           let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
+            let nextIndex = currentIndex + 1
+            if nextIndex < lyrics.lines.count {
+                if nextLyricDisplay != lyrics.lines[nextIndex].text {
+                    nextLyricDisplay = lyrics.lines[nextIndex].text
+                }
+            } else {
+                nextLyricDisplay = ""
+            }
+        } else {
+            nextLyricDisplay = ""
+        }
     }
 
     func MusicLiveActivity() -> some View {
@@ -853,7 +892,7 @@ struct ContentView: View {
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 // Show current lyrics when not hovering
-                Text(getCurrentDisplayLine() ?? "♪ ♫ ♪")
+                Text(currentLyricDisplay.isEmpty ? "♪ ♫ ♪" : currentLyricDisplay)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white)
                     .opacity(0.9)
@@ -864,7 +903,10 @@ struct ContentView: View {
         .padding(.horizontal, 12)
         .frame(maxHeight: .infinity)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
-            // Trigger UI updates for real-time lyrics
+            updateLyricsDisplay()
+        }
+        .onAppear {
+            updateLyricsDisplay()
         }
     }
 
@@ -872,7 +914,7 @@ struct ContentView: View {
     func FloatingLyricsBubbleRight() -> some View {
         HStack(alignment: .center, spacing: 8) {
             // Next line (dimmed) - supports 2 lines
-            Text(getNextDisplayLine() ?? "♪ ♫ ♪")
+            Text(nextLyricDisplay.isEmpty ? "♪ ♫ ♪" : nextLyricDisplay)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.white.opacity(0.7))
                 .lineLimit(2)
@@ -887,7 +929,10 @@ struct ContentView: View {
         .padding(.horizontal, 12)
         .frame(maxHeight: .infinity)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
-            // Trigger UI updates for real-time lyrics
+            updateLyricsDisplay()
+        }
+        .onAppear {
+            updateLyricsDisplay()
         }
     }
 }

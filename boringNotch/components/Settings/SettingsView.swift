@@ -914,6 +914,7 @@ struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
+    @Default(.lyricsOffset) var lyricsOffset
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
@@ -943,6 +944,20 @@ struct Appearance: View {
                     .Toggle("Player tinting", key: .playerColorTinting)
                 Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
                 Defaults.Toggle("Enable lyrics gradient", key: .lyricsGradient)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Lyrics timing offset")
+                        Spacer()
+                        Text("\(lyricsOffset, specifier: "%.1f")s")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $lyricsOffset, in: -5.0...5.0, step: 0.1)
+                    Text("Positive delays lyrics (more time to sing), negative advances them")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
                         Text(option.rawValue)

@@ -119,6 +119,7 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let lyricsGradient = Key<Bool>("lyricsGradient", default: true)
+    static let lyricsOffset = Key<Double>("lyricsOffset", default: 0.0) // Offset in seconds (can be negative or positive)
     
         // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
