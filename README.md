@@ -72,6 +72,18 @@ open boringNotch.xcodeproj
 - macOS 14 Sonoma or later
 - Xcode 16 or later (for building from source)
 
+### 🎵 Using the Lyrics Features
+
+1. **Enable Lyrics Mode**: Press `⌘ Cmd + ⇧ Shift + Y` while music is playing
+2. **Configure Display Mode**: Open Settings → Appearance → Lyrics display mode
+3. **Per-Display Settings**: If you have multiple monitors, you can set different lyrics modes for each display
+4. **Adjust Timing**: Use the lyrics offset slider in settings to fine-tune synchronization
+
+**Supported Music Sources:**
+- Apple Music
+- Spotify
+- YouTube Music (via browser)
+
 ---
 
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
