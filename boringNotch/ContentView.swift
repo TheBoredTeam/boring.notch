@@ -42,6 +42,28 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
+    // Lyrics state for active updates
+    @State private var currentLyricDisplay: String = ""
+    @State private var nextLyricDisplay: String = ""
+    @State private var upcomingLyricDisplay: String = ""  // For stacked mode
+    @State private var furtherLyricDisplay: String = ""   // For stacked mode
+    @State private var currentLineIndex: Int = 0
+    @State private var isLeftSideActive: Bool = true // For alternating mode
+
+    // Helper to determine if current display has a notch
+    private var hasNotch: Bool {
+        let currentScreen = NSScreen.screens.first { $0.localizedName == vm.screen }
+        return (currentScreen?.safeAreaInsets.top ?? 0) > 0
+    }
+
+    // Get lyrics display mode for current screen (per-display setting with fallback to global)
+    private var currentDisplayLyricsMode: LyricsDisplayMode {
+        guard let screenName = vm.screen else {
+            return Defaults[.lyricsDisplayMode]
+        }
+        return Defaults[.perDisplayLyricsMode][screenName] ?? Defaults[.lyricsDisplayMode]
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             // Extended notch bar with lyrics (renders as one continuous element)
@@ -78,28 +100,73 @@ struct ContentView: View {
                         .frame(height: vm.effectiveClosedNotchHeight + 20)
 
                         // Lyrics content overlaid on top
-                        HStack(spacing: 0) {
-                            // Left lyrics bubble
-                            FloatingLyricsBubble()
-                                .transition(.move(edge: .leading).combined(with: .opacity))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .onHover { hovering in
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        isHovering = hovering
+                        Group {
+                            if currentDisplayLyricsMode == .stacked {
+                                // Stacked mode: layout depends on whether display has notch
+                                if !hasNotch {
+                                    // No notch: single column vertical stack (full width)
+                                    VStack(spacing: 4) {
+                                        // Next line on top (dimmed)
+                                        FloatingLyricsBubbleStackedSingle(isNext: true)
+                                            .transition(.move(edge: .top).combined(with: .opacity))
+
+                                        // Current line on bottom (highlighted)
+                                        FloatingLyricsBubbleStackedSingle(isNext: false)
+                                            .transition(.move(edge: .bottom).combined(with: .opacity))
                                     }
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .padding(.horizontal, 16)
+                                } else {
+                                    // Has notch: 2x2 grid layout
+                                    VStack(spacing: 3) {
+                                        // Top row (current + next) - highlighted
+                                        HStack(spacing: 0) {
+                                            FloatingLyricsBubbleStackedGrid(line: currentLyricDisplay, isHighlighted: true)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                                            Spacer()
+                                                .frame(width: vm.closedNotchSize.width + (cornerRadiusInsets.closed.bottom * 2))
+
+                                            FloatingLyricsBubbleStackedGrid(line: nextLyricDisplay, isHighlighted: true)
+                                                .frame(maxWidth: .infinity, alignment: .trailing)
+                                        }
+
+                                        // Bottom row (upcoming + further) - dimmed
+                                        HStack(spacing: 0) {
+                                            FloatingLyricsBubbleStackedGrid(line: upcomingLyricDisplay, isHighlighted: false)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                                            Spacer()
+                                                .frame(width: vm.closedNotchSize.width + (cornerRadiusInsets.closed.bottom * 2))
+
+                                            FloatingLyricsBubbleStackedGrid(line: furtherLyricDisplay, isHighlighted: false)
+                                                .frame(maxWidth: .infinity, alignment: .trailing)
+                                        }
+                                    }
+                                    .frame(height: vm.effectiveClosedNotchHeight)
+                                    .offset(y: 20 / 2)
                                 }
+                            } else {
+                                // Flowing or Alternating mode: horizontal layout
+                                HStack(spacing: 0) {
+                                    // Left lyrics bubble
+                                    FloatingLyricsBubble()
+                                        .transition(.move(edge: .leading).combined(with: .opacity))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                            // Center notch spacing
-                            Spacer()
-                                .frame(width: vm.closedNotchSize.width + (cornerRadiusInsets.closed.bottom * 2))
+                                    // Center notch spacing
+                                    Spacer()
+                                        .frame(width: vm.closedNotchSize.width + (cornerRadiusInsets.closed.bottom * 2))
 
-                            // Right lyrics bubble
-                            FloatingLyricsBubbleRight()
-                                .transition(.move(edge: .trailing).combined(with: .opacity))
-                                .frame(maxWidth: .infinity, alignment: .trailing)
+                                    // Right lyrics bubble
+                                    FloatingLyricsBubbleRight()
+                                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                                        .frame(maxWidth: .infinity, alignment: .trailing)
+                                }
+                                .frame(height: vm.effectiveClosedNotchHeight)
+                                .offset(y: 20 / 2)  // Offset to align with gradient bar, not top fill
+                            }
                         }
-                        .frame(height: vm.effectiveClosedNotchHeight)
-                        .offset(y: 20 / 2)  // Offset to align with gradient bar, not top fill
                     }
                 }
                 .frame(height: vm.effectiveClosedNotchHeight + 20)
@@ -113,6 +180,23 @@ struct ContentView: View {
                 )
                 .offset(y: -20)  // Pull up by top fill height to connect to screen edge
                 .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 2)
+                .onHover { hovering in
+                    if Defaults[.openNotchOnHover] {
+                        handleHover(hovering)
+                    } else {
+                        if (vm.notchState == .closed) && Defaults[.enableHaptics] {
+                            haptics.toggle()
+                        }
+
+                        withAnimation(vm.animation) {
+                            isHovering = hovering
+                        }
+
+                        if !hovering && vm.notchState == .open {
+                            vm.close()
+                        }
+                    }
+                }
             }
 
             let mainLayout = NotchLayout()
@@ -565,7 +649,7 @@ struct ContentView: View {
     private func getFurtherDisplayLine() -> String? {
         guard let lyrics = musicManager.lyricsService.currentLyrics else { return nil }
         let currentTime = getCurrentLyricsTime()
-        
+
         // If we have a current line, find the line after upcoming
         if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime) {
             if let currentIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
@@ -575,13 +659,84 @@ struct ContentView: View {
                 }
             }
         }
-        
+
         // If no current line and we're early in the song, show the fourth line
         if currentTime < 10.0 && lyrics.lines.count > 3 {
             return lyrics.lines[3].text
         }
-        
+
         return nil
+    }
+
+    // Update lyrics display for real-time updates
+    private func updateLyricsDisplay() {
+        guard let lyrics = musicManager.lyricsService.currentLyrics else {
+            currentLyricDisplay = ""
+            nextLyricDisplay = ""
+            upcomingLyricDisplay = ""
+            furtherLyricDisplay = ""
+            currentLineIndex = 0
+            return
+        }
+
+        let currentTime = getCurrentLyricsTime()
+
+        // Find current line and its index
+        if let currentLine = musicManager.lyricsService.getCurrentLine(at: currentTime),
+           let foundIndex = lyrics.lines.firstIndex(where: { $0.text == currentLine.text && $0.startTime == currentLine.startTime }) {
+
+            // Check if we've moved to a new line
+            let lineChanged = foundIndex != currentLineIndex
+
+            if lineChanged {
+                currentLineIndex = foundIndex
+
+                // Toggle active side for alternating mode
+                if currentDisplayLyricsMode == .alternating {
+                    isLeftSideActive.toggle()
+                }
+            }
+
+            // Update display text
+            if currentLyricDisplay != currentLine.text {
+                currentLyricDisplay = currentLine.text
+            }
+
+            // Update next line
+            let nextIndex = foundIndex + 1
+            if nextIndex < lyrics.lines.count {
+                if nextLyricDisplay != lyrics.lines[nextIndex].text {
+                    nextLyricDisplay = lyrics.lines[nextIndex].text
+                }
+            } else {
+                nextLyricDisplay = ""
+            }
+
+            // Update upcoming line (for stacked mode)
+            let upcomingIndex = foundIndex + 2
+            if upcomingIndex < lyrics.lines.count {
+                if upcomingLyricDisplay != lyrics.lines[upcomingIndex].text {
+                    upcomingLyricDisplay = lyrics.lines[upcomingIndex].text
+                }
+            } else {
+                upcomingLyricDisplay = ""
+            }
+
+            // Update further line (for stacked mode)
+            let furtherIndex = foundIndex + 3
+            if furtherIndex < lyrics.lines.count {
+                if furtherLyricDisplay != lyrics.lines[furtherIndex].text {
+                    furtherLyricDisplay = lyrics.lines[furtherIndex].text
+                }
+            } else {
+                furtherLyricDisplay = ""
+            }
+        } else {
+            currentLyricDisplay = ""
+            nextLyricDisplay = ""
+            upcomingLyricDisplay = ""
+            furtherLyricDisplay = ""
+        }
     }
 
     func MusicLiveActivity() -> some View {
@@ -836,6 +991,10 @@ struct ContentView: View {
 
     @ViewBuilder
     func FloatingLyricsBubble() -> some View {
+        let displayMode = currentDisplayLyricsMode
+        let isFlowing = displayMode == .flowing
+        let isAlternating = displayMode == .alternating
+
         HStack(alignment: .center, spacing: 8) {
             // Music icon
             Image(systemName: "music.note")
@@ -852,31 +1011,78 @@ struct ContentView: View {
                     .lineLimit(1)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                // Show current lyrics when not hovering
-                Text(getCurrentDisplayLine() ?? "♪ ♫ ♪")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white)
-                    .opacity(0.9)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
+                // Show lyrics based on mode
+                if isFlowing {
+                    // Flowing mode: always show current line on left
+                    Text(currentLyricDisplay.isEmpty ? "♪ ♫ ♪" : currentLyricDisplay)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                        .opacity(0.9)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if isAlternating {
+                    // Alternating mode: show current if left is active, next if not
+                    if isLeftSideActive {
+                        Text(currentLyricDisplay.isEmpty ? "♪ ♫ ♪" : currentLyricDisplay)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                            .opacity(0.95)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text(nextLyricDisplay.isEmpty ? "♪ ♫ ♪" : nextLyricDisplay)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.white)
+                            .opacity(0.5)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
             }
         }
         .padding(.horizontal, 12)
         .frame(maxHeight: .infinity)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
-            // Trigger UI updates for real-time lyrics
+            updateLyricsDisplay()
+        }
+        .onAppear {
+            updateLyricsDisplay()
         }
     }
 
     @ViewBuilder
     func FloatingLyricsBubbleRight() -> some View {
+        let displayMode = currentDisplayLyricsMode
+        let isFlowing = displayMode == .flowing
+        let isAlternating = displayMode == .alternating
+
         HStack(alignment: .center, spacing: 8) {
-            // Next line (dimmed) - supports 2 lines
-            Text(getNextDisplayLine() ?? "♪ ♫ ♪")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.white.opacity(0.7))
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
+            // Show lyrics based on mode
+            if isFlowing {
+                // Flowing mode: always show next line on right (dimmed)
+                Text(nextLyricDisplay.isEmpty ? "♪ ♫ ♪" : nextLyricDisplay)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white.opacity(0.7))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if isAlternating {
+                // Alternating mode: show current if right is active, next if not
+                if !isLeftSideActive {
+                    Text(currentLyricDisplay.isEmpty ? "♪ ♫ ♪" : currentLyricDisplay)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                        .opacity(0.95)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text(nextLyricDisplay.isEmpty ? "♪ ♫ ♪" : nextLyricDisplay)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white)
+                        .opacity(0.5)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
 
             // Music icon
             Image(systemName: "music.note")
@@ -887,7 +1093,82 @@ struct ContentView: View {
         .padding(.horizontal, 12)
         .frame(maxHeight: .infinity)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
-            // Trigger UI updates for real-time lyrics
+            updateLyricsDisplay()
+        }
+        .onAppear {
+            updateLyricsDisplay()
+        }
+    }
+
+    @ViewBuilder
+    func FloatingLyricsBubbleStackedSingle(isNext: Bool) -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            // Music icon on left
+            Image(systemName: "music.note")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white)
+                .opacity(0.7)
+
+            // Lyrics text (centered)
+            if isNext {
+                // Next line (dimmed, on top)
+                Text(nextLyricDisplay.isEmpty ? "♪ ♫ ♪" : nextLyricDisplay)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white)
+                    .opacity(0.6)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                // Current line (highlighted, on bottom)
+                Text(currentLyricDisplay.isEmpty ? "♪ ♫ ♪" : currentLyricDisplay)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                    .opacity(0.95)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+
+            // Music icon on right
+            Image(systemName: "music.note")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white)
+                .opacity(0.7)
+        }
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity)
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            updateLyricsDisplay()
+        }
+        .onAppear {
+            updateLyricsDisplay()
+        }
+    }
+
+    @ViewBuilder
+    func FloatingLyricsBubbleStackedGrid(line: String, isHighlighted: Bool) -> some View {
+        HStack(alignment: .center, spacing: 6) {
+            // Music icon
+            Image(systemName: "music.note")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.white)
+                .opacity(isHighlighted ? 0.7 : 0.5)
+
+            // Lyrics text
+            Text(line.isEmpty ? "♪ ♫ ♪" : line)
+                .font(.system(size: 11, weight: isHighlighted ? .semibold : .regular))
+                .foregroundColor(.white)
+                .opacity(isHighlighted ? 0.9 : 0.5)
+                .lineLimit(1)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 10)
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            updateLyricsDisplay()
+        }
+        .onAppear {
+            updateLyricsDisplay()
         }
     }
 }

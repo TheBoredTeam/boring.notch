@@ -914,12 +914,16 @@ struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
+    @Default(.lyricsOffset) var lyricsOffset
+    @Default(.lyricsDisplayMode) var lyricsDisplayMode
+    @Default(.perDisplayLyricsMode) var perDisplayLyricsMode
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
+    @State private var screens: [String] = NSScreen.screens.compactMap { $0.localizedName }
 
     @State private var isPresented: Bool = false
     @State private var name: String = ""
@@ -943,6 +947,65 @@ struct Appearance: View {
                     .Toggle("Player tinting", key: .playerColorTinting)
                 Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
                 Defaults.Toggle("Enable lyrics gradient", key: .lyricsGradient)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Lyrics display mode")
+                        .font(.headline)
+
+                    Picker("Default mode (all displays)", selection: $lyricsDisplayMode) {
+                        ForEach(LyricsDisplayMode.allCases) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+
+                    if screens.count > 1 {
+                        Divider()
+                        Text("Per-Display Settings")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        ForEach(screens, id: \.self) { screenName in
+                            HStack {
+                                Text(screenName)
+                                    .font(.caption)
+                                Spacer()
+                                Picker("", selection: Binding(
+                                    get: {
+                                        perDisplayLyricsMode[screenName] ?? lyricsDisplayMode
+                                    },
+                                    set: { newValue in
+                                        perDisplayLyricsMode[screenName] = newValue
+                                    }
+                                )) {
+                                    Text("Default (\(lyricsDisplayMode.rawValue))").tag(lyricsDisplayMode)
+                                    ForEach(LyricsDisplayMode.allCases) { mode in
+                                        Text(mode.rawValue).tag(mode)
+                                    }
+                                }
+                                .labelsHidden()
+                                .frame(width: 150)
+                            }
+                        }
+                    }
+
+                    Text("Vertical stacked mode automatically activates on displays without a notch")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Lyrics timing offset")
+                        Spacer()
+                        Text("\(lyricsOffset, specifier: "%.1f")s")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $lyricsOffset, in: -5.0...5.0, step: 0.1)
+                    Text("Positive delays lyrics (more time to sing), negative advances them")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
                         Text(option.rawValue)
@@ -1188,6 +1251,12 @@ struct Appearance: View {
             }
         }
         .navigationTitle("Appearance")
+        .onAppear {
+            screens = NSScreen.screens.compactMap { $0.localizedName }
+        }
+        .onChange(of: NSScreen.screens) {
+            screens = NSScreen.screens.compactMap { $0.localizedName }
+        }
     }
 
     func checkVideoInput() -> Bool {

@@ -17072,7 +17072,13 @@
         }
       }
     },
+    "Lyrics display mode" : {
+
+    },
     "Lyrics mode" : {
+
+    },
+    "Lyrics timing offset" : {
 
     },
     "Made with 🫶🏻 by not so boring not.people" : {
@@ -24123,6 +24129,9 @@
           }
         }
       }
+    },
+    "Positive delays lyrics (more time to sing), negative advances them" : {
+
     },
     "Progress bar" : {
       "localizations" : {

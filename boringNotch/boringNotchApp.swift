@@ -286,13 +286,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousScreens = NSScreen.screens
-        
-        // Automatically test lyrics debugging after 5 seconds
-        print("🚀 [AppDelegate] App initialized, will test lyrics in 5 seconds...")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            print("⏰ [AppDelegate] 5 seconds elapsed, starting lyrics test...")
-            MusicManager.shared.startAutomaticLyricsTest()
-        }
+
+        // Debug: Automatically test lyrics debugging after 5 seconds
+        // Commented out for normal use - use Cmd+Shift+Y to toggle lyrics mode manually
+        // print("🚀 [AppDelegate] App initialized, will test lyrics in 5 seconds...")
+        // DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+        //     print("⏰ [AppDelegate] 5 seconds elapsed, starting lyrics test...")
+        //     MusicManager.shared.startAutomaticLyricsTest()
+        // }
     }
 
     func playWelcomeSound() {

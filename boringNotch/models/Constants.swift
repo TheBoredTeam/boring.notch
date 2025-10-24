@@ -55,7 +55,16 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     case standard = "Default"
     case inline = "Inline"
-    
+
+    var id: String { self.rawValue }
+}
+
+// Lyrics display modes for closed notch
+enum LyricsDisplayMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case flowing = "Flowing"
+    case alternating = "Alternating"
+    case stacked = "Stacked"
+
     var id: String { self.rawValue }
 }
 
@@ -119,6 +128,9 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let lyricsGradient = Key<Bool>("lyricsGradient", default: true)
+    static let lyricsOffset = Key<Double>("lyricsOffset", default: 0.0) // Offset in seconds (can be negative or positive)
+    static let lyricsDisplayMode = Key<LyricsDisplayMode>("lyricsDisplayMode", default: .flowing)
+    static let perDisplayLyricsMode = Key<[String: LyricsDisplayMode]>("perDisplayLyricsMode", default: [:])
     
         // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
