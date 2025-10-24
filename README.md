@@ -54,7 +54,13 @@ https://github.com/user-attachments/assets/f99843f4-af1d-4944-8359-827181271c9a
 
 To use this version with the custom lyrics features:
 
-**Option 1: Download Pre-built Release (Recommended)**
+**Option 1: Install via Homebrew (Easiest)**
+```bash
+brew install AusafMo/boring-notch/boring-notch-lyrics --no-quarantine
+```
+The `--no-quarantine` flag bypasses the security warning since this is an unsigned build.
+
+**Option 2: Download Pre-built Release**
 1. Go to the [Releases page](https://github.com/AusafMo/boring.notch/releases)
 2. Download the latest `.dmg` file
 3. Open the `.dmg` and drag the app to Applications
@@ -66,7 +72,7 @@ To use this version with the custom lyrics features:
    - Click **"Open"** to confirm
    - You only need to do this once!
 
-**Option 2: Build from Source**
+**Option 3: Build from Source**
 ```bash
 git clone https://github.com/AusafMo/boring.notch.git
 cd boring.notch
