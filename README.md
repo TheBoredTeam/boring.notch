@@ -58,7 +58,13 @@ To use this version with the custom lyrics features:
 1. Go to the [Releases page](https://github.com/AusafMo/boring.notch/releases)
 2. Download the latest `.dmg` file
 3. Open the `.dmg` and drag the app to Applications
-4. Follow the same security steps as the original (System Settings → Privacy & Security → Open Anyway)
+4. **Important - First Launch Security:**
+   - macOS will show "boringNotch cannot be opened"
+   - Click **"Done"**
+   - Open **System Settings** → **Privacy & Security**
+   - Scroll down and click **"Open Anyway"** next to the boringNotch warning
+   - Click **"Open"** to confirm
+   - You only need to do this once!
 
 **Option 2: Build from Source**
 ```bash
