@@ -915,6 +915,7 @@ struct Appearance: View {
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
     @Default(.lyricsOffset) var lyricsOffset
+    @Default(.lyricsDisplayMode) var lyricsDisplayMode
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
@@ -944,6 +945,12 @@ struct Appearance: View {
                     .Toggle("Player tinting", key: .playerColorTinting)
                 Defaults.Toggle("Enable blur effect behind album art", key: .lightingEffect)
                 Defaults.Toggle("Enable lyrics gradient", key: .lyricsGradient)
+
+                Picker("Lyrics display mode", selection: $lyricsDisplayMode) {
+                    ForEach(LyricsDisplayMode.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
