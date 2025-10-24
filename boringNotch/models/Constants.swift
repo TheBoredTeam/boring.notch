@@ -63,6 +63,7 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
 enum LyricsDisplayMode: String, CaseIterable, Identifiable, Defaults.Serializable {
     case flowing = "Flowing"
     case alternating = "Alternating"
+    case stacked = "Stacked"
 
     var id: String { self.rawValue }
 }
@@ -129,6 +130,7 @@ extension Defaults.Keys {
     static let lyricsGradient = Key<Bool>("lyricsGradient", default: true)
     static let lyricsOffset = Key<Double>("lyricsOffset", default: 0.0) // Offset in seconds (can be negative or positive)
     static let lyricsDisplayMode = Key<LyricsDisplayMode>("lyricsDisplayMode", default: .flowing)
+    static let perDisplayLyricsMode = Key<[String: LyricsDisplayMode]>("perDisplayLyricsMode", default: [:])
     
         // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)

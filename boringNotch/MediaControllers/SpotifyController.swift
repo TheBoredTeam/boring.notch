@@ -53,8 +53,9 @@ class SpotifyController: MediaControllerProtocol {
             while !Task.isCancelled {
                 guard let self = self else { return }
 
-                // Only poll if Spotify is active and playing
-                if self.isActive() && self.playbackState.isPlaying {
+                // Always poll if Spotify is active to ensure we catch state changes
+                // The polling will update isPlaying state, which can then be used for next iteration
+                if self.isActive() {
                     await self.updatePlaybackInfo()
                 }
 
