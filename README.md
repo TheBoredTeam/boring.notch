@@ -50,6 +50,40 @@
 
 https://github.com/user-attachments/assets/f99843f4-af1d-4944-8359-827181271c9a
 
+### 🚀 Installing This Fork
+
+To use this version with the custom lyrics features:
+
+**Option 1: Download Pre-built Release (Recommended)**
+1. Go to the [Releases page](https://github.com/AusafMo/boring.notch/releases)
+2. Download the latest `.dmg` file
+3. Open the `.dmg` and drag the app to Applications
+4. Follow the same security steps as the original (System Settings → Privacy & Security → Open Anyway)
+
+**Option 2: Build from Source**
+```bash
+git clone https://github.com/AusafMo/boring.notch.git
+cd boring.notch
+open boringNotch.xcodeproj
+# Build and run in Xcode (Cmd + R)
+```
+
+**Requirements:**
+- macOS 14 Sonoma or later
+- Xcode 16 or later (for building from source)
+
+### 🎵 Using the Lyrics Features
+
+1. **Enable Lyrics Mode**: Press `⌘ Cmd + ⇧ Shift + Y` while music is playing
+2. **Configure Display Mode**: Open Settings → Appearance → Lyrics display mode
+3. **Per-Display Settings**: If you have multiple monitors, you can set different lyrics modes for each display
+4. **Adjust Timing**: Use the lyrics offset slider in settings to fine-tune synchronization
+
+**Supported Music Sources:**
+- Apple Music
+- Spotify
+- YouTube Music (via browser)
+
 ---
 
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
