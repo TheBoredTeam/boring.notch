@@ -9116,6 +9116,9 @@
         }
       }
     },
+    "Hide from screen recording" : {
+
+    },
     "Hide only when NowPlaying app is in fullscreen" : {
       "localizations" : {
         "ar" : {

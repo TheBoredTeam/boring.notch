@@ -7,6 +7,8 @@
 
 import Cocoa
 import SkyLightWindow
+import Defaults
+import Combine
 
 class BoringNotchSkyLightWindow: NSPanel {
     override init(
@@ -24,6 +26,7 @@ class BoringNotchSkyLightWindow: NSPanel {
         
         configureWindow()
         SkyLightOperator.shared.delegateWindow(self)
+        setupObservers()
     }
     
     private func configureWindow() {
@@ -43,7 +46,29 @@ class BoringNotchSkyLightWindow: NSPanel {
             .canJoinAllSpaces,
             .ignoresCycle,
         ]
+        
+        // Apply initial sharing type setting
+        updateSharingType()
     }
+    
+    private func setupObservers() {
+        // Listen for changes to the hideFromScreenRecording setting
+        Defaults.publisher(.hideFromScreenRecording)
+            .sink { [weak self] _ in
+                self?.updateSharingType()
+            }
+            .store(in: &observers)
+    }
+    
+    private func updateSharingType() {
+        if Defaults[.hideFromScreenRecording] {
+            sharingType = .none
+        } else {
+            sharingType = .readWrite
+        }
+    }
+    
+    private var observers: Set<AnyCancellable> = []
     
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
