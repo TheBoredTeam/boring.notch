@@ -4,6 +4,7 @@
 //
 //  Created by Harsh Vardhan Goswami  on 02/08/24
 //  Modified by Richard Kunkli on 24/08/2024.
+//  Actualizado por integración Plex (dos columnas) el 29/10/2025
 //
 
 import AVFoundation
@@ -20,6 +21,9 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+
+    // 🔹 ViewModel de Plex (enricher)
+    @ObservedObject private var plexVM = PlexNowPlayingViewModel.shared
 
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
@@ -111,7 +115,6 @@ struct ContentView: View {
                                 isHovering = hovering
                             }
 
-                            // Only close if mouse leaves and the notch is open
                             if !hovering && vm.notchState == .open {
                                 vm.close()
                             }
@@ -142,14 +145,11 @@ struct ContentView: View {
                     }
                 })
                 .onChange(of: vm.notchState) { _, newState in
-                    // Reset hover state when notch state changes
                     if newState == .closed && isHovering {
-                        // Only reset visually, without triggering the hover logic again
                         isHoverStateChanging = true
                         withAnimation {
                             isHovering = false
                         }
-                        // Reset the flag after the animation completes
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             isHoverStateChanging = false
                         }
@@ -168,16 +168,6 @@ struct ContentView: View {
                         SettingsWindowController.shared.showWindow()
                     }
                     .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-//                    Button("Edit") { // Doesnt work....
-//                        let dn = DynamicNotch(content: EditPanelView())
-//                        dn.toggle()
-//                    }
-//                    #if DEBUG
-//                    .disabled(false)
-//                    #else
-//                    .disabled(true)
-//                    #endif
-//                    .keyboardShortcut("E", modifiers: .command)
                 }
         }
         .padding(.bottom, 8)
@@ -247,20 +237,19 @@ struct ContentView: View {
 
                       if coordinator.sneakPeek.show {
                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] {
-                              SystemEventIndicatorModifier(eventType: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, sendEventBack: { _ in
-                                  //
-                              })
+                              SystemEventIndicatorModifier(eventType: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, sendEventBack: { _ in })
                               .padding(.bottom, 10)
                               .padding(.leading, 4)
                               .padding(.trailing, 8)
-                          }
-                          // Old sneak peek music
-                          else if coordinator.sneakPeek.type == .music {
+                          } else if coordinator.sneakPeek.type == .music {
                               if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
                                   HStack(alignment: .center) {
                                       Image(systemName: "music.note")
                                       GeometryReader { geo in
-                                          MarqueeText(.constant(musicManager.songTitle + " - " + musicManager.artistName),  textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, minDuration: 1, frameWidth: geo.size.width)
+                                          MarqueeText(.constant(musicManager.songTitle + " - " + musicManager.artistName),
+                                                      textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray,
+                                                      minDuration: 1,
+                                                      frameWidth: geo.size.width)
                                       }
                                   }
                                   .foregroundStyle(.gray)
@@ -271,8 +260,7 @@ struct ContentView: View {
                   }
               }
               .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (vm.notchState == .closed))) { view in
-                  view
-                      .fixedSize()
+                  view.fixedSize()
               }
               .zIndex(2)
 
@@ -280,7 +268,44 @@ struct ContentView: View {
                 if vm.notchState == .open {
                     switch coordinator.currentView {
                     case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        // Dentro de ContentView.swift → NotchLayout()
+                        HStack(alignment: .top, spacing: 16) {
+                            // IZQUIERDA: tu “home” de música (Now Playing)
+                            NotchHomeView(albumArtNamespace: albumArtNamespace)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            // DERECHA: facts del enricher o estado de espera
+                            Group {
+                                switch plexVM.state {
+                                case .ready:
+                                    // ✅ Ya no pasa argumentos
+                                    PlexNowPlayingFactsView()
+                                case .loading, .idle:
+                                    // Puedes mostrar el placeholder propio…
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Cargando…")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    // …o si prefieres reutilizar el mismo layout, descomenta:
+                                    // PlexNowPlayingFactsView()
+                                case .error(let message):
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text("Error")
+                                            .foregroundStyle(.secondary)
+                                        Text(message)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                            .padding(.leading, 6)   // separación extra respecto a la columna izquierda
+                            .padding(.trailing, 8)
+                            .padding(.bottom, 6)     // evita que se corte con el borde inferior del notch
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.top, 6)
+                        .padding(.bottom, 5)        // margen inferior general del módulo
+
                     case .shelf:
                         NotchShelfView()
                     }
@@ -354,7 +379,6 @@ struct ContentView: View {
                                 (coordinator.expandingView.show && Defaults[.enableSneakPeek]
                                     && Defaults[.sneakPeekStyles] == .inline) ? 1 : 0)
                             Spacer(minLength: vm.closedNotchSize.width)
-                            // Song Artist
                             Text(musicManager.artistName)
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -423,12 +447,10 @@ struct ContentView: View {
                         coordinator.currentView = .shelf
                         doOpen()
                     } else if !isTargeted {
-                        print("DROP EVENT", vm.dropEvent)
                         if vm.dropEvent {
                             vm.dropEvent = false
                             return
                         }
-
                         vm.dropEvent = false
                         vm.close()
                     }
@@ -446,36 +468,26 @@ struct ContentView: View {
 
     // MARK: - Hover Management
 
-    /// Handle hover state changes with debouncing
     private func handleHover(_ hovering: Bool) {
-        // Don't process events if we're already transitioning
         if isHoverStateChanging { return }
 
-        // Cancel any pending tasks
         hoverWorkItem?.cancel()
         hoverWorkItem = nil
         debounceWorkItem?.cancel()
         debounceWorkItem = nil
 
         if hovering {
-            // Handle mouse enter
             withAnimation(.bouncy.speed(1.2)) {
                 isHovering = true
             }
 
-            // Only provide haptic feedback if notch is closed
             if vm.notchState == .closed && Defaults[.enableHaptics] {
                 haptics.toggle()
             }
 
-            // Don't open notch if there's a sneak peek showing
-            if coordinator.sneakPeek.show {
-                return
-            }
+            if coordinator.sneakPeek.show { return }
 
-            // Delay opening the notch
             let task = DispatchWorkItem {
-                // ContentView is a struct, so we don't use weak self here
                 guard vm.notchState == .closed, isHovering else { return }
                 doOpen()
             }
@@ -486,23 +498,16 @@ struct ContentView: View {
                 execute: task
             )
         } else {
-            // Handle mouse exit with debounce to prevent flickering
             let debounce = DispatchWorkItem {
-                // ContentView is a struct, so we don't use weak self here
-
-                // Update visual state
                 withAnimation(.bouncy.speed(1.2)) {
                     isHovering = false
                 }
-
-                // Close the notch if it's open and battery popover is not active
                 if vm.notchState == .open && !vm.isBatteryPopoverActive {
                     vm.close()
                 }
             }
 
             debounceWorkItem = debounce
-            // Add a small delay to debounce rapid mouse movements
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: debounce)
         }
     }

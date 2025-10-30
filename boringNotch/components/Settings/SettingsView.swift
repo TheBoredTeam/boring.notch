@@ -63,6 +63,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
+                NavigationLink(value: "Plex") {
+                    Label("Plex (Plexamp)", systemImage: "play.circle")
+                }
                 NavigationLink(value: "Extensions") {
                     Label("Extensions", systemImage: "puzzlepiece.extension")
                 }
@@ -94,6 +97,8 @@ struct SettingsView: View {
                     Shelf()
                 case "Shortcuts":
                     Shortcuts()
+                case "Plex":
+                    ConfigView()
                 case "Extensions":
                     Extensions()
                 case "About":
