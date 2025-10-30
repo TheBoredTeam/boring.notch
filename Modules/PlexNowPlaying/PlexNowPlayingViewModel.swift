@@ -7,7 +7,7 @@ import Foundation
 import Combine
 
 /// Modelo mínimo para representar lo que está sonando.
-public struct NowPlaying: Sendable {
+public struct NowPlaying: Sendable, Equatable {
     public let artist: String
     public let album: String
     public let albumMBIDs: [String]?
@@ -18,90 +18,102 @@ public struct NowPlaying: Sendable {
     }
 }
 
+/// Estado del panel de facts.
+public enum FactsState: Sendable {
+    case idle
+    case loading(NowPlaying)
+    case loaded(NowPlaying, AlbumFacts)
+    case error(String)
+}
+
+/// ViewModel centralizado (singleton) para el módulo.
+@MainActor
 public final class PlexNowPlayingViewModel: ObservableObject {
 
-    /// Singleton para poder invocarlo desde `PlexClient`.
     public static let shared = PlexNowPlayingViewModel()
 
-    // Estado que consume la UI
-    public enum State {
-        case idle
-        case loading
-        case error(String)
-        case ready(NowPlaying, AlbumFacts)
-    }
+    // Entrada / salida
+    @Published public private(set) var state: FactsState = .idle
+    @Published public private(set) var current: NowPlaying?
 
-    @Published public private(set) var state: State = .idle
-
-    // Cliente del enricher (se inicializa leyendo la URL guardada en UserDefaults)
+    // Clientes
     private var factsClient: FactsClient
+    private var plexClient: PlexClient?
 
-    // Último NP detectado
-    private var currentNowPlaying: NowPlaying?
+    // Logs
+    private let debugLogging: Bool = true
 
-    // Identidad simple de la pista para onChange
-    public var trackIdentity: String? {
-        guard let np = currentNowPlaying else { return nil }
-        return "\(np.artist)|\(np.album)"
+    private init() {
+        // Lee URLs de UserDefaults (si no existen, usa localhost)
+        let enricherStr = UserDefaults.standard.string(forKey: "ENRICHER_URL") ?? "http://127.0.0.1:5173"
+        let enricherURL = URL(string: enricherStr) ?? URL(string: "http://127.0.0.1:5173")!
+        self.factsClient = FactsClient(apiBase: enricherURL, debugLogging: debugLogging)
     }
 
-    /// Inicializa con FactsClient apuntando a ENRICHER_URL (o `http://127.0.0.1:5173` por defecto)
-    public init() {
-        let base = URL(string: UserDefaults.standard.string(forKey: "ENRICHER_URL") ?? "http://127.0.0.1:5173")!
-        self.factsClient = FactsClient(apiBase: base, debugLogging: true)
-        print("🔧 [VM] FactsClient base=\(base.absoluteString)")
+    // MARK: - Config dinámico
+
+    /// Actualiza la base del Enricher en caliente.
+    public func updateEnricher(baseURL: URL) {
+        self.factsClient = FactsClient(apiBase: baseURL, debugLogging: debugLogging)
+        if debugLogging { print("🔧 [VM] FactsClient base=\(baseURL.absoluteString)") }
     }
 
-    // MARK: - Flujo principal
+    // MARK: - Mutaciones de reproducción
 
-    /// Setea el “Now Playing” actual y dispara un refresh
-    @MainActor
+    /// Se llama cuando PlexClient detecta una nueva pista.
     public func setNowPlaying(_ np: NowPlaying) async {
-        currentNowPlaying = np
-        let mbidsCount = np.albumMBIDs?.count ?? 0
-        print("🎯 [VM] setNowPlaying artist='\(np.artist)' album='\(np.album)' mbids=\(mbidsCount)")
+        if let cur = current, cur == np {
+            if debugLogging { print("🧷 [VM] setNowPlaying ignorado (sin cambios)") }
+            return
+        }
+        current = np
+        state = .loading(np)
         await refresh()
     }
 
-    /// Fuerza un refresh usando el `currentNowPlaying`
-    @MainActor
+    /// Forzar re-enriquecido para la pista actual (p. ej., al reanudar).
     public func refresh() async {
-        guard let np = currentNowPlaying else { return }
-        state = .loading
-        print("🧠 [VM] enrich → artist='\(np.artist)' album='\(np.album)'")
-
+        guard let np = current else {
+            state = .idle
+            return
+        }
         do {
             let facts = try await factsClient.enrich(
                 artist: np.artist,
                 album: np.album,
                 albumMBIDs: np.albumMBIDs ?? []
             )
-            print("✅ [VM] enrich OK  label=\(facts.label ?? "-")  date=\(facts.releaseDate ?? "-")  sources=\(facts.sources.count)")
-            state = .ready(np, facts)
+            state = .loaded(np, facts)
+            if debugLogging {
+                print("✅ [VM] Facts loaded for \(np.artist) — \(np.album)")
+            }
         } catch {
-            print("❌ [VM] enrich error: \(error)")
             state = .error(error.localizedDescription)
+            if debugLogging {
+                print("❌ [VM] refresh error: \(error)")
+            }
         }
     }
 
-    // MARK: - Polling de Plex
-
-    // Guarda referencia fuerte; si no, el Timer interno se invalida.
-    private var plexClient: PlexClient?
-
-    @MainActor
-    public func startPlexPolling(baseURL: URL, token: String) {
-        plexClient?.stopPolling()
-        plexClient = PlexClient(baseURL: baseURL, token: token, debugLogging: true)
-        plexClient?.startPolling(interval: 5)
-        print("▶️ [VM] startPlexPolling base=\(baseURL.absoluteString)")
+    public func clearNowPlaying() {
+        current = nil
+        state = .idle
     }
 
-    @MainActor
+    // MARK: - Control del PlexClient
+
+    public func startPlexPolling(baseURL: URL, token: String) {
+        plexClient?.stopPolling()
+        let client = PlexClient(baseURL: baseURL, token: token, debugLogging: debugLogging)
+        self.plexClient = client
+        client.startPolling() // autoajusta el intervalo según estado
+        if debugLogging { print("▶️ [VM] startPlexPolling base=\(baseURL.absoluteString)") }
+    }
+
     public func stopPlexPolling() {
         plexClient?.stopPolling()
         plexClient = nil
-        print("⏹ [VM] stopPlexPolling")
+        if debugLogging { print("⏹ [VM] stopPlexPolling") }
     }
 
     deinit {
