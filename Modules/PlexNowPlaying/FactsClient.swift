@@ -1,64 +1,54 @@
 //
 //  FactsClient.swift
-//  BoringNotch (Plex Module)
+//  boringNotch (Plex Module)
 //
 
 import Foundation
+import Defaults
 
-public struct AlbumFacts: Codable, Sendable {
-    public let releaseDate: String?
-    public let label: String?
-    public let producers: [String]
-    public let personnel: [String]
-    public let chartPeaks: [[String:String]]?
-    public let sources: [String]
-    public let wikiLang: String?
-    public let summaryMD: String
-}
+public final class FactsClient: @unchecked Sendable {
+    public static let shared = FactsClient()
+    public var debugLogging: Bool = true
+    private init() {}
 
-public final class FactsClient {
-    private let apiBase: URL
-    private let debugLogging: Bool
+    /// Obtiene información del álbum usando Discogs si está habilitado.
+    /// Devuelve `AlbumFacts?` o `nil` si no se puede obtener información.
+    public func fetchFacts(artist: String, album: String) async -> AlbumFacts? {
+        let useDiscogs = Defaults[.enableDiscogs]
+        let token = Defaults[.discogsToken].trimmingCharacters(in: .whitespacesAndNewlines)
 
-    public init(apiBase: URL, debugLogging: Bool = false) {
-        self.apiBase = apiBase
-        self.debugLogging = debugLogging
+        if debugLogging {
+            print("ℹ️ [Facts] useDiscogs=\(useDiscogs) token.isEmpty=\(token.isEmpty)")
+            print("ℹ️ [Facts] solicitando facts para: \(artist) — \(album)")
+        }
+
+        // 🔹 Si está habilitado Discogs y hay token válido
+        if useDiscogs && !token.isEmpty {
+            if debugLogging { print("➡️ [Facts] usando Discogs") }
+
+            do {
+                // El cliente ya usa Defaults, no se pasa el token manualmente
+                let maybeFacts = try await DiscogsClient.shared.fetchFacts(artist: artist, album: album)
+
+                if let facts = maybeFacts {
+                    if debugLogging {
+                        print("✅ [Facts] Discogs OK label=\(facts.label ?? "-") releaseDate=\(facts.releaseDate ?? "-")")
+                    }
+                    return facts
+                } else {
+                    if debugLogging { print("⚠️ [Facts] Discogs sin resultados") }
+                    return nil
+                }
+            } catch {
+                if debugLogging { print("❌ [Facts] Discogs error: \(error)") }
+                return nil
+            }
+        }
+
+        // 🔹 Si Discogs está deshabilitado o no hay token
+        if debugLogging {
+            print("⚠️ [Facts] Discogs deshabilitado o sin token — no se devuelve facts")
+        }
+        return nil
     }
-
-    public func enrich(artist: String, album: String, albumMBIDs: [String]) async throws -> AlbumFacts {
-        let url = apiBase.appendingPathComponent("/enrich")
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let payload = EnrichIn(artist: artist, album: album, album_mbids: albumMBIDs)
-        req.httpBody = try JSONEncoder().encode(payload)
-
-        if debugLogging {
-            print("🧠 [FactsClient] POST \(url.absoluteString)")
-            print("🧠 [FactsClient] → payload: artist=\(artist) album=\(album) mbids=\(albumMBIDs.count)")
-        }
-
-        let (data, response) = try await URLSession.shared.data(for: req)
-        let code = (response as? HTTPURLResponse)?.statusCode ?? -1
-
-        if debugLogging {
-            print("🧠 [FactsClient] ← status=\(code) bytes=\(data.count)")
-        }
-
-        guard code == 200 else {
-            throw NSError(domain: "FactsClient", code: code, userInfo: [NSLocalizedDescriptionKey: "HTTP \(code)"])
-        }
-
-        let facts = try JSONDecoder().decode(AlbumFacts.self, from: data)
-
-        if debugLogging {
-            print("🧠 [FactsClient] Decodificado: releaseDate=\(facts.releaseDate ?? "-") label=\(facts.label ?? "-") sources=\(facts.sources.count)")
-        }
-
-        return facts
-    }
-
-    private struct EnrichIn: Codable { let artist: String; let album: String; let album_mbids: [String] }
 }
-

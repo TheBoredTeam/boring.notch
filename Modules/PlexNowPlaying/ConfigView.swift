@@ -1,137 +1,152 @@
 //
 //  ConfigView.swift
-//  BoringNotch (Plex Module)
-//
-//  Configuración de PMS y Enricher con control de polling.
-//  El token se guarda en Keychain (no se expone).
+//  boringNotch (Plex Module)
 //
 
 import SwiftUI
-import Security
+import Defaults
 
 public struct ConfigView: View {
-    @AppStorage("PMS_URL") private var pmsURL: String = "http://127.0.0.1:32400"
-    @AppStorage("ENRICHER_URL") private var enricherURL: String = "http://127.0.0.1:5173"
 
-    @State private var token: String = ""
-    @State private var isPolling: Bool = false
-    @State private var statusMsg: String = ""
+    // MARK: - Defaults (ver Defaults+Discogs.swift)
+    @Default(.pmsURL)        private var pmsURL
+    @Default(.plexToken)     private var plexToken
+    @Default(.enableDiscogs) private var enableDiscogs
+    @Default(.discogsToken)  private var discogsToken
+    @Default(.enricherURL)   private var enricherURL
 
-    // 🔴 Usa SIEMPRE el singleton para que la UI vea los cambios del polling
-    @StateObject private var vm = PlexNowPlayingViewModel.shared
+    @ObservedObject private var vm = PlexNowPlayingViewModel.shared
 
     public init() {}
 
     public var body: some View {
         Form {
-            Section(header: Text("Plex Media Server")) {
-                TextField("PMS URL", text: $pmsURL)
-                    .textFieldStyle(.roundedBorder)
-
-                // Token seguro (solo en memoria y Keychain)
-                SecureField("X-Plex-Token", text: $token)
-                    .textFieldStyle(.roundedBorder)
-
-                HStack {
-                    Button("Guardar Token") {
-                        KeychainStore.shared.saveToken(token)
-                        statusMsg = "🔒 Token guardado en Keychain"
-                    }
-
-                    Button(isPolling ? "Detener Polling" : "Iniciar Polling") {
-                        Task { await togglePolling() }
-                    }
-                }
-
-                Button("Probar conexión con Plex") {
-                    Task { await probeOnce() }
-                }
-
-                if !statusMsg.isEmpty {
-                    Text(statusMsg)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .padding(.top, 4)
-                }
-            }
-
-            Section(header: Text("Enricher API")) {
-                TextField("Base URL", text: $enricherURL)
-                    .textFieldStyle(.roundedBorder)
-                Text("El Enricher se usa desde el ViewModel. Asegúrate de que está activo en \(enricherURL).")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+            plexSection
+            discogsSection
+            statusSection
         }
-        .frame(width: 420)
         .onAppear {
-            token = KeychainStore.shared.loadToken() ?? ""
+            startOrRestartPlex()
+        }
+        // Reiniciar poller cuando cambie la conexión (sin warnings deprecados)
+        .onChangeTrigger(of: pmsURL)    { startOrRestartPlex() }
+        .onChangeTrigger(of: plexToken) { startOrRestartPlex() }
+        // Reconsultar facts cuando cambie el enriquecimiento
+        .onChangeTrigger(of: enableDiscogs) { Task { await vm.forceRefresh() } }
+        .onChangeTrigger(of: discogsToken)  { Task { await vm.forceRefresh() } }
+        .onChangeTrigger(of: enricherURL)   { Task { await vm.forceRefresh() } }
+        .frame(minWidth: 520)
+    }
+
+    // MARK: - Secciones
+
+    private var plexSection: some View {
+        Section(header: Text("Plex Media Server")) {
+            TextField("PMS URL (ej. http://127.0.0.1:32400)", text: $pmsURL)
+                .textTweaksForCurrentPlatform()
+
+            SecureField("Plex Token", text: $plexToken)
+                .textTweaksForCurrentPlatform()
+
+            Button("Probar conexión / Reiniciar poller") {
+                startOrRestartPlex()
+            }
         }
     }
 
-    // MARK: - Acciones
+    private var discogsSection: some View {
+        Section(header: Text("Discogs (enriquecimiento)")) {
+            Toggle("Habilitar Discogs", isOn: $enableDiscogs)
 
-    private func togglePolling() async {
-        if isPolling {
-            await MainActor.run {
-                vm.stopPlexPolling()
-                isPolling = false
-                statusMsg = "⏹️ Polling detenido"
-            }
-        } else {
-            guard let url = URL(string: pmsURL), !token.isEmpty else {
-                statusMsg = "⚠️ Configura URL y Token antes de iniciar"
-                return
-            }
-            await MainActor.run {
-                vm.startPlexPolling(baseURL: url, token: token)
-                isPolling = true
-                statusMsg = "▶️ Polling iniciado contra \(url.absoluteString)"
+            SecureField("Discogs Token", text: $discogsToken)
+                .textTweaksForCurrentPlatform()
+
+            TextField("Enricher URL (opcional)", text: $enricherURL)
+                .textTweaksForCurrentPlatform()
+
+            Button("Refrescar datos del álbum") {
+                Task { await vm.forceRefresh() }
             }
         }
     }
 
-    private func probeOnce() async {
-        guard let url = URL(string: pmsURL), !token.isEmpty else {
-            statusMsg = "⚠️ URL o token inválidos"
-            return
+    private var statusSection: some View {
+        Section(header: Text("Estado")) {
+            HStack {
+                Text("Now Playing")
+                Spacer()
+                if let np = vm.snapshotNowPlaying {
+                    Text("\(np.artist) — \(np.album)")
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                } else {
+                    Text("—").foregroundColor(.secondary)
+                }
+            }
+
+            HStack {
+                Text("Facts")
+                Spacer()
+                Text(vm.state.label)
+                    .foregroundColor(vm.state.color)
+            }
         }
-        statusMsg = "🔄 Probando conexión…"
-        let client = PlexClient(baseURL: url, token: token, debugLogging: true)
-        await client.pollOnce()
-        statusMsg = "✅ Solicitud enviada (revisa la consola para logs)"
+    }
+
+    // MARK: - Helpers
+
+    private func startOrRestartPlex() {
+        let trimmedURL = pmsURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedTok = plexToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = URL(string: trimmedURL), !trimmedTok.isEmpty else { return }
+        PlexNowPlayingViewModel.shared.startPlexPolling(baseURL: url, token: trimmedTok)
     }
 }
 
-// MARK: - Keychain
+// MARK: - UI helpers para FactsState (enum global)
 
-public final class KeychainStore {
-    public static let shared = KeychainStore()
-    private init() {}
+private extension FactsState {
+    var label: String {
+        switch self {
+        case .idle:    return "Idle"
+        case .loading: return "Cargando"
+        case .ready:   return "Listo"
+        case .error:   return "Error"
+        }
+    }
+    var color: Color {
+        switch self {
+        case .idle:    return .secondary
+        case .loading: return .orange
+        case .ready:   return .green
+        case .error:   return .red
+        }
+    }
+}
 
-    public func saveToken(_ token: String) {
-        let data = Data(token.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: "plex_token",
-            kSecValueData as String: data
-        ]
-        SecItemDelete(query as CFDictionary)
-        SecItemAdd(query as CFDictionary, nil)
+// MARK: - Modificadores compatibles
+
+private extension View {
+    /// Aplica tweaks de texto solamente donde existen (iOS); en macOS no hace nada.
+    @ViewBuilder
+    func textTweaksForCurrentPlatform() -> some View {
+        #if os(iOS)
+        self
+            .autocapitalization(.none)
+            .disableAutocorrection(true)
+        #else
+        self
+        #endif
     }
 
-    public func loadToken() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: "plex_token",
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        if status == errSecSuccess, let data = item as? Data {
-            return String(data: data, encoding: .utf8)
+    /// Wrapper para `onChange` compatible con macOS 11+ / iOS 14+ sin warnings deprecados.
+    @ViewBuilder
+    func onChangeTrigger<T: Equatable>(of value: T, perform action: @escaping () -> Void) -> some View {
+        if #available(macOS 14.0, iOS 17.0, *) {
+            self.onChange(of: value) { _, _ in action() }
+        } else {
+            self.onChange(of: value, perform: { _ in action() })
         }
-        return nil
     }
 }

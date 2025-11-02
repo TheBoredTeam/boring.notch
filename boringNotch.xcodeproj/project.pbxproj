@@ -118,6 +118,9 @@
 		D477656D2EB299EF003D44B8 /* ConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47765652EB299EF003D44B8 /* ConfigView.swift */; };
 		D477656E2EB299EF003D44B8 /* PlexClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47765672EB299EF003D44B8 /* PlexClient.swift */; };
 		D47765702EB2B7F1003D44B8 /* PlexNowPlayingFactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D477656F2EB2B7F0003D44B8 /* PlexNowPlayingFactsView.swift */; };
+		D47765782EB42180003D44B8 /* DiscogsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47765772EB4217E003D44B8 /* DiscogsClient.swift */; };
+		D477657A2EB4296F003D44B8 /* AlbumFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47765792EB4296E003D44B8 /* AlbumFacts.swift */; };
+		D477657E2EB47EC9003D44B8 /* Defaults+Discogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D477657D2EB47EC5003D44B8 /* Defaults+Discogs.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -251,6 +254,9 @@
 		D47765682EB299EF003D44B8 /* PlexNowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexNowPlayingView.swift; sourceTree = "<group>"; };
 		D47765692EB299EF003D44B8 /* PlexNowPlayingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexNowPlayingViewModel.swift; sourceTree = "<group>"; };
 		D477656F2EB2B7F0003D44B8 /* PlexNowPlayingFactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexNowPlayingFactsView.swift; sourceTree = "<group>"; };
+		D47765772EB4217E003D44B8 /* DiscogsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscogsClient.swift; sourceTree = "<group>"; };
+		D47765792EB4296E003D44B8 /* AlbumFacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumFacts.swift; sourceTree = "<group>"; };
+		D477657D2EB47EC5003D44B8 /* Defaults+Discogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Defaults+Discogs.swift"; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -622,9 +628,26 @@
 			path = Tips;
 			sourceTree = "<group>";
 		};
+		D477657B2EB47EAF003D44B8 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				D477657C2EB47EBC003D44B8 /* Defaults */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		D477657C2EB47EBC003D44B8 /* Defaults */ = {
+			isa = PBXGroup;
+			children = (
+				D477657D2EB47EC5003D44B8 /* Defaults+Discogs.swift */,
+			);
+			path = Defaults;
+			sourceTree = "<group>";
+		};
 		D4C369552EB298040027FB96 /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				D477657B2EB47EAF003D44B8 /* Core */,
 				D4FD75192EB298C900D96F97 /* PlexNowPlaying */,
 			);
 			path = Modules;
@@ -633,6 +656,8 @@
 		D4FD75192EB298C900D96F97 /* PlexNowPlaying */ = {
 			isa = PBXGroup;
 			children = (
+				D47765792EB4296E003D44B8 /* AlbumFacts.swift */,
+				D47765772EB4217E003D44B8 /* DiscogsClient.swift */,
 				D477656F2EB2B7F0003D44B8 /* PlexNowPlayingFactsView.swift */,
 				D47765652EB299EF003D44B8 /* ConfigView.swift */,
 				D47765662EB299EF003D44B8 /* FactsClient.swift */,
@@ -775,6 +800,7 @@
 				B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */,
 				9A987A072C73CA66005CA465 /* Ext+NSImage.swift in Sources */,
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
+				D477657E2EB47EC9003D44B8 /* Defaults+Discogs.swift in Sources */,
 				9A987A052C73CA66005CA465 /* Ext+FileProvider.swift in Sources */,
 				14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */,
 				1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */,
@@ -798,6 +824,7 @@
 				1153BD912D986DB300979FB0 /* PlaybackState.swift in Sources */,
 				B1A78C822C8BA08100BD51B0 /* FullscreenMediaDetection.swift in Sources */,
 				14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */,
+				D477657A2EB4296F003D44B8 /* AlbumFacts.swift in Sources */,
 				14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */,
 				14D570BC2C5E98EB0011E668 /* generic.swift in Sources */,
 				B1CE8CFE2C6F659400DD9871 /* KeyboardShortcutsHelper.swift in Sources */,
@@ -833,6 +860,7 @@
 				1153BD982D9881F900979FB0 /* AppleScriptHelper.swift in Sources */,
 				11CFC6612E097F6800748C80 /* PermissionsRequestView.swift in Sources */,
 				14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */,
+				D47765782EB42180003D44B8 /* DiscogsClient.swift in Sources */,
 				14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */,
 				149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */,
 				14288E0C2C6F8EC000B9F80C /* AppIcons.swift in Sources */,

@@ -1,35 +1,35 @@
 //
 //  PlexClient.swift
-//  BoringNotch (Plex Module)
-//
-//  Consulta `/:/status/sessions` del PMS y actualiza el VM.
-//  - Polling autoajustable por estado (playing/paused/idle)
-//  - Solo refresca en cambio de canción o al reanudar playback
-//  - Extrae MBIDs desde GUIDs de Plex
+//  boringNotch (Plex Module)
 //
 
 import Foundation
 
+// Snapshot mínimo de lo que está sonando
+public struct NowPlaying: Sendable, Equatable {
+    public let artist: String
+    public let album: String
+    public let albumMBIDs: [String]?
+    public init(artist: String, album: String, albumMBIDs: [String]? = nil) {
+        self.artist = artist
+        self.album = album
+        self.albumMBIDs = albumMBIDs
+    }
+}
+
 public final class PlexClient: NSObject {
     public let baseURL: URL
     public let token: String
-
     private var pollTimer: Timer?
-    private let debugLogging: Bool
 
-    // Estado previo para detectar cambios/resume
-    private var lastSignature: String?
-    private var lastIsPlaying: Bool?
+    /// Cuando cambia la canción o cambia pausa⟷play.
+    /// (artist, album, isPaused)
+    public var onNowPlayingChange: ((NowPlaying?, Bool) -> Void)?
 
-    // Intervalos de polling por estado
-    private struct Intervals {
-        static let playing: TimeInterval = 3.0   // rápido
-        static let paused:  TimeInterval = 6.0   // medio
-        static let idle:    TimeInterval = 12.0  // lento
-    }
-    private var currentInterval: TimeInterval = Intervals.idle
+    /// Activa logs detallados
+    public var debugLogging: Bool = true
 
-    public init(baseURL: URL, token: String, debugLogging: Bool = false) {
+    public init(baseURL: URL, token: String, debugLogging: Bool = true) {
         self.baseURL = baseURL
         self.token = token
         self.debugLogging = debugLogging
@@ -38,39 +38,26 @@ public final class PlexClient: NSObject {
 
     deinit { stopPolling() }
 
-    // MARK: - Control de polling
+    // MARK: - Poll
 
-    public func startPolling() {
-        scheduleTimer(interval: currentInterval)
-        Task { await pollOnce() } // primer tick inmediato
-    }
-
-    public func stopPolling() {
-        pollTimer?.invalidate()
-        pollTimer = nil
-        lastSignature = nil
-        lastIsPlaying = nil
-    }
-
-    private func scheduleTimer(interval: TimeInterval) {
-        pollTimer?.invalidate()
-        currentInterval = interval
+    public func startPolling(interval: TimeInterval = 5.0) {
+        stopPolling()
+        if debugLogging { print("🛰️ [PlexClient] startPolling interval=\(interval)s  host=\(baseURL.host ?? "?")") }
         DispatchQueue.main.async {
             self.pollTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
                 Task { await self?.pollOnce() }
             }
-            self.pollTimer?.tolerance = interval * 0.2
-            if let t = self.pollTimer {
-                RunLoop.main.add(t, forMode: .common)
-            }
-            if self.debugLogging {
-                print("⏱️ [PlexClient] Timer interval=\(String(format: "%.1f", interval))s")
-            }
         }
+        Task { await pollOnce() }
     }
 
-    // MARK: - Lectura de sesiones
+    public func stopPolling() {
+        if debugLogging { print("🛰️ [PlexClient] stopPolling()") }
+        pollTimer?.invalidate()
+        pollTimer = nil
+    }
 
+    /// Un tick “manual” (útil desde forceRefresh del VM).
     public func pollOnce() async {
         guard var comps = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else { return }
         comps.path = "/status/sessions"
@@ -81,237 +68,107 @@ public final class PlexClient: NSObject {
         req.httpMethod = "GET"
         req.setValue("application/xml", forHTTPHeaderField: "Accept")
 
-        if debugLogging {
-            print("🛰️ [PlexClient] GET \(baseURL.host ?? ""):/status/sessions  token=\(mask(token))")
-        }
+        if debugLogging { print("🛰️ [PlexClient] GET \(url.absoluteString)") }
 
         do {
             let (data, response) = try await URLSession.shared.data(for: req)
             let code = (response as? HTTPURLResponse)?.statusCode ?? -1
-            guard code == 200 else {
-                if debugLogging { print("❌ [PlexClient] HTTP \(code)") }
-                return
-            }
-
-            let snap = PlexNowPlayingXML.parseSnapshot(from: data)
-
-            // Ajusta frecuencia por estado actual
-            let desiredInterval: TimeInterval
-            if let s = snap {
-                desiredInterval = s.isPlaying ? Intervals.playing : Intervals.paused
-            } else {
-                desiredInterval = Intervals.idle
-            }
-            if abs(desiredInterval - currentInterval) > 0.1 {
-                scheduleTimer(interval: desiredInterval)
-            }
-
-            // Sin sesión → no toques el VM
-            guard let s = snap else {
-                if debugLogging { print("ℹ️ [PlexClient] Sin sesión activa.") }
-                lastSignature = nil
-                lastIsPlaying = nil
-                return
-            }
-
-            // Firma única de la pista
-            let signature = "\(s.artist)|\(s.album)|\(s.title)"
-
-            let isChangeOfTrack = (lastSignature == nil) || (signature != lastSignature)
-            let resumedPlayback  = (lastIsPlaying == false && s.isPlaying == true)
 
             if debugLogging {
-                print("🎵 [PlexClient] \(s.isPlaying ? "▶️ playing" : "⏸️ paused")  \(s.artist) — \(s.album) — \(s.title)")
-                print("🧩 MBIDs=\(s.albumMBIDs)")
-                print("🔎 changeOfTrack=\(isChangeOfTrack)  resumed=\(resumedPlayback)")
+                print("🛰️ [PlexClient] ← status=\(code) bytes=\(data.count)")
+                if data.count > 0 {
+                    let preview = String(data: data.prefix(600), encoding: .utf8) ?? "<bin>"
+                    print("🛰️ [PlexClient] XML preview:\n\(preview)\n——")
+                }
             }
 
-            if isChangeOfTrack {
-                await PlexNowPlayingViewModel.shared.setNowPlaying(
-                    NowPlaying(artist: s.artist, album: s.album, albumMBIDs: s.albumMBIDs)
-                )
-            } else if resumedPlayback {
-                await PlexNowPlayingViewModel.shared.refresh()
-            }
+            guard code == 200 else { return }
 
-            lastSignature = signature
-            lastIsPlaying = s.isPlaying
+            let parsed = PlexNowPlayingXML.parseFirstPlayingTrack(from: data)
+            let isPaused = PlexNowPlayingXML.detectPaused(from: data)
+
+            if let t = parsed {
+                let np = NowPlaying(artist: t.artist, album: t.album, albumMBIDs: t.mbids)
+                if debugLogging {
+                    print("🎵 [PlexClient] nowPlaying=\(np.artist) — \(np.album)  paused=\(isPaused)")
+                }
+                onNowPlayingChange?(np, isPaused)
+            } else {
+                if debugLogging { print("⚠️ [PlexClient] No playing track") }
+                onNowPlayingChange?(nil, true)
+            }
 
         } catch {
-            if debugLogging {
-                print("❌ [PlexClient] Error request /status/sessions: \(error)")
-            }
+            if debugLogging { print("❌ [PlexClient] /status/sessions error: \(error)") }
         }
     }
 
-    // MARK: - Snapshot + XML parsing
+    // MARK: - XML parsing
 
-    private struct PlayingSnapshot {
-        let title: String
-        let artist: String
-        let album: String
-        let albumMBIDs: [String]
-        let isPlaying: Bool
-    }
+    private struct PlayingTrack { let title: String; let artist: String; let album: String; let mbids: [String]? }
 
     private enum PlexNowPlayingXML {
-        static func parseSnapshot(from data: Data) -> PlayingSnapshot? {
+        static func parseFirstPlayingTrack(from data: Data) -> PlayingTrack? {
             let delegate = SessionsParserDelegate()
             let parser = XMLParser(data: data)
             parser.delegate = delegate
             _ = parser.parse()
-            return delegate.snapshot
+            return delegate.firstPlayingTrack
+        }
+        static func detectPaused(from data: Data) -> Bool {
+            let d = SessionsParserDelegate()
+            let p = XMLParser(data: data)
+            p.delegate = d
+            _ = p.parse()
+            return d.currentTrackIsPaused
         }
 
-        /// Parser: primera pista con Player state playing/paused.
-        /// Extrae título/álbum/artista, estado `isPlaying` y MBIDs desde GUIDs.
         private final class SessionsParserDelegate: NSObject, XMLParserDelegate {
-            var snapshot: PlayingSnapshot?
+            var firstPlayingTrack: PlayingTrack?
+            var currentTrackIsPaused = true
 
             private var insideTrack = false
-            private var currentHasPlayer = false
-            private var currentIsPlaying = false
+            private var currentTrack: (title: String?, artist: String?, album: String?, mbids: [String]?) = (nil, nil, nil, nil)
+            private var currentTrackHasPlayingPlayer = false
 
-            private var currentTitle = ""
-            private var currentArtist = ""
-            private var currentAlbum = ""
-            private var currentGUIDs: [String] = []
-
-            func parser(_ parser: XMLParser,
-                        didStartElement name: String,
-                        namespaceURI: String?,
-                        qualifiedName qName: String?,
-                        attributes: [String : String] = [:]) {
-
-                if snapshot != nil { return }
-
-                switch name {
-                case "Track":
+            func parser(_ parser: XMLParser, didStartElement name: String, namespaceURI: String?, qualifiedName qName: String?, attributes: [String : String] = [:]) {
+                if firstPlayingTrack != nil { return }
+                if name == "Track" {
                     insideTrack = true
-                    currentHasPlayer = false
-                    currentIsPlaying = false
-                    currentGUIDs.removeAll()
-
-                    // Para música: grandparentTitle=artist, parentTitle=album
-                    currentTitle  = attributes["title"] ?? ""
-                    currentArtist = attributes["grandparentTitle"] ?? attributes["artist"] ?? ""
-                    currentAlbum  = attributes["parentTitle"] ?? attributes["album"] ?? ""
-
-                    if let g = attributes["guid"], !g.isEmpty {
-                        currentGUIDs.append(g)
+                    currentTrackHasPlayingPlayer = false
+                    currentTrack.title  = attributes["title"]
+                    currentTrack.artist = attributes["grandparentTitle"] ?? attributes["artist"]
+                    currentTrack.album  = attributes["parentTitle"] ?? attributes["album"]
+                    // Si Plex expone GUIDs con MBIDs en atributos/guid (puede no estar):
+                    if let guid = attributes["guid"], guid.contains("musicbrainz") {
+                        // ejemplo: "com.plexapp.agents.music:mbid://album/xxxxx?lang=en"
+                        let comps = guid.split(separator: "/").map(String.init)
+                        let last = comps.last ?? ""
+                        currentTrack.mbids = [last]
                     }
-
-                case "Guid":
-                    if insideTrack, let id = attributes["id"], !id.isEmpty {
-                        currentGUIDs.append(id)
+                } else if insideTrack && name == "Player" {
+                    if let state = attributes["state"] {
+                        if state.lowercased() == "playing" { currentTrackHasPlayingPlayer = true; currentTrackIsPaused = false }
+                        if state.lowercased() == "paused"  { currentTrackIsPaused = true }
                     }
-
-                case "Player":
-                    if insideTrack {
-                        currentHasPlayer = true
-                        if let st = attributes["state"]?.lowercased() {
-                            currentIsPlaying = (st == "playing")
-                            // Si quieres forzar Plexamp: filtra por attributes["product"] == "Plexamp"
-                        }
-                    }
-
-                default:
-                    break
                 }
             }
 
-            func parser(_ parser: XMLParser,
-                        didEndElement name: String,
-                        namespaceURI: String?,
-                        qualifiedName qName: String?) {
-
-                if snapshot != nil { return }
-
+            func parser(_ parser: XMLParser, didEndElement name: String, namespaceURI: String?, qualifiedName qName: String?) {
+                if firstPlayingTrack != nil { return }
                 if name == "Track" && insideTrack {
                     defer {
                         insideTrack = false
-                        currentHasPlayer = false
-                        currentIsPlaying = false
-                        currentTitle = ""; currentArtist = ""; currentAlbum = ""
-                        currentGUIDs.removeAll()
+                        currentTrack = (nil, nil, nil, nil)
+                        currentTrackHasPlayingPlayer = false
                     }
-
-                    guard currentHasPlayer,
-                          !currentArtist.isEmpty,
-                          !currentAlbum.isEmpty,
-                          !currentTitle.isEmpty else { return }
-
-                    let mbids = extractAlbumMBIDs(from: currentGUIDs)
-
-                    snapshot = PlayingSnapshot(
-                        title: currentTitle,
-                        artist: currentArtist,
-                        album: currentAlbum,
-                        albumMBIDs: mbids,
-                        isPlaying: currentIsPlaying
-                    )
+                    guard currentTrackHasPlayingPlayer,
+                          let artist = currentTrack.artist, !artist.isEmpty,
+                          let album  = currentTrack.album,  !album.isEmpty,
+                          let title  = currentTrack.title,  !title.isEmpty else { return }
+                    firstPlayingTrack = PlayingTrack(title: title, artist: artist, album: album, mbids: currentTrack.mbids)
                 }
-            }
-
-            // --- MBID helpers ---
-
-            private func extractAlbumMBIDs(from guids: [String]) -> [String] {
-                let uuidRegex = try! NSRegularExpression(
-                    pattern: #"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"#,
-                    options: []
-                )
-
-                struct Found: Hashable {
-                    let raw: String
-                    let uuid: String
-                    let weight: Int
-                }
-
-                var set = Set<Found>()
-
-                for g in guids {
-                    let lower = g.lowercased()
-                    guard lower.contains("mbid") || lower.contains("musicbrainz") else { continue }
-
-                    if let m = uuidRegex.firstMatch(in: g, options: [], range: NSRange(g.startIndex..., in: g)),
-                       let r = Range(m.range, in: g) {
-                        let uuid = String(g[r]).lowercased()
-                        let w: Int
-                        if lower.contains("release-group") || lower.contains("release_group") {
-                            w = 0
-                        } else if lower.contains("/album/") || lower.contains("/release/") {
-                            w = 1
-                        } else if lower.contains("/recording/") || lower.contains("/track/") {
-                            w = 2
-                        } else {
-                            w = 3
-                        }
-                        set.insert(Found(raw: g, uuid: uuid, weight: w))
-                    }
-                }
-
-                let sorted = set.sorted { a, b in
-                    if a.weight != b.weight { return a.weight < b.weight }
-                    return a.uuid < b.uuid
-                }
-
-                var seen = Set<String>()
-                var result: [String] = []
-                for f in sorted where !seen.contains(f.uuid) {
-                    seen.insert(f.uuid)
-                    result.append(f.uuid)
-                }
-                return result
             }
         }
-    }
-
-    // MARK: - Util
-
-    private func mask(_ t: String) -> String {
-        guard t.count > 6 else { return "•••" }
-        let head = t.prefix(3)
-        let tail = t.suffix(3)
-        return "\(head)••••••\(tail)"
     }
 }
