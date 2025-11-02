@@ -25,13 +25,8 @@ public struct ConfigView: View {
             discogsSection
             statusSection
         }
-        .onAppear {
-            startOrRestartPlex()
-        }
-        // Reiniciar poller cuando cambie la conexión (sin warnings deprecados)
-        .onChangeTrigger(of: pmsURL)    { startOrRestartPlex() }
-        .onChangeTrigger(of: plexToken) { startOrRestartPlex() }
-        // Reconsultar facts cuando cambie el enriquecimiento
+        // Ya no arranca el poller aquí.
+        // Solo reconsulta Facts cuando cambian los campos relevantes.
         .onChangeTrigger(of: enableDiscogs) { Task { await vm.forceRefresh() } }
         .onChangeTrigger(of: discogsToken)  { Task { await vm.forceRefresh() } }
         .onChangeTrigger(of: enricherURL)   { Task { await vm.forceRefresh() } }

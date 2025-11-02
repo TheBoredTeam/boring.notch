@@ -112,6 +112,7 @@
 		B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D365CF2C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift */; };
 		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		D420B57E2EB7D6A80043C162 /* PlexNowPlayingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D420B57D2EB7D6A70043C162 /* PlexNowPlayingContainerView.swift */; };
 		D477656A2EB299EF003D44B8 /* PlexNowPlayingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47765692EB299EF003D44B8 /* PlexNowPlayingViewModel.swift */; };
 		D477656B2EB299EF003D44B8 /* FactsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47765662EB299EF003D44B8 /* FactsClient.swift */; };
 		D477656C2EB299EF003D44B8 /* PlexNowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47765682EB299EF003D44B8 /* PlexNowPlayingView.swift */; };
@@ -248,6 +249,7 @@
 		B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareUpdater.swift; sourceTree = "<group>"; };
 		B1ECFA032C6FE58A002ACD87 /* CoreDisplay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreDisplay.framework; path = ../../../../../System/Library/Frameworks/CoreDisplay.framework; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		D420B57D2EB7D6A70043C162 /* PlexNowPlayingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexNowPlayingContainerView.swift; sourceTree = "<group>"; };
 		D47765652EB299EF003D44B8 /* ConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigView.swift; sourceTree = "<group>"; };
 		D47765662EB299EF003D44B8 /* FactsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactsClient.swift; sourceTree = "<group>"; };
 		D47765672EB299EF003D44B8 /* PlexClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexClient.swift; sourceTree = "<group>"; };
@@ -656,6 +658,7 @@
 		D4FD75192EB298C900D96F97 /* PlexNowPlaying */ = {
 			isa = PBXGroup;
 			children = (
+				D420B57D2EB7D6A70043C162 /* PlexNowPlayingContainerView.swift */,
 				D47765792EB4296E003D44B8 /* AlbumFacts.swift */,
 				D47765772EB4217E003D44B8 /* DiscogsClient.swift */,
 				D477656F2EB2B7F0003D44B8 /* PlexNowPlayingFactsView.swift */,
@@ -822,6 +825,7 @@
 				B1B112912C6A572100093D8F /* EditPanelView.swift in Sources */,
 				B1C4489B2C97376A001F0858 /* TipStore.swift in Sources */,
 				1153BD912D986DB300979FB0 /* PlaybackState.swift in Sources */,
+				D420B57E2EB7D6A80043C162 /* PlexNowPlayingContainerView.swift in Sources */,
 				B1A78C822C8BA08100BD51B0 /* FullscreenMediaDetection.swift in Sources */,
 				14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */,
 				D477657A2EB4296F003D44B8 /* AlbumFacts.swift in Sources */,
