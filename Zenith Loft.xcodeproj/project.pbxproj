@@ -6,23 +6,269 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		38DAC8A02EBC3B9E003D4707 /* ThirdPartyShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC89F2EBC3B9E003D4707 /* ThirdPartyShims.swift */; };
+		38DACA6D2EBC550E003D4707 /* LoftSettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA022EBC550E003D4707 /* LoftSettingsWindowController.swift */; };
+		38DACA6E2EBC550E003D4707 /* CalendarServiceProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA502EBC550E003D4707 /* CalendarServiceProviding.swift */; };
+		38DACA6F2EBC550E003D4707 /* LoftListItemPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA002EBC550E003D4707 /* LoftListItemPopover.swift */; };
+		38DACA702EBC550E003D4707 /* LoftMusicControllerSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9F82EBC550E003D4707 /* LoftMusicControllerSelectionView.swift */; };
+		38DACA712EBC550E003D4707 /* LoftSystemEventIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9EC2EBC550E003D4707 /* LoftSystemEventIndicator.swift */; };
+		38DACA722EBC550E003D4707 /* MediaControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA3A2EBC550E003D4707 /* MediaControllerProtocol.swift */; };
+		38DACA732EBC550E003D4707 /* LoftActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA222EBC550E003D4707 /* LoftActionBar.swift */; };
+		38DACA742EBC550E003D4707 /* BoringViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA442EBC550E003D4707 /* BoringViewModel.swift */; };
+		38DACA752EBC550E003D4707 /* LoftShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9F62EBC550E003D4707 /* LoftShelfView.swift */; };
+		38DACA762EBC550E003D4707 /* LoftDownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9E92EBC550E003D4707 /* LoftDownloadView.swift */; };
+		38DACA772EBC550E003D4707 /* LoftConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA252EBC550E003D4707 /* LoftConditionalModifier.swift */; };
+		38DACA782EBC550E003D4707 /* NowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA3B2EBC550E003D4707 /* NowPlayingController.swift */; };
+		38DACA792EBC550E003D4707 /* BoringViewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA5E2EBC550E003D4707 /* BoringViewCoordinator.swift */; };
+		38DACA7A2EBC550E003D4707 /* LoftSystemTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA182EBC550E003D4707 /* LoftSystemTiles.swift */; };
+		38DACA7B2EBC550E003D4707 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA2E2EBC550E003D4707 /* AudioPlayer.swift */; };
+		38DACA7C2EBC550E003D4707 /* LoftLottieAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9EE2EBC550E003D4707 /* LoftLottieAnimationView.swift */; };
+		38DACA7D2EBC550E003D4707 /* LoftDropItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA092EBC550E003D4707 /* LoftDropItemView.swift */; };
+		38DACA7E2EBC550E003D4707 /* StatusBarMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA3F2EBC550E003D4707 /* StatusBarMenu.swift */; };
+		38DACA7F2EBC550E003D4707 /* MusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA352EBC550E003D4707 /* MusicManager.swift */; };
+		38DACA802EBC550E003D4707 /* LoftPermissionsRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9FB2EBC550E003D4707 /* LoftPermissionsRequestView.swift */; };
+		38DACA812EBC550E003D4707 /* LoftTipStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA132EBC550E003D4707 /* LoftTipStore.swift */; };
+		38DACA822EBC550E003D4707 /* LoftBottomRoundedRectangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA192EBC550E003D4707 /* LoftBottomRoundedRectangle.swift */; };
+		38DACA832EBC550E003D4707 /* LoftKeyboardShortcutsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA272EBC550E003D4707 /* LoftKeyboardShortcutsHelper.swift */; };
+		38DACA842EBC550E003D4707 /* LoftButton+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA242EBC550E003D4707 /* LoftButton+Bouncing.swift */; };
+		38DACA852EBC550E003D4707 /* LoftWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9FD2EBC550E003D4707 /* LoftWelcomeView.swift */; };
+		38DACA862EBC550E003D4707 /* LoftWhatsNewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA1E2EBC550E003D4707 /* LoftWhatsNewView.swift */; };
+		38DACA872EBC550E003D4707 /* CalendarModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA452EBC550E003D4707 /* CalendarModel.swift */; };
+		38DACA882EBC550E003D4707 /* LoftHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9F22EBC550E003D4707 /* LoftHeader.swift */; };
+		38DACA892EBC550E003D4707 /* LoftBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9E82EBC550E003D4707 /* LoftBattery.swift */; };
+		38DACA8A2EBC550E003D4707 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA342EBC550E003D4707 /* CalendarManager.swift */; };
+		38DACA8B2EBC550E003D4707 /* Loft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA062EBC550E003D4707 /* Loft.swift */; };
+		38DACA8C2EBC550E003D4707 /* LoftAnimatedFace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA172EBC550E003D4707 /* LoftAnimatedFace.swift */; };
+		38DACA8D2EBC550E003D4707 /* LoftExt+FileProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA0A2EBC550E003D4707 /* LoftExt+FileProvider.swift */; };
+		38DACA8E2EBC550E003D4707 /* FullscreenMediaDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA4A2EBC550E003D4707 /* FullscreenMediaDetection.swift */; };
+		38DACA8F2EBC550E003D4707 /* LoftSparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9FC2EBC550E003D4707 /* LoftSparkleView.swift */; };
+		38DACA902EBC550E003D4707 /* LoftNotchWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9F32EBC550E003D4707 /* LoftNotchWindow.swift */; };
+		38DACA912EBC550E003D4707 /* LoftTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA1D2EBC550E003D4707 /* LoftTestView.swift */; };
+		38DACA922EBC550E003D4707 /* LoftDragDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA072EBC550E003D4707 /* LoftDragDropView.swift */; };
+		38DACA932EBC550E003D4707 /* boringNotchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA5D2EBC550E003D4707 /* boringNotchApp.swift */; };
+		38DACA942EBC550E003D4707 /* LoftHelloAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9E32EBC550E003D4707 /* LoftHelloAnimation.swift */; };
+		38DACA952EBC550E003D4707 /* LoftCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9E52EBC550E003D4707 /* LoftCalendar.swift */; };
+		38DACA962EBC550E003D4707 /* PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA482EBC550E003D4707 /* PlaybackState.swift */; };
+		38DACA972EBC550E003D4707 /* LoftOnboardingFinishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9F92EBC550E003D4707 /* LoftOnboardingFinishView.swift */; };
+		38DACA982EBC550E003D4707 /* LoftEditPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9FF2EBC550E003D4707 /* LoftEditPanelView.swift */; };
+		38DACA992EBC550E003D4707 /* LoftExt+NSImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA0C2EBC550E003D4707 /* LoftExt+NSImage.swift */; };
+		38DACA9A2EBC550E003D4707 /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA322EBC550E003D4707 /* BatteryActivityManager.swift */; };
+		38DACA9B2EBC550E003D4707 /* LoftDropItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA082EBC550E003D4707 /* LoftDropItem.swift */; };
+		38DACA9C2EBC550E003D4707 /* AppIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA2C2EBC550E003D4707 /* AppIcons.swift */; };
+		38DACA9D2EBC550E003D4707 /* LoftDataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA262EBC550E003D4707 /* LoftDataTypes+Extensions.swift */; };
+		38DACA9E2EBC550E003D4707 /* LoftNSImage+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA292EBC550E003D4707 /* LoftNSImage+Extensions.swift */; };
+		38DACA9F2EBC550E003D4707 /* AppleScriptHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA2D2EBC550E003D4707 /* AppleScriptHelper.swift */; };
+		38DACAA02EBC550E003D4707 /* LoftHoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA1B2EBC550E003D4707 /* LoftHoverButton.swift */; };
+		38DACAA12EBC550E003D4707 /* AppleMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA392EBC550E003D4707 /* AppleMusicController.swift */; };
+		38DACAA22EBC550E003D4707 /* CGSSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA4E2EBC550E003D4707 /* CGSSpace.swift */; };
+		38DACAA32EBC550E003D4707 /* LoftTabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA112EBC550E003D4707 /* LoftTabSelectionView.swift */; };
+		38DACAA42EBC550E003D4707 /* LoftExt+URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA0D2EBC550E003D4707 /* LoftExt+URL.swift */; };
+		38DACAA52EBC550E003D4707 /* LoftNotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9F42EBC550E003D4707 /* LoftNotchHomeView.swift */; };
+		38DACAA62EBC550E003D4707 /* LoftBundleInfos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA232EBC550E003D4707 /* LoftBundleInfos.swift */; };
+		38DACAA72EBC550E003D4707 /* LoftProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA1C2EBC550E003D4707 /* LoftProgressIndicator.swift */; };
+		38DACAA82EBC550E003D4707 /* EventModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA472EBC550E003D4707 /* EventModel.swift */; };
+		38DACAA92EBC550E003D4707 /* LoftSoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA032EBC550E003D4707 /* LoftSoftwareUpdater.swift */; };
+		38DACAAA2EBC550E003D4707 /* NotchSpaceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA362EBC550E003D4707 /* NotchSpaceManager.swift */; };
+		38DACAAB2EBC550E003D4707 /* SpotifyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA3C2EBC550E003D4707 /* SpotifyController.swift */; };
+		38DACAAC2EBC550E003D4707 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA582EBC550E003D4707 /* Logger.swift */; };
+		38DACAAD2EBC550E003D4707 /* visualizer.metal in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA412EBC550E003D4707 /* visualizer.metal */; };
+		38DACAAE2EBC550E003D4707 /* YouTubeMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA3D2EBC550E003D4707 /* YouTubeMusicController.swift */; };
+		38DACAAF2EBC550E003D4707 /* WebcamManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA372EBC550E003D4707 /* WebcamManager.swift */; };
+		38DACAB02EBC550E003D4707 /* LoftTabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA102EBC550E003D4707 /* LoftTabButton.swift */; };
+		38DACAB12EBC550E003D4707 /* LoftWebcamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA152EBC550E003D4707 /* LoftWebcamView.swift */; };
+		38DACAB22EBC550E003D4707 /* BoringBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9E72EBC550E003D4707 /* BoringBattery.swift */; };
+		38DACAB32EBC550E003D4707 /* LoftNotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9F52EBC550E003D4707 /* LoftNotchShape.swift */; };
+		38DACAB42EBC550E003D4707 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA5F2EBC550E003D4707 /* ContentView.swift */; };
+		38DACAB52EBC550E003D4707 /* BoringExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA332EBC550E003D4707 /* BoringExtensionManager.swift */; };
+		38DACAB62EBC550E003D4707 /* ShortcutConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA522EBC550E003D4707 /* ShortcutConstants.swift */; };
+		38DACAB72EBC550E003D4707 /* LoftAudioSpectrum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9EF2EBC550E003D4707 /* LoftAudioSpectrum.swift */; };
+		38DACAB82EBC550E003D4707 /* matters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA542EBC550E003D4707 /* matters.swift */; };
+		38DACAB92EBC550E003D4707 /* BatteryStatusViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA432EBC550E003D4707 /* BatteryStatusViewModel.swift */; };
+		38DACABA2EBC550E003D4707 /* LoftExtrasMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9F12EBC550E003D4707 /* LoftExtrasMenu.swift */; };
+		38DACABB2EBC550E003D4707 /* LoftSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA012EBC550E003D4707 /* LoftSettingsView.swift */; };
+		38DACABC2EBC550E003D4707 /* LoftPanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA2A2EBC550E003D4707 /* LoftPanGesture.swift */; };
+		38DACABD2EBC550E003D4707 /* LoftEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA1A2EBC550E003D4707 /* LoftEmptyState.swift */; };
+		38DACABE2EBC550E003D4707 /* LoftOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9FA2EBC550E003D4707 /* LoftOnboardingView.swift */; };
+		38DACABF2EBC550E003D4707 /* Clipboard+Content.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA2F2EBC550E003D4707 /* Clipboard+Content.swift */; };
+		38DACAC02EBC550E003D4707 /* LoftAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9E22EBC550E003D4707 /* LoftAnimations.swift */; };
+		38DACAC12EBC550E003D4707 /* constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA562EBC550E003D4707 /* constants.swift */; };
+		38DACAC22EBC550E003D4707 /* LoftAirDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA052EBC550E003D4707 /* LoftAirDrop.swift */; };
+		38DACAC32EBC550E003D4707 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA302EBC550E003D4707 /* MediaChecker.swift */; };
+		38DACAC42EBC550E003D4707 /* LoftLiveActivityModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9EA2EBC550E003D4707 /* LoftLiveActivityModifier.swift */; };
+		38DACAC52EBC550E003D4707 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA462EBC550E003D4707 /* Constants.swift */; };
+		38DACAC62EBC550E003D4707 /* Loftgeneric.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA202EBC550E003D4707 /* Loftgeneric.swift */; };
+		38DACAC72EBC550E003D4707 /* LoftExt+NSAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA0B2EBC550E003D4707 /* LoftExt+NSAlert.swift */; };
+		38DACAC82EBC550E003D4707 /* LoftMarqueeTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DAC9EB2EBC550E003D4707 /* LoftMarqueeTextView.swift */; };
+		38DACAC92EBC550E003D4707 /* LoftTrayDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA0E2EBC550E003D4707 /* LoftTrayDrop.swift */; };
+		38DACACA2EBC550E003D4707 /* LoftMouseTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DACA282EBC550E003D4707 /* LoftMouseTracker.swift */; };
+		38DACACB2EBC550E003D4707 /* MediaRemoteAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38DAC9DD2EBC550E003D4707 /* MediaRemoteAdapter.framework */; };
+		38DACACC2EBC550E003D4707 /* update-version-dropdown.yml in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9D52EBC550E003D4707 /* update-version-dropdown.yml */; };
+		38DACACD2EBC550E003D4707 /* cicd.yml in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9D12EBC550E003D4707 /* cicd.yml */; };
+		38DACACE2EBC550E003D4707 /* extract_version.py in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9CE2EBC550E003D4707 /* extract_version.py */; };
+		38DACACF2EBC550E003D4707 /* remove_beta.py in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9CF2EBC550E003D4707 /* remove_beta.py */; };
+		38DACAD02EBC550E003D4707 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA4C2EBC550E003D4707 /* Preview Assets.xcassets */; };
+		38DACAD12EBC550E003D4707 /* config.yml in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9CA2EBC550E003D4707 /* config.yml */; };
+		38DACAD22EBC550E003D4707 /* code-review.yml in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9D22EBC550E003D4707 /* code-review.yml */; };
+		38DACAD32EBC550E003D4707 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA632EBC550E003D4707 /* .gitignore */; };
+		38DACAD42EBC550E003D4707 /* devcontainer.json in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9C72EBC550E003D4707 /* devcontainer.json */; };
+		38DACAD52EBC550E003D4707 /* SECURITY.md in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA672EBC550E003D4707 /* SECURITY.md */; };
+		38DACAD62EBC550E003D4707 /* feature_request.md in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9CB2EBC550E003D4707 /* feature_request.md */; };
+		38DACAD72EBC550E003D4707 /* crowdin.yml in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA642EBC550E003D4707 /* crowdin.yml */; };
+		38DACAD82EBC550E003D4707 /* old_bug_report.md in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9CC2EBC550E003D4707 /* old_bug_report.md */; };
+		38DACAD92EBC550E003D4707 /* boring.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA5B2EBC550E003D4707 /* boring.m4a */; };
+		38DACADA2EBC550E003D4707 /* static.yml in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9D42EBC550E003D4707 /* static.yml */; };
+		38DACADB2EBC550E003D4707 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA602EBC550E003D4707 /* Info.plist */; };
+		38DACADC2EBC550E003D4707 /* FUNDING.yml in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9D72EBC550E003D4707 /* FUNDING.yml */; };
+		38DACADD2EBC550E003D4707 /* MediaRemoteAdapterTestClient in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9DE2EBC550E003D4707 /* MediaRemoteAdapterTestClient */; };
+		38DACADE2EBC550E003D4707 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA612EBC550E003D4707 /* Localizable.xcstrings */; };
+		38DACADF2EBC550E003D4707 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA662EBC550E003D4707 /* README.md */; };
+		38DACAE02EBC550E003D4707 /* generate_appcast in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9D92EBC550E003D4707 /* generate_appcast */; };
+		38DACAE12EBC550E003D4707 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA652EBC550E003D4707 /* LICENSE */; };
+		38DACAE22EBC550E003D4707 /* release.yml in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9D32EBC550E003D4707 /* release.yml */; };
+		38DACAE32EBC550E003D4707 /* mediaremote-adapter.pl in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9DC2EBC550E003D4707 /* mediaremote-adapter.pl */; };
+		38DACAE42EBC550E003D4707 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA5A2EBC550E003D4707 /* Assets.xcassets */; };
+		38DACAE52EBC550E003D4707 /* appcast.xml in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9E02EBC550E003D4707 /* appcast.xml */; };
+		38DACAE62EBC550E003D4707 /* 1-bug-report-form.yml in Resources */ = {isa = PBXBuildFile; fileRef = 38DAC9C92EBC550E003D4707 /* 1-bug-report-form.yml */; };
+		38DACAE72EBC550E003D4707 /* THIRD_PARTY_LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 38DACA682EBC550E003D4707 /* THIRD_PARTY_LICENSES */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		38DAC76B2EBC38DC003D4707 /* Zenith Loft.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Zenith Loft.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		38DAC89F2EBC3B9E003D4707 /* ThirdPartyShims.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThirdPartyShims.swift; sourceTree = "<group>"; };
+		38DAC9C72EBC550E003D4707 /* devcontainer.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = devcontainer.json; sourceTree = "<group>"; };
+		38DAC9C92EBC550E003D4707 /* 1-bug-report-form.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "1-bug-report-form.yml"; sourceTree = "<group>"; };
+		38DAC9CA2EBC550E003D4707 /* config.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = config.yml; sourceTree = "<group>"; };
+		38DAC9CB2EBC550E003D4707 /* feature_request.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = feature_request.md; sourceTree = "<group>"; };
+		38DAC9CC2EBC550E003D4707 /* old_bug_report.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = old_bug_report.md; sourceTree = "<group>"; };
+		38DAC9CE2EBC550E003D4707 /* extract_version.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = extract_version.py; sourceTree = "<group>"; };
+		38DAC9CF2EBC550E003D4707 /* remove_beta.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = remove_beta.py; sourceTree = "<group>"; };
+		38DAC9D12EBC550E003D4707 /* cicd.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = cicd.yml; sourceTree = "<group>"; };
+		38DAC9D22EBC550E003D4707 /* code-review.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "code-review.yml"; sourceTree = "<group>"; };
+		38DAC9D32EBC550E003D4707 /* release.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = release.yml; sourceTree = "<group>"; };
+		38DAC9D42EBC550E003D4707 /* static.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = static.yml; sourceTree = "<group>"; };
+		38DAC9D52EBC550E003D4707 /* update-version-dropdown.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "update-version-dropdown.yml"; sourceTree = "<group>"; };
+		38DAC9D72EBC550E003D4707 /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = FUNDING.yml; sourceTree = "<group>"; };
+		38DAC9D92EBC550E003D4707 /* generate_appcast */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = generate_appcast; sourceTree = "<group>"; };
+		38DAC9DC2EBC550E003D4707 /* mediaremote-adapter.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = "mediaremote-adapter.pl"; sourceTree = "<group>"; };
+		38DAC9DD2EBC550E003D4707 /* MediaRemoteAdapter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = MediaRemoteAdapter.framework; sourceTree = "<group>"; };
+		38DAC9DE2EBC550E003D4707 /* MediaRemoteAdapterTestClient */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = MediaRemoteAdapterTestClient; sourceTree = "<group>"; };
+		38DAC9E02EBC550E003D4707 /* appcast.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = appcast.xml; sourceTree = "<group>"; };
+		38DAC9E22EBC550E003D4707 /* LoftAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftAnimations.swift; sourceTree = "<group>"; };
+		38DAC9E32EBC550E003D4707 /* LoftHelloAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftHelloAnimation.swift; sourceTree = "<group>"; };
+		38DAC9E52EBC550E003D4707 /* LoftCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftCalendar.swift; sourceTree = "<group>"; };
+		38DAC9E72EBC550E003D4707 /* BoringBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringBattery.swift; sourceTree = "<group>"; };
+		38DAC9E82EBC550E003D4707 /* LoftBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftBattery.swift; sourceTree = "<group>"; };
+		38DAC9E92EBC550E003D4707 /* LoftDownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftDownloadView.swift; sourceTree = "<group>"; };
+		38DAC9EA2EBC550E003D4707 /* LoftLiveActivityModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftLiveActivityModifier.swift; sourceTree = "<group>"; };
+		38DAC9EB2EBC550E003D4707 /* LoftMarqueeTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftMarqueeTextView.swift; sourceTree = "<group>"; };
+		38DAC9EC2EBC550E003D4707 /* LoftSystemEventIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftSystemEventIndicator.swift; sourceTree = "<group>"; };
+		38DAC9EE2EBC550E003D4707 /* LoftLottieAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftLottieAnimationView.swift; sourceTree = "<group>"; };
+		38DAC9EF2EBC550E003D4707 /* LoftAudioSpectrum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftAudioSpectrum.swift; sourceTree = "<group>"; };
+		38DAC9F12EBC550E003D4707 /* LoftExtrasMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftExtrasMenu.swift; sourceTree = "<group>"; };
+		38DAC9F22EBC550E003D4707 /* LoftHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftHeader.swift; sourceTree = "<group>"; };
+		38DAC9F32EBC550E003D4707 /* LoftNotchWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftNotchWindow.swift; sourceTree = "<group>"; };
+		38DAC9F42EBC550E003D4707 /* LoftNotchHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftNotchHomeView.swift; sourceTree = "<group>"; };
+		38DAC9F52EBC550E003D4707 /* LoftNotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftNotchShape.swift; sourceTree = "<group>"; };
+		38DAC9F62EBC550E003D4707 /* LoftShelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftShelfView.swift; sourceTree = "<group>"; };
+		38DAC9F82EBC550E003D4707 /* LoftMusicControllerSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftMusicControllerSelectionView.swift; sourceTree = "<group>"; };
+		38DAC9F92EBC550E003D4707 /* LoftOnboardingFinishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftOnboardingFinishView.swift; sourceTree = "<group>"; };
+		38DAC9FA2EBC550E003D4707 /* LoftOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftOnboardingView.swift; sourceTree = "<group>"; };
+		38DAC9FB2EBC550E003D4707 /* LoftPermissionsRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftPermissionsRequestView.swift; sourceTree = "<group>"; };
+		38DAC9FC2EBC550E003D4707 /* LoftSparkleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftSparkleView.swift; sourceTree = "<group>"; };
+		38DAC9FD2EBC550E003D4707 /* LoftWelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftWelcomeView.swift; sourceTree = "<group>"; };
+		38DAC9FF2EBC550E003D4707 /* LoftEditPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftEditPanelView.swift; sourceTree = "<group>"; };
+		38DACA002EBC550E003D4707 /* LoftListItemPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftListItemPopover.swift; sourceTree = "<group>"; };
+		38DACA012EBC550E003D4707 /* LoftSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftSettingsView.swift; sourceTree = "<group>"; };
+		38DACA022EBC550E003D4707 /* LoftSettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftSettingsWindowController.swift; sourceTree = "<group>"; };
+		38DACA032EBC550E003D4707 /* LoftSoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftSoftwareUpdater.swift; sourceTree = "<group>"; };
+		38DACA052EBC550E003D4707 /* LoftAirDrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftAirDrop.swift; sourceTree = "<group>"; };
+		38DACA062EBC550E003D4707 /* Loft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loft.swift; sourceTree = "<group>"; };
+		38DACA072EBC550E003D4707 /* LoftDragDropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftDragDropView.swift; sourceTree = "<group>"; };
+		38DACA082EBC550E003D4707 /* LoftDropItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftDropItem.swift; sourceTree = "<group>"; };
+		38DACA092EBC550E003D4707 /* LoftDropItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftDropItemView.swift; sourceTree = "<group>"; };
+		38DACA0A2EBC550E003D4707 /* LoftExt+FileProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoftExt+FileProvider.swift"; sourceTree = "<group>"; };
+		38DACA0B2EBC550E003D4707 /* LoftExt+NSAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoftExt+NSAlert.swift"; sourceTree = "<group>"; };
+		38DACA0C2EBC550E003D4707 /* LoftExt+NSImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoftExt+NSImage.swift"; sourceTree = "<group>"; };
+		38DACA0D2EBC550E003D4707 /* LoftExt+URL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoftExt+URL.swift"; sourceTree = "<group>"; };
+		38DACA0E2EBC550E003D4707 /* LoftTrayDrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftTrayDrop.swift; sourceTree = "<group>"; };
+		38DACA102EBC550E003D4707 /* LoftTabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftTabButton.swift; sourceTree = "<group>"; };
+		38DACA112EBC550E003D4707 /* LoftTabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftTabSelectionView.swift; sourceTree = "<group>"; };
+		38DACA132EBC550E003D4707 /* LoftTipStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftTipStore.swift; sourceTree = "<group>"; };
+		38DACA152EBC550E003D4707 /* LoftWebcamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftWebcamView.swift; sourceTree = "<group>"; };
+		38DACA172EBC550E003D4707 /* LoftAnimatedFace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftAnimatedFace.swift; sourceTree = "<group>"; };
+		38DACA182EBC550E003D4707 /* LoftSystemTiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftSystemTiles.swift; sourceTree = "<group>"; };
+		38DACA192EBC550E003D4707 /* LoftBottomRoundedRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftBottomRoundedRectangle.swift; sourceTree = "<group>"; };
+		38DACA1A2EBC550E003D4707 /* LoftEmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftEmptyState.swift; sourceTree = "<group>"; };
+		38DACA1B2EBC550E003D4707 /* LoftHoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftHoverButton.swift; sourceTree = "<group>"; };
+		38DACA1C2EBC550E003D4707 /* LoftProgressIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftProgressIndicator.swift; sourceTree = "<group>"; };
+		38DACA1D2EBC550E003D4707 /* LoftTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftTestView.swift; sourceTree = "<group>"; };
+		38DACA1E2EBC550E003D4707 /* LoftWhatsNewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftWhatsNewView.swift; sourceTree = "<group>"; };
+		38DACA202EBC550E003D4707 /* Loftgeneric.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loftgeneric.swift; sourceTree = "<group>"; };
+		38DACA222EBC550E003D4707 /* LoftActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftActionBar.swift; sourceTree = "<group>"; };
+		38DACA232EBC550E003D4707 /* LoftBundleInfos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftBundleInfos.swift; sourceTree = "<group>"; };
+		38DACA242EBC550E003D4707 /* LoftButton+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoftButton+Bouncing.swift"; sourceTree = "<group>"; };
+		38DACA252EBC550E003D4707 /* LoftConditionalModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftConditionalModifier.swift; sourceTree = "<group>"; };
+		38DACA262EBC550E003D4707 /* LoftDataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoftDataTypes+Extensions.swift"; sourceTree = "<group>"; };
+		38DACA272EBC550E003D4707 /* LoftKeyboardShortcutsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftKeyboardShortcutsHelper.swift; sourceTree = "<group>"; };
+		38DACA282EBC550E003D4707 /* LoftMouseTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftMouseTracker.swift; sourceTree = "<group>"; };
+		38DACA292EBC550E003D4707 /* LoftNSImage+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoftNSImage+Extensions.swift"; sourceTree = "<group>"; };
+		38DACA2A2EBC550E003D4707 /* LoftPanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoftPanGesture.swift; sourceTree = "<group>"; };
+		38DACA2C2EBC550E003D4707 /* AppIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIcons.swift; sourceTree = "<group>"; };
+		38DACA2D2EBC550E003D4707 /* AppleScriptHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptHelper.swift; sourceTree = "<group>"; };
+		38DACA2E2EBC550E003D4707 /* AudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
+		38DACA2F2EBC550E003D4707 /* Clipboard+Content.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Clipboard+Content.swift"; sourceTree = "<group>"; };
+		38DACA302EBC550E003D4707 /* MediaChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaChecker.swift; sourceTree = "<group>"; };
+		38DACA322EBC550E003D4707 /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		38DACA332EBC550E003D4707 /* BoringExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringExtensionManager.swift; sourceTree = "<group>"; };
+		38DACA342EBC550E003D4707 /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
+		38DACA352EBC550E003D4707 /* MusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicManager.swift; sourceTree = "<group>"; };
+		38DACA362EBC550E003D4707 /* NotchSpaceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchSpaceManager.swift; sourceTree = "<group>"; };
+		38DACA372EBC550E003D4707 /* WebcamManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamManager.swift; sourceTree = "<group>"; };
+		38DACA392EBC550E003D4707 /* AppleMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicController.swift; sourceTree = "<group>"; };
+		38DACA3A2EBC550E003D4707 /* MediaControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaControllerProtocol.swift; sourceTree = "<group>"; };
+		38DACA3B2EBC550E003D4707 /* NowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingController.swift; sourceTree = "<group>"; };
+		38DACA3C2EBC550E003D4707 /* SpotifyController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyController.swift; sourceTree = "<group>"; };
+		38DACA3D2EBC550E003D4707 /* YouTubeMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicController.swift; sourceTree = "<group>"; };
+		38DACA3F2EBC550E003D4707 /* StatusBarMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarMenu.swift; sourceTree = "<group>"; };
+		38DACA412EBC550E003D4707 /* visualizer.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = visualizer.metal; sourceTree = "<group>"; };
+		38DACA432EBC550E003D4707 /* BatteryStatusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryStatusViewModel.swift; sourceTree = "<group>"; };
+		38DACA442EBC550E003D4707 /* BoringViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringViewModel.swift; sourceTree = "<group>"; };
+		38DACA452EBC550E003D4707 /* CalendarModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarModel.swift; sourceTree = "<group>"; };
+		38DACA462EBC550E003D4707 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		38DACA472EBC550E003D4707 /* EventModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModel.swift; sourceTree = "<group>"; };
+		38DACA482EBC550E003D4707 /* PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackState.swift; sourceTree = "<group>"; };
+		38DACA4A2EBC550E003D4707 /* FullscreenMediaDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenMediaDetection.swift; sourceTree = "<group>"; };
+		38DACA4C2EBC550E003D4707 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		38DACA4E2EBC550E003D4707 /* CGSSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGSSpace.swift; sourceTree = "<group>"; };
+		38DACA502EBC550E003D4707 /* CalendarServiceProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarServiceProviding.swift; sourceTree = "<group>"; };
+		38DACA522EBC550E003D4707 /* ShortcutConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutConstants.swift; sourceTree = "<group>"; };
+		38DACA542EBC550E003D4707 /* matters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = matters.swift; sourceTree = "<group>"; };
+		38DACA562EBC550E003D4707 /* constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = constants.swift; sourceTree = "<group>"; };
+		38DACA582EBC550E003D4707 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		38DACA5A2EBC550E003D4707 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		38DACA5B2EBC550E003D4707 /* boring.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = boring.m4a; sourceTree = "<group>"; };
+		38DACA5C2EBC550E003D4707 /* boringNotch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = boringNotch.entitlements; sourceTree = "<group>"; };
+		38DACA5D2EBC550E003D4707 /* boringNotchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotchApp.swift; sourceTree = "<group>"; };
+		38DACA5E2EBC550E003D4707 /* BoringViewCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringViewCoordinator.swift; sourceTree = "<group>"; };
+		38DACA5F2EBC550E003D4707 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		38DACA602EBC550E003D4707 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		38DACA612EBC550E003D4707 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		38DACA632EBC550E003D4707 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		38DACA642EBC550E003D4707 /* crowdin.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = crowdin.yml; sourceTree = "<group>"; };
+		38DACA652EBC550E003D4707 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		38DACA662EBC550E003D4707 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		38DACA672EBC550E003D4707 /* SECURITY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SECURITY.md; sourceTree = "<group>"; };
+		38DACA682EBC550E003D4707 /* THIRD_PARTY_LICENSES */ = {isa = PBXFileReference; lastKnownFileType = text; path = THIRD_PARTY_LICENSES; sourceTree = "<group>"; };
+		38DACA692EBC550E003D4707 /* Zenithloft.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Zenithloft.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		38DAC76D2EBC38DC003D4707 /* Zenith Loft */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Zenith Loft";
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		38DAC7682EBC38DC003D4707 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				38DACACB2EBC550E003D4707 /* MediaRemoteAdapter.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -32,8 +278,9 @@
 		38DAC7622EBC38DC003D4707 = {
 			isa = PBXGroup;
 			children = (
-				38DAC76D2EBC38DC003D4707 /* Zenith Loft */,
 				38DAC76C2EBC38DC003D4707 /* Products */,
+				38DAC89F2EBC3B9E003D4707 /* ThirdPartyShims.swift */,
+				38DACA6A2EBC550E003D4707 /* Zenith Loft */,
 			);
 			sourceTree = "<group>";
 		};
@@ -41,6 +288,449 @@
 			isa = PBXGroup;
 			children = (
 				38DAC76B2EBC38DC003D4707 /* Zenith Loft.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		38DAC9C82EBC550E003D4707 /* .devcontainer */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9C72EBC550E003D4707 /* devcontainer.json */,
+			);
+			path = .devcontainer;
+			sourceTree = "<group>";
+		};
+		38DAC9CD2EBC550E003D4707 /* ISSUE_TEMPLATE */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9C92EBC550E003D4707 /* 1-bug-report-form.yml */,
+				38DAC9CA2EBC550E003D4707 /* config.yml */,
+				38DAC9CB2EBC550E003D4707 /* feature_request.md */,
+				38DAC9CC2EBC550E003D4707 /* old_bug_report.md */,
+			);
+			path = ISSUE_TEMPLATE;
+			sourceTree = "<group>";
+		};
+		38DAC9D02EBC550E003D4707 /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9CE2EBC550E003D4707 /* extract_version.py */,
+				38DAC9CF2EBC550E003D4707 /* remove_beta.py */,
+			);
+			path = scripts;
+			sourceTree = "<group>";
+		};
+		38DAC9D62EBC550E003D4707 /* workflows */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9D12EBC550E003D4707 /* cicd.yml */,
+				38DAC9D22EBC550E003D4707 /* code-review.yml */,
+				38DAC9D32EBC550E003D4707 /* release.yml */,
+				38DAC9D42EBC550E003D4707 /* static.yml */,
+				38DAC9D52EBC550E003D4707 /* update-version-dropdown.yml */,
+			);
+			path = workflows;
+			sourceTree = "<group>";
+		};
+		38DAC9D82EBC550E003D4707 /* .github */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9CD2EBC550E003D4707 /* ISSUE_TEMPLATE */,
+				38DAC9D02EBC550E003D4707 /* scripts */,
+				38DAC9D62EBC550E003D4707 /* workflows */,
+				38DAC9D72EBC550E003D4707 /* FUNDING.yml */,
+			);
+			path = .github;
+			sourceTree = "<group>";
+		};
+		38DAC9DA2EBC550E003D4707 /* sparkle */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9D92EBC550E003D4707 /* generate_appcast */,
+			);
+			path = sparkle;
+			sourceTree = "<group>";
+		};
+		38DAC9DB2EBC550E003D4707 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9DA2EBC550E003D4707 /* sparkle */,
+			);
+			path = Configuration;
+			sourceTree = "<group>";
+		};
+		38DAC9DF2EBC550E003D4707 /* mediaremote-adapter */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9DC2EBC550E003D4707 /* mediaremote-adapter.pl */,
+				38DAC9DD2EBC550E003D4707 /* MediaRemoteAdapter.framework */,
+				38DAC9DE2EBC550E003D4707 /* MediaRemoteAdapterTestClient */,
+			);
+			path = "mediaremote-adapter";
+			sourceTree = "<group>";
+		};
+		38DAC9E12EBC550E003D4707 /* updater */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9E02EBC550E003D4707 /* appcast.xml */,
+			);
+			path = updater;
+			sourceTree = "<group>";
+		};
+		38DAC9E42EBC550E003D4707 /* animations */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9E22EBC550E003D4707 /* LoftAnimations.swift */,
+				38DAC9E32EBC550E003D4707 /* LoftHelloAnimation.swift */,
+			);
+			path = animations;
+			sourceTree = "<group>";
+		};
+		38DAC9E62EBC550E003D4707 /* Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9E52EBC550E003D4707 /* LoftCalendar.swift */,
+			);
+			path = Calendar;
+			sourceTree = "<group>";
+		};
+		38DAC9ED2EBC550E003D4707 /* Live activities */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9E72EBC550E003D4707 /* BoringBattery.swift */,
+				38DAC9E82EBC550E003D4707 /* LoftBattery.swift */,
+				38DAC9E92EBC550E003D4707 /* LoftDownloadView.swift */,
+				38DAC9EA2EBC550E003D4707 /* LoftLiveActivityModifier.swift */,
+				38DAC9EB2EBC550E003D4707 /* LoftMarqueeTextView.swift */,
+				38DAC9EC2EBC550E003D4707 /* LoftSystemEventIndicator.swift */,
+			);
+			path = "Live activities";
+			sourceTree = "<group>";
+		};
+		38DAC9F02EBC550E003D4707 /* Music */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9EE2EBC550E003D4707 /* LoftLottieAnimationView.swift */,
+				38DAC9EF2EBC550E003D4707 /* LoftAudioSpectrum.swift */,
+			);
+			path = Music;
+			sourceTree = "<group>";
+		};
+		38DAC9F72EBC550E003D4707 /* Notch */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9F12EBC550E003D4707 /* LoftExtrasMenu.swift */,
+				38DAC9F22EBC550E003D4707 /* LoftHeader.swift */,
+				38DAC9F32EBC550E003D4707 /* LoftNotchWindow.swift */,
+				38DAC9F42EBC550E003D4707 /* LoftNotchHomeView.swift */,
+				38DAC9F52EBC550E003D4707 /* LoftNotchShape.swift */,
+				38DAC9F62EBC550E003D4707 /* LoftShelfView.swift */,
+			);
+			path = Notch;
+			sourceTree = "<group>";
+		};
+		38DAC9FE2EBC550E003D4707 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9F82EBC550E003D4707 /* LoftMusicControllerSelectionView.swift */,
+				38DAC9F92EBC550E003D4707 /* LoftOnboardingFinishView.swift */,
+				38DAC9FA2EBC550E003D4707 /* LoftOnboardingView.swift */,
+				38DAC9FB2EBC550E003D4707 /* LoftPermissionsRequestView.swift */,
+				38DAC9FC2EBC550E003D4707 /* LoftSparkleView.swift */,
+				38DAC9FD2EBC550E003D4707 /* LoftWelcomeView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		38DACA042EBC550E003D4707 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9FF2EBC550E003D4707 /* LoftEditPanelView.swift */,
+				38DACA002EBC550E003D4707 /* LoftListItemPopover.swift */,
+				38DACA012EBC550E003D4707 /* LoftSettingsView.swift */,
+				38DACA022EBC550E003D4707 /* LoftSettingsWindowController.swift */,
+				38DACA032EBC550E003D4707 /* LoftSoftwareUpdater.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		38DACA0F2EBC550E003D4707 /* Shelf */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA052EBC550E003D4707 /* LoftAirDrop.swift */,
+				38DACA062EBC550E003D4707 /* Loft.swift */,
+				38DACA072EBC550E003D4707 /* LoftDragDropView.swift */,
+				38DACA082EBC550E003D4707 /* LoftDropItem.swift */,
+				38DACA092EBC550E003D4707 /* LoftDropItemView.swift */,
+				38DACA0A2EBC550E003D4707 /* LoftExt+FileProvider.swift */,
+				38DACA0B2EBC550E003D4707 /* LoftExt+NSAlert.swift */,
+				38DACA0C2EBC550E003D4707 /* LoftExt+NSImage.swift */,
+				38DACA0D2EBC550E003D4707 /* LoftExt+URL.swift */,
+				38DACA0E2EBC550E003D4707 /* LoftTrayDrop.swift */,
+			);
+			path = Shelf;
+			sourceTree = "<group>";
+		};
+		38DACA122EBC550E003D4707 /* Tabs */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA102EBC550E003D4707 /* LoftTabButton.swift */,
+				38DACA112EBC550E003D4707 /* LoftTabSelectionView.swift */,
+			);
+			path = Tabs;
+			sourceTree = "<group>";
+		};
+		38DACA142EBC550E003D4707 /* Tips */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA132EBC550E003D4707 /* LoftTipStore.swift */,
+			);
+			path = Tips;
+			sourceTree = "<group>";
+		};
+		38DACA162EBC550E003D4707 /* Webcam */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA152EBC550E003D4707 /* LoftWebcamView.swift */,
+			);
+			path = Webcam;
+			sourceTree = "<group>";
+		};
+		38DACA1F2EBC550E003D4707 /* components */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9E62EBC550E003D4707 /* Calendar */,
+				38DAC9ED2EBC550E003D4707 /* Live activities */,
+				38DAC9F02EBC550E003D4707 /* Music */,
+				38DAC9F72EBC550E003D4707 /* Notch */,
+				38DAC9FE2EBC550E003D4707 /* Onboarding */,
+				38DACA042EBC550E003D4707 /* Settings */,
+				38DACA0F2EBC550E003D4707 /* Shelf */,
+				38DACA122EBC550E003D4707 /* Tabs */,
+				38DACA142EBC550E003D4707 /* Tips */,
+				38DACA162EBC550E003D4707 /* Webcam */,
+				38DACA172EBC550E003D4707 /* LoftAnimatedFace.swift */,
+				38DACA182EBC550E003D4707 /* LoftSystemTiles.swift */,
+				38DACA192EBC550E003D4707 /* LoftBottomRoundedRectangle.swift */,
+				38DACA1A2EBC550E003D4707 /* LoftEmptyState.swift */,
+				38DACA1B2EBC550E003D4707 /* LoftHoverButton.swift */,
+				38DACA1C2EBC550E003D4707 /* LoftProgressIndicator.swift */,
+				38DACA1D2EBC550E003D4707 /* LoftTestView.swift */,
+				38DACA1E2EBC550E003D4707 /* LoftWhatsNewView.swift */,
+			);
+			path = components;
+			sourceTree = "<group>";
+		};
+		38DACA212EBC550E003D4707 /* enums */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA202EBC550E003D4707 /* Loftgeneric.swift */,
+			);
+			path = enums;
+			sourceTree = "<group>";
+		};
+		38DACA2B2EBC550E003D4707 /* extensions */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA222EBC550E003D4707 /* LoftActionBar.swift */,
+				38DACA232EBC550E003D4707 /* LoftBundleInfos.swift */,
+				38DACA242EBC550E003D4707 /* LoftButton+Bouncing.swift */,
+				38DACA252EBC550E003D4707 /* LoftConditionalModifier.swift */,
+				38DACA262EBC550E003D4707 /* LoftDataTypes+Extensions.swift */,
+				38DACA272EBC550E003D4707 /* LoftKeyboardShortcutsHelper.swift */,
+				38DACA282EBC550E003D4707 /* LoftMouseTracker.swift */,
+				38DACA292EBC550E003D4707 /* LoftNSImage+Extensions.swift */,
+				38DACA2A2EBC550E003D4707 /* LoftPanGesture.swift */,
+			);
+			path = extensions;
+			sourceTree = "<group>";
+		};
+		38DACA312EBC550E003D4707 /* helpers */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA2C2EBC550E003D4707 /* AppIcons.swift */,
+				38DACA2D2EBC550E003D4707 /* AppleScriptHelper.swift */,
+				38DACA2E2EBC550E003D4707 /* AudioPlayer.swift */,
+				38DACA2F2EBC550E003D4707 /* Clipboard+Content.swift */,
+				38DACA302EBC550E003D4707 /* MediaChecker.swift */,
+			);
+			path = helpers;
+			sourceTree = "<group>";
+		};
+		38DACA382EBC550E003D4707 /* managers */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA322EBC550E003D4707 /* BatteryActivityManager.swift */,
+				38DACA332EBC550E003D4707 /* BoringExtensionManager.swift */,
+				38DACA342EBC550E003D4707 /* CalendarManager.swift */,
+				38DACA352EBC550E003D4707 /* MusicManager.swift */,
+				38DACA362EBC550E003D4707 /* NotchSpaceManager.swift */,
+				38DACA372EBC550E003D4707 /* WebcamManager.swift */,
+			);
+			path = managers;
+			sourceTree = "<group>";
+		};
+		38DACA3E2EBC550E003D4707 /* MediaControllers */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA392EBC550E003D4707 /* AppleMusicController.swift */,
+				38DACA3A2EBC550E003D4707 /* MediaControllerProtocol.swift */,
+				38DACA3B2EBC550E003D4707 /* NowPlayingController.swift */,
+				38DACA3C2EBC550E003D4707 /* SpotifyController.swift */,
+				38DACA3D2EBC550E003D4707 /* YouTubeMusicController.swift */,
+			);
+			path = MediaControllers;
+			sourceTree = "<group>";
+		};
+		38DACA402EBC550E003D4707 /* menu */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA3F2EBC550E003D4707 /* StatusBarMenu.swift */,
+			);
+			path = menu;
+			sourceTree = "<group>";
+		};
+		38DACA422EBC550E003D4707 /* metal */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA412EBC550E003D4707 /* visualizer.metal */,
+			);
+			path = metal;
+			sourceTree = "<group>";
+		};
+		38DACA492EBC550E003D4707 /* models */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA432EBC550E003D4707 /* BatteryStatusViewModel.swift */,
+				38DACA442EBC550E003D4707 /* BoringViewModel.swift */,
+				38DACA452EBC550E003D4707 /* CalendarModel.swift */,
+				38DACA462EBC550E003D4707 /* Constants.swift */,
+				38DACA472EBC550E003D4707 /* EventModel.swift */,
+				38DACA482EBC550E003D4707 /* PlaybackState.swift */,
+			);
+			path = models;
+			sourceTree = "<group>";
+		};
+		38DACA4B2EBC550E003D4707 /* observers */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA4A2EBC550E003D4707 /* FullscreenMediaDetection.swift */,
+			);
+			path = observers;
+			sourceTree = "<group>";
+		};
+		38DACA4D2EBC550E003D4707 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA4C2EBC550E003D4707 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		38DACA4F2EBC550E003D4707 /* private */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA4E2EBC550E003D4707 /* CGSSpace.swift */,
+			);
+			path = private;
+			sourceTree = "<group>";
+		};
+		38DACA512EBC550E003D4707 /* Providers */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA502EBC550E003D4707 /* CalendarServiceProviding.swift */,
+			);
+			path = Providers;
+			sourceTree = "<group>";
+		};
+		38DACA532EBC550E003D4707 /* Shortcuts */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA522EBC550E003D4707 /* ShortcutConstants.swift */,
+			);
+			path = Shortcuts;
+			sourceTree = "<group>";
+		};
+		38DACA552EBC550E003D4707 /* sizing */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA542EBC550E003D4707 /* matters.swift */,
+			);
+			path = sizing;
+			sourceTree = "<group>";
+		};
+		38DACA572EBC550E003D4707 /* strings */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA562EBC550E003D4707 /* constants.swift */,
+			);
+			path = strings;
+			sourceTree = "<group>";
+		};
+		38DACA592EBC550E003D4707 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				38DACA582EBC550E003D4707 /* Logger.swift */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+		38DACA622EBC550E003D4707 /* Zenith Loft */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9E42EBC550E003D4707 /* animations */,
+				38DACA1F2EBC550E003D4707 /* components */,
+				38DACA212EBC550E003D4707 /* enums */,
+				38DACA2B2EBC550E003D4707 /* extensions */,
+				38DACA312EBC550E003D4707 /* helpers */,
+				38DACA382EBC550E003D4707 /* managers */,
+				38DACA3E2EBC550E003D4707 /* MediaControllers */,
+				38DACA402EBC550E003D4707 /* menu */,
+				38DACA422EBC550E003D4707 /* metal */,
+				38DACA492EBC550E003D4707 /* models */,
+				38DACA4B2EBC550E003D4707 /* observers */,
+				38DACA4D2EBC550E003D4707 /* Preview Content */,
+				38DACA4F2EBC550E003D4707 /* private */,
+				38DACA512EBC550E003D4707 /* Providers */,
+				38DACA532EBC550E003D4707 /* Shortcuts */,
+				38DACA552EBC550E003D4707 /* sizing */,
+				38DACA572EBC550E003D4707 /* strings */,
+				38DACA592EBC550E003D4707 /* utils */,
+				38DACA5A2EBC550E003D4707 /* Assets.xcassets */,
+				38DACA5B2EBC550E003D4707 /* boring.m4a */,
+				38DACA5C2EBC550E003D4707 /* boringNotch.entitlements */,
+				38DACA5D2EBC550E003D4707 /* boringNotchApp.swift */,
+				38DACA5E2EBC550E003D4707 /* BoringViewCoordinator.swift */,
+				38DACA5F2EBC550E003D4707 /* ContentView.swift */,
+				38DACA602EBC550E003D4707 /* Info.plist */,
+				38DACA612EBC550E003D4707 /* Localizable.xcstrings */,
+			);
+			path = "Zenith Loft";
+			sourceTree = "<group>";
+		};
+		38DACA6A2EBC550E003D4707 /* Zenith Loft */ = {
+			isa = PBXGroup;
+			children = (
+				38DAC9C82EBC550E003D4707 /* .devcontainer */,
+				38DAC9D82EBC550E003D4707 /* .github */,
+				38DAC9DB2EBC550E003D4707 /* Configuration */,
+				38DAC9DF2EBC550E003D4707 /* mediaremote-adapter */,
+				38DAC9E12EBC550E003D4707 /* updater */,
+				38DACA622EBC550E003D4707 /* Zenith Loft */,
+				38DACA632EBC550E003D4707 /* .gitignore */,
+				38DACA642EBC550E003D4707 /* crowdin.yml */,
+				38DACA652EBC550E003D4707 /* LICENSE */,
+				38DACA662EBC550E003D4707 /* README.md */,
+				38DACA672EBC550E003D4707 /* SECURITY.md */,
+				38DACA682EBC550E003D4707 /* THIRD_PARTY_LICENSES */,
+				38DACA692EBC550E003D4707 /* Zenithloft.xcodeproj */,
+			);
+			path = "Zenith Loft";
+			sourceTree = "<group>";
+		};
+		38DACA6B2EBC550E003D4707 /* Products */ = {
+			isa = PBXGroup;
+			children = (
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -59,9 +749,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				38DAC76D2EBC38DC003D4707 /* Zenith Loft */,
 			);
 			name = "Zenith Loft";
 			packageProductDependencies = (
@@ -97,6 +784,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 38DAC76C2EBC38DC003D4707 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 38DACA6B2EBC550E003D4707 /* Products */;
+					ProjectRef = 38DACA692EBC550E003D4707 /* Zenithloft.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				38DAC76A2EBC38DC003D4707 /* Zenith Loft */,
@@ -109,6 +802,34 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				38DACACC2EBC550E003D4707 /* update-version-dropdown.yml in Resources */,
+				38DACACD2EBC550E003D4707 /* cicd.yml in Resources */,
+				38DACACE2EBC550E003D4707 /* extract_version.py in Resources */,
+				38DACACF2EBC550E003D4707 /* remove_beta.py in Resources */,
+				38DACAD02EBC550E003D4707 /* Preview Assets.xcassets in Resources */,
+				38DACAD12EBC550E003D4707 /* config.yml in Resources */,
+				38DACAD22EBC550E003D4707 /* code-review.yml in Resources */,
+				38DACAD32EBC550E003D4707 /* .gitignore in Resources */,
+				38DACAD42EBC550E003D4707 /* devcontainer.json in Resources */,
+				38DACAD52EBC550E003D4707 /* SECURITY.md in Resources */,
+				38DACAD62EBC550E003D4707 /* feature_request.md in Resources */,
+				38DACAD72EBC550E003D4707 /* crowdin.yml in Resources */,
+				38DACAD82EBC550E003D4707 /* old_bug_report.md in Resources */,
+				38DACAD92EBC550E003D4707 /* boring.m4a in Resources */,
+				38DACADA2EBC550E003D4707 /* static.yml in Resources */,
+				38DACADB2EBC550E003D4707 /* Info.plist in Resources */,
+				38DACADC2EBC550E003D4707 /* FUNDING.yml in Resources */,
+				38DACADD2EBC550E003D4707 /* MediaRemoteAdapterTestClient in Resources */,
+				38DACADE2EBC550E003D4707 /* Localizable.xcstrings in Resources */,
+				38DACADF2EBC550E003D4707 /* README.md in Resources */,
+				38DACAE02EBC550E003D4707 /* generate_appcast in Resources */,
+				38DACAE12EBC550E003D4707 /* LICENSE in Resources */,
+				38DACAE22EBC550E003D4707 /* release.yml in Resources */,
+				38DACAE32EBC550E003D4707 /* mediaremote-adapter.pl in Resources */,
+				38DACAE42EBC550E003D4707 /* Assets.xcassets in Resources */,
+				38DACAE52EBC550E003D4707 /* appcast.xml in Resources */,
+				38DACAE62EBC550E003D4707 /* 1-bug-report-form.yml in Resources */,
+				38DACAE72EBC550E003D4707 /* THIRD_PARTY_LICENSES in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +840,101 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				38DAC8A02EBC3B9E003D4707 /* ThirdPartyShims.swift in Sources */,
+				38DACA6D2EBC550E003D4707 /* LoftSettingsWindowController.swift in Sources */,
+				38DACA6E2EBC550E003D4707 /* CalendarServiceProviding.swift in Sources */,
+				38DACA6F2EBC550E003D4707 /* LoftListItemPopover.swift in Sources */,
+				38DACA702EBC550E003D4707 /* LoftMusicControllerSelectionView.swift in Sources */,
+				38DACA712EBC550E003D4707 /* LoftSystemEventIndicator.swift in Sources */,
+				38DACA722EBC550E003D4707 /* MediaControllerProtocol.swift in Sources */,
+				38DACA732EBC550E003D4707 /* LoftActionBar.swift in Sources */,
+				38DACA742EBC550E003D4707 /* BoringViewModel.swift in Sources */,
+				38DACA752EBC550E003D4707 /* LoftShelfView.swift in Sources */,
+				38DACA762EBC550E003D4707 /* LoftDownloadView.swift in Sources */,
+				38DACA772EBC550E003D4707 /* LoftConditionalModifier.swift in Sources */,
+				38DACA782EBC550E003D4707 /* NowPlayingController.swift in Sources */,
+				38DACA792EBC550E003D4707 /* BoringViewCoordinator.swift in Sources */,
+				38DACA7A2EBC550E003D4707 /* LoftSystemTiles.swift in Sources */,
+				38DACA7B2EBC550E003D4707 /* AudioPlayer.swift in Sources */,
+				38DACA7C2EBC550E003D4707 /* LoftLottieAnimationView.swift in Sources */,
+				38DACA7D2EBC550E003D4707 /* LoftDropItemView.swift in Sources */,
+				38DACA7E2EBC550E003D4707 /* StatusBarMenu.swift in Sources */,
+				38DACA7F2EBC550E003D4707 /* MusicManager.swift in Sources */,
+				38DACA802EBC550E003D4707 /* LoftPermissionsRequestView.swift in Sources */,
+				38DACA812EBC550E003D4707 /* LoftTipStore.swift in Sources */,
+				38DACA822EBC550E003D4707 /* LoftBottomRoundedRectangle.swift in Sources */,
+				38DACA832EBC550E003D4707 /* LoftKeyboardShortcutsHelper.swift in Sources */,
+				38DACA842EBC550E003D4707 /* LoftButton+Bouncing.swift in Sources */,
+				38DACA852EBC550E003D4707 /* LoftWelcomeView.swift in Sources */,
+				38DACA862EBC550E003D4707 /* LoftWhatsNewView.swift in Sources */,
+				38DACA872EBC550E003D4707 /* CalendarModel.swift in Sources */,
+				38DACA882EBC550E003D4707 /* LoftHeader.swift in Sources */,
+				38DACA892EBC550E003D4707 /* LoftBattery.swift in Sources */,
+				38DACA8A2EBC550E003D4707 /* CalendarManager.swift in Sources */,
+				38DACA8B2EBC550E003D4707 /* Loft.swift in Sources */,
+				38DACA8C2EBC550E003D4707 /* LoftAnimatedFace.swift in Sources */,
+				38DACA8D2EBC550E003D4707 /* LoftExt+FileProvider.swift in Sources */,
+				38DACA8E2EBC550E003D4707 /* FullscreenMediaDetection.swift in Sources */,
+				38DACA8F2EBC550E003D4707 /* LoftSparkleView.swift in Sources */,
+				38DACA902EBC550E003D4707 /* LoftNotchWindow.swift in Sources */,
+				38DACA912EBC550E003D4707 /* LoftTestView.swift in Sources */,
+				38DACA922EBC550E003D4707 /* LoftDragDropView.swift in Sources */,
+				38DACA932EBC550E003D4707 /* boringNotchApp.swift in Sources */,
+				38DACA942EBC550E003D4707 /* LoftHelloAnimation.swift in Sources */,
+				38DACA952EBC550E003D4707 /* LoftCalendar.swift in Sources */,
+				38DACA962EBC550E003D4707 /* PlaybackState.swift in Sources */,
+				38DACA972EBC550E003D4707 /* LoftOnboardingFinishView.swift in Sources */,
+				38DACA982EBC550E003D4707 /* LoftEditPanelView.swift in Sources */,
+				38DACA992EBC550E003D4707 /* LoftExt+NSImage.swift in Sources */,
+				38DACA9A2EBC550E003D4707 /* BatteryActivityManager.swift in Sources */,
+				38DACA9B2EBC550E003D4707 /* LoftDropItem.swift in Sources */,
+				38DACA9C2EBC550E003D4707 /* AppIcons.swift in Sources */,
+				38DACA9D2EBC550E003D4707 /* LoftDataTypes+Extensions.swift in Sources */,
+				38DACA9E2EBC550E003D4707 /* LoftNSImage+Extensions.swift in Sources */,
+				38DACA9F2EBC550E003D4707 /* AppleScriptHelper.swift in Sources */,
+				38DACAA02EBC550E003D4707 /* LoftHoverButton.swift in Sources */,
+				38DACAA12EBC550E003D4707 /* AppleMusicController.swift in Sources */,
+				38DACAA22EBC550E003D4707 /* CGSSpace.swift in Sources */,
+				38DACAA32EBC550E003D4707 /* LoftTabSelectionView.swift in Sources */,
+				38DACAA42EBC550E003D4707 /* LoftExt+URL.swift in Sources */,
+				38DACAA52EBC550E003D4707 /* LoftNotchHomeView.swift in Sources */,
+				38DACAA62EBC550E003D4707 /* LoftBundleInfos.swift in Sources */,
+				38DACAA72EBC550E003D4707 /* LoftProgressIndicator.swift in Sources */,
+				38DACAA82EBC550E003D4707 /* EventModel.swift in Sources */,
+				38DACAA92EBC550E003D4707 /* LoftSoftwareUpdater.swift in Sources */,
+				38DACAAA2EBC550E003D4707 /* NotchSpaceManager.swift in Sources */,
+				38DACAAB2EBC550E003D4707 /* SpotifyController.swift in Sources */,
+				38DACAAC2EBC550E003D4707 /* Logger.swift in Sources */,
+				38DACAAD2EBC550E003D4707 /* visualizer.metal in Sources */,
+				38DACAAE2EBC550E003D4707 /* YouTubeMusicController.swift in Sources */,
+				38DACAAF2EBC550E003D4707 /* WebcamManager.swift in Sources */,
+				38DACAB02EBC550E003D4707 /* LoftTabButton.swift in Sources */,
+				38DACAB12EBC550E003D4707 /* LoftWebcamView.swift in Sources */,
+				38DACAB22EBC550E003D4707 /* BoringBattery.swift in Sources */,
+				38DACAB32EBC550E003D4707 /* LoftNotchShape.swift in Sources */,
+				38DACAB42EBC550E003D4707 /* ContentView.swift in Sources */,
+				38DACAB52EBC550E003D4707 /* BoringExtensionManager.swift in Sources */,
+				38DACAB62EBC550E003D4707 /* ShortcutConstants.swift in Sources */,
+				38DACAB72EBC550E003D4707 /* LoftAudioSpectrum.swift in Sources */,
+				38DACAB82EBC550E003D4707 /* matters.swift in Sources */,
+				38DACAB92EBC550E003D4707 /* BatteryStatusViewModel.swift in Sources */,
+				38DACABA2EBC550E003D4707 /* LoftExtrasMenu.swift in Sources */,
+				38DACABB2EBC550E003D4707 /* LoftSettingsView.swift in Sources */,
+				38DACABC2EBC550E003D4707 /* LoftPanGesture.swift in Sources */,
+				38DACABD2EBC550E003D4707 /* LoftEmptyState.swift in Sources */,
+				38DACABE2EBC550E003D4707 /* LoftOnboardingView.swift in Sources */,
+				38DACABF2EBC550E003D4707 /* Clipboard+Content.swift in Sources */,
+				38DACAC02EBC550E003D4707 /* LoftAnimations.swift in Sources */,
+				38DACAC12EBC550E003D4707 /* constants.swift in Sources */,
+				38DACAC22EBC550E003D4707 /* LoftAirDrop.swift in Sources */,
+				38DACAC32EBC550E003D4707 /* MediaChecker.swift in Sources */,
+				38DACAC42EBC550E003D4707 /* LoftLiveActivityModifier.swift in Sources */,
+				38DACAC52EBC550E003D4707 /* Constants.swift in Sources */,
+				38DACAC62EBC550E003D4707 /* Loftgeneric.swift in Sources */,
+				38DACAC72EBC550E003D4707 /* LoftExt+NSAlert.swift in Sources */,
+				38DACAC82EBC550E003D4707 /* LoftMarqueeTextView.swift in Sources */,
+				38DACAC92EBC550E003D4707 /* LoftTrayDrop.swift in Sources */,
+				38DACACA2EBC550E003D4707 /* LoftMouseTracker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -254,6 +1070,12 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Zenith\\ Loft/boring.notch-main/mediaremote-adapter",
+					"$(PROJECT_DIR)/boring.notch-main/mediaremote-adapter",
+					"$(PROJECT_DIR)/Zenith\\ Loft/mediaremote-adapter",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -284,6 +1106,12 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Zenith\\ Loft/boring.notch-main/mediaremote-adapter",
+					"$(PROJECT_DIR)/boring.notch-main/mediaremote-adapter",
+					"$(PROJECT_DIR)/Zenith\\ Loft/mediaremote-adapter",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (

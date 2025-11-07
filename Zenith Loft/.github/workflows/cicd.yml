@@ -1,0 +1,39 @@
+name: Build for macOS
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+# https://stackoverflow.com/a/72408109/6942800
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Boring Notch
+    strategy:
+      matrix:
+        platform:
+          - macOS
+        xcode:
+          - ^16
+        scheme:
+          - boringNotch
+    runs-on: macos-latest
+    steps:
+    - name: Code Checkout
+      uses: actions/checkout@v2
+    - uses: mxcl/xcodebuild@v3
+      with:
+        xcode: ${{ matrix.xcode }}
+        platform: ${{ matrix.platform }}
+        scheme: ${{ matrix.scheme }}
+        action: build
+        verbosity: xcpretty
+        upload-logs: always
+        configuration: release

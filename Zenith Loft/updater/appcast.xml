@@ -1,0 +1,374 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>  
+        <item>
+            <title>v2.7 – Flying Rabbit RC 3</title>
+            <pubDate>Mon, 25 Aug 2025 10:05:48 +0530</pubDate>
+            <sparkle:version>2.7-rc.3+1</sparkle:version>
+            <sparkle:shortVersionString>2.7-rc.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+            🚀 <b>v2.7 Flying Rabbit RC 3 – Release Highlights!</b> 🐇🪽<br><br>
+
+            ✨ <b>What's New?</b><br>
+            🛠️ Fixed LSUIElement issues for a better experience<br>
+            🎛️ Updated Media Remote Adapter for improved device support<br>
+            👀 Default sneak peek enabled – easier previews!<br>
+            🛡️ New SECURITY.md for better project safety<br>
+            📆 Calendar UI fixes and scrolling improvements for effortless scheduling<br>
+            🖼️ Artwork UI enhancements for a prettier look<br>
+            📢 Improved calendar reminders so you never miss a thing<br>
+            🌍 Localization & dependency updates for global users<br><br>
+
+            🙌 <b>New Contributors</b><br>
+            🎉 @CrossTR15YT joined the team!<br>
+            🎉 @naq7826 made their first contribution!<br><br>
+
+            🔗 <b>Full Changelog:</b> v2.7-rc.2...v2.7-rc.3<br>
+            Thanks to all contributors: @Alexander5015, @naq7826, @CrossTR15YT<br><br>
+
+            Update now and hop into the new features! 🐰✨
+            ]]></description>
+
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.3/boringNotch.dmg" length="9218986" type="application/octet-stream" sparkle:edSignature="JsTdTjcyl2cGkc1wnYyKU5JLzp1j9LBfSXrFBZ115/JUP/g6+PzXejldTYKih/w1DLrOvpuW/gJbDrDGbUawAw=="/>
+        </item>      
+    <item>
+            <title>2.7-rc.2 Flying Rabbit 🐇🪽</title>
+            <pubDate>Mon, 04 Aug 2025 11:50:17 +0530</pubDate>
+            <sparkle:version>2.7-rc.2+1</sparkle:version>
+            <sparkle:shortVersionString>2.7-rc.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                    <div>
+                        <h1>🐇 boring.notch v2.7 – Flying Rabbit RC 2</h1>
+                        <p>Release Candidate - August 4, 2025</p>
+                            <h2>✨ What's New & Improved</h2>
+                            <ul>
+                            <li><b>🎵 Better Media Controller Stability:</b> Improved stability and app support by replacing blocking semaphores with async/await in music controllers. (by @weitheng & @Alexander5015)</li>
+                            <li><b>🔧 MediaRemote Adapter Updates:</b> Enhanced stability and better app support in MediaRemote Adapter. (by @Alexander5015)</li>
+                            <li><b>🔔 YouTube Music Controller Fixes:</b> Resolved notification handling issues in YouTube Music Controller. (by @Alexander5015)</li>
+                        </ul>
+                        <p>— The Boring Team</p>
+                    </div>
+                ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.2/boringNotch.dmg" length="9057470" type="application/octet-stream" sparkle:edSignature="iMtS4RJNt7sOdPOsHYJZPpmSZNZgkeRqQJYsv4v0Um8ocq1n/gmD++UWeuv9ftgC7OZ6ihRjYe2yrNc05ErgAA=="/>
+        </item>
+
+		<item>
+                <title>2.7-rc.1 Flying Rabbit 🐇🪽</title>
+                <pubDate>Sun, 27 Jul 2025 09:41:40 +0530</pubDate>
+                <sparkle:version>2.7-rc.1+3</sparkle:version>
+                <sparkle:shortVersionString>2.7-rc.1</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+                    <description><![CDATA[
+                    <div>
+                        <h1>🐇 boring.notch v2.7 – Flying Rabbit RC 1</h1>
+                        <p>Release Candidate - July 27, 2025</p>
+                            <h2>✨ What's New & Improved</h2>
+                            <ul>
+                            <li><b>🛠️ Fixed hanging issues:</b> Resolved stability concerns by addressing test instability. (by @Alexander5015)</li>
+                            <li><b>📅 Calendar Settings Resolved:</b> Calendar settings now update correctly with authorization; proper show/hide.</li>
+                            <li><b>🎵 YouTube Music Controller:</b>
+                                <ul>
+                                <li>Improved shuffle and repeat UX, beta features for shuffle/repeat now available.</li>
+                                <li>Fixed seek control bugs and added forced polling.</li>
+                                </ul>
+                                (by @pranav1st & @Alexander5015)
+                            </li>
+                            <li><b>🔲 MediaRemoteAdapter.Framework updated</b></li>
+                            <li><b>🔃 Button order and repeat toggle improved:</b> Better player button logic and new repeat toggle.</li>
+                            <li><b>🐞 Now Playing Controller Beta:</b> Beta enhancements and settings (known bugs remain for testing).</li>
+                            <li><b>♻️ Shuffle is now always enabled.</b></li>
+                            <li><b>💡 Refactored Shuffle & Repeat:</b> toggleShuffle/toggleRepeat refactored for improved experience.</li>
+                            </ul>
+                        <p>— The Boring Team</p>
+                    </div>
+                ]]></description>
+                <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.1/Flying_Rabbit.dmg" length="9033202" type="application/octet-stream" sparkle:edSignature="z1SbQHDCg1D+6m811f4ubdinUiXvoYF4Ra2xlzS3NSAlUqmmIpdzCp1MHMv5J9ddlxTws3rG48OCJfZRAXHHAw=="/>
+        </item>
+        <item>
+                <title>2.7-rc.0 Flying Rabbit 🐇🪽</title>
+                <pubDate>Sat, 26 Jul 2025 12:45:19 +0530</pubDate>
+                <sparkle:version>2.7-rc.0+1</sparkle:version>
+                <sparkle:shortVersionString>2.7-rc.0</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+                <description><![CDATA[
+                    <h1 id="-release-v2-7-flying-rabbit-rc-0-boring-notch">🎉 Release v2.7 Flying Rabbit RC 0 — Boring Notch</h1>
+                    <p>We're thrilled to announce <strong>Boring Notch v2.7: Flying Rabbit RC 0</strong>, packed with powerful new features, polish, and community contributions!</p>
+                    <h2 id="-highlights">🚀 Highlights</h2>
+                    <ul>
+                    <li><strong>🔋 Enhanced Battery Status \&amp; Charging Experience</strong>
+                    Thanks to @AlexLemus-Dev<ul>
+                    <li>More informative battery menu: percentage, max capacity, charging, low power, and status icons</li>
+                    <li>Configurable battery indicators, notifications, and display options</li>
+                    <li>Interactive battery icon with detailed info and instant System Preferences access</li>
+                    <li>Visual alignment and consistent styling (macOS-like bolt/plug icons, dark mode, etc.)</li>
+                    <li>Optimized and documented code, robust error handling, and improved performance</li>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/437">Details \&amp; Demo</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🖥️ Fullscreen Detection \&amp; Playback Management Fixes</strong>
+                    @Alexander5015 improved reliability of media controls during fullscreen transitions<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/449">PR #449</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🦷 Allow 0 Height Notch</strong>
+                    Now supports notches with zero height for enhanced layout flexibility<ul>
+                    <li>Thanks, @yaxarat! <a href="https://github.com/TheBoredTeam/boring.notch/pull/397">PR #397</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🎛️ Multiple Media Controllers</strong>
+                    Control and display several media controllers at once<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/460">PR #460</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>👀 Sneak Peek \&amp; Jiggle Fixes</strong>
+                    Re-added sneak peek and improved animation stability<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/409">PR #409</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🗓️ New Calendar Service</strong>
+                    Seamlessly integrates your calendar into Boring Notch<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/589">PR #589</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>📄 Updated LICENSE</strong>
+                    Keeping compliance and clarity up to date<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/590">PR #590</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🆕 Onboarding \&amp; Better Settings Window</strong>
+                    Streamlined onboarding and redesigned settings for easy configuration<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/600">PR #600</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>📸 Camera Toggle Feature</strong>
+                    New camera quick toggle, privacy-first!<ul>
+                    <li>Added by @Steve-sy <a href="https://github.com/TheBoredTeam/boring.notch/pull/598">PR #598</a></li>
+                    </ul>
+                    </li>
+                    <li><strong>🎵 MediaRemote Adapter Support</strong>
+                    Improved compatibility with MediaRemote devices<ul>
+                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/631">PR #631</a></li>
+                    </ul>
+                    </li>
+                    </ul>
+                    <h2 id="-welcoming-first-time-contributors-">🆕 Welcoming First-Time Contributors!</h2>
+                    <table>
+                    <thead>
+                    <tr>
+                    <th style="text-align:left">Contributor</th>
+                    <th style="text-align:left">PR Link</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                    <td style="text-align:left">@sancho1952007</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/431">https://github.com/TheBoredTeam/boring.notch/pull/431</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@Ein-Tim</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/405">https://github.com/TheBoredTeam/boring.notch/pull/405</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@AlexLemus-Dev</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/437">https://github.com/TheBoredTeam/boring.notch/pull/437</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@yaxarat</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/397">https://github.com/TheBoredTeam/boring.notch/pull/397</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@ShirakawaMio</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/399">https://github.com/TheBoredTeam/boring.notch/pull/399</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@divyanshu0469</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/454">https://github.com/TheBoredTeam/boring.notch/pull/454</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@oorischubert</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/409">https://github.com/TheBoredTeam/boring.notch/pull/409</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@Al3Gr</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/493">https://github.com/TheBoredTeam/boring.notch/pull/493</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@ChemicalChaos-Fabian42</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/509">https://github.com/TheBoredTeam/boring.notch/pull/509</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@Davetheword</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/501">https://github.com/TheBoredTeam/boring.notch/pull/501</a>)</td>
+                    </tr>
+                    <tr>
+                    <td style="text-align:left">@Steve-sy</td>
+                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/598">https://github.com/TheBoredTeam/boring.notch/pull/598</a>)</td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    <h2 id="-other-improvements">🛠️ Other Improvements</h2>
+                    <ul>
+                    <li>Visual and animation refinements for battery/media indicators</li>
+                    <li>Enhanced error handling, code reorganization, and extensive documentation</li>
+                    <li>Optimizations for consistent performance across all system conditions</li>
+                    </ul>
+                    <p>Thank you 🌟 to everyone—new and returning—for their effort in making this release feature-rich, steady, and super fun!</p>
+                    <p><strong>Try Boring Notch v2.7 — Flying Rabbit RC 0 and let us know what you think!</strong></p>
+                    <p><em>— The Boring Notch Team</em></p>
+                ]]></description>
+                <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.0/Flying_Rabbit.dmg" length="9000118" type="application/octet-stream" sparkle:edSignature="G5D2zsLFBR0Ua9b1EkLD8jjdkpMA10P1C9KmEL2Drg1WNwCnNAY+lGmljx1UQ+qDyqpjjMrOoGClevHd/276BQ=="/>
+        </item>
+        <item>
+            <title>2.6 🎉 Wolf Painting 🐺</title>
+            <pubDate>Sun, 23 Feb 2025 22:02:47 +0530</pubDate>
+            <sparkle:version>2.6+1</sparkle:version>
+            <sparkle:shortVersionString>2.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h1>🎉 v2.6 🚀 Wolf Painting 🐺</h1>
+                <p>We're thrilled to announce the release of Wolf Painting version 2.6! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
+                <a href="https://github.com/TheBoredTeam/boring.notch/releases/download/wolf.painting/WolfPainting.dmg"><h1>Download from here</h1></a>
+                <h2>🤔 What's Changed? 🤓</h2>
+                <ul>
+                <li>🧠 Improved memory management and thread safety across the app</li>
+                <li>🎥 Enhanced webcam handling with better session lifecycle management</li>
+                <li>🎨 Added option to choose between classic and modern notch animations</li>
+                <li>⚡️ Improved fullscreen detection with Finder exclusion</li>
+                <li>🔄 Better hover state handling and reduced animation flicker</li>
+                <li>🔋 Enhanced power status notifications and battery indicators</li>
+                <li>⚙️ Improved screen lock and display change handling</li>
+                <li>🎵 Better music playback state tracking and elapsed time accuracy</li>
+                <li>✨ Added "Buy us a coffee" option in Welcome screen</li>
+                <li>⚠️ Added warning badges for unsupported extensions</li>
+                <li>🐛 Various bug fixes and stability improvements</li>
+                <li>For more details, check out <a href="https://theboring.name">our website</a></li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/wolf.painting/WolfPainting.dmg" length="8722621" type="application/octet-stream" sparkle:edSignature="j2Wp9e23UvN7yx2NztYfGbUiKfCU4qc2xpsPwBPx/ERUz01pJTfJlf8oN0Wri8gcho42/xfcfnWNwChfMPzrCQ=="/>
+        </item>
+        <item>
+            <title>2.5 🎉 Jellyfin Snoring 🪼 (Streaming)</title>
+            <pubDate>Wed, 15 Jan 2025 00:34:25 +0530</pubDate>
+            <sparkle:version>2.5+1</sparkle:version>
+            <sparkle:shortVersionString>2.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h1>🎉 v2.5 🚀 Jellyfin Snoring 🪼 (Dreaming)</h1>
+                <p>We're thrilled to announce the release of Jellyfin Snoring version 2.5! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
+                <h2>🤔 What's Changed? 🤓</h2>
+                <ul>
+                <li>🧠 Taught our app that RAM isn't an all-you-can-eat buffet (fixed those pesky memory leaks that made your computer think it was training ChatGPT)</li>
+                <li>Improved full-screen media detection (Thanks @MicroVisionKit!)</li>
+                <li>Jiggly wobbly notch open and close animation.</li>
+                <li>Fixed AirDrop invisible window issue and improved error handling 📱</li>
+                <li>Improved gesture sensitivity and controls 🖐️</li>
+                <li>Better performance optimizations ⚡</li>
+                <li>Fixed various minor bugs and stability issues 🐛</li>
+                <li> For more details, check out <a href="https://theboring.name">our website</a>.</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/jellyfin.snoring/JellyfinSnoring.dmg" length="9141153" type="application/octet-stream" sparkle:edSignature="z+7wKceFTIL4ZwF8JnZvuIWfqY+l7eWTaw3mHM7PB6FQJ2VIBD4pJ4lkrgw7ZMRZHrSdpW1Q1Xx/5w+yjV4BCg==" />
+        </item>
+        <item>
+            <title>2.4 🚀 Exciting new features and improvements</title>
+            <pubDate>Wed, 20 Nov 2024 15:30:00 +0530</pubDate>
+            <sparkle:version>2.4+1</sparkle:version>
+            <sparkle:shortVersionString>2.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h1>🎉 v2.4 🚀 Exciting new features and improvements</h1>
+                <p>We're excited to bring you version 2.4 of Jolly Dolphin 🐬 (Dreaming) with some amazing new features and improvements! 🎊</p><br />
+                <h2>🤔 What's Changed? 🤓</h2>
+                <ul>
+                <li>🧠 Taught our app that RAM isn't an all-you-can-eat buffet (fixed those pesky memory leaks that made your computer think it was training ChatGPT)</li>
+                <li>Fixed AirDrop invisible window issue and improved error handling 📱</li>
+                <li>Improved gesture sensitivity and controls 🖐️</li>
+                <li>Better memory management and performance optimizations ⚡</li>
+                <li>Enhanced UI responsiveness across virtual desktops 🖥️</li>
+                <li>Fixed various minor bugs and stability issues 🐛</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/jolly.dolphin/JollyDolphin.dmg" length="9089728" type="application/octet-stream" sparkle:edSignature="0z3HRWi3T6Eus3rQgBlqC+vcPkfIRcMQLxXuJXgpLrUCamM5a664mzUkcI0zGN+0y+JF33M5DE5yhuuLgMuQBQ=="/>
+        </item>
+        <item>
+            <title>2.3 🚀 New release with bug fixes and great additions</title>
+            <pubDate>Wed, 13 Nov 2024 21:44:25 +0530</pubDate>
+            <sparkle:version>2.3+1</sparkle:version>
+            <sparkle:shortVersionString>2.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h1>🎉 v2.3 🚀 New release with bug fixes and great additions</h1>
+                <p>We're thrilled to announce the release of Glowing Panda version 2.3! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
+                <h2>🤔 What's Changed? 🤓</h2>
+                <ul>
+                <li>
+                Fixed a bug that caused shelf to be unresponsive to drag and drop @Alexander 🛠️
+                </li>
+                <li>Fixed a bug that caused sliding text to be unvisible 📝</li>
+                <li>Fixed a bug that re-enabled music live activity on media actions 🎵</li>
+                <li>Fixed a bug that caused the app flickering when Apple Intelligence windows were open @Alexander 🌟
+                </li>
+                <li>Settings window won't open on start @Alexander 🛠️</li>
+                <li>New feature for battery that reflects low-power mode by @freepicheep 🔋</li>
+                <li>Preparing for custom animations in the live activity 🎉</li>
+                 <li>Boring notch now stays centered around the notch when changing virtual desktops. 🌟</li>
+                 <li>Keyboard shortcut I added to toggle the entire notch. @freepicheep 📝 </li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="9059580" type="application/octet-stream" sparkle:edSignature="NZcPHtGmR+zPIRSTwOrbTV5or6GoieQhdtnFcdhJdt3Gg5Z83A5tG/th/Ekb6DbbnMbCT3z7ckQfZn44mZ3aAQ=="/>
+        </item>
+        <item>
+            <title>🎉 v2.2 🚀 New release with bug fixes and great additions</title>
+            <link>https://theboring.name</link>
+            <pubDate>Wed, 13 Nov 2024 21:44:25 +0530</pubDate>
+            <sparkle:version>2.2+1</sparkle:version>
+            <sparkle:shortVersionString>2.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+            <h1>🎉 v2.2 🚀 New release with bug fixes and great additions</h1>
+            <p>We're thrilled to announce the release of Glowing Panda version 2.2! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
+            <h2>🤔 What's Changed? 🤓</h2>
+            <ul>
+                <li>Calendar & Behavior: 📅 Fixed calendar data handling and behavior issues (Thanks @LostCause!)</li>
+                <li>Music Features: 🎵 Added keyboard shortcut for music sneakPeek (Thanks @freepicheep!) and improved Mirror logic (Thanks @LostCause!)</li>
+                <li>App Management: 🔄 Implemented app restart functionality (Thanks @LostCause!)</li>
+                <li>Media Player: 🎬 New timeline slider and centered controls with tinting options (Based on @LostCause's work)</li>
+                <li>Live Activity: 📱 Added option to disable music live activity</li>
+                <li>UI Improvements: 🎨 Fixed sizing and spacing issues, especially notch content overlap</li>
+                <li>Gesture System: 🤚 Improved gesture logic (Thanks @LostCause!)</li>
+                <li>Header Update: 🔄 Removed "Glowing 🐼" text from header</li>
+                <li>Settings Enhancement: ⚙️ Added new Appearance and Shortcuts tabs</li>
+            </ul>
+            ]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="9059580" type="application/octet-stream" sparkle:edSignature="NZcPHtGmR+zPIRSTwOrbTV5or6GoieQhdtnFcdhJdt3Gg5Z83A5tG/th/Ekb6DbbnMbCT3z7ckQfZn44mZ3aAQ=="/>
+        </item>
+        <item>
+            <title>🎉 v2.1 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</title>
+            <link>https://theboring.name</link>
+            <pubDate>Sat, 19 Oct 2024 17:38:33 +0530</pubDate>
+            <sparkle:version>2.1+1</sparkle:version>
+            <sparkle:shortVersionString>2.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h1>🎉 v2.0 – Glowing Panda: The Update You've Been Waiting For (Sort Of) 😜</h1>
+                <p>We're thrilled to announce the release of Glowing Panda version 2.0! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
+                <h2>🤔 What's New? 🤓</h2>
+                <ul><li>Rewritten Layout: The Speed Demon 🏃‍♂️ Our layout has been reworked for better performance, making it faster and smoother. We've also added some fancy animations to keep things interesting 😎</li>
+                <li>Polished Managers: The Playback Pro 🎵 Playback managers have been revamped to ensure a seamless experience. No more buffering or crashes – we've got this covered 💪</li>
+                <li>Calendar & Music Activity: The Visual Showstopper 📆 A fancy blur background behind music activity has been added to enhance the app's visual appeal. It's like a mini-movie in your app 🍿</li>
+                <li>Customization Options: Make it Yours (Sort Of) 🎨 More customization options have been introduced to personalize your glow. We've also added some new emojis to make things more fun 🤪</li>
+                <li>Improved Settings: Don't Lose Your Stuff 🗂️ New and improved settings that actually save changes 🔄. No more wondering where you put that pesky setting 🔍</li>
+                <li>Resource Management Optimizations: The Secret Sauce ⚙️ Our resource management has been optimized for a faster app. We've also added some secret sauce (just kidding, it's just good old-fashioned coding magic ✨)</li>
+                <li>Bug Fixes: 🚫 We've squashed some pesky bugs that caused issues with HUDs and Download Manager settings, shelf icon responsiveness, and General tab in Settings.</li>
+                <li>Update Check: 🔄 A new feature to check for updates in the Settings / About section has been added.</li>
+                <li>Non-Notch Display Customization: 🖥️ Customization options for non-notch displays have been introduced to ensure a seamless experience for all users.</li>
+                <li>GitHub Link Update: 🔄 The GitHub link in the settings has been updated to ensure easy access to the latest updates.</li>
+                    </ul>
+                    ]]></description>
+                    <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/glowing-panda/GlowingPanda.dmg" length="10428612" type="application/octet-stream" sparkle:edSignature="x6+BvmZZjnDg/CBMoEMaXMLzQtsW8Hi1Speba/I+KUCbqXgj2pRAo+ATo9m5pqedVmWmAqqEYxSY82u2TK3ZCw=="/>
+        </item>
+    </channel>
+</rss>
+
