@@ -2954,7 +2954,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Automatically switch displays"
+            "value": "Automaticky přepnout obrazovky"
           }
         },
         "en-GB": {
@@ -4772,7 +4772,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "Gesto zavření"
           }
         },
         "en-GB": {
@@ -5378,7 +5378,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Vlastní velikost notche - %.0f"
+            "value": "Vlastní velikost výřezu - %.0f"
           }
         },
         "en-GB": {
@@ -6388,7 +6388,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Snadno kopírujte, ukládejte a spravujte svůj nejpoužívanejší obsah. Upgradujte nyní pro pokročilé funkce, jako je vícenásobné ulužiště a rychlý přístup!"
+            "value": "Snadno kopírujte, ukládejte a spravujte svůj nejpoužívanejší obsah. Upgradujte nyní pro pokročilé funkce, jako je vícenásobné úložiště a rychlý přístup!"
           }
         },
         "en-GB": {
@@ -6590,7 +6590,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable automatic sneak peek (show on media changes)"
+            "value": "Povolit automatický náhled (zobrazit při změně média)"
           }
         },
         "en-GB": {
@@ -6691,7 +6691,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "Povolit efekt rozostření za obalem alba"
           }
         },
         "en-GB": {
@@ -6792,7 +6792,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable boring mirror"
+            "value": "Povolit boring zrcadlo"
           }
         },
         "en-GB": {
@@ -6893,7 +6893,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "Povolit barevné spektrogramy"
           }
         },
         "en-GB": {
@@ -6994,7 +6994,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "Povolit gesta"
           }
         },
         "en-GB": {
@@ -7196,7 +7196,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "Povolit haptiku"
           }
         },
         "en-GB": {
@@ -7398,7 +7398,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Povolist živou aktivitu hudby"
+            "value": "Povolit živou aktivitu hudby"
           }
         },
         "en-GB": {
@@ -7499,7 +7499,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "Povolit polici"
           }
         },
         "en-GB": {
@@ -9216,7 +9216,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": "Schovat vyřízené připomínky"
           }
         },
         "en-GB": {
@@ -10024,7 +10024,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Inline"
+            "value": "V řadě"
           }
         },
         "en-GB": {
@@ -10630,7 +10630,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Vyrobeno s 🫶🏻 ne tak nudnými ne lidmi."
+            "value": "Vyrobeno s 🫶🏻 ne tak nudnými ne lidmi"
           }
         },
         "en-GB": {
@@ -10832,7 +10832,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mark as incomplete"
+            "value": "Označit jako nedokončené"
           }
         },
         "en-GB": {
@@ -10933,7 +10933,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match menubar height"
+            "value": "Odpovídat výšce menubaru"
           }
         },
         "en-GB": {
@@ -11034,7 +11034,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match real notch size"
+            "value": "Odpovídat skutečné velikosti výřezu"
           }
         },
         "en-GB": {
@@ -11135,7 +11135,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Max Capacity: %lld%%"
+            "value": "Maximální kapacita: %lld%%"
           }
         },
         "en-GB": {
@@ -11236,7 +11236,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media"
+            "value": "Média"
           }
         },
         "en-GB": {
@@ -11337,7 +11337,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media change with horizontal gestures"
+            "value": "Změna médií pomocí horizontálních gest"
           }
         },
         "en-GB": {
@@ -11438,7 +11438,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media controls"
+            "value": "Ovládání médií"
           }
         },
         "en-GB": {
@@ -11943,7 +11943,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Menubar icon"
+            "value": "Ikona menu"
           }
         },
         "en-GB": {
@@ -12044,7 +12044,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mic %@"
+            "value": "Mikrofon %@"
           }
         },
         "en-GB": {
@@ -12145,7 +12145,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Minimum hover duration"
+            "value": "Minimální doba přejezdu"
           }
         },
         "en-GB": {
@@ -12246,7 +12246,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mirror"
+            "value": "Zrcátko"
           }
         },
         "en-GB": {
@@ -12347,7 +12347,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mirror shape"
+            "value": "Tvar zrcadla"
           }
         },
         "en-GB": {
@@ -12448,7 +12448,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "More"
+            "value": "Více"
           }
         },
         "en-GB": {
@@ -12549,7 +12549,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Music Source"
+            "value": "Zdroj hudby"
           }
         },
         "en-GB": {
@@ -12650,7 +12650,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "muted"
+            "value": "ztlumeno"
           }
         },
         "en-GB": {
@@ -12751,7 +12751,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Name"
+            "value": "Jméno"
           }
         },
         "en-GB": {
@@ -12852,7 +12852,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Need Restart"
+            "value": "Nutný restart"
           }
         },
         "en-GB": {
@@ -12953,7 +12953,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Never hide"
+            "value": "Nikdy neskrývat"
           }
         },
         "en-GB": {
@@ -13054,7 +13054,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom animation available"
+            "value": "Žádná vlastní animace není k dispozici"
           }
         },
         "en-GB": {
@@ -13155,7 +13155,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom visualizer"
+            "value": "Žádný vlastní vizualizér není k dispozici"
           }
         },
         "en-GB": {
@@ -13256,7 +13256,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No events today"
+            "value": "Žádné události"
           }
         },
         "en-GB": {
@@ -13357,7 +13357,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No extension installed"
+            "value": "Žádné rozšíření není nainstalováno"
           }
         },
         "en-GB": {
@@ -13458,7 +13458,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Non-notch display height"
+            "value": "Výška na obrazovce bez výřezu"
           }
         },
         "en-GB": {
@@ -13559,7 +13559,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Not Now"
+            "value": "Teď ne"
           }
         },
         "en-GB": {
@@ -13660,7 +13660,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch behavior"
+            "value": "Chování výřezu"
           }
         },
         "en-GB": {
@@ -13761,7 +13761,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch display height"
+            "value": "Výška na obrazovce s výřezem"
           }
         },
         "en-GB": {
@@ -13862,7 +13862,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch Height"
+            "value": "Výška výřezu"
           }
         },
         "en-GB": {
@@ -14064,7 +14064,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "One or more files failed to load"
+            "value": "Nelze načíst jeden nebo více souborů"
           }
         },
         "en-GB": {
@@ -14165,7 +14165,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Calendar Settings"
+            "value": "Otevřít nastavení Kalendáře"
           }
         },
         "en-GB": {
@@ -14367,7 +14367,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Reminder Settings"
+            "value": "Otevřít nastavení Připomínek"
           }
         },
         "en-GB": {
@@ -14569,7 +14569,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Plugged In"
+            "value": "Připojeno"
           }
         },
         "en-GB": {
@@ -14670,7 +14670,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Progressbar style"
+            "value": "Styl ukazatele průběhu"
           }
         },
         "en-GB": {
@@ -14771,7 +14771,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quit"
+            "value": "Ukončit"
           }
         },
         "en-GB": {
@@ -14872,7 +14872,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quit app"
+            "value": "Ukončit aplikaci"
           }
         },
         "en-GB": {
@@ -14973,7 +14973,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Release name"
+            "value": "Název vydání"
           }
         },
         "en-GB": {
@@ -15074,7 +15074,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Remember last tab"
+            "value": "Zapamatovat poslední kartu"
           }
         },
         "en-GB": {
@@ -15175,7 +15175,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reminder access is denied. Please enable it in System Settings."
+            "value": "Přístup do kalendáře byl odepřen. Prosím povolte jej v nastavení systému."
           }
         },
         "en-GB": {
@@ -15276,7 +15276,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reminders"
+            "value": "Připomínky"
           }
         },
         "en-GB": {
@@ -15377,7 +15377,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Restart"
+            "value": "Restartovat"
           }
         },
         "en-GB": {
@@ -15478,7 +15478,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Restart Boring Notch"
+            "value": "Restartovat Boring Notch"
           }
         },
         "en-GB": {
@@ -15579,7 +15579,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Running"
+            "value": "Běží"
           }
         },
         "en-GB": {
@@ -15680,7 +15680,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Select the music source you want to use. You can change this later in the app settings."
+            "value": "Vyberte zdroj hudby který chcete používat. Můžete jej později změnit v nastavení aplikace."
           }
         },
         "en-GB": {
@@ -15781,7 +15781,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "selected"
+            "value": "vybráno"
           }
         },
         "en-GB": {
@@ -15882,7 +15882,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Selected animation"
+            "value": "Vybraná animace"
           }
         },
         "en-GB": {
@@ -15983,7 +15983,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings"
+            "value": "Nastavení"
           }
         },
         "en-GB": {
@@ -16084,7 +16084,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings icon in notch"
+            "value": "Ikona nastavení ve výřezu"
           }
         },
         "en-GB": {
@@ -16185,7 +16185,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Shelf"
+            "value": "Police"
           }
         },
         "en-GB": {
@@ -16286,7 +16286,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Shortcuts"
+            "value": "Zkratky"
           }
         },
         "en-GB": {
@@ -16387,7 +16387,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery indicator"
+            "value": "Zobrazit stav baterie"
           }
         },
         "en-GB": {
@@ -16488,7 +16488,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery percentage"
+            "value": "Zobrazit % baterie"
           }
         },
         "en-GB": {
@@ -16589,7 +16589,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show calendar"
+            "value": "Zobrazit kalendář"
           }
         },
         "en-GB": {
@@ -16690,7 +16690,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show cool face animation while inactivity"
+            "value": "Zobrazit animaci hustého obličeje při nečinnosti"
           }
         },
         "en-GB": {
@@ -16791,7 +16791,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show on a specific display"
+            "value": "Zobrazit na konkrétní obrazovce"
           }
         },
         "en-GB": {
@@ -16892,7 +16892,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show on all displays"
+            "value": "Zobrazit na všech obrazovkách"
           }
         },
         "en-GB": {
@@ -16993,7 +16993,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status icons"
+            "value": "Zobrazit ikonu stavu napájení"
           }
         },
         "en-GB": {
@@ -17094,7 +17094,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status notifications"
+            "value": "Zobrazovat oznámení o stavu napájení"
           }
         },
         "en-GB": {
@@ -17195,7 +17195,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show shuffle and repeat buttons"
+            "value": "Zobrazit tlačítka náhodného přehrávání a opakování"
           }
         },
         "en-GB": {
@@ -17296,7 +17296,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Slider color"
+            "value": "Barva posuvníku"
           }
         },
         "en-GB": {
@@ -17397,7 +17397,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek shows the media title and artist under the notch for a few seconds."
+            "value": "Náhled zobrazuje název skladby a autora pod výřezem na několik vteřin."
           }
         },
         "en-GB": {
@@ -17498,7 +17498,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek Style"
+            "value": "Styl náhledu"
           }
         },
         "en-GB": {
@@ -17599,7 +17599,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Software updates"
+            "value": "Aktualizace"
           }
         },
         "en-GB": {
@@ -17700,7 +17700,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Speed"
+            "value": "Rychlost"
           }
         },
         "en-GB": {
@@ -17801,7 +17801,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Čtvercový"
+            "value": "Čtverec"
           }
         },
         "en-GB": {
@@ -17902,7 +17902,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Stopped"
+            "value": "Zastaveno"
           }
         },
         "en-GB": {
@@ -18003,7 +18003,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Support Us"
+            "value": "Podpořte nás"
           }
         },
         "en-GB": {
@@ -18104,7 +18104,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "System features"
+            "value": "Systémové funkce"
           }
         },
         "en-GB": {
@@ -18205,7 +18205,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Time to Full Charge: %lld min"
+            "value": "Čas do plného nabití: %lld min"
           }
         },
         "en-GB": {
@@ -18306,7 +18306,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Notch Open:"
+            "value": "Zapnout otevření výřezu:"
           }
         },
         "en-GB": {
@@ -18407,7 +18407,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Sneak Peek:"
+            "value": "Zapnout náhled:"
           }
         },
         "en-GB": {
@@ -18508,7 +18508,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+            "value": "Posunutím dvěma prsty nahoru zavřete, dvojitým posunem dolů otevřete, když je zakázána možnost **Otevření výřezu při nápovědě**"
           }
         },
         "en-GB": {
@@ -18609,7 +18609,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Uninstall"
+            "value": "Odinstalovat"
           }
         },
         "en-GB": {
@@ -18710,7 +18710,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
+            "value": "Odemkněte pokročilé funkce a vylepšete si svůj zážitek. Upgradujte nyní pro více přizpůsobení!"
           }
         },
         "en-GB": {
@@ -18811,7 +18811,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "unmuted"
+            "value": "neztlumeno"
           }
         },
         "en-GB": {
@@ -18912,7 +18912,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Upgrade to Pro"
+            "value": "Upgradovat na verzi Pro"
           }
         },
         "en-GB": {
@@ -19013,7 +19013,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use accent color"
+            "value": "Použít barvu zvýraznění"
           }
         },
         "en-GB": {
@@ -19114,7 +19114,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use music visualizer spectrogram"
+            "value": "Použít hudební vizualizér"
           }
         },
         "en-GB": {
@@ -19215,7 +19215,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use simpler close animation"
+            "value": "Použít jednodušší animaci zavření"
           }
         },
         "en-GB": {
@@ -19316,7 +19316,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Version"
+            "value": "Verze"
           }
         },
         "en-GB": {
@@ -19417,7 +19417,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Version info"
+            "value": "Informace o verzi"
           }
         },
         "en-GB": {
@@ -19518,7 +19518,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "View on GitHub: th-ch/youtube-music"
+            "value": "Zobrazit na GitHubu: hudba na th-ch/youtube-music"
           }
         },
         "en-GB": {
@@ -19619,7 +19619,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Welcome"
+            "value": "Vítejte"
           }
         },
         "en-GB": {
@@ -19720,7 +19720,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "What's New"
+            "value": "Co je nového"
           }
         },
         "en-GB": {
@@ -19922,7 +19922,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You're All Set!"
+            "value": "Vše je nastaveno!"
           }
         },
         "en-GB": {
@@ -20023,7 +20023,7 @@
         "cs": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "YouTube Music requires this third-party app to be installed: "
+            "value": "YouTube Music vyžaduje instalaci aplikace třetí strany: "
           }
         },
         "en-GB": {
