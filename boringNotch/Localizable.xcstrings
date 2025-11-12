@@ -5105,7 +5105,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Corner radius scaling"
+            "value": "Scala raggio angoli"
           }
         },
         "ko": {
@@ -14498,7 +14498,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open shelf by default if items are present"
+            "value": "Apri automaticamente lo scaffale se contiene elementi"
           }
         },
         "ko": {
@@ -16720,7 +16720,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show cool face animation while inactivity"
+            "value": "Mostra faccina animata se non ci sono attività"
           }
         },
         "ko": {
