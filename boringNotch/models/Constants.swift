@@ -157,6 +157,10 @@ extension Defaults.Keys {
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     
+    // MARK: Advanced Settings
+    static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
+    static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
+    
     // Helper to determine the default media controller based on NowPlaying deprecation status
     static var defaultMediaController: MediaControllerType {
         if MusicManager.shared.isNowPlayingDeprecated {
