@@ -4802,7 +4802,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Close gesture"
+            "value": "Gesture di chiusura"
           }
         },
         "ko": {
@@ -8135,7 +8135,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Extend hover area"
+            "value": "Estendi area di attivazione col mouse"
           }
         },
         "ko": {
