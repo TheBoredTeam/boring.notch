@@ -1409,6 +1409,9 @@
         }
       }
     },
+    "Accent Color" : {
+
+    },
     "Access Denied" : {
       "localizations" : {
         "ar" : {
@@ -1908,6 +1911,9 @@
           }
         }
       }
+    },
+    "Advanced" : {
+
     },
     "AirDrop" : {
       "localizations" : {
@@ -4509,6 +4515,12 @@
         }
       }
     },
+    "Choose any color" : {
+
+    },
+    "Choose between your system accent color or customize it with your own selection." : {
+
+    },
     "Circle" : {
       "localizations" : {
         "ar" : {
@@ -4809,6 +4821,9 @@
         }
       }
     },
+    "Color Presets" : {
+
+    },
     "Coming soon" : {
       "localizations" : {
         "ar" : {
@@ -5108,6 +5123,9 @@
           }
         }
       }
+    },
+    "Custom" : {
+
     },
     "Custom height" : {
       "localizations" : {
@@ -7512,6 +7530,9 @@
         }
       }
     },
+    "Enable wobble animation" : {
+
+    },
     "Enhance your experience with HUDs" : {
       "localizations" : {
         "ar" : {
@@ -7911,6 +7932,9 @@
           }
         }
       }
+    },
+    "Experimental Features" : {
+
     },
     "Extend hover area" : {
       "localizations" : {
@@ -9115,6 +9139,9 @@
           }
         }
       }
+    },
+    "Hide from screen recording" : {
+
     },
     "Hide only when NowPlaying app is in fullscreen" : {
       "localizations" : {
@@ -14317,6 +14344,9 @@
         }
       }
     },
+    "Pick a Color" : {
+
+    },
     "Plugged In" : {
       "localizations" : {
         "ar" : {
@@ -16517,6 +16547,9 @@
         }
       }
     },
+    "Show notch on lock screen" : {
+
+    },
     "Show on a specific display" : {
       "localizations" : {
         "ar" : {
@@ -17817,6 +17850,9 @@
         }
       }
     },
+    "System" : {
+
+    },
     "System features" : {
       "localizations" : {
         "ar" : {
@@ -17916,6 +17952,9 @@
           }
         }
       }
+    },
+    "These features are experimental and may not work as expected." : {
+
     },
     "Time to Full Charge: %lld min" : {
       "localizations" : {
@@ -19017,6 +19056,12 @@
         }
       }
     },
+    "Use your macOS system accent color" : {
+
+    },
+    "Using System Accent" : {
+
+    },
     "Version" : {
       "localizations" : {
         "ar" : {
@@ -19517,6 +19562,12 @@
         }
       }
     },
+    "Window Appearance" : {
+
+    },
+    "Window Behavior" : {
+
+    },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
       "localizations" : {
         "ar" : {
@@ -19716,6 +19767,9 @@
           }
         }
       }
+    },
+    "Your macOS system accent color" : {
+
     },
     "YouTube Music requires this third-party app to be installed: " : {
       "localizations" : {

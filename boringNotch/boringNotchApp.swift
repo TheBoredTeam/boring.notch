@@ -69,9 +69,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var whatsNewWindow: NSWindow?
     var timer: Timer?
-    var closeNotchWorkItem: DispatchWorkItem?
+    var closeNotchTask: Task<Void, Never>?
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
+    private var screenLockedObserver: Any?
+    private var screenUnlockedObserver: Any?
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -79,26 +81,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         NotificationCenter.default.removeObserver(self)
+        if let observer = screenLockedObserver {
+            DistributedNotificationCenter.default().removeObserver(observer)
+            screenLockedObserver = nil
+        }
+        if let observer = screenUnlockedObserver {
+            DistributedNotificationCenter.default().removeObserver(observer)
+            screenUnlockedObserver = nil
+        }
         MusicManager.shared.destroy()
         cleanupWindows()
     }
 
-    @objc func onScreenLocked(_: Notification) {
-        print("Screen locked")
-        cleanupWindows()
+    @MainActor
+    func onScreenLocked(_ notification: Notification) {
+        if !Defaults[.showOnLockScreen] {
+            cleanupWindows()
+        }
     }
 
-    @objc func onScreenUnlocked(_: Notification) {
-        print("Screen unlocked")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            self?.cleanupWindows()
-            self?.adjustWindowPosition(changeAlpha: true)
+    @MainActor
+    func onScreenUnlocked(_ notification: Notification) {
+        if !Defaults[.showOnLockScreen] {
+            adjustWindowPosition(changeAlpha: true)
         }
     }
 
     private func cleanupWindows(shouldInvert: Bool = false) {
-        if shouldInvert ? !Defaults[.showOnAllDisplays] : Defaults[.showOnAllDisplays] {
-            for window in windows.values {
+        let shouldCleanupMulti = shouldInvert ? !Defaults[.showOnAllDisplays] : Defaults[.showOnAllDisplays]
+        
+        if shouldCleanupMulti {
+            windows.values.forEach { window in
                 window.close()
                 NotchSpaceManager.shared.notchSpace.windows.remove(window)
             }
@@ -111,16 +124,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel)
-        -> NSWindow
-    {
-        let window = BoringNotchWindow(
-            contentRect: NSRect(
-                x: 0, y: 0, width: openNotchSize.width, height: openNotchSize.height),
-            styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
-            backing: .buffered,
-            defer: false
-        )
+    private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
+        let rect = NSRect(x: 0, y: 0, width: openNotchSize.width, height: openNotchSize.height)
+        let styleMask: NSWindow.StyleMask = [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow]
+        
+        let window = BoringNotchSkyLightWindow(contentRect: rect, styleMask: styleMask, backing: .buffered, defer: false)
 
         window.contentView = NSHostingView(
             rootView: ContentView()
@@ -132,22 +140,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return window
     }
 
-    private func positionWindow(_ window: NSWindow, on screen: NSScreen, changeAlpha: Bool = false)
-    {
+    @MainActor
+    private func positionWindow(_ window: NSWindow, on screen: NSScreen, changeAlpha: Bool = false) {
         if changeAlpha {
             window.alphaValue = 0
         }
 
-        DispatchQueue.main.async { [weak window] in
-            guard let window = window else { return }
-            let screenFrame = screen.frame
-            window.setFrameOrigin(
-                NSPoint(
-                    x: screenFrame.origin.x + (screenFrame.width / 2) - window.frame.width / 2,
-                    y: screenFrame.origin.y + screenFrame.height - window.frame.height
-                ))
-            window.alphaValue = 1
-        }
+        let screenFrame = screen.frame
+        window.setFrameOrigin(
+            NSPoint(
+                x: screenFrame.origin.x + (screenFrame.width / 2) - window.frame.width / 2,
+                y: screenFrame.origin.y + screenFrame.height - window.frame.height
+            ))
+        window.alphaValue = 1
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -164,46 +169,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(
             forName: Notification.Name.selectedScreenChanged, object: nil, queue: nil
         ) { [weak self] _ in
-            self?.adjustWindowPosition(changeAlpha: true)
+            Task { @MainActor in
+                self?.adjustWindowPosition(changeAlpha: true)
+            }
         }
 
         NotificationCenter.default.addObserver(
             forName: Notification.Name.notchHeightChanged, object: nil, queue: nil
         ) { [weak self] _ in
-            self?.adjustWindowPosition()
+            Task { @MainActor in
+                self?.adjustWindowPosition()
+            }
         }
 
         NotificationCenter.default.addObserver(
             forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
         ) { [weak self] _ in
-            guard let self = self, let window = self.window else { return }
-            window.alphaValue =
-                self.coordinator.selectedScreen == self.coordinator.preferredScreen ? 1 : 0
+            Task { @MainActor in
+                guard let self = self, let window = self.window else { return }
+                window.alphaValue = self.coordinator.selectedScreen == self.coordinator.preferredScreen ? 1 : 0
+            }
         }
 
         NotificationCenter.default.addObserver(
             forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil
         ) { [weak self] _ in
-            guard let self = self else { return }
-            self.cleanupWindows(shouldInvert: true)
-
-            if !Defaults[.showOnAllDisplays] {
-                let viewModel = self.vm
-                let window = self.createBoringNotchWindow(
-                    for: NSScreen.main ?? NSScreen.screens.first!, with: viewModel)
-                self.window = window
+            Task { @MainActor in
+                guard let self = self else { return }
+                self.cleanupWindows(shouldInvert: true)
                 self.adjustWindowPosition(changeAlpha: true)
-            } else {
-                self.adjustWindowPosition()
             }
         }
 
-        DistributedNotificationCenter.default().addObserver(
-            self, selector: #selector(onScreenLocked(_:)),
-            name: NSNotification.Name(rawValue: "com.apple.screenIsLocked"), object: nil)
-        DistributedNotificationCenter.default().addObserver(
-            self, selector: #selector(onScreenUnlocked(_:)),
-            name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
+        // Use closure-based observers for DistributedNotificationCenter and keep tokens for removal
+        screenLockedObserver = DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name(rawValue: "com.apple.screenIsLocked"),
+            object: nil, queue: .main) { [weak self] notification in
+                Task { @MainActor in
+                    await self?.onScreenLocked(notification)
+                }
+        }
+
+        screenUnlockedObserver = DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"),
+            object: nil, queue: .main) { [weak self] notification in
+                Task { @MainActor in
+                    await self?.onScreenUnlocked(notification)
+                }
+        }
 
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
@@ -220,38 +233,47 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
-            guard let self = self else { return }
+            Task { [weak self] in
+                guard let self = self else { return }
 
-            let mouseLocation = NSEvent.mouseLocation
+                let mouseLocation = NSEvent.mouseLocation
 
-            var viewModel = self.vm
+                var viewModel = self.vm
 
-            if Defaults[.showOnAllDisplays] {
-                for screen in NSScreen.screens {
-                    if screen.frame.contains(mouseLocation) {
-                        if let screenViewModel = self.viewModels[screen] {
-                            viewModel = screenViewModel
-                            break
+                if Defaults[.showOnAllDisplays] {
+                    for screen in NSScreen.screens {
+                        if screen.frame.contains(mouseLocation) {
+                            if let screenViewModel = self.viewModels[screen] {
+                                viewModel = screenViewModel
+                                break
+                            }
                         }
                     }
                 }
-            }
 
-            self.closeNotchWorkItem?.cancel()
-            self.closeNotchWorkItem = nil
+                self.closeNotchTask?.cancel()
+                self.closeNotchTask = nil
 
-            switch viewModel.notchState {
-            case .closed:
-                viewModel.open()
+                switch viewModel.notchState {
+                case .closed:
+                    await MainActor.run {
+                        viewModel.open()
+                    }
 
-                let workItem = DispatchWorkItem { [weak viewModel] in
-                    viewModel?.close()
+                    let task = Task { [weak viewModel] in
+                        do {
+                            try await Task.sleep(for: .seconds(3))
+                            await MainActor.run {
+                                viewModel?.close()
+                            }
+                        } catch { }
+                    }
+                    self.closeNotchTask = task
+                case .open:
+                    await MainActor.run {
+                        viewModel.close()
+                    }
                 }
-                self.closeNotchWorkItem = workItem
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: workItem)
-            case .open:
-                viewModel.close()
             }
         }
 

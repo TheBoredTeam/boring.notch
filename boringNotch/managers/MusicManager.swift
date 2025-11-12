@@ -318,15 +318,12 @@ class MusicManager: ObservableObject {
 
     func updateAlbumArt(newAlbumArt: NSImage) {
         workItem?.cancel()
-        workItem = DispatchWorkItem { [weak self] in
-            withAnimation(.smooth) {
-                self?.albumArt = newAlbumArt
-                if Defaults[.coloredSpectrogram] {
-                    self?.calculateAverageColor()
-                }
+        withAnimation(.smooth) {
+            self.albumArt = newAlbumArt
+            if Defaults[.coloredSpectrogram] {
+                self.calculateAverageColor()
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: workItem!)
     }
 
     // MARK: - Playback Position Estimation
