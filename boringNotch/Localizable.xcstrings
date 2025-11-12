@@ -1912,6 +1912,9 @@
         }
       }
     },
+    "Advanced" : {
+
+    },
     "All-day" : {
       "localizations" : {
         "ar" : {
@@ -4312,6 +4315,12 @@
         }
       }
     },
+    "Choose any color" : {
+
+    },
+    "Choose between your system accent color or customize it with your own selection." : {
+
+    },
     "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately." : {
 
     },
@@ -4917,6 +4926,12 @@
           }
         }
       }
+    },
+    "Currently selected: %@" : {
+
+    },
+    "Custom" : {
+
     },
     "Custom height" : {
       "localizations" : {
@@ -7523,6 +7538,9 @@
           }
         }
       }
+    },
+    "Experimental Features" : {
+
     },
     "Extend hover area" : {
       "localizations" : {

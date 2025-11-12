@@ -1059,7 +1059,6 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)",
 					"$(PROJECT_DIR)/mediaremote-adapter",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1087,7 +1086,7 @@
 				SWIFT_VERSION = 5.0;
 				SYSTEM_FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
+					"$(SDKROOT)/System/Library/PrivateFrameworks",
 				);
 			};
 			name = Debug;
@@ -1113,7 +1112,6 @@
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)",
 					"$(PROJECT_DIR)/mediaremote-adapter",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1141,7 +1139,7 @@
 				SWIFT_VERSION = 5.0;
 				SYSTEM_FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
+					"$(SDKROOT)/System/Library/PrivateFrameworks",
 				);
 			};
 			name = Release;
