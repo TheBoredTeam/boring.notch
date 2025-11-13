@@ -24,6 +24,7 @@ struct ContentView: View {
 
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
+    @State private var anyDropDebounceTask: Task<Void, Never>?
 
     @State private var gestureProgress: CGFloat = .zero
 
@@ -122,6 +123,20 @@ struct ContentView: View {
                         }
                     }
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
+                    if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
+                        hoverTask?.cancel()
+                        hoverTask = Task {
+                            try? await Task.sleep(for: .milliseconds(100))
+                            guard !Task.isCancelled else { return }
+                            await MainActor.run {
+                                if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                                    self.vm.close()
+                                }
+                            }
+                        }
+                    }
+                }
                 .onChange(of: vm.notchState) { _, newState in
                     if newState == .closed && isHovering {
                         withAnimation {
@@ -130,13 +145,13 @@ struct ContentView: View {
                     }
                 }
                 .onChange(of: vm.isBatteryPopoverActive) {
-                    if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open {
+                    if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
                         hoverTask?.cancel()
                         hoverTask = Task {
                             try? await Task.sleep(for: .milliseconds(100))
                             guard !Task.isCancelled else { return }
                             await MainActor.run {
-                                if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open {
+                                if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
                                     self.vm.close()
                                 }
                             }
@@ -260,7 +275,7 @@ struct ContentView: View {
                     case .home:
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
-                        NotchShelfView()
+                        ShelfView()
                     }
                 }
             }
@@ -401,24 +416,39 @@ struct ContentView: View {
 
     @ViewBuilder
     var dragDetector: some View {
-        if Defaults[.boringShelf] {
+        if Defaults[.boringShelf] && vm.notchState == .closed {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-                .onDrop(of: [.data], isTargeted: $vm.dragDetectorTargeting) { _ in true }
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+            vm.dropEvent = true
+            ShelfStateViewModel.shared.load(providers)
+            return true
+        }
                 .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
-                    if isTargeted, vm.notchState == .closed {
-                        coordinator.currentView = .shelf
-                        doOpen()
-                    } else if !isTargeted {
-                        print("DROP EVENT", vm.dropEvent)
+                    anyDropDebounceTask?.cancel()
+
+                    if isTargeted {
+                        if vm.notchState == .closed {
+                            coordinator.currentView = .shelf
+                            doOpen()
+                        }
+                        return
+                    }
+
+                    anyDropDebounceTask = Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(500))
+                        guard !Task.isCancelled else { return }
+
                         if vm.dropEvent {
                             vm.dropEvent = false
                             return
                         }
 
                         vm.dropEvent = false
-                        vm.close()
+                        if !SharingStateManager.shared.preventNotchClose {
+                            vm.close()
+                        }
                     }
                 }
         } else {
@@ -472,7 +502,7 @@ struct ContentView: View {
                         self.isHovering = false
                     }
                     
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive {
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }
                 }
@@ -522,7 +552,7 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 isHovering = false
             }
-            vm.close()
+            if !SharingStateManager.shared.preventNotchClose { vm.close() }
 
             if Defaults[.enableHaptics] {
                 haptics.toggle()

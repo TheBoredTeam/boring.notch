@@ -46,6 +46,7 @@ struct ExpandedItem {
     var browser: BrowserType = .chromium
 }
 
+@MainActor
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
     var notifier: TheBoringWorkerNotifier = .init()
@@ -63,7 +64,7 @@ class BoringViewCoordinator: ObservableObject {
         didSet {
             if !alwaysShowTabs {
                 openLastTabByDefault = false
-                if TrayDrop.shared.isEmpty || !Defaults[.openShelfByDefault] {
+                if ShelfStateViewModel.shared.isEmpty || !Defaults[.openShelfByDefault] {
                     currentView = .home
                 }
             }

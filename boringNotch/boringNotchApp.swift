@@ -67,6 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow?
     let vm: BoringViewModel = .init()
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    var quickShareService = QuickShareService.shared
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     var closeNotchTask: Task<Void, Never>?
@@ -74,6 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindowController: NSWindowController?
     private var screenLockedObserver: Any?
     private var screenUnlockedObserver: Any?
+    private var isScreenLocked: Bool = false
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -95,15 +97,57 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     func onScreenLocked(_ notification: Notification) {
+        isScreenLocked = true
         if !Defaults[.showOnLockScreen] {
             cleanupWindows()
+        } else {
+            enableSkyLightOnAllWindows()
         }
     }
 
     @MainActor
     func onScreenUnlocked(_ notification: Notification) {
+        isScreenLocked = false
         if !Defaults[.showOnLockScreen] {
             adjustWindowPosition(changeAlpha: true)
+        } else {
+            disableSkyLightOnAllWindows()
+        }
+    }
+    
+    @MainActor
+    private func enableSkyLightOnAllWindows() {
+        if Defaults[.showOnAllDisplays] {
+            windows.values.forEach { window in
+                if let skyWindow = window as? BoringNotchSkyLightWindow {
+                    skyWindow.enableSkyLight()
+                }
+            }
+        } else {
+            if let skyWindow = window as? BoringNotchSkyLightWindow {
+                skyWindow.enableSkyLight()
+            }
+        }
+    }
+    
+    @MainActor
+    private func disableSkyLightOnAllWindows() {
+        // Delay disabling SkyLight to avoid flicker during unlock transition
+        Task {
+            try? await Task.sleep(for: .milliseconds(150))
+            await MainActor.run {
+                if Defaults[.showOnAllDisplays] {
+                    self.windows.values.forEach { window in
+                        if let skyWindow = window as? BoringNotchSkyLightWindow {
+                            skyWindow.disableSkyLight()
+                        }
+                    }
+                } else {
+                    if let skyWindow = self.window as? BoringNotchSkyLightWindow {
+                        skyWindow.disableSkyLight()
+                    }
+                }
+            }
         }
     }
 
@@ -129,6 +173,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let styleMask: NSWindow.StyleMask = [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow]
         
         let window = BoringNotchSkyLightWindow(contentRect: rect, styleMask: styleMask, backing: .buffered, defer: false)
+        
+        // Enable SkyLight only when screen is locked
+        if isScreenLocked {
+            window.enableSkyLight()
+        } else {
+            window.disableSkyLight()
+        }
 
         window.contentView = NSHostingView(
             rootView: ContentView()
@@ -185,8 +236,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(
             forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
         ) { [weak self] _ in
+            guard let self = self, let window = self.window else { return }
             Task { @MainActor in
-                guard let self = self, let window = self.window else { return }
                 window.alphaValue = self.coordinator.selectedScreen == self.coordinator.preferredScreen ? 1 : 0
             }
         }
