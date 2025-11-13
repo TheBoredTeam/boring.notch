@@ -10,7 +10,30 @@ import SkyLightWindow
 import Defaults
 import Combine
 
+extension SkyLightOperator {
+    func undelegateWindow(_ window: NSWindow) {
+        typealias F_SLSRemoveWindowsFromSpaces = @convention(c) (Int32, CFArray, CFArray) -> Int32
+        
+        let handler = dlopen("/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/SkyLight", RTLD_NOW)
+        guard let SLSRemoveWindowsFromSpaces = unsafeBitCast(
+            dlsym(handler, "SLSRemoveWindowsFromSpaces"),
+            to: F_SLSRemoveWindowsFromSpaces?.self
+        ) else {
+            return
+        }
+        
+        // Remove the window from the SkyLight space
+        _ = SLSRemoveWindowsFromSpaces(
+            connection,
+            [window.windowNumber] as CFArray,
+            [space] as CFArray
+        )
+    }
+}
+
 class BoringNotchSkyLightWindow: NSPanel {
+    private var isSkyLightEnabled: Bool = false
+    
     override init(
         contentRect: NSRect,
         styleMask: NSWindow.StyleMask,
@@ -25,7 +48,6 @@ class BoringNotchSkyLightWindow: NSPanel {
         )
         
         configureWindow()
-        SkyLightOperator.shared.delegateWindow(self)
         setupObservers()
     }
     
@@ -65,6 +87,20 @@ class BoringNotchSkyLightWindow: NSPanel {
             sharingType = .none
         } else {
             sharingType = .readWrite
+        }
+    }
+    
+    func enableSkyLight() {
+        if !isSkyLightEnabled {
+            SkyLightOperator.shared.delegateWindow(self)
+            isSkyLightEnabled = true
+        }
+    }
+    
+    func disableSkyLight() {
+        if isSkyLightEnabled {
+            SkyLightOperator.shared.undelegateWindow(self)
+            isSkyLightEnabled = false
         }
     }
     
