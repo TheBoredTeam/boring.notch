@@ -355,6 +355,12 @@ final class ShelfItemViewModel: ObservableObject {
             menu.addItem(NSMenuItem.separator())
         }
 
+        // Add compression option for files/folders (single or multiple)
+        if !selectedFileURLs.isEmpty {
+            let compressItem = NSMenuItem(title: "Compress", action: nil, keyEquivalent: "")
+            menu.addItem(compressItem)
+        }
+
         if selectedItems.count == 1, case .file(_) = item.kind { addMenuItem(title: "Rename") }
 
         // Always show "Copy" for all item types
@@ -549,6 +555,70 @@ final class ShelfItemViewModel: ObservableObject {
                 
             case "Create PDF":
                 handleCreatePDF()
+            
+            case "Compress":
+                let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+                let fileURLs = selected.compactMap { $0.fileURL }
+                guard !fileURLs.isEmpty else { break }
+
+                Task {
+                    do {
+                        // Create ZIP in a temporary location while holding access to selected resources
+                        if let zipTempURL = try await fileURLs.accessSecurityScopedResources(accessor: { urls in
+                            await TemporaryFileStorageService.shared.createZip(from: urls)
+                        }) {
+                            // Try to move the created archive next to the first selected item (Finder-like behavior)
+                            let parent = fileURLs[0].deletingLastPathComponent()
+
+                            if FileManager.default.fileExists(atPath: parent.path) {
+                                if let final = try await parent.accessSecurityScopedResource(accessor: { accessibleParent -> URL? in
+                                    let dest = accessibleParent.appendingPathComponent(zipTempURL.lastPathComponent)
+                                    var finalDest = dest
+                                    var counter = 1
+                                    while FileManager.default.fileExists(atPath: finalDest.path) {
+                                        finalDest = accessibleParent.appendingPathComponent("\(zipTempURL.deletingPathExtension().lastPathComponent) \(counter).zip")
+                                        counter += 1
+                                    }
+                                    do {
+                                        try FileManager.default.moveItem(at: zipTempURL, to: finalDest)
+                                        return finalDest
+                                    } catch {
+                                        // Fall back to copy
+                                        do {
+                                            try FileManager.default.copyItem(at: zipTempURL, to: dest)
+                                            try FileManager.default.removeItem(at: zipTempURL)
+                                            return dest
+                                        } catch {
+                                            print("❌ Failed to move/copy zip to target folder: \(error)")
+                                            return nil
+                                        }
+                                    }
+                                }) {
+                                    if let bookmark = try? Bookmark(url: final) {
+                                        let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
+                                        ShelfStateViewModel.shared.add([newItem])
+                                    } else {
+                                        NSWorkspace.shared.activateFileViewerSelecting([final])
+                                    }
+                                } else {
+                                    // couldn't move to parent, add temp archive to shelf
+                                    if let bookmark = try? Bookmark(url: zipTempURL) {
+                                        let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
+                                        ShelfStateViewModel.shared.add([newItem])
+                                    }
+                                }
+                            } else {
+                                // parent doesn't exist: keep temp zip and add to shelf
+                                if let bookmark = try? Bookmark(url: zipTempURL) {
+                                    let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
+                                    ShelfStateViewModel.shared.add([newItem])
+                                }
+                            }
+                        }
+                    } catch {
+                        print("❌ Compress failed: \(error)")
+                    }
+                }
                 
             default:
                 break

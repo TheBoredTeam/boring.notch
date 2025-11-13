@@ -126,6 +126,105 @@ class TemporaryFileStorageService {
             return nil
         }
     }
+    func createZip(from urls: [URL], suggestedName: String? = nil) async -> URL? {
+        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
+        let uuid = UUID().uuidString
+        let workingDir = tempDir.appendingPathComponent("zip_\(uuid)", isDirectory: true)
+
+        do {
+            try FileManager.default.createDirectory(at: workingDir, withIntermediateDirectories: true)
+        } catch {
+            print("❌ Failed to create zip working directory: \(error)")
+            return nil
+        }
+
+        // Helper to run zip process
+        func runZip(arguments: [String], currentDirectory: URL) -> Bool {
+            let proc = Process()
+            proc.executableURL = URL(fileURLWithPath: "/usr/bin/zip")
+            proc.arguments = arguments
+            proc.currentDirectoryURL = currentDirectory
+            do {
+                try proc.run()
+                proc.waitUntilExit()
+                return proc.terminationStatus == 0
+            } catch {
+                print("❌ Failed to run zip: \(error)")
+                return false
+            }
+        }
+
+        // Single-item optimization: do not copy contents into the working dir.
+        if urls.count == 1, let src = urls.first {
+            let isDir = (try? src.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+            let baseName = src.lastPathComponent
+            let archiveName: String
+            if isDir {
+                // Folder: name as FolderName.zip and include the folder itself in the archive
+                archiveName = "\(baseName).zip"
+                let archiveURL = workingDir.appendingPathComponent(archiveName)
+                // Run zip from the parent directory so the folder is stored as top-level entry
+                let parent = src.deletingLastPathComponent()
+                let args = ["-r", "-q", archiveURL.path, baseName]
+                let ok = runZip(arguments: args, currentDirectory: parent)
+                if ok {
+                    return archiveURL
+                } else {
+                    return nil
+                }
+            } else {
+                // File: include the file only (no parent folders). Name should include original extension.
+                archiveName = "\(baseName).zip"
+                let archiveURL = workingDir.appendingPathComponent(archiveName)
+                let parent = src.deletingLastPathComponent()
+                // -j to junk paths and store only the file
+                let args = ["-j", "-q", archiveURL.path, baseName]
+                let ok = runZip(arguments: args, currentDirectory: parent)
+                if ok {
+                    return archiveURL
+                } else {
+                    return nil
+                }
+            }
+        }
+
+        // Multi-item: copy items into working dir (so their relative structure is preserved), zip, then remove copies.
+        for src in urls {
+            let dest = workingDir.appendingPathComponent(src.lastPathComponent)
+            do {
+                if FileManager.default.fileExists(atPath: dest.path) {
+                    // Avoid collision by appending a suffix
+                    let unique = "\(UUID().uuidString)_\(src.lastPathComponent)"
+                    try FileManager.default.copyItem(at: src, to: workingDir.appendingPathComponent(unique))
+                } else {
+                    try FileManager.default.copyItem(at: src, to: dest)
+                }
+            } catch {
+                print("⚠️ Failed to copy \(src.path) to working dir: \(error)")
+            }
+        }
+
+        let archiveName = suggestedName ?? "Archive.zip"
+        let archiveURL = workingDir.appendingPathComponent(archiveName)
+        let args = ["-r", "-q", archiveURL.path, "."]
+        let ok = runZip(arguments: args, currentDirectory: workingDir)
+        if ok {
+            // Remove the copied (uncompressed) items so the temp folder contains only the archive
+            do {
+                let contents = try FileManager.default.contentsOfDirectory(at: workingDir, includingPropertiesForKeys: nil)
+                for file in contents {
+                    if file.standardizedFileURL != archiveURL.standardizedFileURL {
+                        try FileManager.default.removeItem(at: file)
+                    }
+                }
+            } catch {
+                print("⚠️ Failed to cleanup working directory after zip: \(error)")
+            }
+            return archiveURL
+        } else {
+            return nil
+        }
+    }
     
     // MARK: - Content Creation Helpers
     
