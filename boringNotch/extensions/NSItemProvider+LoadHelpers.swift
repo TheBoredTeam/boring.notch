@@ -108,35 +108,33 @@ extension NSItemProvider {
                     cont.resume(returning: nil)
                     return
                 }
-                Task {
-                    var resolvedURL: URL?
-                    if let url = item as? URL {
-                        // Direct URL provided
-                        resolvedURL = url
-                    } else if let data = item as? Data {
-                        // Some providers hand out a UTF-8 file URL string, others a bookmark. Prefer parsing string first.
-                        if let string = String(data: data, encoding: .utf8) {
-                            if let url = URL(string: string) {
-                                resolvedURL = url
-                            } else if string.hasPrefix("/") {
-                                // Plain file system path
-                                resolvedURL = URL(fileURLWithPath: string)
-                            }
-                        }
-                        if resolvedURL == nil {
-                            // Fallback: try treating the data as a bookmark
-                            let bookmark = Bookmark(data: data)
-                            resolvedURL = bookmark.resolveURL()
-                        }
-                    } else if let string = item as? String {
+                var resolvedURL: URL?
+                if let url = item as? URL {
+                    // Direct URL provided
+                    resolvedURL = url
+                } else if let data = item as? Data {
+                    // Some providers hand out a UTF-8 file URL string, others a bookmark. Prefer parsing string first.
+                    if let string = String(data: data, encoding: .utf8) {
                         if let url = URL(string: string) {
                             resolvedURL = url
                         } else if string.hasPrefix("/") {
+                            // Plain file system path
                             resolvedURL = URL(fileURLWithPath: string)
                         }
                     }
-                    cont.resume(returning: resolvedURL)
+                    if resolvedURL == nil {
+                        // Fallback: try treating the data as a bookmark
+                        let bookmark = Bookmark(data: data)
+                        resolvedURL = bookmark.resolveURL()
+                    }
+                } else if let string = item as? String {
+                    if let url = URL(string: string) {
+                        resolvedURL = url
+                    } else if string.hasPrefix("/") {
+                        resolvedURL = URL(fileURLWithPath: string)
+                    }
                 }
+                cont.resume(returning: resolvedURL)
             }
         }
     }

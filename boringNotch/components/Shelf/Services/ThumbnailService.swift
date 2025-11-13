@@ -10,11 +10,11 @@ import AppKit
 import QuickLookThumbnailing
 import UniformTypeIdentifiers
 
-@MainActor
-final class ThumbnailService {
+actor ThumbnailService {
     static let shared = ThumbnailService()
 
     private var cache: [String: NSImage] = [:]
+    private var pendingRequests: [String: Task<NSImage?, Never>] = [:]
     private let thumbnailGenerator = QLThumbnailGenerator.shared
 
     private init() {}
@@ -26,12 +26,21 @@ final class ThumbnailService {
             return cached
         }
         
-        if let quickLookThumbnail = await generateQuickLookThumbnail(for: url, size: size) {
-            cache[cacheKey] = quickLookThumbnail
-            return quickLookThumbnail
+        if let pending = pendingRequests[cacheKey] {
+            return await pending.value
         }
         
-        return nil
+        let task = Task<NSImage?, Never> {
+            let thumbnail = await generateQuickLookThumbnail(for: url, size: size)
+            if let thumbnail = thumbnail {
+                cache[cacheKey] = thumbnail
+            }
+            pendingRequests[cacheKey] = nil
+            return thumbnail
+        }
+        
+        pendingRequests[cacheKey] = task
+        return await task.value
     }
     
     func clearCache() {
@@ -45,14 +54,15 @@ final class ThumbnailService {
     // MARK: - Private Methods
     
     private func generateQuickLookThumbnail(for url: URL, size: CGSize) async -> NSImage? {
-    let scale = NSScreen.main?.backingScaleFactor ?? 2.0
+        let scale = await MainActor.run { NSScreen.main?.backingScaleFactor ?? 2.0 }
+        
         return await url.accessSecurityScopedResource { scopedURL in
             NSLog("🔐 ThumbnailService: obtaining security scope for \(scopedURL.path)")
             let request = QLThumbnailGenerator.Request(
                 fileAt: scopedURL,
                 size: size,
                 scale: scale,
-                representationTypes: .all,
+                representationTypes: .all
             )
             request.iconMode = true
 
@@ -62,7 +72,9 @@ final class ThumbnailService {
                         NSLog("🔍 ThumbnailService: generated thumbnail for \(scopedURL.path)")
                         continuation.resume(returning: rep.nsImage)
                     } else {
-                        if let err = error { NSLog("⚠️ ThumbnailService: thumbnail error for \(scopedURL.path): \(err.localizedDescription)") }
+                        if let err = error { 
+                            NSLog("⚠️ ThumbnailService: thumbnail error for \(scopedURL.path): \(err.localizedDescription)") 
+                        }
                         continuation.resume(returning: nil)
                     }
                 }

@@ -22,10 +22,7 @@ struct ShelfView: View {
                 .environmentObject(vm)
             panel
                 .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-                    guard !selection.isDragging else { return false }
-                    vm.dropEvent = true
-                    ShelfStateViewModel.shared.load(providers)
-                    return true
+                    handleDrop(providers: providers)
                 }
         }
         // Bind Quick Look to shelf selection
@@ -33,6 +30,13 @@ struct ShelfView: View {
             updateQuickLookSelection()
         }
         .quickLookPresenter(using: quickLookService)
+    }
+    
+    private func handleDrop(providers: [NSItemProvider]) -> Bool {
+        guard !selection.isDragging else { return false }
+        vm.dropEvent = true
+        ShelfStateViewModel.shared.load(providers)
+        return true
     }
     
     private func updateQuickLookSelection() {
@@ -66,10 +70,9 @@ struct ShelfView: View {
                 content
                     .padding()
             }
-            .animation(vm.animation, value: vm.dragDetectorTargeting)
-            .animation(vm.animation, value: vm.edgeAutoOpenActive)
-            .animation(vm.animation, value: tvm.items)
-            .animation(vm.animation, value: tvm.isLoading)
+            .transaction { transaction in
+                transaction.animation = vm.animation
+            }
             .contentShape(Rectangle())
             .onTapGesture { selection.clear() }
     }
@@ -101,10 +104,7 @@ struct ShelfView: View {
                 .padding(-spacing)
                 .scrollIndicators(.never)
                 .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-                    guard !selection.isDragging else { return false }
-                    vm.dropEvent = true
-                    ShelfStateViewModel.shared.load(providers)
-                    return true
+                    handleDrop(providers: providers)
                 }
             }
         }

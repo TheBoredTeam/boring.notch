@@ -18,9 +18,12 @@ struct ShelfItemView: View {
     @StateObject private var viewModel: ShelfItemViewModel
     @EnvironmentObject private var quickLookService: QuickLookService
     @State private var showStack = false
+    @State private var cachedPreviewImage: NSImage?
+    @State private var debouncedDropTarget = false
 
     private var isSelected: Bool { viewModel.isSelected }
     private var shouldHideDuringDrag: Bool { selection.isDragging && selection.isSelected(item.id) && false }
+    
     init(item: ShelfItem) {
         self.item = item
         _viewModel = StateObject(wrappedValue: ShelfItemViewModel(item: item))
@@ -38,12 +41,13 @@ struct ShelfItemView: View {
                 .padding(.horizontal, 5)
                 .background(backgroundView)
                 .contentShape(Rectangle())
-                .animation(.easeInOut(duration: 0.1), value: viewModel.isDropTargeted)
+                .animation(.easeInOut(duration: 0.1), value: debouncedDropTarget)
                 .animation(.easeInOut(duration: 0.1), value: isSelected)
 
                 DraggableClickHandler(
                     item: item,
                     viewModel: viewModel,
+                    cachedPreviewImage: $cachedPreviewImage,
                     dragPreviewContent: {
                         // Minimal drag preview: match shelf item's vertical layout but with no background
                         VStack(alignment: .center, spacing: 4) {
@@ -80,11 +84,28 @@ struct ShelfItemView: View {
         }
         .onChange(of: viewModel.isDropTargeted) { _, targeted in
             vm.dragDetectorTargeting = targeted
+            // Debounce drop target state changes
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(50))
+                debouncedDropTarget = targeted
+            }
         }
         .onAppear {
-            Task { await viewModel.loadThumbnail() }
+            Task { 
+                await viewModel.loadThumbnail()
+                // Pre-render drag preview once on appear
+                if cachedPreviewImage == nil {
+                    cachedPreviewImage = await renderDragPreview()
+                }
+            }
             viewModel.onQuickLookRequest = { urls in
                 quickLookService.show(urls: urls, selectFirst: true)
+            }
+        }
+        .onChange(of: viewModel.thumbnail) { _, _ in
+            // Invalidate cached preview when thumbnail changes
+            Task {
+                cachedPreviewImage = await renderDragPreview()
             }
         }
         .quickLookPresenter(using: quickLookService)
@@ -124,7 +145,7 @@ struct ShelfItemView: View {
     }
 
     private var backgroundColor: Color {
-        if viewModel.isDropTargeted {
+        if debouncedDropTarget {
             return Color.accentColor.opacity(0.25)
         } else if isSelected {
             return Color.accentColor.opacity(0.15)
@@ -134,7 +155,7 @@ struct ShelfItemView: View {
     }
 
     private var strokeColor: Color {
-        if viewModel.isDropTargeted {
+        if debouncedDropTarget {
             return Color.accentColor.opacity(0.9)
         } else if isSelected {
             return Color.accentColor.opacity(0.8)
@@ -144,13 +165,42 @@ struct ShelfItemView: View {
     }
 
     private var strokeWidth: CGFloat {
-        if viewModel.isDropTargeted {
+        if debouncedDropTarget {
             return 3
         } else if isSelected {
             return 2
         } else {
             return 1
         }
+    }
+    
+    // MARK: - Drag Preview Rendering
+    
+    @MainActor
+    private func renderDragPreview() async -> NSImage {
+        let content = VStack(alignment: .center, spacing: 4) {
+            Image(nsImage: viewModel.thumbnail ?? item.icon)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            Text(item.displayName)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.white)
+                .lineLimit(2)
+                .truncationMode(.middle)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(RoundedRectangle(cornerRadius: 4).fill(Color.accentColor))
+                .frame(alignment: .top)
+        }
+        .frame(width: 105)
+        
+        let renderer = ImageRenderer(content: content)
+        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+        return renderer.nsImage ?? (viewModel.thumbnail ?? item.icon)
     }
 
     private struct AssociatedKeys {
@@ -162,6 +212,7 @@ struct ShelfItemView: View {
 private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     let item: ShelfItem
     let viewModel: ShelfItemViewModel
+    @Binding var cachedPreviewImage: NSImage?
     @ViewBuilder let dragPreviewContent: () -> Content
     let onRightClick: (NSEvent, NSView) -> Void
     let onClick: (NSEvent, NSView) -> Void
@@ -170,7 +221,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         let view = DraggableClickView()
         view.item = item
         view.viewModel = viewModel
-        view.dragPreviewImage = renderDragPreview()
+        view.dragPreviewImage = cachedPreviewImage ?? renderDragPreview()
         view.onRightClick = onRightClick
         view.onClick = onClick
         return view
@@ -179,7 +230,10 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     func updateNSView(_ nsView: DraggableClickView, context: Context) {
         nsView.item = item
         nsView.viewModel = viewModel
-        nsView.dragPreviewImage = renderDragPreview()
+        // Only update preview if cached version is available
+        if let cached = cachedPreviewImage {
+            nsView.dragPreviewImage = cached
+        }
         nsView.onRightClick = onRightClick
         nsView.onClick = onClick
     }
