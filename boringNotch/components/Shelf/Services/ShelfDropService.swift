@@ -20,7 +20,14 @@ struct ShelfDropService {
                 }
                 continue
             } else if let url = await provider.extractURL() {
-                await results.append(ShelfItem(kind: .link(url: url), isTemporary: false))
+                // Treat file-scheme URLs as files, not links (covers folders too)
+                if url.isFileURL {
+                    if let bookmark = await createBookmark(for: url) {
+                        await results.append(ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false))
+                    }
+                } else {
+                    await results.append(ShelfItem(kind: .link(url: url), isTemporary: false))
+                }
                 continue
             } else if let text = await provider.extractText() {
                 await results.append(ShelfItem(kind: .text(string: text), isTemporary: false))

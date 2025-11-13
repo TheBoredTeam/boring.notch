@@ -111,12 +111,29 @@ extension NSItemProvider {
                 Task {
                     var resolvedURL: URL?
                     if let url = item as? URL {
+                        // Direct URL provided
                         resolvedURL = url
                     } else if let data = item as? Data {
-                        let bookmark = Bookmark(data: data)
-                        resolvedURL = bookmark.resolveURL()
-                    } else if let string = item as? String, let url = URL(string: string) {
-                        resolvedURL = url
+                        // Some providers hand out a UTF-8 file URL string, others a bookmark. Prefer parsing string first.
+                        if let string = String(data: data, encoding: .utf8) {
+                            if let url = URL(string: string) {
+                                resolvedURL = url
+                            } else if string.hasPrefix("/") {
+                                // Plain file system path
+                                resolvedURL = URL(fileURLWithPath: string)
+                            }
+                        }
+                        if resolvedURL == nil {
+                            // Fallback: try treating the data as a bookmark
+                            let bookmark = Bookmark(data: data)
+                            resolvedURL = bookmark.resolveURL()
+                        }
+                    } else if let string = item as? String {
+                        if let url = URL(string: string) {
+                            resolvedURL = url
+                        } else if string.hasPrefix("/") {
+                            resolvedURL = URL(fileURLWithPath: string)
+                        }
                     }
                     cont.resume(returning: resolvedURL)
                 }
@@ -135,13 +152,25 @@ extension NSItemProvider {
 
                 if let url = item as? URL {
                     cont.resume(returning: url)
-                } else if let data = item as? Data,
-                          let string = String(data: data, encoding: .utf8),
-                          let url = URL(string: string) {
-                    cont.resume(returning: url)
-                } else if let string = item as? String,
-                          let url = URL(string: string) {
-                    cont.resume(returning: url)
+                } else if let data = item as? Data {
+                    if let string = String(data: data, encoding: .utf8) {
+                        if let url = URL(string: string) {
+                            cont.resume(returning: url)
+                            return
+                        } else if string.hasPrefix("/") {
+                            cont.resume(returning: URL(fileURLWithPath: string))
+                            return
+                        }
+                    }
+                    cont.resume(returning: nil)
+                } else if let string = item as? String {
+                    if let url = URL(string: string) {
+                        cont.resume(returning: url)
+                    } else if string.hasPrefix("/") {
+                        cont.resume(returning: URL(fileURLWithPath: string))
+                    } else {
+                        cont.resume(returning: nil)
+                    }
                 } else {
                     cont.resume(returning: nil)
                 }

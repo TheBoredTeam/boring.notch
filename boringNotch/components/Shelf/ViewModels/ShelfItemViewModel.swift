@@ -222,23 +222,43 @@ final class ShelfItemViewModel: ObservableObject {
             menu.addItem(mi)
         }
 
-    let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-        // URLs that are valid targets for "Open With" (files or link URLs)
-        let selectedOpenWithURLs = selectedItems.compactMap { itm -> URL? in
-            if let u = itm.fileURL { return u }
+        let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+        let selectedFileURLs = selectedItems.compactMap { $0.fileURL }
+        let selectedFolderURLs = selectedFileURLs.filter { isDirectory($0) }
+        // URLs valid for Open/Open With (exclude folders)
+        let selectedOpenableURLs = selectedItems.compactMap { itm -> URL? in
+            if let u = itm.fileURL { return isDirectory(u) ? nil : u }
             if case .link(let url) = itm.kind { return url }
             return nil
         }
 
-        let selectedFileURLs = selectedItems.compactMap { $0.fileURL }
+        if !selectedOpenableURLs.isEmpty {
+            addMenuItem(title: "Open")
+        }
 
-        addMenuItem(title: "Open")
-
-        if !selectedOpenWithURLs.isEmpty {
+        if !selectedOpenableURLs.isEmpty {
             let openWith = NSMenuItem(title: "Open With", action: nil, keyEquivalent: "")
             let submenu = NSMenu()
 
-            let openWithApps = loadOpenWithApps()
+            // Choose a representative URL to compute apps (prefer current item if not a folder)
+            let baseURLForApps: URL? = {
+                if let u = item.fileURL, !isDirectory(u) { return u }
+                if case .link(let u) = item.kind { return u }
+                return selectedOpenableURLs.first
+            }()
+
+            let openWithApps: [URL] = {
+                guard let u = baseURLForApps else { return [] }
+                if u.isFileURL {
+                    var results = NSWorkspace.shared.urlsForApplications(toOpen: u)
+                    if results.isEmpty, let uti = try? u.resourceValues(forKeys: [.contentTypeKey]).contentType {
+                        results = NSWorkspace.shared.urlsForApplications(toOpen: uti)
+                    }
+                    return Array(Set(results))
+                } else {
+                    return Array(Set(NSWorkspace.shared.urlsForApplications(toOpen: u)))
+                }
+            }()
             let defaultApp = defaultAppURL()
 
             if openWithApps.isEmpty {
@@ -286,7 +306,8 @@ final class ShelfItemViewModel: ObservableObject {
         }
 
         if !selectedFileURLs.isEmpty { addMenuItem(title: "Show in Finder") }
-        if !selectedOpenWithURLs.isEmpty { 
+        // Allow Quick Look for any file URLs, including folders
+        if !selectedFileURLs.isEmpty {
             // Add Quick Look menu item
             let quickLookItem = NSMenuItem(title: "Quick Look", action: nil, keyEquivalent: "")
             menu.addItem(quickLookItem)
@@ -365,6 +386,12 @@ final class ShelfItemViewModel: ObservableObject {
         menu.retainActionTarget(actionTarget)
         
         NSMenu.popUpContextMenu(menu, with: event, for: view)
+    }
+
+    private func isDirectory(_ url: URL) -> Bool {
+        return url.accessSecurityScopedResource { scoped in
+            (try? scoped.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+        }
     }
 
     private final class MenuActionTarget: NSObject {
