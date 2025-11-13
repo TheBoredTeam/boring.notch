@@ -224,6 +224,10 @@ final class ShelfItemViewModel: ObservableObject {
 
         let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
         let selectedFileURLs = selectedItems.compactMap { $0.fileURL }
+        let selectedLinkURLs: [URL] = selectedItems.compactMap { itm in
+            if case .link(let url) = itm.kind { return url }
+            return nil
+        }
         let selectedFolderURLs = selectedFileURLs.filter { isDirectory($0) }
         // URLs valid for Open/Open With (exclude folders)
         let selectedOpenableURLs = selectedItems.compactMap { itm -> URL? in
@@ -306,8 +310,8 @@ final class ShelfItemViewModel: ObservableObject {
         }
 
         if !selectedFileURLs.isEmpty { addMenuItem(title: "Show in Finder") }
-        // Allow Quick Look for any file URLs, including folders
-        if !selectedFileURLs.isEmpty {
+        // Allow Quick Look for files and link URLs
+        if !selectedFileURLs.isEmpty || !selectedLinkURLs.isEmpty {
             // Add Quick Look menu item
             let quickLookItem = NSMenuItem(title: "Quick Look", action: nil, keyEquivalent: "")
             menu.addItem(quickLookItem)
