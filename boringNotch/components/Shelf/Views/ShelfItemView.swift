@@ -206,6 +206,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         
         private var mouseDownEvent: NSEvent?
         private let dragThreshold: CGFloat = 3.0
+        private var draggedURLs: [URL] = []
         
         override func rightMouseDown(with event: NSEvent) {
             onRightClick?(event, self)
@@ -278,6 +279,13 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             switch item.kind {
             case .file:
                 if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+                    // Start accessing security-scoped resource and keep it active during drag
+                    if url.startAccessingSecurityScopedResource() {
+                        draggedURLs.append(url)
+                        NSLog("🔐 Started security-scoped access for drag: \(url.path)")
+                    }
+                    
+                    // Write the URL to the pasteboard in standard format
                     pasteboardItem.setString(url.absoluteString, forType: .fileURL)
                     pasteboardItem.setString(url.path, forType: .string)
                     return pasteboardItem
@@ -317,6 +325,13 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         
         func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
             ShelfSelectionModel.shared.endDrag()
+            
+            // Stop accessing security-scoped resources after drag completes
+            for url in draggedURLs {
+                url.stopAccessingSecurityScopedResource()
+                NSLog("🔐 Stopped security-scoped access after drag: \(url.path)")
+            }
+            draggedURLs.removeAll()
         }
         
         func ignoreModifierKeys(for session: NSDraggingSession) -> Bool {

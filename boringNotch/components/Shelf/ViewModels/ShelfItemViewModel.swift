@@ -21,6 +21,7 @@ final class ShelfItemViewModel: ObservableObject {
     private var sharingLifecycle: SharingLifecycleDelegate?
     private var quickShareLifecycle: SharingLifecycleDelegate?
     private var sharingAccessingURLs: [URL] = []
+    private static var copiedURLs: [URL] = []
 
     private let selection = ShelfSelectionModel.shared
 
@@ -445,6 +446,13 @@ final class ShelfItemViewModel: ObservableObject {
             case "Copy":
                 let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
                 let pb = NSPasteboard.general
+                
+                // Stop accessing previously copied URLs
+                for url in ShelfItemViewModel.copiedURLs {
+                    url.stopAccessingSecurityScopedResource()
+                }
+                ShelfItemViewModel.copiedURLs.removeAll()
+                
                 pb.clearContents()
                 Task {
                     let fileURLs = await selected.asyncCompactMap { item -> URL? in
@@ -454,9 +462,12 @@ final class ShelfItemViewModel: ObservableObject {
                         return nil
                     }
                     if !fileURLs.isEmpty {
-                        await fileURLs.accessSecurityScopedResources { accessibleURLs in
-                            pb.writeObjects(accessibleURLs as [NSURL])
-                        }
+                        // Start security-scoped access for all URLs and keep them active
+                        ShelfItemViewModel.copiedURLs = fileURLs.filter { $0.startAccessingSecurityScopedResource() }
+                        NSLog("🔐 Started security-scoped access for \(ShelfItemViewModel.copiedURLs.count) copied files")
+                        
+                        // Write to pasteboard
+                        pb.writeObjects(fileURLs as [NSURL])
                     } else {
                         let strings = selected.map { $0.displayName }
                         if !strings.isEmpty {
