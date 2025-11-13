@@ -4802,7 +4802,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Gesture di chiusura"
+            "value": "Gesto di chiusura"
           }
         },
         "ko": {
@@ -5509,7 +5509,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Vizualizers personalizzati (Lottie)"
+            "value": "Visualizzatori personalizzati (Lottie)"
           }
         },
         "ko": {
@@ -6620,7 +6620,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable automatic sneak peek (show on media changes)"
+            "value": "Abilita sneak peek automatico (visibile al cambio di media)"
           }
         },
         "ko": {
@@ -6721,7 +6721,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable blur effect behind album art"
+            "value": "Abilita sfocatura dietro alla copertina dell'album"
           }
         },
         "ko": {
@@ -6822,7 +6822,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable boring mirror"
+            "value": "Abilita specchio"
           }
         },
         "ko": {
@@ -6923,7 +6923,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "Abilita spettrogramma colorato"
           }
         },
         "ko": {
@@ -7024,7 +7024,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable gestures"
+            "value": "Abilita gesti"
           }
         },
         "ko": {
@@ -7125,7 +7125,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable glowing effect"
+            "value": "Abilita effetto luminoso"
           }
         },
         "ko": {
@@ -7226,7 +7226,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptics"
+            "value": "Abilita haptics"
           }
         },
         "ko": {
@@ -7529,7 +7529,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "Abilita scaffale"
           }
         },
         "ko": {
@@ -7630,7 +7630,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable window shadow"
+            "value": "Abilita ombra della finestra"
           }
         },
         "ko": {
@@ -11973,7 +11973,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Menubar icon"
+            "value": "Mostra icona nella barra del menu"
           }
         },
         "ko": {
@@ -14296,7 +14296,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open notch on hover"
+            "value": "Apri notch portando il mouse sopra di esso"
           }
         },
         "ko": {
@@ -16114,7 +16114,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings icon in notch"
+            "value": "Mostra icona preferenze nel notch"
           }
         },
         "ko": {
@@ -16417,7 +16417,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery indicator"
+            "value": "Mostra indicatore della batteria"
           }
         },
         "ko": {
@@ -16518,7 +16518,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery percentage"
+            "value": "Mostra percentuale batteria"
           }
         },
         "ko": {
@@ -16619,7 +16619,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show calendar"
+            "value": "Mostra calendario"
           }
         },
         "ko": {
@@ -17023,7 +17023,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status icons"
+            "value": "Mostra icona stato alimentazione"
           }
         },
         "ko": {
@@ -17124,7 +17124,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status notifications"
+            "value": "Mostra notifiche alimentazione"
           }
         },
         "ko": {
@@ -19043,7 +19043,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use accent color"
+            "value": "Usa il colore in rilievo"
           }
         },
         "ko": {
@@ -19245,7 +19245,7 @@
         "it": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use simpler close animation"
+            "value": "Usa animazione di chiusura semplice"
           }
         },
         "ko": {
