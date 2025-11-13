@@ -144,7 +144,7 @@ extension Defaults.Keys {
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
     static let shelfTapToOpen = Key<Bool>("shelfTapToOpen", default: true)
     static let quickShareProvider = Key<String>("quickShareProvider", default: QuickShareProvider.defaultProvider.id)
-    static let copyOnDrag = Key<Bool>("copyOnDrag", default: true)
+    static let copyOnDrag = Key<Bool>("copyOnDrag", default: false)
     
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

@@ -850,7 +850,7 @@ struct Shelf: View {
                     Text("Open shelf by default if items are present")
                 }
                 Defaults.Toggle(key: .copyOnDrag) {
-                    Text("Copy when dragging files out")
+                    Text("Copy items on drag")
                 }
 
             } header: {
