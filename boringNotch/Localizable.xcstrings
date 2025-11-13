@@ -4827,7 +4827,7 @@
         }
       }
     },
-    "Copy when dragging files out" : {
+    "Copy items on drag" : {
 
     },
     "Corner radius scaling" : {
