@@ -20,17 +20,13 @@ struct ShelfView: View {
             FileShareView()
                 .aspectRatio(1, contentMode: .fit)
                 .environmentObject(vm)
-            ZStack {
-                panel
-                if !selection.isDragging {
-                    Spacer()
-                        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-                            vm.dropEvent = true
-                            ShelfStateViewModel.shared.load(providers)
-                            return true
-                        }
+            panel
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                    guard !selection.isDragging else { return false }
+                    vm.dropEvent = true
+                    ShelfStateViewModel.shared.load(providers)
+                    return true
                 }
-            }
         }
         // Bind Quick Look to shelf selection
         .onChange(of: selection.selectedIDs) {
@@ -104,6 +100,12 @@ struct ShelfView: View {
                 }
                 .padding(-spacing)
                 .scrollIndicators(.never)
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                    guard !selection.isDragging else { return false }
+                    vm.dropEvent = true
+                    ShelfStateViewModel.shared.load(providers)
+                    return true
+                }
             }
         }
         .onAppear {
