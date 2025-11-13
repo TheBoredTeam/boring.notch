@@ -4827,6 +4827,9 @@
         }
       }
     },
+    "Copy when dragging files out" : {
+
+    },
     "Corner radius scaling" : {
       "localizations" : {
         "ar" : {

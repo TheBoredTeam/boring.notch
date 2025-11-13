@@ -7,7 +7,7 @@
 
 import AppKit
 import SwiftUI
-
+import Defaults
 
 import QuickLook
 
@@ -261,6 +261,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         private var mouseDownEvent: NSEvent?
         private let dragThreshold: CGFloat = 3.0
         private var draggedURLs: [URL] = []
+        private var tempCopiedURLs: [URL] = []
         
         override func rightMouseDown(with event: NSEvent) {
             onRightClick?(event, self)
@@ -338,8 +339,26 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
                         draggedURLs.append(url)
                         NSLog("🔐 Started security-scoped access for drag: \(url.path)")
                     }
-                    
-                    // Write the URL to the pasteboard in standard format
+                    // If user prefers copy-on-drag, create a temporary copy and provide that to the pasteboard.
+                    if Defaults[.copyOnDrag] {
+                        let fileManager = FileManager.default
+                        let tempDir = fileManager.temporaryDirectory.appendingPathComponent("boringnotch_drag_\(UUID().uuidString)")
+                        do {
+                            try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                            let destination = tempDir.appendingPathComponent(url.lastPathComponent)
+                            try fileManager.copyItem(at: url, to: destination)
+                            tempCopiedURLs.append(destination)
+                            NSLog("📁 Created temp copy for drag: \(destination.path)")
+
+                            pasteboardItem.setString(destination.absoluteString, forType: .fileURL)
+                            pasteboardItem.setString(destination.path, forType: .string)
+                            return pasteboardItem
+                        } catch {
+                            NSLog("⚠️ Failed to create temp copy for drag: \(error.localizedDescription). Falling back to original URL")
+                        }
+                    }
+
+                    // Write the original URL to the pasteboard in standard format
                     pasteboardItem.setString(url.absoluteString, forType: .fileURL)
                     pasteboardItem.setString(url.path, forType: .string)
                     return pasteboardItem
@@ -386,6 +405,26 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
                 NSLog("🔐 Stopped security-scoped access after drag: \(url.path)")
             }
             draggedURLs.removeAll()
+            
+            // Clean up any temporary copies created for drag
+            let fileManager = FileManager.default
+            for temp in tempCopiedURLs {
+                do {
+                    // Remove the temp copy file
+                    try fileManager.removeItem(at: temp)
+                    NSLog("🧹 Removed temp drag copy: \(temp.path)")
+                    // Attempt to remove the parent temp directory if empty
+                    let parent = temp.deletingLastPathComponent()
+                    if fileManager.fileExists(atPath: parent.path) {
+                        // Try removing parent; if it contains other things this will throw and be caught, which is fine
+                        try fileManager.removeItem(at: parent)
+                        NSLog("🧹 Removed temp drag folder: \(parent.path)")
+                    }
+                } catch {
+                    NSLog("⚠️ Failed to remove temp drag file/folder: \(error.localizedDescription)")
+                }
+            }
+            tempCopiedURLs.removeAll()
         }
         
         func ignoreModifierKeys(for session: NSDraggingSession) -> Bool {

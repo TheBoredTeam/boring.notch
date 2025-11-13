@@ -843,12 +843,14 @@ struct Shelf: View {
     var body: some View {
         Form {
             Section {
-
                 Defaults.Toggle(key: .boringShelf) {
                     Text("Enable shelf")
                 }
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
+                }
+                Defaults.Toggle(key: .copyOnDrag) {
+                    Text("Copy when dragging files out")
                 }
 
             } header: {
