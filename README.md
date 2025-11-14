@@ -127,7 +127,7 @@ We’re all about good vibes and awesome contributions! Here’s how you can joi
    git clone https://github.com/{your-name}/boring.notch.git
    # Replace {your-name} with your GitHub username
    ```
-3. **Make sure to use `dev` branch as base.**
+3. **Make sure to use the `dev` branch as base.**
 4. **Create a New Branch**:
    ```bash
    git checkout -b feature/{your-feature-name}
@@ -167,7 +167,7 @@ We’re all about good vibes and awesome contributions! Here’s how you can joi
 
 ## 🎉 Acknowledgments
 
-We would like to express our appreciation to the developers of [NotchDrop](https://github.com/Lakr233/NotchDrop), an open-source project that has been instrumental in developing the "Shelf" feature in Boring Notch. Special thanks to Lakr233 for their contributions to NotchDrop and to [Hugo Persson](https://github.com/Hugo-Persson) for integrating it into our project.
+We would like to express our appreciation to the developers of [NotchDrop](https://github.com/Lakr233/NotchDrop), an open-source project that has been instrumental in developing the "Shelf" feature in Boring Notch. Special thanks to Lakr233 for their contributions to NotchDrop, and to [Hugo Persson](https://github.com/Hugo-Persson) for integrating it into our project.
 
 ### Icon credits: [@maxtron95](https://github.com/maxtron95)
 ### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
