@@ -51,8 +51,10 @@ struct MusicControllerSelectionView: View {
                 }
                 .padding()
             }
+            //Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
+            .scrollDisabled(availableMediaControllers.count <= 4)
 
-            Spacer()
+//            Spacer()
 
             Button("Continue", action: {
                 self.mediaController = self.selectedMediaController
@@ -82,7 +84,7 @@ struct ControllerOptionView: View {
         HStack(spacing: 16) {
             Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                 .font(.title2)
-                .foregroundColor(isSelected ? .accentColor : .secondary.opacity(0.5))
+                .foregroundColor(isSelected ? .effectiveAccent : .secondary.opacity(0.5))
                 .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -106,11 +108,11 @@ struct ControllerOptionView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
+                .fill(isSelected ? Color.effectiveAccent.opacity(0.15) : Color.clear)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 1.5)
+                .stroke(isSelected ? Color.effectiveAccent : Color.secondary.opacity(0.3), lineWidth: 1.5)
         )
         .contentShape(Rectangle())
     }

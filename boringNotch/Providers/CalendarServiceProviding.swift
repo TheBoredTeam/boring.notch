@@ -82,47 +82,28 @@ class CalendarService: CalendarServiceProviding {
     }
     
     private func fetchReminders(from start: Date, to end: Date, calendars: [EKCalendar]) async -> [EventModel] {
-        await withTaskGroup(of: [EKReminder].self) { group in
-            var allReminders: [EKReminder] = []
+        return await withCheckedContinuation { continuation in
+            // Create predicate for reminders with due dates in the specified range
+            let predicate = store.predicateForReminders(in: calendars)
             
-            // Fetch incomplete reminders
-            group.addTask {
-                await withCheckedContinuation { continuation in
-                    let predicate = self.store.predicateForIncompleteReminders(
-                        withDueDateStarting: start,
-                        ending: end,
-                        calendars: calendars
-                    )
-                    self.store.fetchReminders(matching: predicate) { reminders in
-                        continuation.resume(returning: reminders ?? [])
+            store.fetchReminders(matching: predicate) { reminders in
+                
+                let filteredReminders = (reminders ?? []).filter { reminder in
+                    // Check if reminder has a due date within our range
+                    guard let dueDate = reminder.dueDateComponents?.date else {
+                        return false
                     }
+                    
+                    return dueDate >= start && dueDate <= end
                 }
-            }
-            
-            // Fetch completed reminders
-            group.addTask {
-                await withCheckedContinuation { continuation in
-                    let predicate = self.store.predicateForCompletedReminders(
-                        withCompletionDateStarting: start,
-                        ending: end,
-                        calendars: calendars
-                    )
-                    self.store.fetchReminders(matching: predicate) { reminders in
-                        continuation.resume(returning: reminders ?? [])
-                    }
+                
+                // Convert to EventModel
+                let eventModels = filteredReminders.compactMap { reminder in
+                    EventModel(from: reminder)
                 }
+                
+                continuation.resume(returning: eventModels)
             }
-            
-            for await reminders in group {
-                allReminders.append(contentsOf: reminders)
-            }
-            
-            // Remove duplicates and convert to EventModel
-            let uniqueReminders = Dictionary(grouping: allReminders, by: \.calendarItemIdentifier)
-                .compactMapValues { $0.first }
-                .values
-            
-            return Array(uniqueReminders.compactMap { EventModel(from: $0) })
         }
     }
     
