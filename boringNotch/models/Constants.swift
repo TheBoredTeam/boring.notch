@@ -61,7 +61,7 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
 
 // Action to perform when Option (⌥) is held while pressing media keys
 enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case openSettings = "Open Settings"
+    case openSettings = "Open System Settings"
     case showHUD = "Show HUD"
     case none = "No Action"
 
