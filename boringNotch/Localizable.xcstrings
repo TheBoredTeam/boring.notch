@@ -14474,6 +14474,9 @@
         }
       }
     },
+    "Remove from shelf after dragging" : {
+
+    },
     "Request Accessibility" : {
 
     },
@@ -15777,7 +15780,11 @@
         }
       }
     },
+    "Show cool face animation while inactive" : {
+
+    },
     "Show cool face animation while inactivity" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

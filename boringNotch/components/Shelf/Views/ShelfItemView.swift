@@ -257,10 +257,11 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         var dragPreviewImage: NSImage?
         var onRightClick: ((NSEvent, NSView) -> Void)?
         var onClick: ((NSEvent, NSView) -> Void)?
-        
+
         private var mouseDownEvent: NSEvent?
         private let dragThreshold: CGFloat = 3.0
         private var draggedURLs: [URL] = []
+        private var draggedItems: [ShelfItem] = []
         
         override func rightMouseDown(with event: NSEvent) {
             onRightClick?(event, self)
@@ -294,20 +295,23 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             // Prepare dragging items
             let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
             let itemsToDrag: [ShelfItem]
-            
+
             if selectedItems.count > 1 && selectedItems.contains(where: { $0.id == item.id }) {
                 itemsToDrag = selectedItems
             } else {
                 itemsToDrag = [item]
             }
-            
+
+            // Store items being dragged for auto-remove feature
+            draggedItems = itemsToDrag
+
             // Create dragging items for AppKit
             var draggingItems: [NSDraggingItem] = []
-            
+
             for dragItem in itemsToDrag {
                 if let pasteboardItem = createPasteboardItem(for: dragItem) {
                     let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardItem)
-                    
+
                     // Use the drag preview image
                     let image = dragPreviewImage ?? dragItem.icon
                     let imageFrame = NSRect(
@@ -317,13 +321,13 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
                         height: image.size.height
                     )
                     draggingItem.setDraggingFrame(imageFrame, contents: image)
-                    
+
                     draggingItems.append(draggingItem)
                 }
             }
-            
+
             guard !draggingItems.isEmpty else { return }
-            
+
             beginDraggingSession(with: draggingItems, event: event, source: self)
         }
         
@@ -383,13 +387,21 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         
         func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
             ShelfSelectionModel.shared.endDrag()
-            
+
             // Stop accessing security-scoped resources after drag completes
             for url in draggedURLs {
                 url.stopAccessingSecurityScopedResource()
                 NSLog("🔐 Stopped security-scoped access after drag: \(url.path)")
             }
             draggedURLs.removeAll()
+
+            // Auto-remove items from shelf if enabled and drag succeeded
+            if Defaults[.autoRemoveShelfItems] && !operation.isEmpty {
+                for item in draggedItems {
+                    ShelfStateViewModel.shared.remove(item)
+                }
+            }
+            draggedItems.removeAll()
         }
         
         func ignoreModifierKeys(for session: NSDraggingSession) -> Bool {

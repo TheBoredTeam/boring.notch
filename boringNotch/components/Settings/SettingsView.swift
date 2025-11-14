@@ -887,6 +887,9 @@ struct Shelf: View {
                 Defaults.Toggle(key: .copyOnDrag) {
                     Text("Copy items on drag")
                 }
+                Defaults.Toggle(key: .autoRemoveShelfItems) {
+                    Text("Remove from shelf after dragging")
+                }
 
             } header: {
                 HStack {
