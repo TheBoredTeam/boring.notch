@@ -241,9 +241,21 @@ struct ContentView: View {
 
                       if coordinator.sneakPeek.show {
                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] {
-                              SystemEventIndicatorModifier(eventType: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, sendEventBack: { _ in
-                                  //
-                              })
+                              SystemEventIndicatorModifier(
+                                  eventType: $coordinator.sneakPeek.type,
+                                  value: $coordinator.sneakPeek.value,
+                                  icon: $coordinator.sneakPeek.icon,
+                                  sendEventBack: { newVal in
+                                      switch coordinator.sneakPeek.type {
+                                      case .volume:
+                                          VolumeManager.shared.setAbsolute(Float32(newVal))
+                                      case .brightness:
+                                          BrightnessManager.shared.setAbsolute(value: Float32(newVal))
+                                      default:
+                                          break
+                                      }
+                                  }
+                              )
                               .padding(.bottom, 10)
                               .padding(.leading, 4)
                               .padding(.trailing, 8)

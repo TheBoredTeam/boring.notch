@@ -59,6 +59,15 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     var id: String { self.rawValue }
 }
 
+// Action to perform when Option (⌥) is held while pressing media keys
+enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case openSettings = "Open Settings"
+    case showHUD = "Show HUD"
+    case none = "No Action"
+
+    var id: String { self.rawValue }
+}
+
 extension Defaults.Keys {
         // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -139,6 +148,8 @@ extension Defaults.Keys {
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
+        // Option key modifier behaviour for media keys
+        static let optionKeyAction = Key<OptionKeyAction>("optionKeyAction", default: OptionKeyAction.openSettings)
     
         // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)

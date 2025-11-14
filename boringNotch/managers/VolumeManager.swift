@@ -20,8 +20,7 @@ final class VolumeManager: NSObject, ObservableObject {
     let visibleDuration: TimeInterval = 1.2
 
     private var didInitialFetch = false
-    // Step (HUD Apple is using 1/32) 
-    private let step: Float32 = 1.0 / 32.0
+    private let step: Float32 = 1.0 / 16.0
     // Fallback software if hardware mute is not supported
     private var previousVolumeBeforeMute: Float32 = 0.2
     private var softwareMuted: Bool = false
@@ -35,19 +34,41 @@ final class VolumeManager: NSObject, ObservableObject {
     var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
     // MARK: - Public Control API
-    func increase() {
-        adjustRelative(delta: step)
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(self.rawVolume))
+    @MainActor func increase(stepDivisor: Float = 1.0) {
+        let divisor = max(stepDivisor, 0.25)
+        let delta = step / Float32(divisor)
+        let current = readVolumeInternal() ?? rawVolume
+        let target = max(0, min(1, current + delta))
+        setAbsolute(target)
+        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(target))
     }
 
-    func decrease() {
-        adjustRelative(delta: -step)
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(self.rawVolume))
+    @MainActor func decrease(stepDivisor: Float = 1.0) {
+        let divisor = max(stepDivisor, 0.25)
+        let delta = step / Float32(divisor)
+        let current = readVolumeInternal() ?? rawVolume
+        let target = max(0, min(1, current - delta))
+        setAbsolute(target)
+        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(target))
     }
 
-    func toggleMuteAction() {
+    @MainActor func toggleMuteAction() {
+        // Determine expected resulting state immediately and show HUD with that value
+        let deviceID = systemOutputDeviceID()
+        var willBeMuted = false
+        var resultingVolume: Float32 = rawVolume
+
+        if deviceID == kAudioObjectUnknown {
+            willBeMuted = !softwareMuted
+            resultingVolume = willBeMuted ? 0 : previousVolumeBeforeMute
+        } else {
+            let currentMuted = isMutedInternal()
+            willBeMuted = !currentMuted
+            resultingVolume = willBeMuted ? 0 : (readVolumeInternal() ?? rawVolume)
+        }
+
         toggleMuteInternal()
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(isMuted ? self.rawVolume : 0))
+        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(willBeMuted ? 0 : resultingVolume))
     }
     
     func refresh() { fetchCurrentVolume() }
@@ -61,6 +82,22 @@ final class VolumeManager: NSObject, ObservableObject {
         let target = max(0, min(1, current + delta))
         writeVolumeInternal(target)  
         publish(volume: target, muted: isMutedInternal(), touchDate: true)
+    }
+
+    @MainActor func setAbsolute(_ value: Float32) {
+        let clamped = max(0, min(1, value))
+        let currentlyMuted = isMutedInternal()
+        if currentlyMuted && clamped > 0 {
+            toggleMuteInternal()
+        }
+
+        writeVolumeInternal(clamped)
+
+        if clamped == 0 && !currentlyMuted {
+            toggleMuteInternal()
+        }
+
+        publish(volume: clamped, muted: isMutedInternal(), touchDate: true)
     }
 
     // MARK: - CoreAudio Helpers

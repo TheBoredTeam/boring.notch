@@ -91,6 +91,7 @@ struct SystemEventIndicatorModifier: View {
 struct DraggableProgressBar: View {
     @EnvironmentObject var vm: BoringViewModel
     @Binding var value: CGFloat
+    var onChange: ((CGFloat) -> Void)? = nil
     
     @State private var isDragging = false
     @State private var dragOffset: CGFloat = 0
@@ -146,5 +147,6 @@ struct DraggableProgressBar: View {
         let newValue = dragPosition / geometry.size.width
         
         value = max(0, min(newValue, 1))
+        onChange?(value)
     }
 }

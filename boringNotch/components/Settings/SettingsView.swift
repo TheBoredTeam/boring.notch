@@ -38,6 +38,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Media") {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
+                NavigationLink(value: "Keyboard") {
+                    Label("Keyboard", systemImage: "keyboard")
+                }
                 NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
                 }
@@ -151,6 +154,7 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    @Default(.optionKeyAction) var optionKeyAction
 
     var body: some View {
         Form {
@@ -179,6 +183,12 @@ struct GeneralSettings: View {
                     screens = NSScreen.screens.compactMap({ $0.localizedName })
                 }
                 .disabled(showOnAllDisplays)
+                Picker("Option key behaviour", selection: $optionKeyAction) {
+                    ForEach(OptionKeyAction.allCases) { opt in
+                        Text(opt.rawValue).tag(opt)
+                    }
+                }
+                .pickerStyle(.radioGroup)
                 Defaults.Toggle(key: .automaticallySwitchDisplay) {
                     Text("Automatically switch displays")
                 }
