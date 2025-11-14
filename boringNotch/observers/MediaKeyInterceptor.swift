@@ -7,14 +7,20 @@
 import Foundation
 import AppKit
 import os.log
+import ApplicationServices
+import IOKit
+import Defaults
 
 private let kSystemDefinedEventType = CGEventType(rawValue: 14)!
 
 final class MediaKeyInterceptor {
     static let shared = MediaKeyInterceptor()
 
+    private enum NXKeyType: Int { case soundUp = 0, soundDown = 1, brightnessUp = 2, brightnessDown = 3, mute = 7 }
+
     private var eventTap: CFMachPort? = nil
     private var runLoopSource: CFRunLoopSource? = nil
+    private let volumeStep: Float = 1.0 / 16.0
     private let brightnessStep: Float = 1.0 / 16.0
 
     private init() {}
@@ -23,11 +29,19 @@ final class MediaKeyInterceptor {
         return AXIsProcessTrusted()
     }
 
-    func start() {
+    func start(requireAccessibility: Bool = true, promptIfNeeded: Bool = false) {
         guard eventTap == nil else { return }
-        guard isAccessibilityAuthorized() else {
-            let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-            _ = AXIsProcessTrustedWithOptions(options)
+
+        if requireAccessibility && !isAccessibilityAuthorized() {
+            if promptIfNeeded {
+                Task { @MainActor in
+                    let granted = await self.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                    if granted {
+                        // Start again but don't prompt now
+                        self.start(requireAccessibility: false, promptIfNeeded: false)
+                    }
+                }
+            }
             return
         }
 
@@ -58,8 +72,70 @@ final class MediaKeyInterceptor {
         eventTap = nil
     }
 
+    func requestAccessibilityAuthorization() {
+        let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        _ = AXIsProcessTrustedWithOptions(options)
 
-    private func handleSystemDefined(event cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
+        // If permission is not granted shortly after prompting, show instructions to the user
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            if !self.isAccessibilityAuthorized() {
+                self.showAccessibilityDeniedAlert()
+            }
+        }
+    }
+
+    private func showAccessibilityDeniedAlert() {
+        let alert = NSAlert()
+        alert.messageText = "Accessibility Permission Required"
+        alert.informativeText = "boring.notch needs Accessibility permission to intercept media and brightness keys. Open System Settings → Privacy & Security → Accessibility and enable boring.notch."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open Settings")
+        alert.addButton(withTitle: "Cancel")
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            openAccessibilitySettings()
+        }
+    }
+
+    private func openAccessibilitySettings() {
+        // Attempt to open the Privacy → Accessibility pane
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            DispatchQueue.main.async {
+                NSWorkspace.shared.open(url)
+            }
+            return
+        }
+        // Fallback: open System Settings app
+        DispatchQueue.main.async {
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
+        }
+    }
+
+    private func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
+        if AXIsProcessTrusted() { return true }
+
+        if promptIfNeeded {
+            let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            _ = AXIsProcessTrustedWithOptions(options)
+
+            // Poll for a short period for the user to grant permission
+            for _ in 0..<10 {
+                if AXIsProcessTrusted() { return true }
+                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
+            }
+        }
+
+        // If still not authorized, inform the user and offer to open settings
+        await MainActor.run {
+            self.showAccessibilityDeniedAlert()
+        }
+
+        return AXIsProcessTrusted()
+    }
+
+
+    @MainActor private func handleSystemDefined(event cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
         guard let nsEvent = NSEvent(cgEvent: cgEvent), nsEvent.type == .systemDefined, nsEvent.subtype.rawValue == 8 else {
             return Unmanaged.passRetained(cgEvent)
         }
@@ -68,35 +144,134 @@ final class MediaKeyInterceptor {
         let keyFlags = (data1 & 0x0000_FFFF)
         let stateByte = (keyFlags & 0xFF00) >> 8
         // 0xA = key down, 0xB = key up for media (systemDefined subtype 8) events.
-        // We only want to act on the key down to avoid double-trigger (press + release).
-        let isPress = (stateByte == 0xA)
-        let isRepeat = (stateByte == 0xB)
+        // Only handle the key-down event to avoid duplicate handling.
+        let isKeyDown = (stateByte == 0xA)
 
-        guard (isPress || isRepeat) else { return Unmanaged.passRetained(cgEvent) }
-            enum NXKeyType: Int { case soundUp = 0, soundDown = 1, brightnessUp = 2, brightnessDown = 3, mute = 7 }
-
+        guard isKeyDown else { return Unmanaged.passRetained(cgEvent) }
         guard let nx = NXKeyType(rawValue: keyCode) else {
                 return Unmanaged.passRetained(cgEvent)
             }
-        // Return nil to avoid apple native animation 
-            switch nx {
-            case .soundUp:
-                VolumeManager.shared.increase()
-                return nil
-            case .soundDown:
-                VolumeManager.shared.decrease()
-                return nil
-            case .mute:
-                if isPress { 
-                    VolumeManager.shared.toggleMuteAction()
+        // Inspect modifier flags to support option/shift/command behaviors
+        let flags = nsEvent.modifierFlags
+        let optionDown = flags.contains(.option)
+        let shiftDown = flags.contains(.shift)
+        let commandDown = flags.contains(.command)
+
+        // Read configured action for Option alone presses
+        let optionAction = Defaults[.optionKeyAction]
+
+        // Determine step multiplier: Option+Shift -> quarter step (1/64)
+        let stepDivisor: Float = (optionDown && shiftDown) ? 4.0 : 1.0
+
+        switch nx {
+        case .soundUp:
+            // Option + media: either show settings, show HUD only, or do nothing
+            if optionDown && !shiftDown {
+                switch optionAction {
+                case .openSettings:
+                    openSystemSettings(for: nx)
+                    return nil
+                case .showHUD:
+                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(VolumeManager.shared.rawVolume))
+                    return nil
+                case .none:
+                    return nil
                 }
-                return nil
-            case .brightnessUp:
-                BrightnessManager.shared.setRelative(delta: brightnessStep)
-                return nil
-            case .brightnessDown:
-                BrightnessManager.shared.setRelative(delta: -brightnessStep)
-                return nil
             }
+
+            // Use the high-level API which also shows the HUD immediately with the target value
+            VolumeManager.shared.increase(stepDivisor: stepDivisor)
+            return nil
+        case .soundDown:
+            if optionDown && !shiftDown {
+                switch optionAction {
+                case .openSettings:
+                    openSystemSettings(for: nx)
+                    return nil
+                case .showHUD:
+                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(VolumeManager.shared.rawVolume))
+                    return nil
+                case .none:
+                    return nil
+                }
+            }
+
+            VolumeManager.shared.decrease(stepDivisor: stepDivisor)
+            return nil
+        case .mute:
+            if optionDown && !shiftDown {
+                switch optionAction {
+                case .openSettings:
+                    openSystemSettings(for: nx)
+                    return nil
+                case .showHUD:
+                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(VolumeManager.shared.rawVolume))
+                    return nil
+                case .none:
+                    return nil
+                }
+            }
+
+            VolumeManager.shared.toggleMuteAction()
+            return nil
+        case .brightnessUp:
+            if optionDown && !shiftDown {
+                switch optionAction {
+                case .openSettings:
+                    openSystemSettings(for: nx)
+                    return nil
+                case .showHUD:
+                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(BrightnessManager.shared.rawBrightness))
+                    return nil
+                case .none:
+                    return nil
+                }
+            }
+
+            let delta = brightnessStep / stepDivisor
+            if commandDown {
+                KeyboardBacklightManager.shared.setRelative(delta: delta)
+            } else {
+                BrightnessManager.shared.setRelative(delta: delta)
+            }
+            return nil
+        case .brightnessDown:
+            if optionDown && !shiftDown {
+                switch optionAction {
+                case .openSettings:
+                    openSystemSettings(for: nx)
+                    return nil
+                case .showHUD:
+                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(BrightnessManager.shared.rawBrightness))
+                    return nil
+                case .none:
+                    return nil
+                }
+            }
+
+            let delta = -(brightnessStep / stepDivisor)
+            if commandDown {
+                KeyboardBacklightManager.shared.setRelative(delta: delta)
+            } else {
+                BrightnessManager.shared.setRelative(delta: delta)
+            }
+            return nil
+        }
+    }
+
+    private func openSystemSettings(for key: NXKeyType) {
+        var urlString: String?
+        switch key {
+        case .soundUp, .soundDown, .mute:
+            urlString = "x-apple.systempreferences:com.apple.preference.sound"
+        case .brightnessUp, .brightnessDown:
+            // Apple opens Displays for brightness keys
+            urlString = "x-apple.systempreferences:com.apple.preference.displays"
+        }
+
+        guard let s = urlString, let url = URL(string: s) else { return }
+        DispatchQueue.main.async {
+            NSWorkspace.shared.open(url)
+        }
     }
 }

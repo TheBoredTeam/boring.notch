@@ -13556,6 +13556,9 @@
         }
       }
     },
+    "Option key behaviour" : {
+
+    },
     "Pick a Color" : {
 
     },
@@ -15764,6 +15767,9 @@
           }
         }
       }
+    },
+    "Show lyrics under player" : {
+
     },
     "Show notch on lock screen" : {
 

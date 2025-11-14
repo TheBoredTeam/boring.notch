@@ -45,8 +45,8 @@ struct SystemEventIndicatorModifier: View {
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .backlight:
-                    Image(systemName: "keyboard")
-                        .contentTransition(.symbolEffect)
+                    Image(systemName: value > 0.5 ? "light.max" : "light.min")
+                        .contentTransition(.interpolate)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .mic:
@@ -91,6 +91,7 @@ struct SystemEventIndicatorModifier: View {
 struct DraggableProgressBar: View {
     @EnvironmentObject var vm: BoringViewModel
     @Binding var value: CGFloat
+    var onChange: ((CGFloat) -> Void)? = nil
     
     @State private var isDragging = false
     @State private var dragOffset: CGFloat = 0
@@ -146,5 +147,6 @@ struct DraggableProgressBar: View {
         let newValue = dragPosition / geometry.size.width
         
         value = max(0, min(newValue, 1))
+        onChange?(value)
     }
 }

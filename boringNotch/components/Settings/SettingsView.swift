@@ -151,6 +151,7 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    
 
     var body: some View {
         Form {
@@ -179,6 +180,7 @@ struct GeneralSettings: View {
                     screens = NSScreen.screens.compactMap({ $0.localizedName })
                 }
                 .disabled(showOnAllDisplays)
+                
                 Defaults.Toggle(key: .automaticallySwitchDisplay) {
                     Text("Automatically switch displays")
                 }
@@ -460,11 +462,18 @@ struct HUD: View {
     @EnvironmentObject var vm: BoringViewModel
     @Default(.inlineHUD) var inlineHUD
     @Default(.enableGradient) var enableGradient
+    @Default(.optionKeyAction) var optionKeyAction
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var body: some View {
         Form {
             Section {
                 Toggle("Enable HUD replacement", isOn: $coordinator.hudReplacement)
+                Picker("Option key behaviour", selection: $optionKeyAction) {
+                    ForEach(OptionKeyAction.allCases) { opt in
+                        Text(opt.rawValue).tag(opt)
+                    }
+                }
+                .pickerStyle(.radioGroup)
             } header: {
                 Text("General")
             }

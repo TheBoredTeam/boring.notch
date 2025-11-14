@@ -224,7 +224,7 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
-                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) {
+                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
@@ -240,10 +240,22 @@ struct ContentView: View {
                        }
 
                       if coordinator.sneakPeek.show {
-                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] {
-                              SystemEventIndicatorModifier(eventType: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, sendEventBack: { _ in
-                                  //
-                              })
+                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
+                              SystemEventIndicatorModifier(
+                                  eventType: $coordinator.sneakPeek.type,
+                                  value: $coordinator.sneakPeek.value,
+                                  icon: $coordinator.sneakPeek.icon,
+                                  sendEventBack: { newVal in
+                                      switch coordinator.sneakPeek.type {
+                                      case .volume:
+                                          VolumeManager.shared.setAbsolute(Float32(newVal))
+                                      case .brightness:
+                                          BrightnessManager.shared.setAbsolute(value: Float32(newVal))
+                                      default:
+                                          break
+                                      }
+                                  }
+                              )
                               .padding(.bottom, 10)
                               .padding(.leading, 4)
                               .padding(.trailing, 8)

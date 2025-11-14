@@ -92,7 +92,7 @@ class BoringViewCoordinator: ObservableObject {
             accessibilityPermissionTimer = nil
 
             if hudReplacement {
-                MediaKeyInterceptor.shared.start()
+                MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: true)
                 if MediaKeyInterceptor.shared.isAccessibilityAuthorized() {
                     ApplicationRelauncher.restart()
                 } else {

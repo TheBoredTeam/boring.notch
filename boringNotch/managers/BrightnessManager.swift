@@ -5,6 +5,7 @@
 
 import AppKit
 import IOKit
+import ObjectiveC
 
 final class BrightnessManager: ObservableObject {
 	static let shared = BrightnessManager()
@@ -23,9 +24,10 @@ final class BrightnessManager: ObservableObject {
 
 	func refresh() { if let current = readSystemBrightness() { publish(brightness: current, touchDate: false) } }
 
-    func setRelative(delta: Float) {
-        setAbsolute(value: rawBrightness + delta)
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(BrightnessManager.shared.rawBrightness))
+    @MainActor func setRelative(delta: Float) {
+		let target = max(0, min(1, rawBrightness + delta))
+		setAbsolute(value: target)
+		BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(target))
     }
 
 	func setAbsolute(value: Float) {
@@ -125,5 +127,110 @@ private enum DisplayServicesHandle {
 		}
 		return nil
 	}()
+}
+
+// MARK: - Keyboard Backlight Controller
+final class KeyboardBacklightManager: ObservableObject {
+	static let shared = KeyboardBacklightManager()
+
+	@Published private(set) var rawBrightness: Float = 0
+	@Published private(set) var lastChangeAt: Date = .distantPast
+
+	private let visibleDuration: TimeInterval = 1.2
+	private let client = KeyboardBrightnessClientWrapper()
+
+	private init() { refresh() }
+
+	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
+	var isAvailable: Bool { client.isAvailable }
+
+	func refresh() {
+		guard let current = client.currentBrightness() else { return }
+		publish(brightness: current, touchDate: false)
+	}
+
+	@MainActor func setRelative(delta: Float) {
+		guard client.isAvailable else { return }
+		let starting = client.currentBrightness() ?? rawBrightness
+		let target = max(0, min(1, starting + delta))
+		setAbsolute(value: target)
+		BoringViewCoordinator.shared.toggleSneakPeek(
+			status: true,
+			type: .backlight,
+			value: CGFloat(target)
+		)
+	}
+
+	func setAbsolute(value: Float) {
+		guard client.isAvailable else { return }
+		let clamped = max(0, min(1, value))
+		if client.setBrightness(clamped) {
+			publish(brightness: clamped, touchDate: true)
+		} else {
+			refresh()
+		}
+	}
+
+	private func publish(brightness: Float, touchDate: Bool) {
+		DispatchQueue.main.async {
+			if self.rawBrightness != brightness || touchDate {
+				if touchDate { self.lastChangeAt = Date() }
+				self.rawBrightness = brightness
+			}
+		}
+	}
+}
+
+private final class KeyboardBrightnessClientWrapper {
+	private static let keyboardID: UInt64 = 1
+	private let clientInstance: NSObject?
+
+	private let getSelector = NSSelectorFromString("brightnessForKeyboard:")
+	private let setSelector = NSSelectorFromString("setBrightness:forKeyboard:")
+
+	init() {
+		var loaded = false
+		let bundlePaths = [
+			"/System/Library/PrivateFrameworks/CoreBrightness.framework",
+			"/System/Library/PrivateFrameworks/CoreBrightness.framework/CoreBrightness"
+		]
+		for path in bundlePaths where !loaded {
+			if let bundle = Bundle(path: path) {
+				loaded = bundle.load()
+			}
+		}
+		if loaded, let cls = NSClassFromString("KeyboardBrightnessClient") as? NSObject.Type {
+			clientInstance = cls.init()
+		} else {
+			clientInstance = nil
+		}
+	}
+
+	var isAvailable: Bool { clientInstance != nil }
+
+	func currentBrightness() -> Float? {
+		guard let clientInstance,
+			let fn: BrightnessGetter = methodIMP(on: clientInstance, selector: getSelector, as: BrightnessGetter.self)
+		else { return nil }
+		return fn(clientInstance, getSelector, Self.keyboardID)
+	}
+
+	func setBrightness(_ value: Float) -> Bool {
+		guard let clientInstance,
+			let fn: BrightnessSetter = methodIMP(on: clientInstance, selector: setSelector, as: BrightnessSetter.self)
+		else { return false }
+		return fn(clientInstance, setSelector, value, Self.keyboardID).boolValue
+	}
+
+	private typealias BrightnessGetter = @convention(c) (NSObject, Selector, UInt64) -> Float
+	private typealias BrightnessSetter = @convention(c) (NSObject, Selector, Float, UInt64) -> ObjCBool
+
+	private func methodIMP<T>(on object: NSObject, selector: Selector, as type: T.Type) -> T? {
+		guard let cls = object_getClass(object),
+			let method = class_getInstanceMethod(cls, selector)
+		else { return nil }
+		let imp = method_getImplementation(method)
+		return unsafeBitCast(imp, to: type)
+	}
 }
 
