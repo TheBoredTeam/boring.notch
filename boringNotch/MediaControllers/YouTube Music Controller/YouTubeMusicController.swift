@@ -21,7 +21,11 @@ final class YouTubeMusicController: MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
-    
+
+    var supportsVolumeControl: Bool {
+        return true
+    }
+
     // MARK: - Private Properties
     private let configuration: YouTubeMusicConfiguration
     private let httpClient: YouTubeMusicHTTPClient
@@ -62,6 +66,13 @@ final class YouTubeMusicController: MediaControllerProtocol {
     func seek(to time: Double) async {
         let payload = ["seconds": time]
         await sendCommand(endpoint: "/seek-to", method: "POST", body: payload)
+    }
+
+    func setVolume(_ level: Double) async {
+        let clampedLevel = max(0.0, min(1.0, level))
+        let volumePercentage = Int(clampedLevel * 100)
+        let payload = ["volume": volumePercentage]
+        await sendCommand(endpoint: "/volume", method: "POST", body: payload)
     }
     func fetchShuffleState() async { await sendCommand(endpoint: "/shuffle", method: "GET", refresh: false) }
     func fetchRepeatMode() async { await sendCommand(endpoint: "/repeat-mode", method: "GET", refresh: false) }
@@ -241,7 +252,15 @@ final class YouTubeMusicController: MediaControllerProtocol {
             if copy != playbackState { playbackState = copy }
 
         case .volumeChanged:
-            break
+            guard let data = message.extractData() else { return }
+            var copy = playbackState
+            if let volume = data["volume"] as? Double {
+                copy.volume = volume / 100.0
+            } else if let volume = data["volume"] as? Int {
+                copy.volume = Double(volume) / 100.0
+            }
+            copy.lastUpdated = Date()
+            if copy != playbackState { playbackState = copy }
         }
     }
     
@@ -371,6 +390,10 @@ final class YouTubeMusicController: MediaControllerProtocol {
             case 2: newState.repeatMode = .one
             default: break
             }
+        }
+
+        if let volume = response.volume {
+            newState.volume = volume / 100.0
         }
 
         if newState != playbackState {
