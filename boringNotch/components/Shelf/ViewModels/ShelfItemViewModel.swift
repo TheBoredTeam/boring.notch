@@ -54,13 +54,10 @@ final class ShelfItemViewModel: ObservableObject {
         switch item.kind {
         case .file:
             let provider = NSItemProvider()
-            Task {
-                // Use immediate update for user-initiated drag operation
-                if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
-                    provider.registerObject(url as NSURL, visibility: .all)
-                } else {
-                    provider.registerObject(item.displayName as NSString, visibility: .all)
-                }
+            if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+                provider.registerObject(url as NSURL, visibility: .all)
+            } else {
+                provider.registerObject(item.displayName as NSString, visibility: .all)
             }
             return provider
         case .text(let string):
@@ -72,32 +69,29 @@ final class ShelfItemViewModel: ObservableObject {
 
     private func createMultiItemProvider(for items: [ShelfItem]) -> NSItemProvider {
         let provider = NSItemProvider()
-        Task {
-            var urls: [URL] = []
-            var textItems: [String] = []
-            for item in items {
-                switch item.kind {
-                case .file:
-                    // Use immediate update for user-initiated drag operation
-                    if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
-                        urls.append(url)
-                    } else {
-                        textItems.append(item.displayName)
-                    }
-                case .text(let string):
-                    textItems.append(string)
-                case .link:
-                    break
+        var urls: [URL] = []
+        var textItems: [String] = []
+        for item in items {
+            switch item.kind {
+            case .file:
+                if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+                    urls.append(url)
+                } else {
+                    textItems.append(item.displayName)
                 }
+            case .text(let string):
+                textItems.append(string)
+            case .link:
+                break
             }
-            if !urls.isEmpty {
-                for url in urls {
-                    provider.registerObject(url as NSURL, visibility: .all)
-                }
+        }
+        if !urls.isEmpty {
+            for url in urls {
+                provider.registerObject(url as NSURL, visibility: .all)
             }
-            if !textItems.isEmpty {
-                provider.registerObject(textItems.joined(separator: "\n") as NSString, visibility: .all)
-            }
+        }
+        if !textItems.isEmpty {
+            provider.registerObject(textItems.joined(separator: "\n") as NSString, visibility: .all)
         }
         return provider
     }
@@ -408,6 +402,9 @@ final class ShelfItemViewModel: ObservableObject {
         let item: ShelfItem
         weak var view: NSView?
         unowned let viewModel: ShelfItemViewModel
+
+        // Keep associated objects (like accessory view handlers) without magic keys
+        private static var sliderHandlerAssoc = AssociatedObject<AnyObject>()
 
         init(item: ShelfItem, view: NSView, viewModel: ShelfItemViewModel) {
             self.item = item
@@ -988,8 +985,8 @@ final class ShelfItemViewModel: ObservableObject {
             updateQualityLabel()
             updateCustomSizeVisibility()
             
-            // Keep the handler alive
-            objc_setAssociatedObject(accessoryView, "sliderHandler", handler, .OBJC_ASSOCIATION_RETAIN)
+            // Keep the handler alive using the `AssociatedObject` helper instead of a magic string key
+            MenuActionTarget.sliderHandlerAssoc[accessoryView] = handler
             
             alert.accessoryView = accessoryView
             
