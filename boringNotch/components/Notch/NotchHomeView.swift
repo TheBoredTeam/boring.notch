@@ -311,7 +311,7 @@ struct VolumeControlView: View {
     @State private var showVolumeSlider: Bool = false
     @State private var lastVolumeUpdateTime: Date = Date.distantPast
     @State private var volumeUpdateTask: Task<Void, Never>?
-    private let volumeUpdateThrottle: TimeInterval = 0.05 // 50ms throttle
+    private let volumeUpdateThrottle: Duration = .milliseconds(200)
     
     var body: some View {
         ZStack {
@@ -346,7 +346,7 @@ struct VolumeControlView: View {
                                 
                                 // Schedule a new throttled update
                                 volumeUpdateTask = Task {
-                                    try? await Task.sleep(for: .seconds(volumeUpdateThrottle))
+                                    try? await Task.sleep(for: volumeUpdateThrottle)
                                     if !Task.isCancelled {
                                         MusicManager.shared.setVolume(to: newValue)
                                     }
