@@ -41,12 +41,8 @@ struct SettingsView: View {
                 NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
                 }
-                if extensionManager.installedExtensions
-                    .contains(where: { $0.bundleIdentifier == hudExtension })
-                {
-                    NavigationLink(value: "HUD") {
-                        Label("HUDs", systemImage: "dial.medium.fill")
-                    }
+                NavigationLink(value: "HUD") {
+                    Label("HUDs", systemImage: "dial.medium.fill")
                 }
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
@@ -1077,10 +1073,10 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
-
     @State private var isPresented: Bool = false
     @State private var name: String = ""
     @State private var url: String = ""
