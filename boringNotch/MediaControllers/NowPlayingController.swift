@@ -21,6 +21,12 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
+
+    var supportsVolumeControl: Bool {
+        let bundleID = playbackState.bundleIdentifier
+        return bundleID == "com.apple.Music" || bundleID == "com.spotify.client"
+    }
+
     private var lastMusicItem:
         (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
 

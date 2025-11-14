@@ -18,7 +18,11 @@ class SpotifyController: MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
-    
+
+    var supportsVolumeControl: Bool {
+        return true
+    }
+
     private var notificationTask: Task<Void, Never>?
     
     // Constant for time between command and update

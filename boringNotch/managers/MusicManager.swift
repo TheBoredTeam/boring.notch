@@ -269,8 +269,8 @@ class MusicManager: ObservableObject {
 
         if state.bundleIdentifier != self.bundleIdentifier {
             self.bundleIdentifier = state.bundleIdentifier
-            // Update volume control support based on bundle identifier
-            self.volumeControlSupported = isVolumeControlSupported(for: state.bundleIdentifier)
+            // Update volume control support from active controller
+            self.volumeControlSupported = activeController?.supportsVolumeControl ?? false
         }
 
         if repeatModeChanged {
@@ -653,14 +653,5 @@ class MusicManager: ObservableObject {
                 }
             }
         }
-    }
-    
-    func isVolumeControlSupported(for bundleIdentifier: String) -> Bool {
-        let supportedApps = [
-            "com.apple.Music",
-            "com.spotify.client",
-            "com.github.th-ch.youtube-music"
-        ]
-        return supportedApps.contains(bundleIdentifier)
     }
 }

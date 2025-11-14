@@ -21,7 +21,11 @@ final class YouTubeMusicController: MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
-    
+
+    var supportsVolumeControl: Bool {
+        return true
+    }
+
     // MARK: - Private Properties
     private let configuration: YouTubeMusicConfiguration
     private let httpClient: YouTubeMusicHTTPClient
