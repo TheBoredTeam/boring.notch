@@ -34,7 +34,13 @@ final class MediaKeyInterceptor {
 
         if requireAccessibility && !isAccessibilityAuthorized() {
             if promptIfNeeded {
-                requestAccessibilityAuthorization()
+                Task { @MainActor in
+                    let granted = await self.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                    if granted {
+                        // Start again but don't prompt now
+                        self.start(requireAccessibility: false, promptIfNeeded: false)
+                    }
+                }
             }
             return
         }
@@ -69,6 +75,63 @@ final class MediaKeyInterceptor {
     func requestAccessibilityAuthorization() {
         let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(options)
+
+        // If permission is not granted shortly after prompting, show instructions to the user
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            if !self.isAccessibilityAuthorized() {
+                self.showAccessibilityDeniedAlert()
+            }
+        }
+    }
+
+    private func showAccessibilityDeniedAlert() {
+        let alert = NSAlert()
+        alert.messageText = "Accessibility Permission Required"
+        alert.informativeText = "boring.notch needs Accessibility permission to intercept media and brightness keys. Open System Settings → Privacy & Security → Accessibility and enable boring.notch."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open Settings")
+        alert.addButton(withTitle: "Cancel")
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            openAccessibilitySettings()
+        }
+    }
+
+    private func openAccessibilitySettings() {
+        // Attempt to open the Privacy → Accessibility pane
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            DispatchQueue.main.async {
+                NSWorkspace.shared.open(url)
+            }
+            return
+        }
+        // Fallback: open System Settings app
+        DispatchQueue.main.async {
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
+        }
+    }
+
+    private func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
+        if AXIsProcessTrusted() { return true }
+
+        if promptIfNeeded {
+            let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            _ = AXIsProcessTrustedWithOptions(options)
+
+            // Poll for a short period for the user to grant permission
+            for _ in 0..<10 {
+                if AXIsProcessTrusted() { return true }
+                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
+            }
+        }
+
+        // If still not authorized, inform the user and offer to open settings
+        await MainActor.run {
+            self.showAccessibilityDeniedAlert()
+        }
+
+        return AXIsProcessTrusted()
     }
 
 

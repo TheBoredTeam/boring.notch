@@ -338,7 +338,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         if coordinator.hudReplacement {
-            MediaKeyInterceptor.shared.start()
+            MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
         }
 
         previousScreens = NSScreen.screens
