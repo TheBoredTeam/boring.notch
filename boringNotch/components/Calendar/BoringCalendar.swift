@@ -253,7 +253,7 @@ struct EmptyEventsView: View {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.title)
                 .foregroundColor(Color(white: 0.65))
-            Text(Calendar.current.isDateInToday(selectedDate) ? NSLocalizedString("No events today", comment: "") : NSLocalizedString("No events", comment: ""))
+            Text(Calendar.current.isDateInToday(selectedDate) ? "No events today" : "No events")
                 .font(.subheadline)
                 .foregroundColor(.white)
             Text("Enjoy your free time!")
