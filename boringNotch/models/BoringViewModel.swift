@@ -8,7 +8,6 @@
 import Combine
 import Defaults
 import SwiftUI
-import TheBoringWorkerNotifier
 
 class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared

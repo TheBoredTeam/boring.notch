@@ -195,8 +195,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
 
-        coordinator.setupWorkersNotificationObservers()
-
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(screenConfigurationDidChange),

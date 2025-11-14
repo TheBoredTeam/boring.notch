@@ -1,33 +1,24 @@
 //
-//  LottieAnimationView.swift
+//  LottieAnimationContainer.swift
 //  boringNotch
 //
 //  Created by Richard Kunkli on 2024. 10. 29..
 //
 
 import SwiftUI
-import Lottie
-import LottieUI
 import Defaults
 
-struct LottieAnimationView: View {
-    let state1 = LUStateData(type: .loadedFrom(URL(string: "https://assets9.lottiefiles.com/packages/lf20_mniampqn.json")!), speed: 1.0, loopMode: .loop)
+struct LottieAnimationContainer: View {
     @Default(.selectedVisualizer) var selectedVisualizer
     var body: some View {
         if selectedVisualizer == nil {
-            LottieView(state: state1)
+            LottieView(url: URL(string: "https://assets9.lottiefiles.com/packages/lf20_mniampqn.json")!, speed: 1.0, loopMode: .loop)
         } else {
-            LottieView(
-                state: LUStateData(
-                    type: .loadedFrom(selectedVisualizer!.url),
-                    speed: selectedVisualizer!.speed,
-                    loopMode: .loop
-                )
-            )
+            LottieView(url: selectedVisualizer!.url, speed: selectedVisualizer!.speed, loopMode: .loop)
         }
     }
 }
 
 #Preview {
-    LottieAnimationView()
+    LottieAnimationContainer()
 }

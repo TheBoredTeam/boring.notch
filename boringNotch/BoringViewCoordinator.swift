@@ -9,7 +9,6 @@ import AppKit
 import Combine
 import Defaults
 import SwiftUI
-import TheBoringWorkerNotifier
 
 enum SneakContentType {
     case brightness
@@ -50,7 +49,6 @@ struct ExpandedItem {
 @MainActor
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
-    var notifier: TheBoringWorkerNotifier = .init()
 
     @Published var currentView: NotchViews = .home
     private var sneakPeekDispatch: DispatchWorkItem?
@@ -85,8 +83,6 @@ class BoringViewCoordinator: ObservableObject {
         didSet {
             guard hudReplacement != oldValue else { return }
 
-            notifier.postNotification(
-                name: notifier.toggleHudReplacementNotification.name, userInfo: nil)
             hudEnableTask?.cancel()
             hudEnableTask = nil
 
@@ -122,17 +118,11 @@ class BoringViewCoordinator: ObservableObject {
 
     private init() {
         selectedScreen = preferredScreen
-        notifier = TheBoringWorkerNotifier()
-        // Ensure stored HUD flag isn't enabled when Accessibility permission is not present
+
         if !MediaKeyInterceptor.shared.isAccessibilityAuthorized() && hudReplacement {
             hudReplacement = false
         }
     }
-
-    func setupWorkersNotificationObservers() {
-            notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
-            notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeekEvent)
-        }
     
     @objc func sneakPeekEvent(_ notification: Notification) {
         let decoder = JSONDecoder()
@@ -251,14 +241,6 @@ class BoringViewCoordinator: ObservableObject {
                 expandingViewTask?.cancel()
             }
         }
-    }
-
-    @objc func initialMicStatus(_ notification: Notification) {
-        currentMicStatus = notification.userInfo?.first?.value as! Bool
-    }
-    
-    func toggleMic() {
-        notifier.postNotification(name: notifier.toggleMicNotification.name, userInfo: nil)
     }
     
     func showEmpty() {

@@ -61,17 +61,15 @@
 		11D58EA22E760AE100FA8377 /* ImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D58EA12E760AE100FA8377 /* ImageService.swift */; };
 		11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */; };
 		11F747CE2EC75CEA00F841DB /* DragPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */; };
+		11F747F92EC7E94000F841DB /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 11F747F82EC7E94000F841DB /* Lottie */; };
 		14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DD62C6E015000B9F80C /* AudioPlayer.swift */; };
 		14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */; };
-		14288DFE2C6E9A4700B9F80C /* BoringSystemTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DFD2C6E9A4700B9F80C /* BoringSystemTiles.swift */; };
 		14288E0C2C6F8EC000B9F80C /* AppIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288E0B2C6F8EC000B9F80C /* AppIcons.swift */; };
 		1443E7F32C609DCE0027C1FC /* matters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1443E7F22C609DCE0027C1FC /* matters.swift */; };
 		146BC4372D366E9B0047C66A /* MacroVisionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 146BC4362D366E9B0047C66A /* MacroVisionKit */; };
 		147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163972C5D35B70068B555 /* MusicVisualizer.swift */; };
 		1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163992C5D35FF0068B555 /* MusicManager.swift */; };
 		1471A8592C6281BD0058408D /* BoringNotchWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1471A8582C6281BD0058408D /* BoringNotchWindow.swift */; };
-		147CB9572C8CCC980094C254 /* BoringExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147CB9562C8CCC980094C254 /* BoringExtensionManager.swift */; };
-		1485442F2C8F049C00943381 /* TheBoringWorkerNotifier in Frameworks */ = {isa = PBXBuildFile; productRef = 1485442E2C8F049C00943381 /* TheBoringWorkerNotifier */; };
 		149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149E0B962C737D00006418B1 /* WebcamManager.swift */; };
 		149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149E0B992C737D40006418B1 /* WebcamView.swift */; };
 		14A7E5882C64A89C008C1BE9 /* HelloAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */; };
@@ -120,7 +118,6 @@
 		B19016222CC15B3D00E3F12E /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = B19016212CC15B3D00E3F12E /* Defaults */; };
 		B19016242CC15B5000E3F12E /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19016232CC15B4D00E3F12E /* Constants.swift */; };
 		B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19424082CD0FEFE003E5DC2 /* LottieAnimationView.swift */; };
-		B194240B2CD10017003E5DC2 /* LottieUI in Frameworks */ = {isa = PBXBuildFile; productRef = B194240A2CD10017003E5DC2 /* LottieUI */; };
 		B1A78C822C8BA08100BD51B0 /* FullscreenMediaDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */; };
 		B1B112912C6A572100093D8F /* EditPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B112902C6A572100093D8F /* EditPanelView.swift */; };
 		B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B112922C6A577E00093D8F /* MouseTracker.swift */; };
@@ -133,6 +130,7 @@
 		B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D365CF2C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift */; };
 		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
+		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
@@ -206,17 +204,12 @@
 		11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragPreviewView.swift; sourceTree = "<group>"; };
 		14288DD62C6E015000B9F80C /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressIndicator.swift; sourceTree = "<group>"; };
-		14288DFD2C6E9A4700B9F80C /* BoringSystemTiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringSystemTiles.swift; sourceTree = "<group>"; };
 		14288E0B2C6F8EC000B9F80C /* AppIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIcons.swift; sourceTree = "<group>"; };
-		14288E132C6FC9CF00B9F80C /* DisplayServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DisplayServices.framework; path = ../../../../System/Library/PrivateFrameworks/DisplayServices.framework; sourceTree = "<group>"; };
-		14288E172C6FCA3300B9F80C /* CoreDisplay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreDisplay.framework; path = ../../../../System/Library/Frameworks/CoreDisplay.framework; sourceTree = "<group>"; };
 		1443E7F22C609DCE0027C1FC /* matters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = matters.swift; sourceTree = "<group>"; };
 		1443E7F42C609E650027C1FC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		147163972C5D35B70068B555 /* MusicVisualizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicVisualizer.swift; sourceTree = "<group>"; };
 		147163992C5D35FF0068B555 /* MusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicManager.swift; sourceTree = "<group>"; };
 		1471A8582C6281BD0058408D /* BoringNotchWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringNotchWindow.swift; sourceTree = "<group>"; };
-		147B89692C7D8AE600AF45DD /* OSD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OSD.framework; path = ../../../../System/Library/PrivateFrameworks/OSD.framework; sourceTree = "<group>"; };
-		147CB9562C8CCC980094C254 /* BoringExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringExtensionManager.swift; sourceTree = "<group>"; };
 		149E0B962C737D00006418B1 /* WebcamManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamManager.swift; sourceTree = "<group>"; };
 		149E0B992C737D40006418B1 /* WebcamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamView.swift; sourceTree = "<group>"; };
 		14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloAnimation.swift; sourceTree = "<group>"; };
@@ -232,8 +225,6 @@
 		14CEF41E2C5CAED400855D72 /* boringNotch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = boringNotch.entitlements; sourceTree = "<group>"; };
 		14D031ED2C689DB70096E6A1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		14D031EF2C689DC00096E6A1 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
-		14D032142C68F2C10096E6A1 /* CoreBrightness */ = {isa = PBXFileReference; lastKnownFileType = text; name = CoreBrightness; path = ../../../../System/Library/PrivateFrameworks/CoreBrightness.framework/CoreBrightness; sourceTree = "<group>"; };
-		14D032162C68F2D90096E6A1 /* CoreBrightness.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBrightness.framework; path = ../../../../System/Library/PrivateFrameworks/CoreBrightness.framework; sourceTree = "<group>"; };
 		14D570B82C5E98A20011E668 /* drop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = drop.swift; sourceTree = "<group>"; };
 		14D570BB2C5E98EB0011E668 /* generic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = generic.swift; sourceTree = "<group>"; };
 		14D570BF2C5EA5870011E668 /* AnimatedFace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedFace.swift; sourceTree = "<group>"; };
@@ -262,8 +253,6 @@
 		B17266E02C6532560031BA0D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewView.swift; sourceTree = "<group>"; };
 		B172AABF2C95DA0B001623F1 /* InlineHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineHUD.swift; sourceTree = "<group>"; };
-		B17C3C212C7DACFE0082390A /* DisplayServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DisplayServices.framework; path = ../../../../../System/Library/PrivateFrameworks/DisplayServices.framework; sourceTree = "<group>"; };
-		B17C3C242C7DAD0C0082390A /* OSD.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OSD.framework; path = ../../../../../System/Library/PrivateFrameworks/OSD.framework; sourceTree = "<group>"; };
 		B186543B2C6F49AE000B926A /* ShortcutConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutConstants.swift; sourceTree = "<group>"; };
 		B19016232CC15B4D00E3F12E /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		B19424082CD0FEFE003E5DC2 /* LottieAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieAnimationView.swift; sourceTree = "<group>"; };
@@ -278,8 +267,8 @@
 		B1D365CD2C6A979C0047BDBC /* LiveActivityModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityModifier.swift; sourceTree = "<group>"; };
 		B1D365CF2C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemEventIndicatorModifier.swift; sourceTree = "<group>"; };
 		B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareUpdater.swift; sourceTree = "<group>"; };
-		B1ECFA032C6FE58A002ACD87 /* CoreDisplay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreDisplay.framework; path = ../../../../../System/Library/Frameworks/CoreDisplay.framework; sourceTree = "<group>"; };
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
+		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -295,11 +284,10 @@
 			files = (
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
-				1485442F2C8F049C00943381 /* TheBoringWorkerNotifier in Frameworks */,
 				112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */,
 				146BC4372D366E9B0047C66A /* MacroVisionKit in Frameworks */,
 				14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */,
-				B194240B2CD10017003E5DC2 /* LottieUI in Frameworks */,
+				11F747F92EC7E94000F841DB /* Lottie in Frameworks */,
 				14D0321A2C68F32E0096E6A1 /* LaunchAtLogin in Frameworks */,
 				B18654392C6F4990000B926A /* KeyboardShortcuts in Frameworks */,
 				B19016222CC15B3D00E3F12E /* Defaults in Frameworks */,
@@ -444,8 +432,8 @@
 				14D570C12C5EAFBF0011E668 /* EmptyState.swift */,
 				B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */,
 				B10F84A22C6C9596009F3026 /* TestView.swift */,
-				14288DFD2C6E9A4700B9F80C /* BoringSystemTiles.swift */,
 				507266DA2C908E2E00A2D00D /* HoverButton.swift */,
+				B1F747F82EC7E94000F841DB /* LottieView.swift */,
 			);
 			path = components;
 			sourceTree = "<group>";
@@ -458,7 +446,6 @@
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
-				147CB9562C8CCC980094C254 /* BoringExtensionManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
 				B1F0A0012E60000100000001 /* BrightnessManager.swift */,
 				59D8C23B2E589FAA00147B33 /* VolumeManager.swift */,
@@ -541,14 +528,6 @@
 		14D031EC2C689DB70096E6A1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B17C3C242C7DAD0C0082390A /* OSD.framework */,
-				B17C3C212C7DACFE0082390A /* DisplayServices.framework */,
-				147B89692C7D8AE600AF45DD /* OSD.framework */,
-				14288E172C6FCA3300B9F80C /* CoreDisplay.framework */,
-				B1ECFA032C6FE58A002ACD87 /* CoreDisplay.framework */,
-				14288E132C6FC9CF00B9F80C /* DisplayServices.framework */,
-				14D032162C68F2D90096E6A1 /* CoreBrightness.framework */,
-				14D032142C68F2C10096E6A1 /* CoreBrightness */,
 				14D031EF2C689DC00096E6A1 /* ApplicationServices.framework */,
 				14D031ED2C689DB70096E6A1 /* IOKit.framework */,
 				112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */,
@@ -736,12 +715,12 @@
 				14D0321C2C68F3350096E6A1 /* Sparkle */,
 				B18654382C6F4990000B926A /* KeyboardShortcuts */,
 				9A987A0F2C73CA8D005CA465 /* Collections */,
-				1485442E2C8F049C00943381 /* TheBoringWorkerNotifier */,
 				B19016212CC15B3D00E3F12E /* Defaults */,
 				B1628B912CC260C0003D8DF3 /* SwiftUIIntrospect */,
-				B194240A2CD10017003E5DC2 /* LottieUI */,
 				146BC4362D366E9B0047C66A /* MacroVisionKit */,
 				1194E8842EA57D23009C82D6 /* SkyLightWindow */,
+				11F747F82EC7E94000F841DB /* Lottie */,
+				11F747FA2EC7E94000F841DB /* Lottie-Dynamic */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -778,12 +757,11 @@
 				B18654372C6F4990000B926A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 				9A987A0E2C73CA8D005CA465 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				9A987A112C73CAA1005CA465 /* XCRemoteSwiftPackageReference "Pow" */,
-				1485442D2C8F049C00943381 /* XCRemoteSwiftPackageReference "TheBoringWorkerNotifier" */,
 				B19016202CC15B3D00E3F12E /* XCRemoteSwiftPackageReference "Defaults" */,
 				B1628B902CC260C0003D8DF3 /* XCRemoteSwiftPackageReference "swiftui-introspect" */,
-				B19424072CD0DB52003E5DC2 /* XCRemoteSwiftPackageReference "LottieUI" */,
 				146BC4352D366E9B0047C66A /* XCRemoteSwiftPackageReference "MacroVisionKit" */,
 				1194E8832EA57D23009C82D6 /* XCRemoteSwiftPackageReference "SkyLightWindow" */,
+				11F747F72EC7E94000F841DB /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -845,6 +823,7 @@
 				1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */,
 				118EBE292E946B3F00D54B5A /* ShareServiceFinder.swift in Sources */,
 				B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */,
+				B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */,
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
 				14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */,
 				1113ABC52E80E27000EC13B2 /* ShelfItemView.swift in Sources */,
@@ -856,7 +835,6 @@
 				1100292E2E86940F00035A57 /* QuickShareService.swift in Sources */,
 				1113ABCE2E80E27000EC13B2 /* ShelfActionService.swift in Sources */,
 				1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */,
-				14288DFE2C6E9A4700B9F80C /* BoringSystemTiles.swift in Sources */,
 				5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */,
 				14C08BC12C8E03AD000F8AA0 /* NSImage+Extensions.swift in Sources */,
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
@@ -893,7 +871,6 @@
 				11CFC6652E09C7B300748C80 /* OnboardingFinishView.swift in Sources */,
 				507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */,
 				1471A8592C6281BD0058408D /* BoringNotchWindow.swift in Sources */,
-				147CB9572C8CCC980094C254 /* BoringExtensionManager.swift in Sources */,
 				14CEF4182C5CAED300855D72 /* ContentView.swift in Sources */,
 				9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */,
 				1132E5142E777B920068732D /* YouTubeMusicNetworking.swift in Sources */,
@@ -1194,6 +1171,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		11F747F72EC7E94000F841DB /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
 		146BC4352D366E9B0047C66A /* XCRemoteSwiftPackageReference "MacroVisionKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/TheBoredTeam/MacroVisionKit";
@@ -1202,20 +1187,12 @@
 				minimumVersion = 0.1.0;
 			};
 		};
-		1485442D2C8F049C00943381 /* XCRemoteSwiftPackageReference "TheBoringWorkerNotifier" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/TheBoredTeam/TheBoringWorkerNotifier.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
 			};
 		};
 		14D0321B2C68F3350096E6A1 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
@@ -1223,7 +1200,7 @@
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.6.4;
+				minimumVersion = 2.8.0;
 			};
 		};
 		9A987A0E2C73CA8D005CA465 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
@@ -1266,14 +1243,6 @@
 				minimumVersion = 9.0.2;
 			};
 		};
-		B19424072CD0DB52003E5DC2 /* XCRemoteSwiftPackageReference "LottieUI" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/jasudev/LottieUI.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1282,15 +1251,20 @@
 			package = 1194E8832EA57D23009C82D6 /* XCRemoteSwiftPackageReference "SkyLightWindow" */;
 			productName = SkyLightWindow;
 		};
+		11F747F82EC7E94000F841DB /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 11F747F72EC7E94000F841DB /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+		11F747FA2EC7E94000F841DB /* Lottie-Dynamic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 11F747F72EC7E94000F841DB /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = "Lottie-Dynamic";
+		};
 		146BC4362D366E9B0047C66A /* MacroVisionKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 146BC4352D366E9B0047C66A /* XCRemoteSwiftPackageReference "MacroVisionKit" */;
 			productName = MacroVisionKit;
-		};
-		1485442E2C8F049C00943381 /* TheBoringWorkerNotifier */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1485442D2C8F049C00943381 /* XCRemoteSwiftPackageReference "TheBoringWorkerNotifier" */;
-			productName = TheBoringWorkerNotifier;
 		};
 		14D032192C68F32E0096E6A1 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1321,11 +1295,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B19016202CC15B3D00E3F12E /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
-		};
-		B194240A2CD10017003E5DC2 /* LottieUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B19424072CD0DB52003E5DC2 /* XCRemoteSwiftPackageReference "LottieUI" */;
-			productName = LottieUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
