@@ -37,7 +37,7 @@ struct InlineHUD: View {
                                 .contentTransition(.interpolate)
                                 .frame(width: 20, height: 15, alignment: .center)
                         case .backlight:
-                            Image(systemName: "keyboard.brightness")
+                            Image(systemName: value > 0.5 ? "light.max" : "light.min")
                                 .contentTransition(.interpolate)
                                 .frame(width: 20, height: 15, alignment: .center)
                         case .mic:

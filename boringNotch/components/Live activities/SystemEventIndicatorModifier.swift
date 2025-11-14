@@ -45,8 +45,8 @@ struct SystemEventIndicatorModifier: View {
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .backlight:
-                    Image(systemName: "keyboard")
-                        .contentTransition(.symbolEffect)
+                    Image(systemName: value > 0.5 ? "light.max" : "light.min")
+                        .contentTransition(.interpolate)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .mic:

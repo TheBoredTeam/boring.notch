@@ -38,9 +38,6 @@ struct SettingsView: View {
                 NavigationLink(value: "Media") {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
-                NavigationLink(value: "Keyboard") {
-                    Label("Keyboard", systemImage: "keyboard")
-                }
                 NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
                 }
