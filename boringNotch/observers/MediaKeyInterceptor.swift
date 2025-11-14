@@ -75,63 +75,91 @@ final class MediaKeyInterceptor {
     func requestAccessibilityAuthorization() {
         let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(options)
-
-        // If permission is not granted shortly after prompting, show instructions to the user
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            if !self.isAccessibilityAuthorized() {
-                self.showAccessibilityDeniedAlert()
-            }
-        }
     }
 
-    private func showAccessibilityDeniedAlert() {
-        let alert = NSAlert()
-        alert.messageText = "Accessibility Permission Required"
-        alert.informativeText = "boring.notch needs Accessibility permission to intercept media and brightness keys. Open System Settings → Privacy & Security → Accessibility and enable boring.notch."
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Open Settings")
-        alert.addButton(withTitle: "Cancel")
-
-        let response = alert.runModal()
-        if response == .alertFirstButtonReturn {
-            openAccessibilitySettings()
-        }
-    }
-
-    private func openAccessibilitySettings() {
-        // Attempt to open the Privacy → Accessibility pane
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            DispatchQueue.main.async {
-                NSWorkspace.shared.open(url)
-            }
-            return
-        }
-        // Fallback: open System Settings app
-        DispatchQueue.main.async {
-            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
-        }
-    }
-
-    private func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
+    func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
         if AXIsProcessTrusted() { return true }
 
         if promptIfNeeded {
             let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
             _ = AXIsProcessTrustedWithOptions(options)
+        }
 
-            // Poll for a short period for the user to grant permission
-            for _ in 0..<10 {
-                if AXIsProcessTrusted() { return true }
-                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
+        return await withTaskCancellationHandler {
+            // cancellation handler: nothing special here
+        } operation: {
+            await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+                var resumed = false
+                var observers = [Any]()
+
+                func finish(_ granted: Bool) {
+                    guard !resumed else { return }
+                    resumed = true
+                    // remove observers
+                    for obs in observers {
+                        if let ncObs = obs as? NSObjectProtocol {
+                            NotificationCenter.default.removeObserver(ncObs)
+                        } else if let ncObs = obs as? (NSObjectProtocol & AnyObject) {
+                            NotificationCenter.default.removeObserver(ncObs)
+                        }
+                    }
+                    observers.removeAll()
+                    continuation.resume(returning: granted)
+                }
+
+                func checkAndFinishIfGranted() {
+                    if AXIsProcessTrusted() {
+                        finish(true)
+                    }
+                }
+
+                // App became active (user returned to the app)
+                let o1 = NotificationCenter.default.addObserver(
+                    forName: NSApplication.didBecomeActiveNotification,
+                    object: nil,
+                    queue: .main
+                ) { _ in
+                    checkAndFinishIfGranted()
+                }
+                observers.append(o1)
+
+                // Workspace application activation (catch when System Settings de/activates)
+                let o2 = NSWorkspace.shared.notificationCenter.addObserver(
+                    forName: NSWorkspace.didActivateApplicationNotification,
+                    object: nil,
+                    queue: .main
+                ) { _ in
+                    checkAndFinishIfGranted()
+                }
+                observers.append(o2)
+
+                // Optional: listen to a distributed notification that some accessibility changes emit.
+                let distributedName = Notification.Name("com.apple.accessibility.api")
+                let o3 = DistributedNotificationCenter.default().addObserver(
+                    forName: distributedName,
+                    object: nil,
+                    queue: .main
+                ) { _ in
+                    checkAndFinishIfGranted()
+                }
+                observers.append(o3)
+
+                // Initial async check
+                DispatchQueue.main.async {
+                    checkAndFinishIfGranted()
+                }
+
+                // Respond to Task cancellation: poll cancellation flag with very low overhead
+                Task {
+                    while !resumed && !Task.isCancelled {
+                        try? await Task.sleep(nanoseconds: 500_000_000)
+                    }
+                    if Task.isCancelled && !resumed {
+                        finish(false)
+                    }
+                }
             }
         }
-
-        // If still not authorized, inform the user and offer to open settings
-        await MainActor.run {
-            self.showAccessibilityDeniedAlert()
-        }
-
-        return AXIsProcessTrusted()
     }
 
 

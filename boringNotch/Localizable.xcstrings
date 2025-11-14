@@ -1512,6 +1512,9 @@
         }
       }
     },
+    "Accessibility access is required to replace the system HUD." : {
+
+    },
     "Add" : {
       "localizations" : {
         "ar" : {
@@ -6335,6 +6338,9 @@
           }
         }
       }
+    },
+    "Enable Accessibility in System Settings → Privacy & Security → Accessibility" : {
+
     },
     "Enable automatic sneak peek (show on media changes)" : {
 
@@ -14367,6 +14373,9 @@
           }
         }
       }
+    },
+    "Request Accessibility" : {
+
     },
     "Restart" : {
       "localizations" : {

@@ -464,10 +464,32 @@ struct HUD: View {
     @Default(.enableGradient) var enableGradient
     @Default(.optionKeyAction) var optionKeyAction
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @State private var accessibilityAuthorized = MediaKeyInterceptor.shared.isAccessibilityAuthorized()
     var body: some View {
         Form {
             Section {
                 Toggle("Enable HUD replacement", isOn: $coordinator.hudReplacement)
+                    .disabled(!accessibilityAuthorized)
+                    .help("Enable Accessibility in System Settings → Privacy & Security → Accessibility")
+                    .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                        accessibilityAuthorized = MediaKeyInterceptor.shared.isAccessibilityAuthorized()
+                    }
+
+                if !accessibilityAuthorized {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Accessibility access is required to replace the system HUD.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: 12) {
+                            Button("Request Accessibility") {
+                                MediaKeyInterceptor.shared.requestAccessibilityAuthorization()
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                    }
+                    .padding(.top, 6)
+                }
                 Picker("Option key behaviour", selection: $optionKeyAction) {
                     ForEach(OptionKeyAction.allCases) { opt in
                         Text(opt.rawValue).tag(opt)
