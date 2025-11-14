@@ -395,15 +395,13 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             }
             draggedURLs.removeAll()
 
-            // Handle auto-remove if enabled
-            Task { @MainActor in
-                ShelfItemDragMonitor.shared.handleDragEnd(
-                    for: draggedItems,
-                    operation: operation,
-                    autoRemoveEnabled: Defaults[.autoRemoveShelfItems]
-                )
-                draggedItems.removeAll()
+            // Auto-remove items from shelf if enabled and drag succeeded
+            if Defaults[.autoRemoveShelfItems] && !operation.isEmpty {
+                for item in draggedItems {
+                    ShelfStateViewModel.shared.remove(item)
+                }
             }
+            draggedItems.removeAll()
         }
         
         func ignoreModifierKeys(for session: NSDraggingSession) -> Bool {
