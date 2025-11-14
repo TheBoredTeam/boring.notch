@@ -888,7 +888,7 @@ struct Shelf: View {
                     Text("Copy items on drag")
                 }
                 Defaults.Toggle(key: .autoRemoveShelfItems) {
-                    Text("Auto-remove items when dragged out")
+                    Text("Remove from shelf after dragging")
                 }
 
             } header: {
