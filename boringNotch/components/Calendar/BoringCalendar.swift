@@ -95,7 +95,7 @@ struct WheelPicker: View {
             }
             .padding(.vertical, 4)
             .padding(.horizontal, 4)
-            .background(isSelected ? Color.accentColor.opacity(0.25) : Color.clear)
+            .background(isSelected ? Color.effectiveAccentBackground : Color.clear)
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
@@ -111,7 +111,7 @@ struct WheelPicker: View {
     private func dateCircle(date: Date, isToday: Bool, isSelected: Bool) -> some View {
         ZStack {
             Circle()
-                .fill(isToday ? Color.accentColor : .clear)
+                .fill(isToday ? Color.effectiveAccent : .clear)
                 .frame(width: 20, height: 20)
                 .overlay(
                     Circle()
@@ -274,6 +274,10 @@ struct EventListView: View {
                     return !completed || !Defaults[.hideCompletedReminders]
                 }
             }
+            // Filter out all-day events if setting is enabled
+            if event.isAllDay && Defaults[.hideAllDayEvents] {
+                return false
+            }
             return true
         }
     }
@@ -337,9 +341,17 @@ struct EventListView: View {
                             .lineLimit(1)
                         Spacer(minLength: 0)
                         VStack(alignment: .trailing, spacing: 4) {
-                            Text(event.start, style: .time)
-                                .foregroundColor(.white)
-                                .font(.caption)
+                            if event.isAllDay {
+                                Text("All-day")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                            } else {
+                                Text(event.start, style: .time)
+                                    .foregroundColor(.white)
+                                    .font(.caption)
+                            }
                         }
                     }
                     .opacity(

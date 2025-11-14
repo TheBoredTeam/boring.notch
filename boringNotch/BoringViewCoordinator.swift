@@ -5,6 +5,7 @@
 //  Created by Alexander on 2024-11-20.
 //
 
+import AppKit
 import Combine
 import Defaults
 import SwiftUI
@@ -47,6 +48,7 @@ struct ExpandedItem {
     var browser: BrowserType = .chromium
 }
 
+@MainActor
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
     var notifier: TheBoringWorkerNotifier = .init()
@@ -54,6 +56,7 @@ class BoringViewCoordinator: ObservableObject {
     @Published var currentView: NotchViews = .home
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
+    private var hudEnableTask: Task<Void, Never>?
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
@@ -64,7 +67,7 @@ class BoringViewCoordinator: ObservableObject {
         didSet {
             if !alwaysShowTabs {
                 openLastTabByDefault = false
-                if TrayDrop.shared.isEmpty || !Defaults[.openShelfByDefault] {
+                if ShelfStateViewModel.shared.isEmpty || !Defaults[.openShelfByDefault] {
                     currentView = .home
                 }
             }
@@ -81,10 +84,32 @@ class BoringViewCoordinator: ObservableObject {
     
     @AppStorage("hudReplacement") var hudReplacement: Bool = true {
         didSet {
-            notifier.postNotification(name: notifier.toggleHudReplacementNotification.name, userInfo: nil)
+            guard hudReplacement != oldValue else { return }
+
+            notifier.postNotification(
+                name: notifier.toggleHudReplacementNotification.name, userInfo: nil)
+            hudEnableTask?.cancel()
+            hudEnableTask = nil
+
+            if hudReplacement {
+                hudEnableTask = Task { @MainActor in
+                    MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: true)
+
+                    let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: false)
+
+                    if Task.isCancelled { return }
+
+                    if granted {
+                        ApplicationRelauncher.restart()
+                    } else {
+                        self.hudReplacement = false
+                    }
+                }
+            } else {
+                MediaKeyInterceptor.shared.stop()
+            }
         }
-    }
-    
+    }    
     @AppStorage("preferred_screen_name") var preferredScreen = NSScreen.main?.localizedName ?? "Unknown" {
         didSet {
             selectedScreen = preferredScreen
@@ -99,6 +124,10 @@ class BoringViewCoordinator: ObservableObject {
     private init() {
         selectedScreen = preferredScreen
         notifier = TheBoringWorkerNotifier()
+        // Ensure stored HUD flag isn't enabled when Accessibility permission is not present
+        if !MediaKeyInterceptor.shared.isAccessibilityAuthorized() && hudReplacement {
+            hudReplacement = false
+        }
     }
 
     func setupWorkersNotificationObservers() {
