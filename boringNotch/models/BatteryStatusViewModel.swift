@@ -10,7 +10,6 @@ class BatteryStatusViewModel: ObservableObject {
     private var wasCharging: Bool = false
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
-    var animations: BoringAnimations = BoringAnimations()
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 

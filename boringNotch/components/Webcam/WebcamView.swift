@@ -71,7 +71,7 @@ struct CameraPreviewView: View {
                 let alert = NSAlert()
                 alert.messageText = "Camera Access Required"
                 alert.informativeText = "Please allow camera access in System Settings to use the mirror feature."
-                alert.addButton(withTitle: "Open Settings")
+                alert.addButton(withTitle: "Open System Settings")
                 alert.addButton(withTitle: "Cancel")
 
                 if alert.runModal() == .alertFirstButtonReturn {

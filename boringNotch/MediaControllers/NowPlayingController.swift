@@ -11,7 +11,7 @@ import Foundation
 
 final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     // Stub for now to conform with ControllerProtocol
-    func updatePlaybackInfo() {}
+    func updatePlaybackInfo() async {}
 
     // MARK: - Properties
     @Published private(set) var playbackState: PlaybackState = .init(
@@ -21,6 +21,12 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
+
+    var supportsVolumeControl: Bool {
+        let bundleID = playbackState.bundleIdentifier
+        return bundleID == "com.apple.Music" || bundleID == "com.spotify.client"
+    }
+
     private var lastMusicItem:
         (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
 
@@ -115,7 +121,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     
     func toggleShuffle() async {
         // MRMediaRemoteSendCommandFunction(6, nil)
-        MRMediaRemoteSetShuffleModeFunction(playbackState.isShuffled ? 3 : 1)
+        MRMediaRemoteSetShuffleModeFunction(playbackState.isShuffled ? 1 : 3)
         playbackState.isShuffled.toggle()
     }
     
@@ -124,6 +130,26 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         let newRepeatMode = (playbackState.repeatMode == .off) ? 3 : (playbackState.repeatMode.rawValue - 1)
         playbackState.repeatMode = RepeatMode(rawValue: newRepeatMode) ?? .off
         MRMediaRemoteSetRepeatModeFunction(newRepeatMode)
+    }
+    
+    func setVolume(_ level: Double) async {
+        // MediaRemote framework doesn't provide direct volume control for the active audio session
+        // As a workaround, try to control the currently active music app directly
+        let clampedLevel = max(0.0, min(1.0, level))
+        let volumePercentage = Int(clampedLevel * 100)
+        
+        let bundleID = playbackState.bundleIdentifier
+        if !bundleID.isEmpty {
+            if bundleID == "com.apple.Music" {
+                let script = "tell application \"Music\" to set sound volume to \(volumePercentage)"
+                try? await AppleScriptHelper.executeVoid(script)
+            } else if bundleID == "com.spotify.client" {
+                let script = "tell application \"Spotify\" to set sound volume to \(volumePercentage)"
+                try? await AppleScriptHelper.executeVoid(script)
+            }
+        }
+        
+        playbackState.volume = clampedLevel
     }
     
     // MARK: - Setup Methods
@@ -176,7 +202,20 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         newPlaybackState.artist = payload.artist ?? (diff ? self.playbackState.artist : "")
         newPlaybackState.album = payload.album ?? (diff ? self.playbackState.album : "")
         newPlaybackState.duration = payload.duration ?? (diff ? self.playbackState.duration : 0)
-        newPlaybackState.currentTime = payload.elapsedTime ?? (diff ? self.playbackState.currentTime : 0)
+        
+        if let elapsedTime = payload.elapsedTime {
+            newPlaybackState.currentTime = elapsedTime
+        } else if diff {
+            if payload.playing == false {
+                let timeSinceLastUpdate = Date().timeIntervalSince(self.playbackState.lastUpdated)
+                newPlaybackState.currentTime = self.playbackState.currentTime + (self.playbackState.playbackRate * timeSinceLastUpdate)
+            } else {
+                newPlaybackState.currentTime = self.playbackState.currentTime
+            }
+        } else {
+            newPlaybackState.currentTime = 0
+        }
+
         
         if let shuffleMode = payload.shuffleMode {
             newPlaybackState.isShuffled = shuffleMode != 1
@@ -218,8 +257,11 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             (diff ? self.playbackState.bundleIdentifier : "")
         )
         
+        newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
+        
         self.playbackState = newPlaybackState
     }
+    
 }
 
 struct NowPlayingUpdate: Codable {
@@ -241,6 +283,7 @@ struct NowPlayingPayload: Codable {
     let playing: Bool?
     let parentApplicationBundleIdentifier: String?
     let bundleIdentifier: String?
+    let volume: Double?
 }
 
 actor JSONLinesPipeHandler {

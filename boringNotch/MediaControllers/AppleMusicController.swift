@@ -12,13 +12,18 @@ import SwiftUI
 class AppleMusicController: MediaControllerProtocol {
     // MARK: - Properties
     @Published private var playbackState: PlaybackState = PlaybackState(
-        bundleIdentifier: "com.apple.Music"
+        bundleIdentifier: "com.apple.Music",
+        playbackRate: 1
     )
     
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
-    
+
+    var supportsVolumeControl: Bool {
+        return true
+    }
+
     private var notificationTask: Task<Void, Never>?
     
     // MARK: - Initialization
@@ -75,7 +80,8 @@ class AppleMusicController: MediaControllerProtocol {
     
     func toggleShuffle() async {
         await executeCommand("set shuffle enabled to not shuffle enabled")
-        playbackState.isShuffled.toggle()
+        try? await Task.sleep(for: .milliseconds(150))
+        await updatePlaybackInfo()
     }
     
     func toggleRepeat() async {
@@ -88,14 +94,16 @@ class AppleMusicController: MediaControllerProtocol {
                 set song repeat to off
             end if
             """)
-        
-        if playbackState.repeatMode == .off {
-            playbackState.repeatMode = .all
-        } else if playbackState.repeatMode == .all {
-            playbackState.repeatMode = .one
-        } else {
-            playbackState.repeatMode = .off
-        }
+        try? await Task.sleep(for: .milliseconds(150))
+        await updatePlaybackInfo()
+    }
+    
+    func setVolume(_ level: Double) async {
+        let clampedLevel = max(0.0, min(1.0, level))
+        let volumePercentage = Int(clampedLevel * 100)
+        await executeCommand("set sound volume to \(volumePercentage)")
+        try? await Task.sleep(for: .milliseconds(150))
+        await updatePlaybackInfo()
     }
     
     func isActive() -> Bool {
@@ -105,7 +113,7 @@ class AppleMusicController: MediaControllerProtocol {
     
     func updatePlaybackInfo() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
-        guard descriptor.numberOfItems >= 8 else { return }
+        guard descriptor.numberOfItems >= 10 else { return }
         var updatedState = self.playbackState
         
         updatedState.isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
@@ -117,8 +125,10 @@ class AppleMusicController: MediaControllerProtocol {
         updatedState.isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
         let repeatModeValue = descriptor.atIndex(8)?.int32Value ?? 0
         updatedState.repeatMode = RepeatMode(rawValue: Int(repeatModeValue)) ?? .off
-        updatedState.artwork = descriptor.atIndex(9)?.data as Data?
-
+        let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
+        updatedState.volume = Double(volumePercentage) / 100.0
+        updatedState.artwork = descriptor.atIndex(10)?.data as Data?
+        updatedState.lastUpdated = Date()
         self.playbackState = updatedState
     }
     
@@ -143,11 +153,11 @@ class AppleMusicController: MediaControllerProtocol {
                 set shuffleState to shuffle enabled
                 set repeatState to song repeat
                 if repeatState is off then
-                    set repeatValue to 0
-                else if repeatState is all then
                     set repeatValue to 1
                 else if repeatState is one then
                     set repeatValue to 2
+                else if repeatState is all then
+                    set repeatValue to 3
                 end if
 
                 try
@@ -155,13 +165,16 @@ class AppleMusicController: MediaControllerProtocol {
                 on error
                     set artData to ""
                 end try
-                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, artData}
+                
+                set currentVolume to sound volume
+                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, currentVolume, artData}
             on error
-                return {false, "Not Playing", "Unknown", "Unknown", 0, 0, false, 0, ""}
+                return {false, "Not Playing", "Unknown", "Unknown", 0, 0, false, 0, 50, ""}
             end try
         end tell
         """
         
         return try await AppleScriptHelper.execute(script)
     }
+    
 }
