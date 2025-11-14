@@ -484,15 +484,21 @@ class MusicManager: ObservableObject {
 
     func updateAlbumArt(newAlbumArt: NSImage) {
         workItem?.cancel()
-        workItem = DispatchWorkItem { [weak self] in
-            withAnimation(.smooth) {
-                self?.albumArt = newAlbumArt
-                if Defaults[.coloredSpectrogram] {
-                    self?.calculateAverageColor()
-                }
+        withAnimation(.smooth) {
+            self.albumArt = newAlbumArt
+            if Defaults[.coloredSpectrogram] {
+                self.calculateAverageColor()
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: workItem!)
+    }
+
+    // MARK: - Playback Position Estimation
+    public func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
+        guard isPlaying else { return min(elapsedTime, songDuration) }
+
+        let timeDifference = date.timeIntervalSince(timestampDate)
+        let estimated = elapsedTime + (timeDifference * playbackRate)
+        return min(max(0, estimated), songDuration)
     }
 
     func calculateAverageColor() {
@@ -595,8 +601,7 @@ class MusicManager: ObservableObject {
         // Request immediate update from the active controller
         Task { [weak self] in
             if self?.activeController?.isActive() == true {
-                if  type(of: self?.activeController) == YouTubeMusicController.self,
-                let youtubeController = self?.activeController as? YouTubeMusicController {
+                if let youtubeController = self?.activeController as? YouTubeMusicController {
                     await youtubeController.pollPlaybackState()
                 } else {
                     await self?.activeController?.updatePlaybackInfo()
