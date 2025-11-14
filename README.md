@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="http://thebored.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Markdownify" width="150"></a>
+  <a href="http://thebored.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Boring Notch" width="150"></a>
   <br>
   Boring Notch
   <br>
@@ -8,6 +8,7 @@
 
 
 <p align="center">
+  <a title="Crowdin" target="_blank" href="https://crowdin.com/project/boring-notch"><img src="https://badges.crowdin.net/boring-notch/localized.svg"></a>
   <img src="https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg" alt="TheBoringNotch Build & Test" style="margin-right: 10px;" />
   <a href="https://discord.gg/c8JXA7qrPm">
     <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat" alt="Discord Badge" />
@@ -79,6 +80,7 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - [x] Customizable gesture control 👆🏻
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
+- [ ] Reminders integration ☑️
 - [ ] Customizable Layout options 🛠️
 - [ ] Extension system 🧩
 - [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️

@@ -59,6 +59,15 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     var id: String { self.rawValue }
 }
 
+// Action to perform when Option (⌥) is held while pressing media keys
+enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case openSettings = "Open System Settings"
+    case showHUD = "Show HUD"
+    case none = "No Action"
+
+    var id: String { self.rawValue }
+}
+
 extension Defaults.Keys {
         // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -82,6 +91,8 @@ extension Defaults.Keys {
     static let nonNotchHeight = Key<CGFloat>("nonNotchHeight", default: 32)
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
         //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
+    static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
+    static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
     
         // MARK: Appearance
     static let showEmojis = Key<Bool>("showEmojis", default: false)
@@ -118,6 +129,7 @@ extension Defaults.Keys {
     static let enableFullscreenMediaDetection = Key<Bool>("enableFullscreenMediaDetection", default: true)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
+    static let enableLyrics = Key<Bool>("enableLyrics", default: false)
     
         // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
@@ -136,11 +148,16 @@ extension Defaults.Keys {
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
+        // Option key modifier behaviour for media keys
+        static let optionKeyAction = Key<OptionKeyAction>("optionKeyAction", default: OptionKeyAction.openSettings)
     
         // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
     static let shelfTapToOpen = Key<Bool>("shelfTapToOpen", default: true)
+    static let quickShareProvider = Key<String>("quickShareProvider", default: QuickShareProvider.defaultProvider.id)
+    static let copyOnDrag = Key<Bool>("copyOnDrag", default: false)
+    static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
@@ -154,6 +171,10 @@ extension Defaults.Keys {
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
+    
+    // MARK: Advanced Settings
+    static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
+    static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
     
     // Helper to determine the default media controller based on NowPlaying deprecation status
     static var defaultMediaController: MediaControllerType {
