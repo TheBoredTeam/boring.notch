@@ -31,11 +31,55 @@ struct AlbumArtView: View {
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            if Defaults[.lightingEffect] {
-                albumArtBackground
+        let cornerRadius = Defaults[.cornerRadiusScaling]
+            ? MusicPlayerImageSizes.cornerRadiusInset.opened
+            : MusicPlayerImageSizes.cornerRadiusInset.closed
+
+        Button(action: musicManager.openMusicApp) {
+            ZStack(alignment: .bottomTrailing) {
+                artwork(cornerRadius: cornerRadius)
+                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                    .overlay(glowOverlay(cornerRadius: cornerRadius))
+                    .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+
+                appIconOverlay
             }
-            albumArtButton
+        }
+        .buttonStyle(.plain)
+        // simple scale animation instead of custom PhaseAnimator
+        .scaleEffect(musicManager.isPlaying ? 1.03 : 1.0)
+        .animation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0), value: musicManager.isPlaying)
+    }
+
+    private func artwork(cornerRadius: CGFloat) -> some View {
+        GeometryReader { geo in
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .scaledToFill()
+                .frame(width: geo.size.width, height: geo.size.width)
+                .clipped()
+                .cornerRadius(cornerRadius, antialiased: true)
+                // keep a simple opacity transition when artwork updates
+                .id(musicManager.albumArt) // ensure SwiftUI considers this a content change
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.28), value: musicManager.albumArt)
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .drawingGroup(opaque: false)
+    }
+
+    private func glowOverlay(cornerRadius: CGFloat) -> some View {
+        Group {
+            if Defaults[.lightingEffect] {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(Color(nsColor: musicManager.avgColor).opacity(musicManager.isPlaying ? 0.25 : 0.0))
+                    .blur(radius: 24)
+                    .scaleEffect(1.06)
+                    .allowsHitTesting(false)
+                    .animation(.easeInOut(duration: 0.25), value: musicManager.isPlaying)
+            } else {
+                EmptyView()
+            }
         }
             }
 
@@ -104,7 +148,7 @@ struct AlbumArtView: View {
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
-                .transition(.scale.combined(with: .opacity).animation(.bouncy.delay(0.3)))
+                .transition(.scale.combined(with: .opacity))
                 .zIndex(2)
         }
     }
@@ -151,12 +195,44 @@ struct MusicControlsView: View {
                 frameWidth: width
             )
             .fontWeight(.medium)
+            if Defaults[.enableLyrics] {
+                TimelineView(.animation(minimumInterval: 0.25)) { timeline in
+                    let currentElapsed: Double = {
+                        guard musicManager.isPlaying else { return musicManager.elapsedTime }
+                        let delta = timeline.date.timeIntervalSince(musicManager.timestampDate)
+                        let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
+                        return min(max(progressed, 0), musicManager.songDuration)
+                    }()
+                    let line: String = {
+                        if musicManager.isFetchingLyrics { return "Loading lyrics…" }
+                        if !musicManager.syncedLyrics.isEmpty {
+                            return musicManager.lyricLine(at: currentElapsed)
+                        }
+                        let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+                        return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+                    }()
+                    let isPersian = line.unicodeScalars.contains { scalar in
+                        let v = scalar.value
+                        return v >= 0x0600 && v <= 0x06FF
+                    }
+                    MarqueeText(
+                        .constant(line),
+                        font: .subheadline,
+                        nsFont: .subheadline,
+                        textColor: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                        frameWidth: width
+                    )
+                    .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
+                    .lineLimit(1)
+                    .opacity(musicManager.isPlaying ? 1 : 0)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
         }
     }
 
     private var musicSlider: some View {
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) {
-            timeline in
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
@@ -240,13 +316,14 @@ struct NotchHomeView: View {
                 mainContent
             }
         }
-        .transition(.opacity.combined(with: .blurReplace))
+        // simplified: use a straightforward opacity transition
+        .transition(.opacity)
     }
 
     private var shouldShowCamera: Bool {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
-    
+
     private var showShuffleAndRepeat: Bool {
         !(shouldShowCamera && Defaults[.showCalendar]) && Defaults[.showShuffleAndRepeat]
     }
@@ -262,6 +339,7 @@ struct NotchHomeView: View {
                         vm.isHoveringCalendar = isHovering
                     }
                     .environmentObject(vm)
+                    .transition(.opacity)
             }
 
             if shouldShowCamera {
@@ -271,11 +349,7 @@ struct NotchHomeView: View {
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
             }
         }
-        .transition(
-            .opacity.animation(.smooth.speed(0.9))
-                .combined(with: .blurReplace.animation(.smooth.speed(0.9)))
-                .combined(with: .move(edge: .top))
-        )
+        .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
 }
@@ -300,15 +374,14 @@ struct MusicSliderView: View {
                 value: $sliderValue,
                 range: 0...duration,
                 color: Defaults[.sliderColor] == SliderColorEnum.albumArt
-                    ? Color(
-                        nsColor: color
-                    ).ensureMinimumBrightness(factor: 0.8)
-                    : Defaults[.sliderColor] == SliderColorEnum.accent ? .accentColor : .white,
+                    ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.8)
+                    : Defaults[.sliderColor] == SliderColorEnum.accent ? .effectiveAccent : .white,
                 dragging: $dragging,
                 lastDragged: $lastDragged,
                 onValueChange: onValueChange
             )
             .frame(height: 10, alignment: .center)
+
             HStack {
                 Text(timeString(from: sliderValue))
                 Spacer()
@@ -317,14 +390,13 @@ struct MusicSliderView: View {
             .fontWeight(.medium)
             .foregroundColor(
                 Defaults[.playerColorTinting]
-                    ? Color(nsColor: color)
-                        .ensureMinimumBrightness(factor: 0.6) : .gray
+                    ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.6) : .gray
             )
             .font(.caption)
         }
-        .onChange(of: currentDate) { newDate in
+        .onChange(of: currentDate) {
            guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
-            sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: newDate)
+            sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: currentDate)
         }
     }
 
@@ -361,12 +433,10 @@ struct CustomSlider: View {
             let filledTrackWidth = min(max(progress, 0), 1) * width
 
             ZStack(alignment: .leading) {
-                // Background track
                 Rectangle()
                     .fill(.gray.opacity(0.3))
                     .frame(height: height)
 
-                // Filled track
                 Rectangle()
                     .fill(color)
                     .frame(width: filledTrackWidth, height: height)
@@ -374,14 +444,13 @@ struct CustomSlider: View {
             .cornerRadius(height / 2)
             .frame(height: 10)
             .contentShape(Rectangle())
-            .highPriorityGesture(
+            .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { gesture in
                         withAnimation {
                             dragging = true
                         }
-                        let newValue =
-                            range.lowerBound + Double(gesture.location.x / width) * rangeSpan
+                        let newValue = range.lowerBound + Double(gesture.location.x / width) * rangeSpan
                         value = min(max(newValue, range.lowerBound), range.upperBound)
                     }
                     .onEnded { _ in
@@ -390,7 +459,7 @@ struct CustomSlider: View {
                         lastDragged = Date()
                     }
             )
-            .animation(.bouncy.speed(1.4), value: dragging)
+            .animation(.spring(response: 0.35, dampingFraction: 0.7), value: dragging)
         }
     }
 }
