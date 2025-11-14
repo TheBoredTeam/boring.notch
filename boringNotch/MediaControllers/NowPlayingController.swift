@@ -8,8 +8,6 @@
 import AppKit
 import Combine
 import Foundation
-import AVFoundation
-import CoreAudio
 
 final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     // Stub for now to conform with ControllerProtocol
@@ -138,18 +136,10 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         if !bundleID.isEmpty {
             if bundleID == "com.apple.Music" {
                 let script = "tell application \"Music\" to set sound volume to \(volumePercentage)"
-                do {
-                    try await AppleScriptHelper.executeVoid(script)
-                } catch {
-                    // Silently handle error
-                }
+                try? await AppleScriptHelper.executeVoid(script)
             } else if bundleID == "com.spotify.client" {
                 let script = "tell application \"Spotify\" to set sound volume to \(volumePercentage)"
-                do {
-                    try await AppleScriptHelper.executeVoid(script)
-                } catch {
-                    // Silently handle error
-                }
+                try? await AppleScriptHelper.executeVoid(script)
             }
         }
         
