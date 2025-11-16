@@ -366,6 +366,11 @@ struct Charge: View {
                 Text("Battery Information")
             }
         }
+        .onAppear {
+            Task { @MainActor in
+                let helper = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            }
+        }
         .accentColor(.effectiveAccent)
         .navigationTitle("Battery")
     }
@@ -457,7 +462,7 @@ struct HUD: View {
     @Default(.enableGradient) var enableGradient
     @Default(.optionKeyAction) var optionKeyAction
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @State private var accessibilityAuthorized = MediaKeyInterceptor.shared.isAccessibilityAuthorized()
+    @State private var accessibilityAuthorized = false
     var body: some View {
         Form {
             Section {
@@ -465,7 +470,10 @@ struct HUD: View {
                     .disabled(!accessibilityAuthorized)
                     .help("Enable Accessibility in System Settings → Privacy & Security → Accessibility")
                     .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-                        accessibilityAuthorized = MediaKeyInterceptor.shared.isAccessibilityAuthorized()
+                        Task { @MainActor in
+                            let helper = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                            accessibilityAuthorized = helper
+                        }
                     }
 
                 if !accessibilityAuthorized {
@@ -476,7 +484,8 @@ struct HUD: View {
 
                         HStack(spacing: 12) {
                             Button("Request Accessibility") {
-                                MediaKeyInterceptor.shared.requestAccessibilityAuthorization()
+                                // Use unsandboxed XPC helper if available so the system prompt is shown
+                                XPCHelperClient.shared.requestAccessibilityAuthorization()
                             }
                             .buttonStyle(.borderedProminent)
                         }
@@ -527,6 +536,14 @@ struct HUD: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("HUDs")
+        .task {
+            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
+            if let granted = notification.userInfo?["granted"] as? Bool {
+                accessibilityAuthorized = granted
+            }
+        }
     }
 }
 

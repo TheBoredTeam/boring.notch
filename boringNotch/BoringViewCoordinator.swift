@@ -88,6 +88,9 @@ class BoringViewCoordinator: ObservableObject {
 
             if hudReplacement {
                 hudEnableTask = Task { @MainActor in
+                    // Check prior authorization so we only restart if permissions were newly granted
+                    let priorAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+
                     MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: true)
 
                     let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: false)
@@ -95,7 +98,13 @@ class BoringViewCoordinator: ObservableObject {
                     if Task.isCancelled { return }
 
                     if granted {
-                        ApplicationRelauncher.restart()
+                        // Restart only if authorization was newly granted
+                        if !priorAuthorized {
+                            // newly granted; restart
+                            ApplicationRelauncher.restart()
+                        } else {
+                            // already granted; no restart needed
+                        }
                     } else {
                         self.hudReplacement = false
                     }
@@ -118,10 +127,6 @@ class BoringViewCoordinator: ObservableObject {
 
     private init() {
         selectedScreen = preferredScreen
-
-        if !MediaKeyInterceptor.shared.isAccessibilityAuthorized() && hudReplacement {
-            hudReplacement = false
-        }
     }
     
     @objc func sneakPeekEvent(_ notification: Notification) {

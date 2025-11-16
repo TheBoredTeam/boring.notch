@@ -194,6 +194,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        
+        // Ensure the bundled accessibility helper is available
+        do {
+            try XPCHelperClient.shared.register()
+        } catch {
+            print("Failed to validate accessibility helper: \(error)")
+        }
 
         NotificationCenter.default.addObserver(
             self,
@@ -242,7 +249,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forName: NSNotification.Name(rawValue: "com.apple.screenIsLocked"),
             object: nil, queue: .main) { [weak self] notification in
                 Task { @MainActor in
-                    await self?.onScreenLocked(notification)
+                    self?.onScreenLocked(notification)
                 }
         }
 
@@ -250,7 +257,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forName: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"),
             object: nil, queue: .main) { [weak self] notification in
                 Task { @MainActor in
-                    await self?.onScreenUnlocked(notification)
+                    self?.onScreenUnlocked(notification)
                 }
         }
 
@@ -336,8 +343,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         if coordinator.hudReplacement {
-            MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
+            Task { @MainActor in
+                // Ensure helper is registered
+                if !XPCHelperClient.shared.isRegistered {
+                    do {
+                        try XPCHelperClient.shared.register()
+                    } catch {
+                        print("Failed to register XPC helper: \(error)")
+                        return
+                    }
+                }
+                
+                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                if authorized {
+                    MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
+                } else {
+                    let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: false)
+                    if granted {
+                        MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
+                    }
+                }
+            }
         }
+
+        // Connect to the helper to establish XPC communication
+        XPCHelperClient.shared.connect()
 
         previousScreens = NSScreen.screens
     }

@@ -72,94 +72,12 @@ final class MediaKeyInterceptor {
         eventTap = nil
     }
 
-    func requestAccessibilityAuthorization() {
-        let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        _ = AXIsProcessTrustedWithOptions(options)
+      func requestAccessibilityAuthorization() {
+          XPCHelperClient.shared.requestAccessibilityAuthorization()
     }
 
     func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
-        if AXIsProcessTrusted() { return true }
-
-        if promptIfNeeded {
-            let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-            _ = AXIsProcessTrustedWithOptions(options)
-        }
-
-        return await withTaskCancellationHandler {
-            // cancellation handler: nothing special here
-        } operation: {
-            await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
-                var resumed = false
-                var observers = [Any]()
-
-                func finish(_ granted: Bool) {
-                    guard !resumed else { return }
-                    resumed = true
-                    // remove observers
-                    for obs in observers {
-                        if let ncObs = obs as? NSObjectProtocol {
-                            NotificationCenter.default.removeObserver(ncObs)
-                        } else if let ncObs = obs as? (NSObjectProtocol & AnyObject) {
-                            NotificationCenter.default.removeObserver(ncObs)
-                        }
-                    }
-                    observers.removeAll()
-                    continuation.resume(returning: granted)
-                }
-
-                func checkAndFinishIfGranted() {
-                    if AXIsProcessTrusted() {
-                        finish(true)
-                    }
-                }
-
-                // App became active (user returned to the app)
-                let o1 = NotificationCenter.default.addObserver(
-                    forName: NSApplication.didBecomeActiveNotification,
-                    object: nil,
-                    queue: .main
-                ) { _ in
-                    checkAndFinishIfGranted()
-                }
-                observers.append(o1)
-
-                // Workspace application activation (catch when System Settings de/activates)
-                let o2 = NSWorkspace.shared.notificationCenter.addObserver(
-                    forName: NSWorkspace.didActivateApplicationNotification,
-                    object: nil,
-                    queue: .main
-                ) { _ in
-                    checkAndFinishIfGranted()
-                }
-                observers.append(o2)
-
-                // Optional: listen to a distributed notification that some accessibility changes emit.
-                let distributedName = Notification.Name("com.apple.accessibility.api")
-                let o3 = DistributedNotificationCenter.default().addObserver(
-                    forName: distributedName,
-                    object: nil,
-                    queue: .main
-                ) { _ in
-                    checkAndFinishIfGranted()
-                }
-                observers.append(o3)
-
-                // Initial async check
-                DispatchQueue.main.async {
-                    checkAndFinishIfGranted()
-                }
-
-                // Respond to Task cancellation: poll cancellation flag with very low overhead
-                Task {
-                    while !resumed && !Task.isCancelled {
-                        try? await Task.sleep(nanoseconds: 500_000_000)
-                    }
-                    if Task.isCancelled && !resumed {
-                        finish(false)
-                    }
-                }
-            }
-        }
+        await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: promptIfNeeded)
     }
 
 
@@ -237,24 +155,24 @@ final class MediaKeyInterceptor {
                     return nil
                 case .none:
                     return nil
-                }
             }
+        }
 
             VolumeManager.shared.toggleMuteAction()
             return nil
         case .brightnessUp:
             if optionDown && !shiftDown {
                 switch optionAction {
-                case .openSettings:
+        case .openSettings:
                     openSystemSettings(for: nx)
                     return nil
-                case .showHUD:
+        case .showHUD:
                     BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(BrightnessManager.shared.rawBrightness))
                     return nil
-                case .none:
+        case .none:
                     return nil
-                }
-            }
+        }
+    }
 
             let delta = brightnessStep / stepDivisor
             if commandDown {
@@ -282,7 +200,7 @@ final class MediaKeyInterceptor {
                 KeyboardBacklightManager.shared.setRelative(delta: delta)
             } else {
                 BrightnessManager.shared.setRelative(delta: delta)
-            }
+        }
             return nil
         }
     }
