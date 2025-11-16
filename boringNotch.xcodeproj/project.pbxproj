@@ -61,10 +61,10 @@
 		11D58EA22E760AE100FA8377 /* ImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D58EA12E760AE100FA8377 /* ImageService.swift */; };
 		11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */; };
 		11F747CE2EC75CEA00F841DB /* DragPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */; };
-		11F747F92EC7E94000F841DB /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 11F747F82EC7E94000F841DB /* Lottie */; };
 		11F7485B2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = 11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		11F748682EC9AC9600F841DB /* BoringNotchXPCHelperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F748652EC9AC9600F841DB /* BoringNotchXPCHelperProtocol.swift */; };
 		11F748692EC9AC9600F841DB /* XPCHelperClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F748662EC9AC9600F841DB /* XPCHelperClient.swift */; };
+		11F748732EC9DA9300F841DB /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 11F748722EC9DA9300F841DB /* Lottie */; };
 		14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DD62C6E015000B9F80C /* AudioPlayer.swift */; };
 		14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */; };
 		14288E0C2C6F8EC000B9F80C /* AppIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288E0B2C6F8EC000B9F80C /* AppIcons.swift */; };
@@ -332,7 +332,7 @@
 				112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */,
 				146BC4372D366E9B0047C66A /* MacroVisionKit in Frameworks */,
 				14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */,
-				11F747F92EC7E94000F841DB /* Lottie in Frameworks */,
+				11F748732EC9DA9300F841DB /* Lottie in Frameworks */,
 				14D0321A2C68F32E0096E6A1 /* LaunchAtLogin in Frameworks */,
 				B18654392C6F4990000B926A /* KeyboardShortcuts in Frameworks */,
 				B19016222CC15B3D00E3F12E /* Defaults in Frameworks */,
@@ -800,8 +800,7 @@
 				B1628B912CC260C0003D8DF3 /* SwiftUIIntrospect */,
 				146BC4362D366E9B0047C66A /* MacroVisionKit */,
 				1194E8842EA57D23009C82D6 /* SkyLightWindow */,
-				11F747F82EC7E94000F841DB /* Lottie */,
-				11F747FA2EC7E94000F841DB /* Lottie-Dynamic */,
+				11F748722EC9DA9300F841DB /* Lottie */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -845,7 +844,7 @@
 				B1628B902CC260C0003D8DF3 /* XCRemoteSwiftPackageReference "swiftui-introspect" */,
 				146BC4352D366E9B0047C66A /* XCRemoteSwiftPackageReference "MacroVisionKit" */,
 				1194E8832EA57D23009C82D6 /* XCRemoteSwiftPackageReference "SkyLightWindow" */,
-				11F747F72EC7E94000F841DB /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				11F748712EC9DA9300F841DB /* XCRemoteSwiftPackageReference "lottie-spm" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -1339,9 +1338,9 @@
 				minimumVersion = 1.0.0;
 			};
 		};
-		11F747F72EC7E94000F841DB /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+		11F748712EC9DA9300F841DB /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			repositoryURL = "https://github.com/airbnb/lottie-spm.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 4.5.2;
@@ -1419,15 +1418,10 @@
 			package = 1194E8832EA57D23009C82D6 /* XCRemoteSwiftPackageReference "SkyLightWindow" */;
 			productName = SkyLightWindow;
 		};
-		11F747F82EC7E94000F841DB /* Lottie */ = {
+		11F748722EC9DA9300F841DB /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 11F747F72EC7E94000F841DB /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			package = 11F748712EC9DA9300F841DB /* XCRemoteSwiftPackageReference "lottie-spm" */;
 			productName = Lottie;
-		};
-		11F747FA2EC7E94000F841DB /* Lottie-Dynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 11F747F72EC7E94000F841DB /* XCRemoteSwiftPackageReference "lottie-ios" */;
-			productName = "Lottie-Dynamic";
 		};
 		146BC4362D366E9B0047C66A /* MacroVisionKit */ = {
 			isa = XCSwiftPackageProductDependency;
