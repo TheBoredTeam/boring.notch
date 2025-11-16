@@ -404,7 +404,7 @@ struct ContentView: View {
                                 .frame(width: 16, height: 12)
                         }
                 } else {
-                    LottieAnimationView()
+                    LottieAnimationContainer()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
