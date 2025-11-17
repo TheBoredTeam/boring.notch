@@ -95,7 +95,7 @@ struct WheelPicker: View {
             }
             .padding(.vertical, 4)
             .padding(.horizontal, 4)
-            .background(isSelected ? Color.accentColor.opacity(0.25) : Color.clear)
+            .background(isSelected ? Color.effectiveAccentBackground : Color.clear)
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
@@ -111,7 +111,7 @@ struct WheelPicker: View {
     private func dateCircle(date: Date, isToday: Bool, isSelected: Bool) -> some View {
         ZStack {
             Circle()
-                .fill(isToday ? Color.accentColor : .clear)
+                .fill(isToday ? Color.effectiveAccent : .clear)
                 .frame(width: 20, height: 20)
                 .overlay(
                     Circle()
@@ -217,7 +217,7 @@ struct CalendarView: View {
                 events: calendarManager.events
             )
             if filteredEvents.isEmpty {
-                EmptyEventsView()
+                EmptyEventsView(selectedDate: selectedDate)
                 Spacer(minLength: 0)
             } else {
                 EventListView(events: calendarManager.events)
@@ -246,12 +246,14 @@ struct CalendarView: View {
 }
 
 struct EmptyEventsView: View {
+    let selectedDate: Date
+    
     var body: some View {
         VStack {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.title)
                 .foregroundColor(Color(white: 0.65))
-            Text("No events today")
+            Text(Calendar.current.isDateInToday(selectedDate) ? "No events today" : "No events")
                 .font(.subheadline)
                 .foregroundColor(.white)
             Text("Enjoy your free time!")

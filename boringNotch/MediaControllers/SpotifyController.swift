@@ -18,7 +18,11 @@ class SpotifyController: MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
-    
+
+    var supportsVolumeControl: Bool {
+        return true
+    }
+
     private var notificationTask: Task<Void, Never>?
     
     // Constant for time between command and update
@@ -74,13 +78,21 @@ class SpotifyController: MediaControllerProtocol {
         await executeAndRefresh("set repeating to not repeating")
     }
     
+    func setVolume(_ level: Double) async {
+        let clampedLevel = max(0.0, min(1.0, level))
+        let volumePercentage = Int(clampedLevel * 100)
+        await executeCommand("set sound volume to \(volumePercentage)")
+        try? await Task.sleep(for: commandUpdateDelay)
+        await updatePlaybackInfo()
+    }
+    
     func isActive() -> Bool {
         NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
     }
     
     func updatePlaybackInfo() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
-        guard descriptor.numberOfItems >= 9 else { return }
+        guard descriptor.numberOfItems >= 10 else { return }
         
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
         let currentTrack = descriptor.atIndex(2)?.stringValue ?? "Unknown"
@@ -90,7 +102,8 @@ class SpotifyController: MediaControllerProtocol {
         let duration = (descriptor.atIndex(6)?.doubleValue ?? 0)/1000
         let isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
         let isRepeating = descriptor.atIndex(8)?.booleanValue ?? false
-        let artworkURL = descriptor.atIndex(9)?.stringValue ?? ""
+        let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
+        let artworkURL = descriptor.atIndex(10)?.stringValue ?? ""
         
         var state = PlaybackState(
             bundleIdentifier: "com.spotify.client",
@@ -103,7 +116,9 @@ class SpotifyController: MediaControllerProtocol {
             playbackRate: 1,
             isShuffled: isShuffled,
             repeatMode: isRepeating ? .all : .off,
-            lastUpdated: Date()
+            lastUpdated: Date(),
+            artwork: nil,
+            volume: Double(volumePercentage) / 100.0
         )
 
         if artworkURL == lastArtworkURL, let existingArtwork = self.playbackState.artwork {
@@ -165,14 +180,16 @@ class SpotifyController: MediaControllerProtocol {
                 set trackDuration to duration of current track
                 set shuffleState to shuffling
                 set repeatState to repeating
+                set currentVolume to sound volume
                 set artworkURL to artwork url of current track
-                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatState, artworkURL}
+                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatState, currentVolume, artworkURL}
             on error
-                return {false, "Unknown", "Unknown", "Unknown", 0, 0, false, false, ""}
+                return {false, "Unknown", "Unknown", "Unknown", 0, 0, false, false, 50, ""}
             end try
         end tell
         """
         
         return try await AppleScriptHelper.execute(script)
     }
+    
 }

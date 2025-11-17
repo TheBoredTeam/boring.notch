@@ -1409,6 +1409,9 @@
         }
       }
     },
+    "Accent Color" : {
+
+    },
     "Access Denied" : {
       "localizations" : {
         "ar" : {
@@ -1508,6 +1511,9 @@
           }
         }
       }
+    },
+    "Accessibility access is required to replace the system HUD." : {
+
     },
     "Add" : {
       "localizations" : {
@@ -1610,6 +1616,7 @@
       }
     },
     "Add manually" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1909,205 +1916,8 @@
         }
       }
     },
-    "AirDrop" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AirDrop"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AirDrop"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop"
-          }
-        }
-      }
-    },
-    "AirDrop service not available" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop service not available"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Služba AirDrop není dostupná"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop Funktionen sind nicht verfügbar"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AirDrop service not available"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AirDrop service not available"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Servicio AirDrop no disponible"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Service AirDrop indisponible"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop service not available"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Servizio AirDrop non disponibile"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop 서비스 불가"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Usługa AirDrop nie jest dostępna"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop não disponível"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop service not available"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop hizmetine kullanılamıyor"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Служба AirDrop недоступна"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "AirDrop 服务不可用"
-          }
-        }
-      }
+    "Advanced" : {
+
     },
     "All-day" : {
       "localizations" : {
@@ -4514,6 +4324,15 @@
         }
       }
     },
+    "Choose any color" : {
+
+    },
+    "Choose between your system accent color or customize it with your own selection." : {
+
+    },
+    "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately." : {
+
+    },
     "Circle" : {
       "localizations" : {
         "ar" : {
@@ -4815,6 +4634,9 @@
         }
       }
     },
+    "Color Presets" : {
+
+    },
     "Coming soon" : {
       "localizations" : {
         "ar" : {
@@ -5015,6 +4837,9 @@
         }
       }
     },
+    "Copy items on drag" : {
+
+    },
     "Corner radius scaling" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5115,6 +4940,12 @@
           }
         }
       }
+    },
+    "Currently selected: %@" : {
+
+    },
+    "Custom" : {
+
     },
     "Custom height" : {
       "localizations" : {
@@ -5717,6 +5548,7 @@
       }
     },
     "Description" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5817,6 +5649,7 @@
       }
     },
     "Disable" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5917,6 +5750,7 @@
       }
     },
     "Disabled" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6126,6 +5960,7 @@
 
     },
     "Downloads" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6524,6 +6359,9 @@
           }
         }
       }
+    },
+    "Enable Accessibility in System Settings → Privacy & Security → Accessibility" : {
+
     },
     "Enable automatic sneak peek (show on media changes)" : {
 
@@ -7536,6 +7374,9 @@
         }
       }
     },
+    "Enable wobble animation" : {
+
+    },
     "Enhance your experience with HUDs" : {
       "localizations" : {
         "ar" : {
@@ -7938,6 +7779,8 @@
           }
         }
       }
+    "Experimental Features" : {
+
     },
     "Extend hover area" : {
       "extractionState" : "stale",
@@ -8139,6 +7982,9 @@
           }
         }
       }
+    },
+    "Files dropped on the shelf will be shared via this service" : {
+
     },
     "Finish" : {
       "localizations" : {
@@ -9145,6 +8991,9 @@
         }
       }
     },
+    "Hide from screen recording" : {
+
+    },
     "Hide only when NowPlaying app is in fullscreen" : {
       "localizations" : {
         "ar" : {
@@ -9950,6 +9799,7 @@
       }
     },
     "Installed extensions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10045,106 +9895,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "已安装扩展"
-          }
-        }
-      }
-    },
-    "Later" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Later"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Později"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Später"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Later"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Later"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Later"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Plus tard"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Later"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Più tardi"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "나중에"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Później"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Later"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Later"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Later"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Пізніше"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "稍后再说"
           }
         }
       }
@@ -12650,106 +12400,6 @@
         }
       }
     },
-    "Need Restart" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Need Restart"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Need Restart"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Braucht einen Neustart"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Need Restart"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Need Restart"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Need Restart"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Redémarrage nécessaire"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Need Restart"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Necessario Riavvio"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "재시작 필요"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Potrzebne ponowne uruchomienie"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Need Restart"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Need Restart"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Need Restart"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Need Restart"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "需要重启"
-          }
-        }
-      }
-    },
     "Never hide" : {
       "localizations" : {
         "ar" : {
@@ -13050,6 +12700,106 @@
         }
       }
     },
+    "No events" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No events"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No events"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Keine Ereignisse"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No events"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No events"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sin eventos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aucun événement"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nincs esemény"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nessun evento"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "일정 없음"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Brak wydarzeń"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sem eventos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Нет событий"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Etkinlik yok"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Немає подій"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "无日程"
+          }
+        }
+      }
+    },
     "No events today" : {
       "localizations" : {
         "ar" : {
@@ -13154,6 +12904,7 @@
 
     },
     "No extension installed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14365,6 +14116,10 @@
       }
     },
     "Percentage" : {
+    "Option key behaviour" : {
+
+    },
+    "Pick a Color" : {
 
     },
     "Plugged In" : {
@@ -14569,6 +14324,12 @@
           }
         }
       }
+    },
+    "Quick Share" : {
+
+    },
+    "Quick Share Service" : {
+
     },
     "Quit" : {
       "localizations" : {
@@ -15170,7 +14931,14 @@
         }
       }
     },
+    "Remove from shelf after dragging" : {
+
+    },
+    "Request Accessibility" : {
+
+    },
     "Restart" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -15371,6 +15139,7 @@
       }
     },
     "Running" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16474,6 +16243,9 @@
         }
       }
     },
+    "Show cool face animation while inactive" : {
+
+    },
     "Show cool face animation while inactivity" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16574,6 +16346,12 @@
           }
         }
       }
+    },
+    "Show lyrics under player" : {
+
+    },
+    "Show notch on lock screen" : {
+
     },
     "Show on a specific display" : {
       "localizations" : {
@@ -17681,6 +17459,7 @@
       }
     },
     "Stopped" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -17880,6 +17659,9 @@
         }
       }
     },
+    "System" : {
+
+    },
     "System features" : {
       "localizations" : {
         "ar" : {
@@ -17979,6 +17761,9 @@
           }
         }
       }
+    },
+    "These features are experimental and may not work as expected." : {
+
     },
     "Time to Full Charge: %lld min" : {
       "localizations" : {
@@ -18381,6 +18166,7 @@
       }
     },
     "Uninstall" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19082,6 +18868,12 @@
         }
       }
     },
+    "Use your macOS system accent color" : {
+
+    },
+    "Using System Accent" : {
+
+    },
     "Version" : {
       "localizations" : {
         "ar" : {
@@ -19582,6 +19374,12 @@
         }
       }
     },
+    "Window Appearance" : {
+
+    },
+    "Window Behavior" : {
+
+    },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
       "localizations" : {
         "ar" : {
@@ -19781,6 +19579,9 @@
           }
         }
       }
+    },
+    "Your macOS system accent color" : {
+
     },
     "YouTube Music requires this third-party app to be installed: " : {
       "localizations" : {

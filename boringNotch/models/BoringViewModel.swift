@@ -8,7 +8,6 @@
 import Combine
 import Defaults
 import SwiftUI
-import TheBoringWorkerNotifier
 
 class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -27,6 +26,8 @@ class BoringViewModel: NSObject, ObservableObject {
     var cancellables: Set<AnyCancellable> = []
     
     @Published var hideOnClosed: Bool = true
+
+    @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
 
@@ -58,8 +59,8 @@ class BoringViewModel: NSObject, ObservableObject {
         closedNotchSize = notchSize
 
         Publishers.CombineLatest($dropZoneTargeting, $dragDetectorTargeting)
-            .map { value1, value2 in
-                value1 || value2
+            .map { shelf, drag in
+                shelf || drag
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
@@ -178,6 +179,10 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func close() {
+        // Do not close while a share picker or sharing service is active
+        if SharingStateManager.shared.preventNotchClose {
+            return
+        }
         withAnimation(.smooth) { [weak self] in
             guard let self = self else { return }
             self.notchSize = getClosedNotchSize(screen: self.screen)
@@ -185,11 +190,12 @@ class BoringViewModel: NSObject, ObservableObject {
             self.notchState = .closed
             self.isBatteryPopoverActive = false
             self.coordinator.sneakPeek.show = false
+            self.edgeAutoOpenActive = false
         }
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-        if !TrayDrop.shared.isEmpty && Defaults[.openShelfByDefault] {
+    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
             coordinator.currentView = .shelf
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home

@@ -11,8 +11,6 @@ class BatteryStatusViewModel: ObservableObject {
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     /// Run loop source for battery monitoring.
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
-    /// Animations handler for UI updates.
-    var animations: BoringAnimations = BoringAnimations()
 
     /// Shared coordinator for view updates.
     @ObservedObject var coordinator = BoringViewCoordinator.shared
