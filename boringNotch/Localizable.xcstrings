@@ -2402,9 +2402,6 @@
         }
       }
     },
-    "Allow event titles to wrap across multiple lines so long titles are readable; this may increase the calendar list height." : {
-
-    },
     "Always hide in fullscreen" : {
       "localizations" : {
         "ar" : {
