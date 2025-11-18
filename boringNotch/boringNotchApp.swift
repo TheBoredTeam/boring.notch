@@ -60,6 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var closeNotchTask: Task<Void, Never>?
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
+    private var cancellables = Set<AnyCancellable>()
     private var screenLockedObserver: Any?
     private var screenUnlockedObserver: Any?
     private var isScreenLocked: Bool = false
@@ -79,6 +80,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        ScreenRecordingManager.shared.stopMonitoring()
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
         cleanupWindows()
     }
 
@@ -201,6 +205,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             print("Failed to validate accessibility helper: \(error)")
         }
+
+        if Defaults[.enableScreenRecordingDetection] {
+            ScreenRecordingManager.shared.startMonitoring()
+        }
+
+        Defaults.publisher(.enableScreenRecordingDetection, options: []).sink { _ in
+            if Defaults[.enableScreenRecordingDetection] {
+                ScreenRecordingManager.shared.startMonitoring()
+            } else {
+                ScreenRecordingManager.shared.stopMonitoring()
+            }
+        }.store(in: &cancellables)
 
         NotificationCenter.default.addObserver(
             self,

@@ -1518,6 +1518,9 @@
     "Accessibility access is required to replace the system HUD." : {
 
     },
+    "Active - No Recording" : {
+
+    },
     "Add" : {
       "localizations" : {
         "ar" : {
@@ -5649,6 +5652,9 @@
           }
         }
       }
+    },
+    "Detection Status" : {
+
     },
     "Disable" : {
       "extractionState" : "stale",
@@ -14099,6 +14105,9 @@
         }
       }
     },
+    "Recording Detected" : {
+
+    },
     "Release name" : {
       "localizations" : {
         "ar" : {
@@ -14809,6 +14818,9 @@
           }
         }
       }
+    },
+    "Screen Recording Detection" : {
+
     },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
@@ -18430,6 +18442,9 @@
       }
     },
     "Use your macOS system accent color" : {
+
+    },
+    "Uses event-driven private APIs for real-time screen recording detection." : {
 
     },
     "Using System Accent" : {
