@@ -277,7 +277,9 @@ struct GeneralSettings: View {
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
-            Defaults.Toggle("Enable gestures", key: .enableGestures)
+            Defaults.Toggle(key: .enableGestures) {
+                Text("Enable gestures")
+            }
                 .disabled(!openNotchOnHover)
             if enableGestures {
                 Toggle("Media change with horizontal gestures", isOn: .constant(false))
