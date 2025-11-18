@@ -687,6 +687,9 @@ struct CalendarSettings: View {
             Defaults.Toggle(key: .autoScrollToNextEvent) {
                 Text("Auto-scroll to next event")
             }
+            Defaults.Toggle(key: .showFullEventTitles) {
+                Text("Always show full event titles")
+            }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
                     Text("Calendar access is denied. Please enable it in System Settings.")

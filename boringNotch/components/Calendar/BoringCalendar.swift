@@ -268,6 +268,7 @@ struct EventListView: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     let events: [EventModel]
     @Default(.autoScrollToNextEvent) private var autoScrollToNextEvent
+    @Default(.showFullEventTitles) private var showFullEventTitles
 
 
     static func filteredEvents(events: [EventModel]) -> [EventModel] {
@@ -379,7 +380,7 @@ struct EventListView: View {
                         Text(event.title)
                             .font(.callout)
                             .foregroundColor(.white)
-                            .lineLimit(1)
+                            .lineLimit(showFullEventTitles ? nil : 1)
                         Spacer(minLength: 0)
                         VStack(alignment: .trailing, spacing: 4) {
                             if event.isAllDay {
@@ -417,7 +418,7 @@ struct EventListView: View {
                             .font(.callout)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
-                            .lineLimit(2)
+                            .lineLimit(showFullEventTitles ? nil : 2)
 
                         if let location = event.location, !location.isEmpty {
                             Text(location)
