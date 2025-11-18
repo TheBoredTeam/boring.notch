@@ -20,6 +20,7 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+    @ObservedObject var pomodoroManager = PomodoroManager.shared
 
     @State private var isHovering: Bool = false
     @State private var hoverWorkItem: DispatchWorkItem?
@@ -234,6 +235,10 @@ struct ContentView: View {
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
+                      } else if !coordinator.expandingView.show && vm.notchState == .closed && pomodoroManager.isRunning && !vm.hideOnClosed {
+                          PomodoroCompactView()
+                              .frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0))
+                              .transition(.opacity)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation().animation(.interactiveSpring, value: musicManager.isPlayerIdle)
                       } else if vm.notchState == .open {
