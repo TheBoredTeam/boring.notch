@@ -671,6 +671,7 @@ struct CalendarSettings: View {
     @Default(.showCalendar) var showCalendar: Bool
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
+    @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
 
     var body: some View {
         Form {
@@ -682,6 +683,9 @@ struct CalendarSettings: View {
             }
             Defaults.Toggle(key: .hideAllDayEvents) {
                 Text("Hide all-day events")
+            }
+            Defaults.Toggle(key: .autoScrollToNextEvent) {
+                Text("Auto-scroll to next event")
             }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
@@ -1370,7 +1374,6 @@ struct Advanced: View {
     @Default(.extendHoverArea) var extendHoverArea
     @Default(.showOnLockScreen) var showOnLockScreen
     @Default(.hideFromScreenRecording) var hideFromScreenRecording
-    @Default(.enableWobbleAnimation) var enableWobbleAnimation
     
     @State private var customAccentColor: Color = .accentColor
     @State private var selectedPresetColor: PresetAccentColor? = nil
