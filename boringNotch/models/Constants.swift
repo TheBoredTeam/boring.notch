@@ -131,6 +131,14 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    static let musicControlSlots = Key<[MusicControlButton]>(
+        "musicControlSlots",
+        default: MusicControlButton.defaultLayout
+    )
+    static let musicControlSlotLimit = Key<Int>(
+        "musicControlSlotLimit",
+        default: MusicControlButton.defaultLayout.count
+    )
     
         // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)

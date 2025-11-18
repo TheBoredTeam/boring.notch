@@ -24,6 +24,10 @@ class AppleMusicController: MediaControllerProtocol {
         return true
     }
 
+    var supportsFavorite: Bool {
+        return true
+    }
+
     private var notificationTask: Task<Void, Never>?
     
     // MARK: - Initialization
@@ -110,10 +114,23 @@ class AppleMusicController: MediaControllerProtocol {
         let runningApps = NSWorkspace.shared.runningApplications
         return runningApps.contains { $0.bundleIdentifier == "com.apple.Music" }
     }
+
+    func setFavorite(_ favorite: Bool) async {
+        let script = """
+        tell application \"Music\"
+            try
+                set favorited of current track to " + (favorite ? "true" : "false") + "
+            end try
+        end tell
+        """
+        try? await AppleScriptHelper.executeVoid(script)
+        try? await Task.sleep(for: .milliseconds(150))
+        await updatePlaybackInfo()
+    }
     
     func updatePlaybackInfo() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
-        guard descriptor.numberOfItems >= 10 else { return }
+        guard descriptor.numberOfItems >= 11 else { return }
         var updatedState = self.playbackState
         
         updatedState.isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
@@ -128,6 +145,8 @@ class AppleMusicController: MediaControllerProtocol {
         let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
         updatedState.volume = Double(volumePercentage) / 100.0
         updatedState.artwork = descriptor.atIndex(10)?.data as Data?
+        let lovedState = descriptor.atIndex(11)?.booleanValue ?? false
+        updatedState.isFavorite = lovedState
         updatedState.lastUpdated = Date()
         self.playbackState = updatedState
     }
@@ -167,9 +186,10 @@ class AppleMusicController: MediaControllerProtocol {
                 end try
                 
                 set currentVolume to sound volume
-                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, currentVolume, artData}
+                set favoriteState to favorited of current track
+                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, currentVolume, artData, favoriteState}
             on error
-                return {false, "Not Playing", "Unknown", "Unknown", 0, 0, false, 0, 50, ""}
+                return {false, "Not Playing", "Unknown", "Unknown", 0, 0, false, 0, 50, "", false}
             end try
         end tell
         """

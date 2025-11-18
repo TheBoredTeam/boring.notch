@@ -15,12 +15,11 @@ import SwiftUI
 struct MusicPlayerView: View {
     @EnvironmentObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
-    let showShuffleAndRepeat: Bool
 
     var body: some View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
-            MusicControlsView(showShuffleAndRepeat: showShuffleAndRepeat).drawingGroup().compositingGroup()
+            MusicControlsView().drawingGroup().compositingGroup()
         }
     }
 }
@@ -156,15 +155,18 @@ struct AlbumArtView: View {
 
 struct MusicControlsView: View {
     @ObservedObject var musicManager = MusicManager.shared
+        @EnvironmentObject var vm: BoringViewModel
+        @ObservedObject var webcamManager = WebcamManager.shared
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
-    let showShuffleAndRepeat: Bool
+    @Default(.musicControlSlots) private var slotConfig
+    @Default(.musicControlSlotLimit) private var slotLimit
 
     var body: some View {
         VStack(alignment: .leading) {
             songInfoAndSlider
-            playbackControls
+            slotToolbar
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -252,33 +254,71 @@ struct MusicControlsView: View {
         }
     }
 
-    private var playbackControls: some View {
-        HStack(spacing: 8) {
-            if showShuffleAndRepeat {
-                HoverButton(
-                    icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .white,
-                    scale: .medium
-                ) {
-                    MusicManager.shared.toggleShuffle()
-                }
+    private var slotToolbar: some View {
+        let slots = activeSlots
+        return HStack(spacing: 6) {
+            ForEach(Array(slots.enumerated()), id: \.offset) { index, slot in
+                slotView(for: slot)
+                    .frame(alignment: .center)
             }
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private var activeSlots: [MusicControlButton] {
+        let sanitizedLimit = min(
+            max(slotLimit, MusicControlButton.minSlotCount),
+            MusicControlButton.maxSlotCount
+        )
+        let padded = slotConfig.padded(to: sanitizedLimit, filler: .none)
+        let result = Array(padded.prefix(sanitizedLimit))
+        // If calendar and camera are both visible alongside music, hide the edge slots
+        let shouldHideEdges = Defaults[.showCalendar] && Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
+        if shouldHideEdges && result.count >= 5 {
+            return Array(result.dropFirst().dropLast())
+        }
+
+        return result
+    }
+
+    @ViewBuilder
+    private func slotView(for slot: MusicControlButton) -> some View {
+        switch slot {
+        case .shuffle:
+            HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .white, scale: .medium) {
+                MusicManager.shared.toggleShuffle()
+            }
+        case .previous:
             HoverButton(icon: "backward.fill", scale: .medium) {
                 MusicManager.shared.previousTrack()
             }
+        case .playPause:
             HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
                 MusicManager.shared.togglePlay()
             }
+        case .next:
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
-            if showShuffleAndRepeat {
-                HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
-                    MusicManager.shared.toggleRepeat()
-                }
+        case .repeatMode:
+            HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
+                MusicManager.shared.toggleRepeat()
             }
+        case .volume:
             VolumeControlView()
+        case .favorite:
+            FavoriteControlButton()
+        case .goBackward:
+            HoverButton(icon: "gobackward.15", scale: .medium) {
+                MusicManager.shared.skip(seconds: -15)
+            }
+        case .goForward:
+            HoverButton(icon: "goforward.15", scale: .medium) {
+                MusicManager.shared.skip(seconds: 15)
+            }
+        case .none:
+            Color.clear.frame(height: 1)
         }
-        .frame(maxWidth: .infinity, alignment: .center)
     }
 
     private var repeatIcon: String {
@@ -302,6 +342,33 @@ struct MusicControlsView: View {
     }
 }
 
+struct FavoriteControlButton: View {
+    @ObservedObject var musicManager = MusicManager.shared
+
+    var body: some View {
+        HoverButton(icon: iconName, iconColor: iconColor, scale: .medium) {
+            MusicManager.shared.toggleFavoriteTrack()
+        }
+        .disabled(!musicManager.canFavoriteTrack)
+        .opacity(musicManager.canFavoriteTrack ? 1 : 0.35)
+    }
+
+    private var iconName: String {
+        musicManager.isFavoriteTrack ? "heart.fill" : "heart"
+    }
+
+    private var iconColor: Color {
+        musicManager.isFavoriteTrack ? .red : .white
+    }
+}
+
+private extension Array where Element == MusicControlButton {
+    func padded(to length: Int, filler: MusicControlButton) -> [MusicControlButton] {
+        if count >= length { return self }
+        return self + Array(repeating: filler, count: length - count)
+    }
+}
+
 // MARK: - Volume Control View
 
 struct VolumeControlView: View {
@@ -314,51 +381,47 @@ struct VolumeControlView: View {
     private let volumeUpdateThrottle: Duration = .milliseconds(200)
     
     var body: some View {
-        ZStack {
-            HStack(spacing: 4) {
-                Button(action: {
-                    if musicManager.volumeControlSupported {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            showVolumeSlider.toggle()
+        HStack(spacing: 4) {
+            Button(action: {
+                if musicManager.volumeControlSupported {
+                    withAnimation(.easeInOut(duration: 0.12)) {
+                        showVolumeSlider.toggle()
+                    }
+                }
+            }) {
+                Image(systemName: volumeIcon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .disabled(!musicManager.volumeControlSupported)
+            .frame(width: 24)
+
+            if showVolumeSlider && musicManager.volumeControlSupported {
+                CustomSlider(
+                    value: $volumeSliderValue,
+                    range: 0.0...1.0,
+                    color: .white,
+                    dragging: $dragging,
+                    lastDragged: .constant(Date.distantPast),
+                    onValueChange: { newValue in
+                        MusicManager.shared.setVolume(to: newValue)
+                    },
+                    onDragChange: { newValue in
+                        volumeUpdateTask?.cancel()
+                        volumeUpdateTask = Task {
+                            try? await Task.sleep(for: volumeUpdateThrottle)
+                            if !Task.isCancelled {
+                                MusicManager.shared.setVolume(to: newValue)
+                            }
                         }
                     }
-                }) {
-                    Image(systemName: volumeIcon)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .disabled(!musicManager.volumeControlSupported)
-                
-                    if showVolumeSlider && musicManager.volumeControlSupported {
-                        CustomSlider(
-                            value: $volumeSliderValue,
-                            range: 0.0...1.0,
-                            color: .white,
-                            dragging: $dragging,
-                            lastDragged: .constant(Date.distantPast),
-                            onValueChange: { newValue in
-                                MusicManager.shared.setVolume(to: newValue)
-                            },
-                            onDragChange: { newValue in
-                                // Cancel any pending volume update
-                                volumeUpdateTask?.cancel()
-                                
-                                // Schedule a new throttled update
-                                volumeUpdateTask = Task {
-                                    try? await Task.sleep(for: volumeUpdateThrottle)
-                                    if !Task.isCancelled {
-                                        MusicManager.shared.setVolume(to: newValue)
-                                    }
-                                }
-                            },
-                            thumbSize: 8
-                        )
-                        .frame(width: 60, height: 8)
-                        .transition(.scale)
-                    }
-            } // End HStack
+                )
+                .frame(width: 48, height: 8)
+                .transition(.scale.combined(with: .opacity))
+            }
         }
+        .clipped()
         .onReceive(musicManager.$volume) { volume in
             if !dragging {
                 volumeSliderValue = volume
@@ -415,13 +478,9 @@ struct NotchHomeView: View {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
-    private var showShuffleAndRepeat: Bool {
-        !(shouldShowCamera && Defaults[.showCalendar]) && Defaults[.showShuffleAndRepeat]
-    }
-
     private var mainContent: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace, showShuffleAndRepeat: showShuffleAndRepeat)
+            MusicPlayerView(albumArtNamespace: albumArtNamespace)
 
             if Defaults[.showCalendar] {
                 CalendarView()
@@ -513,7 +572,6 @@ struct CustomSlider: View {
     @Binding var lastDragged: Date
     var onValueChange: ((Double) -> Void)?
     var onDragChange: ((Double) -> Void)?
-    var thumbSize: CGFloat = 12
 
     var body: some View {
         GeometryReader { geometry in

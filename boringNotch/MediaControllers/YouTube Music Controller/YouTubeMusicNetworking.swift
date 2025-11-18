@@ -51,6 +51,25 @@ final class YouTubeMusicHTTPClient: ObservableObject {
         )
         return try Self.decoder.decode(PlaybackResponse.self, from: data)
     }
+
+    // MARK: - Like / Favourites
+    struct LikeStateResponse: Decodable, Sendable {
+        let state: String?
+    }
+
+
+    func getLikeState(token: String) async throws -> LikeStateResponse {
+        let data = try await sendCommand(endpoint: "/like-state", method: "GET", token: token)
+        return try Self.decoder.decode(LikeStateResponse.self, from: data)
+    }
+
+    func toggleLike(token: String) async throws -> Data {
+        return try await sendCommand(endpoint: "/like", method: "POST", token: token)
+    }
+
+    func toggleDislike(token: String) async throws -> Data {
+        return try await sendCommand(endpoint: "/dislike", method: "POST", token: token)
+    }
     
     // MARK: - Commands
     func sendCommand(

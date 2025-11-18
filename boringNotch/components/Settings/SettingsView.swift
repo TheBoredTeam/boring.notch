@@ -594,22 +594,7 @@ struct Media: View {
                     .font(.caption)
                 }
             }
-            Section {
-                Defaults.Toggle(key: .enableLyrics) {
-                    HStack {
-                        Text("Show lyrics under player")
-                        customBadge(text: "Beta")
-                    }
-                }
-                Defaults.Toggle(key: .showShuffleAndRepeat) {
-                    HStack {
-                        Text("Show shuffle and repeat buttons")
-                        customBadge(text: "Beta")
-                    }
-                }
-            } header: {
-                Text("Media controls")
-            }
+            
             Section {
                 Toggle(
                     "Enable music live activity",
@@ -631,25 +616,40 @@ struct Media: View {
                         }
                     }
                 }
+                Picker(
+                    selection: $hideNotchOption,
+                    label:
+                        HStack {
+                            Text("Hide BoringNotch Options")
+                            customBadge(text: "Beta")
+                        }
+                ) {
+                    Text("Always hide in fullscreen").tag(HideNotchOption.always)
+                    Text("Hide only when NowPlaying app is in fullscreen").tag(
+                        HideNotchOption.nowPlayingOnly)
+                    Text("Never hide").tag(HideNotchOption.never)
+                }
+                .onChange(of: hideNotchOption) {
+                    Defaults[.enableFullscreenMediaDetection] = hideNotchOption != .never
+                }
             } header: {
                 Text("Media playback live activity")
             }
-
-            Picker(
-                selection: $hideNotchOption,
-                label:
+            
+            Section {
+                MusicSlotConfigurationView()
+                Defaults.Toggle(key: .enableLyrics) {
                     HStack {
-                        Text("Hide BoringNotch Options")
+                        Text("Show lyrics under player")
                         customBadge(text: "Beta")
                     }
-            ) {
-                Text("Always hide in fullscreen").tag(HideNotchOption.always)
-                Text("Hide only when NowPlaying app is in fullscreen").tag(
-                    HideNotchOption.nowPlayingOnly)
-                Text("Never hide").tag(HideNotchOption.never)
-            }
-            .onChange(of: hideNotchOption) {
-                Defaults[.enableFullscreenMediaDetection] = hideNotchOption != .never
+                }
+            } header: {
+                Text("Media controls")
+            }  footer: {
+                Text("Customize which controls appear in the music player. Volume expands when active.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .accentColor(.effectiveAccent)

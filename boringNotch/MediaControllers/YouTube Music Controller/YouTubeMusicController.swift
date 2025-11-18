@@ -26,6 +26,23 @@ final class YouTubeMusicController: MediaControllerProtocol {
         return true
     }
 
+    var supportsFavorite: Bool { true }
+
+    func setFavorite(_ favorite: Bool) async {
+        do {
+            let token = try await authManager.authenticate()
+            if favorite && !playbackState.isFavorite {
+                _ = try await httpClient.toggleLike(token: token)
+            } else if !favorite && playbackState.isFavorite {
+                _ = try await httpClient.toggleLike(token: token)
+            }
+            try? await Task.sleep(for: .milliseconds(150))
+            await updatePlaybackInfo()
+        } catch {
+            print("[YouTubeMusicController] Failed to set favorite: \(error)")
+        }
+    }
+
     // MARK: - Private Properties
     private let configuration: YouTubeMusicConfiguration
     private let httpClient: YouTubeMusicHTTPClient
@@ -96,6 +113,27 @@ final class YouTubeMusicController: MediaControllerProtocol {
             let token = try await authManager.authenticate()
             let response = try await httpClient.getPlaybackInfo(token: token)
             await updatePlaybackState(with: response)
+            // Fetch like state if supported
+            do {
+                let likeResp = try await httpClient.getLikeState(token: token)
+                var newState = playbackState
+                    if let state = likeResp.state {
+                        switch state.uppercased() {
+                        case "LIKE":
+                            newState.isFavorite = true
+                        case "DISLIKE":
+                            // We don't have a separate dislike UI yet, treat as not favorited
+                            newState.isFavorite = false
+                        default:
+                            newState.isFavorite = false
+                        }
+                    } else {
+                        newState.isFavorite = false
+                    }
+                playbackState = newState
+            } catch {
+                // Don't treat it as an error if the like endpoint doesn't exist — just skip
+            }
         } catch YouTubeMusicError.authenticationRequired {
             await authManager.invalidateToken()
         } catch {
