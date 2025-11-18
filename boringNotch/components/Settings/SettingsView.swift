@@ -1206,7 +1206,9 @@ struct Appearance: View {
             }
 
             Section {
-                Defaults.Toggle("Enable colored spectrograms", key: .coloredSpectrogram)
+                Defaults.Toggle(key: .coloredSpectrogram) {
+                    Text("Enable colored spectrograms")
+                }
                 Defaults
                     .Toggle("Player tinting", key: .playerColorTinting)
                 Defaults.Toggle(key: .lightingEffect) {
