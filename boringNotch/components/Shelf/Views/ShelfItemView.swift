@@ -49,26 +49,7 @@ struct ShelfItemView: View {
                     viewModel: viewModel,
                     cachedPreviewImage: $cachedPreviewImage,
                     dragPreviewContent: {
-                        // Minimal drag preview: match shelf item's vertical layout but with no background
-                        VStack(alignment: .center, spacing: 4) {
-                            Image(nsImage: viewModel.thumbnail ?? item.icon)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 56, height: 56)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                            Text(item.displayName)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(.white)
-                                .lineLimit(2)
-                                .truncationMode(.middle)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(RoundedRectangle(cornerRadius: 4).fill(Color.accentColor))
-                                .frame(alignment: .top)
-                        }
-                        .frame(width: 105)
+                        DragPreviewView(thumbnail: viewModel.thumbnail ?? item.icon, displayName: item.displayName)
                     },
                     onRightClick: viewModel.handleRightClick,
                     onClick: { event, nsview in
@@ -178,34 +159,13 @@ struct ShelfItemView: View {
     
     @MainActor
     private func renderDragPreview() async -> NSImage {
-        let content = VStack(alignment: .center, spacing: 4) {
-            Image(nsImage: viewModel.thumbnail ?? item.icon)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 56, height: 56)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-            Text(item.displayName)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.white)
-                .lineLimit(2)
-                .truncationMode(.middle)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
-                .background(RoundedRectangle(cornerRadius: 4).fill(Color.accentColor))
-                .frame(alignment: .top)
-        }
-        .frame(width: 105)
-        
+        let content = DragPreviewView(thumbnail: viewModel.thumbnail ?? item.icon, displayName: item.displayName)
         let renderer = ImageRenderer(content: content)
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
         return renderer.nsImage ?? (viewModel.thumbnail ?? item.icon)
     }
 
-    private struct AssociatedKeys {
-        static var menuActionHandlerKey = "com.boringnotch.menuActionHandler"
-    }
+    
 }
 
 // MARK: - Draggable Click Handler with NSDraggingSource

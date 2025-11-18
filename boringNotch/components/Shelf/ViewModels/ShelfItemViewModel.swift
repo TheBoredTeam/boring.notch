@@ -54,13 +54,10 @@ final class ShelfItemViewModel: ObservableObject {
         switch item.kind {
         case .file:
             let provider = NSItemProvider()
-            Task {
-                // Use immediate update for user-initiated drag operation
-                if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
-                    provider.registerObject(url as NSURL, visibility: .all)
-                } else {
-                    provider.registerObject(item.displayName as NSString, visibility: .all)
-                }
+            if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+                provider.registerObject(url as NSURL, visibility: .all)
+            } else {
+                provider.registerObject(item.displayName as NSString, visibility: .all)
             }
             return provider
         case .text(let string):
@@ -72,32 +69,29 @@ final class ShelfItemViewModel: ObservableObject {
 
     private func createMultiItemProvider(for items: [ShelfItem]) -> NSItemProvider {
         let provider = NSItemProvider()
-        Task {
-            var urls: [URL] = []
-            var textItems: [String] = []
-            for item in items {
-                switch item.kind {
-                case .file:
-                    // Use immediate update for user-initiated drag operation
-                    if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
-                        urls.append(url)
-                    } else {
-                        textItems.append(item.displayName)
-                    }
-                case .text(let string):
-                    textItems.append(string)
-                case .link:
-                    break
+        var urls: [URL] = []
+        var textItems: [String] = []
+        for item in items {
+            switch item.kind {
+            case .file:
+                if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+                    urls.append(url)
+                } else {
+                    textItems.append(item.displayName)
                 }
+            case .text(let string):
+                textItems.append(string)
+            case .link:
+                break
             }
-            if !urls.isEmpty {
-                for url in urls {
-                    provider.registerObject(url as NSURL, visibility: .all)
-                }
+        }
+        if !urls.isEmpty {
+            for url in urls {
+                provider.registerObject(url as NSURL, visibility: .all)
             }
-            if !textItems.isEmpty {
-                provider.registerObject(textItems.joined(separator: "\n") as NSString, visibility: .all)
-            }
+        }
+        if !textItems.isEmpty {
+            provider.registerObject(textItems.joined(separator: "\n") as NSString, visibility: .all)
         }
         return provider
     }
@@ -409,6 +403,9 @@ final class ShelfItemViewModel: ObservableObject {
         weak var view: NSView?
         unowned let viewModel: ShelfItemViewModel
 
+        // Keep associated objects (like accessory view handlers) without magic keys
+        private static var sliderHandlerAssoc = AssociatedObject<AnyObject>()
+
         init(item: ShelfItem, view: NSView, viewModel: ShelfItemViewModel) {
             self.item = item
             self.view = view
@@ -567,52 +564,12 @@ final class ShelfItemViewModel: ObservableObject {
                         if let zipTempURL = try await fileURLs.accessSecurityScopedResources(accessor: { urls in
                             await TemporaryFileStorageService.shared.createZip(from: urls)
                         }) {
-                            // Try to move the created archive next to the first selected item (Finder-like behavior)
-                            let parent = fileURLs[0].deletingLastPathComponent()
-
-                            if FileManager.default.fileExists(atPath: parent.path) {
-                                if let final = try await parent.accessSecurityScopedResource(accessor: { accessibleParent -> URL? in
-                                    let dest = accessibleParent.appendingPathComponent(zipTempURL.lastPathComponent)
-                                    var finalDest = dest
-                                    var counter = 1
-                                    while FileManager.default.fileExists(atPath: finalDest.path) {
-                                        finalDest = accessibleParent.appendingPathComponent("\(zipTempURL.deletingPathExtension().lastPathComponent) \(counter).zip")
-                                        counter += 1
-                                    }
-                                    do {
-                                        try FileManager.default.moveItem(at: zipTempURL, to: finalDest)
-                                        return finalDest
-                                    } catch {
-                                        // Fall back to copy
-                                        do {
-                                            try FileManager.default.copyItem(at: zipTempURL, to: dest)
-                                            try FileManager.default.removeItem(at: zipTempURL)
-                                            return dest
-                                        } catch {
-                                            print("❌ Failed to move/copy zip to target folder: \(error)")
-                                            return nil
-                                        }
-                                    }
-                                }) {
-                                    if let bookmark = try? Bookmark(url: final) {
-                                        let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
-                                        ShelfStateViewModel.shared.add([newItem])
-                                    } else {
-                                        NSWorkspace.shared.activateFileViewerSelecting([final])
-                                    }
-                                } else {
-                                    // couldn't move to parent, add temp archive to shelf
-                                    if let bookmark = try? Bookmark(url: zipTempURL) {
-                                        let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
-                                        ShelfStateViewModel.shared.add([newItem])
-                                    }
-                                }
+                            if let bookmark = try? Bookmark(url: zipTempURL) {
+                                let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
+                                ShelfStateViewModel.shared.add([newItem])
                             } else {
-                                // parent doesn't exist: keep temp zip and add to shelf
-                                if let bookmark = try? Bookmark(url: zipTempURL) {
-                                    let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
-                                    ShelfStateViewModel.shared.add([newItem])
-                                }
+                                // Fallback: reveal the temporary file in Finder
+                                NSWorkspace.shared.activateFileViewerSelecting([zipTempURL])
                             }
                         }
                     } catch {
@@ -1028,8 +985,8 @@ final class ShelfItemViewModel: ObservableObject {
             updateQualityLabel()
             updateCustomSizeVisibility()
             
-            // Keep the handler alive
-            objc_setAssociatedObject(accessoryView, "sliderHandler", handler, .OBJC_ASSOCIATION_RETAIN)
+            // Keep the handler alive using the `AssociatedObject` helper instead of a magic string key
+            MenuActionTarget.sliderHandlerAssoc[accessoryView] = handler
             
             alert.accessoryView = accessoryView
             

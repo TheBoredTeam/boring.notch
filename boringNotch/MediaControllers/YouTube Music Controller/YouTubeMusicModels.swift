@@ -37,6 +37,7 @@ struct PlaybackResponse: Decodable, Sendable {
     let imageSrc: String?
     let repeatMode: Int?
     let isShuffled: Bool?
+    let volume: Double?
 }
 
 // MARK: - WebSocket Message Types
@@ -118,6 +119,8 @@ extension PlaybackResponse {
             }
         }
         
+        let volume = extractDouble(from: websocketData, key: "volume") ?? extractDouble(from: songData, key: "volume")
+
         return PlaybackResponse(
             isPaused: isPaused,
             title: title,
@@ -128,6 +131,7 @@ extension PlaybackResponse {
             imageSrc: imageSrc,
             repeatMode: repeatModeInt,
             isShuffled: isShuffled,
+            volume: volume
         )
     }
     
@@ -141,7 +145,8 @@ extension PlaybackResponse {
             songDuration: songDuration,
             imageSrc: imageSrc,
             repeatMode: repeatMode,
-            isShuffled: isShuffled
+            isShuffled: isShuffled,
+            volume: volume
         )
     }
 }

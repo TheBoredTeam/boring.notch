@@ -38,19 +38,14 @@ class QuickShareService: ObservableObject {
     func discoverAvailableProviders() async {
         let finder = ShareServiceFinder()
 
-        let testItems: [Any]
-        let tempTextURL = await TemporaryFileStorageService.shared.createTempFile(for: .text(""))
-        if let fileURL = tempTextURL {
-            testItems = [URL(string:"http://example.com") ?? URL(fileURLWithPath: "/"), fileURL]
-        } else {
-            testItems = [URL(string:"http://example.com") ?? URL(fileURLWithPath: "/"), URL(fileURLWithPath: "/")]
-        }
+        // Use simple test items without creating actual temp files
+        // This avoids issues with the Share Sheet retaining references to deleted files
+        let testItems: [Any] = [
+            URL(string:"http://example.com") ?? URL(fileURLWithPath: "/"),
+            "Test Text" as NSString
+        ]
 
         let services = await finder.findApplicableServices(for: testItems)
-        
-        if let tempURL = tempTextURL {
-            TemporaryFileStorageService.shared.removeTemporaryFileIfNeeded(at: tempURL)
-        }
 
         var providers: [QuickShareProvider] = []
 

@@ -10,13 +10,11 @@ import Defaults
 import EventKit
 import KeyboardShortcuts
 import LaunchAtLogin
-import LottieUI
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
 struct SettingsView: View {
-    @StateObject var extensionManager = BoringExtensionManager()
     @State private var selectedTab = "General"
     @State private var accentColorUpdateTrigger = UUID()
 
@@ -47,13 +45,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
-                if extensionManager.installedExtensions
-                    .contains(where: { $0.bundleIdentifier == downloadManagerExtension })
-                {
-                    NavigationLink(value: "Downloads") {
-                        Label("Downloads", systemImage: "square.and.arrow.down")
-                    }
-                }
+//                NavigationLink(value: "Downloads") {
+//                    Label("Downloads", systemImage: "square.and.arrow.down")
+//                }
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
@@ -94,7 +88,7 @@ struct SettingsView: View {
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
-                    Extensions()
+                    GeneralSettings()
                 case "Advanced":
                     Advanced()
                 case "About":
@@ -122,7 +116,6 @@ struct SettingsView: View {
                     .accessibilityHidden(true)
             }
         }
-        .environmentObject(extensionManager)
         .formStyle(.grouped)
         .frame(width: 700)
         .background(Color(NSColor.windowBackgroundColor))
@@ -373,6 +366,11 @@ struct Charge: View {
                 Text("Battery Information")
             }
         }
+        .onAppear {
+            Task { @MainActor in
+                let helper = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            }
+        }
         .accentColor(.effectiveAccent)
         .navigationTitle("Battery")
     }
@@ -464,7 +462,7 @@ struct HUD: View {
     @Default(.enableGradient) var enableGradient
     @Default(.optionKeyAction) var optionKeyAction
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @State private var accessibilityAuthorized = MediaKeyInterceptor.shared.isAccessibilityAuthorized()
+    @State private var accessibilityAuthorized = false
     var body: some View {
         Form {
             Section {
@@ -472,7 +470,10 @@ struct HUD: View {
                     .disabled(!accessibilityAuthorized)
                     .help("Enable Accessibility in System Settings → Privacy & Security → Accessibility")
                     .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-                        accessibilityAuthorized = MediaKeyInterceptor.shared.isAccessibilityAuthorized()
+                        Task { @MainActor in
+                            let helper = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                            accessibilityAuthorized = helper
+                        }
                     }
 
                 if !accessibilityAuthorized {
@@ -483,7 +484,8 @@ struct HUD: View {
 
                         HStack(spacing: 12) {
                             Button("Request Accessibility") {
-                                MediaKeyInterceptor.shared.requestAccessibilityAuthorization()
+                                // Use unsandboxed XPC helper if available so the system prompt is shown
+                                XPCHelperClient.shared.requestAccessibilityAuthorization()
                             }
                             .buttonStyle(.borderedProminent)
                         }
@@ -534,6 +536,14 @@ struct HUD: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("HUDs")
+        .task {
+            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
+            if let granted = notification.userInfo?["granted"] as? Bool {
+                accessibilityAuthorized = granted
+            }
+        }
     }
 }
 
@@ -960,145 +970,144 @@ struct Shelf: View {
     }
 }
 
-struct Extensions: View {
-    @EnvironmentObject var extensionManager: BoringExtensionManager
-    @State private var effectTrigger: Bool = false
-    var body: some View {
-        Form {
-            Section {
-                List {
-                    ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
-                        let item = extensionManager.installedExtensions[index]
-                        HStack {
-                            AppIcon(for: item.bundleIdentifier)
-                                .resizable()
-                                .frame(width: 24, height: 24)
-                            Text(item.name)
-                            ListItemPopover {
-                                Text("Description")
-                            }
-                            Spacer(minLength: 0)
-                            HStack(spacing: 6) {
-                                Circle()
-                                    .frame(width: 6, height: 6)
-                                    .foregroundColor(
-                                        isExtensionRunning(item.bundleIdentifier)
-                                            ? .green : item.status == .disabled ? .gray : .red
-                                    )
-                                    .conditionalModifier(isExtensionRunning(item.bundleIdentifier))
-                                { view in
-                                    view
-                                        .shadow(color: .green, radius: 3)
-                                }
-                                Text(
-                                    isExtensionRunning(item.bundleIdentifier)
-                                        ? "Running"
-                                        : item.status == .disabled ? "Disabled" : "Stopped"
-                                )
-                                .contentTransition(.numericText())
-                                .foregroundStyle(.secondary)
-                                .font(.footnote)
-                            }
-                            .frame(width: 60, alignment: .leading)
-
-                            Menu(
-                                content: {
-                                    Button("Restart") {
-                                        let ws = NSWorkspace.shared
-
-                                        if let ext = ws.runningApplications.first(where: {
-                                            $0.bundleIdentifier == item.bundleIdentifier
-                                        }) {
-                                            ext.terminate()
-                                        }
-
-                                        if let appURL = ws.urlForApplication(
-                                            withBundleIdentifier: item.bundleIdentifier)
-                                        {
-                                            ws.openApplication(
-                                                at: appURL, configuration: .init(),
-                                                completionHandler: nil)
-                                        }
-                                    }
-                                    .keyboardShortcut("R", modifiers: .command)
-                                    Button("Disable") {
-                                        if let ext = NSWorkspace.shared.runningApplications.first(
-                                            where: { $0.bundleIdentifier == item.bundleIdentifier })
-                                        {
-                                            ext.terminate()
-                                        }
-                                        extensionManager.installedExtensions[index].status =
-                                            .disabled
-                                    }
-                                    .keyboardShortcut("D", modifiers: .command)
-                                    Divider()
-                                    Button("Uninstall", role: .destructive) {
-                                        //
-                                    }
-                                },
-                                label: {
-                                    Image(systemName: "ellipsis.circle")
-                                        .foregroundStyle(.secondary)
-                                }
-                            )
-                            .controlSize(.regular)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.vertical, 5)
-                    }
-                }
-                .frame(minHeight: 120)
-                .actionBar {
-                    Button {
-                    } label: {
-                        HStack(spacing: 3) {
-                            Image(systemName: "plus")
-                            Text("Add manually")
-                        }
-                        .foregroundStyle(.secondary)
-                    }
-                    .disabled(true)
-                    Spacer()
-                    Button {
-                        withAnimation(.linear(duration: 1)) {
-                            effectTrigger.toggle()
-                        } completion: {
-                            effectTrigger.toggle()
-                        }
-                        extensionManager.checkIfExtensionsAreInstalled()
-                    } label: {
-                        HStack(spacing: 3) {
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                                .rotationEffect(effectTrigger ? .degrees(360) : .zero)
-                        }
-                        .foregroundStyle(.secondary)
-                    }
-                }
-                .controlSize(.small)
-                .buttonStyle(PlainButtonStyle())
-                .overlay {
-                    if extensionManager.installedExtensions.isEmpty {
-                        Text("No extension installed")
-                            .foregroundStyle(Color(.secondaryLabelColor))
-                            .padding(.bottom, 22)
-                    }
-                }
-            } header: {
-                HStack(spacing: 0) {
-                    Text("Installed extensions")
-                    if !extensionManager.installedExtensions.isEmpty {
-                        Text(" – \(extensionManager.installedExtensions.count)")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        }
-        .accentColor(.effectiveAccent)
-        .navigationTitle("Extensions")
-        // TipsView()
-        // .padding(.horizontal, 19)
-    }
-}
+//struct Extensions: View {
+//    @State private var effectTrigger: Bool = false
+//    var body: some View {
+//        Form {
+//            Section {
+//                List {
+//                    ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
+//                        let item = extensionManager.installedExtensions[index]
+//                        HStack {
+//                            AppIcon(for: item.bundleIdentifier)
+//                                .resizable()
+//                                .frame(width: 24, height: 24)
+//                            Text(item.name)
+//                            ListItemPopover {
+//                                Text("Description")
+//                            }
+//                            Spacer(minLength: 0)
+//                            HStack(spacing: 6) {
+//                                Circle()
+//                                    .frame(width: 6, height: 6)
+//                                    .foregroundColor(
+//                                        isExtensionRunning(item.bundleIdentifier)
+//                                            ? .green : item.status == .disabled ? .gray : .red
+//                                    )
+//                                    .conditionalModifier(isExtensionRunning(item.bundleIdentifier))
+//                                { view in
+//                                    view
+//                                        .shadow(color: .green, radius: 3)
+//                                }
+//                                Text(
+//                                    isExtensionRunning(item.bundleIdentifier)
+//                                        ? "Running"
+//                                        : item.status == .disabled ? "Disabled" : "Stopped"
+//                                )
+//                                .contentTransition(.numericText())
+//                                .foregroundStyle(.secondary)
+//                                .font(.footnote)
+//                            }
+//                            .frame(width: 60, alignment: .leading)
+//
+//                            Menu(
+//                                content: {
+//                                    Button("Restart") {
+//                                        let ws = NSWorkspace.shared
+//
+//                                        if let ext = ws.runningApplications.first(where: {
+//                                            $0.bundleIdentifier == item.bundleIdentifier
+//                                        }) {
+//                                            ext.terminate()
+//                                        }
+//
+//                                        if let appURL = ws.urlForApplication(
+//                                            withBundleIdentifier: item.bundleIdentifier)
+//                                        {
+//                                            ws.openApplication(
+//                                                at: appURL, configuration: .init(),
+//                                                completionHandler: nil)
+//                                        }
+//                                    }
+//                                    .keyboardShortcut("R", modifiers: .command)
+//                                    Button("Disable") {
+//                                        if let ext = NSWorkspace.shared.runningApplications.first(
+//                                            where: { $0.bundleIdentifier == item.bundleIdentifier })
+//                                        {
+//                                            ext.terminate()
+//                                        }
+//                                        extensionManager.installedExtensions[index].status =
+//                                            .disabled
+//                                    }
+//                                    .keyboardShortcut("D", modifiers: .command)
+//                                    Divider()
+//                                    Button("Uninstall", role: .destructive) {
+//                                        //
+//                                    }
+//                                },
+//                                label: {
+//                                    Image(systemName: "ellipsis.circle")
+//                                        .foregroundStyle(.secondary)
+//                                }
+//                            )
+//                            .controlSize(.regular)
+//                        }
+//                        .buttonStyle(PlainButtonStyle())
+//                        .padding(.vertical, 5)
+//                    }
+//                }
+//                .frame(minHeight: 120)
+//                .actionBar {
+//                    Button {
+//                    } label: {
+//                        HStack(spacing: 3) {
+//                            Image(systemName: "plus")
+//                            Text("Add manually")
+//                        }
+//                        .foregroundStyle(.secondary)
+//                    }
+//                    .disabled(true)
+//                    Spacer()
+//                    Button {
+//                        withAnimation(.linear(duration: 1)) {
+//                            effectTrigger.toggle()
+//                        } completion: {
+//                            effectTrigger.toggle()
+//                        }
+//                        extensionManager.checkIfExtensionsAreInstalled()
+//                    } label: {
+//                        HStack(spacing: 3) {
+//                            Image(systemName: "arrow.triangle.2.circlepath")
+//                                .rotationEffect(effectTrigger ? .degrees(360) : .zero)
+//                        }
+//                        .foregroundStyle(.secondary)
+//                    }
+//                }
+//                .controlSize(.small)
+//                .buttonStyle(PlainButtonStyle())
+//                .overlay {
+//                    if extensionManager.installedExtensions.isEmpty {
+//                        Text("No extension installed")
+//                            .foregroundStyle(Color(.secondaryLabelColor))
+//                            .padding(.bottom, 22)
+//                    }
+//                }
+//            } header: {
+//                HStack(spacing: 0) {
+//                    Text("Installed extensions")
+//                    if !extensionManager.installedExtensions.isEmpty {
+//                        Text(" – \(extensionManager.installedExtensions.count)")
+//                            .foregroundStyle(.secondary)
+//                    }
+//                }
+//            }
+//        }
+//        .accentColor(.effectiveAccent)
+//        .navigationTitle("Extensions")
+//        // TipsView()
+//        // .padding(.horizontal, 19)
+//    }
+//}
 
 struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -1188,9 +1197,8 @@ struct Appearance: View {
                     ForEach(customVisualizers, id: \.self) { visualizer in
                         HStack {
                             LottieView(
-                                state: LUStateData(
-                                    type: .loadedFrom(visualizer.url), speed: visualizer.speed,
-                                    loopMode: .loop)
+                                url: visualizer.url, speed: visualizer.speed,
+                                loopMode: .loop
                             )
                             .frame(width: 30, height: 30, alignment: .center)
                             Text(visualizer.name)

@@ -44,6 +44,8 @@ class MusicManager: ObservableObject {
     @Published var playbackRate: Double = 1
     @Published var isShuffled: Bool = false
     @Published var repeatMode: RepeatMode = .off
+    @Published var volume: Double = 0.5
+    @Published var volumeControlSupported: Bool = true
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     @Published var currentLyrics: String = ""
@@ -235,7 +237,8 @@ class MusicManager: ObservableObject {
         let playbackRateChanged = state.playbackRate != self.playbackRate
         let shuffleChanged = state.isShuffled != self.isShuffled
         let repeatModeChanged = state.repeatMode != self.repeatMode
-
+        let volumeChanged = state.volume != self.volume
+        
         if state.title != self.songTitle {
             self.songTitle = state.title
         }
@@ -266,10 +269,16 @@ class MusicManager: ObservableObject {
 
         if state.bundleIdentifier != self.bundleIdentifier {
             self.bundleIdentifier = state.bundleIdentifier
+            // Update volume control support from active controller
+            self.volumeControlSupported = activeController?.supportsVolumeControl ?? false
         }
 
         if repeatModeChanged {
             self.repeatMode = state.repeatMode
+        }
+        
+        if volumeChanged {
+            self.volume = state.volume
         }
         
         self.timestampDate = state.lastUpdated
@@ -575,7 +584,14 @@ class MusicManager: ObservableObject {
             await activeController?.seek(to: position)
         }
     }
-
+    
+    func setVolume(to level: Double) {
+        if let controller = activeController {
+            Task {
+                await controller.setVolume(level)
+            }
+        }
+    }
     func openMusicApp() {
         guard let bundleID = bundleIdentifier else {
             print("Error: appBundleIdentifier is nil")
@@ -605,6 +621,35 @@ class MusicManager: ObservableObject {
                     await youtubeController.pollPlaybackState()
                 } else {
                     await self?.activeController?.updatePlaybackInfo()
+                }
+                // Sync volume after update
+                await self?.syncVolumeFromActiveApp()
+            }
+        }
+    }
+    
+    
+    func syncVolumeFromActiveApp() async {
+        guard let bundleID = bundleIdentifier, !bundleID.isEmpty else { return }
+        
+        var script: String?
+        if bundleID == "com.apple.Music" {
+            script = "tell application \"Music\" to get sound volume"
+        } else if bundleID == "com.spotify.client" {
+            script = "tell application \"Spotify\" to get sound volume"
+        } else {
+            // For unsupported apps, don't sync volume
+            return
+        }
+        
+        if let volumeScript = script,
+           let result = try? await AppleScriptHelper.execute(volumeScript) {
+            let volumeValue = result.int32Value
+            let currentVolume = Double(volumeValue) / 100.0
+            
+            await MainActor.run {
+                if abs(currentVolume - self.volume) > 0.01 {
+                    self.volume = currentVolume
                 }
             }
         }
