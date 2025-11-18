@@ -170,7 +170,7 @@ class BoringViewCoordinator: ObservableObject {
                 return
             }
         }
-        DispatchQueue.main.async {
+        Task { @MainActor in
             withAnimation(.smooth) {
                 self.sneakPeek.show = status
                 self.sneakPeek.type = type
