@@ -171,12 +171,10 @@ extension Defaults.Keys {
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
+    static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: false)
     
         // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
-    
-    // MARK: Wobble Animation
-    static let enableWobbleAnimation = Key<Bool>("enableWobbleAnimation", default: false)
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
