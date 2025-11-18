@@ -580,8 +580,8 @@ struct Media: View {
                             .foregroundStyle(.secondary)
                             .font(.caption)
                         Link(
-                            "https://github.com/th-ch/youtube-music",
-                            destination: URL(string: "https://github.com/th-ch/youtube-music")!
+                            "https://github.com/pear-devs/pear-desktop",
+                            destination: URL(string: "https://github.com/pear-devs/pear-desktop")!
                         )
                         .font(.caption)
                         .foregroundColor(.blue)  // Ensures it's visibly a link
@@ -1408,7 +1408,7 @@ struct Advanced: View {
             Section {
                 VStack(alignment: .leading, spacing: 16) {
                     // Toggle between system and custom
-                    Picker("Accent Color", selection: $useCustomAccentColor) {
+                    Picker("Accent color", selection: $useCustomAccentColor) {
                         Text("System").tag(false)
                         Text("Custom").tag(true)
                     }
@@ -1501,7 +1501,7 @@ struct Advanced: View {
                 }
                 .padding(.vertical, 4)
             } header: {
-                Text("Accent Color")
+                Text("Accent color")
             } footer: {
                 Text("Choose between your system accent color or customize it with your own selection.")
                     .multilineTextAlignment(.trailing)
