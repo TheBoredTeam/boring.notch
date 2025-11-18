@@ -27,6 +27,30 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         return bundleID == "com.apple.Music" || bundleID == "com.spotify.client"
     }
 
+    var supportsFavorite: Bool {
+        let bundleID = playbackState.bundleIdentifier
+        return bundleID == "com.apple.Music"
+    }
+
+    func setFavorite(_ favorite: Bool) async {
+        let bundleID = playbackState.bundleIdentifier
+        
+        if bundleID == "com.apple.Music" {
+            let script = """
+            tell application "Music"
+                try
+                    set favorited of current track to \(favorite ? "true" : "false")
+                end try
+            end tell
+            """
+            try? await AppleScriptHelper.executeVoid(script)
+        }
+        
+        // Update the favorite state locally and fetch updated info
+        try? await Task.sleep(for: .milliseconds(150))
+        await updatePlaybackInfo()
+    }
+
     private var lastMusicItem:
         (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
 
@@ -260,6 +284,30 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
         
         self.playbackState = newPlaybackState
+        
+        // Fetch favorite state for supported apps asynchronously
+        await fetchFavoriteStateIfSupported()
+    }
+    
+    private func fetchFavoriteStateIfSupported() async {
+        let bundleID = playbackState.bundleIdentifier
+        
+        if bundleID == "com.apple.Music" {
+            let script = """
+            tell application "Music"
+                try
+                    return favorited of current track
+                on error
+                    return false
+                end try
+            end tell
+            """
+            if let result = try? await AppleScriptHelper.execute(script) {
+                var updated = self.playbackState
+                updated.isFavorite = result.booleanValue
+                self.playbackState = updated
+            }
+        }
     }
     
 }

@@ -10,6 +10,10 @@ import Combine
 import SwiftUI
 
 class SpotifyController: MediaControllerProtocol {
+    func setFavorite(_ favorite: Bool) async {
+        //Placeholder
+    }
+    
     // MARK: - Properties
     @Published private var playbackState: PlaybackState = PlaybackState(
         bundleIdentifier: "com.spotify.client"
@@ -22,6 +26,8 @@ class SpotifyController: MediaControllerProtocol {
     var supportsVolumeControl: Bool {
         return true
     }
+
+    var supportsFavorite: Bool { false }
 
     private var notificationTask: Task<Void, Never>?
     

@@ -54,9 +54,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-                NavigationLink(value: "Extensions") {
-                    Label("Extensions", systemImage: "puzzlepiece.extension")
-                }
+                // NavigationLink(value: "Extensions") {
+                //     Label("Extensions", systemImage: "puzzlepiece.extension")
+                // }
                 NavigationLink(value: "Advanced") {
                     Label("Advanced", systemImage: "gearshape.2")
                 }
@@ -153,7 +153,7 @@ struct GeneralSettings: View {
                     get: { Defaults[.menubarIcon] },
                     set: { Defaults[.menubarIcon] = $0 }
                 )) {
-                    Text("Menubar icon")
+                    Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
                 LaunchAtLogin.Toggle("Launch at login")
@@ -164,7 +164,7 @@ struct GeneralSettings: View {
                     NotificationCenter.default.post(
                         name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
-                Picker("Show on a specific display", selection: $coordinator.preferredScreen) {
+                Picker("Preferred display", selection: $coordinator.preferredScreen) {
                     ForEach(screens, id: \.self) { screen in
                         Text(screen)
                     }
@@ -190,11 +190,11 @@ struct GeneralSettings: View {
                 Picker(
                     selection: $notchHeightMode,
                     label:
-                        Text("Notch display height")
+                        Text("Notch height on notch displays")
                 ) {
-                    Text("Match real notch size")
+                    Text("Match real notch height")
                         .tag(WindowHeightMode.matchRealNotchSize)
-                    Text("Match menubar height")
+                    Text("Match menu bar height")
                         .tag(WindowHeightMode.matchMenuBar)
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
@@ -220,10 +220,10 @@ struct GeneralSettings: View {
                             name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
-                Picker("Non-notch display height", selection: $nonNotchHeightMode) {
+                Picker("Notch height on non-notch displays", selection: $nonNotchHeightMode) {
                     Text("Match menubar height")
                         .tag(WindowHeightMode.matchMenuBar)
-                    Text("Match real notch size")
+                    Text("Match real notch height")
                         .tag(WindowHeightMode.matchRealNotchSize)
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
@@ -250,7 +250,7 @@ struct GeneralSettings: View {
                     }
                 }
             } header: {
-                Text("Notch Height")
+                Text("Notch sizing")
             }
 
             NotchBehaviour()
@@ -280,7 +280,7 @@ struct GeneralSettings: View {
             }
                 .disabled(!openNotchOnHover)
             if enableGestures {
-                Toggle("Media change with horizontal gestures", isOn: .constant(false))
+                Toggle("Change media with horizontal gestures", isOn: .constant(false))
                     .disabled(true)
                 Defaults.Toggle(key: .closeGestureEnabled) {
                     Text("Close gesture")
@@ -319,13 +319,13 @@ struct GeneralSettings: View {
                 Text("Open notch on hover")
             }
             Defaults.Toggle(key: .enableHaptics) {
-                Text("Enable haptics")
+                    Text("Enable haptic feedback")
             }
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
-                        Text("Minimum hover duration")
+                        Text("Hover delay")
                         Spacer()
                         Text("\(minimumHoverDuration, specifier: "%.1f")s")
                             .foregroundStyle(.secondary)
@@ -392,6 +392,10 @@ struct Charge: View {
                 
             } header: {
                 Text("Notifications")
+        }
+        .onAppear {
+            Task { @MainActor in
+                await XPCHelperClient.shared.isAccessibilityAuthorized()
             }
         }
         .navigationTitle("Battery")
@@ -533,7 +537,7 @@ struct HUD: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Enable HUD replacement", isOn: $coordinator.hudReplacement)
+                Toggle("Replace system HUD", isOn: $coordinator.hudReplacement)
                     .disabled(!accessibilityAuthorized)
                     .help("Enable Accessibility in System Settings → Privacy & Security → Accessibility")
                     .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -593,7 +597,7 @@ struct HUD: View {
                     Text("Enable glowing effect")
                 }
                 Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
-                    Text("Use accent color")
+                    Text("Tint progress bar with accent color")
                 }
             } header: {
                 HStack {
@@ -647,8 +651,8 @@ struct Media: View {
                             .foregroundStyle(.secondary)
                             .font(.caption)
                         Link(
-                            "https://github.com/th-ch/youtube-music",
-                            destination: URL(string: "https://github.com/th-ch/youtube-music")!
+                            "https://github.com/pear-devs/pear-desktop",
+                            destination: URL(string: "https://github.com/pear-devs/pear-desktop")!
                         )
                         .font(.caption)
                         .foregroundColor(.blue)  // Ensures it's visibly a link
@@ -661,28 +665,13 @@ struct Media: View {
                     .font(.caption)
                 }
             }
-            Section {
-                Defaults.Toggle(key: .enableLyrics) {
-                    HStack {
-                        Text("Show lyrics under player")
-                        customBadge(text: "Beta")
-                    }
-                }
-                Defaults.Toggle(key: .showShuffleAndRepeat) {
-                    HStack {
-                        Text("Show shuffle and repeat buttons")
-                        customBadge(text: "Beta")
-                    }
-                }
-            } header: {
-                Text("Media controls")
-            }
+            
             Section {
                 Toggle(
-                    "Enable music live activity",
+                    "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Toggle("Enable automatic sneak peek (show on media changes)", isOn: $enableSneakPeek)
+                Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
                         Text(style.rawValue).tag(style)
@@ -698,25 +687,40 @@ struct Media: View {
                         }
                     }
                 }
+                Picker(
+                    selection: $hideNotchOption,
+                    label:
+                        HStack {
+                            Text("Hide BoringNotch Options")
+                            customBadge(text: "Beta")
+                        }
+                ) {
+                    Text("Always hide in fullscreen").tag(HideNotchOption.always)
+                    Text("Hide only when NowPlaying app is in fullscreen").tag(
+                        HideNotchOption.nowPlayingOnly)
+                    Text("Never hide").tag(HideNotchOption.never)
+                }
+                .onChange(of: hideNotchOption) {
+                    Defaults[.enableFullscreenMediaDetection] = hideNotchOption != .never
+                }
             } header: {
                 Text("Media playback live activity")
             }
-
-            Picker(
-                selection: $hideNotchOption,
-                label:
+            
+            Section {
+                MusicSlotConfigurationView()
+                Defaults.Toggle(key: .enableLyrics) {
                     HStack {
-                        Text("Hide BoringNotch Options")
+                        Text("Show lyrics below artist name")
                         customBadge(text: "Beta")
                     }
-            ) {
-                Text("Always hide in fullscreen").tag(HideNotchOption.always)
-                Text("Hide only when NowPlaying app is in fullscreen").tag(
-                    HideNotchOption.nowPlayingOnly)
-                Text("Never hide").tag(HideNotchOption.never)
-            }
-            .onChange(of: hideNotchOption) {
-                Defaults[.enableFullscreenMediaDetection] = hideNotchOption != .never
+                }
+            } header: {
+                Text("Media controls")
+            }  footer: {
+                Text("Customize which controls appear in the music player. Volume expands when active.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .accentColor(.effectiveAccent)
@@ -738,6 +742,7 @@ struct CalendarSettings: View {
     @Default(.showCalendar) var showCalendar: Bool
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
+    @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
 
     var body: some View {
         Form {
@@ -749,6 +754,12 @@ struct CalendarSettings: View {
             }
             Defaults.Toggle(key: .hideAllDayEvents) {
                 Text("Hide all-day events")
+            }
+            Defaults.Toggle(key: .autoScrollToNextEvent) {
+                Text("Auto-scroll to next event")
+            }
+            Defaults.Toggle(key: .showFullEventTitles) {
+                Text("Always show full event titles")
             }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
@@ -824,6 +835,7 @@ struct CalendarSettings: View {
             }
         }
         .accentColor(.effectiveAccent)
+        .navigationTitle("Calendar")
         .onAppear {
             Task {
                 await calendarManager.checkCalendarAuthorization()
@@ -1196,7 +1208,7 @@ struct Appearance: View {
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
                 Defaults.Toggle(key: .settingsIconInNotch) {
-                    Text("Settings icon in notch")
+                    Text("Show settings icon in notch")
                 }
                 Defaults.Toggle(key: .useModernCloseAnimation) {
                     Text("Use simpler close animation")
@@ -1207,7 +1219,7 @@ struct Appearance: View {
 
             Section {
                 Defaults.Toggle(key: .coloredSpectrogram) {
-                    Text("Enable colored spectrograms")
+                    Text("Colored spectrogram")
                 }
                 Defaults
                     .Toggle("Player tinting", key: .playerColorTinting)
@@ -1436,7 +1448,6 @@ struct Advanced: View {
     @Default(.extendHoverArea) var extendHoverArea
     @Default(.showOnLockScreen) var showOnLockScreen
     @Default(.hideFromScreenRecording) var hideFromScreenRecording
-    @Default(.enableWobbleAnimation) var enableWobbleAnimation
     
     @State private var customAccentColor: Color = .accentColor
     @State private var selectedPresetColor: PresetAccentColor? = nil
@@ -1475,7 +1486,7 @@ struct Advanced: View {
             Section {
                 VStack(alignment: .leading, spacing: 16) {
                     // Toggle between system and custom
-                    Picker("Accent Color", selection: $useCustomAccentColor) {
+                    Picker("Accent color", selection: $useCustomAccentColor) {
                         Text("System").tag(false)
                         Text("Custom").tag(true)
                     }
@@ -1568,7 +1579,7 @@ struct Advanced: View {
                 }
                 .padding(.vertical, 4)
             } header: {
-                Text("Accent Color")
+                Text("Accent color")
             } footer: {
                 Text("Choose between your system accent color or customize it with your own selection.")
                     .multilineTextAlignment(.trailing)
@@ -1646,19 +1657,6 @@ struct Advanced: View {
                 }
             } header: {
                 Text("Window Behavior")
-            }
-            
-            Section {
-                Defaults.Toggle(key: .enableWobbleAnimation) {
-                    Text("Enable wobble animation")
-                }
-            } header: {
-                Text("Experimental Features")
-            } footer: {
-                Text("These features are experimental and may not work as expected.")
-                    .multilineTextAlignment(.trailing)
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
             }
         }
         .accentColor(.effectiveAccent)

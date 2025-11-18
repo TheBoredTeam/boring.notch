@@ -267,6 +267,8 @@ struct EventListView: View {
     @Environment(\.openURL) private var openURL
     @ObservedObject private var calendarManager = CalendarManager.shared
     let events: [EventModel]
+    @Default(.autoScrollToNextEvent) private var autoScrollToNextEvent
+    @Default(.showFullEventTitles) private var showFullEventTitles
 
 
     static func filteredEvents(events: [EventModel]) -> [EventModel] {
@@ -288,27 +290,65 @@ struct EventListView: View {
         Self.filteredEvents(events: events)
     }
 
-    var body: some View {
-        List {
-            ForEach(filteredEvents) { event in
-                Button(action: {
-                    if let url = event.calendarAppURL() {
-                        openURL(url)
-                    }
-                }) {
-                    eventRow(event)
-                }
-                .padding(.leading, -5)
-                .buttonStyle(PlainButtonStyle())
-                .listRowSeparator(.automatic)
-                .listRowSeparatorTint(.gray.opacity(0.2))
-                .listRowBackground(Color.clear)
+    private func scrollToNextEvent(proxy: ScrollViewProxy) {
+        let now = Date()
+
+        var targetEvent: EventModel?
+
+        if autoScrollToNextEvent {
+            targetEvent = filteredEvents
+                .filter { !$0.isAllDay && $0.start > now }
+                .sorted { $0.start < $1.start }
+                .first
+
+            if targetEvent == nil {
+                targetEvent = filteredEvents
+                    .filter { !$0.isAllDay && $0.start <= now && $0.end > now }
+                    .sorted { $0.start > $1.start }
+                    .first
             }
         }
-        .listStyle(.plain)
-        .scrollIndicators(.never)
-        .scrollContentBackground(.hidden)
-        .background(Color.clear)
+
+        if targetEvent == nil {
+            targetEvent = filteredEvents.first
+        }
+
+        guard let id = targetEvent?.id else { return }
+
+        Task { @MainActor in
+            withTransaction(Transaction(animation: nil)) {
+                    proxy.scrollTo(id, anchor: .top)
+            }
+        }
+    }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            List {
+                ForEach(filteredEvents) { event in
+                    Button(action: {
+                        if let url = event.calendarAppURL() {
+                            openURL(url)
+                        }
+                    }) {
+                        eventRow(event)
+                    }
+                    .id(event.id)
+                    .padding(.leading, -5)
+                    .buttonStyle(PlainButtonStyle())
+                    .listRowSeparator(.automatic)
+                    .listRowSeparatorTint(.gray.opacity(0.2))
+                    .listRowBackground(Color.clear)
+                }
+            }
+            .listStyle(.plain)
+            .scrollIndicators(.never)
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
+            .onAppear {
+                scrollToNextEvent(proxy: proxy)
+            }
+        }
         Spacer(minLength: 0)
     }
 
@@ -340,7 +380,7 @@ struct EventListView: View {
                         Text(event.title)
                             .font(.callout)
                             .foregroundColor(.white)
-                            .lineLimit(1)
+                            .lineLimit(showFullEventTitles ? nil : 1)
                         Spacer(minLength: 0)
                         VStack(alignment: .trailing, spacing: 4) {
                             if event.isAllDay {
@@ -378,7 +418,7 @@ struct EventListView: View {
                             .font(.callout)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
-                            .lineLimit(2)
+                            .lineLimit(showFullEventTitles ? nil : 2)
 
                         if let location = event.location, !location.isEmpty {
                             Text(location)

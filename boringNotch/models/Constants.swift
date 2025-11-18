@@ -131,6 +131,14 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    static let musicControlSlots = Key<[MusicControlButton]>(
+        "musicControlSlots",
+        default: MusicControlButton.defaultLayout
+    )
+    static let musicControlSlotLimit = Key<Int>(
+        "musicControlSlotLimit",
+        default: MusicControlButton.defaultLayout.count
+    )
     
         // MARK: Battery
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
@@ -168,12 +176,11 @@ extension Defaults.Keys {
         // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
+    static let showFullEventTitles = Key<Bool>("showFullEventTitles", default: false)
+    static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: false)
     
         // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
-    
-    // MARK: Wobble Animation
-    static let enableWobbleAnimation = Key<Bool>("enableWobbleAnimation", default: false)
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)

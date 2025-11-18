@@ -51,6 +51,8 @@ class MusicManager: ObservableObject {
     @Published var currentLyrics: String = ""
     @Published var isFetchingLyrics: Bool = false
     @Published var syncedLyrics: [(time: Double, text: String)] = []
+    @Published var canFavoriteTrack: Bool = false
+    @Published var isFavoriteTrack: Bool = false
 
     private var artworkData: Data? = nil
 
@@ -169,6 +171,8 @@ class MusicManager: ObservableObject {
 
         // Set new active controller
         activeController = controller
+        
+        self.canFavoriteTrack = controller.supportsFavorite
 
         // Get current state from active controller
         forceUpdate()
@@ -276,12 +280,61 @@ class MusicManager: ObservableObject {
         if repeatModeChanged {
             self.repeatMode = state.repeatMode
         }
+        if state.isFavorite != self.isFavoriteTrack {
+            self.isFavoriteTrack = state.isFavorite
+        }
         
         if volumeChanged {
             self.volume = state.volume
         }
         
         self.timestampDate = state.lastUpdated
+    }
+
+    func toggleFavoriteTrack() {
+        guard canFavoriteTrack else { return }
+        // Toggle based on current state
+        setFavorite(!isFavoriteTrack)
+    }
+
+    @MainActor
+    private func toggleAppleMusicFavorite() async {
+        let script = """
+        tell application \"Music\"
+            if it is running then
+                try
+                    set loved of current track to (not loved of current track)
+                    return loved of current track
+                on error
+                    return false
+                end try
+            else
+                return false
+            end if
+        end tell
+        """
+
+        if let result = try? await AppleScriptHelper.execute(script) {
+            let loved = result.booleanValue
+            self.isFavoriteTrack = loved
+            self.forceUpdate()
+        }
+    }
+
+    func setFavorite(_ favorite: Bool) {
+        guard canFavoriteTrack else { return }
+        guard let controller = activeController else { return }
+
+        Task { @MainActor in
+            await controller.setFavorite(favorite)
+            try? await Task.sleep(for: .milliseconds(150))
+            await controller.updatePlaybackInfo()
+        }
+    }
+
+    /// Placeholder dislike function
+    func dislikeCurrentTrack() {
+        setFavorite(false)
     }
 
     // MARK: - Lyrics
@@ -583,6 +636,10 @@ class MusicManager: ObservableObject {
         Task {
             await activeController?.seek(to: position)
         }
+    }
+    func skip(seconds: TimeInterval) {
+        let newPos = min(max(0, elapsedTime + seconds), songDuration)
+        seek(to: newPos)
     }
     
     func setVolume(to level: Double) {

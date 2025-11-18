@@ -802,7 +802,6 @@
       }
     },
     "%lld" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1403,7 +1402,6 @@
       }
     },
     "Accent color" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1502,9 +1500,6 @@
           }
         }
       }
-    },
-    "Accent Color" : {
-
     },
     "Access Denied" : {
       "localizations" : {
@@ -2507,6 +2502,9 @@
         }
       }
     },
+    "Always show full event titles" : {
+
+    },
     "Always show tabs" : {
       "localizations" : {
         "ar" : {
@@ -2806,6 +2804,9 @@
           }
         }
       }
+    },
+    "Auto-scroll to next event" : {
+
     },
     "Automatically check for updates" : {
       "localizations" : {
@@ -3208,7 +3209,6 @@
       }
     },
     "Battery Information" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -4209,7 +4209,6 @@
       }
     },
     "Change media with horizontal gestures" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5110,7 +5109,6 @@
       }
     },
     "Clear slot" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5511,7 +5509,6 @@
       }
     },
     "Colored spectrogram" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6712,7 +6709,6 @@
       }
     },
     "Customize which controls appear in the music player. Volume expands when active." : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7115,6 +7111,7 @@
       }
     },
     "Disabled" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7416,7 +7413,6 @@
       }
     },
     "Drag a control onto a slot" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7517,7 +7513,6 @@
       }
     },
     "Drag items in the preview to reorder or drop from the palette" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8017,9 +8012,6 @@
         }
       }
     },
-    "Enable automatic sneak peek (show on media changes)" : {
-
-    },
     "Enable blur effect behind album art" : {
       "localizations" : {
         "ar" : {
@@ -8221,6 +8213,7 @@
       }
     },
     "Enable colored spectrograms" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8521,7 +8514,6 @@
       }
     },
     "Enable haptic feedback" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8620,15 +8612,6 @@
           }
         }
       }
-    },
-    "Enable haptics" : {
-
-    },
-    "Enable HUD replacement" : {
-
-    },
-    "Enable music live activity" : {
-
     },
     "Enable shelf" : {
       "localizations" : {
@@ -8830,9 +8813,6 @@
         }
       }
     },
-    "Enable wobble animation" : {
-
-    },
     "Enhance your experience with HUDs" : {
       "localizations" : {
         "ar" : {
@@ -9033,9 +9013,6 @@
         }
       }
     },
-    "Experimental Features" : {
-
-    },
     "Extend hover area" : {
       "localizations" : {
         "ar" : {
@@ -9137,6 +9114,7 @@
       }
     },
     "Extensions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10837,7 +10815,6 @@
       }
     },
     "Hover delay" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10938,7 +10915,6 @@
       }
     },
     "https://github.com/pear-devs/pear-desktop" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -11037,9 +11013,6 @@
           }
         }
       }
-    },
-    "https://github.com/th-ch/youtube-music" : {
-
     },
     "HUD style" : {
       "localizations" : {
@@ -11341,9 +11314,6 @@
         }
       }
     },
-    "Information" : {
-
-    },
     "Inline" : {
       "localizations" : {
         "ar" : {
@@ -11546,7 +11516,6 @@
       }
     },
     "Layout Preview" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12247,7 +12216,6 @@
       }
     },
     "Match menu bar height" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12448,7 +12416,6 @@
       }
     },
     "Match real notch height" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12547,9 +12514,6 @@
           }
         }
       }
-    },
-    "Match real notch size" : {
-
     },
     "Max Capacity: %lld%%" : {
       "localizations" : {
@@ -12750,9 +12714,6 @@
           }
         }
       }
-    },
-    "Media change with horizontal gestures" : {
-
     },
     "Media controls" : {
       "localizations" : {
@@ -13254,9 +13215,6 @@
         }
       }
     },
-    "Menubar icon" : {
-
-    },
     "Mic %@" : {
       "localizations" : {
         "ar" : {
@@ -13356,9 +13314,6 @@
           }
         }
       }
-    },
-    "Minimum hover duration" : {
-
     },
     "Mirror" : {
       "localizations" : {
@@ -14561,9 +14516,6 @@
         }
       }
     },
-    "Non-notch display height" : {
-
-    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -14764,14 +14716,7 @@
         }
       }
     },
-    "Notch display height" : {
-
-    },
-    "Notch Height" : {
-
-    },
     "Notch height on non-notch displays" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14872,7 +14817,6 @@
       }
     },
     "Notch height on notch displays" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14973,7 +14917,6 @@
       }
     },
     "Notch sizing" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -15072,9 +15015,6 @@
           }
         }
       }
-    },
-    "Notifications" : {
-
     },
     "Open Calendar Settings" : {
       "localizations" : {
@@ -15777,7 +15717,6 @@
       }
     },
     "Preferred display" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16878,7 +16817,6 @@
       }
     },
     "Replace system HUD" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -17079,7 +17017,6 @@
       }
     },
     "Reset to Defaults" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -17881,9 +17818,6 @@
         }
       }
     },
-    "Settings icon in notch" : {
-
-    },
     "Shelf" : {
       "localizations" : {
         "ar" : {
@@ -18085,7 +18019,6 @@
       }
     },
     "Show battery indicator" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18186,7 +18119,6 @@
       }
     },
     "Show battery percentage" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18487,7 +18419,6 @@
       }
     },
     "Show lyrics below artist name" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18587,11 +18518,7 @@
         }
       }
     },
-    "Show lyrics under player" : {
-
-    },
     "Show menu bar icon" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18692,7 +18619,6 @@
       }
     },
     "Show music live activity" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18892,9 +18818,6 @@
         }
       }
     },
-    "Show on a specific display" : {
-
-    },
     "Show on all displays" : {
       "localizations" : {
         "ar" : {
@@ -18996,7 +18919,6 @@
       }
     },
     "Show power status icons" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19097,7 +19019,6 @@
       }
     },
     "Show power status notifications" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19198,7 +19119,6 @@
       }
     },
     "Show settings icon in notch" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19298,11 +19218,7 @@
         }
       }
     },
-    "Show shuffle and repeat buttons" : {
-
-    },
     "Show sneak peek on playback changes" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19801,9 +19717,6 @@
           }
         }
       }
-    },
-    "Sound" : {
-
     },
     "Speed" : {
       "localizations" : {
@@ -20406,9 +20319,6 @@
         }
       }
     },
-    "These features are experimental and may not work as expected." : {
-
-    },
     "Time to Full Charge: %lld min" : {
       "localizations" : {
         "ar" : {
@@ -20510,7 +20420,6 @@
       }
     },
     "Tint progress bar with accent color" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -21311,9 +21220,6 @@
         }
       }
     },
-    "Use accent color" : {
-
-    },
     "Use music visualizer spectrogram" : {
       "localizations" : {
         "ar" : {
@@ -21915,7 +21821,6 @@
       }
     },
     "View on GitHub: pear-devs/pear-desktop" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -22014,9 +21919,6 @@
           }
         }
       }
-    },
-    "View on GitHub: th-ch/youtube-music" : {
-
     },
     "Welcome" : {
       "localizations" : {
