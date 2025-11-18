@@ -27,6 +27,7 @@ struct PlaybackState {
     var lastUpdated: Date = Date.distantPast
     var artwork: Data?
     var volume: Double = 0.5
+    var isFavorite: Bool = false
 }
 
 extension PlaybackState: Equatable {
@@ -41,5 +42,6 @@ extension PlaybackState: Equatable {
             && lhs.isShuffled == rhs.isShuffled
             && lhs.repeatMode == rhs.repeatMode
             && lhs.artwork == rhs.artwork
+            && lhs.isFavorite == rhs.isFavorite
     }
 }

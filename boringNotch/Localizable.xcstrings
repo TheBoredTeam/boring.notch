@@ -807,6 +807,9 @@
       },
       "shouldTranslate" : false
     },
+    "%lld" : {
+
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -4428,6 +4431,9 @@
         }
       }
     },
+    "Clear slot" : {
+
+    },
     "Close" : {
       "localizations" : {
         "ar" : {
@@ -5440,6 +5446,9 @@
         }
       }
     },
+    "Customize which controls appear in the music player. Volume expands when active." : {
+
+    },
     "Default" : {
       "localizations" : {
         "ar" : {
@@ -6043,6 +6052,12 @@
           }
         }
       }
+    },
+    "Drag a control onto a slot" : {
+
+    },
+    "Drag items in the preview to reorder or drop from the palette" : {
+
     },
     "Drop files here" : {
       "localizations" : {
@@ -9667,6 +9682,9 @@
           }
         }
       }
+    },
+    "Layout Preview" : {
+
     },
     "Lottie JSON URL" : {
       "localizations" : {
@@ -14487,6 +14505,9 @@
     "Request Accessibility" : {
 
     },
+    "Reset to Defaults" : {
+
+    },
     "Restart" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16300,6 +16321,7 @@
       }
     },
     "Show shuffle and repeat buttons" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

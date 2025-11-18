@@ -10,7 +10,6 @@ import ApplicationServices
 import IOKit
 import CoreGraphics
 
-/// This object implements the protocol which we have defined. It provides the actual behavior for the service. It is 'exported' by the service to make it available to the process hosting the service over an NSXPCConnection.
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     
     @objc func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void) {
@@ -57,8 +56,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             }
             if loaded, let cls = NSClassFromString("KeyboardBrightnessClient") as? NSObject.Type {
                 clientInstance = cls.init()
-            } else {
-                clientInstance = nil
             }
         }
 
@@ -97,23 +94,17 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     @objc func currentKeyboardBrightness(with reply: @escaping (NSNumber?) -> Void) {
-        if let v = Self.keyboardClient.currentBrightness() {
-            reply(NSNumber(value: v))
-        } else {
-            reply(nil)
-        }
+        reply(Self.keyboardClient.currentBrightness().map { NSNumber(value: $0) })
     }
 
     @objc func setKeyboardBrightness(_ value: Float, with reply: @escaping (Bool) -> Void) {
-        let ok = Self.keyboardClient.setBrightness(value)
-        reply(ok)
+        reply(Self.keyboardClient.setBrightness(value))
     }
     // MARK: - Screen Brightness (moved from client app into helper)
 
     @objc func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void) {
         var b: Float = 0
-        let ok = displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) || (ioServiceFor(displayID: CGMainDisplayID()) != nil)
-        reply(ok)
+        reply(displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) || ioServiceFor(displayID: CGMainDisplayID()) != nil)
     }
 
     @objc func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void) {
@@ -137,7 +128,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     @objc func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void) {
         let clamped = max(0, min(1, value))
         if displayServicesSetBrightness(displayID: CGMainDisplayID(), value: clamped) {
-            reply(true); return
+            reply(true)
+            return
         }
         if let io = ioServiceFor(displayID: CGMainDisplayID()) {
             let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, clamped) == kIOReturnSuccess
@@ -168,25 +160,20 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     private func ioServiceFor(displayID: CGDirectDisplayID) -> io_service_t? {
         var iterator: io_iterator_t = 0
-        let matching = IOServiceMatching("IODisplayConnect")
-        let result = IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator)
-        if result != kIOReturnSuccess { return nil }
-        var service: io_service_t? = nil
-        while case let s = IOIteratorNext(iterator), s != 0 {
-            let info = IODisplayCreateInfoDictionary(s, 0).takeRetainedValue() as NSDictionary
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("IODisplayConnect"), &iterator) == kIOReturnSuccess else { return nil }
+        defer { IOObjectRelease(iterator) }
+
+        while case let service = IOIteratorNext(iterator), service != 0 {
+            let info = IODisplayCreateInfoDictionary(service, 0).takeRetainedValue() as NSDictionary
             if let vendorID = info[kDisplayVendorID] as? UInt32,
-               let productID = info[kDisplayProductID] as? UInt32 {
-                let vid = CGDisplayVendorNumber(displayID)
-                let pid = CGDisplayModelNumber(displayID)
-                if vendorID == vid && productID == pid {
-                    service = s
-                    break
-                }
+               let productID = info[kDisplayProductID] as? UInt32,
+               vendorID == CGDisplayVendorNumber(displayID),
+               productID == CGDisplayModelNumber(displayID) {
+                return service
             }
-            IOObjectRelease(s)
+            IOObjectRelease(service)
         }
-        IOObjectRelease(iterator)
-        return service
+        return nil
     }
 
     // MARK: - Helper handle for private framework
@@ -202,5 +189,4 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             return nil
         }()
     }
-    
 }
