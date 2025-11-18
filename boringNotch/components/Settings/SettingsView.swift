@@ -1394,7 +1394,9 @@ struct Appearance: View {
             }
 
             Section {
-                Defaults.Toggle("Enable boring mirror", key: .showMirror)
+                Defaults.Toggle(key: .showMirror) {
+                    Text("Enable boring mirror")
+                }
                     .disabled(!checkVideoInput())
                 Picker("Mirror shape", selection: $mirrorShape) {
                     Text("Circle")
