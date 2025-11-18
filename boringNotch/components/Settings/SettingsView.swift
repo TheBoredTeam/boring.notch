@@ -593,7 +593,9 @@ struct HUD: View {
                     Text("Gradient")
                         .tag(true)
                 }
-                Defaults.Toggle("Enable glowing effect", key: .systemEventIndicatorShadow)
+                Defaults.Toggle(key: .systemEventIndicatorShadow) {
+                    Text("Enable glowing effect")
+                }
                 Defaults.Toggle("Use accent color", key: .systemEventIndicatorUseAccent)
             } header: {
                 HStack {
