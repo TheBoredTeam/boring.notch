@@ -44,6 +44,21 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
+    private var topCornerRadius: CGFloat {
+       ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
+                ? cornerRadiusInsets.opened.top
+                : cornerRadiusInsets.closed.top
+    }
+
+    private var currentNotchShape: NotchShape {
+        NotchShape(
+            topCornerRadius: topCornerRadius,
+            bottomCornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
+                ? cornerRadiusInsets.opened.bottom
+                : cornerRadiusInsets.closed.bottom
+        )
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             let mainLayout = NotchLayout()
@@ -57,16 +72,12 @@ struct ContentView: View {
                 )
                 .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                 .background(.black)
-                .mask {
-                    ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
-                        ? NotchShape(
-                            topCornerRadius: cornerRadiusInsets.opened.top,
-                            bottomCornerRadius: cornerRadiusInsets.opened.bottom
-                        )
-                        : NotchShape(
-                            topCornerRadius: cornerRadiusInsets.closed.top,
-                            bottomCornerRadius: cornerRadiusInsets.closed.bottom
-                        )
+                .clipShape(currentNotchShape)
+                .overlay(alignment: .top) {
+                    Rectangle()
+                        .fill(.black)
+                        .frame(height: 1)
+                        .padding(.horizontal, topCornerRadius)
                 }
                 .padding(
                     .bottom,
