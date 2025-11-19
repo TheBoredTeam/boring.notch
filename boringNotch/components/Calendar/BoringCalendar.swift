@@ -290,34 +290,21 @@ struct EventListView: View {
         Self.filteredEvents(events: events)
     }
 
-    private func scrollToNextEvent(proxy: ScrollViewProxy) {
+    private func scrollToRelevantEvent(proxy: ScrollViewProxy) {
         let now = Date()
-
-        var targetEvent: EventModel?
-
-        if autoScrollToNextEvent {
-            targetEvent = filteredEvents
-                .filter { !$0.isAllDay && $0.start > now }
-                .sorted { $0.start < $1.start }
-                .first
-
-            if targetEvent == nil {
-                targetEvent = filteredEvents
-                    .filter { !$0.isAllDay && $0.start <= now && $0.end > now }
-                    .sorted { $0.start > $1.start }
-                    .first
+        // Find the first event that is in progress or upcoming
+        if let target = filteredEvents.first(where: { $0.end > now }) {
+            Task { @MainActor in
+                withTransaction(Transaction(animation: nil)) {
+                    proxy.scrollTo(target.id, anchor: .top)
+                }
             }
-        }
-
-        if targetEvent == nil {
-            targetEvent = filteredEvents.first
-        }
-
-        guard let id = targetEvent?.id else { return }
-
-        Task { @MainActor in
-            withTransaction(Transaction(animation: nil)) {
-                    proxy.scrollTo(id, anchor: .top)
+        } else if let last = filteredEvents.last {
+            // If all events are in the past, scroll to the last one
+            Task { @MainActor in
+                withTransaction(Transaction(animation: nil)) {
+                    proxy.scrollTo(last.id, anchor: .top)
+                }
             }
         }
     }
@@ -346,7 +333,10 @@ struct EventListView: View {
             .scrollContentBackground(.hidden)
             .background(Color.clear)
             .onAppear {
-                scrollToNextEvent(proxy: proxy)
+                scrollToRelevantEvent(proxy: proxy)
+            }
+            .onChange(of: filteredEvents) { _, _ in
+                scrollToRelevantEvent(proxy: proxy)
             }
         }
         Spacer(minLength: 0)
