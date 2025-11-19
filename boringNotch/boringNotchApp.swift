@@ -194,13 +194,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        
-        // Ensure the bundled accessibility helper is available
-        do {
-            try XPCHelperClient.shared.register()
-        } catch {
-            print("Failed to validate accessibility helper: \(error)")
-        }
 
         NotificationCenter.default.addObserver(
             self,
@@ -344,17 +337,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if Defaults[.hudReplacement] {
             Task { @MainActor in
-                // Ensure helper is registered
-                if !XPCHelperClient.shared.isRegistered {
-                    do {
-                        try XPCHelperClient.shared.register()
-                    } catch {
-                        print("Failed to register XPC helper: \(error)")
-                        return
-                    }
-                }
-                
-                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+               let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
                 if authorized {
                     MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
                 } else {
@@ -365,9 +348,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
-
-        // Connect to the helper to establish XPC communication
-        XPCHelperClient.shared.connect()
 
         previousScreens = NSScreen.screens
     }
