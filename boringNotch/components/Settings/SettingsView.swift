@@ -466,12 +466,14 @@ struct HUD: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Replace system HUD", isOn: $coordinator.hudReplacement)
-                    .disabled(!accessibilityAuthorized)
-                    .help("Enable Accessibility in System Settings → Privacy & Security → Accessibility")
-                    .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-                        Task { @MainActor in
-                            let helper = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                Defaults.Toggle(key: .hudReplacement) {
+                   Text("Replace system HUD")
+                }
+                .disabled(!accessibilityAuthorized)
+                .help("Enable Accessibility in System Settings → Privacy & Security → Accessibility")
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                    Task { @MainActor in
+                        let helper = await XPCHelperClient.shared.isAccessibilityAuthorized()
                             accessibilityAuthorized = helper
                         }
                     }

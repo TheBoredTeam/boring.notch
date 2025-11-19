@@ -79,41 +79,7 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
     
-    @AppStorage("hudReplacement") var hudReplacement: Bool = true {
-        didSet {
-            guard hudReplacement != oldValue else { return }
-
-            hudEnableTask?.cancel()
-            hudEnableTask = nil
-
-            if hudReplacement {
-                hudEnableTask = Task { @MainActor in
-                    // Check prior authorization so we only restart if permissions were newly granted
-                    let priorAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-
-                    MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: true)
-
-                    let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: false)
-
-                    if Task.isCancelled { return }
-
-                    if granted {
-                        // Restart only if authorization was newly granted
-                        if !priorAuthorized {
-                            // newly granted; restart
-                            ApplicationRelauncher.restart()
-                        } else {
-                            // already granted; no restart needed
-                        }
-                    } else {
-                        self.hudReplacement = false
-                    }
-                }
-            } else {
-                MediaKeyInterceptor.shared.stop()
-            }
-        }
-    }    
+    @Default(.hudReplacement) var hudReplacement: Bool    
     @AppStorage("preferred_screen_name") var preferredScreen = NSScreen.main?.localizedName ?? "Unknown" {
         didSet {
             selectedScreen = preferredScreen
@@ -124,9 +90,81 @@ class BoringViewCoordinator: ObservableObject {
     @Published var selectedScreen: String = NSScreen.main?.localizedName ?? "Unknown"
 
     @Published var optionKeyPressed: Bool = true
+    private var accessibilityObserver: Any?
+    private var hudReplacementCancellable: AnyCancellable?
 
     private init() {
         selectedScreen = preferredScreen
+        // Observe changes to accessibility authorization and react accordingly
+        accessibilityObserver = NotificationCenter.default.addObserver(
+            forName: Notification.Name.accessibilityAuthorizationChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                let granted = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                if !granted {
+                    // If permission was revoked, disable HUD replacement
+                    Defaults[.hudReplacement] = false
+                } else {
+                    // If permission granted and user prefers HUD replacement, ensure interceptor is running
+                    if Defaults[.hudReplacement] {
+                        MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
+                    }
+                }
+            }
+        }
+
+        // Observe changes to hudReplacement
+        hudReplacementCancellable = Defaults.publisher(.hudReplacement)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self = self else { return }
+
+                    self.hudEnableTask?.cancel()
+                    self.hudEnableTask = nil
+
+                    if change.newValue {
+                        self.hudEnableTask = Task { @MainActor in
+                            // Check prior authorization so we only restart if permissions were newly granted
+                            let priorAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+
+                            MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: true)
+
+                            let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: false)
+
+                            if Task.isCancelled { return }
+
+                            if granted {
+                                // Restart only if authorization was newly granted
+                                if !priorAuthorized {
+                                    // newly granted; restart
+                                    ApplicationRelauncher.restart()
+                                } else {
+                                    // already granted; no restart needed
+                                }
+                            } else {
+                                Defaults[.hudReplacement] = false
+                            }
+                        }
+                    } else {
+                        MediaKeyInterceptor.shared.stop()
+                    }
+                }
+            }
+
+        // On startup, ensure the hudReplacement state reflects current authorization
+        Task { @MainActor in
+            if Defaults[.hudReplacement] {
+                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                if !authorized {
+                    Defaults[.hudReplacement] = false
+                } else {
+                    MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
+                }
+            }
+        }
     }
     
     @objc func sneakPeekEvent(_ notification: Notification) {
@@ -166,11 +204,11 @@ class BoringViewCoordinator: ObservableObject {
         sneakPeekDuration = duration
         if type != .music {
             // close()
-            if !hudReplacement {
+            if !Defaults[.hudReplacement] {
                 return
             }
         }
-        DispatchQueue.main.async {
+        Task { @MainActor in
             withAnimation(.smooth) {
                 self.sneakPeek.show = status
                 self.sneakPeek.type = type

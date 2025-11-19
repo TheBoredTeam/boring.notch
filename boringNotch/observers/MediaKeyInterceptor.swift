@@ -81,7 +81,7 @@ final class MediaKeyInterceptor {
     }
 
 
-    @MainActor private func handleSystemDefined(event cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
+    private func handleSystemDefined(event cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
         guard let nsEvent = NSEvent(cgEvent: cgEvent), nsEvent.type == .systemDefined, nsEvent.subtype.rawValue == 8 else {
             return Unmanaged.passRetained(cgEvent)
         }
@@ -118,7 +118,10 @@ final class MediaKeyInterceptor {
                     openSystemSettings(for: nx)
                     return nil
                 case .showHUD:
-                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(VolumeManager.shared.rawVolume))
+                    Task { @MainActor in
+                        let v = VolumeManager.shared.rawVolume
+                        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(v))
+                    }
                     return nil
                 case .none:
                     return nil
@@ -126,7 +129,9 @@ final class MediaKeyInterceptor {
             }
 
             // Use the high-level API which also shows the HUD immediately with the target value
-            VolumeManager.shared.increase(stepDivisor: stepDivisor)
+            Task { @MainActor in
+                VolumeManager.shared.increase(stepDivisor: stepDivisor)
+            }
             return nil
         case .soundDown:
             if optionDown && !shiftDown {
@@ -135,14 +140,19 @@ final class MediaKeyInterceptor {
                     openSystemSettings(for: nx)
                     return nil
                 case .showHUD:
-                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(VolumeManager.shared.rawVolume))
+                    Task { @MainActor in
+                        let v = VolumeManager.shared.rawVolume
+                        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(v))
+                    }
                     return nil
                 case .none:
                     return nil
                 }
             }
 
-            VolumeManager.shared.decrease(stepDivisor: stepDivisor)
+            Task { @MainActor in
+                VolumeManager.shared.decrease(stepDivisor: stepDivisor)
+            }
             return nil
         case .mute:
             if optionDown && !shiftDown {
@@ -151,56 +161,104 @@ final class MediaKeyInterceptor {
                     openSystemSettings(for: nx)
                     return nil
                 case .showHUD:
-                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(VolumeManager.shared.rawVolume))
-                    return nil
-                case .none:
-                    return nil
-            }
-        }
-
-            VolumeManager.shared.toggleMuteAction()
-            return nil
-        case .brightnessUp:
-            if optionDown && !shiftDown {
-                switch optionAction {
-        case .openSettings:
-                    openSystemSettings(for: nx)
-                    return nil
-        case .showHUD:
-                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(BrightnessManager.shared.rawBrightness))
-                    return nil
-        case .none:
-                    return nil
-        }
-    }
-
-            let delta = brightnessStep / stepDivisor
-            if commandDown {
-                KeyboardBacklightManager.shared.setRelative(delta: delta)
-            } else {
-                BrightnessManager.shared.setRelative(delta: delta)
-            }
-            return nil
-        case .brightnessDown:
-            if optionDown && !shiftDown {
-                switch optionAction {
-                case .openSettings:
-                    openSystemSettings(for: nx)
-                    return nil
-                case .showHUD:
-                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(BrightnessManager.shared.rawBrightness))
+                    Task { @MainActor in
+                        let v = VolumeManager.shared.rawVolume
+                        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(v))
+                    }
                     return nil
                 case .none:
                     return nil
                 }
             }
 
+            Task { @MainActor in
+                VolumeManager.shared.toggleMuteAction()
+            }
+            return nil
+        case .brightnessUp:
+            if optionDown && !shiftDown {
+               if optionDown && !shiftDown {
+                    switch optionAction {
+                    case .openSettings:
+                        if commandDown {
+                            openKeyboardSettings()
+
+                        } else {
+                            openSystemSettings(for: nx)
+                        }
+                        return nil
+                    case .showHUD:
+                        if commandDown {
+                            Task { @MainActor in
+                                let v = KeyboardBacklightManager.shared.rawBrightness
+                                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
+                            }
+                        } else {
+                            Task { @MainActor in
+                                let v = BrightnessManager.shared.rawBrightness
+                                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v))
+                            }
+                        }
+                        return nil
+                    case .none:
+                        return nil
+                    }
+                }
+            }
+
+        let delta = brightnessStep / stepDivisor
+        if commandDown {
+            Task { @MainActor in
+                KeyboardBacklightManager.shared.setRelative(delta: delta)
+            }
+        } else {
+            Task { @MainActor in
+                BrightnessManager.shared.setRelative(delta: delta)
+            }
+        }
+        return nil
+
+        case .brightnessDown:
+            if optionDown && !shiftDown {
+               if optionDown && !shiftDown {
+                    switch optionAction {
+                    case .openSettings:
+                        if commandDown {
+                            openKeyboardSettings()
+
+                        } else {
+                            openSystemSettings(for: nx)
+                        }
+                        return nil
+                    case .showHUD:
+                        if commandDown {
+                            Task { @MainActor in
+                                let v = KeyboardBacklightManager.shared.rawBrightness
+                                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
+                            }
+                        } else {
+                            Task { @MainActor in
+                                let v = BrightnessManager.shared.rawBrightness
+                                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v))
+                            }
+                        }
+                        return nil
+                    case .none:
+                        return nil
+                    }
+                }
+            }
+
             let delta = -(brightnessStep / stepDivisor)
             if commandDown {
-                KeyboardBacklightManager.shared.setRelative(delta: delta)
+                Task { @MainActor in
+                    KeyboardBacklightManager.shared.setRelative(delta: delta)
+                }
             } else {
-                BrightnessManager.shared.setRelative(delta: delta)
-        }
+                Task { @MainActor in
+                    BrightnessManager.shared.setRelative(delta: delta)
+                }
+            }
             return nil
         }
     }
@@ -220,4 +278,13 @@ final class MediaKeyInterceptor {
             NSWorkspace.shared.open(url)
         }
     }
+
+    private func openKeyboardSettings() {
+        let urlString = "x-apple.systempreferences:com.apple.preference.keyboard"
+        guard let url = URL(string: urlString) else { return }
+        DispatchQueue.main.async {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
 }
