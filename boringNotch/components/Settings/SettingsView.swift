@@ -392,6 +392,7 @@ struct Charge: View {
                 
             } header: {
                 Text("Notifications")
+            }
         }
         .onAppear {
             Task { @MainActor in
