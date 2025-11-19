@@ -342,7 +342,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.showOnboardingWindow(step: .musicPermission)
             }
         }
-        if coordinator.hudReplacement {
+        if Defaults[.hudReplacement] {
             Task { @MainActor in
                 // Ensure helper is registered
                 if !XPCHelperClient.shared.isRegistered {

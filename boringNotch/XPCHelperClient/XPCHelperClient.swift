@@ -8,7 +8,17 @@ final class XPCHelperClient {
     private let helperServiceName = "theboringteam.boringnotch.BoringNotchXPCHelper"
     private var lastKnownAuthorization: Bool?
     private var isConnecting = false
-    private let connectionQueue = DispatchQueue(label: "com.boringnotch.xpc.connection")
+    private let connectionQueue = DispatchQueue(label: "com.boringnotch.xpc.connection", qos: .userInitiated)
+    
+    var serviceName: String { helperServiceName }
+    
+    private init() {}
+    
+    deinit {
+        disconnect()
+    }
+    
+    // MARK: - Helper Bundle Detection
     
     private var helperBundleURL: URL? {
         let bundleURL = Bundle.main.bundleURL
@@ -20,11 +30,7 @@ final class XPCHelperClient {
         return FileManager.default.fileExists(atPath: url.path)
     }
     
-    var serviceName: String { helperServiceName }
-    
-    private init() {}
-    
-    // MARK: - Helper Availability
+    // MARK: - Registration
     
     /// Validate that the helper binary is bundled with the app
     func register() throws {
@@ -60,19 +66,13 @@ final class XPCHelperClient {
 
             conn.interruptionHandler = { [weak self] in
                 guard let self = self else { return }
-                self.connectionQueue.async {
-                    self.connection?.invalidate()
-                    self.connection = nil
-                    self.isConnecting = false
-                }
+                self.handleConnectionInterruption()
             }
 
+            // Handle connection invalidation (permanent loss)
             conn.invalidationHandler = { [weak self] in
                 guard let self = self else { return }
-                self.connectionQueue.async {
-                    self.connection = nil
-                    self.isConnecting = false
-                }
+                self.handleConnectionInvalidation()
             }
 
             conn.resume()
@@ -89,14 +89,34 @@ final class XPCHelperClient {
         }
     }
 
-    private func proxy() -> BoringNotchXPCHelperProtocol? {
-        if connection == nil {
-            connect()
+    private func handleConnectionInterruption() {
+        connectionQueue.async {
+            self.connection?.invalidate()
+            self.connection = nil
+            self.isConnecting = false
         }
-        
-        let proxy = connection?.remoteObjectProxy as? BoringNotchXPCHelperProtocol
-        
-        return proxy
+    }
+
+    private func handleConnectionInvalidation() {
+        connectionQueue.async {
+            self.connection = nil
+            self.isConnecting = false
+        }
+    }
+
+    private func getConnection() -> NSXPCConnection? {
+        return connectionQueue.sync {
+            if connection == nil && !isConnecting {
+                connect()
+            }
+            return connection
+        }
+    }
+
+    /// Get remote proxy for making calls to helper
+    private func proxy() -> BoringNotchXPCHelperProtocol? {
+        guard let conn = getConnection() else { return nil }
+        return conn.remoteObjectProxy as? BoringNotchXPCHelperProtocol
     }
 
     private func notifyAuthorizationChangeIfNeeded(_ granted: Bool) {
@@ -114,6 +134,7 @@ final class XPCHelperClient {
         }
     }
 
+
     // MARK: - Accessibility Methods
 
     func requestAccessibilityAuthorization() {
@@ -122,7 +143,7 @@ final class XPCHelperClient {
 
     func isAccessibilityAuthorized() async -> Bool {
         await withCheckedContinuation { continuation in
-            guard let conn = connection ?? { connect(); return connection }() else {
+            guard let conn = getConnection() else {
                 continuation.resume(returning: false)
                 return
             }
@@ -140,7 +161,7 @@ final class XPCHelperClient {
 
     func ensureAccessibilityAuthorization(promptIfNeeded: Bool) async -> Bool {
         await withCheckedContinuation { continuation in
-            guard let conn = connection ?? { connect(); return connection }() else {
+            guard let conn = getConnection() else {
                 continuation.resume(returning: false)
                 return
             }
@@ -156,11 +177,11 @@ final class XPCHelperClient {
         }
     }
 
-    // MARK: - Keyboard backlight access via helper
+    // MARK: - Keyboard Brightness Access
 
     func isKeyboardBrightnessAvailable() async -> Bool {
         await withCheckedContinuation { continuation in
-            guard let conn = connection ?? { connect(); return connection }() else {
+            guard let conn = getConnection() else {
                 continuation.resume(returning: false)
                 return
             }
@@ -177,7 +198,7 @@ final class XPCHelperClient {
 
     func currentKeyboardBrightness() async -> Float? {
         await withCheckedContinuation { continuation in
-            guard let conn = connection ?? { connect(); return connection }() else {
+            guard let conn = getConnection() else {
                 continuation.resume(returning: nil)
                 return
             }
@@ -187,15 +208,18 @@ final class XPCHelperClient {
             } as? BoringNotchXPCHelperProtocol
 
             remote?.currentKeyboardBrightness { number in
-                if let n = number { continuation.resume(returning: Float(truncating: n)) }
-                else { continuation.resume(returning: nil) }
+                if let n = number { 
+                    continuation.resume(returning: Float(truncating: n))
+                } else { 
+                    continuation.resume(returning: nil)
+                }
             }
         }
     }
 
     func setKeyboardBrightness(_ value: Float) async -> Bool {
         await withCheckedContinuation { continuation in
-            guard let conn = connection ?? { connect(); return connection }() else {
+            guard let conn = getConnection() else {
                 continuation.resume(returning: false)
                 return
             }
@@ -210,11 +234,11 @@ final class XPCHelperClient {
         }
     }
 
-    // MARK: - Screen brightness access via helper
+    // MARK: - Screen Brightness Access
 
     func isScreenBrightnessAvailable() async -> Bool {
         await withCheckedContinuation { continuation in
-            guard let conn = connection ?? { connect(); return connection }() else {
+            guard let conn = getConnection() else {
                 continuation.resume(returning: false)
                 return
             }
@@ -231,7 +255,7 @@ final class XPCHelperClient {
 
     func currentScreenBrightness() async -> Float? {
         await withCheckedContinuation { continuation in
-            guard let conn = connection ?? { connect(); return connection }() else {
+            guard let conn = getConnection() else {
                 continuation.resume(returning: nil)
                 return
             }
@@ -241,15 +265,18 @@ final class XPCHelperClient {
             } as? BoringNotchXPCHelperProtocol
 
             remote?.currentScreenBrightness { number in
-                if let n = number { continuation.resume(returning: Float(truncating: n)) }
-                else { continuation.resume(returning: nil) }
+                if let n = number { 
+                    continuation.resume(returning: Float(truncating: n))
+                } else { 
+                    continuation.resume(returning: nil)
+                }
             }
         }
     }
 
     func setScreenBrightness(_ value: Float) async -> Bool {
         await withCheckedContinuation { continuation in
-            guard let conn = connection ?? { connect(); return connection }() else {
+            guard let conn = getConnection() else {
                 continuation.resume(returning: false)
                 return
             }
