@@ -18,6 +18,7 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case bluetooth
 }
 
 struct sneakPeek {
@@ -58,6 +59,7 @@ class BoringViewCoordinator: ObservableObject {
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @AppStorage("musicLiveActivityEnabled") var musicLiveActivityEnabled: Bool = true
+    @AppStorage("bluetoothLiveActivityEnabled") var bluetoothLiveActivityEnabled: Bool = true
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
 
     @AppStorage("alwaysShowTabs") var alwaysShowTabs: Bool = true {

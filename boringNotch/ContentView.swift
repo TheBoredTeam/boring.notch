@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var bluetoothManager = BluetoothManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -227,6 +228,8 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
+                      } else if coordinator.expandingView.show && coordinator.expandingView.type == .bluetooth && vm.notchState == .closed && coordinator.bluetoothLiveActivityEnabled && !vm.hideOnClosed {
+                          BluetoothLiveActivity()
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
@@ -420,6 +423,110 @@ struct ContentView: View {
                 ),
                 alignment: .center
             )
+        }
+        .frame(
+            height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0),
+            alignment: .center
+        )
+    }
+
+    @ViewBuilder
+    func BluetoothLiveActivity() -> some View {
+        HStack {
+            let deviceName = bluetoothManager.deviceName.lowercased()
+            let iconName: String = {
+                if deviceName.contains("airpods pro") {
+                    return "airpodspro"
+                } else if deviceName.contains("airpods max") {
+                    return "airpodsmax"
+                } else if deviceName.contains("airpods") {
+                    return "airpods"
+                } else {
+                    return "headphones.circle.fill"
+                }
+            }()
+            
+            Image(systemName: iconName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .foregroundStyle(.white, Color.accentColor)
+                .symbolRenderingMode(.palette)
+                .frame(
+                    width: max(0, vm.effectiveClosedNotchHeight - 12),
+                    height: max(0, vm.effectiveClosedNotchHeight - 12)
+                )
+                .clipShape(
+                    RoundedRectangle(
+                        cornerRadius: 4)
+                )
+            
+            Rectangle()
+                .fill(.black)
+                .overlay(
+                    HStack(alignment: .top) {
+                        if coordinator.expandingView.show
+                            && coordinator.expandingView.type == .bluetooth
+                        {
+                            MarqueeText(
+                                .constant(bluetoothManager.deviceName),
+                                textColor: .gray,
+                                minDuration: 0.4,
+                                frameWidth: 100
+                            )
+                            .opacity(
+                                (coordinator.expandingView.show
+                                    && Defaults[.sneakPeekStyles] == .inline)
+                                    ? 1 : 0
+                            )
+                            Spacer(minLength: vm.closedNotchSize.width)
+                        } else {
+                            MarqueeText(
+                                .constant(bluetoothManager.deviceName),
+                                textColor: .gray,
+                                minDuration: 1.0,
+                                frameWidth: vm.closedNotchSize.width - 20
+                            )
+                        }
+                    }
+                )
+                .frame(
+                    width: (coordinator.expandingView.show
+                        && coordinator.expandingView.type == .bluetooth
+                        && Defaults[.sneakPeekStyles] == .inline)
+                        ? 380
+                        : vm.closedNotchSize.width
+                            + (isHovering ? 8 : -cornerRadiusInsets.closed.top)
+                )
+            if let battery = bluetoothManager.batteryPercentage {
+                HStack {
+                    /*
+                    ZStack {
+                        Image(systemName: bluetoothManager.isBluetoothConnected ? "circle" : "circle.slash")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .foregroundStyle(bluetoothManager.isBluetoothConnected ? .green : .gray)
+                            .symbolRenderingMode(bluetoothManager.isBluetoothConnected ? .monochrome : .hierarchical)
+                            .frame(
+                                width: 20,
+                                height: 20
+                            )
+                    }
+                     */
+                    BatteryRing(percentage: Double(battery))
+                }
+                .frame(
+                    width: max(
+                        0,
+                        vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                            + gestureProgress / 2
+                    ),
+                    height: max(
+                        0,
+                        vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                    ),
+                    alignment: .center
+                )
+            }
         }
         .frame(
             height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0),

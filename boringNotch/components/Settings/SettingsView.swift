@@ -600,6 +600,10 @@ struct Media: View {
                     "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
+                Toggle(
+                    "Show Bluetooth live activity",
+                    isOn: $coordinator.bluetoothLiveActivityEnabled.animation()
+                )
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
