@@ -449,8 +449,8 @@ struct ContentView: View {
             Image(systemName: iconName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .foregroundStyle(.white, Color.accentColor)
-                .symbolRenderingMode(.palette)
+                .foregroundStyle(bluetoothManager.isBluetoothConnected ? .white : .gray, Color.accentColor)
+                .symbolRenderingMode(bluetoothManager.isBluetoothConnected ? .palette : .monochrome)
                 .frame(
                     width: max(0, vm.effectiveClosedNotchHeight - 12),
                     height: max(0, vm.effectiveClosedNotchHeight - 12)
@@ -526,6 +526,16 @@ struct ContentView: View {
                     ),
                     alignment: .center
                 )
+            } else {
+                Image(systemName: "circle.slash")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .foregroundStyle(.gray)
+                    .symbolRenderingMode(.hierarchical)
+                    .frame(
+                        width: 20,
+                        height: 20
+                    )
             }
         }
         .frame(
