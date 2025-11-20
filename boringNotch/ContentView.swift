@@ -433,24 +433,13 @@ struct ContentView: View {
     @ViewBuilder
     func BluetoothLiveActivity() -> some View {
         HStack {
-            let deviceName = bluetoothManager.deviceName.lowercased()
-            let iconName: String = {
-                if deviceName.contains("airpods pro") {
-                    return "airpodspro"
-                } else if deviceName.contains("airpods max") {
-                    return "airpodsmax"
-                } else if deviceName.contains("airpods") {
-                    return "airpods"
-                } else {
-                    return "headphones.circle.fill"
-                }
-            }()
+            let iconName: String = bluetoothManager.getDeviceIcon(for: bluetoothManager.lastBluetoothDevice)
             
             Image(systemName: iconName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .foregroundStyle(bluetoothManager.isBluetoothConnected ? .white : .gray, Color.accentColor)
-                .symbolRenderingMode(bluetoothManager.isBluetoothConnected ? .palette : .monochrome)
+                .foregroundStyle(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? Color.accentColor : .gray, Color.accentColor)
+                .symbolRenderingMode(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? .palette : .monochrome)
                 .frame(
                     width: max(0, vm.effectiveClosedNotchHeight - 12),
                     height: max(0, vm.effectiveClosedNotchHeight - 12)
@@ -468,7 +457,7 @@ struct ContentView: View {
                             && coordinator.expandingView.type == .bluetooth
                         {
                             MarqueeText(
-                                .constant(bluetoothManager.deviceName),
+                                .constant(bluetoothManager.lastBluetoothDevice?.name ?? ""),
                                 textColor: .gray,
                                 minDuration: 0.4,
                                 frameWidth: 100
@@ -481,7 +470,7 @@ struct ContentView: View {
                             Spacer(minLength: vm.closedNotchSize.width)
                         } else {
                             MarqueeText(
-                                .constant(bluetoothManager.deviceName),
+                                .constant(bluetoothManager.lastBluetoothDevice?.name ?? ""),
                                 textColor: .gray,
                                 minDuration: 1.0,
                                 frameWidth: vm.closedNotchSize.width - 20
@@ -499,19 +488,6 @@ struct ContentView: View {
                 )
             if let battery = bluetoothManager.batteryPercentage {
                 HStack {
-                    /*
-                    ZStack {
-                        Image(systemName: bluetoothManager.isBluetoothConnected ? "circle" : "circle.slash")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .foregroundStyle(bluetoothManager.isBluetoothConnected ? .green : .gray)
-                            .symbolRenderingMode(bluetoothManager.isBluetoothConnected ? .monochrome : .hierarchical)
-                            .frame(
-                                width: 20,
-                                height: 20
-                            )
-                    }
-                     */
                     BatteryRing(percentage: Double(battery))
                 }
                 .frame(

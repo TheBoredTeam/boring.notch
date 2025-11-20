@@ -10,178 +10,91 @@ import Combine
 import CoreAudio
 import Foundation
 import SwiftUI
+import IOBluetooth
+
+enum BluetoothConnectionStatus {
+    case connected
+    case disconnected
+}
 
 final class BluetoothManager: NSObject, ObservableObject {
-    static let shared = BluetoothManager()
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
     
-    @Published private(set) var isBluetoothConnected: Bool = false
-    @Published private(set) var deviceName: String = ""
+    static let shared = BluetoothManager()
+    
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published private(set) var batteryPercentage: Int? = nil
     
-    private var scanTimer: Timer?
-    private var audioDeviceListenerBlock: AudioObjectPropertyListenerBlock?
-    private var audioDevicePropertyAddress = AudioObjectPropertyAddress(
-        mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-        mScope: kAudioObjectPropertyScopeGlobal,
-        mElement: kAudioObjectPropertyElementMain
-    )
+    @Published private(set) var lastBluetoothActionStatus: BluetoothConnectionStatus = .disconnected
+    @Published private(set) var lastBluetoothDevice: IOBluetoothDevice?
+    
+    private var notificationCenter: IOBluetoothUserNotification?
+    private var connectedDevices: [String : String] = [:]
     
     private override init() {
         super.init()
-        setupAudioDeviceListener()
-        checkBluetoothDevices()
-        //startPeriodicScanning()
+        registerForConnect()
     }
     
     deinit {
-        //stopPeriodicScanning()
-        removeAudioDeviceListener()
+        notificationCenter?.unregister()
     }
     
-    // MARK: - Setup Methods
-    
-    private func setupAudioDeviceListener() {
-        let listenerBlock: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-            self?.checkBluetoothDevices()
-        }
-        
-        audioDeviceListenerBlock = listenerBlock
-        
-        let status = AudioObjectAddPropertyListenerBlock(
-            AudioObjectID(kAudioObjectSystemObject),
-            &audioDevicePropertyAddress,
-            nil,
-            listenerBlock
+    private func registerForConnect() {
+        // Register for Bluetooth notifications
+        notificationCenter = IOBluetoothDevice.register(
+            forConnectNotifications: self,
+            selector: #selector(deviceConnected(_:device:))
         )
         
-        if status != noErr {
-            print("Failed to add audio device listener: \(status)")
+        // Initial check
+        checkDevices()
+    }
+    
+    private func checkDevices() {
+        guard let devices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] else {
+            return
         }
-    }
-    
-    private func removeAudioDeviceListener() {
-        if let listenerBlock = audioDeviceListenerBlock {
-            AudioObjectRemovePropertyListenerBlock(
-                AudioObjectID(kAudioObjectSystemObject),
-                &audioDevicePropertyAddress,
-                nil,
-                listenerBlock
-            )
-            audioDeviceListenerBlock = nil
-        }
-    }
-    
-    private func startPeriodicScanning() {
-        scanTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            self?.checkBluetoothDevices()
-        }
-    }
-    
-    private func stopPeriodicScanning() {
-        scanTimer?.invalidate()
-        scanTimer = nil
-    }
-    
-    // MARK: - Device Detection
-    
-    private func checkBluetoothDevices() {
-        // Primary method: Check current audio output device via CoreAudio
-        if let audioDevice = getCurrentAudioOutputDevice() {
-            if isBluetoothAudioDevice(audioDevice) {
-                let name = getAudioDeviceName(audioDevice) ?? ""
-                let battery = getBluetoothDeviceBattery(audioDevice)
-                updateConnectionStatus(connected: true, deviceName: name, batteryPercentage: battery)
-                return
+        
+        let currentConnected = Set(devices.filter { $0.isConnected() }.compactMap { $0.addressString })
+        
+        // Find connected devices
+        for address in currentConnected {
+            if let device = devices.first(where: { $0.addressString == address }),
+               let address = device.addressString,
+               let name = device.name {
+                connectedDevices[address] = name
             }
         }
-        
-        // Fallback: No Bluetooth audio device found
-        updateConnectionStatus(connected: false, deviceName: "", batteryPercentage: nil)
     }
     
-    // MARK: - CoreAudio Helpers
-    
-    private func getCurrentAudioOutputDevice() -> AudioObjectID? {
-        var defaultDeviceID = kAudioObjectUnknown
-        var propertyAddress = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var dataSize = UInt32(MemoryLayout<AudioObjectID>.size)
-        let status = AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject),
-            &propertyAddress,
-            0,
-            nil,
-            &dataSize,
-            &defaultDeviceID
-        )
-        if status != noErr || defaultDeviceID == kAudioObjectUnknown {
-            return nil
-        }
-        return defaultDeviceID
+    @objc private func deviceConnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
+        handleDeviceConnected(device)
     }
     
-    private func isBluetoothAudioDevice(_ deviceID: AudioObjectID) -> Bool {
-        var propertyAddress = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyTransportType,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        
-        guard AudioObjectHasProperty(deviceID, &propertyAddress) else {
-            return false
-        }
-        
-        var transportType: UInt32 = 0
-        var dataSize = UInt32(MemoryLayout<UInt32>.size)
-        let status = AudioObjectGetPropertyData(
-            deviceID,
-            &propertyAddress,
-            0,
-            nil,
-            &dataSize,
-            &transportType
-        )
-        
-        if status == noErr {
-            // Bluetooth transport type is 'blue' (FourCharCode: 0x626C7565)
-            let bluetoothTransportType: UInt32 = 0x626C7565 // 'blue'
-            return transportType == bluetoothTransportType
-        }
-        
-        return false
+    @objc private func deviceDisconnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
+        handleDeviceDisconnected(device)
     }
     
-    private func getAudioDeviceName(_ deviceID: AudioObjectID) -> String? {
-        var propertyAddress = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyDeviceNameCFString,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        
-        guard AudioObjectHasProperty(deviceID, &propertyAddress) else {
-            return nil
+    private func handleDeviceConnected(_ device: IOBluetoothDevice) {
+        guard let name = device.name, let address = device.addressString else { return }
+        device.register(forDisconnectNotification: self, selector: #selector(deviceDisconnected(_:device:)))
+        connectedDevices[address] = name
+        Task { @MainActor in
+            lastBluetoothDevice = device
+            lastBluetoothActionStatus = .connected
         }
-        
-        var deviceName: CFString?
-        var dataSize = UInt32(MemoryLayout<CFString?>.size)
-        let status = AudioObjectGetPropertyData(
-            deviceID,
-            &propertyAddress,
-            0,
-            nil,
-            &dataSize,
-            &deviceName
-        )
-        
-        if status == noErr, let name = deviceName as String? {
-            return name
+        coordinator.toggleExpandingView(status: true, type: .bluetooth)
+    }
+    
+    private func handleDeviceDisconnected(_ device: IOBluetoothDevice) {
+        Task { @MainActor in
+            lastBluetoothDevice = device
+            lastBluetoothActionStatus = .disconnected
         }
-        
-        return nil
+        coordinator.toggleExpandingView(status: true, type: .bluetooth)
+        if let address = device.addressString {
+            connectedDevices.removeValue(forKey: address)
+        }
     }
     
     private func getBluetoothDeviceBattery(_ deviceID: AudioObjectID) -> Int? {
@@ -199,19 +112,71 @@ final class BluetoothManager: NSObject, ObservableObject {
         return 20 // Placeholder - can be extended with actual battery detection
     }
     
-    @MainActor
-    private func updateConnectionStatus(connected: Bool, deviceName: String, batteryPercentage: Int?) {
-        Task { [weak self] in
-            guard let self else { return }
-            if self.isBluetoothConnected != connected ||
-               self.deviceName != deviceName ||
-               self.batteryPercentage != batteryPercentage {
-                self.isBluetoothConnected = connected
-                self.deviceName = deviceName
-                self.batteryPercentage = batteryPercentage
-                coordinator.toggleExpandingView(status: true, type: .bluetooth)
-            }
+    func getDeviceIcon(for device: IOBluetoothDevice?) -> String {
+        // check name first then classOfDevice
+        guard let device else { return "circle.badge.questionmark" }
+        if let deviceName = device.name, let iconName = sfSymbolForAudioDevice(deviceName) {
+            return iconName
         }
+        
+        let classOfDevice: BluetoothClassOfDevice = device.classOfDevice
+        
+        let majorClass = (classOfDevice & 0x1F00) >> 8
+        let minorClass = (classOfDevice & 0x00FC) >> 2
+        
+        switch majorClass {
+        case 0x01: return "desktopcomputer"
+        case 0x02: return "smartphone"
+        case 0x04: // Audio/Video
+            switch minorClass {
+            case 0x01, 0x06: return "headphones"
+            case 0x02: return "phone.and.waveform"
+            case 0x05: return "hifispeaker.fill"
+            default: return "speaker.wave.3.fill"
+            }
+        case 0x05: // Peripheral
+            let keyboardMouse = (minorClass & 0x30) >> 4
+            switch keyboardMouse {
+            case 0x01: return "keyboard.fill"
+            case 0x02: return "computermouse.fill"
+            case 0x03: return "keyboard.badge.ellipsis.fill"
+            default: return "gamecontroller.fill"
+            }
+        case 0x06: return "camera"
+        case 0x07: return "watch.analog"
+        default: return "circle.badge.questionmark"
+        }
+    }
+    
+    func sfSymbolForAudioDevice(_ deviceName: String) -> String? {
+        let name = deviceName.lowercased()
+
+        // ---- Apple AirPods ----
+        if name.contains("airpods max") { return "airpodsmax" }
+        if name.contains("airpods pro") { return "airpodspro" }
+        if name.contains("airpods") { return "airpods" }
+        if name.contains("airpods case") { return "airpodschargingcase" }
+        // ---- Beats ----
+        if name.contains("beats studio buds") { return "beats.studiobuds" }
+        if name.contains("beats solo buds") { return "beats.solobuds" }
+        if name.contains("beats solo") { return "beats.headphones" }
+        if name.contains("beats studio") { return "beats.headphones" }
+        if name.contains("powerbeats pro") { return "beats.powerbeats.pro" }
+        if name.contains("beats fit pro") { return "beats.fitpro" }
+        if name.contains("beats flex") { return "beats.earphones" }
+        // ---- General fallback for audio devices ----
+        if name.contains("buds") { return "earbuds" }
+        if name.contains("headphone") || name.contains("headset") { return "headphones" }
+        if name.contains("speaker") { return "hifispeaker.fill" }
+        
+        // --- Keyboard & Mouse ---
+        if name.contains("keyboard") { return "keyboard.fill" }
+        if name.contains("mouse") && name.contains("magic") { return "magicmouse.fill" }
+        if name.contains("mouse") { return "computermouse.fill" }
+        // ---- Gamepads ----
+        if name.contains("gamepad") || name.contains("controller") || name.contains("joy-con") { return "gamecontroller.fill" }
+        
+        return nil
     }
 }
 
