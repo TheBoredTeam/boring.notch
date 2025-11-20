@@ -84,127 +84,127 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-            let mainLayout = NotchLayout()
-                .frame(alignment: .top)
-                .padding(
-                    .horizontal,
-                    vm.notchState == .open
+                let mainLayout = NotchLayout()
+                    .frame(alignment: .top)
+                    .padding(
+                        .horizontal,
+                        vm.notchState == .open
                         ? Defaults[.cornerRadiusScaling]
-                            ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
+                        ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
                         : cornerRadiusInsets.closed.bottom
-                )
-                .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                .background(.black)
-                .clipShape(currentNotchShape)
-                .overlay(alignment: .top) {
-                    Rectangle()
-                        .fill(.black)
-                        .frame(height: 1)
-                        .padding(.horizontal, topCornerRadius)
-                }
-                .padding(
-                    .bottom,
-                    vm.effectiveClosedNotchHeight == 0 ? 10 : 0
-                )
-
-            mainLayout
-                .conditionalModifier(!useModernCloseAnimation) { view in
-                    let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
-                    let notchStateAnimation = Animation.spring.speed(1.2)
-                    return
+                    )
+                    .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
+                    .background(.black)
+                    .clipShape(currentNotchShape)
+                    .overlay(alignment: .top) {
+                        Rectangle()
+                            .fill(.black)
+                            .frame(height: 1)
+                            .padding(.horizontal, topCornerRadius)
+                    }
+                    .padding(
+                        .bottom,
+                        vm.effectiveClosedNotchHeight == 0 ? 10 : 0
+                    )
+                
+                mainLayout
+                    .conditionalModifier(!useModernCloseAnimation) { view in
+                        let hoverAnimationAnimation = Animation.bouncy.speed(1.2)
+                        let notchStateAnimation = Animation.spring.speed(1.2)
+                        return
                         view
-                        .animation(hoverAnimationAnimation, value: isHovering)
-                        .animation(notchStateAnimation, value: vm.notchState)
-                        .animation(.smooth, value: gestureProgress)
-                        .transition(
-                            .blurReplace.animation(
-                                .interactiveSpring(dampingFraction: 1.2)
+                            .animation(hoverAnimationAnimation, value: isHovering)
+                            .animation(notchStateAnimation, value: vm.notchState)
+                            .animation(.smooth, value: gestureProgress)
+                            .transition(
+                                .blurReplace.animation(
+                                    .interactiveSpring(dampingFraction: 1.2)
+                                )
                             )
-                        )
-                }
-                .conditionalModifier(useModernCloseAnimation) { view in
-                    let notchStateAnimation = Animation.spring.speed(1.2)
-                    return view
-                        .animation(notchStateAnimation, value: vm.notchState)
-                        .animation(.smooth, value: gestureProgress)
-                }
-                .onHover { hovering in
-                    handleHover(hovering)
-                }
-                .onTapGesture {
-                    doOpen()
-                }
-                .conditionalModifier(Defaults[.enableGestures]) { view in
-                    view
-                        .panGesture(direction: .down) { translation, phase in
-                            handleDownGesture(translation: translation, phase: phase)
-                        }
-                }
-                .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
-                    view
-                        .panGesture(direction: .up) { translation, phase in
-                            handleUpGesture(translation: translation, phase: phase)
-                        }
-                }
-                .onAppear {
-                    Task {
-                        try? await Task.sleep(for: .seconds(1))
-                        await MainActor.run {
-                            if coordinator.firstLaunch {
-                                withAnimation(vm.animation) {
-                                    doOpen()
-                                }
-                            }
-                        }
                     }
-                }
-                .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
-                    if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
-                        hoverTask?.cancel()
-                        hoverTask = Task {
-                            try? await Task.sleep(for: .milliseconds(100))
-                            guard !Task.isCancelled else { return }
+                    .conditionalModifier(useModernCloseAnimation) { view in
+                        let notchStateAnimation = Animation.spring.speed(1.2)
+                        return view
+                            .animation(notchStateAnimation, value: vm.notchState)
+                            .animation(.smooth, value: gestureProgress)
+                    }
+                    .onHover { hovering in
+                        handleHover(hovering)
+                    }
+                    .onTapGesture {
+                        doOpen()
+                    }
+                    .conditionalModifier(Defaults[.enableGestures]) { view in
+                        view
+                            .panGesture(direction: .down) { translation, phase in
+                                handleDownGesture(translation: translation, phase: phase)
+                            }
+                    }
+                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                        view
+                            .panGesture(direction: .up) { translation, phase in
+                                handleUpGesture(translation: translation, phase: phase)
+                            }
+                    }
+                    .onAppear {
+                        Task {
+                            try? await Task.sleep(for: .seconds(1))
                             await MainActor.run {
-                                if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                                    self.vm.close()
+                                if coordinator.firstLaunch {
+                                    withAnimation(vm.animation) {
+                                        doOpen()
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                .onChange(of: vm.notchState) { _, newState in
-                    if newState == .closed && isHovering {
-                        withAnimation {
-                            isHovering = false
-                        }
-                    }
-                }
-                .onChange(of: vm.isBatteryPopoverActive) {
-                    if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                        hoverTask?.cancel()
-                        hoverTask = Task {
-                            try? await Task.sleep(for: .milliseconds(100))
-                            guard !Task.isCancelled else { return }
-                            await MainActor.run {
-                                if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                                    self.vm.close()
+                    .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
+                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
+                            hoverTask?.cancel()
+                            hoverTask = Task {
+                                try? await Task.sleep(for: .milliseconds(100))
+                                guard !Task.isCancelled else { return }
+                                await MainActor.run {
+                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                                        self.vm.close()
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                .sensoryFeedback(.alignment, trigger: haptics)
-                .contextMenu {
-                    Button("Settings") {
-                        SettingsWindowController.shared.showWindow()
+                    .onChange(of: vm.notchState) { _, newState in
+                        if newState == .closed && isHovering {
+                            withAnimation {
+                                isHovering = false
+                            }
+                        }
                     }
-                    .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-//                    Button("Edit") { // Doesnt work....
-//                        let dn = DynamicNotch(content: EditPanelView())
-//                        dn.toggle()
-//                    }
-//                    .keyboardShortcut("E", modifiers: .command)
-                }
+                    .onChange(of: vm.isBatteryPopoverActive) {
+                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                            hoverTask?.cancel()
+                            hoverTask = Task {
+                                try? await Task.sleep(for: .milliseconds(100))
+                                guard !Task.isCancelled else { return }
+                                await MainActor.run {
+                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                                        self.vm.close()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .sensoryFeedback(.alignment, trigger: haptics)
+                    .contextMenu {
+                        Button("Settings") {
+                            SettingsWindowController.shared.showWindow()
+                        }
+                        .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+                        //                    Button("Edit") { // Doesnt work....
+                        //                        let dn = DynamicNotch(content: EditPanelView())
+                        //                        dn.toggle()
+                        //                    }
+                        //                    .keyboardShortcut("E", modifiers: .command)
+                    }
                 
                 if vm.chinHeight > 0 {
                     Rectangle()
@@ -221,6 +221,32 @@ struct ContentView: View {
         )
         .background(dragDetector)
         .environmentObject(vm)
+        .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
+            anyDropDebounceTask?.cancel()
+
+            if isTargeted {
+                if vm.notchState == .closed {
+                    coordinator.currentView = .shelf
+                    doOpen()
+                }
+                return
+            }
+
+            anyDropDebounceTask = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(500))
+                guard !Task.isCancelled else { return }
+
+                if vm.dropEvent {
+                    vm.dropEvent = false
+                    return
+                }
+
+                vm.dropEvent = false
+                if !SharingStateManager.shared.preventNotchClose {
+                    vm.close()
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -344,6 +370,7 @@ struct ContentView: View {
                     ? min(abs(gestureProgress * 2), 0.8) : 1
             )
         }
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
     }
 
     @ViewBuilder
@@ -479,32 +506,6 @@ struct ContentView: View {
             ShelfStateViewModel.shared.load(providers)
             return true
         }
-                .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
-                    anyDropDebounceTask?.cancel()
-
-                    if isTargeted {
-                        if vm.notchState == .closed {
-                            coordinator.currentView = .shelf
-                            doOpen()
-                        }
-                        return
-                    }
-
-                    anyDropDebounceTask = Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(500))
-                        guard !Task.isCancelled else { return }
-
-                        if vm.dropEvent {
-                            vm.dropEvent = false
-                            return
-                        }
-
-                        vm.dropEvent = false
-                        if !SharingStateManager.shared.preventNotchClose {
-                            vm.close()
-                        }
-                    }
-                }
         } else {
             EmptyView()
         }
@@ -631,6 +632,27 @@ struct FullScreenDropDelegate: DropDelegate {
         isTargeted = false
         onDrop()
         return true
+    }
+
+}
+
+struct GeneralDropTargetDelegate: DropDelegate {
+    @Binding var isTargeted: Bool
+
+    func dropEntered(info: DropInfo) {
+        isTargeted = true
+    }
+
+    func dropExited(info: DropInfo) {
+        isTargeted = false
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        return DropProposal(operation: .cancel)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        return false
     }
 }
 
