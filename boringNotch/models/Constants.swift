@@ -167,6 +167,7 @@ extension Defaults.Keys {
     static let quickShareProvider = Key<String>("quickShareProvider", default: QuickShareProvider.defaultProvider.id)
     static let copyOnDrag = Key<Bool>("copyOnDrag", default: false)
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
+    static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
@@ -183,6 +184,8 @@ extension Defaults.Keys {
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
+    // Show or hide the title bar
+    static let hideTitleBar = Key<Bool>("hideTitleBar", default: true)
     
     // Helper to determine the default media controller based on NowPlaying deprecation status
     static var defaultMediaController: MediaControllerType {

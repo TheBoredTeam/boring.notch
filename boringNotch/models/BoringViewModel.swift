@@ -20,6 +20,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published private(set) var notchState: NotchState = .closed
 
     @Published var dragDetectorTargeting: Bool = false
+    @Published var generalDropTargeting: Bool = false
     @Published var dropZoneTargeting: Bool = false
     @Published var dropEvent: Bool = false
     @Published var anyDropZoneTargeting: Bool = false
@@ -58,9 +59,9 @@ class BoringViewModel: NSObject, ObservableObject {
         notchSize = getClosedNotchSize(screen: screen)
         closedNotchSize = notchSize
 
-        Publishers.CombineLatest($dropZoneTargeting, $dragDetectorTargeting)
-            .map { shelf, drag in
-                shelf || drag
+        Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
+            .map { shelf, drag, general in
+                shelf || drag || general
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
@@ -105,6 +106,25 @@ class BoringViewModel: NSObject, ObservableObject {
         let currentScreen = NSScreen.screens.first { $0.localizedName == screen }
         let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
         return noNotchAndFullscreen ? 0 : closedNotchSize.height
+    }
+
+    var chinHeight: CGFloat {
+        if !Defaults[.hideTitleBar] {
+            return 0
+        }
+
+        guard let currentScreen = NSScreen.screens.first(where: { $0.localizedName == screen }) else {
+            return 0
+        }
+
+        if notchState == .open { return 0 }
+
+        let menuBarHeight = currentScreen.frame.maxY - currentScreen.visibleFrame.maxY
+        let currentHeight = effectiveClosedNotchHeight
+
+        if currentHeight == 0 { return 0 }
+
+        return max(0, menuBarHeight - currentHeight)
     }
 
     func toggleCameraPreview() {
