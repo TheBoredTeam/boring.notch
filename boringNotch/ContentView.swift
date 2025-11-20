@@ -59,8 +59,31 @@ struct ContentView: View {
         )
     }
 
+    private var computedChinWidth: CGFloat {
+        var chinWidth: CGFloat = vm.closedNotchSize.width
+
+        if coordinator.expandingView.type == .battery && coordinator.expandingView.show
+            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
+        {
+            chinWidth = 640
+        } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+            && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
+        {
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+        } else if !coordinator.expandingView.show && vm.notchState == .closed
+            && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
+            && !vm.hideOnClosed
+        {
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+        }
+
+        return chinWidth
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
+            VStack(spacing: 0) {
             let mainLayout = NotchLayout()
                 .frame(alignment: .top)
                 .padding(
@@ -182,6 +205,13 @@ struct ContentView: View {
 //                    }
 //                    .keyboardShortcut("E", modifiers: .command)
                 }
+                
+                if vm.chinHeight > 0 {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.01))
+                        .frame(width: computedChinWidth, height: vm.chinHeight)
+                }
+            }
         }
         .padding(.bottom, 8)
         .frame(maxWidth: openNotchSize.width, maxHeight: openNotchSize.height, alignment: .top)

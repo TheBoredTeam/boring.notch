@@ -1580,6 +1580,9 @@ struct Advanced: View {
                 Defaults.Toggle(key: .extendHoverArea) {
                     Text("Extend hover area")
                 }
+                Defaults.Toggle(key: .hideTitleBar) {
+                    Text("Hide title bar")
+                }
                 Defaults.Toggle(key: .showOnLockScreen) {
                     Text("Show notch on lock screen")
                 }
