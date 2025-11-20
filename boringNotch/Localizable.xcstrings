@@ -9013,6 +9013,9 @@
         }
       }
     },
+    "Expanded drag detection area" : {
+
+    },
     "Extend hover area" : {
       "localizations" : {
         "ar" : {
