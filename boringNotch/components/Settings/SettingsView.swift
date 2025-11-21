@@ -45,6 +45,17 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "Bluetooth") {
+                    Label(
+                        title: { Text("Bluetooth") },
+                        icon: {
+                            Image("bluetooth.settings")
+                                .resizable()
+                                .renderingMode(.template)
+                                .frame(width: 16, height: 16)
+                        }
+                    )
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -83,6 +94,8 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "Bluetooth":
+                    BluetoothSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -376,6 +389,228 @@ struct Charge: View {
     }
 }
 
+struct BluetoothSettings: View {
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.bluetoothDeviceIconMappings) var deviceIconMappings
+    @Default(.enableBluetoothSneakPeek) var enableBluetoothSneakPeek
+    @Default(.bluetoothSneakPeekStyle) var bluetoothSneakPeekStyle
+    
+    @State private var selectedMapping: BluetoothDeviceIconMapping? = nil
+    @State private var isPresented: Bool = false
+    @State private var deviceName: String = ""
+    @State private var sfSymbolName: String = ""
+    
+    var body: some View {
+        Form {
+            Section {
+                Toggle(
+                    "Show Bluetooth live activity",
+                    isOn: $coordinator.bluetoothLiveActivityEnabled.animation()
+                )
+            } header: {
+                Text("Live activity")
+            } footer: {
+                Text("Displays connected Bluetooth devices and their battery status inside the notch.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Section {
+                Toggle("Show sneak peek on device changes", isOn: $enableBluetoothSneakPeek)
+                Picker("Sneak Peek Style", selection: $bluetoothSneakPeekStyle) {
+                    ForEach(SneakPeekStyle.allCases) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }
+                .disabled(!enableBluetoothSneakPeek)
+            } header: {
+                Text("Sneak peek")
+            } footer: {
+                Text("Sneak peek shows the Bluetooth device name under the notch for a few seconds when a device connects or disconnects.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Section {
+                List {
+                    ForEach(deviceIconMappings, id: \.UUID) { mapping in
+                        HStack {
+                            Image(systemName: mapping.sfSymbolName)
+                                .frame(width: 20, height: 20)
+                                .foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(mapping.deviceName)
+                                    .font(.body)
+                                Text(mapping.sfSymbolName)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.vertical, 2)
+                        .background(
+                            selectedMapping != nil && selectedMapping?.UUID == mapping.UUID
+                                ? Color.effectiveAccent.opacity(0.1) : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 5)
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if selectedMapping?.UUID == mapping.UUID {
+                                selectedMapping = nil
+                            } else {
+                                selectedMapping = mapping
+                            }
+                        }
+                    }
+                }
+                .frame(minHeight: 120)
+                .actionBar {
+                    HStack(spacing: 5) {
+                        Button {
+                            deviceName = ""
+                            sfSymbolName = ""
+                            selectedMapping = nil
+                            isPresented.toggle()
+                        } label: {
+                            Image(systemName: "plus")
+                                .foregroundStyle(.secondary)
+                                .contentShape(Rectangle())
+                        }
+                        Divider()
+                        Button {
+                            if let mapping = selectedMapping {
+                                deviceName = mapping.deviceName
+                                sfSymbolName = mapping.sfSymbolName
+                                isPresented.toggle()
+                            }
+                        } label: {
+                            Image(systemName: "pencil")
+                                .foregroundStyle(.secondary)
+                                .contentShape(Rectangle())
+                        }
+                        .disabled(selectedMapping == nil)
+                        Divider()
+                        Button {
+                            if let mapping = selectedMapping {
+                                deviceIconMappings.removeAll { $0.UUID == mapping.UUID }
+                                selectedMapping = nil
+                            }
+                        } label: {
+                            Image(systemName: "minus")
+                                .foregroundStyle(.secondary)
+                                .contentShape(Rectangle())
+                        }
+                        .disabled(selectedMapping == nil)
+                    }
+                }
+                .controlSize(.small)
+                .buttonStyle(PlainButtonStyle())
+                .overlay {
+                    if deviceIconMappings.isEmpty {
+                        Text("No custom device icons")
+                            .foregroundStyle(Color(.secondaryLabelColor))
+                            .padding(.bottom, 22)
+                    }
+                }
+                .sheet(isPresented: $isPresented) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text(selectedMapping == nil ? "Add Device Icon" : "Edit Device Icon")
+                            .font(.largeTitle.bold())
+                            .padding(.vertical)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Device Name")
+                                .font(.headline)
+                            TextField("e.g., AirPods Pro, Magic Mouse", text: $deviceName)
+                            Text("Enter a keyword or part of the device name. Matching is case-insensitive.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("SF Symbol Name")
+                                .font(.headline)
+                            HStack {
+                                TextField("e.g., airpodspro, headphones", text: $sfSymbolName)
+                                if !sfSymbolName.isEmpty {
+                                    Image(systemName: sfSymbolName)
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 24, height: 24)
+                                }
+                            }
+                            Text("Enter an SF Symbol name. Common examples: airpods, headphones, keyboard.fill, computermouse.fill, gamecontroller.fill")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        HStack {
+                            Button {
+                                isPresented.toggle()
+                            } label: {
+                                Text("Cancel")
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                            
+                            Button {
+                                if !deviceName.isEmpty && !sfSymbolName.isEmpty {
+                                    if let existing = selectedMapping {
+                                        if let index = deviceIconMappings.firstIndex(where: { $0.UUID == existing.UUID }) {
+                                            deviceIconMappings[index] = BluetoothDeviceIconMapping(
+                                                UUID: existing.UUID,
+                                                deviceName: deviceName,
+                                                sfSymbolName: sfSymbolName
+                                            )
+                                        }
+                                    } else {
+                                        let mapping = BluetoothDeviceIconMapping(
+                                            deviceName: deviceName,
+                                            sfSymbolName: sfSymbolName
+                                        )
+                                        if !deviceIconMappings.contains(mapping) {
+                                            deviceIconMappings.append(mapping)
+                                        }
+                                    }
+                                }
+                                isPresented.toggle()
+                            } label: {
+                                Text(selectedMapping == nil ? "Add" : "Save")
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                            .buttonStyle(BorderedProminentButtonStyle())
+                            .disabled(deviceName.isEmpty || sfSymbolName.isEmpty)
+                        }
+                    }
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .controlSize(.extraLarge)
+                    .padding()
+                }
+            } header: {
+                HStack(spacing: 0) {
+                    Text("Custom Device Icons")
+                    if !deviceIconMappings.isEmpty {
+                        Text(" – \(deviceIconMappings.count)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } footer: {
+                Text("Create custom icon mappings for Bluetooth devices. When a device name contains your keyword, the specified SF Symbol will be used.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Bluetooth")
+        .onChange(of: isPresented) { _, newValue in
+            if !newValue {
+                deviceName = ""
+                sfSymbolName = ""
+                selectedMapping = nil
+            }
+        }
+    }
+}
+
 //struct Downloads: View {
 //    @Default(.selectedDownloadIndicatorStyle) var selectedDownloadIndicatorStyle
 //    @Default(.selectedDownloadIconStyle) var selectedDownloadIconStyle
@@ -599,10 +834,6 @@ struct Media: View {
                 Toggle(
                     "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
-                )
-                Toggle(
-                    "Show Bluetooth live activity",
-                    isOn: $coordinator.bluetoothLiveActivityEnabled.animation()
                 )
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
@@ -1758,5 +1989,6 @@ func warningBadge(_ text: String, _ description: String) -> some View {
 }
 
 #Preview {
-    HUD()
+    //HUD()
+    SettingsView()
 }

@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import IOBluetooth
+import Defaults
 
 // Maps to the root object containing the SPBluetoothDataType
 fileprivate struct SPBluetoothDataRoot: Decodable {
@@ -235,6 +236,18 @@ final class BluetoothManager: NSObject, ObservableObject {
     
     // MARK: - Device Icon & Info
     func getDeviceIcon(for device: IOBluetoothDevice?) -> String {
+        // Check custom mappings first
+        if let device,
+           let deviceName = device.name {
+            let customMappings = Defaults[.bluetoothDeviceIconMappings]
+            for mapping in customMappings {
+                if deviceName.localizedCaseInsensitiveContains(mapping.deviceName) {
+                    return mapping.sfSymbolName
+                }
+            }
+        }
+        
+        // Fall back to default logic
         if let device,
            let deviceName = device.name,
            let iconName = sfSymbolForAudioDevice(deviceName) {

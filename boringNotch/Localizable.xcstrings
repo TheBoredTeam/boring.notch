@@ -1801,6 +1801,9 @@
         }
       }
     },
+    "Add Device Icon" : {
+
+    },
     "Add manually" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3507,6 +3510,9 @@
           }
         }
       }
+    },
+    "Bluetooth" : {
+
     },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
@@ -6008,6 +6014,9 @@
         }
       }
     },
+    "Create custom icon mappings for Bluetooth devices. When a device name contains your keyword, the specified SF Symbol will be used." : {
+
+    },
     "Currently selected: %@" : {
       "localizations" : {
         "ar" : {
@@ -6207,6 +6216,9 @@
           }
         }
       }
+    },
+    "Custom Device Icons" : {
+
     },
     "Custom height" : {
       "localizations" : {
@@ -7009,6 +7021,9 @@
         }
       }
     },
+    "Device Name" : {
+
+    },
     "Disable" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7210,6 +7225,9 @@
           }
         }
       }
+    },
+    "Displays connected Bluetooth devices and their battery status inside the notch." : {
+
     },
     "Download" : {
       "localizations" : {
@@ -7712,6 +7730,12 @@
         }
       }
     },
+    "e.g., AirPods Pro, Magic Mouse" : {
+
+    },
+    "e.g., airpodspro, headphones" : {
+
+    },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
       "localizations" : {
         "ar" : {
@@ -7811,6 +7835,9 @@
           }
         }
       }
+    },
+    "Edit Device Icon" : {
+
     },
     "Edit layout" : {
       "localizations" : {
@@ -9012,6 +9039,12 @@
           }
         }
       }
+    },
+    "Enter a keyword or part of the device name. Matching is case-insensitive." : {
+
+    },
+    "Enter an SF Symbol name. Common examples: airpods, headphones, keyboard.fill, computermouse.fill, gamecontroller.fill" : {
+
     },
     "Extend hover area" : {
       "localizations" : {
@@ -11615,6 +11648,9 @@
         }
       }
     },
+    "Live activity" : {
+
+    },
     "Lottie JSON URL" : {
       "localizations" : {
         "ar" : {
@@ -14114,6 +14150,9 @@
           }
         }
       }
+    },
+    "No custom device icons" : {
+
     },
     "No custom visualizer" : {
       "localizations" : {
@@ -17418,6 +17457,9 @@
         }
       }
     },
+    "Save" : {
+
+    },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
         "ar" : {
@@ -17817,6 +17859,9 @@
           }
         }
       }
+    },
+    "SF Symbol Name" : {
+
     },
     "Shelf" : {
       "localizations" : {
@@ -19221,6 +19266,9 @@
         }
       }
     },
+    "Show sneak peek on device changes" : {
+
+    },
     "Show sneak peek on playback changes" : {
       "localizations" : {
         "ar" : {
@@ -19420,6 +19468,12 @@
           }
         }
       }
+    },
+    "Sneak peek" : {
+
+    },
+    "Sneak peek shows the Bluetooth device name under the notch for a few seconds when a device connects or disconnects." : {
+
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {

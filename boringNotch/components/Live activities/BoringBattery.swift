@@ -281,7 +281,7 @@ struct BatteryRing: View {
                     .fontWeight(.semibold)
             }
         }
-        .frame(width: 20, height: 20)
+        .frame(width: 16, height: 16)
     }
     
     func batteryColor(for percentage: Double) -> Color {

@@ -25,6 +25,18 @@ struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
     var speed: CGFloat = 1.0
 }
 
+struct BluetoothDeviceIconMapping: Codable, Hashable, Equatable, Defaults.Serializable {
+    let UUID: UUID
+    var deviceName: String
+    var sfSymbolName: String
+    
+    init(UUID: UUID = Foundation.UUID(), deviceName: String, sfSymbolName: String) {
+        self.UUID = UUID
+        self.deviceName = deviceName
+        self.sfSymbolName = sfSymbolName
+    }
+}
+
 enum CalendarSelectionState: Codable, Defaults.Serializable {
     case all
     case selected(Set<String>)
@@ -183,6 +195,11 @@ extension Defaults.Keys {
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
+    
+    // MARK: Bluetooth
+    static let bluetoothDeviceIconMappings = Key<[BluetoothDeviceIconMapping]>("bluetoothDeviceIconMappings", default: [])
+    static let enableBluetoothSneakPeek = Key<Bool>("enableBluetoothSneakPeek", default: false)
+    static let bluetoothSneakPeekStyle = Key<SneakPeekStyle>("bluetoothSneakPeekStyle", default: .standard)
     
     // Helper to determine the default media controller based on NowPlaying deprecation status
     static var defaultMediaController: MediaControllerType {
