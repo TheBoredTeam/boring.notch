@@ -21036,6 +21036,7 @@
       }
     },
     "Use simpler close animation" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
