@@ -8,6 +8,85 @@
             <sparkle:version>207</sparkle:version>
             <sparkle:shortVersionString>2.7</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+<h1>🚀 v2.7 — Flying Rabbit 🐇🪽</h1>
+<h3>Shelf 2.0</h3>
+<p>Major update with improved stability, enhanced functionality, and a refreshed UI.</p>
+<ul>
+    <li><strong>New Context Menu</strong> – Right-click in the notch to access various file actions</li>
+    <li><strong>Multi-Item Selection</strong> – Hold <kbd>⇧</kbd> for consecutive or <kbd>⌘</kbd> for non-consecutive
+        selections</li>
+    <li><strong>Double-Click to Open</strong> – Double-click on selected files to open them</li>
+    <li><strong>Move by Default</strong> – Dragging files now moves them; hold <kbd>⌥</kbd> to copy</li>
+    <li><strong>Simplified Removal</strong> – Files can be removed after dragging (configurable in Settings)</li>
+    <li><strong>Expanded Drag Detection</strong> – The shelf opens when files are dragged into the notch area</li>
+    <li><strong>Expanded Sharing</strong> – More sharing services available in Settings</li>
+</ul>
+<h3>Complete HUD Replacement</h3>
+<p>Full support for macOS system controls:</p>
+<ul>
+    <li><strong>Screen Brightness</strong>, <strong>Keyboard Brightness</strong>, and <strong>System Volume</strong>
+    </li>
+    <li><strong>Keyboard Brightness Controls:</strong> <kbd>⌘ + Brightness Down/Up</kbd></li>
+    <li><strong>Option (<kbd>⌥</kbd>)</strong> – Triggers alternate action configured in Settings</li>
+    <li><strong>Option + Shift (<kbd>⌥</kbd> <kbd>⇧</kbd>)</strong> – Adjustments in smaller increments</li>
+</ul>
+<h3>Music Enhancements</h3>
+<ul>
+    <li><strong>YouTube Music Support Rewritten</strong> – Now powered by WebSocket for better accuracy and performance
+    </li>
+</ul>
+<blockquote>
+    <p><strong>Note:</strong> Requires version <strong>3.11+</strong> of <a
+            href="https://github.com/pear-devs/pear-desktop">YouTube Music/Pear Desktop</a>. Updating is strongly
+        recommended.</p>
+</blockquote>
+<ul>
+    <li><strong>Redesigned Music Controls</strong> – Fully customizable:
+        <ul>
+            <li>Skip backward/forward by 15 seconds</li>
+            <li>Adjust music app volume</li>
+            <li>Mark favorite songs  (Apple Music &amp;
+        YouTube MusiZ</li>
+            <li>Rearrange or remove existing controls</li>
+        </ul>
+    </li>
+    <li><strong>Optimized Spotify Artwork Cache</strong> – Significantly reduced storage usage with automatic cleanup
+    </li>
+    <li><strong>Lyrics (Beta)</strong> – View synchronized lyrics for currently playing songs</li>
+</ul>
+<h3>Calendar Improvements</h3>
+<ul>
+    <li>New setting to hide all-day events</li>
+    <li>New setting to auto-scroll to next current or upcoming event</li>
+    <li>New setting to prevent truncation of long event names</li>
+</ul>
+<h3>Improved Window Behavior</h3>
+<ul>
+    <li><strong>Enhanced Fullscreen Detection</strong> – Significantly more reliable</li>
+    <li><strong>Better Edge Handling</strong> – Fixed top edge cursor issues</li>
+    <li><strong>Reduced Title Bar Interference</strong> – Less intrusive during fullscreen</li>
+    <li><strong>Lock Screen Support</strong> – Notch now appears on lock screen</li>
+    <li><strong>Screenshot Privacy</strong> – Hide notch from screenshots and recordings</li>
+</ul>
+<h3>Advanced Settings</h3>
+<ul>
+    <li>Cleaner interface with lesser-used settings moved to Advanced</li>
+    <li>Accent color override reintroduced</li>
+</ul>
+<h3>General Enhancements</h3>
+<ul>
+    <li>Numerous UI fixes and polish</li>
+    <li>Localization updates across all supported languages</li>
+</ul>
+<hr>
+<h2>👋 New Contributors</h2>
+<p>@azhao4227 · @bueckerlars · @TheMalenia · @Corentin132 · @SupKittyMeow · @M7T5M3P · @charshith · @Decryptu ·
+    @EnesCinr · @lambegraham</p>
+<hr>
+<h3>📄 Full Changelog</h3>
+<p><a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7-rc.3...v2.7">Compare v2.7-rc.3 → v2.7</a></p>
+            ]]></description>
             <sparkle:releaseNotesLink>https://TheBoredTeam.github.io/boring.notch/boringNotch.html</sparkle:releaseNotesLink>
             <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7/boringNotch.dmg" length="7492718" type="application/octet-stream" sparkle:edSignature="wuuTF09LK56AEPV6N9If2+XDLWxGsxhHpSR4VHHWLCfMsEIjRSLXaFcblj43WRibcFuAn7FNevh4UPL7R6HdAg=="/>
         </item>
