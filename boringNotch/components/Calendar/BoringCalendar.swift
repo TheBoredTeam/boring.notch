@@ -292,19 +292,18 @@ struct EventListView: View {
 
     private func scrollToRelevantEvent(proxy: ScrollViewProxy) {
         let now = Date()
-        // Find the first event that is in progress or upcoming
-        if let target = filteredEvents.first(where: { $0.end > now }) {
-            Task { @MainActor in
-                withTransaction(Transaction(animation: nil)) {
-                    proxy.scrollTo(target.id, anchor: .top)
-                }
-            }
-        } else if let last = filteredEvents.last {
-            // If all events are in the past, scroll to the last one
-            Task { @MainActor in
-                withTransaction(Transaction(animation: nil)) {
-                    proxy.scrollTo(last.id, anchor: .top)
-                }
+        // Determine a single target using preferred search order:
+        // 1) first non-all-day upcoming/in-progress event
+        // 2) first all-day event
+        // 3) last event (fallback)
+        let nonAllDayUpcoming = filteredEvents.first(where: { !$0.isAllDay && $0.end > now })
+        let firstAllDay = filteredEvents.first(where: { $0.isAllDay })
+        let lastEvent = filteredEvents.last
+        guard let target = nonAllDayUpcoming ?? firstAllDay ?? lastEvent else { return }
+
+        Task { @MainActor in
+            withTransaction(Transaction(animation: nil)) {
+                proxy.scrollTo(target.id, anchor: .top)
             }
         }
     }
