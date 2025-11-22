@@ -628,12 +628,12 @@ struct Media: View {
                     selection: $hideNotchOption,
                     label:
                         HStack {
-                            Text("Hide BoringNotch Options")
+                            Text("Full screen behavior")
                             customBadge(text: "Beta")
                         }
                 ) {
-                    Text("Always hide in fullscreen").tag(HideNotchOption.always)
-                    Text("Hide only when NowPlaying app is in fullscreen").tag(
+                    Text("Hide for all apps").tag(HideNotchOption.always)
+                    Text("Hide for media app only").tag(
                         HideNotchOption.nowPlayingOnly)
                     Text("Never hide").tag(HideNotchOption.never)
                 }
