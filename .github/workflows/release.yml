@@ -283,13 +283,12 @@ jobs:
           name: ${{ env.projname }}.dmg
           path: Release
       - name: Create embedded release notes fragment
+        env:
+          RELEASE_NOTES: ${{ needs.preparation.outputs.release_notes }}
         run: |
           mkdir -p Release
-          # Write only the release notes HTML fragment (no DOCTYPE, no <html> or <body>)
-          # so that the Sparkle appcast generator will embed it as CDATA.
-          cat > Release/boringNotch.html <<'EOF'
-${{ needs.preparation.outputs.release_notes_github }}
-EOF
+          # Write release notes to file for Sparkle embedding
+          printf "%s" "$RELEASE_NOTES" > Release/boringNotch.html
       - name: Check for generate_appcast in repository
         run: |
           TOOL_PATH="Configuration/sparkle/generate_appcast"
