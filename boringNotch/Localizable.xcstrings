@@ -9013,6 +9013,9 @@
         }
       }
     },
+    "Expanded drag detection area" : {
+
+    },
     "Extend hover area" : {
       "localizations" : {
         "ar" : {
@@ -10613,6 +10616,9 @@
           }
         }
       }
+    },
+    "Hide title bar" : {
+
     },
     "Hierarchical" : {
       "localizations" : {
