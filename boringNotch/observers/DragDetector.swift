@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import UniformTypeIdentifiers
 
 final class DragDetector {
 
@@ -35,6 +36,17 @@ final class DragDetector {
         self.notchRegion = notchRegion
     }
 
+    // MARK: - Private Helpers
+    
+    /// Checks if the drag pasteboard contains valid content types that can be dropped on the shelf
+    private func hasValidDragContent() -> Bool {
+        let validTypes: [NSPasteboard.PasteboardType] = 
+            .fileURL,
+            NSPasteboard.PasteboardType(UTType.url.identifier),
+            .string
+        ]
+        return dragPasteboard.types?.contains(where: validTypes.contains) ?? false
+    }
 
     func startMonitoring() {
         stopMonitoring()
@@ -53,10 +65,10 @@ final class DragDetector {
             guard let self = self else { return }
             guard self.isDragging else { return }
 
-            let pasteboardChangeCount = self.dragPasteboard.changeCount
+            let newContent = self.dragPasteboard.changeCount != self.pasteboardChangeCount
             
-            // Detect if actual content is being dragged
-            if pasteboardChangeCount != self.pasteboardChangeCount && !self.isContentDragging {
+            // Detect if actual content is being dragged AND it's valid content
+            if newContent && !self.isContentDragging && self.hasValidDragContent() {
                 self.isContentDragging = true
             }
 
