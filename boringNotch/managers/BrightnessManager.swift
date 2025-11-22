@@ -18,10 +18,8 @@ final class BrightnessManager: ObservableObject {
 	private init() { refresh() }
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
-	var isAvailable: Bool { client.isRegistered }
 
 	func refresh() {
-		guard client.isRegistered else { return }
 		Task { @MainActor in
 			if let current = await client.currentScreenBrightness() {
 				publish(brightness: current, touchDate: false)
@@ -30,7 +28,6 @@ final class BrightnessManager: ObservableObject {
 	}
 
 	@MainActor func setRelative(delta: Float) {
-		guard client.isRegistered else { return }
 		Task { @MainActor in
 			let starting = await client.currentScreenBrightness() ?? rawBrightness
 			let target = max(0, min(1, starting + delta))
@@ -45,7 +42,6 @@ final class BrightnessManager: ObservableObject {
 	}
 
 	func setAbsolute(value: Float) {
-		guard client.isRegistered else { return }
 		let clamped = max(0, min(1, value))
 		Task { @MainActor in
 			let ok = await client.setScreenBrightness(clamped)
@@ -83,10 +79,8 @@ final class KeyboardBacklightManager: ObservableObject {
 	private init() { refresh() }
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
-	var isAvailable: Bool { client.isRegistered }
 
 	func refresh() {
-		guard client.isRegistered else { return }
 		Task { @MainActor in
 			if let current = await client.currentKeyboardBrightness() {
 				publish(brightness: current, touchDate: false)
@@ -95,7 +89,6 @@ final class KeyboardBacklightManager: ObservableObject {
 	}
 
 	@MainActor func setRelative(delta: Float) {
-		guard client.isRegistered else { return }
 		Task { @MainActor in
 			let starting = await client.currentKeyboardBrightness() ?? rawBrightness
 			let target = max(0, min(1, starting + delta))
@@ -114,7 +107,6 @@ final class KeyboardBacklightManager: ObservableObject {
 	}
 
 	func setAbsolute(value: Float) {
-		guard client.isRegistered else { return }
 		let clamped = max(0, min(1, value))
 		Task { @MainActor in
 			let ok = await client.setKeyboardBrightness(clamped)

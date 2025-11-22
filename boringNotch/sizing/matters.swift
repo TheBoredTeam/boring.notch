@@ -20,11 +20,11 @@ enum MusicPlayerImageSizes {
     static let size = (opened: CGSize(width: 90, height: 90), closed: CGSize(width: 20, height: 20))
 }
 
-func getScreenFrame(_ screen: String? = nil) -> CGRect? {
+@MainActor func getScreenFrame(_ screenUUID: String? = nil) -> CGRect? {
     var selectedScreen = NSScreen.main
 
-    if let customScreen = screen {
-        selectedScreen = NSScreen.screens.first(where: { $0.localizedName == customScreen })
+    if let uuid = screenUUID {
+        selectedScreen = NSScreen.screen(withUUID: uuid)
     }
     
     if let screen = selectedScreen {
@@ -34,15 +34,15 @@ func getScreenFrame(_ screen: String? = nil) -> CGRect? {
     return nil
 }
 
-func getClosedNotchSize(screen: String? = nil) -> CGSize {
+@MainActor func getClosedNotchSize(screenUUID: String? = nil) -> CGSize {
     // Default notch size, to avoid using optionals
     var notchHeight: CGFloat = Defaults[.nonNotchHeight]
     var notchWidth: CGFloat = 185
 
     var selectedScreen = NSScreen.main
 
-    if let customScreen = screen {
-        selectedScreen = NSScreen.screens.first(where: { $0.localizedName == customScreen })
+    if let uuid = screenUUID {
+        selectedScreen = NSScreen.screen(withUUID: uuid)
     }
 
     // Check if the screen is available

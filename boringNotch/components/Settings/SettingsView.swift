@@ -141,7 +141,10 @@ struct SettingsView: View {
 }
 
 struct GeneralSettings: View {
-    @State private var screens: [String] = NSScreen.screens.compactMap { $0.localizedName }
+    @State private var screens: [(uuid: String, name: String)] = NSScreen.screens.compactMap { screen in
+        guard let uuid = screen.displayUUID else { return nil }
+        return (uuid, screen.localizedName)
+    }
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
@@ -177,13 +180,16 @@ struct GeneralSettings: View {
                     NotificationCenter.default.post(
                         name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
-                Picker("Preferred display", selection: $coordinator.preferredScreen) {
-                    ForEach(screens, id: \.self) { screen in
-                        Text(screen)
+                Picker("Preferred display", selection: $coordinator.preferredScreenUUID) {
+                    ForEach(screens, id: \.uuid) { screen in
+                        Text(screen.name).tag(screen.uuid as String?)
                     }
                 }
                 .onChange(of: NSScreen.screens) {
-                    screens = NSScreen.screens.compactMap({ $0.localizedName })
+                    screens = NSScreen.screens.compactMap { screen in
+                        guard let uuid = screen.displayUUID else { return nil }
+                        return (uuid, screen.localizedName)
+                    }
                 }
                 .disabled(showOnAllDisplays)
                 
@@ -701,12 +707,14 @@ struct HUD: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Replace system HUD", isOn: $coordinator.hudReplacement)
-                    .disabled(!accessibilityAuthorized)
-                    .help("Enable Accessibility in System Settings → Privacy & Security → Accessibility")
-                    .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-                        Task { @MainActor in
-                            let helper = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                Defaults.Toggle(key: .hudReplacement) {
+                   Text("Replace system HUD")
+                }
+                .disabled(!accessibilityAuthorized)
+                .help("Enable Accessibility in System Settings → Privacy & Security → Accessibility")
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                    Task { @MainActor in
+                        let helper = await XPCHelperClient.shared.isAccessibilityAuthorized()
                             accessibilityAuthorized = helper
                         }
                     }
@@ -855,17 +863,14 @@ struct Media: View {
                     selection: $hideNotchOption,
                     label:
                         HStack {
-                            Text("Hide BoringNotch Options")
+                            Text("Full screen behavior")
                             customBadge(text: "Beta")
                         }
                 ) {
-                    Text("Always hide in fullscreen").tag(HideNotchOption.always)
-                    Text("Hide only when NowPlaying app is in fullscreen").tag(
+                    Text("Hide for all apps").tag(HideNotchOption.always)
+                    Text("Hide for media app only").tag(
                         HideNotchOption.nowPlayingOnly)
                     Text("Never hide").tag(HideNotchOption.never)
-                }
-                .onChange(of: hideNotchOption) {
-                    Defaults[.enableFullscreenMediaDetection] = hideNotchOption != .never
                 }
             } header: {
                 Text("Media playback live activity")
@@ -1118,6 +1123,7 @@ struct Shelf: View {
     
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
+    @Default(.expandedDragDetection) var expandedDragDetection: Bool
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -1136,6 +1142,15 @@ struct Shelf: View {
                 }
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
+                }
+                Defaults.Toggle(key: .expandedDragDetection) {
+                    Text("Expanded drag detection area")
+                }
+                .onChange(of: expandedDragDetection) {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.expandedDragDetectionChanged,
+                        object: nil
+                    )
                 }
                 Defaults.Toggle(key: .copyOnDrag) {
                     Text("Copy items on drag")
@@ -1812,6 +1827,9 @@ struct Advanced: View {
             Section {
                 Defaults.Toggle(key: .extendHoverArea) {
                     Text("Extend hover area")
+                }
+                Defaults.Toggle(key: .hideTitleBar) {
+                    Text("Hide title bar")
                 }
                 Defaults.Toggle(key: .showOnLockScreen) {
                     Text("Show notch on lock screen")
