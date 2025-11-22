@@ -128,7 +128,10 @@ struct SettingsView: View {
 }
 
 struct GeneralSettings: View {
-    @State private var screens: [String] = NSScreen.screens.compactMap { $0.localizedName }
+    @State private var screens: [(uuid: String, name: String)] = NSScreen.screens.compactMap { screen in
+        guard let uuid = screen.displayUUID else { return nil }
+        return (uuid, screen.localizedName)
+    }
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
@@ -164,13 +167,16 @@ struct GeneralSettings: View {
                     NotificationCenter.default.post(
                         name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
-                Picker("Preferred display", selection: $coordinator.preferredScreen) {
-                    ForEach(screens, id: \.self) { screen in
-                        Text(screen)
+                Picker("Preferred display", selection: $coordinator.preferredScreenUUID) {
+                    ForEach(screens, id: \.uuid) { screen in
+                        Text(screen.name).tag(screen.uuid as String?)
                     }
                 }
                 .onChange(of: NSScreen.screens) {
-                    screens = NSScreen.screens.compactMap({ $0.localizedName })
+                    screens = NSScreen.screens.compactMap { screen in
+                        guard let uuid = screen.displayUUID else { return nil }
+                        return (uuid, screen.localizedName)
+                    }
                 }
                 .disabled(showOnAllDisplays)
                 
@@ -630,9 +636,6 @@ struct Media: View {
                     Text("Hide only when NowPlaying app is in fullscreen").tag(
                         HideNotchOption.nowPlayingOnly)
                     Text("Never hide").tag(HideNotchOption.never)
-                }
-                .onChange(of: hideNotchOption) {
-                    Defaults[.enableFullscreenMediaDetection] = hideNotchOption != .never
                 }
             } header: {
                 Text("Media playback live activity")

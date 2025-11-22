@@ -49,8 +49,8 @@ struct DynamicNotchApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
-    var windows: [NSScreen: NSWindow] = [:]
-    var viewModels: [NSScreen: BoringViewModel] = [:]
+    var windows: [String: NSWindow] = [:] // UUID -> NSWindow
+    var viewModels: [String: BoringViewModel] = [:] // UUID -> BoringViewModel
     var window: NSWindow?
     let vm: BoringViewModel = .init()
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -64,7 +64,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var screenUnlockedObserver: Any?
     private var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
-    private var dragDetectors: [NSScreen: DragDetector] = [:]
+    private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -180,7 +180,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } else {
             let preferredScreen: NSScreen? = window?.screen
-                ?? NSScreen.screens.first(where: { $0.localizedName == coordinator.selectedScreen })
+                ?? NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
                 ?? NSScreen.main
 
             if let screen = preferredScreen {
@@ -190,6 +190,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupDragDetectorForScreen(_ screen: NSScreen) {
+        guard let uuid = screen.displayUUID else { return }
+        
         let screenFrame = screen.frame
         let notchHeight = openNotchSize.height
         let notchWidth = openNotchSize.width
@@ -210,12 +212,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
-        dragDetectors[screen] = detector
+        dragDetectors[uuid] = detector
         detector.startMonitoring()
     }
 
     private func handleDragEntersNotchRegion(onScreen screen: NSScreen) {
-        if Defaults[.showOnAllDisplays], let viewModel = viewModels[screen] {
+        guard let uuid = screen.displayUUID else { return }
+        
+        if Defaults[.showOnAllDisplays], let viewModel = viewModels[uuid] {
             viewModel.open()
             coordinator.currentView = .shelf
         } else if !Defaults[.showOnAllDisplays], let windowScreen = window?.screen, screen == windowScreen {
@@ -304,7 +308,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             guard let self = self, let window = self.window else { return }
             Task { @MainActor in
-                window.alphaValue = self.coordinator.selectedScreen == self.coordinator.preferredScreen ? 1 : 0
+                window.alphaValue = self.coordinator.selectedScreenUUID == self.coordinator.preferredScreenUUID ? 1 : 0
             }
         }
 
@@ -369,7 +373,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if Defaults[.showOnAllDisplays] {
                     for screen in NSScreen.screens {
                         if screen.frame.contains(mouseLocation) {
-                            if let screenViewModel = self.viewModels[screen] {
+                            if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
                                 viewModel = screenViewModel
                                 break
                             }
@@ -465,8 +469,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let screensChanged =
             currentScreens.count != previousScreens?.count
-            || Set(currentScreens.map { $0.localizedName })
-                != Set(previousScreens?.map { $0.localizedName } ?? [])
+            || Set(currentScreens.compactMap { $0.displayUUID })
+                != Set(previousScreens?.compactMap { $0.displayUUID } ?? [])
             || Set(currentScreens.map { $0.frame }) != Set(previousScreens?.map { $0.frame } ?? [])
 
         previousScreens = currentScreens
@@ -482,27 +486,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func adjustWindowPosition(changeAlpha: Bool = false) {
         if Defaults[.showOnAllDisplays] {
-            let currentScreens = Set(NSScreen.screens)
+            let currentScreenUUIDs = Set(NSScreen.screens.compactMap { $0.displayUUID })
 
-            for screen in windows.keys where !currentScreens.contains(screen) {
-                if let window = windows[screen] {
+            // Remove windows for screens that no longer exist
+            for uuid in windows.keys where !currentScreenUUIDs.contains(uuid) {
+                if let window = windows[uuid] {
                     window.close()
                     NotchSpaceManager.shared.notchSpace.windows.remove(window)
-                    windows.removeValue(forKey: screen)
-                    viewModels.removeValue(forKey: screen)
+                    windows.removeValue(forKey: uuid)
+                    viewModels.removeValue(forKey: uuid)
                 }
             }
 
-            for screen in currentScreens {
-                if windows[screen] == nil {
-                    let viewModel = BoringViewModel(screen: screen.localizedName)
+            // Create or update windows for all screens
+            for screen in NSScreen.screens {
+                guard let uuid = screen.displayUUID else { continue }
+                
+                if windows[uuid] == nil {
+                    let viewModel = BoringViewModel(screenUUID: uuid)
                     let window = createBoringNotchWindow(for: screen, with: viewModel)
 
-                    windows[screen] = window
-                    viewModels[screen] = viewModel
+                    windows[uuid] = window
+                    viewModels[uuid] = viewModel
                 }
 
-                if let window = windows[screen], let viewModel = viewModels[screen] {
+                if let window = windows[uuid], let viewModel = viewModels[uuid] {
                     positionWindow(window, on: screen, changeAlpha: changeAlpha)
 
                     if viewModel.notchState == .closed {
@@ -513,13 +521,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             let selectedScreen: NSScreen
 
-            if let preferredScreen = NSScreen.screens.first(where: {
-                $0.localizedName == coordinator.preferredScreen
-            }) {
-                coordinator.selectedScreen = coordinator.preferredScreen
+            if let preferredScreen = NSScreen.screen(withUUID: coordinator.preferredScreenUUID ?? "") {
+                coordinator.selectedScreenUUID = coordinator.preferredScreenUUID ?? ""
                 selectedScreen = preferredScreen
-            } else if Defaults[.automaticallySwitchDisplay], let mainScreen = NSScreen.main {
-                coordinator.selectedScreen = mainScreen.localizedName
+            } else if Defaults[.automaticallySwitchDisplay], let mainScreen = NSScreen.main,
+                      let mainUUID = mainScreen.displayUUID {
+                coordinator.selectedScreenUUID = mainUUID
                 selectedScreen = mainScreen
             } else {
                 if let window = window {
@@ -528,8 +535,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 return
             }
 
-            vm.screen = selectedScreen.localizedName
-            vm.notchSize = getClosedNotchSize(screen: selectedScreen.localizedName)
+            vm.screenUUID = selectedScreen.displayUUID
+            vm.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
 
             if window == nil {
                 window = createBoringNotchWindow(for: selectedScreen, with: vm)
