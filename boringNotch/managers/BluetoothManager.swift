@@ -119,6 +119,7 @@ final class BluetoothManager: NSObject, ObservableObject {
             await MainActor.run {
                 guard self.lastBluetoothDevice?.addressString == deviceAddress else { return }
                 self.batteryPercentage = nil
+                self.coordinator.toggleExpandingView(status: true, type: .bluetooth)
             }
         }
     }
