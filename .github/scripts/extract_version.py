@@ -11,14 +11,17 @@ import sys
 from argparse import ArgumentParser
 
 
-SEMVER_RE = re.compile(r"v?[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?")
+SEMVER_RE = re.compile(r"v?[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?")
 
 
 def find_first_valid(text: str):
     for cand in SEMVER_RE.findall(text or ""):
         s = cand.lstrip("v")
+        # Normalize for parsing: 2.7 -> 2.7.0, 2.7-beta -> 2.7.0-beta
+        # Regex: look for X.Y at start, not followed by .Z
+        normalized = re.sub(r"^([0-9]+\.[0-9]+)(?![0-9]*\.)", r"\1.0", s)
         try:
-            parsed = semver.VersionInfo.parse(s)
+            parsed = semver.VersionInfo.parse(normalized)
             return s, parsed
         except Exception:
             continue
