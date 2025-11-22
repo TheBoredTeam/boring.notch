@@ -118,7 +118,7 @@ struct ContentView: View {
                     )
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0))
+                    .frame(height: vm.notchState == .open ? vm.notchSize.height : vm.effectiveClosedNotchHeight)
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
                         let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
@@ -292,7 +292,7 @@ struct ContentView: View {
                             }
                             .frame(width: 76, alignment: .trailing)
                         }
-                        .frame(height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0), alignment: .center)
+                        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
@@ -389,7 +389,7 @@ struct ContentView: View {
                 MinimalFaceFeatures()
             }
         }.frame(
-            height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0),
+            height: vm.effectiveClosedNotchHeight,
             alignment: .center
         )
     }
@@ -454,7 +454,7 @@ struct ContentView: View {
                         && Defaults[.sneakPeekStyles] == .inline)
                         ? 380
                         : vm.closedNotchSize.width
-                            + (isHovering ? 8 : -cornerRadiusInsets.closed.top)
+                            + -cornerRadiusInsets.closed.top
                 )
 
             HStack {
@@ -479,18 +479,18 @@ struct ContentView: View {
             .frame(
                 width: max(
                     0,
-                    vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                    vm.effectiveClosedNotchHeight - 12
                         + gestureProgress / 2
                 ),
                 height: max(
                     0,
-                    vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                    vm.effectiveClosedNotchHeight - 12
                 ),
                 alignment: .center
             )
         }
         .frame(
-            height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0),
+            height: vm.effectiveClosedNotchHeight,
             alignment: .center
         )
     }
