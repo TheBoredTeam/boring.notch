@@ -29,6 +29,7 @@ jobs:
       build_number: ${{ steps.extract-version.outputs.build_number }}
       title: ${{ steps.generate-release-notes.outputs.title }}
       release_notes: ${{ steps.generate-release-notes.outputs.release_notes }}
+      release_notes_github: ${{ steps.generate-release-notes.outputs.release_notes_github }}
     steps:
       - uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
@@ -121,9 +122,16 @@ jobs:
             const title = pr.data.title || ( (context.payload.comment && context.payload.comment.body && context.payload.comment.body.includes('beta')) ? 'Beta Release' : 'Release');
             const body = pr.data.body || "- No release notes provided";
 
+            // Create a separate version for GitHub release notes (remove H1 tags and their content)
+            let bodyGithub = body;
+            bodyGithub = bodyGithub.replace(/^#\s+.*$/gm, '');
+            bodyGithub = bodyGithub.replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '');
+            bodyGithub = bodyGithub.trim();
+
             // Set step outputs for downstream jobs
             core.setOutput('title', title);
             core.setOutput('release_notes', body);
+            core.setOutput('release_notes_github', bodyGithub);
 
             // Also write the release notes to a file for tools that expect a file
             const fs = require('fs');
@@ -337,7 +345,7 @@ jobs:
           name: v${{ needs.preparation.outputs.version }} - ${{ needs.preparation.outputs.title }}
           tag_name: v${{ needs.preparation.outputs.version }}
           fail_on_unmatched_files: true
-          body: ${{ needs.preparation.outputs.release_notes }}
+          body: ${{ needs.preparation.outputs.release_notes_github }}
           files: Release/boringNotch.dmg
           prerelease: ${{ needs.preparation.outputs.is_beta }}
           draft: false
