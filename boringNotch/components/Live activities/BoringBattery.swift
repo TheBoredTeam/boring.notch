@@ -282,9 +282,10 @@ struct BatteryRing: View {
             }
         }
         .frame(width: 16, height: 16)
+        .padding(4)
     }
     
-    func batteryColor(for percentage: Double) -> Color {
+    private func batteryColor(for percentage: Double) -> Color {
         let pct = max(0, min(100, percentage))
 
         if pct <= 50 {

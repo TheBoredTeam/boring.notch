@@ -445,10 +445,6 @@ struct ContentView: View {
                         width: max(0, vm.effectiveClosedNotchHeight - 12),
                         height: max(0, vm.effectiveClosedNotchHeight - 12)
                     )
-                    .clipShape(
-                        RoundedRectangle(
-                            cornerRadius: 4)
-                    ) // IMAGE
                 
                 Rectangle()
                     .fill(.black)
@@ -460,7 +456,7 @@ struct ContentView: View {
                                 && Defaults[.bluetoothSneakPeekStyle] == .inline
                             {
                                 MarqueeText(
-                                    .constant(bluetoothManager.lastBluetoothDevice?.name ?? ""),
+                                    .constant("\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")"),
                                     textColor: .gray,
                                     minDuration: 0.4,
                                     frameWidth: 100
@@ -478,31 +474,43 @@ struct ContentView: View {
                         : vm.closedNotchSize.width
                         + (isHovering ? 8 : -cornerRadiusInsets.closed.top)
                     ) // RECTANGLE
-                if let battery = bluetoothManager.batteryPercentage {
-                    HStack {
-                        BatteryRing(percentage: Double(battery))
+                if bluetoothManager.lastBluetoothDevice?.isConnected() == true {
+                    if let battery = bluetoothManager.batteryPercentage {
+                        HStack {
+                            BatteryRing(percentage: Double(battery))
+                        }
+                        .frame(
+                            width: max(
+                                0,
+                                vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                                + gestureProgress / 2
+                            ),
+                            height: max(
+                                0,
+                                vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                            ),
+                            alignment: .center
+                        )
+                    } else {
+                        Image(systemName: "circle.slash")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .foregroundStyle(.gray)
+                            .symbolRenderingMode(.hierarchical)
+                            .frame(
+                                width: max(0, vm.effectiveClosedNotchHeight - 12),
+                                height: max(0, vm.effectiveClosedNotchHeight - 12)
+                            )
                     }
-                    .frame(
-                        width: max(
-                            0,
-                            vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
-                            + gestureProgress / 2
-                        ),
-                        height: max(
-                            0,
-                            vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
-                        ),
-                        alignment: .center
-                    )
                 } else {
-                    Image(systemName: "circle.slash")
+                    Image("bluetooth.slash")
                         .resizable()
+                        .renderingMode(.template)
                         .aspectRatio(contentMode: .fit)
                         .foregroundStyle(.gray)
-                        .symbolRenderingMode(.hierarchical)
                         .frame(
-                            width: 20,
-                            height: 20
+                            width: max(0, vm.effectiveClosedNotchHeight - 12),
+                            height: max(0, vm.effectiveClosedNotchHeight - 12)
                         )
                 }
             } // HSTACK
@@ -513,16 +521,20 @@ struct ContentView: View {
             
             if coordinator.expandingView.type == .bluetooth && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.enableBluetoothSneakPeek] && Defaults[.bluetoothSneakPeekStyle] == .standard {
                 HStack(alignment: .center) {
-                    Image("bluetooth")
+                    /*
+                    Image(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "bluetooth" : "bluetooth.slash")
                         .renderingMode(.template)
                         .resizable()
                         .frame(width: 16, height: 16)
+                     */
                     GeometryReader { geo in
                         MarqueeText(
-                            .constant(bluetoothManager.lastBluetoothDevice?.name ?? ""),
+                            .constant("\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")"),
                             textColor: .gray,
                             minDuration: 1,
-                            frameWidth: geo.size.width)
+                            frameWidth: geo.size.width,
+                            infiniteText: true
+                        )
                     }
                 }
                 .foregroundStyle(.gray)

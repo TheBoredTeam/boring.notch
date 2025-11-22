@@ -2,69 +2,13 @@
 //  BluetoothManager.swift
 //  boringNotch
 //
-//  Created on 2025-01-XX.
+//  Created by Murat ŞENOL on 20.11.2025.
 //
 
 import Foundation
 import SwiftUI
 import IOBluetooth
 import Defaults
-
-// Maps to the root object containing the SPBluetoothDataType
-fileprivate struct SPBluetoothDataRoot: Decodable {
-    let bluetoothData: [SPBluetoothData]?
-    
-    private enum CodingKeys: String, CodingKey {
-        case bluetoothData = "SPBluetoothDataType"
-    }
-}
-
-fileprivate struct SPBluetoothData: Decodable {
-    let deviceConnected: [SPBluetoothDataDevice]?
-    let deviceNotconnected: [SPBluetoothDataDevice]?
-    
-    enum CodingKeys: String, CodingKey {
-        case deviceConnected = "device_connected"
-        case deviceNotconnected = "device_not_connected"
-    }
-}
-
-fileprivate struct SPBluetoothDataDevice: Decodable {
-    let name: String?
-    let info: SPBluetoothDataDeviceInfo?
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let dict = try container.decode([String: SPBluetoothDataDeviceInfo].self)
-
-        guard let (key, value) = dict.first else {
-            throw DecodingError.dataCorrupted(
-                .init(codingPath: decoder.codingPath,
-                      debugDescription: "Expected dictionary with a single key")
-            )
-        }
-
-        self.name = key
-        self.info = value
-    }
-}
-
-fileprivate struct SPBluetoothDataDeviceInfo: Decodable {
-    let adress: String?
-    // let deviceBatteryLevelMain: String // - not used
-    let minorType: String?
-    let productID: String?
-    let services: String?
-    let vendorID: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case adress = "device_adress"
-        case minorType = "device_minorType"
-        case productID = "device_productID"
-        case services = "device_services"
-        case vendorID = "device_vendorID"
-    }
-}
 
 final class BluetoothManager: NSObject, ObservableObject {
     
@@ -75,7 +19,6 @@ final class BluetoothManager: NSObject, ObservableObject {
     @Published private(set) var lastBluetoothDevice: IOBluetoothDevice?
     
     private var notificationCenter: IOBluetoothUserNotification?
-    private var connectedDevices: [String : String] = [:]
     private var batteryFetchTask: Task<Void, Never>?
     
     private override init() {
@@ -112,12 +55,6 @@ final class BluetoothManager: NSObject, ObservableObject {
                let address = device.addressString,
                let name = device.name {
                 device.register(forDisconnectNotification: self, selector: #selector(deviceDisconnected(_:device:)))
-                connectedDevices[address] = name
-                
-                /*
-                let handsFreeDevice = IOBluetoothHandsFreeDevice(device: device, delegate: self)
-                handsFreeDevice?.connect() // This attempts to trigger a connection and service discovery
-                 */
             }
         }
     }
@@ -133,7 +70,6 @@ final class BluetoothManager: NSObject, ObservableObject {
     
     private func handleDeviceConnected(_ device: IOBluetoothDevice) {
         guard let name = device.name, let address = device.addressString else { return }
-        connectedDevices[address] = name
         
         Task { @MainActor in
             device.register(forDisconnectNotification: self, selector: #selector(deviceDisconnected(_:device:)))
@@ -148,9 +84,6 @@ final class BluetoothManager: NSObject, ObservableObject {
             lastBluetoothDevice = device
             batteryPercentage = nil
             coordinator.toggleExpandingView(status: true, type: .bluetooth)
-        }
-        if let address = device.addressString {
-            connectedDevices.removeValue(forKey: address)
         }
     }
     
@@ -236,29 +169,29 @@ final class BluetoothManager: NSObject, ObservableObject {
     
     // MARK: - Device Icon & Info
     func getDeviceIcon(for device: IOBluetoothDevice?) -> String {
+        
+        guard let device, let deviceName = device.name else {
+            return "circle.badge.questionmark"
+        }
         // Check custom mappings first
-        if let device,
-           let deviceName = device.name {
-            let customMappings = Defaults[.bluetoothDeviceIconMappings]
-            for mapping in customMappings {
-                if deviceName.localizedCaseInsensitiveContains(mapping.deviceName) {
-                    return mapping.sfSymbolName
-                }
+        let customMappings = Defaults[.bluetoothDeviceIconMappings]
+        for mapping in customMappings {
+            if deviceName.localizedCaseInsensitiveContains(mapping.deviceName) {
+                return mapping.sfSymbolName
             }
         }
         
-        // Fall back to default logic
-        if let device,
-           let deviceName = device.name,
-           let iconName = sfSymbolForAudioDevice(deviceName) {
+        // Fall back to name matching
+        if let iconName = sfSymbolForDevice(deviceName) {
             return iconName
         }
-        guard let device, let type = getBluetoothDeviceMinorType(device) else {
-            return "circle.badge.questionmark"
-        }
         
+        // Fall back to device minor type
+        return getByBluetoothDeviceMinorType(device)
+        
+        /*
         // just to be sure
-        let lowercasedType = type.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowercasedType = type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
         switch lowercasedType {
         // ----------------------------------------------------------------------
@@ -302,55 +235,41 @@ final class BluetoothManager: NSObject, ObservableObject {
         default:
             return "circle.badge.questionmark"
         }
+         */
     }
     
-    private func getBluetoothDeviceMinorType(_ device: IOBluetoothDevice?) -> String? {
-        guard let deviceName = device?.name else { return nil }
+    private func getByBluetoothDeviceMinorType(_ device: IOBluetoothDevice) -> String {
+        let classOfDevice: BluetoothClassOfDevice = device.classOfDevice
         
-        let task = Process()
-        let pipe = Pipe()
+        let majorClass = (classOfDevice & 0x1F00) >> 8
+        let minorClass = (classOfDevice & 0x00FC) >> 2
         
-        // --- FIX: Use bash to wrap the command and force output flush ---
-        task.executableURL = URL(fileURLWithPath: "/bin/bash")
-        // Use 'cat' to ensure the output is fully written to the pipe before exit
-        let commandString = "/usr/sbin/system_profiler -json SPBluetoothDataType | cat"
-        task.arguments = ["-c", commandString]
-        
-        var environment = ProcessInfo.processInfo.environment
-        environment["__CFPREFERENCES_AVOID_DAEMON"] = "1"
-        task.environment = environment
-        
-        task.standardOutput = pipe
-        let fileHandle = pipe.fileHandleForReading
-        
-        do {
-            try task.run()
-            task.waitUntilExit()
-        } catch {
-            return nil
-        }
-        
-        do {
-            guard let data = try fileHandle.readToEnd() else {
-                return nil
+        switch majorClass {
+        case 0x01: return "desktopcomputer"
+        case 0x02: return "smartphone"
+        case 0x04: // Audio/Video
+            switch minorClass {
+            case 0x01, 0x06: return "headphones"
+            case 0x02: return "phone.and.waveform"
+            case 0x05: return "hifispeaker.fill"
+            default: return "speaker.wave.3.fill"
             }
-            let rootData = try JSONDecoder().decode(SPBluetoothDataRoot.self, from: data)
-            guard let devices = rootData.bluetoothData?.first?.deviceConnected,
-                  let device = devices.first(where: {$0.name == deviceName})
-            else {
-                print("Failed to find 'devices' array or 'device' in JSON structure.")
-                return nil
+        case 0x05: // Peripheral
+            let keyboardMouse = (minorClass & 0x30) >> 4
+            switch keyboardMouse {
+            case 0x01: return "keyboard.fill"
+            case 0x02: return "computermouse.fill"
+            case 0x03: return "keyboard.badge.ellipsis.fill"
+            default: return "gamecontroller.fill"
             }
-            
-            return device.info?.minorType?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-            
-        } catch {
-            print("JSON Decoding Error: \(error)")
-            return nil
+        case 0x06: return "camera"
+        case 0x07: return "watch.analog"
+        default: return "circle.badge.questionmark"
         }
+
     }
     
-    private func sfSymbolForAudioDevice(_ deviceName: String) -> String? {
+    private func sfSymbolForDevice(_ deviceName: String) -> String? {
         let name = deviceName.lowercased()
 
         // ---- Apple AirPods ----
