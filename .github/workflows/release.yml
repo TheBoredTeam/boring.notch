@@ -212,8 +212,10 @@ jobs:
             -project ${{ env.projname }}.xcodeproj \
             -scheme ${{ env.projname }} \
             -archivePath ${{ env.projname }} \
+            -destination "generic/platform=macOS" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            ONLY_ACTIVE_ARCH=NO \
             -allowProvisioningUpdates
       - name: Export app
         env:
