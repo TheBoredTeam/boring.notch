@@ -15,7 +15,6 @@ struct DragPreviewView: View {
 
             Text(displayName)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.white)
                 .lineLimit(2)
                 .truncationMode(.middle)
                 .multilineTextAlignment(.center)

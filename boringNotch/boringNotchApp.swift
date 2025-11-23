@@ -431,19 +431,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.showOnboardingWindow(step: .musicPermission)
             }
         }
-        if Defaults[.hudReplacement] {
-            Task { @MainActor in
-               let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                if authorized {
-                    MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
-                } else {
-                    let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: false)
-                    if granted {
-                        MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
-                    }
-                }
-            }
-        }
 
         previousScreens = NSScreen.screens
     }
