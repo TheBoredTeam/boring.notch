@@ -212,8 +212,10 @@ jobs:
             -project ${{ env.projname }}.xcodeproj \
             -scheme ${{ env.projname }} \
             -archivePath ${{ env.projname }} \
+            -destination "generic/platform=macOS" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            ONLY_ACTIVE_ARCH=NO \
             -allowProvisioningUpdates
       - name: Export app
         env:
@@ -280,24 +282,13 @@ jobs:
         with:
           name: ${{ env.projname }}.dmg
           path: Release
-      - name: Create HTML release notes
+      - name: Create embedded release notes fragment
+        env:
+          RELEASE_NOTES: ${{ needs.preparation.outputs.release_notes }}
         run: |
           mkdir -p Release
-          cat > Release/boringNotch.html <<EOF
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <title>Boring Notch ${{ needs.preparation.outputs.version }}</title>
-          </head>
-          <body>
-            <h2>BoringNotch ${{ needs.preparation.outputs.version }}</h2>
-            <div>
-              ${{ needs.preparation.outputs.release_notes }}
-            </div>
-          </body>
-          </html>
-          EOF
+          # Write release notes to file for Sparkle embedding
+          printf "%s" "$RELEASE_NOTES" > Release/boringNotch.html
       - name: Check for generate_appcast in repository
         run: |
           TOOL_PATH="Configuration/sparkle/generate_appcast"
@@ -321,6 +312,7 @@ jobs:
             --ed-key-file - \
             --link "$GITHUB_REPO" \
             --download-url-prefix "$DOWNLOAD_PREFIX" \
+            --embed-release-notes \
             $CHANNEL_ARG \
             -o updater/appcast.xml \
             Release/
