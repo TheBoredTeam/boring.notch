@@ -13,6 +13,9 @@
   <a href="https://discord.gg/c8JXA7qrPm">
     <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat" alt="Discord Badge" />
   </a>
+  <a href="ttps://ko-fi.com/brandonhimpfen">
+    <img src="https://srv-cdn.himpfen.io/badges/kofi/kofi-flat.svg" alt="Ko-Fi" />
+  </a>
 </p>
 
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
@@ -83,7 +86,10 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
 - [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
+- [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
+- [ ] Weather integration ⛅️
 - [ ] Customizable Layout options 🛠️
+- [ ] Lock Screen Widgets 🔒
 - [ ] Extension system 🧩
 - [ ] Notifications (under consideration) 🔔
 <!-- - [ ] Clipboard history manager 📌 `Extension` -->
@@ -162,13 +168,19 @@ We’re all about good vibes and awesome contributions! Here’s how you can joi
  </picture>
 </a>
 
-## Buy us a coffee!
-
-<a href="https://www.buymeacoffee.com/jfxh67wvfxq" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+## Support us on Ko-fi!
+<!-- <a href="https://www.buymeacoffee.com/jfxh67wvfxq" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a> -->
+<a href="https://www.ko-fi.com/alexander5015" target="_blank"><img src="https://github.com/user-attachments/assets//a76175ef-7e93-475a-8b67-4922ba5964c2" alt="Support us on Ko-fi" style="height: 70px !important;width: 346px !important;" ></a>
 
 ## 🎉 Acknowledgments
 
-We would like to express our appreciation to the developers of [NotchDrop](https://github.com/Lakr233/NotchDrop), an open-source project that has been instrumental in developing the "Shelf" feature in Boring Notch. Special thanks to Lakr233 for their contributions to NotchDrop, and to [Hugo Persson](https://github.com/Hugo-Persson) for integrating it into our project.
+We would like to express our gratitude to the authors and maintainers of the open-source projects that made this possible. 
+
+## Notable Projects
+- **[MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)** –  An open-source project that allowed us to use the Now Playing source in macOS 15.4+
+- **[NotchDrop](https://github.com/Lakr233/NotchDrop)** – An open-source project that has been instrumental in developing the first version of the "Shelf" feature in Boring Notch.
+
+For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES.md) file.
 
 ### Icon credits: [@maxtron95](https://github.com/maxtron95)
 ### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
