@@ -6026,7 +6026,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Copy items on drag"
+            "value": "Kopiuj elementy po przeciągnięciu"
           }
         },
         "pt-BR": {
@@ -6228,7 +6228,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Currently selected: %@"
+            "value": "Aktualnie wybrane: %@"
           }
         },
         "pt-BR": {
@@ -6329,7 +6329,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom"
+            "value": "Niestandardowe"
           }
         },
         "pt-BR": {
@@ -6935,7 +6935,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Customize which controls appear in the music player. Volume expands when active."
+            "value": "Dostosuj które ustawienia wyświetlane w odtwarzaczu muzyki. Głośność rozwija się, gdy jest aktywna."
           }
         },
         "pt-BR": {
@@ -7642,7 +7642,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drag a control onto a slot"
+            "value": "Przeciągnij sterowanie na slot"
           }
         },
         "pt-BR": {
@@ -7743,7 +7743,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drag items in the preview to reorder or drop from the palette"
+            "value": "Przeciągnij elementy w podglądzie, aby zmienić kolejność lub upuścić z palety"
           }
         },
         "pt-BR": {
@@ -8147,7 +8147,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
+            "value": "Włącz dostępność w Ustawieniach Systemu → Prywatność i Bezpieczeństwo → Dostępność"
           }
         },
         "pt-BR": {
@@ -8753,7 +8753,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptic feedback"
+            "value": "Włącz informację zwrotną w postaci wibracji"
           }
         },
         "pt-BR": {
@@ -9258,7 +9258,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Expanded drag detection area"
+            "value": "Rozszerzony obszar wykrywania przeciągnięcia"
           }
         },
         "pt-BR": {
@@ -9561,7 +9561,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Files dropped on the shelf will be shared via this service"
+            "value": "Pliki upuszczone na półkę będą udostępniane za pośrednictwem tej usługi"
           }
         },
         "pt-BR": {
@@ -9763,7 +9763,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Full screen behavior"
+            "value": "Zachowanie na pełnym ekranie"
           }
         },
         "pt-BR": {
@@ -10571,7 +10571,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide all-day events"
+            "value": "Ukryj wydarzenia całodniowe"
           }
         },
         "pt-BR": {
@@ -10773,7 +10773,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide for all apps"
+            "value": "Ukryj dla wszystkich aplikacji"
           }
         },
         "pt-BR": {
@@ -10874,7 +10874,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide for media app only"
+            "value": "Ukryj tylko dla aplikacji multimediów"
           }
         },
         "pt-BR": {
@@ -10975,7 +10975,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide from screen recording"
+            "value": "Ukryj przed nagrywaniem ekranu"
           }
         },
         "pt-BR": {
@@ -11076,7 +11076,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide title bar"
+            "value": "Ukryj pasek tytułu"
           }
         },
         "pt-BR": {
@@ -11379,7 +11379,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hover delay"
+            "value": "Opóźnienie po najechaniu"
           }
         },
         "pt-BR": {
@@ -12086,7 +12086,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Layout Preview"
+            "value": "Podgląd układu"
           }
         },
         "pt-BR": {
@@ -12793,7 +12793,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match menu bar height"
+            "value": "Dopasuj do wysokości paska menu"
           }
         },
         "pt-BR": {
@@ -12995,7 +12995,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match real notch height"
+            "value": "Dopasuj do rzeczywistego rozmiaru notcha"
           }
         },
         "pt-BR": {
@@ -14813,7 +14813,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No events"
+            "value": "Brak wydarzeń"
           }
         },
         "pt-BR": {
@@ -15318,7 +15318,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch height on non-notch displays"
+            "value": "Wysokość notcha na wyświetlaczach bez notcha"
           }
         },
         "pt-BR": {
@@ -15419,7 +15419,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch height on notch displays"
+            "value": "Wysokość notcha na wyświetlaczach z notchem"
           }
         },
         "pt-BR": {
@@ -15520,7 +15520,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch sizing"
+            "value": "Rozmiar Notcha"
           }
         },
         "pt-BR": {
@@ -16025,7 +16025,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Option key behaviour"
+            "value": "Zachowanie klawisza opcji"
           }
         },
         "pt-BR": {
@@ -16126,7 +16126,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Pick a Color"
+            "value": "Wybierz kolor"
           }
         },
         "pt-BR": {
@@ -16328,7 +16328,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Preferred display"
+            "value": "Preferowany wyświetlacz"
           }
         },
         "pt-BR": {
@@ -16530,7 +16530,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quick Share"
+            "value": "Szybkie udostępnianie"
           }
         },
         "pt-BR": {
@@ -16631,7 +16631,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quick Share Service"
+            "value": "Usługa szybkiego udostępniania"
           }
         },
         "pt-BR": {
@@ -17338,7 +17338,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Remove from shelf after dragging"
+            "value": "Usuń z półki po przeciąganiu"
           }
         },
         "pt-BR": {
@@ -17439,7 +17439,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Replace system HUD"
+            "value": "Zastąp system HUD"
           }
         },
         "pt-BR": {
@@ -17540,7 +17540,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Request Accessibility"
+            "value": "Prośba o dostępność"
           }
         },
         "pt-BR": {
@@ -17641,7 +17641,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reset to Defaults"
+            "value": "Przywróć ustawienia domyślne"
           }
         },
         "pt-BR": {
@@ -18954,7 +18954,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show cool face animation while inactive"
+            "value": "Wyświetlaj fajną animację twarzy podczas bezczynności"
           }
         },
         "pt-BR": {
@@ -19055,7 +19055,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show lyrics below artist name"
+            "value": "Pokaż tekst utworu pod nazwą wykonawcy"
           }
         },
         "pt-BR": {
@@ -19156,7 +19156,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show menu bar icon"
+            "value": "Włącz ikonę na pasku menu"
           }
         },
         "pt-BR": {
@@ -19257,7 +19257,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show music live activity"
+            "value": "Pokaż aktywność muzyczną na żywo"
           }
         },
         "pt-BR": {
@@ -19358,7 +19358,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show notch on lock screen"
+            "value": "Pokaż notch na ekranie blokady"
           }
         },
         "pt-BR": {
