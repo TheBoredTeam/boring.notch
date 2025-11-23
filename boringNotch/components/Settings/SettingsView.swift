@@ -1154,9 +1154,7 @@ struct Appearance: View {
                 Defaults.Toggle(key: .settingsIconInNotch) {
                     Text("Show settings icon in notch")
                 }
-                Defaults.Toggle(key: .useModernCloseAnimation) {
-                    Text("Use simpler close animation")
-                }
+
             } header: {
                 Text("General")
             }
