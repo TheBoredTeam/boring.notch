@@ -20,6 +20,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published private(set) var notchState: NotchState = .closed
 
     @Published var dragDetectorTargeting: Bool = false
+    @Published var generalDropTargeting: Bool = false
     @Published var dropZoneTargeting: Bool = false
     @Published var dropEvent: Bool = false
     @Published var anyDropZoneTargeting: Bool = false
@@ -31,7 +32,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
 
-    @Published var screen: String?
+    @Published var screenUUID: String?
 
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
@@ -49,18 +50,18 @@ class BoringViewModel: NSObject, ObservableObject {
         cancellables.removeAll()
     }
 
-    init(screen: String? = nil) {
+    init(screenUUID: String? = nil) {
         animation = animationLibrary.animation
 
         super.init()
         
-        self.screen = screen
-        notchSize = getClosedNotchSize(screen: screen)
+        self.screenUUID = screenUUID
+        notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
 
-        Publishers.CombineLatest($dropZoneTargeting, $dragDetectorTargeting)
-            .map { shelf, drag in
-                shelf || drag
+        Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
+            .map { shelf, drag, general in
+                shelf || drag || general
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
@@ -71,12 +72,13 @@ class BoringViewModel: NSObject, ObservableObject {
     private func setupDetectorObserver() {
         // Publisher for the user’s fullscreen detection setting
         let enabledPublisher = Defaults
-            .publisher(.enableFullscreenMediaDetection)
+            .publisher(.hideNotchOption)
             .map(\.newValue)
+            .map { $0 != .never }
             .removeDuplicates()
 
-        // Publisher for the current screen name (non-nil, distinct)
-        let screenPublisher = $screen
+        // Publisher for the current screen UUID (non-nil, distinct)
+        let screenPublisher = $screenUUID
             .compactMap { $0 }
             .removeDuplicates()
 
@@ -84,10 +86,10 @@ class BoringViewModel: NSObject, ObservableObject {
         let fullscreenStatusPublisher = detector.$fullscreenStatus
             .removeDuplicates()
 
-        // Combine all three: screen name, fullscreen status, and enabled setting
+        // Combine all three: screen UUID, fullscreen status, and enabled setting
         Publishers.CombineLatest3(screenPublisher, fullscreenStatusPublisher, enabledPublisher)
-            .map { screenName, fullscreenStatus, enabled in
-                let isFullscreen = fullscreenStatus[screenName] ?? false
+            .map { screenUUID, fullscreenStatus, enabled in
+                let isFullscreen = fullscreenStatus[screenUUID] ?? false
                 return enabled && isFullscreen
             }
             .removeDuplicates()
@@ -102,9 +104,28 @@ class BoringViewModel: NSObject, ObservableObject {
 
     // Computed property for effective notch height
     var effectiveClosedNotchHeight: CGFloat {
-        let currentScreen = NSScreen.screens.first { $0.localizedName == screen }
+        let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
         let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
         return noNotchAndFullscreen ? 0 : closedNotchSize.height
+    }
+
+    var chinHeight: CGFloat {
+        if !Defaults[.hideTitleBar] {
+            return 0
+        }
+
+        guard let currentScreen = screenUUID.flatMap({ NSScreen.screen(withUUID: $0) }) else {
+            return 0
+        }
+
+        if notchState == .open { return 0 }
+
+        let menuBarHeight = currentScreen.frame.maxY - currentScreen.visibleFrame.maxY
+        let currentHeight = effectiveClosedNotchHeight
+
+        if currentHeight == 0 { return 0 }
+
+        return max(0, menuBarHeight - currentHeight)
     }
 
     func toggleCameraPreview() {
@@ -156,7 +177,7 @@ class BoringViewModel: NSObject, ObservableObject {
     }
     
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
-        let screenFrame = getScreenFrame(screen)
+        let screenFrame = getScreenFrame(screenUUID)
         if let frame = screenFrame {
             
             let baseY = frame.maxY - notchSize.height
@@ -169,10 +190,8 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func open() {
-        withAnimation(.bouncy) {
-            self.notchSize = openNotchSize
-            self.notchState = .open
-        }
+        self.notchSize = openNotchSize
+        self.notchState = .open
         
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
@@ -183,15 +202,12 @@ class BoringViewModel: NSObject, ObservableObject {
         if SharingStateManager.shared.preventNotchClose {
             return
         }
-        withAnimation(.smooth) { [weak self] in
-            guard let self = self else { return }
-            self.notchSize = getClosedNotchSize(screen: self.screen)
-            self.closedNotchSize = self.notchSize
-            self.notchState = .closed
-            self.isBatteryPopoverActive = false
-            self.coordinator.sneakPeek.show = false
-            self.edgeAutoOpenActive = false
-        }
+        self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
+        self.closedNotchSize = self.notchSize
+        self.notchState = .closed
+        self.isBatteryPopoverActive = false
+        self.coordinator.sneakPeek.show = false
+        self.edgeAutoOpenActive = false
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home

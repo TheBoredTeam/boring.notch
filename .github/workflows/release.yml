@@ -24,11 +24,12 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      is_beta: ${{ steps.check-beta.outputs.is_beta }}
+      is_beta: ${{ steps.extract-version.outputs.is_beta }}
       version: ${{ steps.extract-version.outputs.version }}
       build_number: ${{ steps.extract-version.outputs.build_number }}
       title: ${{ steps.generate-release-notes.outputs.title }}
       release_notes: ${{ steps.generate-release-notes.outputs.release_notes }}
+      release_notes_github: ${{ steps.generate-release-notes.outputs.release_notes_github }}
     steps:
       - uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
@@ -121,9 +122,16 @@ jobs:
             const title = pr.data.title || ( (context.payload.comment && context.payload.comment.body && context.payload.comment.body.includes('beta')) ? 'Beta Release' : 'Release');
             const body = pr.data.body || "- No release notes provided";
 
+            // Create a separate version for GitHub release notes (remove H1 tags and their content)
+            let bodyGithub = body;
+            bodyGithub = bodyGithub.replace(/^#\s+.*$/gm, '');
+            bodyGithub = bodyGithub.replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '');
+            bodyGithub = bodyGithub.trim();
+
             // Set step outputs for downstream jobs
             core.setOutput('title', title);
             core.setOutput('release_notes', body);
+            core.setOutput('release_notes_github', bodyGithub);
 
             // Also write the release notes to a file for tools that expect a file
             const fs = require('fs');
@@ -142,13 +150,13 @@ jobs:
           fi
 
       - name: Sync branch (for stable releases)
-        if: ${{ steps.check-beta.outputs.is_beta == 'false' }}
+        if: ${{ steps.extract-version.outputs.is_beta == 'false' }}
         uses: devmasx/merge-branch@master
         with:
           type: now
           from_branch: ${{ steps.comment-branch.outputs.base_ref }}
           target_branch: ${{ steps.comment-branch.outputs.head_ref }}
-          github_token: ${{ github.token }}
+          github_token: ${{ secrets.RELEASE_TOKEN }}
           message: "Sync branch before release"
 
   build:
@@ -204,8 +212,10 @@ jobs:
             -project ${{ env.projname }}.xcodeproj \
             -scheme ${{ env.projname }} \
             -archivePath ${{ env.projname }} \
+            -destination "generic/platform=macOS" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            ONLY_ACTIVE_ARCH=NO \
             -allowProvisioningUpdates
       - name: Export app
         env:
@@ -258,6 +268,8 @@ jobs:
     name: Publish Release
     runs-on: macos-latest
     needs: [preparation, build]
+    permissions:
+      contents: write
     steps:
       - uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
@@ -270,24 +282,13 @@ jobs:
         with:
           name: ${{ env.projname }}.dmg
           path: Release
-      - name: Create HTML release notes
+      - name: Create embedded release notes fragment
+        env:
+          RELEASE_NOTES: ${{ needs.preparation.outputs.release_notes }}
         run: |
           mkdir -p Release
-          cat > Release/boringNotch.html <<EOF
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <title>Boring Notch ${{ needs.preparation.outputs.version }}</title>
-          </head>
-          <body>
-            <h2>BoringNotch ${{ needs.preparation.outputs.version }}</h2>
-            <div>
-              ${{ needs.preparation.outputs.release_notes }}
-            </div>
-          </body>
-          </html>
-          EOF
+          # Write release notes to file for Sparkle embedding
+          printf "%s" "$RELEASE_NOTES" > Release/boringNotch.html
       - name: Check for generate_appcast in repository
         run: |
           TOOL_PATH="Configuration/sparkle/generate_appcast"
@@ -311,6 +312,7 @@ jobs:
             --ed-key-file - \
             --link "$GITHUB_REPO" \
             --download-url-prefix "$DOWNLOAD_PREFIX" \
+            --embed-release-notes \
             $CHANNEL_ARG \
             -o updater/appcast.xml \
             Release/
@@ -321,21 +323,21 @@ jobs:
           git add updater/appcast.xml
           if [[ "${{ needs.preparation.outputs.is_beta }}" == "false" ]]; then
             git add ${{ env.projname }}.xcodeproj/project.pbxproj || true
-            git commit -m "Update version to v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
+            git commit -m "Update version to v${{ needs.preparation.outputs.version }} and appcast" || echo "No changes to commit"
+            git push origin HEAD:${{ steps.comment-branch.outputs.head_ref }} || true
           else
-            # git checkout main
-            # git add updater/appcast.xml
-            # git commit -m "Update appcast with beta release for v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
-            # git push origin main
+            git checkout main
+            git add updater/appcast.xml
+            git commit -m "Update appcast with beta release for v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
+            git push origin main
           fi
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
-        if: false
+        uses: softprops/action-gh-release@v2
         with:
           name: v${{ needs.preparation.outputs.version }} - ${{ needs.preparation.outputs.title }}
           tag_name: v${{ needs.preparation.outputs.version }}
           fail_on_unmatched_files: true
-          body: ${{ needs.preparation.outputs.release_notes }}
+          body: ${{ needs.preparation.outputs.release_notes_github }}
           files: Release/boringNotch.dmg
           prerelease: ${{ needs.preparation.outputs.is_beta }}
           draft: false
@@ -346,7 +348,7 @@ jobs:
     needs: [preparation, publish]
     if: ${{ needs.preparation.outputs.is_beta == 'false' }}
     steps:
-      - name: Generate Homebrew cask
+      - name: Generate Homebrew stable cask
         run: |
           DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/boringNotch.dmg"
           NEW_SHA256=$(curl -sL "$DMG_URL" | shasum -a 256 | cut -d' ' -f1)
@@ -376,11 +378,63 @@ jobs:
             ]
           end
           EOF
-      - name: Upload Homebrew cask artifact
+
+      - name: Generate Homebrew RC cask (same as stable for stable releases)
+        run: |
+          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/boringNotch.dmg"
+          NEW_SHA256=$(curl -sL "$DMG_URL" | shasum -a 256 | cut -d' ' -f1)
+          cat > boring-notch@rc.rb <<EOF
+          cask "boring-notch@rc" do
+            version "${{ needs.preparation.outputs.version }}"
+            sha256 "$NEW_SHA256"
+
+            url "$DMG_URL"
+            name "Boring Notch RC"
+            desc "Not so boring notch That Rocks 🎸🎶 (Release Candidate)"
+            homepage "https://github.com/TheBoredTeam/boring.notch"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            auto_updates true
+            depends_on macos: ">= :sonoma"
+
+            app "boringNotch.app"
+
+            zap trash: [
+              "~/Library/Application Scripts/theboringteam.boringnotch/",
+              "~/Library/Containers/theboringteam.boringnotch/",
+            ]
+          end
+          EOF
+
+      - name: Upload Homebrew cask artifacts
         uses: actions/upload-artifact@v4
         with:
           name: homebrew-cask-${{ needs.preparation.outputs.version }}
-          path: boring-notch.rb
+          path: |
+            boring-notch.rb
+            boring-notch@rc.rb
+
+      - name: Checkout Homebrew tap
+        uses: actions/checkout@v3
+        with:
+          repository: TheBoredTeam/homebrew-boring-notch
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update both casks in tap
+        run: |
+          cp boring-notch.rb homebrew-tap/Casks/boring-notch.rb
+          cp boring-notch@rc.rb homebrew-tap/Casks/boring-notch@rc.rb
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/boring-notch.rb Casks/boring-notch@rc.rb
+          git commit -m "Update boring-notch and boring-notch@rc to v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
+          git push
 
   upgrade-brew-beta:
     name: Upgrade Homebrew beta formula
@@ -424,6 +478,23 @@ jobs:
           name: homebrew-cask-${{ needs.preparation.outputs.version }}
           path: boring-notch@rc.rb
 
+      - name: Checkout Homebrew tap
+        uses: actions/checkout@v3
+        with:
+          repository: TheBoredTeam/homebrew-boring-notch
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update beta cask in tap
+        run: |
+          cp boring-notch@rc.rb homebrew-tap/Casks/boring-notch@rc.rb
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/boring-notch@rc.rb
+          git commit -m "Update boring-notch@rc to v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
+          git push
+
   ending:
     name: Ending job
     if: ${{ always() && github.event.issue.pull_request && (contains(github.event.comment.body, '/build') || contains(github.event.comment.body, '/release')) }}
@@ -438,12 +509,12 @@ jobs:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
       - name: Merge PR (for stable releases)
         uses: devmasx/merge-branch@master
-        if: ${{ needs.preparation.outputs.is_beta == 'false' && contains(join(needs.*.result, ','), 'success') && false }}
+        if: ${{ needs.preparation.outputs.is_beta == 'false' && contains(join(needs.*.result, ','), 'success') }}
         with:
           type: now
           from_branch: ${{ steps.comment-branch.outputs.head_ref }}
           target_branch: ${{ steps.comment-branch.outputs.base_ref }}
-          github_token: ${{ github.token }}
+          github_token: ${{ secrets.RELEASE_TOKEN }}
           message: "Release version v${{ needs.preparation.outputs.version }}"
       - name: Add success reactions
         if: ${{ !contains(join(needs.*.result, ','), 'failure') }}

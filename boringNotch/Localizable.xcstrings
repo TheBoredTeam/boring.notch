@@ -2402,106 +2402,6 @@
         }
       }
     },
-    "Always hide in fullscreen" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Always hide in fullscreen"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Vždy skrýt v režimu celé obrazovky"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Immer verstecken im Vollbildmodus"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Always hide in fullscreen"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Always hide in full-screen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ocultar siempre en pantalla completa"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Toujours cacher en plein écran"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Always hide in fullscreen"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nascondi sempre a schermo intero"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "전체 화면에서 항상 숨기기"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Zawsze ukrywaj podczas pełnego ekranu"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sempre esconder em tela cheia"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Всегда скрывать в полноэкранном режиме"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Tam ekranda daima gizle"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Завжди приховувати в повноекранному режимі"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "总是在全屏时隐藏"
-          }
-        }
-      }
-    },
     "Always show full event titles" : {
 
     },
@@ -9013,6 +8913,9 @@
         }
       }
     },
+    "Expanded drag detection area" : {
+
+    },
     "Extend hover area" : {
       "localizations" : {
         "ar" : {
@@ -9413,6 +9316,9 @@
           }
         }
       }
+    },
+    "Full screen behavior" : {
+
     },
     "General" : {
       "localizations" : {
@@ -10214,106 +10120,6 @@
         }
       }
     },
-    "Hide BoringNotch Options" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide BoringNotch Options"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skrýt možnosti BoringNotch"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "BoringNotch Optionen ausblenden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide BoringNotch Options"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide BoringNotch Options"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ocultar las Opciones de BoringNotch"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Masquer les options BoringNotch"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide BoringNotch Options"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nascondi Opzioni BoringNotch"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "BoringNotch 옵션 숨기기"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ukryj opcje BoringNotch"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide BoringNotch Options"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide BoringNotch Options"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "BoringNotch Seçeneklerini Gizle"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Приховати параметри BoringNotch"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "隐藏 Boring Notch 选项"
-          }
-        }
-      }
-    },
     "Hide completed reminders" : {
       "localizations" : {
         "ar" : {
@@ -10413,6 +10219,12 @@
           }
         }
       }
+    },
+    "Hide for all apps" : {
+
+    },
+    "Hide for media app only" : {
+
     },
     "Hide from screen recording" : {
       "localizations" : {
@@ -10514,105 +10326,8 @@
         }
       }
     },
-    "Hide only when NowPlaying app is in fullscreen" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide only when NowPlaying app is in fullscreen"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Skrýt pouze když je Právě hrající aplikace v režimu celé obrazovky"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nur ausblenden, wenn die Läuft gerade App im Vollbildmodus ist"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide only when NowPlaying app is in fullscreen"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide only when NowPlaying app is in full-screen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ocultar solo cuando Ahora suena se esté reproduciendo en pantalla completa"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Masquer seulement quand lorsque l'app en train de jouer est en plein écran"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide only when NowPlaying app is in fullscreen"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nascondi solo quando l'app NowPlaying è a schermo intero"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "현재 재생 중인 앱이 전체 화면일 때만 숨기기"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ukryj tylko wtedy, gdy aplikacja NowPlaying jest w trybie pełnoekranowym"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide only when NowPlaying app is in fullscreen"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide only when NowPlaying app is in fullscreen"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Şimdi Çalınan uygulaması tam ekran modunda gizle"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide only when NowPlaying app is in fullscreen"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "仅在“当前播放”全屏时隐藏"
-          }
-        }
-      }
+    "Hide title bar" : {
+
     },
     "Hierarchical" : {
       "localizations" : {
@@ -21321,6 +21036,7 @@
       }
     },
     "Use simpler close animation" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

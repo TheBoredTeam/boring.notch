@@ -290,34 +290,20 @@ struct EventListView: View {
         Self.filteredEvents(events: events)
     }
 
-    private func scrollToNextEvent(proxy: ScrollViewProxy) {
+    private func scrollToRelevantEvent(proxy: ScrollViewProxy) {
         let now = Date()
-
-        var targetEvent: EventModel?
-
-        if autoScrollToNextEvent {
-            targetEvent = filteredEvents
-                .filter { !$0.isAllDay && $0.start > now }
-                .sorted { $0.start < $1.start }
-                .first
-
-            if targetEvent == nil {
-                targetEvent = filteredEvents
-                    .filter { !$0.isAllDay && $0.start <= now && $0.end > now }
-                    .sorted { $0.start > $1.start }
-                    .first
-            }
-        }
-
-        if targetEvent == nil {
-            targetEvent = filteredEvents.first
-        }
-
-        guard let id = targetEvent?.id else { return }
+        // Determine a single target using preferred search order:
+        // 1) first non-all-day upcoming/in-progress event
+        // 2) first all-day event
+        // 3) last event (fallback)
+        let nonAllDayUpcoming = filteredEvents.first(where: { !$0.isAllDay && $0.end > now })
+        let firstAllDay = filteredEvents.first(where: { $0.isAllDay })
+        let lastEvent = filteredEvents.last
+        guard let target = nonAllDayUpcoming ?? firstAllDay ?? lastEvent else { return }
 
         Task { @MainActor in
             withTransaction(Transaction(animation: nil)) {
-                    proxy.scrollTo(id, anchor: .top)
+                proxy.scrollTo(target.id, anchor: .top)
             }
         }
     }
@@ -346,7 +332,10 @@ struct EventListView: View {
             .scrollContentBackground(.hidden)
             .background(Color.clear)
             .onAppear {
-                scrollToNextEvent(proxy: proxy)
+                scrollToRelevantEvent(proxy: proxy)
+            }
+            .onChange(of: filteredEvents) { _, _ in
+                scrollToRelevantEvent(proxy: proxy)
             }
         }
         Spacer(minLength: 0)
