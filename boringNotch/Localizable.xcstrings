@@ -1659,7 +1659,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Accessibility access is required to replace the system HUD."
+            "value": "Der Zugriff auf Barrierefreiheit ist erforderlich, um das System HUD zu ersetzen."
           }
         },
         "hu": {
@@ -1683,7 +1683,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Accessibility access is required to replace the system HUD."
+            "value": "Zezwolenie dostępności jest wymagane, żeby zastąpić system HUD."
           }
         },
         "pt-BR": {
@@ -2164,7 +2164,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Advanced"
+            "value": "Erweitert"
           }
         },
         "hu": {
@@ -2188,7 +2188,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Advanced"
+            "value": "Zaawansowane"
           }
         },
         "pt-BR": {
@@ -2467,7 +2467,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always show full event titles"
+            "value": "Vollständige Ereignistitel immer anzeigen"
           }
         },
         "hu": {
@@ -2491,7 +2491,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always show full event titles"
+            "value": "Zawsze pokazuj pełne tytuły wydarzeń"
           }
         },
         "pt-BR": {
@@ -2871,7 +2871,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Auto-scroll to next event"
+            "value": "Automatisch zum nächsten Ereignis scrollen"
           }
         },
         "hu": {
@@ -2895,7 +2895,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Auto-scroll to next event"
+            "value": "Automatyczne przewijanie do następnego wydarzenia"
           }
         },
         "pt-BR": {
@@ -4386,7 +4386,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Change media with horizontal gestures"
+            "value": "Medien mit horizontalen Gesten ändern"
           }
         },
         "hu": {
@@ -4410,7 +4410,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Change media with horizontal gestures"
+            "value": "Zmień multimedia używając poziomych gestów"
           }
         },
         "pt-BR": {
@@ -4891,7 +4891,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose any color"
+            "value": "Farbe auswählen"
           }
         },
         "hu": {
@@ -4915,7 +4915,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose any color"
+            "value": "Wybierz dowolny kolor"
           }
         },
         "pt-BR": {
@@ -4992,7 +4992,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose between your system accent color or customize it with your own selection."
+            "value": "Wählen Sie zwischen der Akzentfarbe Ihres Systems oder passen Sie sie mit Ihrer eigenen Auswahl an."
           }
         },
         "hu": {
@@ -5016,7 +5016,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose between your system accent color or customize it with your own selection."
+            "value": "Wybierz kolor akcentu systemowego lub dostosuj go według własnego wyboru."
           }
         },
         "pt-BR": {
@@ -5093,7 +5093,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately."
+            "value": "Wählen Sie den zu verwendenden Dienst aus, wenn Dateien geteilt werden. Klicken Sie auf die Ablage-Taste, um Dateien auszuwählen oder ziehen Sie Dateien auf die Ablage, um sie sofort zu teilen."
           }
         },
         "hu": {
@@ -5117,7 +5117,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately."
+            "value": "Wybierz usługę używaną podczas udostępniania plików z półki. Kliknij przycisk półki, aby wybrać pliki, lub przeciągnij pliki na niego, aby udostępnić natychmiast."
           }
         },
         "pt-BR": {
@@ -5295,7 +5295,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Clear slot"
+            "value": "Slot leeren"
           }
         },
         "hu": {
@@ -5319,7 +5319,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Clear slot"
+            "value": "Wyczyść slot"
           }
         },
         "pt-BR": {
@@ -5598,7 +5598,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Color Presets"
+            "value": "Farbvorgaben"
           }
         },
         "hu": {
@@ -5622,7 +5622,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Color Presets"
+            "value": "Predefiniowane kolory"
           }
         },
         "pt-BR": {
@@ -5699,7 +5699,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Colored spectrogram"
+            "value": "Farbiges Spektrogramm"
           }
         },
         "hu": {
@@ -5723,7 +5723,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Colored spectrogram"
+            "value": "Kolorowy spektrogram"
           }
         },
         "pt-BR": {
@@ -6002,7 +6002,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Copy items on drag"
+            "value": "Elemente beim Draufziehen kopieren"
           }
         },
         "hu": {
@@ -6204,7 +6204,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Currently selected: %@"
+            "value": "Derzeit ausgewählt: %@"
           }
         },
         "hu": {
@@ -6305,7 +6305,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom"
+            "value": "Benutzerdefiniert"
           }
         },
         "hu": {
@@ -6911,7 +6911,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Customize which controls appear in the music player. Volume expands when active."
+            "value": "Passen Sie an, welche Steuerelemente im Musik-Player angezeigt werden. Die Lautstärke wird erweitert, wenn aktiviert."
           }
         },
         "hu": {
@@ -7618,7 +7618,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drag a control onto a slot"
+            "value": "Ziehen Sie ein Steuerelement auf einen Slot"
           }
         },
         "hu": {
@@ -7719,7 +7719,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drag items in the preview to reorder or drop from the palette"
+            "value": "Ziehen Sie Elemente in die Vorschau, um sie neu zu ordnen oder aus der Palette zu ziehen"
           }
         },
         "hu": {
@@ -8123,7 +8123,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
+            "value": "Bedienungshilfen in den Einstellungen unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen aktivieren"
           }
         },
         "hu": {
@@ -8729,7 +8729,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptic feedback"
+            "value": "Haptisches Feedback aktivieren"
           }
         },
         "hu": {
@@ -9234,7 +9234,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Expanded drag detection area"
+            "value": "Erweiterter Ziehen Erkennungsbereich"
           }
         },
         "hu": {
@@ -9537,7 +9537,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Files dropped on the shelf will be shared via this service"
+            "value": "Dateien, die in der Ablage abgelegt werden, werden über diesen Dienst geteilt"
           }
         },
         "hu": {
@@ -9739,7 +9739,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Full screen behavior"
+            "value": "Vollbild-Verhalten"
           }
         },
         "hu": {
@@ -10547,7 +10547,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide all-day events"
+            "value": "Ganztägige Ereignisse ausblenden"
           }
         },
         "hu": {
@@ -10749,7 +10749,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide for all apps"
+            "value": "Für alle Apps ausblenden"
           }
         },
         "hu": {
@@ -10850,7 +10850,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide for media app only"
+            "value": "Nur für Medien-App ausblenden"
           }
         },
         "hu": {
@@ -10951,7 +10951,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide from screen recording"
+            "value": "Bei Bildschirmaufnahmen ausblenden"
           }
         },
         "hu": {
@@ -11052,7 +11052,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide title bar"
+            "value": "Titelleiste ausblenden"
           }
         },
         "hu": {
@@ -11355,7 +11355,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hover delay"
+            "value": "Schwebeverzögerung"
           }
         },
         "hu": {
@@ -12062,7 +12062,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Layout Preview"
+            "value": "Layoutvorschau"
           }
         },
         "hu": {
@@ -12769,7 +12769,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match menu bar height"
+            "value": "An Höhe der Menüleiste anpassen"
           }
         },
         "hu": {
@@ -12971,7 +12971,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match real notch height"
+            "value": "An Größe der echten Notch anpassen"
           }
         },
         "hu": {
@@ -14789,7 +14789,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No events"
+            "value": "Keine Ereignisse"
           }
         },
         "hu": {
@@ -15294,7 +15294,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch height on non-notch displays"
+            "value": "Notch Höhe auf nicht-notch Displays"
           }
         },
         "hu": {
@@ -15395,7 +15395,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch height on notch displays"
+            "value": "Notch Höhe auf Notch Displays"
           }
         },
         "hu": {
@@ -15496,7 +15496,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch sizing"
+            "value": "Notchgröße"
           }
         },
         "hu": {
@@ -16001,7 +16001,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Option key behaviour"
+            "value": "Verhalten der Optionstaste"
           }
         },
         "hu": {
@@ -16102,7 +16102,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Pick a Color"
+            "value": "Wähle eine Farbe"
           }
         },
         "hu": {
@@ -16304,7 +16304,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Preferred display"
+            "value": "Bevorzugter Bildschirm"
           }
         },
         "hu": {
@@ -16506,7 +16506,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quick Share"
+            "value": "Schnellteilen"
           }
         },
         "hu": {
@@ -16607,7 +16607,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quick Share Service"
+            "value": "Schnellteildienst"
           }
         },
         "hu": {
@@ -17314,7 +17314,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Remove from shelf after dragging"
+            "value": "Nach Ziehen aus der Ablage entfernen"
           }
         },
         "hu": {
@@ -17415,7 +17415,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Replace system HUD"
+            "value": "System HUD ersetzen"
           }
         },
         "hu": {
@@ -17516,7 +17516,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Request Accessibility"
+            "value": "Bedienungshilfen anfordern"
           }
         },
         "hu": {
@@ -17617,7 +17617,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reset to Defaults"
+            "value": "Auf Standard zurücksetzen"
           }
         },
         "hu": {
@@ -18930,7 +18930,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show cool face animation while inactive"
+            "value": "Zeige coole Gesichtsanimation während Inaktivität"
           }
         },
         "hu": {
@@ -19031,7 +19031,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show lyrics below artist name"
+            "value": "Songtexte unter Künstlernamen anzeigen"
           }
         },
         "hu": {
@@ -19132,7 +19132,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show menu bar icon"
+            "value": "Menüleistensymbol anzeigen"
           }
         },
         "hu": {
@@ -19233,7 +19233,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show music live activity"
+            "value": "Musik-Live-Aktivität anzeigen"
           }
         },
         "hu": {
@@ -19334,7 +19334,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show notch on lock screen"
+            "value": "Notch auf dem Sperrbildschirm anzeigen"
           }
         },
         "hu": {
@@ -19738,7 +19738,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show settings icon in notch"
+            "value": "Einstellungssymbol in Noch anzeigen"
           }
         },
         "hu": {
@@ -19762,7 +19762,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show settings icon in notch"
+            "value": "Pokaż ikonę ustawień w notchu"
           }
         },
         "pt-BR": {
@@ -19839,7 +19839,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show sneak peek on playback changes"
+            "value": "Zeige Sneakpeek bei Wiedergabeänderungen"
           }
         },
         "hu": {
@@ -19863,7 +19863,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show sneak peek on playback changes"
+            "value": "Pokaż podgląd przy zmianach odtwarzania"
           }
         },
         "pt-BR": {
@@ -21051,7 +21051,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Tint progress bar with accent color"
+            "value": "Leiste in Akzentfarbe färben"
           }
         },
         "hu": {
@@ -21075,7 +21075,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Tint progress bar with accent color"
+            "value": "Przyciemnij pasek postępu przy użyciu koloru akcentu"
           }
         },
         "pt-BR": {
@@ -22061,7 +22061,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use your macOS system accent color"
+            "value": "macOS-System-Akzentfarbe verwenden"
           }
         },
         "hu": {
@@ -22085,7 +22085,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use your macOS system accent color"
+            "value": "Użyj koloru akcentu systemu macOS"
           }
         },
         "pt-BR": {
@@ -22162,7 +22162,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Using System Accent"
+            "value": "System Akzent verwenden"
           }
         },
         "hu": {
@@ -22186,7 +22186,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Using System Accent"
+            "value": "Korzystanie z akcentu systemowego"
           }
         },
         "pt-BR": {
@@ -22465,7 +22465,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "View on GitHub: pear-devs/pear-desktop"
+            "value": "Auf GitHub: pear-devs/pear-desktop anschauen"
           }
         },
         "hu": {
@@ -22489,7 +22489,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "View on GitHub: pear-devs/pear-desktop"
+            "value": "Zobacz na GitHub: pear-devs/pear-desktop"
           }
         },
         "pt-BR": {
@@ -22768,7 +22768,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Window Appearance"
+            "value": "Fenster-Erscheinungsbild"
           }
         },
         "hu": {
@@ -22792,7 +22792,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Window Appearance"
+            "value": "Wygląd okna"
           }
         },
         "pt-BR": {
@@ -22869,7 +22869,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Window Behavior"
+            "value": "Fensterverhalten"
           }
         },
         "hu": {
@@ -22893,7 +22893,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Window Behavior"
+            "value": "Zachowanie okna"
           }
         },
         "pt-BR": {
@@ -23172,7 +23172,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Your macOS system accent color"
+            "value": "Akzentfarbe Ihres macOS-Systems"
           }
         },
         "hu": {
@@ -23196,7 +23196,7 @@
         "pl": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Your macOS system accent color"
+            "value": "Kolor akcentu twojego systemu macOS"
           }
         },
         "pt-BR": {
