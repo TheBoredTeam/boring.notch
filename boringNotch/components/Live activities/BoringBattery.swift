@@ -263,22 +263,23 @@ struct BatteryRing: View {
         ZStack {
             // Background ring
             Circle()
-                .stroke(batteryColor(for: percentage).opacity(0.2), lineWidth: 4)
+                .stroke(batteryColor(for: percentage).opacity(0.2), lineWidth: 3)
 
             // Foreground ring (progress)
             Circle()
                 .trim(from: 0, to: percentage / 100)
                 .stroke(
                     batteryColor(for: percentage),
-                    style: StrokeStyle(lineWidth: 4, lineCap: .square)
+                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90)) // Start at top
-
+                .animation(.default, value: percentage)
+            
             if displayPercentage {
                 // Percentage label (optional)
                 Text("\(Int(percentage))%")
-                    .font(.caption2)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 3))
+                    .fontWeight(.bold)
             }
         }
         .frame(width: 16, height: 16)
@@ -309,7 +310,7 @@ struct BatteryRing: View {
             isForNotification: false
         ).frame(width: 200, height: 200)
         
-        BatteryRing(percentage: 80)
+        BatteryRing(percentage: 49)
             .padding()
     }
 }

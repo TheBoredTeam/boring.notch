@@ -20,6 +20,7 @@ final class BluetoothManager: NSObject, ObservableObject {
     
     private var notificationCenter: IOBluetoothUserNotification?
     private var batteryFetchTask: Task<Void, Never>?
+    private var lastBluetoothDeviceMinorClass: String?
     
     private override init() {
         super.init()
@@ -51,9 +52,7 @@ final class BluetoothManager: NSObject, ObservableObject {
         
         // Find connected devices
         for address in currentConnected {
-            if let device = devices.first(where: { $0.addressString == address }),
-               let address = device.addressString,
-               let name = device.name {
+            if let device = devices.first(where: { $0.addressString == address }) {
                 device.register(forDisconnectNotification: self, selector: #selector(deviceDisconnected(_:device:)))
             }
         }
@@ -69,8 +68,6 @@ final class BluetoothManager: NSObject, ObservableObject {
     }
     
     private func handleDeviceConnected(_ device: IOBluetoothDevice) {
-        guard let name = device.name, let address = device.addressString else { return }
-        
         Task { @MainActor in
             device.register(forDisconnectNotification: self, selector: #selector(deviceDisconnected(_:device:)))
             lastBluetoothDevice = device
@@ -106,8 +103,10 @@ final class BluetoothManager: NSObject, ObservableObject {
                     deviceName: deviceName,
                     deviceAddress: deviceAddress
                 ) {
+                    let minorClass = await getBluetoothDeviceMinorClass(device)
                     await MainActor.run {
                         guard self.lastBluetoothDevice?.addressString == deviceAddress else { return }
+                        self.lastBluetoothDeviceMinorClass = minorClass
                         self.batteryPercentage = percentage
                         self.coordinator.toggleExpandingView(status: true, type: .bluetooth)
                     }
@@ -116,8 +115,10 @@ final class BluetoothManager: NSObject, ObservableObject {
                 try? await Task.sleep(nanoseconds: pollingInterval)
             }
             
+            let minorClass = await getBluetoothDeviceMinorClass(device)
             await MainActor.run {
                 guard self.lastBluetoothDevice?.addressString == deviceAddress else { return }
+                self.lastBluetoothDeviceMinorClass = minorClass
                 self.batteryPercentage = nil
                 self.coordinator.toggleExpandingView(status: true, type: .bluetooth)
             }
@@ -169,8 +170,12 @@ final class BluetoothManager: NSObject, ObservableObject {
     }
     
     // MARK: - Device Icon & Info
+    private func getBluetoothDeviceMinorClass(_ device: IOBluetoothDevice?) async -> String? {
+        guard let deviceName = device?.name else { return nil }
+        return await XPCHelperClient.shared.getBluetoothDeviceMinorClass(with: deviceName)
+    }
+    
     func getDeviceIcon(for device: IOBluetoothDevice?) -> String {
-        
         guard let device, let deviceName = device.name else {
             return "circle.badge.questionmark"
         }
@@ -188,9 +193,15 @@ final class BluetoothManager: NSObject, ObservableObject {
         }
         
         // Fall back to device minor type
-        return getByBluetoothDeviceMinorType(device)
+        if let lastBluetoothDeviceMinorClass,
+           let iconName = getIconByBluetoothDeviceMinorType(lastBluetoothDeviceMinorClass) {
+            return iconName
+        }
         
-        /*
+        return "circle.badge.questionmark"
+    }
+    
+    private func getIconByBluetoothDeviceMinorType(_ type: String?) -> String? {
         // just to be sure
         let lowercasedType = type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -234,40 +245,8 @@ final class BluetoothManager: NSObject, ObservableObject {
         case "blood pressure monitor", "thermometer", "weighing scale", "glucose meter", "pulse oximeter", "heart/pulse rate monitor":
             return "circle.badge.questionmark"
         default:
-            return "circle.badge.questionmark"
+            return nil
         }
-         */
-    }
-    
-    private func getByBluetoothDeviceMinorType(_ device: IOBluetoothDevice) -> String {
-        let classOfDevice: BluetoothClassOfDevice = device.classOfDevice
-        
-        let majorClass = (classOfDevice & 0x1F00) >> 8
-        let minorClass = (classOfDevice & 0x00FC) >> 2
-        
-        switch majorClass {
-        case 0x01: return "desktopcomputer"
-        case 0x02: return "smartphone"
-        case 0x04: // Audio/Video
-            switch minorClass {
-            case 0x01, 0x06: return "headphones"
-            case 0x02: return "phone.and.waveform"
-            case 0x05: return "hifispeaker.fill"
-            default: return "speaker.wave.3.fill"
-            }
-        case 0x05: // Peripheral
-            let keyboardMouse = (minorClass & 0x30) >> 4
-            switch keyboardMouse {
-            case 0x01: return "keyboard.fill"
-            case 0x02: return "computermouse.fill"
-            case 0x03: return "keyboard.badge.ellipsis.fill"
-            default: return "gamecontroller.fill"
-            }
-        case 0x06: return "camera"
-        case 0x07: return "watch.analog"
-        default: return "circle.badge.questionmark"
-        }
-
     }
     
     private func sfSymbolForDevice(_ deviceName: String) -> String? {
