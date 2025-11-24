@@ -492,7 +492,6 @@ struct HUD: View {
 
                         HStack(spacing: 12) {
                             Button("Request Accessibility") {
-                                // Use unsandboxed XPC helper if available so the system prompt is shown
                                 XPCHelperClient.shared.requestAccessibilityAuthorization()
                             }
                             .buttonStyle(.borderedProminent)
@@ -834,19 +833,9 @@ struct About: View {
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
-                        NSWorkspace.shared.open(sponsorPage)
-                    } label: {
-                        VStack(spacing: 5) {
-                            Image(systemName: "cup.and.saucer.fill")
-                                .imageScale(.large)
-                            Text("Support Us")
-                                .foregroundStyle(.white)
+                        if let url = URL(string: "https://github.com/TheBoredTeam/boring.notch") {
+                            NSWorkspace.shared.open(url)
                         }
-                        .contentShape(Rectangle())
-                    }
-                    Spacer(minLength: 0)
-                    Button {
-                        NSWorkspace.shared.open(productPage)
                     } label: {
                         VStack(spacing: 5) {
                             Image("Github")
@@ -854,7 +843,6 @@ struct About: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 18)
                             Text("GitHub")
-                                .foregroundStyle(.white)
                         }
                         .contentShape(Rectangle())
                     }

@@ -2,7 +2,7 @@ import Foundation
 import Cocoa
 import AsyncXPCConnection
 
-final class XPCHelperClient {
+final class XPCHelperClient: NSObject {
     nonisolated static let shared = XPCHelperClient()
     
     private let serviceName = "theboringteam.boringnotch.BoringNotchXPCHelper"
@@ -10,8 +10,6 @@ final class XPCHelperClient {
     private var remoteService: RemoteXPCService<BoringNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?
     private var lastKnownAuthorization: Bool?
-    
-    nonisolated private init() {}
     
     deinit {
         connection?.invalidate()

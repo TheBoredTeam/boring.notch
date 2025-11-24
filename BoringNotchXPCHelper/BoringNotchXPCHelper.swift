@@ -17,8 +17,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     @objc func requestAccessibilityAuthorization() {
-        let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        _ = AXIsProcessTrustedWithOptions(options)
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        AXIsProcessTrustedWithOptions(options)
     }
 
     @objc func ensureAccessibilityAuthorization(_ promptIfNeeded: Bool, with reply: @escaping (Bool) -> Void) {
@@ -28,8 +28,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
 
         if promptIfNeeded {
-            let options: CFDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-            _ = AXIsProcessTrustedWithOptions(options)
+            requestAccessibilityAuthorization()
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
