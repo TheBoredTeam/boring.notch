@@ -2788,7 +2788,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "외관"
+            "value": "모양"
           }
         },
         "pl": {
@@ -4909,7 +4909,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "아무 색상을 선택해 주세요."
+            "value": "아무 색상을 선택해 주세요"
           }
         },
         "pl": {
@@ -5010,7 +5010,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "시스템 색상 혹은 당신의 선택으로 지정하기 중 선택"
+            "value": "시스템 강조 색상을 사용하거나 직접 색상을 선택해 설정하세요."
           }
         },
         "pl": {
@@ -5111,7 +5111,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately."
+            "value": "선반에서 파일을 공유할 때 사용할 서비스를 선택하세요. 선반 버튼을 클릭해 파일을 선택하거나, 파일을 끌어다 놓으면 바로 공유할 수 있습니다."
           }
         },
         "pl": {
@@ -5616,7 +5616,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "색상 프리셋"
+            "value": "색상 프리셋들"
           }
         },
         "pl": {
@@ -5717,7 +5717,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Colored spectrogram"
+            "value": "컬러 스펙트로그램"
           }
         },
         "pl": {
@@ -6121,7 +6121,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Corner radius scaling"
+            "value": "모서리 반경 크기 조정"
           }
         },
         "pl": {
@@ -6929,7 +6929,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Customize which controls appear in the music player. Volume expands when active."
+            "value": "음악 플레이어에 표시할 컨트롤을 사용자 지정하세요. 볼륨은 활성화되면 확장됩니다."
           }
         },
         "pl": {
@@ -7636,7 +7636,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drag a control onto a slot"
+            "value": "컨트롤을 슬롯으로 끌어다 놓으세요."
           }
         },
         "pl": {
@@ -7737,7 +7737,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Drag items in the preview to reorder or drop from the palette"
+            "value": "미리보기에서 항목을 끌어 순서를 변경하거나 팔레트에서 끌어다 놓으세요."
           }
         },
         "pl": {
@@ -8141,7 +8141,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
+            "value": "시스템 설정﻿ → 개인정보 보호 및 보안﻿ → 손쉬운 사용﻿에서 손쉬운 사용을 활성화하세요"
           }
         },
         "pl": {
@@ -8444,7 +8444,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable colored spectrograms"
+            "value": "컬러 스펙트로그램을 활성화하세요"
           }
         },
         "pl": {
@@ -9252,7 +9252,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Expanded drag detection area"
+            "value": "확장된 드래그 감지 영역"
           }
         },
         "pl": {
@@ -9555,7 +9555,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Files dropped on the shelf will be shared via this service"
+            "value": "선반에 놓인 파일은 이 서비스를 통해 공유됩니다."
           }
         },
         "pl": {
@@ -9757,7 +9757,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Full screen behavior"
+            "value": "전체 화면 동작"
           }
         },
         "pl": {
