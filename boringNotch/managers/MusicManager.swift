@@ -299,6 +299,9 @@ class MusicManager: ObservableObject {
 
     @MainActor
     private func toggleAppleMusicFavorite() async {
+        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+        guard !runningApps.isEmpty else { return }
+
         let script = """
         tell application \"Music\"
             if it is running then
@@ -350,6 +353,12 @@ class MusicManager: ObservableObject {
         // Prefer native Apple Music lyrics when available
         if let bundleIdentifier = bundleIdentifier, bundleIdentifier.contains("com.apple.Music") {
             Task { @MainActor in
+                let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+                guard !runningApps.isEmpty else {
+                    await self.fetchLyricsFromWeb(title: title, artist: artist)
+                    return
+                }
+
                 self.isFetchingLyrics = true
                 self.currentLyrics = ""
                 do {
@@ -679,21 +688,37 @@ class MusicManager: ObservableObject {
                 } else {
                     await self?.activeController?.updatePlaybackInfo()
                 }
-                // Sync volume after update
-                await self?.syncVolumeFromActiveApp()
             }
         }
     }
     
     
     func syncVolumeFromActiveApp() async {
-        guard let bundleID = bundleIdentifier, !bundleID.isEmpty else { return }
+        // Check if bundle identifier is valid and if the app is actually running
+        guard let bundleID = bundleIdentifier, !bundleID.isEmpty,
+              NSWorkspace.shared.runningApplications.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
         
         var script: String?
         if bundleID == "com.apple.Music" {
-            script = "tell application \"Music\" to get sound volume"
+            script = """
+            tell application "Music"
+                if it is running then
+                    get sound volume
+                else
+                    return 50
+                end if
+            end tell
+            """
         } else if bundleID == "com.spotify.client" {
-            script = "tell application \"Spotify\" to get sound volume"
+            script = """
+            tell application "Spotify"
+                if it is running then
+                    get sound volume
+                else
+                    return 50
+                end if
+            end tell
+            """
         } else {
             // For unsupported apps, don't sync volume
             return

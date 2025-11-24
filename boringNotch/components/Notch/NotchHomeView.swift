@@ -377,8 +377,7 @@ struct VolumeControlView: View {
     @State private var dragging: Bool = false
     @State private var showVolumeSlider: Bool = false
     @State private var lastVolumeUpdateTime: Date = Date.distantPast
-    @State private var volumeUpdateTask: Task<Void, Never>?
-    private let volumeUpdateThrottle: Duration = .milliseconds(200)
+    private let volumeUpdateThrottle: TimeInterval = 0.1
     
     var body: some View {
         HStack(spacing: 4) {
@@ -408,12 +407,10 @@ struct VolumeControlView: View {
                         MusicManager.shared.setVolume(to: newValue)
                     },
                     onDragChange: { newValue in
-                        volumeUpdateTask?.cancel()
-                        volumeUpdateTask = Task {
-                            try? await Task.sleep(for: volumeUpdateThrottle)
-                            if !Task.isCancelled {
-                                MusicManager.shared.setVolume(to: newValue)
-                            }
+                        let now = Date()
+                        if now.timeIntervalSince(lastVolumeUpdateTime) > volumeUpdateThrottle {
+                            MusicManager.shared.setVolume(to: newValue)
+                            lastVolumeUpdateTime = now
                         }
                     }
                 )
@@ -434,8 +431,16 @@ struct VolumeControlView: View {
                 }
             }
         }
+        .onChange(of: showVolumeSlider) { _, isShowing in
+            if isShowing {
+                // Sync volume from app when slider appears
+                Task {
+                    await MusicManager.shared.syncVolumeFromActiveApp()
+                }
+            }
+        }
         .onDisappear {
-            volumeUpdateTask?.cancel()
+            // volumeUpdateTask?.cancel() // No longer needed
         }
     }
     
