@@ -2151,7 +2151,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Advanced"
           }
         },
@@ -4878,7 +4878,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Choose any colour"
           }
         },
@@ -4968,7 +4968,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "needs_review",
-            "value": ""
+            "value": "Choose between your system accent color or customize it with your own selection."
           }
         },
         "cs": {
@@ -4979,7 +4979,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Choose between your system accent colour or customize it with your own selection."
           }
         },
@@ -5282,7 +5282,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Clear slot"
           }
         },
@@ -5686,7 +5686,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Colour Presets"
           }
         },
@@ -5787,7 +5787,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Coloured spectrogram"
           }
         },
@@ -6292,7 +6292,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Currently selected: %@"
           }
         },
@@ -6393,7 +6393,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Custom"
           }
         },
@@ -16291,7 +16291,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Pick a Colour"
           }
         },
@@ -17907,7 +17907,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Reset to Defaults"
           }
         },
@@ -21240,7 +21240,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "System"
           }
         },
@@ -21543,7 +21543,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Tint progress bar with accent colour"
           }
         },
@@ -22553,7 +22553,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Use your macOS system accent colour"
           }
         },
@@ -22957,7 +22957,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "View on GitHub: pear-devs/pear-desktop"
           }
         },
@@ -23361,7 +23361,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Window Behaviour"
           }
         },
@@ -23664,7 +23664,7 @@
         },
         "en-GB": {
           "stringUnit": {
-            "state": "needs_review",
+            "state": "translated",
             "value": "Your macOS system accent colour"
           }
         },
