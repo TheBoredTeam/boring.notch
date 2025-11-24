@@ -30,57 +30,13 @@ struct AlbumArtView: View {
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
-        let cornerRadius = Defaults[.cornerRadiusScaling]
-            ? MusicPlayerImageSizes.cornerRadiusInset.opened
-            : MusicPlayerImageSizes.cornerRadiusInset.closed
-
-        Button(action: musicManager.openMusicApp) {
-            ZStack(alignment: .bottomTrailing) {
-                artwork(cornerRadius: cornerRadius)
-                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                    .overlay(glowOverlay(cornerRadius: cornerRadius))
-                    .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-
-                appIconOverlay
-            }
-        }
-        .buttonStyle(.plain)
-        // simple scale animation instead of custom PhaseAnimator
-        .scaleEffect(musicManager.isPlaying ? 1.03 : 1.0)
-        .animation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0), value: musicManager.isPlaying)
-    }
-
-    private func artwork(cornerRadius: CGFloat) -> some View {
-        GeometryReader { geo in
-            Image(nsImage: musicManager.albumArt)
-                .resizable()
-                .scaledToFill()
-                .frame(width: geo.size.width, height: geo.size.width)
-                .clipped()
-                .cornerRadius(cornerRadius, antialiased: true)
-                // keep a simple opacity transition when artwork updates
-                .id(musicManager.albumArt) // ensure SwiftUI considers this a content change
-                .transition(.opacity)
-                .animation(.easeInOut(duration: 0.28), value: musicManager.albumArt)
-        }
-        .aspectRatio(1, contentMode: .fit)
-        .drawingGroup(opaque: false)
-    }
-
-    private func glowOverlay(cornerRadius: CGFloat) -> some View {
-        Group {
+        ZStack(alignment: .bottomTrailing) {
             if Defaults[.lightingEffect] {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color(nsColor: musicManager.avgColor).opacity(musicManager.isPlaying ? 0.25 : 0.0))
-                    .blur(radius: 24)
-                    .scaleEffect(1.06)
-                    .allowsHitTesting(false)
-                    .animation(.easeInOut(duration: 0.25), value: musicManager.isPlaying)
-            } else {
-                EmptyView()
+                albumArtBackground
             }
+            albumArtButton
         }
-            }
+    }
 
     private var albumArtBackground: some View {
         Image(nsImage: musicManager.albumArt)
@@ -130,13 +86,13 @@ struct AlbumArtView: View {
             .resizable()
             .aspectRatio(1, contentMode: .fit)
             .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-        .clipped()
-        .clipShape(
-            RoundedRectangle(
-                cornerRadius: Defaults[.cornerRadiusScaling]
-                    ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                    : MusicPlayerImageSizes.cornerRadiusInset.closed)
-        )
+            .clipped()
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: Defaults[.cornerRadiusScaling]
+                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
+                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+            )
     }
 
     @ViewBuilder
