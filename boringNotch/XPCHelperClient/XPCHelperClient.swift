@@ -10,9 +10,11 @@ final class XPCHelperClient: NSObject {
     private var remoteService: RemoteXPCService<BoringNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?
     private var lastKnownAuthorization: Bool?
+    private var monitoringTask: Task<Void, Never>?
     
     deinit {
         connection?.invalidate()
+        stopMonitoringAccessibilityAuthorization()
     }
     
     // MARK: - Connection Management (Main Actor Isolated)
@@ -65,6 +67,32 @@ final class XPCHelperClient: NSObject {
             object: nil,
             userInfo: ["granted": granted]
         )
+    }
+
+    // MARK: - Monitoring
+    nonisolated func startMonitoringAccessibilityAuthorization(every interval: TimeInterval = 3.0) {
+        // Ensure only one monitor exists
+        stopMonitoringAccessibilityAuthorization()
+        monitoringTask = Task.detached { [weak self] in
+            guard let self = self else { return }
+            while !Task.isCancelled {
+                // Call the helper method periodically which will notify on change
+                _ = await self.isAccessibilityAuthorized()
+                do {
+                    try await Task.sleep(for: .seconds(interval))
+                } catch { break }
+            }
+        }
+    }
+
+    nonisolated func stopMonitoringAccessibilityAuthorization() {
+        monitoringTask?.cancel()
+        monitoringTask = nil
+    }
+
+    // Expose whether the client is actively monitoring (useful for tests/debug)
+    var isMonitoring: Bool {
+        return monitoringTask != nil
     }
     
     // MARK: - Accessibility

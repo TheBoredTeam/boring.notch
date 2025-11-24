@@ -577,6 +577,12 @@ struct HUD: View {
         .task {
             accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
         }
+        .onAppear {
+            XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
+        }
+        .onDisappear {
+            XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
             if let granted = notification.userInfo?["granted"] as? Bool {
                 accessibilityAuthorized = granted
