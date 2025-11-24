@@ -285,13 +285,14 @@ final class BluetoothManager: NSObject, ObservableObject {
         if name.contains("buds") { return "earbuds" }
         if name.contains("headphone") || name.contains("headset") { return "headphones" }
         if name.contains("speaker") { return "hifispeaker.fill" }
-        
         // --- Keyboard & Mouse ---
         if name.contains("keyboard") { return "keyboard.fill" }
         if name.contains("mouse") && name.contains("magic") { return "magicmouse.fill" }
         else if name.contains("mouse") { return "computermouse.fill" }
         // ---- Gamepads ----
         if name.contains("gamepad") || name.contains("controller") || name.contains("joy-con") { return "gamecontroller.fill" }
+        // ---- Phones ----
+        if name.contains("phone") { return "smartphone"} 
         
         return nil
     }
