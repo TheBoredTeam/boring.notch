@@ -4614,6 +4614,9 @@
         }
       }
     },
+    "Choose an SF Symbol to represent this device." : {
+
+    },
     "Choose any color" : {
       "localizations" : {
         "ar" : {
@@ -7633,9 +7636,6 @@
     "e.g., AirPods Pro, Magic Mouse" : {
 
     },
-    "e.g., airpodspro, headphones" : {
-
-    },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
       "localizations" : {
         "ar" : {
@@ -8942,9 +8942,6 @@
     },
     "Enter a keyword or part of the device name. Matching is case-insensitive." : {
 
-    },
-    "Enter an SF Symbol name. Common examples: airpods, headphones, keyboard.fill, computermouse.fill, gamecontroller.fill" : {
-    
     },
     "Expanded drag detection area" : {
 
@@ -17175,6 +17172,9 @@
     "Save" : {
 
     },
+    "Select SF Symbol" : {
+
+    },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
         "ar" : {
@@ -17575,7 +17575,7 @@
         }
       }
     },
-    "SF Symbol Name" : {
+    "SF Symbol" : {
 
     },
     "Shelf" : {

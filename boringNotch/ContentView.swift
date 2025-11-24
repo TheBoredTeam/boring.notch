@@ -507,8 +507,8 @@ struct ContentView: View {
                 Image(systemName: iconName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .foregroundStyle(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? Color.effectiveAccent : .gray, Color.effectiveAccent)
-                    .symbolRenderingMode(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? .palette : .monochrome)
+                    .foregroundStyle(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? Color.effectiveAccent : .gray)
+                    .symbolRenderingMode(.monochrome)
                     .frame(
                         width: max(0, vm.effectiveClosedNotchHeight - 12),
                         height: max(0, vm.effectiveClosedNotchHeight - 12)
@@ -589,12 +589,6 @@ struct ContentView: View {
             
             if coordinator.expandingView.type == .bluetooth && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.enableBluetoothSneakPeek] && Defaults[.bluetoothSneakPeekStyle] == .standard {
                 HStack(alignment: .center) {
-                    /*
-                    Image(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "bluetooth" : "bluetooth.slash")
-                        .renderingMode(.template)
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                     */
                     GeometryReader { geo in
                         MarqueeText(
                             .constant("\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")"),

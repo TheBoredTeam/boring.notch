@@ -13,6 +13,7 @@ import LaunchAtLogin
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
+import SymbolPicker
 
 struct SettingsView: View {
     @State private var selectedTab = "General"
@@ -405,6 +406,7 @@ struct BluetoothSettings: View {
     @State private var isPresented: Bool = false
     @State private var deviceName: String = ""
     @State private var sfSymbolName: String = ""
+    @State private var iconPickerPresented: Bool = false
     
     var body: some View {
         Form {
@@ -483,6 +485,7 @@ struct BluetoothSettings: View {
                                 .foregroundStyle(.secondary)
                                 .contentShape(Rectangle())
                         }
+                        .controlSize(.large)
                         Divider()
                         Button {
                             if let mapping = selectedMapping {
@@ -496,6 +499,7 @@ struct BluetoothSettings: View {
                                 .contentShape(Rectangle())
                         }
                         .disabled(selectedMapping == nil)
+                        .controlSize(.large)
                         Divider()
                         Button {
                             if let mapping = selectedMapping {
@@ -505,8 +509,11 @@ struct BluetoothSettings: View {
                         } label: {
                             Image(systemName: "minus")
                                 .foregroundStyle(.secondary)
+                                .padding(.horizontal, 2)
+                                .padding(.vertical, 6)
                                 .contentShape(Rectangle())
                         }
+                        .controlSize(.large)
                         .disabled(selectedMapping == nil)
                     }
                 }
@@ -518,6 +525,9 @@ struct BluetoothSettings: View {
                             .foregroundStyle(Color(.secondaryLabelColor))
                             .padding(.bottom, 22)
                     }
+                }
+                .sheet(isPresented: $iconPickerPresented) {
+                    SymbolPicker(symbol: $sfSymbolName)
                 }
                 .sheet(isPresented: $isPresented) {
                     VStack(alignment: .leading, spacing: 16) {
@@ -535,17 +545,34 @@ struct BluetoothSettings: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("SF Symbol Name")
+                            Text("SF Symbol")
                                 .font(.headline)
-                            HStack {
-                                TextField("e.g., airpodspro, headphones", text: $sfSymbolName)
-                                if !sfSymbolName.isEmpty {
-                                    Image(systemName: sfSymbolName)
+                            Button {
+                                isPresented = false
+                                iconPickerPresented = true
+                            } label: {
+                                HStack {
+                                    if !sfSymbolName.isEmpty {
+                                        Image(systemName: sfSymbolName)
+                                            .foregroundStyle(.primary)
+                                            .frame(width: 24, height: 24)
+                                        Text(sfSymbolName)
+                                            .foregroundStyle(.primary)
+                                    } else {
+                                        Text("Select SF Symbol")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
                                         .foregroundStyle(.secondary)
-                                        .frame(width: 24, height: 24)
+                                        .font(.caption)
                                 }
+                                .padding()
+                                .background(Color(NSColor.controlBackgroundColor))
+                                .cornerRadius(8)
                             }
-                            Text("Enter an SF Symbol name. Common examples: airpods, headphones, keyboard.fill, computermouse.fill, gamecontroller.fill")
+                            .buttonStyle(.plain)
+                            Text("Choose an SF Symbol to represent this device.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -561,19 +588,52 @@ struct BluetoothSettings: View {
                             Button {
                                 if !deviceName.isEmpty && !sfSymbolName.isEmpty {
                                     if let existing = selectedMapping {
-                                        if let index = deviceIconMappings.firstIndex(where: { $0.UUID == existing.UUID }) {
-                                            deviceIconMappings[index] = BluetoothDeviceIconMapping(
-                                                UUID: existing.UUID,
+                                        // Editing existing mapping
+                                        let trimmedDeviceName = deviceName.trimmingCharacters(in: .whitespacesAndNewlines)
+                                        
+                                        // Check if device name changed to one that already exists (different UUID)
+                                        if let conflictingIndex = deviceIconMappings.firstIndex(where: { 
+                                            $0.UUID != existing.UUID && 
+                                            $0.deviceName.localizedCaseInsensitiveCompare(trimmedDeviceName) == .orderedSame
+                                        }) {
+                                            // Update the existing mapping with the same device name and remove the one being edited
+                                            let conflictingMapping = deviceIconMappings[conflictingIndex]
+                                            deviceIconMappings[conflictingIndex] = BluetoothDeviceIconMapping(
+                                                UUID: conflictingMapping.UUID,
+                                                deviceName: conflictingMapping.deviceName,
+                                                sfSymbolName: sfSymbolName
+                                            )
+                                            // Remove the mapping being edited
+                                            deviceIconMappings.removeAll { $0.UUID == existing.UUID }
+                                        } else {
+                                            // Normal update - device name is unique or unchanged
+                                            if let index = deviceIconMappings.firstIndex(where: { $0.UUID == existing.UUID }) {
+                                                deviceIconMappings[index] = BluetoothDeviceIconMapping(
+                                                    UUID: existing.UUID,
+                                                    deviceName: deviceName,
+                                                    sfSymbolName: sfSymbolName
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        // Adding new mapping - check if device name already exists
+                                        let trimmedDeviceName = deviceName.trimmingCharacters(in: .whitespacesAndNewlines)
+                                        if let existingIndex = deviceIconMappings.firstIndex(where: { 
+                                            $0.deviceName.localizedCaseInsensitiveCompare(trimmedDeviceName) == .orderedSame
+                                        }) {
+                                            // Update existing mapping with same device name
+                                            let existingMapping = deviceIconMappings[existingIndex]
+                                            deviceIconMappings[existingIndex] = BluetoothDeviceIconMapping(
+                                                UUID: existingMapping.UUID,
+                                                deviceName: existingMapping.deviceName,
+                                                sfSymbolName: sfSymbolName
+                                            )
+                                        } else {
+                                            // Add new mapping
+                                            let mapping = BluetoothDeviceIconMapping(
                                                 deviceName: deviceName,
                                                 sfSymbolName: sfSymbolName
                                             )
-                                        }
-                                    } else {
-                                        let mapping = BluetoothDeviceIconMapping(
-                                            deviceName: deviceName,
-                                            sfSymbolName: sfSymbolName
-                                        )
-                                        if !deviceIconMappings.contains(mapping) {
                                             deviceIconMappings.append(mapping)
                                         }
                                     }
@@ -586,10 +646,11 @@ struct BluetoothSettings: View {
                             .buttonStyle(BorderedProminentButtonStyle())
                             .disabled(deviceName.isEmpty || sfSymbolName.isEmpty)
                         }
-                    }
+                    } // VSTACK
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .controlSize(.extraLarge)
                     .padding()
+                    .background(.regularMaterial)
                 }
             } header: {
                 HStack(spacing: 0) {
@@ -607,12 +668,9 @@ struct BluetoothSettings: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Bluetooth")
-        .onChange(of: isPresented) { _, newValue in
-            if !newValue {
-                deviceName = ""
-                sfSymbolName = ""
-                selectedMapping = nil
-            }
+        .onChange(of: sfSymbolName) { _, _ in
+            iconPickerPresented = false
+            isPresented = true
         }
     }
 }
