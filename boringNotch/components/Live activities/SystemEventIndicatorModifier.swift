@@ -60,6 +60,13 @@ struct SystemEventIndicatorModifier: View {
             }
             if (eventType != .mic) {
                 DraggableProgressBar(value: $value)
+                if Defaults[.showClosedNotchHUDPercentage] {
+                    Text("\(Int(value * 100))%")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.white)
+                        .monospacedDigit()
+                        .frame(width: 35, alignment: .trailing)
+                }
             } else {
                 Text("Mic \(value > 0 ? "unmuted" : "muted")")
                     .foregroundStyle(.gray)
