@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import IOBluetooth
+import CoreBluetooth
 import Defaults
 
 final class BluetoothManager: NSObject, ObservableObject {
@@ -17,19 +18,32 @@ final class BluetoothManager: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published private(set) var batteryPercentage: Int? = nil
     @Published private(set) var lastBluetoothDevice: IOBluetoothDevice?
+    @Published private(set) var isInitialized: Bool = false
+    @Published private(set) var bluetoothState: CBManagerState = .unknown
     
     private var notificationCenter: IOBluetoothUserNotification?
     private var batteryFetchTask: Task<Void, Never>?
     private var lastBluetoothDeviceMinorClass: String?
+    private var manager: CBCentralManager?
     
     private override init() {
         super.init()
-        registerForConnect()
+        // Don't initialize Bluetooth on init - wait for user to open settings
     }
     
     deinit {
         notificationCenter?.unregister()
+        notificationCenter = nil
         batteryFetchTask?.cancel()
+        manager?.stopScan()
+        manager?.delegate = nil
+        manager = nil
+    }
+    
+    func initializeBluetooth() {
+        guard !isInitialized else { return }
+        registerForConnect()
+        isInitialized = true
     }
     
     private func registerForConnect() {
@@ -38,9 +52,11 @@ final class BluetoothManager: NSObject, ObservableObject {
             forConnectNotifications: self,
             selector: #selector(deviceConnected(_:device:))
         )
+        manager = CBCentralManager(delegate: self, queue: nil)
         
         // Initial check
         checkDevices()
+        print("Listening for bluetooth devices...")
     }
     
     private func checkDevices() {
@@ -278,5 +294,21 @@ final class BluetoothManager: NSObject, ObservableObject {
         if name.contains("gamepad") || name.contains("controller") || name.contains("joy-con") { return "gamecontroller.fill" }
         
         return nil
+    }
+}
+
+extension BluetoothManager: CBCentralManagerDelegate {
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        bluetoothState = central.state
+        switch central.state {
+        case .poweredOn:
+            print("Bluetooth usable (permission granted)")
+        case .unauthorized:
+            print("Bluetooth permission denied")
+        case .poweredOff:
+            print("Bluetooth off")
+        default:
+            break
+        }
     }
 }

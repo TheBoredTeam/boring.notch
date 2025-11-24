@@ -3608,6 +3608,15 @@
     "Bluetooth" : {
 
     },
+    "Bluetooth Access" : {
+
+    },
+    "Bluetooth access is required to detect connected devices and display their battery status." : {
+
+    },
+    "Bluetooth is currently turned off." : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
         "ar" : {
@@ -15545,6 +15554,9 @@
           }
         }
       }
+    },
+    "Open Bluetooth Settings" : {
+
     },
     "Open Calendar Settings" : {
       "localizations" : {

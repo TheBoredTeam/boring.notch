@@ -143,8 +143,9 @@
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		D9958EED2ED3BA190021100C /* SymbolPicker in Frameworks */ = {isa = PBXBuildFile; productRef = D9958EEC2ED3BA190021100C /* SymbolPicker */; };
+		D9958EEE2ED468050021100C /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9B69FAF2ECFC09E009BDE40 /* IOBluetooth.framework */; };
+		D9958EF02ED4680A0021100C /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9958EEF2ED4680A0021100C /* CoreBluetooth.framework */; };
 		D9B69FA32ECE8074009BDE40 /* BluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B69FA22ECE8074009BDE40 /* BluetoothManager.swift */; };
-		D9B69FB02ECFC09E009BDE40 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9B69FAF2ECFC09E009BDE40 /* IOBluetooth.framework */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -311,6 +312,7 @@
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		D9958EEF2ED4680A0021100C /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		D9B69FA22ECE8074009BDE40 /* BluetoothManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManager.swift; sourceTree = "<group>"; };
 		D9B69FAF2ECFC09E009BDE40 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
@@ -345,9 +347,10 @@
 			files = (
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
-				D9B69FB02ECFC09E009BDE40 /* IOBluetooth.framework in Frameworks */,
+				D9958EF02ED4680A0021100C /* CoreBluetooth.framework in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
 				112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */,
+				D9958EEE2ED468050021100C /* IOBluetooth.framework in Frameworks */,
 				14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */,
 				111BEA6F2ED166E20079DD4E /* MacroVisionKit in Frameworks */,
 				11F748732EC9DA9300F841DB /* Lottie in Frameworks */,
@@ -607,6 +610,7 @@
 		14D031EC2C689DB70096E6A1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D9958EEF2ED4680A0021100C /* CoreBluetooth.framework */,
 				D9B69FAF2ECFC09E009BDE40 /* IOBluetooth.framework */,
 				14D031EF2C689DC00096E6A1 /* ApplicationServices.framework */,
 				14D031ED2C689DB70096E6A1 /* IOKit.framework */,

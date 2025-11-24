@@ -398,6 +398,7 @@ struct Charge: View {
 
 struct BluetoothSettings: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject private var bluetoothManager = BluetoothManager.shared
     @Default(.bluetoothDeviceIconMappings) var deviceIconMappings
     @Default(.enableBluetoothSneakPeek) var enableBluetoothSneakPeek
     @Default(.bluetoothSneakPeekStyle) var bluetoothSneakPeekStyle
@@ -410,6 +411,35 @@ struct BluetoothSettings: View {
     
     var body: some View {
         Form {
+            if bluetoothManager.bluetoothState == .unauthorized {
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Bluetooth access is required to detect connected devices and display their battery status.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        HStack(spacing: 12) {
+                            Button("Open Bluetooth Settings") {
+                                if let settingsURL = URL(
+                                    string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth"
+                                ) {
+                                    NSWorkspace.shared.open(settingsURL)
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                    .padding(.top, 6)
+                } header: {
+                    Text("Bluetooth Access")
+                }
+            } else if bluetoothManager.bluetoothState == .poweredOff {
+                Text("Bluetooth is currently turned off.")
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(4)
+            }
+            
             Section {
                 Toggle(
                     "Show Bluetooth live activity",
@@ -422,6 +452,7 @@ struct BluetoothSettings: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            .disabled(bluetoothManager.bluetoothState == .unauthorized)
             
             Section {
                 Toggle("Show sneak peek on device changes", isOn: $enableBluetoothSneakPeek)
@@ -438,6 +469,7 @@ struct BluetoothSettings: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            .disabled(!coordinator.bluetoothLiveActivityEnabled || bluetoothManager.bluetoothState == .unauthorized)
             
             Section {
                 List {
@@ -665,9 +697,19 @@ struct BluetoothSettings: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            .disabled(!coordinator.bluetoothLiveActivityEnabled || bluetoothManager.bluetoothState == .unauthorized)
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Bluetooth")
+        .onAppear {
+            Task { @MainActor in
+                // Check if Bluetooth is already initialized
+                if bluetoothManager.isInitialized == false {
+                    // Initialize Bluetooth when user opens settings (this will trigger permission prompt)
+                    bluetoothManager.initializeBluetooth()
+                }
+            }
+        }
         .onChange(of: sfSymbolName) { _, _ in
             iconPickerPresented = false
             isPresented = true
