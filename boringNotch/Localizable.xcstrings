@@ -5313,7 +5313,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Clear slot"
+            "value": "슬롯 초기화"
           }
         },
         "pl": {
@@ -10666,7 +10666,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide completed reminders"
+            "value": "완료된 알림 숨기기"
           }
         },
         "pl": {
@@ -10767,7 +10767,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide for all apps"
+            "value": "모든 앱에서 숨기기"
           }
         },
         "pl": {
@@ -10868,7 +10868,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide for media app only"
+            "value": "미디어 앱에서만 숨기기"
           }
         },
         "pl": {
@@ -10969,7 +10969,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide from screen recording"
+            "value": "화면 녹화 시 숨기기"
           }
         },
         "pl": {
@@ -15312,7 +15312,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch height on non-notch displays"
+            "value": "노치 없는 디스플레이에서 노치 높이"
           }
         },
         "pl": {
@@ -15413,7 +15413,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch height on notch displays"
+            "value": "노치 디스플레이에서 노치 높이"
           }
         },
         "pl": {
@@ -15514,7 +15514,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch sizing"
+            "value": "노치 크기 조정"
           }
         },
         "pl": {
@@ -15918,7 +15918,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open shelf by default if items are present"
+            "value": "항목이 있으면 기본으로 선반 열기"
           }
         },
         "pl": {
@@ -16019,7 +16019,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Option key behaviour"
+            "value": "옵션 키 동작"
           }
         },
         "pl": {
@@ -18948,7 +18948,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show cool face animation while inactive"
+            "value": "비활성 시 쿨한 얼굴 애니메이션 표시"
           }
         },
         "pl": {
@@ -19049,7 +19049,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show lyrics below artist name"
+            "value": "아티스트 이름 아래 가사 표시"
           }
         },
         "pl": {
@@ -19352,7 +19352,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show notch on lock screen"
+            "value": "잠금 화면에 노치 표시"
           }
         },
         "pl": {
@@ -19857,7 +19857,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show sneak peek on playback changes"
+            "value": "재생 변경 시 훔쳐보기 표시"
           }
         },
         "pl": {
@@ -21069,7 +21069,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Tint progress bar with accent color"
+            "value": "강조 색상으로 진행 바 색상 변경"
           }
         },
         "pl": {
@@ -22079,7 +22079,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use your macOS system accent color"
+            "value": "MacOS 시스템 강조 색상 사용"
           }
         },
         "pl": {
@@ -22180,7 +22180,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Using System Accent"
+            "value": "시스템 강조 색상 사용"
           }
         },
         "pl": {
@@ -22483,7 +22483,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "View on GitHub: pear-devs/pear-desktop"
+            "value": "GitHub에서 보기: pear-devs/pear-desktop"
           }
         },
         "pl": {
@@ -22786,7 +22786,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Window Appearance"
+            "value": "창 모양"
           }
         },
         "pl": {
@@ -22887,7 +22887,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Window Behavior"
+            "value": "창 동작"
           }
         },
         "pl": {
@@ -23190,7 +23190,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Your macOS system accent color"
+            "value": "macOS 시스템 강조 색상"
           }
         },
         "pl": {
