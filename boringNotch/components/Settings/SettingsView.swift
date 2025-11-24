@@ -210,7 +210,7 @@ struct GeneralSettings: View {
                     case .matchRealNotchSize:
                         notchHeight = 38
                     case .matchMenuBar:
-                        notchHeight = 44
+                        notchHeight = 43
                     case .custom:
                         notchHeight = 38
                     }
@@ -237,7 +237,7 @@ struct GeneralSettings: View {
                 .onChange(of: nonNotchHeightMode) {
                     switch nonNotchHeightMode {
                     case .matchMenuBar:
-                        nonNotchHeight = 24
+                        nonNotchHeight = 23
                     case .matchRealNotchSize:
                         nonNotchHeight = 32
                     case .custom:
