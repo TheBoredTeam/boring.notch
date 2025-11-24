@@ -5598,7 +5598,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Closed Notch"
+            "value": "Geschlossene Notch"
           }
         },
         "hu": {
@@ -13173,7 +13173,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Medium"
+            "value": "Medien"
           }
         },
         "hu": {
@@ -14385,7 +14385,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Muted"
+            "value": "Stumm"
           }
         },
         "hu": {
@@ -15799,7 +15799,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Notch"
+            "value": "Notch öffnen"
           }
         },
         "hu": {
@@ -16607,7 +16607,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Progress bar style"
+            "value": "Leistenstil"
           }
         },
         "hu": {
@@ -17718,7 +17718,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design."
+            "value": "Ersetzt die Standard-macOS-Lautstärke, Displayhelligkeit und Tastaturhelligkeit HUDs durch ein benutzerdefiniertes Design."
           }
         },
         "hu": {
@@ -19334,7 +19334,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show HUD in open notch"
+            "value": "HUD in offener Notch anzeigen"
           }
         },
         "hu": {
@@ -19940,7 +19940,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show percentage"
+            "value": "Prozent anzeigen"
           }
         },
         "hu": {
@@ -22263,7 +22263,7 @@
         "de": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Unmuted"
+            "value": "Nicht stummgeschaltet"
           }
         },
         "hu": {
