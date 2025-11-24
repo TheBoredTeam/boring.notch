@@ -1725,7 +1725,7 @@ struct Advanced: View {
                     Text("Enable window shadow")
                 }
                 Defaults.Toggle(key: .cornerRadiusScaling) {
-                    Text("Corner radius scaling")
+                    Text("Scale corner radius for closed notch")
                 }
             } header: {
                 Text("Window Appearance")
