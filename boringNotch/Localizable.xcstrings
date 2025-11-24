@@ -5308,6 +5308,9 @@
         }
       }
     },
+    "Closed Notch" : {
+
+    },
     "Color Presets" : {
       "localizations" : {
         "ar" : {
@@ -7808,106 +7811,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "编辑布局"
-          }
-        }
-      }
-    },
-    "Enable Accessibility in System Settings → Privacy & Security → Accessibility" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Accessibility in System Settings → Privacy & Security → Accessibility"
           }
         }
       }
@@ -13530,6 +13433,9 @@
         }
       }
     },
+    "Muted" : {
+
+    },
     "Name" : {
       "localizations" : {
         "ar" : {
@@ -14831,6 +14737,9 @@
         }
       }
     },
+    "Open Notch" : {
+
+    },
     "Open notch on hover" : {
       "localizations" : {
         "ar" : {
@@ -15531,105 +15440,8 @@
         }
       }
     },
-    "Progressbar style" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Progressbar style"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Styl ukazatele průběhu"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Fortschrittsleistenstil"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Progressbar style"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Progress bar style"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Estilo de la barra de progreso"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Style de la barre de progression"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Progressbar style"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stile barra di avanzamento"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "진행 바 스타일"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Styl paska postępu"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Progressbar style"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Progressbar style"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "İlerleme çubuğu stili"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Progressbar style"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "进度条样式"
-          }
-        }
-      }
+    "Progress bar style" : {
+
     },
     "Quick Share" : {
       "localizations" : {
@@ -16630,6 +16442,9 @@
           }
         }
       }
+    },
+    "Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design." : {
+
     },
     "Request Accessibility" : {
       "localizations" : {
@@ -18133,6 +17948,9 @@
         }
       }
     },
+    "Show HUD in open notch" : {
+
+    },
     "Show lyrics below artist name" : {
       "localizations" : {
         "ar" : {
@@ -18632,6 +18450,9 @@
           }
         }
       }
+    },
+    "Show percentage" : {
+
     },
     "Show power status icons" : {
       "localizations" : {
@@ -20836,6 +20657,9 @@
         }
       }
     },
+    "Unmuted" : {
+
+    },
     "Upgrade to Pro" : {
       "localizations" : {
         "ar" : {
@@ -21032,107 +20856,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "使用音乐可视化器谱图"
-          }
-        }
-      }
-    },
-    "Use simpler close animation" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use simpler close animation"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Použít jednodušší animaci zavření"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nutze vereinfachte Schließanimation"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use simpler close animation"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use simpler close animation"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Usar animación de cierre simple"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Utiliser une animation de fermeture simplifiée"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use simpler close animation"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Usa animazione di chiusura semplice"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "닫기 효과 간단하게"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Użyj prostszej animacji zamknięcia"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use simpler close animation"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use simpler close animation"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Daha basit kapatma animasyonu kullanın"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use simpler close animation"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "使用更简单的关闭动画"
           }
         }
       }

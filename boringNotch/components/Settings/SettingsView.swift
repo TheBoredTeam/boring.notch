@@ -467,23 +467,30 @@ struct HUD: View {
     @Default(.inlineHUD) var inlineHUD
     @Default(.enableGradient) var enableGradient
     @Default(.optionKeyAction) var optionKeyAction
+    @Default(.hudReplacement) var hudReplacement
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @State private var accessibilityAuthorized = false
+    
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle(key: .hudReplacement) {
-                   Text("Replace system HUD")
-                }
-                .disabled(!accessibilityAuthorized)
-                .help("Enable Accessibility in System Settings → Privacy & Security → Accessibility")
-                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-                    Task { @MainActor in
-                        let helper = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                            accessibilityAuthorized = helper
-                        }
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Replace system HUD")
+                            .font(.headline)
+                        Text("Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-
+                    Spacer(minLength: 40)
+                    Defaults.Toggle("", key: .hudReplacement)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.large)
+                    .disabled(!accessibilityAuthorized)
+                }
+                
                 if !accessibilityAuthorized {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Accessibility access is required to replace the system HUD.")
@@ -499,15 +506,48 @@ struct HUD: View {
                     }
                     .padding(.top, 6)
                 }
+            }
+            
+            Section {
                 Picker("Option key behaviour", selection: $optionKeyAction) {
                     ForEach(OptionKeyAction.allCases) { opt in
                         Text(opt.rawValue).tag(opt)
                     }
                 }
-                .pickerStyle(.radioGroup)
+                
+                Picker("Progress bar style", selection: $enableGradient) {
+                    Text("Hierarchical")
+                        .tag(false)
+                    Text("Gradient")
+                        .tag(true)
+                }
+                Defaults.Toggle(key: .systemEventIndicatorShadow) {
+                    Text("Enable glowing effect")
+                }
+                Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
+                    Text("Tint progress bar with accent color")
+                }
             } header: {
                 Text("General")
             }
+            .disabled(!hudReplacement)
+            
+            Section {
+                Defaults.Toggle(key: .showOpenNotchHUD) {
+                    Text("Show HUD in open notch")
+                }
+                Defaults.Toggle(key: .showOpenNotchHUDPercentage) {
+                    Text("Show percentage")
+                }
+                .disabled(!Defaults[.showOpenNotchHUD])
+            } header: {
+                HStack {
+                    Text("Open Notch")
+                    customBadge(text: "Beta")
+                }
+            }
+            .disabled(!hudReplacement)
+            
             Section {
                 Picker("HUD style", selection: $inlineHUD) {
                     Text("Default")
@@ -523,28 +563,25 @@ struct HUD: View {
                         }
                     }
                 }
-                Picker("Progressbar style", selection: $enableGradient) {
-                    Text("Hierarchical")
-                        .tag(false)
-                    Text("Gradient")
-                        .tag(true)
-                }
-                Defaults.Toggle(key: .systemEventIndicatorShadow) {
-                    Text("Enable glowing effect")
-                }
-                Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
-                    Text("Tint progress bar with accent color")
+                
+                Defaults.Toggle(key: .showClosedNotchHUDPercentage) {
+                    Text("Show percentage")
                 }
             } header: {
-                HStack {
-                    Text("Appearance")
-                }
+                Text("Closed Notch")
             }
+            .disabled(!Defaults[.hudReplacement])
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("HUDs")
         .task {
             accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+        }
+        .onAppear {
+            XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
+        }
+        .onDisappear {
+            XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
         }
         .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
             if let granted = notification.userInfo?["granted"] as? Bool {
