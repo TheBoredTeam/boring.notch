@@ -52,6 +52,7 @@ class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
+    @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
     private var hudEnableTask: Task<Void, Never>?
@@ -128,18 +129,10 @@ class BoringViewCoordinator: ObservableObject {
             forName: Notification.Name.accessibilityAuthorizationChanged,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+        ) { _ in
             Task { @MainActor in
-                guard let self = self else { return }
-                let granted = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                if !granted {
-                    // If permission was revoked, disable HUD replacement
-                    Defaults[.hudReplacement] = false
-                } else {
-                    // If permission granted and user prefers HUD replacement, ensure interceptor is running
-                    if Defaults[.hudReplacement] {
-                        MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
-                    }
+                if Defaults[.hudReplacement] {
+                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                 }
             }
         }
@@ -155,23 +148,11 @@ class BoringViewCoordinator: ObservableObject {
 
                     if change.newValue {
                         self.hudEnableTask = Task { @MainActor in
-                            // Check prior authorization so we only restart if permissions were newly granted
-                            let priorAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-
-                            MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: true)
-
-                            let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: false)
-
+                            let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
                             if Task.isCancelled { return }
 
                             if granted {
-                                // Restart only if authorization was newly granted
-                                if !priorAuthorized {
-                                    // newly granted; restart
-                                    ApplicationRelauncher.restart()
-                                } else {
-                                    // already granted; no restart needed
-                                }
+                                await MediaKeyInterceptor.shared.start()
                             } else {
                                 Defaults[.hudReplacement] = false
                             }
@@ -182,14 +163,15 @@ class BoringViewCoordinator: ObservableObject {
                 }
             }
 
-        // On startup, ensure the hudReplacement state reflects current authorization
         Task { @MainActor in
+            helloAnimationRunning = firstLaunch
+
             if Defaults[.hudReplacement] {
                 let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
                 if !authorized {
                     Defaults[.hudReplacement] = false
                 } else {
-                    MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
+                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                 }
             }
         }

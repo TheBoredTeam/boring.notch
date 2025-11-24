@@ -147,18 +147,6 @@ struct ContentView: View {
                                 handleUpGesture(translation: translation, phase: phase)
                             }
                     }
-                    .onAppear {
-                        Task {
-                            try? await Task.sleep(for: .seconds(1))
-                            await MainActor.run {
-                                if coordinator.firstLaunch {
-                                    withAnimation(vm.animation) {
-                                        doOpen()
-                                    }
-                                }
-                            }
-                        }
-                    }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
                             hoverTask?.cancel()
@@ -223,6 +211,7 @@ struct ContentView: View {
         )
         .animation(.smooth, value: gestureProgress)
         .background(dragDetector)
+        .preferredColorScheme(.dark)
         .environmentObject(vm)
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
@@ -256,14 +245,14 @@ struct ContentView: View {
     func NotchLayout() -> some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
-                if coordinator.firstLaunch {
+                if coordinator.helloAnimationRunning {
                     Spacer()
-                    HelloAnimation().frame(
+                    HelloAnimation(onFinish: {
+                        vm.closeHello()
+                    }).frame(
                         width: getClosedNotchSize().width,
                         height: 80
-                    ).onAppear(perform: {
-                        vm.closeHello()
-                    })
+                    )
                     .padding(.top, 40)
                     Spacer()
                 } else {
@@ -635,6 +624,7 @@ struct ContentView: View {
     // MARK: - Hover Management
 
     private func handleHover(_ hovering: Bool) {
+        if coordinator.firstLaunch { return }
         hoverTask?.cancel()
         
         if hovering {

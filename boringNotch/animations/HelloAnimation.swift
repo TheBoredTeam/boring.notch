@@ -99,6 +99,8 @@ struct GlowingSnake<
 struct HelloAnimation: View {
     @State private var progress: Double = 0.0
     
+    var onFinish: () -> Void
+    
     var body: some View {
         GlowingSnake(
             progress: progress,
@@ -107,12 +109,20 @@ struct HelloAnimation: View {
             blurRadius: 8.0,
             shape: { HelloShape() }
         )
-        .onAppear {
+        .task {
+            // Wait for the "opening" animation (notch expansion) to complete before starting the snake
+            try? await Task.sleep(for: .seconds(0.6))
+            
             withAnimation(
                 .easeInOut(duration: 4.0)
             ) {
                 progress = 1.0
             }
+            
+            // Wait for the animation to complete
+            try? await Task.sleep(for: .seconds(4.0))
+            
+            onFinish()
         }
     }
 }
@@ -143,6 +153,6 @@ extension View where Self: Shape {
 }
 
 #Preview {
-    HelloAnimation()
+    HelloAnimation(onFinish: {})
         .frame(width: 300, height: 100)
 }

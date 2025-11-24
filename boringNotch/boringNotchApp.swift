@@ -83,6 +83,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MusicManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
+        XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
     }
 
     @MainActor
@@ -429,19 +430,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         {
             DispatchQueue.main.async {
                 self.showOnboardingWindow(step: .musicPermission)
-            }
-        }
-        if Defaults[.hudReplacement] {
-            Task { @MainActor in
-               let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                if authorized {
-                    MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
-                } else {
-                    let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: false)
-                    if granted {
-                        MediaKeyInterceptor.shared.start(requireAccessibility: true, promptIfNeeded: false)
-                    }
-                }
             }
         }
 
