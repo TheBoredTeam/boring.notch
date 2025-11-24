@@ -44,17 +44,48 @@ struct ContentView: View {
     private let zeroHeightHoverPadding: CGFloat = 10
 
     private var topCornerRadius: CGFloat {
-       ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
-                ? cornerRadiusInsets.opened.top
-                : cornerRadiusInsets.closed.top
+        // If the notch is open and scaling is enabled, return the opened radius.
+        if vm.notchState == .open {
+            return cornerRadiusInsets.opened.top
+        }
+
+        // For the closed notch, if scaling is enabled, scale the base closed radius
+        // based on the current closed notch height relative to 32 (baseline).
+        let baseClosedTop = cornerRadiusInsets.closed.top
+        guard Defaults[.cornerRadiusScaling] else { return baseClosedTop }
+
+        // If effective closed height is zero, return 0 to avoid any visible rounding when the notch isn't present.
+        let effectiveHeight = displayClosedNotchHeight
+        guard effectiveHeight > 0 else { return 0 }
+
+        let baseline: CGFloat = 32.0
+        let scaleFactor = effectiveHeight / baseline
+        return max(0, baseClosedTop * scaleFactor)
     }
 
     private var currentNotchShape: NotchShape {
-        NotchShape(
+        // Scale bottom corner radius for closed notch shape when scaling is enabled.
+        let baseClosedBottom = cornerRadiusInsets.closed.bottom
+        var bottomCorner: CGFloat
+
+        if vm.notchState == .open {
+            bottomCorner = cornerRadiusInsets.opened.bottom
+        } else if Defaults[.cornerRadiusScaling] {
+            let effectiveHeight = displayClosedNotchHeight
+            let baseline: CGFloat = 32.0
+            if effectiveHeight > 0 {
+                let scaleFactor = effectiveHeight / baseline
+                bottomCorner = max(0, baseClosedBottom * scaleFactor)
+            } else {
+                bottomCorner = 0
+            }
+        } else {
+            bottomCorner = baseClosedBottom
+        }
+
+        return NotchShape(
             topCornerRadius: topCornerRadius,
-            bottomCornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
-                ? cornerRadiusInsets.opened.bottom
-                : cornerRadiusInsets.closed.bottom
+            bottomCornerRadius: bottomCorner
         )
     }
 
@@ -69,16 +100,22 @@ struct ContentView: View {
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         }
 
         return chinWidth
     }
+
+    // If the closed notch height is 0 (any display/setting), display a 10pt nearly-invisible notch
+    // instead of fully hiding it. This preserves layout while avoiding visual artifacts.
+    private var isNotchHeightZero: Bool { vm.effectiveClosedNotchHeight == 0 }
+
+    private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
 
     var body: some View {
         // Calculate scale based on gesture progress only
@@ -94,28 +131,24 @@ struct ContentView: View {
                     .frame(alignment: .top)
                     .padding(
                         .horizontal,
-                        vm.notchState == .open
-                        ? Defaults[.cornerRadiusScaling]
-                        ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
-                        : cornerRadiusInsets.closed.bottom
+                        vm.notchState == .open ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                     .background(.black)
                     .clipShape(currentNotchShape)
-                    .overlay(alignment: .top) {
-                        Rectangle()
+                          .overlay(alignment: .top) {
+                              displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
+                        : Rectangle()
                             .fill(.black)
                             .frame(height: 1)
                             .padding(.horizontal, topCornerRadius)
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
-                            ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
+                            ? .black.opacity(0.7) : .clear, radius: 6
                     )
-                    .padding(
-                        .bottom,
-                        vm.effectiveClosedNotchHeight == 0 ? 10 : 0
-                    )
+                    // Removed conditional bottom padding when using custom 0 notch to keep layout stable
+                    .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
@@ -281,7 +314,7 @@ struct ContentView: View {
                             }
                             .frame(width: 76, alignment: .trailing)
                         }
-                        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+                        .frame(height: displayClosedNotchHeight, alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
@@ -292,10 +325,10 @@ struct ContentView: View {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
                            BoringHeader()
-                               .frame(height: max(24, vm.effectiveClosedNotchHeight))
+                               .frame(height: max(24, displayClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                        } else {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
+                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
 
                       if coordinator.sneakPeek.show {
@@ -369,8 +402,8 @@ struct ContentView: View {
                 Rectangle()
                     .fill(.clear)
                     .frame(
-                        width: max(0, vm.effectiveClosedNotchHeight - 12),
-                        height: max(0, vm.effectiveClosedNotchHeight - 12)
+                        width: max(0, displayClosedNotchHeight - 12),
+                        height: max(0, displayClosedNotchHeight - 12)
                     )
                 Rectangle()
                     .fill(.black)
@@ -378,7 +411,7 @@ struct ContentView: View {
                 MinimalFaceFeatures()
             }
         }.frame(
-            height: vm.effectiveClosedNotchHeight,
+            height: displayClosedNotchHeight,
             alignment: .center
         )
     }
@@ -395,8 +428,8 @@ struct ContentView: View {
                 )
                 .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                 .frame(
-                    width: max(0, vm.effectiveClosedNotchHeight - 12),
-                    height: max(0, vm.effectiveClosedNotchHeight - 12)
+                    width: max(0, displayClosedNotchHeight - 12),
+                    height: max(0, displayClosedNotchHeight - 12)
                 )
 
             Rectangle()
@@ -468,18 +501,18 @@ struct ContentView: View {
             .frame(
                 width: max(
                     0,
-                    vm.effectiveClosedNotchHeight - 12
+                    displayClosedNotchHeight - 12
                         + gestureProgress / 2
                 ),
                 height: max(
                     0,
-                    vm.effectiveClosedNotchHeight - 12
+                    displayClosedNotchHeight - 12
                 ),
                 alignment: .center
             )
         }
         .frame(
-            height: vm.effectiveClosedNotchHeight,
+            height: displayClosedNotchHeight,
             alignment: .center
         )
     }
