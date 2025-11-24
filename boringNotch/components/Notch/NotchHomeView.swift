@@ -42,11 +42,9 @@ struct AlbumArtView: View {
         Image(nsImage: musicManager.albumArt)
             .resizable()
             .clipped()
-            .clipShape(
+                .clipShape(
                 RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
             .aspectRatio(1, contentMode: .fit)
             .scaleEffect(x: 1.3, y: 1.4)
@@ -89,9 +87,7 @@ struct AlbumArtView: View {
             .clipped()
             .clipShape(
                 RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
     }
 
