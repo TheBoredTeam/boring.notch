@@ -11008,6 +11008,9 @@
         }
       }
     },
+    "Hide windows on non-notch displays from Mission Control" : {
+
+    },
     "Hierarchical" : {
       "localizations" : {
         "ar" : {

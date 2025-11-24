@@ -241,7 +241,7 @@ struct GeneralSettings: View {
                     case .matchRealNotchSize:
                         nonNotchHeight = 32
                     case .custom:
-                        nonNotchHeight = 32
+                        nonNotchHeight = 23
                     }
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
@@ -1624,6 +1624,9 @@ struct Advanced: View {
                 }
                 Defaults.Toggle(key: .hideFromScreenRecording) {
                     Text("Hide from screen recording")
+                }
+                Defaults.Toggle(key: .hideNonNotchedFromMissionControl) {
+                    Text("Hide windows on non-notch displays from Mission Control")
                 }
             } header: {
                 Text("Window Behavior")
