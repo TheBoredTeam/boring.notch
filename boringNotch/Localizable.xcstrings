@@ -2182,7 +2182,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Advanced"
+            "value": "고급"
           }
         },
         "pl": {
@@ -4909,7 +4909,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose any color"
+            "value": "아무 색상을 선택해 주세요."
           }
         },
         "pl": {
@@ -5616,7 +5616,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Color Presets"
+            "value": "색상 프리셋"
           }
         },
         "pl": {
@@ -6323,7 +6323,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Custom"
+            "value": "사용자정의"
           }
         },
         "pl": {
@@ -8747,7 +8747,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable haptic feedback"
+            "value": "햅틱 피드백 활성화"
           }
         },
         "pl": {
@@ -11070,7 +11070,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide title bar"
+            "value": "제목 표시줄 숨기기"
           }
         },
         "pl": {
@@ -11373,7 +11373,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hover delay"
+            "value": "호버 지연 시간"
           }
         },
         "pl": {
@@ -12080,7 +12080,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Layout Preview"
+            "value": "레이아웃 미리보기"
           }
         },
         "pl": {
@@ -12787,7 +12787,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match menu bar height"
+            "value": "메뉴바 높이에 맞추기"
           }
         },
         "pl": {
@@ -12989,7 +12989,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Match real notch height"
+            "value": "실제 노치 크기에 맞추기"
           }
         },
         "pl": {
@@ -14807,7 +14807,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No events"
+            "value": "이벤트 없음"
           }
         },
         "pl": {
@@ -16120,7 +16120,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Pick a Color"
+            "value": "색상 선택"
           }
         },
         "pl": {
@@ -16322,7 +16322,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Preferred display"
+            "value": "선호 디스플레이"
           }
         },
         "pl": {
@@ -16524,7 +16524,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quick Share"
+            "value": "퀵 쉐어"
           }
         },
         "pl": {
@@ -16625,7 +16625,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quick Share Service"
+            "value": "퀵 쉐어 서비스"
           }
         },
         "pl": {
@@ -17332,7 +17332,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Remove from shelf after dragging"
+            "value": "드래그 후 선반에서 제거"
           }
         },
         "pl": {
@@ -17433,7 +17433,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Replace system HUD"
+            "value": "시스템 HUD 교체"
           }
         },
         "pl": {
@@ -17534,7 +17534,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Request Accessibility"
+            "value": "접근성 권한 요청"
           }
         },
         "pl": {
@@ -17635,7 +17635,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reset to Defaults"
+            "value": "기본값으로 재설정"
           }
         },
         "pl": {
@@ -19150,7 +19150,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show menu bar icon"
+            "value": "메뉴 막대 아이콘 표시"
           }
         },
         "pl": {
@@ -19251,7 +19251,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show music live activity"
+            "value": "음악 실시간 현황 켜기"
           }
         },
         "pl": {
@@ -19756,7 +19756,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show settings icon in notch"
+            "value": "노치에 설정 아이콘 보이기"
           }
         },
         "pl": {
@@ -20766,7 +20766,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "System"
+            "value": "시스템"
           }
         },
         "pl": {
