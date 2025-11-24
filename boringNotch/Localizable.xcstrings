@@ -1374,7 +1374,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "설명"
+            "value": "정보"
           }
         },
         "pl": {
@@ -1677,7 +1677,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Accessibility access is required to replace the system HUD."
+            "value": "시스템 HUD를 교체하기 위해서는 접근성 권한이 필요합니다."
           }
         },
         "pl": {
@@ -2485,7 +2485,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Always show full event titles"
+            "value": "항상 이벤트 제목 보이기"
           }
         },
         "pl": {
@@ -2889,7 +2889,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Auto-scroll to next event"
+            "value": "다음 이벤트로 오토-스크롤"
           }
         },
         "pl": {
@@ -4404,7 +4404,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Change media with horizontal gestures"
+            "value": "수평 제스처로 미디어 변경"
           }
         },
         "pl": {
@@ -5010,7 +5010,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Choose between your system accent color or customize it with your own selection."
+            "value": "시스템 색상 혹은 당신의 선택으로 지정하기 중 선택"
           }
         },
         "pl": {
@@ -6020,7 +6020,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Copy items on drag"
+            "value": "드래그로 항목 복사"
           }
         },
         "pl": {
@@ -6222,7 +6222,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Currently selected: %@"
+            "value": "현재 선택된: %@"
           }
         },
         "pl": {
@@ -10565,7 +10565,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hide all-day events"
+            "value": "종일 이벤트를 숨기기"
           }
         },
         "pl": {
