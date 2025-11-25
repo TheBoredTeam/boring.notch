@@ -281,7 +281,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "'Сейчас играть' была единственной опцией в предыдущих версиях и работает со всеми медиа-приложениями."
+            "value": "'Сейчас воспроизводится' была единственной опцией в предыдущих версиях и работает со всеми медиа-приложениями."
           }
         },
         "es": {
@@ -483,7 +483,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "%.0f секунды"
+            "value": "%.0f секунд"
           }
         },
         "es": {
@@ -2907,7 +2907,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Auto-scroll to next event"
+            "value": "Авто-прокрутка к следующему событию"
           }
         },
         "es": {
@@ -8967,7 +8967,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable window shadow"
+            "value": "Включить тень окна"
           }
         },
         "es": {
@@ -19370,7 +19370,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show HUD in open notch"
+            "value": "Показывать HUD в открытой челке"
           }
         },
         "es": {
@@ -19471,7 +19471,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show lyrics below artist name"
+            "value": "Показать слова под именем исполнителя"
           }
         },
         "es": {
@@ -23125,7 +23125,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Welcome"
+            "value": "Вітаємо"
           }
         }
       }
@@ -23713,7 +23713,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Your macOS system accent color"
+            "value": "Цвет акцента системы macOS"
           }
         },
         "es": {
@@ -23814,7 +23814,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "YouTube Music requires this third-party app to be installed: "
+            "value": "YouTube Music требует установки этого стороннего приложения: "
           }
         },
         "es": {
