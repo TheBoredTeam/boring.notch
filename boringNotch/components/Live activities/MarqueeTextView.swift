@@ -23,7 +23,8 @@ struct MeasureSizeModifier: ViewModifier {
 }
 
 struct MarqueeText: View {
-    @Binding var text: String
+    @Binding var bindingText: String
+    @State private var text: String
     let font: Font
     let nsFont: NSFont.TextStyle
     let textColor: Color
@@ -31,18 +32,24 @@ struct MarqueeText: View {
     let minDuration: Double
     let frameWidth: CGFloat
     
+    /// Used to repeat the text until it no longer fits the given *frameWidth*.
+    /// When *true* will **always** scroll the text
+    let infiniteText: Bool
+    
     @State private var animate = false
     @State private var textSize: CGSize = .zero
     @State private var offset: CGFloat = 0
     
-    init(_ text: Binding<String>, font: Font = .body, nsFont: NSFont.TextStyle = .body, textColor: Color = .primary, backgroundColor: Color = .clear, minDuration: Double = 3.0, frameWidth: CGFloat = 200) {
-        _text = text
+    init(_ text: Binding<String>, font: Font = .body, nsFont: NSFont.TextStyle = .body, textColor: Color = .primary, backgroundColor: Color = .clear, minDuration: Double = 3.0, frameWidth: CGFloat = 200, infiniteText: Bool = false) {
+        self.text = text.wrappedValue
+        _bindingText = text
         self.font = font
         self.nsFont = nsFont
         self.textColor = textColor
         self.backgroundColor = backgroundColor
         self.minDuration = minDuration
         self.frameWidth = frameWidth
+        self.infiniteText = infiniteText
     }
     
     private var needsScrolling: Bool {
@@ -73,6 +80,10 @@ struct MarqueeText: View {
                 .modifier(MeasureSizeModifier())
                 .onPreferenceChange(SizePreferenceKey.self) { size in
                     self.textSize = CGSize(width: size.width / 2, height: NSFont.preferredFont(forTextStyle: nsFont).pointSize)
+                    if infiniteText && !needsScrolling {
+                        text = text + " " + _bindingText.wrappedValue
+                        return
+                    }
                     self.animate = false
                     self.offset = 0
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.01){

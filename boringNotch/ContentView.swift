@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var bluetoothManager = BluetoothManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -285,6 +286,8 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
+                      } else if coordinator.expandingView.show && coordinator.expandingView.type == .bluetooth && vm.notchState == .closed && coordinator.bluetoothLiveActivityEnabled && !vm.hideOnClosed {
+                          BluetoothLiveActivity()
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -482,6 +485,118 @@ struct ContentView: View {
             height: vm.effectiveClosedNotchHeight,
             alignment: .center
         )
+    }
+
+    @ViewBuilder
+    func BluetoothLiveActivity() -> some View {
+        VStack {
+            HStack {
+                let iconName: String = bluetoothManager.getDeviceIcon(for: bluetoothManager.lastBluetoothDevice)
+                
+                Image(systemName: iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .foregroundStyle(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? Color.effectiveAccent : .gray)
+                    .symbolRenderingMode(.monochrome)
+                    .frame(
+                        width: max(0, vm.effectiveClosedNotchHeight - 12),
+                        height: max(0, vm.effectiveClosedNotchHeight - 12)
+                    )
+                
+                Rectangle()
+                    .fill(.black)
+                    .overlay(
+                        HStack(alignment: .top) {
+                            if coordinator.expandingView.show
+                                && coordinator.expandingView.type == .bluetooth
+                                && Defaults[.enableBluetoothSneakPeek]
+                                && Defaults[.bluetoothSneakPeekStyle] == .inline
+                            {
+                                MarqueeText(
+                                    .constant("\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")"),
+                                    textColor: .gray,
+                                    minDuration: 0.4,
+                                    frameWidth: 100
+                                )
+                                Spacer(minLength: vm.closedNotchSize.width)
+                            }
+                        }
+                    )
+                    .frame(
+                        width: (coordinator.expandingView.show
+                                && coordinator.expandingView.type == .bluetooth
+                                && Defaults[.enableBluetoothSneakPeek]
+                                && Defaults[.bluetoothSneakPeekStyle] == .inline)
+                        ? 380
+                        : vm.closedNotchSize.width
+                        + (isHovering ? 8 : -cornerRadiusInsets.closed.top)
+                    ) // RECTANGLE
+                if bluetoothManager.lastBluetoothDevice?.isConnected() == true {
+                    if let battery = bluetoothManager.batteryPercentage {
+                        HStack {
+                            BatteryRing(percentage: Double(battery))
+                        }
+                        .frame(
+                            width: max(
+                                0,
+                                vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                                + gestureProgress / 2
+                            ),
+                            height: max(
+                                0,
+                                vm.effectiveClosedNotchHeight - (isHovering ? 0 : 12)
+                            ),
+                            alignment: .center
+                        )
+                    } else {
+                        Image(systemName: "circle.slash")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .foregroundStyle(.gray)
+                            .symbolRenderingMode(.hierarchical)
+                            .frame(
+                                width: max(0, vm.effectiveClosedNotchHeight - 12),
+                                height: max(0, vm.effectiveClosedNotchHeight - 12)
+                            )
+                    }
+                } else {
+                    Image("bluetooth.slash")
+                        .resizable()
+                        .renderingMode(.template)
+                        .aspectRatio(contentMode: .fit)
+                        .foregroundStyle(.gray)
+                        .frame(
+                            width: max(0, vm.effectiveClosedNotchHeight - 12),
+                            height: max(0, vm.effectiveClosedNotchHeight - 12)
+                        )
+                }
+            } // HSTACK
+            .frame(
+                height: vm.effectiveClosedNotchHeight + (isHovering ? 8 : 0),
+                alignment: .center
+            )
+            
+            if coordinator.expandingView.type == .bluetooth && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.enableBluetoothSneakPeek] && Defaults[.bluetoothSneakPeekStyle] == .standard {
+                HStack(alignment: .center) {
+                    GeometryReader { geo in
+                        MarqueeText(
+                            .constant("\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")"),
+                            textColor: .gray,
+                            minDuration: 1,
+                            frameWidth: geo.size.width,
+                            infiniteText: true
+                        )
+                    }
+                }
+                .foregroundStyle(.gray)
+                .padding(.bottom, 10)
+            }
+        } // VSTACK
+        .conditionalModifier((coordinator.expandingView.show && (coordinator.expandingView.type == .bluetooth) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.bluetoothSneakPeekStyle] == .standard) || (coordinator.expandingView.show && (coordinator.expandingView.type != .bluetooth) && (vm.notchState == .closed))) { view in
+            view
+                .fixedSize()
+        }
+        .zIndex(2)
     }
 
     @ViewBuilder

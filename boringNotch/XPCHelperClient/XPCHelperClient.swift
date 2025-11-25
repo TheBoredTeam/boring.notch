@@ -241,6 +241,22 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
+    
+    // MARK: - Bluetooth Device Info
+    nonisolated func getBluetoothDeviceMinorClass(with deviceName: String) async -> String? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.getBluetoothDeviceMinorClass(with: deviceName) { minorClass in
+                    continuation.resume(returning: minorClass)
+                }
+            }
+        } catch {
+            return nil
+        }
+    }
 }
 
 extension Notification.Name {

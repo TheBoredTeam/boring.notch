@@ -138,6 +138,105 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
         reply(false)
     }
+    
+    // MARK: - Bluetooth Device Info
+    // Maps to the root object containing the SPBluetoothDataType
+    private struct SPBluetoothDataRoot: Decodable {
+        let bluetoothData: [SPBluetoothData]?
+        
+        private enum CodingKeys: String, CodingKey {
+            case bluetoothData = "SPBluetoothDataType"
+        }
+    }
+
+    private struct SPBluetoothData: Decodable {
+        let deviceConnected: [SPBluetoothDataDevice]?
+        let deviceNotconnected: [SPBluetoothDataDevice]?
+        
+        enum CodingKeys: String, CodingKey {
+            case deviceConnected = "device_connected"
+            case deviceNotconnected = "device_not_connected"
+        }
+    }
+
+    private struct SPBluetoothDataDevice: Decodable {
+        let name: String?
+        let info: SPBluetoothDataDeviceInfo?
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let dict = try container.decode([String: SPBluetoothDataDeviceInfo].self)
+
+            guard let (key, value) = dict.first else {
+                throw DecodingError.dataCorrupted(
+                    .init(codingPath: decoder.codingPath,
+                          debugDescription: "Expected dictionary with a single key")
+                )
+            }
+
+            self.name = key
+            self.info = value
+        }
+    }
+
+    private struct SPBluetoothDataDeviceInfo: Decodable {
+        let adress: String?
+        // let deviceBatteryLevelMain: String // - not used
+        let minorType: String?
+        let productID: String?
+        let services: String?
+        let vendorID: String?
+        
+        enum CodingKeys: String, CodingKey {
+            case adress = "device_adress"
+            case minorType = "device_minorType"
+            case productID = "device_productID"
+            case services = "device_services"
+            case vendorID = "device_vendorID"
+        }
+    }
+    
+    @objc func getBluetoothDeviceMinorClass(with deviceName: String, with reply: @escaping (String?) -> Void) {
+        let task = Process()
+        let pipe = Pipe()
+        
+        task.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
+        task.arguments = ["-json", "SPBluetoothDataType"]
+        task.standardOutput = pipe
+
+        let fileHandle = pipe.fileHandleForReading
+        
+        var data: Data?
+        do {
+            try task.run()
+            task.waitUntilExit() // Block until the shell exits
+            data = try fileHandle.readToEnd()
+        } catch {
+            reply(nil)
+        }
+        
+        guard let data, data.isEmpty == false else {
+            reply(nil)
+            return
+        }
+        
+        // Continue with your decoding logic
+        do {
+            let rootInfo = try JSONDecoder().decode(SPBluetoothDataRoot.self, from: data)
+
+            guard let deviceContainer = rootInfo.bluetoothData?.first,
+                  let devices = deviceContainer.deviceConnected,
+                  let device = devices.first(where: {$0.name == deviceName})
+            else {
+                reply(nil)
+                return
+            }
+            
+            reply(device.info?.minorType?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+        } catch {
+            reply(nil)
+        }
+    }
 
     // MARK: - Private helpers for DisplayServices / IOKit access
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {

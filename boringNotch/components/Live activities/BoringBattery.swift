@@ -253,15 +253,75 @@ struct BoringBatteryView: View {
     }
 }
 
+/// A view that displays the battery percentage with a ring shaped view
+struct BatteryRing: View {
+    @Environment(\.self) private var env
+    var percentage: Double   // 0–100
+    var displayPercentage: Bool = false
+    
+    var body: some View {
+        ZStack {
+            // Background ring
+            Circle()
+                .stroke(batteryColor(for: percentage).opacity(0.2), lineWidth: 2)
+
+            // Foreground ring (progress)
+            Circle()
+                .trim(from: 0, to: percentage / 102)
+                .stroke(
+                    batteryColor(for: percentage),
+                    style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90)) // Start at top
+            
+            if displayPercentage {
+                // Percentage label (optional)
+                Text("\(Int(percentage))%")
+                    .font(.system(size: 4))
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: 16, height: 16)
+        .padding(4)
+    }
+    
+    private func batteryColor(for percentage: Double) -> Color {
+        let pct = max(0, min(100, percentage))
+
+        if pct <= 50 {
+            return Color.interpolate(from: .red, to: .yellow, percent: pct / 50, in: env)
+        } else {
+            return Color.interpolate(from: .yellow, to: .green, percent: (pct - 50) / 50, in: env)
+        }
+    }
+}
+
 #Preview {
-    BoringBatteryView(
-        batteryWidth: 30,
-        isCharging: false,
-        isInLowPowerMode: false,
-        isPluggedIn: true,
-        levelBattery: 80,
-        maxCapacity: 100,
-        timeToFullCharge: 10,
-        isForNotification: false
-    ).frame(width: 200, height: 200)
+    Group {
+        BoringBatteryView(
+            batteryWidth: 30,
+            isCharging: false,
+            isInLowPowerMode: false,
+            isPluggedIn: true,
+            levelBattery: 80,
+            maxCapacity: 100,
+            timeToFullCharge: 10,
+            isForNotification: false
+        ).frame(width: 200, height: 200)
+        
+        HStack {
+            BatteryRing(percentage: 96, displayPercentage: true)
+                .padding()
+            BatteryRing(percentage: 97, displayPercentage: true)
+                .padding()
+            BatteryRing(percentage: 98, displayPercentage: true)
+                .padding()
+            BatteryRing(percentage: 99, displayPercentage: true)
+                .padding()
+            BatteryRing(percentage: 100, displayPercentage: true)
+                .padding()
+        }
+    }
+    .background(.black)
 }
