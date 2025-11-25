@@ -5616,7 +5616,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Closed Notch"
+            "value": "노치 닫힘"
           }
         },
         "pl": {
@@ -14403,7 +14403,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Muted"
+            "value": "음소거됨"
           }
         },
         "pl": {
@@ -15817,7 +15817,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Notch"
+            "value": "노치 열림"
           }
         },
         "pl": {
@@ -16625,7 +16625,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Progress bar style"
+            "value": "진행 표시줄 스타일"
           }
         },
         "pl": {
@@ -17736,7 +17736,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design."
+            "value": "표준 macOS 볼륨, 디스플레이 밝기, 키보드 밝기 HUD를 사용자 지정 디자인으로 교체합니다."
           }
         },
         "pl": {
@@ -19352,7 +19352,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show HUD in open notch"
+            "value": "열린 노치에서 HUD 표시"
           }
         },
         "pl": {
@@ -19958,7 +19958,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show percentage"
+            "value": "백분율 표시"
           }
         },
         "pl": {
@@ -22281,7 +22281,7 @@
         "ko": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Unmuted"
+            "value": "음소거 해제"
           }
         },
         "pl": {
