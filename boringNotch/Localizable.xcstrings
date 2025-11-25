@@ -8866,7 +8866,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Enable shelf"
+            "value": "Включить полку"
           }
         },
         "es": {
@@ -14219,7 +14219,7 @@
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Music Source"
+            "value": "Источник музыки"
           }
         },
         "es": {
