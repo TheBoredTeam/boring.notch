@@ -267,7 +267,7 @@ struct BatteryRing: View {
 
             // Foreground ring (progress)
             Circle()
-                .trim(from: 0, to: percentage / 100)
+                .trim(from: 0, to: percentage / 102)
                 .stroke(
                     batteryColor(for: percentage),
                     style: StrokeStyle(lineWidth: 2, lineCap: .round)
