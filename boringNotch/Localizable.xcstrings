@@ -15247,7 +15247,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Not Now"
+            "value": ""
           }
         }
       }
@@ -18176,7 +18176,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Restart Boring Notch"
+            "value": "Перезапустити Boring Notch"
           }
         }
       }
@@ -19388,7 +19388,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show HUD in open notch"
+            "value": ""
           }
         }
       }
@@ -19489,7 +19489,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show lyrics below artist name"
+            "value": "Показати тексти пісень під назвою виконавця"
           }
         }
       }
@@ -21812,7 +21812,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Sneak Peek:"
+            "value": "Ввімкнути попередній перегляд:"
           }
         }
       }
@@ -21913,7 +21913,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+            "value": ""
           }
         }
       }
@@ -22014,7 +22014,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Uninstall"
+            "value": "Видалити"
           }
         }
       }
