@@ -30,7 +30,7 @@ body:
   - type: dropdown
     id: version
     attributes:
-      label: BoringNotch Version
+      label: Boring Notch Version
       description: >-
         What version of our software are you running? (Go to ✦ in the menu bar >
         Settings > About)
@@ -51,6 +51,38 @@ body:
       description: Go to  > About This Mac
     validations:
       required: true
+   - type: dropdown
+    id: music-source
+    attributes:
+      label: Music Source? (If relevant)
+      description: >-
+         If this issue is related to music, what music source did you select in Boring Notch settings?
+      options:
+        - Select a version
+        - Now Playing
+        - Apple Music
+        - Spotify
+        - YouTube Music
+    validations:
+      required: false
+  - type: input
+    id: music-app
+    attributes:
+      label: Music App
+    validations:
+      required: true
+    if:
+      music-source:
+        - Now Playing
+  - type: input
+    id: music-website
+    attributes:
+      label: Website (If using browser)
+    validations:
+      required: false
+    if:
+      music-source:
+        - Now Playing
   - type: textarea
     id: logs
     attributes:
