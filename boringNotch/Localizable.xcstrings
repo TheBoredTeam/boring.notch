@@ -13126,7 +13126,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Max Capacity: %lld%%"
+            "value": "Максимальна місткість: %lld%%"
           }
         }
       }
@@ -13227,7 +13227,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media"
+            "value": "Мультимедіа"
           }
         }
       }
@@ -13328,7 +13328,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media controls"
+            "value": "Керування медіа"
           }
         }
       }
@@ -13429,7 +13429,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media inactivity timeout"
+            "value": "Час очікування бездіяльності медіа"
           }
         }
       }
@@ -13530,7 +13530,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media playback live activity"
+            "value": "Медіа відтворення в реальному часі"
           }
         }
       }
@@ -13631,7 +13631,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Media Source"
+            "value": "Джерело мультимедіа"
           }
         }
       }
@@ -13732,7 +13732,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Medium"
+            "value": "Середній"
           }
         }
       }
@@ -13833,7 +13833,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mic %@"
+            "value": "Мікрофон %@"
           }
         }
       }
@@ -13934,7 +13934,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mirror"
+            "value": "Дзеркало"
           }
         }
       }
@@ -14035,7 +14035,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Mirror shape"
+            "value": "Форма дзеркала"
           }
         }
       }
@@ -14136,7 +14136,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "More"
+            "value": "Більше"
           }
         }
       }
@@ -14237,7 +14237,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Music Source"
+            "value": "Джерело музики"
           }
         }
       }
@@ -14338,7 +14338,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "muted"
+            "value": "без звуку"
           }
         }
       }
@@ -14439,7 +14439,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Muted"
+            "value": "Без звуку"
           }
         }
       }
@@ -14540,7 +14540,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Name"
+            "value": "Назва"
           }
         }
       }
@@ -14641,7 +14641,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Never hide"
+            "value": "Ніколи не приховується"
           }
         }
       }
@@ -14742,7 +14742,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom animation available"
+            "value": "Немає користувацької анімації"
           }
         }
       }
@@ -14843,7 +14843,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No custom visualizer"
+            "value": "Власний візуалізатор відсутній"
           }
         }
       }
@@ -14944,7 +14944,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No events"
+            "value": "Немає подій"
           }
         }
       }
@@ -15045,7 +15045,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No events today"
+            "value": "Сьогодні немає подій"
           }
         }
       }
@@ -15146,7 +15146,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "No extension installed"
+            "value": "Розширення не встановлені"
           }
         }
       }
@@ -15348,7 +15348,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch behavior"
+            "value": "Налаштування острову"
           }
         }
       }
@@ -15449,7 +15449,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch height on non-notch displays"
+            "value": "Висота острову на не коротких дисплеях"
           }
         }
       }
@@ -15550,7 +15550,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch height on notch displays"
+            "value": "Висота острову на екрані"
           }
         }
       }
@@ -15651,7 +15651,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Notch sizing"
+            "value": "Розмір острову"
           }
         }
       }
@@ -15752,7 +15752,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Calendar Settings"
+            "value": "Відкрити налаштування календаря"
           }
         }
       }
@@ -15853,7 +15853,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Notch"
+            "value": "Відкрити Notch"
           }
         }
       }
@@ -15954,7 +15954,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open notch on hover"
+            "value": "Відкритий виступ при наведенні курсору"
           }
         }
       }
@@ -16055,7 +16055,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open Reminder Settings"
+            "value": "Відкрити налаштування нагадувань"
           }
         }
       }
@@ -16156,7 +16156,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Open shelf by default if items are present"
+            "value": "Відкрити полицю за замовчуванням, якщо є предмети"
           }
         }
       }
@@ -16257,7 +16257,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Option key behaviour"
+            "value": "Налаштування клавіш"
           }
         }
       }
@@ -16358,7 +16358,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Pick a Color"
+            "value": "Вибір кольору"
           }
         }
       }
@@ -16459,7 +16459,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Plugged In"
+            "value": "Підключено"
           }
         }
       }
@@ -16560,7 +16560,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Preferred display"
+            "value": "Бажаний дисплей"
           }
         }
       }
@@ -16661,7 +16661,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Progress bar style"
+            "value": "Стиль індикатора прогресу"
           }
         }
       }
@@ -16762,7 +16762,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quick Share"
+            "value": "Швидкий обмін"
           }
         }
       }
@@ -16863,7 +16863,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quick Share Service"
+            "value": "Служба швидкого обміну"
           }
         }
       }
@@ -16964,7 +16964,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quit"
+            "value": "Вийти"
           }
         }
       }
@@ -17065,7 +17065,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Quit app"
+            "value": "Вийти з додатка"
           }
         }
       }
@@ -17166,7 +17166,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Release name"
+            "value": "Назва випуску"
           }
         }
       }
@@ -17267,7 +17267,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Remember last tab"
+            "value": "Запам‘ятати останню вкладку"
           }
         }
       }
@@ -17368,7 +17368,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reminder access is denied. Please enable it in System Settings."
+            "value": "Доступ до календаря заборонений. Будь ласка, увімкніть його в Налаштуваннях Системи."
           }
         }
       }
@@ -17469,7 +17469,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reminders"
+            "value": "Нагадування"
           }
         }
       }
@@ -17570,7 +17570,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Remove from shelf after dragging"
+            "value": "Видалити з полиці після перетягування"
           }
         }
       }
@@ -17671,7 +17671,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Replace system HUD"
+            "value": "Замінити системний HUD"
           }
         }
       }
@@ -17772,7 +17772,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design."
+            "value": "Замінює стандартні HUD-інтерфейси macOS для регулювання гучності, яскравості дисплея та яскравості клавіатури на власний дизайн."
           }
         }
       }
@@ -17873,7 +17873,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Request Accessibility"
+            "value": "Спеціальні вимоги"
           }
         }
       }
@@ -17974,7 +17974,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Reset to Defaults"
+            "value": "Відновити параметри за замовчуванням"
           }
         }
       }
@@ -18075,7 +18075,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Restart"
+            "value": "Перезавантажити"
           }
         }
       }
@@ -18277,7 +18277,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Running"
+            "value": "Запущено"
           }
         }
       }
@@ -18378,7 +18378,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Select the music source you want to use. You can change this later in the app settings."
+            "value": "Виберіть джерело музики для використання. Ви можете змінити це пізніше в налаштуваннях додатку."
           }
         }
       }
@@ -18479,7 +18479,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "selected"
+            "value": "вибрано"
           }
         }
       }
@@ -18580,7 +18580,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Selected animation"
+            "value": "Вибрана анімація"
           }
         }
       }
@@ -18681,7 +18681,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Settings"
+            "value": "Налаштування"
           }
         }
       }
@@ -18782,7 +18782,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Shelf"
+            "value": "Полиці"
           }
         }
       }
@@ -18883,7 +18883,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Shortcuts"
+            "value": "Гарячі клавіші"
           }
         }
       }
@@ -18984,7 +18984,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery indicator"
+            "value": "Показати індикатор батареї"
           }
         }
       }
@@ -19085,7 +19085,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show battery percentage"
+            "value": "Показувати відсотки батареї"
           }
         }
       }
@@ -19186,7 +19186,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show calendar"
+            "value": "Показати календар"
           }
         }
       }
@@ -19287,7 +19287,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show cool face animation while inactive"
+            "value": "Показувати класну анімацію обличчя під час неактивності"
           }
         }
       }
@@ -19489,7 +19489,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Показати тексти пісень під назвою виконавця"
+            "value": "Показати текст пісень під назвою виконавця"
           }
         }
       }
@@ -19590,7 +19590,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show menu bar icon"
+            "value": "Показувати іконку у рядку меню"
           }
         }
       }
@@ -19691,7 +19691,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show music live activity"
+            "value": "Показати музичну активність наживо"
           }
         }
       }
@@ -19792,7 +19792,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show notch on lock screen"
+            "value": "Показувати на екрані блокування"
           }
         }
       }
@@ -19893,7 +19893,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show on all displays"
+            "value": "Показувати на всіх екранах"
           }
         }
       }
@@ -19994,7 +19994,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show percentage"
+            "value": "Показувати відсоток"
           }
         }
       }
@@ -20095,7 +20095,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status icons"
+            "value": "Показувати значки статусу живлення"
           }
         }
       }
@@ -20196,7 +20196,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show power status notifications"
+            "value": "Показувати сповіщення про стан батареї"
           }
         }
       }
@@ -20297,7 +20297,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show settings icon in notch"
+            "value": "Показати піктограму налаштувань в острові"
           }
         }
       }
@@ -20398,7 +20398,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Show sneak peek on playback changes"
+            "value": "Показати попередній перегляд змін відтворення"
           }
         }
       }
@@ -20499,7 +20499,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Slider color"
+            "value": "Колір перемикача"
           }
         }
       }
@@ -20600,7 +20600,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek shows the media title and artist under the notch for a few seconds."
+            "value": "Попередній перегляд показує назву медіафайлу та виконавця протягом декількох секунд."
           }
         }
       }
@@ -20701,7 +20701,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sneak Peek Style"
+            "value": "Попередній перегляд"
           }
         }
       }
@@ -20802,7 +20802,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Software updates"
+            "value": "Оновлення програми"
           }
         }
       }
@@ -20903,7 +20903,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Speed"
+            "value": "Швидкість"
           }
         }
       }
@@ -21004,7 +21004,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Square"
+            "value": "Квадрат"
           }
         }
       }
@@ -21105,7 +21105,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Stopped"
+            "value": "Зупинено"
           }
         }
       }
@@ -21206,7 +21206,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Support Us"
+            "value": "Підтримайте нас"
           }
         }
       }
@@ -21307,7 +21307,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "System"
+            "value": "Система"
           }
         }
       }
@@ -21408,7 +21408,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "System features"
+            "value": "Системні особливості"
           }
         }
       }
@@ -21509,7 +21509,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Time to Full Charge: %lld min"
+            "value": "Час до повної зарядки: %lld хв"
           }
         }
       }
@@ -21610,7 +21610,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Tint progress bar with accent color"
+            "value": "Затінювати індикатор виконання акцентним кольором"
           }
         }
       }
@@ -21711,7 +21711,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Toggle Notch Open:"
+            "value": "Перемикач відкриття вирізу:"
           }
         }
       }
@@ -22115,7 +22115,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
+            "value": "Розблокуйте розширені функції та покращіть свій досвід. Оновіть зараз, щоб отримати більше можливостей налаштування!"
           }
         }
       }
@@ -22216,7 +22216,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "unmuted"
+            "value": "без звуку"
           }
         }
       }
@@ -22317,7 +22317,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Unmuted"
+            "value": "Без звуку"
           }
         }
       }
@@ -22418,7 +22418,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Upgrade to Pro"
+            "value": "Оновити до версії Pro"
           }
         }
       }
@@ -22519,7 +22519,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use music visualizer spectrogram"
+            "value": "Використовуйте спектрограмму візуалізатора музики"
           }
         }
       }
@@ -22620,7 +22620,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Use your macOS system accent color"
+            "value": "Використовуйте акцентний колір вашої системи macOS"
           }
         }
       }
@@ -22721,7 +22721,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Using System Accent"
+            "value": "Використання акценту системи"
           }
         }
       }
@@ -22822,7 +22822,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Version"
+            "value": "Версія"
           }
         }
       }
@@ -22923,7 +22923,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Version info"
+            "value": "Інформація щодо версії"
           }
         }
       }
@@ -23024,7 +23024,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "View on GitHub: pear-devs/pear-desktop"
+            "value": "Переглянути на GitHub: pear-devs/pear-desktop"
           }
         }
       }
@@ -23226,7 +23226,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "What's New"
+            "value": "Історія змін"
           }
         }
       }
@@ -23327,7 +23327,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Window Appearance"
+            "value": "Зовнішній вигляд вікна"
           }
         }
       }
@@ -23428,7 +23428,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Window Behavior"
+            "value": "Поведінка вікна"
           }
         }
       }
@@ -23529,7 +23529,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
+            "value": "Тепер ви можете насолоджуватися додатком. Якщо ви захочете зробити зміни, ви завжди можете перейти в налаштування."
           }
         }
       }
@@ -23630,7 +23630,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "You're All Set!"
+            "value": "Все готово!"
           }
         }
       }
@@ -23731,7 +23731,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Your macOS system accent color"
+            "value": "Колір акцентів вашої системи macOS"
           }
         }
       }
@@ -23832,7 +23832,7 @@
         "uk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "YouTube Music requires this third-party app to be installed: "
+            "value": "YouTube Music потребує встановлення цього стороннього додатку: "
           }
         }
       }
