@@ -51,7 +51,7 @@ body:
       description: Go to  > About This Mac
     validations:
       required: true
-   - type: dropdown
+  - type: dropdown
     id: music-source
     attributes:
       label: Music Source? (If relevant)
@@ -68,21 +68,15 @@ body:
   - type: input
     id: music-app
     attributes:
-      label: Music App
+      label: Music App (If using Now Playing)
     validations:
-      required: true
-    if:
-      music-source:
-        - Now Playing
+      required: false
   - type: input
     id: music-website
     attributes:
-      label: Website (If using browser)
+      label: Website (If using browser for music)
     validations:
       required: false
-    if:
-      music-source:
-        - Now Playing
   - type: textarea
     id: logs
     attributes:
