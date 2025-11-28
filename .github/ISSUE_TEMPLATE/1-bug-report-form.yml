@@ -58,7 +58,6 @@ body:
       description: >-
          If this issue is related to music, what music source did you select in Boring Notch settings?
       options:
-        - Select a version
         - Now Playing
         - Apple Music
         - Spotify
