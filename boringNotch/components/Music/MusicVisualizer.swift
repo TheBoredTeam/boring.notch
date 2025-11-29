@@ -102,6 +102,10 @@ class AudioSpectrum: NSView {
             stopAnimating()
         }
     }
+    
+    deinit {
+        stopAnimating()
+    }
 }
 
 struct AudioSpectrumView: NSViewRepresentable {
