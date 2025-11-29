@@ -23,25 +23,23 @@ struct MeasureSizeModifier: ViewModifier {
 }
 
 struct MarqueeText: View {
-    @Binding var text: String
+    let text: String
     let font: Font
     let nsFont: NSFont.TextStyle
-    let textColor: Color
-    let backgroundColor: Color
-    let minDuration: Double
+    let color: Color
+    let delayDuration: Double
     let frameWidth: CGFloat
     
     @State private var animate = false
     @State private var textSize: CGSize = .zero
     @State private var offset: CGFloat = 0
     
-    init(_ text: Binding<String>, font: Font = .body, nsFont: NSFont.TextStyle = .body, textColor: Color = .primary, backgroundColor: Color = .clear, minDuration: Double = 3.0, frameWidth: CGFloat = 200) {
-        _text = text
+    init(_ text: String, font: Font = .body, nsFont: NSFont.TextStyle = .body, color: Color = .primary, delayDuration: Double = 3.0, frameWidth: CGFloat) {
+        self.text = text
         self.font = font
         self.nsFont = nsFont
-        self.textColor = textColor
-        self.backgroundColor = backgroundColor
-        self.minDuration = minDuration
+        self.color = color
+        self.delayDuration = delayDuration
         self.frameWidth = frameWidth
     }
     
@@ -59,17 +57,16 @@ struct MarqueeText: View {
                 }
                 .id(text)
                 .font(font)
-                .foregroundColor(textColor)
+                .foregroundColor(color)
                 .fixedSize(horizontal: true, vertical: false)
                 .offset(x: self.animate ? offset : 0)
                 .animation(
                     self.animate ?
                         .linear(duration: Double(textSize.width / 30))
-                        .delay(minDuration)
+                        .delay(delayDuration)
                         .repeatForever(autoreverses: false) : .none,
                     value: self.animate
                 )
-                .background(backgroundColor)
                 .modifier(MeasureSizeModifier())
                 .onPreferenceChange(SizePreferenceKey.self) { size in
                     self.textSize = CGSize(width: size.width / 2, height: NSFont.preferredFont(forTextStyle: nsFont).pointSize)

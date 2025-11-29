@@ -18,12 +18,7 @@ let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as
 let temporaryDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
 let spacing: CGFloat = 16
 
-struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
-    let UUID: UUID
-    var name: String
-    var url: URL
-    var speed: CGFloat = 1.0
-}
+
 
 enum CalendarSelectionState: Codable, Defaults.Serializable {
     case all
@@ -113,9 +108,6 @@ extension Defaults.Keys {
         default: SliderColorEnum.white
     )
     static let playerColorTinting = Key<Bool>("playerColorTinting", default: true)
-    static let useMusicVisualizer = Key<Bool>("useMusicVisualizer", default: true)
-    static let customVisualizers = Key<[CustomVisualizer]>("customVisualizers", default: [])
-    static let selectedVisualizer = Key<CustomVisualizer?>("selectedVisualizer", default: nil)
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
