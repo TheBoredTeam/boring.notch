@@ -247,12 +247,23 @@ struct GeneralSettings: View {
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
                 if nonNotchHeightMode == .custom {
-                    Slider(value: $nonNotchHeight, in: 0...40, step: 1) {
+                    // Custom binding to skip values 1-14 (jump from 0 to 10)
+                    let sliderValue = Binding<Double>(
+                        get: { 
+                            nonNotchHeight == 0 ? 0 : nonNotchHeight - 14
+                        },
+                        set: { newValue in
+                            let oldValue = nonNotchHeight
+                            nonNotchHeight = newValue == 0 ? 0 : newValue + 14
+                            if oldValue != nonNotchHeight {
+                                NotificationCenter.default.post(
+                                    name: Notification.Name.notchHeightChanged, object: nil)
+                            }
+                        }
+                    )
+                    
+                    Slider(value: sliderValue, in: 0...26, step: 1) {
                         Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
-                    }
-                    .onChange(of: nonNotchHeight) {
-                        NotificationCenter.default.post(
-                            name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
             } header: {
@@ -920,10 +931,6 @@ struct Shelf: View {
         quickShareService.availableProviders.first(where: { $0.id == quickShareProvider })
     }
     
-    init() {
-        Task { await QuickShareService.shared.discoverAvailableProviders() }
-    }
-    
     var body: some View {
         Form {
             Section {
@@ -960,8 +967,8 @@ struct Shelf: View {
                     ForEach(quickShareService.availableProviders, id: \.id) { provider in
                         HStack {
                             Group {
-                                if let imgData = provider.imageData, let nsImg = NSImage(data: imgData) {
-                                    Image(nsImage: nsImg)
+                                if let icon = quickShareService.icon(for: provider.id, size: 16) {
+                                    Image(nsImage: icon)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                 } else {
@@ -980,8 +987,8 @@ struct Shelf: View {
                 if let selectedProvider = selectedProvider {
                     HStack {
                         Group {
-                            if let imgData = selectedProvider.imageData, let nsImg = NSImage(data: imgData) {
-                                Image(nsImage: nsImg)
+                            if let icon = quickShareService.icon(for: selectedProvider.id, size: 16) {
+                                Image(nsImage: icon)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
                             } else {
@@ -1015,6 +1022,9 @@ struct Shelf: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shelf")
+        .onDisappear {
+            quickShareService.clearIconCache()
+        }
     }
 }
 
