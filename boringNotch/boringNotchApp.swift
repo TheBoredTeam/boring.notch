@@ -72,6 +72,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        // Flush debounced shelf persistence to avoid losing recent changes
+        ShelfStateViewModel.shared.flushSync()
+
         NotificationCenter.default.removeObserver(self)
         if let observer = screenLockedObserver {
             DistributedNotificationCenter.default().removeObserver(observer)
