@@ -37,7 +37,7 @@ final class ShelfItemViewModel: ObservableObject {
     func loadThumbnail() async {
         guard let url = item.fileURL else { return }
         if let image = await ThumbnailService.shared.thumbnail(for: url, size: CGSize(width: 56, height: 56)) {
-            self.thumbnail = image
+            self.thumbnail = NSImage(cgImage: image, size: CGSize(width: 56, height: 56))
         }
     }
 
@@ -401,7 +401,7 @@ final class ShelfItemViewModel: ObservableObject {
     private final class MenuActionTarget: NSObject {
         let item: ShelfItem
         weak var view: NSView?
-        unowned let viewModel: ShelfItemViewModel
+        weak var viewModel: ShelfItemViewModel?
 
         // Keep associated objects (like accessory view handlers) without magic keys
         private static var sliderHandlerAssoc = AssociatedObject<AnyObject>()
@@ -468,7 +468,7 @@ final class ShelfItemViewModel: ObservableObject {
                     return nil
                 }
                 if !urls.isEmpty {
-                    viewModel.onQuickLookRequest?(urls)
+                    viewModel?.onQuickLookRequest?(urls)
                 }
 
             case "Open":
@@ -476,7 +476,7 @@ final class ShelfItemViewModel: ObservableObject {
                 for it in selected { ShelfActionService.open(it) }
 
             case "Share…":
-                viewModel.shareItem(from: view)
+                viewModel?.shareItem(from: view)
 
             case "Rename":
                 let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
@@ -488,7 +488,7 @@ final class ShelfItemViewModel: ObservableObject {
                     let urls = await selected.asyncCompactMap { item -> URL? in
                         if case .file = item.kind {
                             // Use immediate update for user-initiated menu action
-                            return await ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
+                            return ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
                         }
                         return nil
                     }
@@ -559,21 +559,17 @@ final class ShelfItemViewModel: ObservableObject {
                 guard !fileURLs.isEmpty else { break }
 
                 Task {
-                    do {
-                        // Create ZIP in a temporary location while holding access to selected resources
-                        if let zipTempURL = try await fileURLs.accessSecurityScopedResources(accessor: { urls in
-                            await TemporaryFileStorageService.shared.createZip(from: urls)
-                        }) {
-                            if let bookmark = try? Bookmark(url: zipTempURL) {
-                                let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
-                                ShelfStateViewModel.shared.add([newItem])
-                            } else {
-                                // Fallback: reveal the temporary file in Finder
-                                NSWorkspace.shared.activateFileViewerSelecting([zipTempURL])
-                            }
+                    // Create ZIP in a temporary location while holding access to selected resources
+                    if let zipTempURL = await fileURLs.accessSecurityScopedResources(accessor: { urls in
+                        await TemporaryFileStorageService.shared.createZip(from: urls)
+                    }) {
+                        if let bookmark = try? Bookmark(url: zipTempURL) {
+                            let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
+                            ShelfStateViewModel.shared.add([newItem])
+                        } else {
+                            // Fallback: reveal the temporary file in Finder
+                            NSWorkspace.shared.activateFileViewerSelecting([zipTempURL])
                         }
-                    } catch {
-                        print("❌ Compress failed: \(error)")
                     }
                 }
                 
@@ -699,7 +695,7 @@ final class ShelfItemViewModel: ObservableObject {
                     self.chooserDelegate = chooserDelegate
                     self.panel = panel
                 }
-                @objc func changed(_ sender: Any?) {
+                @MainActor @objc func changed(_ sender: Any?) {
                     if popup?.indexOfSelectedItem == 1 {
                         chooserDelegate?.mode = .all
                     } else {
@@ -812,7 +808,7 @@ final class ShelfItemViewModel: ObservableObject {
                     }
                 } catch {
                     print("❌ Failed to remove background: \(error.localizedDescription)")
-                    await showErrorAlert(title: "Background Removal Failed", message: error.localizedDescription)
+                    showErrorAlert(title: "Background Removal Failed", message: error.localizedDescription)
                 }
             }
         }
@@ -842,7 +838,7 @@ final class ShelfItemViewModel: ObservableObject {
                     }
                 } catch {
                     print("❌ Failed to create PDF: \(error.localizedDescription)")
-                    await showErrorAlert(title: "PDF Creation Failed", message: error.localizedDescription)
+                    showErrorAlert(title: "PDF Creation Failed", message: error.localizedDescription)
                 }
             }
         }

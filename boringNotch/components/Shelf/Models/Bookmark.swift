@@ -62,10 +62,10 @@ struct Bookmark: Sendable, Equatable, Codable {
         return resolve().refreshedData
     }
     
-    static func update(in items: inout [ShelfItem], for item: ShelfItem, newBookmark: Data) {
+    @MainActor static func update(in items: inout [ShelfItem], for item: ShelfItem, newBookmark: Data) {
         guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
         guard case .file = items[idx].kind else { return }
-        items[idx].kind = ShelfItemKind.file(bookmark: newBookmark)
+        items[idx] = ShelfItem(kind: .file(bookmark: newBookmark), isTemporary: items[idx].isTemporary)
     }
 
     func validate() async -> Bool {

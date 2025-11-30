@@ -478,11 +478,11 @@ struct ContentView: View {
                 )
 
             HStack {
-                CompactAudioBarsView(
-                    isPlaying: $musicManager.isPlaying,
+                AudioSpectrumView(
+                    isPlaying: musicManager.isPlaying,
                     tintColor: Defaults[.coloredSpectrogram]
-                    ? Color(nsColor: musicManager.avgColor).gradient
-                    : Color.gray.gradient
+                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                    : Color.gray
                 )
                 .frame(width: 16, height: 12)
             }
