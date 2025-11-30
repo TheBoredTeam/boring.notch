@@ -19,10 +19,6 @@ final class ShelfStateViewModel: ObservableObject {
 
     var isEmpty: Bool { items.isEmpty }
 
-    // Queue for deferred bookmark updates to avoid publishing during view updates
-    private var pendingBookmarkUpdates: [ShelfItem.ID: Data] = [:]
-    private var updateTask: Task<Void, Never>?
-    
     // Debounced persistence
     private var persistenceTask: Task<Void, Never>?
     private let persistenceDelay: Duration = .seconds(1)
@@ -68,27 +64,6 @@ final class ShelfStateViewModel: ObservableObject {
         }
     }
 
-    private func scheduleDeferredBookmarkUpdate(for item: ShelfItem, bookmark: Data) {
-        pendingBookmarkUpdates[item.id] = bookmark
-        
-        // Cancel existing task and schedule a new one
-        updateTask?.cancel()
-        updateTask = Task { @MainActor [weak self] in
-            await Task.yield()
-            
-            guard let self = self else { return }
-            
-            for (itemID, bookmarkData) in self.pendingBookmarkUpdates {
-                if let idx = self.items.firstIndex(where: { $0.id == itemID }),
-                   case .file = self.items[idx].kind {
-                    items[idx] = ShelfItem(kind: .file(bookmark: bookmarkData), isTemporary:  items[idx].isTemporary)
-                }
-            }
-            
-            self.pendingBookmarkUpdates.removeAll()
-        }
-    }
-
 
     func load(_ providers: [NSItemProvider]) {
         guard !providers.isEmpty else { return }
@@ -124,17 +99,8 @@ final class ShelfStateViewModel: ObservableObject {
     }
 
 
-    func resolveFileURL(for item: ShelfItem) -> URL? {
-        guard case .file(let bookmarkData) = item.kind else { return nil }
-        let bookmark = Bookmark(data: bookmarkData)
-        let result = bookmark.resolve()
-        if let refreshed = result.refreshedData, refreshed != bookmarkData {
-            NSLog("Bookmark for \(item) stale; refreshing")
-            scheduleDeferredBookmarkUpdate(for: item, bookmark: refreshed)
-        }
-        return result.url
-    }
-
+    /// Resolves the file URL for an item and updates the bookmark if stale.
+    /// Use this for user-initiated actions where bookmark refresh is desired.
     func resolveAndUpdateBookmark(for item: ShelfItem) -> URL? {
         guard case .file(let bookmarkData) = item.kind else { return nil }
         let bookmark = Bookmark(data: bookmarkData)
@@ -147,31 +113,14 @@ final class ShelfStateViewModel: ObservableObject {
     }
 
     func resolveFileURLs(for items: [ShelfItem]) -> [URL] {
-        var urls: [URL] = []
-        for it in items {
-            if let u = resolveFileURL(for: it) { urls.append(u) }
-        }
-        return urls
+        items.compactMap { $0.fileURL }
     }
 
     @MainActor
     func flushSync() {
-        // Apply any deferred bookmark updates to the in-memory items so they get persisted
-        for (itemID, bookmarkData) in pendingBookmarkUpdates {
-            if let idx = items.firstIndex(where: { $0.id == itemID }),
-               case .file = items[idx].kind {
-                items[idx] = ShelfItem(kind: .file(bookmark: bookmarkData), isTemporary: false)
-            }
-        }
-        pendingBookmarkUpdates.removeAll()
-
         // Cancel any scheduled persistence task (we'll save synchronously now)
         persistenceTask?.cancel()
         persistenceTask = nil
-
-        // Cancel any deferred update task
-        updateTask?.cancel()
-        updateTask = nil
 
         // Perform a synchronous, atomic save to disk
         ShelfPersistenceService.shared.save(self.items)
