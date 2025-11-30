@@ -12,7 +12,6 @@ import UniformTypeIdentifiers
 /// Dynamic representation of a sharing provider discovered at runtime
 struct QuickShareProvider: Identifiable, Hashable, Sendable {
     var id: String
-    var imageData: Data?
     var supportsRawText: Bool
 }
 
@@ -22,6 +21,7 @@ class QuickShareService: ObservableObject {
     @Published var availableProviders: [QuickShareProvider] = []
     @Published var isPickerOpen = false
     private var cachedServices: [String: NSSharingService] = [:]
+    private var cachedIcons: [String: NSImage] = [:]
     // Hold security-scoped URLs during sharing
     private var sharingAccessingURLs: [URL] = []
     private var lifecycleDelegate: SharingLifecycleDelegate?
@@ -32,17 +32,48 @@ class QuickShareService: ObservableObject {
         }
     }
     
+    // MARK: - Icon Retrieval
+
+    @MainActor
+    func icon(for providerId: String, size: CGFloat) -> NSImage? {
+        // Return cached icon if available
+        if let cachedIcon = cachedIcons[providerId] {
+            return resizedIcon(cachedIcon, to: size)
+        }
+        
+        // Try to get icon from cached service
+        if let service = cachedServices[providerId] {
+            cachedIcons[providerId] = service.image
+            return resizedIcon(service.image, to: size)
+        }
+        
+        // For system share menu, return a generic share icon
+        if providerId == "System Share Menu" {
+            return NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
+        }
+        
+        return nil
+    }
+    
+    private func resizedIcon(_ image: NSImage, to size: CGFloat) -> NSImage {
+        let targetSize = NSSize(width: size, height: size)
+        return NSImage(size: targetSize, flipped: false) { rect in
+            image.draw(in: rect,
+                       from: NSRect(origin: .zero, size: image.size),
+                       operation: .copy,
+                       fraction: 1.0)
+            return true
+        }
+    }
     // MARK: - Provider Discovery
     
     @MainActor
     func discoverAvailableProviders() async {
         let finder = ShareServiceFinder()
 
-        // Use simple test items without creating actual temp files
-        // This avoids issues with the Share Sheet retaining references to deleted files
         let testItems: [Any] = [
-            URL(string:"http://example.com") ?? URL(fileURLWithPath: "/"),
-            "Test Text" as NSString
+            URL(string:"http://example.com")!,
+            "Test" as NSString
         ]
 
         let services = await finder.findApplicableServices(for: testItems)
@@ -51,12 +82,12 @@ class QuickShareService: ObservableObject {
 
         for svc in services {
             let title = svc.title
-            let imgData = svc.image.tiffRepresentation
             let supportsRawText = svc.canPerform(withItems: ["Test Text"])
-            let provider = QuickShareProvider(id: title, imageData: imgData, supportsRawText: supportsRawText)
+            let provider = QuickShareProvider(id: title, supportsRawText: supportsRawText)
             if !providers.contains(provider) {
                 providers.append(provider)
                 cachedServices[title] = svc
+                cachedIcons[title] = svc.image
             }
         }
         
@@ -66,7 +97,7 @@ class QuickShareService: ObservableObject {
         }
 
         if !providers.contains(where: { $0.id == "System Share Menu" }) {
-            providers.append(QuickShareProvider(id: "System Share Menu", imageData: nil, supportsRawText: true))
+            providers.append(QuickShareProvider(id: "System Share Menu", supportsRawText: true))
         }
 
         self.availableProviders = providers
@@ -206,6 +237,6 @@ extension QuickShareProvider {
         if let airdrop = svc.availableProviders.first(where: { $0.id == "AirDrop" }) {
             return airdrop
         }
-        return svc.availableProviders.first ?? QuickShareProvider(id: "System Share Menu", imageData: nil, supportsRawText: true)
+        return svc.availableProviders.first ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
     }
 }

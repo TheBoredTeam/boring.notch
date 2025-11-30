@@ -1185,9 +1185,6 @@ struct Shelf: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shelf")
-        .onDisappear {
-            quickShareService.clearIconCache()
-        }
     }
 }
 

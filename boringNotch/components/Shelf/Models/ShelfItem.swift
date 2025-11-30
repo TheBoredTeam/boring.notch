@@ -51,14 +51,14 @@ enum ShelfItemKind: Codable, Equatable, Sendable {
 @MainActor
 struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
     let id: UUID
-    var kind: ShelfItemKind
-    var isTemporary: Bool
+    let kind: ShelfItemKind
+    let isTemporary: Bool
     init(id: UUID = UUID(), kind: ShelfItemKind, isTemporary: Bool = false) {
         self.id = id
         self.kind = kind
         self.isTemporary = isTemporary
     }
-    
+
     var displayName: String {
         switch kind {
         case .file(let bookmarkData):

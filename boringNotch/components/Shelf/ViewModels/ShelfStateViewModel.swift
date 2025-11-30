@@ -12,7 +12,7 @@ final class ShelfStateViewModel: ObservableObject {
     static let shared = ShelfStateViewModel()
 
     @Published private(set) var items: [ShelfItem] = [] {
-        didSet { ShelfPersistenceService.shared.save(items) }
+        didSet { schedulePersistence() }
     }
 
     @Published var isLoading: Bool = false
@@ -22,9 +22,22 @@ final class ShelfStateViewModel: ObservableObject {
     // Queue for deferred bookmark updates to avoid publishing during view updates
     private var pendingBookmarkUpdates: [ShelfItem.ID: Data] = [:]
     private var updateTask: Task<Void, Never>?
+    
+    // Debounced persistence
+    private var persistenceTask: Task<Void, Never>?
+    private let persistenceDelay: Duration = .seconds(1)
 
     private init() {
         items = ShelfPersistenceService.shared.load()
+    }
+    
+    private func schedulePersistence() {
+        persistenceTask?.cancel()
+        persistenceTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: self?.persistenceDelay ?? .seconds(1))
+            guard let self = self, !Task.isCancelled else { return }
+            await ShelfPersistenceService.shared.saveAsync(self.items)
+        }
     }
 
 
@@ -51,7 +64,7 @@ final class ShelfStateViewModel: ObservableObject {
     func updateBookmark(for item: ShelfItem, bookmark: Data) {
         guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
         if case .file = items[idx].kind {
-            items[idx].kind = .file(bookmark: bookmark)
+            items[idx] = ShelfItem(kind: .file(bookmark: bookmark), isTemporary:  items[idx].isTemporary)
         }
     }
 
@@ -68,7 +81,7 @@ final class ShelfStateViewModel: ObservableObject {
             for (itemID, bookmarkData) in self.pendingBookmarkUpdates {
                 if let idx = self.items.firstIndex(where: { $0.id == itemID }),
                    case .file = self.items[idx].kind {
-                    self.items[idx].kind = .file(bookmark: bookmarkData)
+                    items[idx] = ShelfItem(kind: .file(bookmark: bookmarkData), isTemporary:  items[idx].isTemporary)
                 }
             }
             
@@ -139,5 +152,28 @@ final class ShelfStateViewModel: ObservableObject {
             if let u = resolveFileURL(for: it) { urls.append(u) }
         }
         return urls
+    }
+
+    @MainActor
+    func flushSync() {
+        // Apply any deferred bookmark updates to the in-memory items so they get persisted
+        for (itemID, bookmarkData) in pendingBookmarkUpdates {
+            if let idx = items.firstIndex(where: { $0.id == itemID }),
+               case .file = items[idx].kind {
+                items[idx] = ShelfItem(kind: .file(bookmark: bookmarkData), isTemporary: false)
+            }
+        }
+        pendingBookmarkUpdates.removeAll()
+
+        // Cancel any scheduled persistence task (we'll save synchronously now)
+        persistenceTask?.cancel()
+        persistenceTask = nil
+
+        // Cancel any deferred update task
+        updateTask?.cancel()
+        updateTask = nil
+
+        // Perform a synchronous, atomic save to disk
+        ShelfPersistenceService.shared.save(self.items)
     }
 }
