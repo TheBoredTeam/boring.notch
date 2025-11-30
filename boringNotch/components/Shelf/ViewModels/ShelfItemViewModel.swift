@@ -750,7 +750,7 @@ final class ShelfItemViewModel: ObservableObject {
             guard case let .file(bookmarkData) = item.kind else { return }
             Task {
                 let bookmark = Bookmark(data: bookmarkData)
-                if let fileURL = bookmark.resolveURL() {
+                if let fileURL = bookmark.resolvedURL {
                     // Start security-scoped access and keep it active until rename completes.
                     let didStart = fileURL.startAccessingSecurityScopedResource()
 

@@ -54,18 +54,9 @@ struct Bookmark: Sendable, Equatable, Codable {
         }
     }
 
-    func resolveURL() -> URL? {
-        return resolve().url
-    }
-
-    var refreshedData: Data? {
-        return resolve().refreshedData
-    }
-    
-    @MainActor static func update(in items: inout [ShelfItem], for item: ShelfItem, newBookmark: Data) {
-        guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
-        guard case .file = items[idx].kind else { return }
-        items[idx] = ShelfItem(kind: .file(bookmark: newBookmark), isTemporary: items[idx].isTemporary)
+    /// Simple URL resolution without refresh tracking. Use for read-only access.
+    var resolvedURL: URL? {
+        resolve().url
     }
 
     func validate() async -> Bool {
@@ -77,16 +68,14 @@ struct Bookmark: Sendable, Equatable, Codable {
     }
 
     func withAccess<T: Sendable>(_ block: @Sendable (URL) async throws -> T) async rethrows -> T? {
-        let url = resolveURL()
-        guard let url = url else { return nil }
+        guard let url = resolvedURL else { return nil }
         return try await url.accessSecurityScopedResource { url in
             try await block(url)
         }
     }
 
     func withAccess<T>(_ block: (URL) throws -> T) rethrows -> T? {
-        let url = resolveURL()
-        guard let url = url else { return nil }
+        guard let url = resolvedURL else { return nil }
         return try url.accessSecurityScopedResource { url in
             try block(url)
         }
