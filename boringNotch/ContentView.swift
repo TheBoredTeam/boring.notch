@@ -35,50 +35,45 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
 
-    // Shared interactive spring for movement/resizing to avoid conflicting animations
-    private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
+    // Use standardized animations from StandardAnimations enum
+    private let animationSpring = StandardAnimations.interactive
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
+    // MARK: - Corner Radius Scaling
+    private var cornerRadiusScaleFactor: CGFloat? {
+        guard Defaults[.cornerRadiusScaling] else { return nil }
+        let effectiveHeight = displayClosedNotchHeight
+        guard effectiveHeight > 0 else { return nil }
+        return effectiveHeight / 38.0
+    }
+    
     private var topCornerRadius: CGFloat {
-        // If the notch is open and scaling is enabled, return the opened radius.
+        // If the notch is open, return the opened radius.
         if vm.notchState == .open {
             return cornerRadiusInsets.opened.top
         }
 
-        // For the closed notch, if scaling is enabled, scale the base closed radius
-        // based on the current closed notch height relative to 32 (baseline).
+        // For the closed notch, scale if enabled
         let baseClosedTop = cornerRadiusInsets.closed.top
-        guard Defaults[.cornerRadiusScaling] else { return baseClosedTop }
-
-        // If effective closed height is zero, return 0 to avoid any visible rounding when the notch isn't present.
-        let effectiveHeight = displayClosedNotchHeight
-        guard effectiveHeight > 0 else { return 0 }
-
-        let baseline: CGFloat = 32.0
-        let scaleFactor = effectiveHeight / baseline
+        guard let scaleFactor = cornerRadiusScaleFactor else {
+            return displayClosedNotchHeight > 0 ? baseClosedTop : 0
+        }
         return max(0, baseClosedTop * scaleFactor)
     }
 
     private var currentNotchShape: NotchShape {
         // Scale bottom corner radius for closed notch shape when scaling is enabled.
         let baseClosedBottom = cornerRadiusInsets.closed.bottom
-        var bottomCorner: CGFloat
+        let bottomCorner: CGFloat
 
         if vm.notchState == .open {
             bottomCorner = cornerRadiusInsets.opened.bottom
-        } else if Defaults[.cornerRadiusScaling] {
-            let effectiveHeight = displayClosedNotchHeight
-            let baseline: CGFloat = 32.0
-            if effectiveHeight > 0 {
-                let scaleFactor = effectiveHeight / baseline
-                bottomCorner = max(0, baseClosedBottom * scaleFactor)
-            } else {
-                bottomCorner = 0
-            }
+        } else if let scaleFactor = cornerRadiusScaleFactor {
+            bottomCorner = max(0, baseClosedBottom * scaleFactor)
         } else {
-            bottomCorner = baseClosedBottom
+            bottomCorner = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
         }
 
         return NotchShape(
@@ -151,11 +146,8 @@ struct ContentView: View {
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
                     .conditionalModifier(true) { view in
-                        let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
-                        let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
-                        
                         return view
-                            .animation(vm.notchState == .open ? openAnimation : closeAnimation, value: vm.notchState)
+                            .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
                             .animation(.smooth, value: gestureProgress)
                     }
                     .contentShape(Rectangle())
@@ -370,7 +362,7 @@ struct ContentView: View {
                   view
                       .fixedSize()
               }
-              .zIndex(2)
+              .zIndex(1)
             if vm.notchState == .open {
                 VStack {
                     switch coordinator.currentView {
@@ -416,18 +408,35 @@ struct ContentView: View {
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
-        HStack {
+        HStack(spacing: 0) {
+            // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
+            let baseArtSize = displayClosedNotchHeight - 12
+            let scaledArtSize: CGFloat = {
+                if let scale = cornerRadiusScaleFactor {
+                    return displayClosedNotchHeight - 12 * scale
+                }
+                return baseArtSize
+            }()
+
+            let closedCornerRadius: CGFloat = {
+                let base = MusicPlayerImageSizes.cornerRadiusInset.closed
+                if let scale = cornerRadiusScaleFactor {
+                    return max(0, base * scale)
+                }
+                return base
+            }()
+
             Image(nsImage: musicManager.albumArt)
                 .resizable()
-                .clipped()
+                .aspectRatio(contentMode: .fit)
                 .clipShape(
                     RoundedRectangle(
-                        cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
+                        cornerRadius: closedCornerRadius)
                 )
                 .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                 .frame(
-                    width: max(0, displayClosedNotchHeight - 12),
-                    height: max(0, displayClosedNotchHeight - 12)
+                    width: scaledArtSize,
+                    height: scaledArtSize
                 )
 
             Rectangle()
