@@ -415,6 +415,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Sync notch height with real value on app launch if mode is matchRealNotchSize
+        syncNotchHeightIfNeeded()
+        
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
             let window = createBoringNotchWindow(
@@ -472,6 +475,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if screensChanged {
             DispatchQueue.main.async { [weak self] in
+                // Sync notch height with real value if mode is matchRealNotchSize
+                syncNotchHeightIfNeeded()
+                
                 self?.cleanupWindows()
                 self?.adjustWindowPosition()
                 self?.setupDragDetectors()
@@ -599,26 +605,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
         onboardingWindowController?.window?.orderFrontRegardless()
-    }
-}
-
-extension Notification.Name {
-    static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
-    static let notchHeightChanged = Notification.Name("NotchHeightChanged")
-    static let showOnAllDisplaysChanged = Notification.Name("showOnAllDisplaysChanged")
-    static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
-    static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")
-}
-
-extension CGRect: @retroactive Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(origin.x)
-        hasher.combine(origin.y)
-        hasher.combine(size.width)
-        hasher.combine(size.height)
-    }
-
-    public static func == (lhs: CGRect, rhs: CGRect) -> Bool {
-        return lhs.origin == rhs.origin && lhs.size == rhs.size
     }
 }
