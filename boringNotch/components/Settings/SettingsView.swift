@@ -5,11 +5,6 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import AVFoundation
-import Defaults
-import EventKit
-import KeyboardShortcuts
-import LaunchAtLogin
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
@@ -45,18 +40,12 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
-//                NavigationLink(value: "Downloads") {
-//                    Label("Downloads", systemImage: "square.and.arrow.down")
-//                }
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-                // NavigationLink(value: "Extensions") {
-                //     Label("Extensions", systemImage: "puzzlepiece.extension")
-                // }
                 NavigationLink(value: "Advanced") {
                     Label("Advanced", systemImage: "gearshape.2")
                 }
@@ -87,8 +76,6 @@ struct SettingsView: View {
                     Shelf()
                 case "Shortcuts":
                     Shortcuts()
-                case "Extensions":
-                    GeneralSettings()
                 case "Advanced":
                     Advanced()
                 case "About":
@@ -121,7 +108,7 @@ struct SettingsView: View {
         .background(Color(NSColor.windowBackgroundColor))
         .tint(.effectiveAccent)
         .id(accentColorUpdateTrigger)
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AccentColorChanged"))) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
             accentColorUpdateTrigger = UUID()
         }
     }

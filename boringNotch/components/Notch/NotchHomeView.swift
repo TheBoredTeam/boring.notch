@@ -81,11 +81,11 @@ struct AlbumArtView: View {
         Image(nsImage: musicManager.albumArt)
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
             .clipShape(
                 RoundedRectangle(
                     cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
+            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
     }
 
     @ViewBuilder
@@ -152,9 +152,9 @@ struct MusicControlsView: View {
                         return min(max(progressed, 0), musicManager.songDuration)
                     }()
                     let line: String = {
-                        if musicManager.isFetchingLyrics { return "Loading lyrics…" }
-                        if !musicManager.syncedLyrics.isEmpty {
-                            return musicManager.lyricLine(at: currentElapsed)
+                        if LyricsService.shared.isFetchingLyrics { return "Loading lyrics…" }
+                        if !LyricsService.shared.syncedLyrics.isEmpty {
+                            return LyricsService.shared.lyricLine(at: currentElapsed)
                         }
                         let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
                         return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
