@@ -97,6 +97,8 @@ class BoringViewCoordinator: ObservableObject {
 
     @Published var selectedScreenUUID: String = NSScreen.main?.displayUUID ?? ""
 
+    @Published var hudDisabledDueToMissingDisplay: Bool = false
+
     @Published var optionKeyPressed: Bool = true
     private var accessibilityObserver: Any?
     private var hudReplacementCancellable: AnyCancellable?

@@ -512,13 +512,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if let preferredScreen = NSScreen.screen(withUUID: coordinator.preferredScreenUUID ?? "") {
                 coordinator.selectedScreenUUID = coordinator.preferredScreenUUID ?? ""
                 selectedScreen = preferredScreen
+                
+                if coordinator.hudDisabledDueToMissingDisplay {
+                    coordinator.hudDisabledDueToMissingDisplay = false
+                    Defaults[.hudReplacement] = true
+                }
             } else if Defaults[.automaticallySwitchDisplay], let mainScreen = NSScreen.main,
-                      let mainUUID = mainScreen.displayUUID {
+                    let mainUUID = mainScreen.displayUUID {
                 coordinator.selectedScreenUUID = mainUUID
                 selectedScreen = mainScreen
+                
+                if coordinator.hudDisabledDueToMissingDisplay {
+                    coordinator.hudDisabledDueToMissingDisplay = false
+                    Defaults[.hudReplacement] = true
+                }
             } else {
                 if let window = window {
                     window.alphaValue = 0
+                }
+                
+                if Defaults[.hudReplacement] {
+                    coordinator.hudDisabledDueToMissingDisplay = true
+                    Defaults[.hudReplacement] = false
                 }
                 return
             }

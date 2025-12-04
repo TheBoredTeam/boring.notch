@@ -124,6 +124,11 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AccentColorChanged"))) { _ in
             accentColorUpdateTrigger = UUID()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .navigateToSettingsTab)) { notification in
+            if let tab = notification.userInfo?["tab"] as? String {
+                selectedTab = tab
+            }
+        }
     }
 }
 
@@ -488,9 +493,27 @@ struct HUD: View {
                     .labelsHidden()
                     .toggleStyle(.switch)
                     .controlSize(.large)
-                    .disabled(!accessibilityAuthorized)
+                    .disabled(!accessibilityAuthorized || coordinator.hudDisabledDueToMissingDisplay)
                 }
-                
+
+                if coordinator.hudDisabledDueToMissingDisplay {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Notch does not appear on any display")
+                            .font(.headline)
+                        Text("You can change this in the General settings.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: 12) {
+                            Button("Go to general settings") {
+                                NotificationCenter.default.post(name: .navigateToSettingsTab, object: nil, userInfo: ["tab": "General"])
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                    }
+                    .padding(.top, 6)
+                }
+
                 if !accessibilityAuthorized {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Accessibility access is required to replace the system HUD.")
@@ -586,10 +609,10 @@ struct HUD: View {
         .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
             if let granted = notification.userInfo?["granted"] as? Bool {
                 accessibilityAuthorized = granted
+                }
             }
         }
     }
-}
 
 struct Media: View {
     @Default(.waitInterval) var waitInterval
@@ -1792,6 +1815,10 @@ func warningBadge(_ text: String, _ description: String) -> some View {
             Spacer()
         }
     }
+}
+
+private extension Notification.Name {
+    static let navigateToSettingsTab = Notification.Name("NavigateToSettingsTab")
 }
 
 #Preview {

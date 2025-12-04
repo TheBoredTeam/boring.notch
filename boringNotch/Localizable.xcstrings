@@ -10208,6 +10208,9 @@
         }
       }
     },
+    "Go to general settings" : {
+
+    },
     "Got it!" : {
       "localizations" : {
         "ar" : {
@@ -15209,6 +15212,9 @@
           }
         }
       }
+    },
+    "Notch does not appear on any display" : {
+
     },
     "Notch height on non-notch displays" : {
       "localizations" : {
@@ -23214,6 +23220,9 @@
           }
         }
       }
+    },
+    "You can change this in the General settings." : {
+
     },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
       "localizations" : {
