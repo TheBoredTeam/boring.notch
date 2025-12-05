@@ -71,7 +71,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : ""
           }
         },
@@ -171,7 +171,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : " – %lld"
           }
         },
@@ -271,8 +271,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "'Tocando agora' era a única opção em versões anteriores e funciona em todos os aplicativos de mídia."
+            "state" : "translated",
+            "value" : "'Tocando Agora' era a única opção nas versões anteriores,  funciona com todos os aplicativos de mídia."
           }
         },
         "ru" : {
@@ -371,7 +371,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "(%@)"
           }
         },
@@ -470,9 +470,21 @@
           }
         },
         "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "%.0f segundos"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%.0f segundo"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%.0f segundos"
+                }
+              }
+            }
           }
         },
         "ru" : {
@@ -571,7 +583,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "%.1fs"
           }
         },
@@ -671,7 +683,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "%@"
           }
         },
@@ -771,7 +783,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "%d%%"
           }
         },
@@ -871,7 +883,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "%lld"
           }
         },
@@ -971,7 +983,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "%lld%%"
           }
         },
@@ -1071,8 +1083,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Correções de bugs"
+            "state" : "translated",
+            "value" : "• Correções de bugs"
           }
         },
         "ru" : {
@@ -1171,8 +1183,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Desempenho melhorado"
+            "state" : "translated",
+            "value" : "• Desempenho melhorado"
           }
         },
         "ru" : {
@@ -1271,8 +1283,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Novo recurso 1"
+            "state" : "translated",
+            "value" : "• Novo recurso 1"
           }
         },
         "ru" : {
@@ -1371,7 +1383,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Sobre"
           }
         },
@@ -1471,7 +1483,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Cor de destaque"
           }
         },
@@ -1571,7 +1583,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Acesso Negado"
           }
         },
@@ -1671,8 +1683,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Accessibility access is required to replace the system HUD."
+            "state" : "translated",
+            "value" : "O acesso à Acessibilidade é necessário para substituir os indicadores do sistema."
           }
         },
         "ru" : {
@@ -1771,7 +1783,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Adicionar"
           }
         },
@@ -1872,7 +1884,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Adicionar manualmente"
           }
         },
@@ -1972,7 +1984,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Adicionar novo visualizador"
           }
         },
@@ -2072,7 +2084,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Recursos adicionais"
           }
         },
@@ -2172,8 +2184,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Advanced"
+            "state" : "translated",
+            "value" : "Avançado"
           }
         },
         "ru" : {
@@ -2272,7 +2284,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Dia inteiro"
           }
         },
@@ -2372,8 +2384,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Permitir acesso"
+            "state" : "translated",
+            "value" : "Permitir Acesso"
           }
         },
         "ru" : {
@@ -2472,8 +2484,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Always show full event titles"
+            "state" : "translated",
+            "value" : "Sempre mostrar títulos completos dos eventos"
           }
         },
         "ru" : {
@@ -2572,8 +2584,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Permitir mostrar guias"
+            "state" : "translated",
+            "value" : "Sempre mostrar abas"
           }
         },
         "ru" : {
@@ -2672,7 +2684,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Ícone do App"
           }
         },
@@ -2772,7 +2784,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Aparência"
           }
         },
@@ -2872,8 +2884,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Auto-scroll to next event"
+            "state" : "translated",
+            "value" : "Rolar automaticamente para o próximo evento"
           }
         },
         "ru" : {
@@ -2972,8 +2984,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Procurar por atualizações automaticamente"
+            "state" : "translated",
+            "value" : "Verificar atualizações automaticamente"
           }
         },
         "ru" : {
@@ -3072,7 +3084,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Baixar atualizações automaticamente"
           }
         },
@@ -3172,8 +3184,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Trocar telas automaticamente"
+            "state" : "translated",
+            "value" : "Trocar de tela automaticamente"
           }
         },
         "ru" : {
@@ -3272,7 +3284,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Bateria"
           }
         },
@@ -3372,7 +3384,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Informações da Bateria"
           }
         },
@@ -3472,8 +3484,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Configurações da Bateria"
+            "state" : "translated",
+            "value" : "Ajustes da Bateria"
           }
         },
         "ru" : {
@@ -3572,8 +3584,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Status da bateria"
+            "state" : "translated",
+            "value" : "Status da Bateria"
           }
         },
         "ru" : {
@@ -3672,8 +3684,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Aumente sua produtividade com o Clipboard Manager"
+            "state" : "translated",
+            "value" : "Aumente sua produtividade com o Gerenciador da Área de Transferência"
           }
         },
         "ru" : {
@@ -3772,7 +3784,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Boring Notch"
           }
         },
@@ -3872,7 +3884,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "boring.notch"
           }
         },
@@ -3972,7 +3984,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Calendário"
           }
         },
@@ -4003,6 +4015,7 @@
       }
     },
     "Calendar access is denied. Please enable it in System Settings." : {
+      "comment" : "In pt-br Apple uses ‘Ajustes do Sistema’ (System Adjustments) for System Settings, using the same word helps identify which app will open.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -4072,8 +4085,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Acesso ao Calendário negado. Por favor, autorize nas Configurações do Sistema."
+            "state" : "translated",
+            "value" : "Acesso ao Calendário negado. Por favor, autorize nos Ajustes do Sistema."
           }
         },
         "ru" : {
@@ -4172,7 +4185,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Calendários"
           }
         },
@@ -4272,7 +4285,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Cancelar"
           }
         },
@@ -4372,8 +4385,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Change media with horizontal gestures"
+            "state" : "translated",
+            "value" : "Mudar mídia com gestos horizontais"
           }
         },
         "ru" : {
@@ -4472,7 +4485,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Carregando"
           }
         },
@@ -4572,8 +4585,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Carregando em espera: Modo Desktop"
+            "state" : "translated",
+            "value" : "Carregamento em Espera: Modo Desktop"
           }
         },
         "ru" : {
@@ -4672,8 +4685,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Verificar atualizações…"
+            "state" : "translated",
+            "value" : "Buscar Atualizações…"
           }
         },
         "ru" : {
@@ -4772,8 +4785,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Escolha fonte da música"
+            "state" : "translated",
+            "value" : "Escolha uma Fonte de Música"
           }
         },
         "ru" : {
@@ -4872,8 +4885,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Choose any color"
+            "state" : "translated",
+            "value" : "Escolha qualquer cor"
           }
         },
         "ru" : {
@@ -4972,8 +4985,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Choose between your system accent color or customize it with your own selection."
+            "state" : "translated",
+            "value" : "Escolha entre a cor de destaque do sistema ou personalize com sua própria seleção."
           }
         },
         "ru" : {
@@ -5072,8 +5085,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately."
+            "state" : "translated",
+            "value" : "Escolha o serviço que deseja usar ao compartilhar arquivos da prateleira. Clique no botão da prateleira para selecionar os arquivos ou arraste-os para ela para compartilhá-los imediatamente."
           }
         },
         "ru" : {
@@ -5172,8 +5185,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Círculo"
+            "state" : "translated",
+            "value" : "Redondo"
           }
         },
         "ru" : {
@@ -5272,8 +5285,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Clear slot"
+            "state" : "translated",
+            "value" : "Limpar fila"
           }
         },
         "ru" : {
@@ -5372,7 +5385,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Fechar"
           }
         },
@@ -5472,8 +5485,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Close gesture"
+            "state" : "translated",
+            "value" : "Gesto de fechar"
           }
         },
         "ru" : {
@@ -5572,8 +5585,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Closed Notch"
+            "state" : "translated",
+            "value" : "Entalhe Fechado"
           }
         },
         "ru" : {
@@ -5672,8 +5685,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Color Presets"
+            "state" : "translated",
+            "value" : "Predefinições de Cor"
           }
         },
         "ru" : {
@@ -5772,8 +5785,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Colored spectrogram"
+            "state" : "translated",
+            "value" : "Espectrograma colorido"
           }
         },
         "ru" : {
@@ -5872,7 +5885,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Em breve"
           }
         },
@@ -5972,8 +5985,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Continuar"
           }
         },
         "ru" : {
@@ -6072,8 +6085,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Copy items on drag"
+            "state" : "translated",
+            "value" : "Copiar itens ao arrastar"
           }
         },
         "ru" : {
@@ -6172,8 +6185,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Corner radius scaling"
+            "state" : "translated",
+            "value" : "Escala do raio do canto"
           }
         },
         "ru" : {
@@ -6272,8 +6285,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Currently selected: %@"
+            "state" : "translated",
+            "value" : "Selecionado atualmente: %@"
           }
         },
         "ru" : {
@@ -6372,8 +6385,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Custom"
+            "state" : "translated",
+            "value" : "Personalizado"
           }
         },
         "ru" : {
@@ -6472,8 +6485,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Customizar altura"
+            "state" : "translated",
+            "value" : "Altura personalizada"
           }
         },
         "ru" : {
@@ -6572,8 +6585,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Customizar animação da música"
+            "state" : "translated",
+            "value" : "Animação personalizada de atividade ao vivo de música"
           }
         },
         "ru" : {
@@ -6672,8 +6685,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Descrição"
+            "state" : "translated",
+            "value" : "Tamanho personalizado do entalhe - %.0f"
           }
         },
         "ru" : {
@@ -6772,8 +6785,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Customizar visualizadores (Lottie)"
+            "state" : "translated",
+            "value" : "Visualizadores personalizados (Lottie)"
           }
         },
         "ru" : {
@@ -6872,8 +6885,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Customizar em Configurações"
+            "state" : "translated",
+            "value" : "Personalizar nos Ajustes"
           }
         },
         "ru" : {
@@ -6972,8 +6985,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Customize which controls appear in the music player. Volume expands when active."
+            "state" : "translated",
+            "value" : "Personalize os controles que aparecem no reprodutor de música. O volume aparece quando ativado."
           }
         },
         "ru" : {
@@ -7072,7 +7085,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Padrão"
           }
         },
@@ -7173,7 +7186,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Descrição"
           }
         },
@@ -7274,8 +7287,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Disable"
+            "state" : "translated",
+            "value" : "Desativar"
           }
         },
         "ru" : {
@@ -7375,8 +7388,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Disabled"
+            "state" : "translated",
+            "value" : "Desativado"
           }
         },
         "ru" : {
@@ -7475,8 +7488,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Download"
+            "state" : "translated",
+            "value" : "Baixar"
           }
         },
         "ru" : {
@@ -7576,8 +7589,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Downloads"
+            "state" : "translated",
+            "value" : "Baixados"
           }
         },
         "ru" : {
@@ -7676,8 +7689,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Drag a control onto a slot"
+            "state" : "translated",
+            "value" : "Arraste um controle para a prévia"
           }
         },
         "ru" : {
@@ -7776,8 +7789,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Drag items in the preview to reorder or drop from the palette"
+            "state" : "translated",
+            "value" : "Arraste itens na prévia para reordenar ou adicione novos da paleta"
           }
         },
         "ru" : {
@@ -7876,8 +7889,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Drop files here"
+            "state" : "translated",
+            "value" : "Solte arquivos aqui"
           }
         },
         "ru" : {
@@ -7976,8 +7989,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+            "state" : "translated",
+            "value" : "Copie, armazene e gerencie facilmente seu conteúdo mais usado. Atualize agora para obter recursos avançados, como armazenamento de vários itens e acesso rápido!"
           }
         },
         "ru" : {
@@ -8076,8 +8089,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Edit layout"
+            "state" : "translated",
+            "value" : "Editar layout"
           }
         },
         "ru" : {
@@ -8176,8 +8189,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable blur effect behind album art"
+            "state" : "translated",
+            "value" : "Ativar desfoque atrás da capa do álbum"
           }
         },
         "ru" : {
@@ -8207,6 +8220,7 @@
       }
     },
     "Enable boring mirror" : {
+      "comment" : "Not using ‘Boring’",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8276,8 +8290,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable boring mirror"
+            "state" : "translated",
+            "value" : "Ativar espelho"
           }
         },
         "ru" : {
@@ -8377,8 +8391,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable colored spectrograms"
+            "state" : "translated",
+            "value" : "Ativar espectrogramas coloridos"
           }
         },
         "ru" : {
@@ -8477,8 +8491,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable gestures"
+            "state" : "translated",
+            "value" : "Ativar gestos"
           }
         },
         "ru" : {
@@ -8577,8 +8591,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable glowing effect"
+            "state" : "translated",
+            "value" : "Ativar efeito de brilho"
           }
         },
         "ru" : {
@@ -8677,8 +8691,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable haptic feedback"
+            "state" : "translated",
+            "value" : "Ativar feedback tátil"
           }
         },
         "ru" : {
@@ -8777,8 +8791,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable shelf"
+            "state" : "translated",
+            "value" : "Ativar prateleira"
           }
         },
         "ru" : {
@@ -8877,8 +8891,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable window shadow"
+            "state" : "translated",
+            "value" : "Ativar sombra da janela"
           }
         },
         "ru" : {
@@ -8977,8 +8991,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enhance your experience with HUDs"
+            "state" : "translated",
+            "value" : "Melhore sua experiência com os indicadores"
           }
         },
         "ru" : {
@@ -9077,8 +9091,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enjoy your free time!"
+            "state" : "translated",
+            "value" : "Aproveite seu tempo livre!"
           }
         },
         "ru" : {
@@ -9177,8 +9191,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Expanded drag detection area"
+            "state" : "translated",
+            "value" : "Área de detecção de arrasto expandida"
           }
         },
         "ru" : {
@@ -9277,8 +9291,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Extend hover area"
+            "state" : "translated",
+            "value" : "Estender área ao passar o mouse"
           }
         },
         "ru" : {
@@ -9378,8 +9392,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Extensions"
+            "state" : "translated",
+            "value" : "Extensões"
           }
         },
         "ru" : {
@@ -9478,8 +9492,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Files dropped on the shelf will be shared via this service"
+            "state" : "translated",
+            "value" : "Arquivos soltos na prateleira serão compartilhados via este serviço"
           }
         },
         "ru" : {
@@ -9578,8 +9592,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Finish"
+            "state" : "translated",
+            "value" : "Concluir"
           }
         },
         "ru" : {
@@ -9678,8 +9692,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Full screen behavior"
+            "state" : "translated",
+            "value" : "Comportamento em tela cheia"
           }
         },
         "ru" : {
@@ -9778,8 +9792,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "General"
+            "state" : "translated",
+            "value" : "Geral"
           }
         },
         "ru" : {
@@ -9878,8 +9892,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Gesture control"
+            "state" : "translated",
+            "value" : "Controle por gestos"
           }
         },
         "ru" : {
@@ -9978,8 +9992,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Gesture sensitivity"
+            "state" : "translated",
+            "value" : "Sensibilidade do gesto"
           }
         },
         "ru" : {
@@ -10078,8 +10092,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Começar"
           }
         },
         "ru" : {
@@ -10178,7 +10192,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "GitHub"
           }
         },
@@ -10278,8 +10292,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Got it!"
+            "state" : "translated",
+            "value" : "Entendi!"
           }
         },
         "ru" : {
@@ -10378,7 +10392,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Gradiente"
           }
         },
@@ -10478,8 +10492,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide all-day events"
+            "state" : "translated",
+            "value" : "Ocultar eventos de dia inteiro"
           }
         },
         "ru" : {
@@ -10578,8 +10592,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide completed reminders"
+            "state" : "translated",
+            "value" : "Ocultar lembretes concluídos"
           }
         },
         "ru" : {
@@ -10678,8 +10692,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide for all apps"
+            "state" : "translated",
+            "value" : "Ocultar para todos os apps"
           }
         },
         "ru" : {
@@ -10778,8 +10792,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide for media app only"
+            "state" : "translated",
+            "value" : "Ocultar apenas para apps de mídia"
           }
         },
         "ru" : {
@@ -10878,8 +10892,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide from screen recording"
+            "state" : "translated",
+            "value" : "Ocultar da gravação de tela"
           }
         },
         "ru" : {
@@ -10978,8 +10992,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide title bar"
+            "state" : "translated",
+            "value" : "Ocultar barra de título"
           }
         },
         "ru" : {
@@ -11078,8 +11092,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hierarchical"
+            "state" : "translated",
+            "value" : "Hierárquico"
           }
         },
         "ru" : {
@@ -11178,8 +11192,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "High"
+            "state" : "translated",
+            "value" : "Alto"
           }
         },
         "ru" : {
@@ -11278,8 +11292,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hover delay"
+            "state" : "translated",
+            "value" : "Atraso ao passar o mouse"
           }
         },
         "ru" : {
@@ -11378,7 +11392,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "https://github.com/pear-devs/pear-desktop"
           }
         },
@@ -11478,8 +11492,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUD style"
+            "state" : "translated",
+            "value" : "Estilo do indicador"
           }
         },
         "ru" : {
@@ -11578,7 +11592,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "HUDs"
           }
         },
@@ -11678,8 +11692,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : ""
+            "state" : "translated",
+            "value" : "Em progresso"
           }
         },
         "ru" : {
@@ -11778,7 +11792,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Em linha"
           }
         },
@@ -11879,8 +11893,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Installed extensions"
+            "state" : "translated",
+            "value" : "Extensões instaladas"
           }
         },
         "ru" : {
@@ -11979,8 +11993,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Layout Preview"
+            "state" : "translated",
+            "value" : "Prévia do Layout"
           }
         },
         "ru" : {
@@ -12079,8 +12093,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Lottie JSON URL"
+            "state" : "translated",
+            "value" : "URL JSON do Lottie"
           }
         },
         "ru" : {
@@ -12179,8 +12193,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Low"
+            "state" : "translated",
+            "value" : "Baixo"
           }
         },
         "ru" : {
@@ -12279,8 +12293,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Low Power Mode"
+            "state" : "translated",
+            "value" : "Modo de Pouca Energia"
           }
         },
         "ru" : {
@@ -12379,8 +12393,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Made with 🫶🏻 by not so boring not.people"
+            "state" : "translated",
+            "value" : "Feito com 🫶🏻 por not so boring not.people"
           }
         },
         "ru" : {
@@ -12479,8 +12493,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Mark as complete"
+            "state" : "translated",
+            "value" : "Marcar como concluído"
           }
         },
         "ru" : {
@@ -12579,8 +12593,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Mark as incomplete"
+            "state" : "translated",
+            "value" : "Marcar como não concluído"
           }
         },
         "ru" : {
@@ -12679,8 +12693,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Match menu bar height"
+            "state" : "translated",
+            "value" : "Igualar a barra de menus"
           }
         },
         "ru" : {
@@ -12779,8 +12793,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Match menubar height"
+            "state" : "translated",
+            "value" : "Igualar a barra de menus"
           }
         },
         "ru" : {
@@ -12879,8 +12893,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Match real notch height"
+            "state" : "translated",
+            "value" : "Igualar ao entalhe"
           }
         },
         "ru" : {
@@ -12979,8 +12993,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Max Capacity: %lld%%"
+            "state" : "translated",
+            "value" : "Capacidade Máx: %lld%%"
           }
         },
         "ru" : {
@@ -13079,8 +13093,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Media"
+            "state" : "translated",
+            "value" : "Mídia"
           }
         },
         "ru" : {
@@ -13179,8 +13193,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Media controls"
+            "state" : "translated",
+            "value" : "Controles de mídia"
           }
         },
         "ru" : {
@@ -13279,8 +13293,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Media inactivity timeout"
+            "state" : "translated",
+            "value" : "Tempo limite de inatividade de mídia"
           }
         },
         "ru" : {
@@ -13379,8 +13393,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Atividade ao vivo da reprodução de mídia"
+            "state" : "translated",
+            "value" : "Atividade ao vivo de reprodução de mídia"
           }
         },
         "ru" : {
@@ -13479,8 +13493,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Media Source"
+            "state" : "translated",
+            "value" : "Fonte de Mídia"
           }
         },
         "ru" : {
@@ -13579,8 +13593,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Medium"
+            "state" : "translated",
+            "value" : "Médio"
           }
         },
         "ru" : {
@@ -13679,7 +13693,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Mic %@"
           }
         },
@@ -13779,8 +13793,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Mirror"
+            "state" : "translated",
+            "value" : "Espelho"
           }
         },
         "ru" : {
@@ -13879,8 +13893,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Mirror shape"
+            "state" : "translated",
+            "value" : "Formato do espelho"
           }
         },
         "ru" : {
@@ -13979,8 +13993,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "More"
+            "state" : "translated",
+            "value" : "Mais"
           }
         },
         "ru" : {
@@ -14079,8 +14093,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Music Source"
+            "state" : "translated",
+            "value" : "Fonte de Música"
           }
         },
         "ru" : {
@@ -14179,8 +14193,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "muted"
+            "state" : "translated",
+            "value" : "mudo"
           }
         },
         "ru" : {
@@ -14279,8 +14293,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Muted"
+            "state" : "translated",
+            "value" : "Mudo"
           }
         },
         "ru" : {
@@ -14379,8 +14393,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Name"
+            "state" : "translated",
+            "value" : "Nome"
           }
         },
         "ru" : {
@@ -14479,8 +14493,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Never hide"
+            "state" : "translated",
+            "value" : "Nunca ocultar"
           }
         },
         "ru" : {
@@ -14579,8 +14593,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
+            "state" : "translated",
+            "value" : "Nenhuma animação personalizada disponível"
           }
         },
         "ru" : {
@@ -14679,8 +14693,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
+            "state" : "translated",
+            "value" : "Nenhum visualizador personalizado"
           }
         },
         "ru" : {
@@ -14779,8 +14793,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No events"
+            "state" : "translated",
+            "value" : "Sem eventos"
           }
         },
         "ru" : {
@@ -14879,8 +14893,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No events today"
+            "state" : "translated",
+            "value" : "Sem eventos hoje"
           }
         },
         "ru" : {
@@ -14980,8 +14994,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No extension installed"
+            "state" : "translated",
+            "value" : "Nenhuma extensão instalada"
           }
         },
         "ru" : {
@@ -15080,8 +15094,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Not Now"
+            "state" : "translated",
+            "value" : "Agora não"
           }
         },
         "ru" : {
@@ -15180,8 +15194,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch behavior"
+            "state" : "translated",
+            "value" : "Comportamento do Entalhe"
           }
         },
         "ru" : {
@@ -15280,8 +15294,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch height on non-notch displays"
+            "state" : "translated",
+            "value" : "Altura do entalhe em telas sem entalhe"
           }
         },
         "ru" : {
@@ -15380,8 +15394,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch height on notch displays"
+            "state" : "translated",
+            "value" : "Altura do entalhe em telas com entalhe"
           }
         },
         "ru" : {
@@ -15480,8 +15494,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch sizing"
+            "state" : "translated",
+            "value" : "Tamanho do Entalhe"
           }
         },
         "ru" : {
@@ -15511,6 +15525,7 @@
       }
     },
     "Open Calendar Settings" : {
+      "comment" : "In pt-br Apple uses ‘Ajustes do Sistema’ (System Adjustments) for System Settings, using the same word helps identify which app will open.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -15580,8 +15595,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open Calendar Settings"
+            "state" : "translated",
+            "value" : "Abrir Ajustes do Calendário"
           }
         },
         "ru" : {
@@ -15680,8 +15695,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open Notch"
+            "state" : "translated",
+            "value" : "Abrir Entalhe"
           }
         },
         "ru" : {
@@ -15780,8 +15795,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open notch on hover"
+            "state" : "translated",
+            "value" : "Abrir entalhe ao passar o mouse"
           }
         },
         "ru" : {
@@ -15811,6 +15826,7 @@
       }
     },
     "Open Reminder Settings" : {
+      "comment" : "In pt-br Apple uses ‘Ajustes do Sistema’ (System Adjustments) for System Settings, using the same word helps identify which app will open.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -15880,8 +15896,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open Reminder Settings"
+            "state" : "translated",
+            "value" : "Abrir Ajustes de Lembretes"
           }
         },
         "ru" : {
@@ -15980,8 +15996,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open shelf by default if items are present"
+            "state" : "translated",
+            "value" : "Abrir prateleira por padrão se houver itens"
           }
         },
         "ru" : {
@@ -16080,8 +16096,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Option key behaviour"
+            "state" : "translated",
+            "value" : "Comportamento da tecla Option"
           }
         },
         "ru" : {
@@ -16180,8 +16196,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Pick a Color"
+            "state" : "translated",
+            "value" : "Escolha uma Cor"
           }
         },
         "ru" : {
@@ -16280,8 +16296,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Plugged In"
+            "state" : "translated",
+            "value" : "Conectado"
           }
         },
         "ru" : {
@@ -16380,8 +16396,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Preferred display"
+            "state" : "translated",
+            "value" : "Tela preferida"
           }
         },
         "ru" : {
@@ -16480,8 +16496,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Progress bar style"
+            "state" : "translated",
+            "value" : "Estilo da barra de progresso"
           }
         },
         "ru" : {
@@ -16580,8 +16596,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quick Share"
+            "state" : "translated",
+            "value" : "Compartilhamento Rápido"
           }
         },
         "ru" : {
@@ -16680,8 +16696,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quick Share Service"
+            "state" : "translated",
+            "value" : "Serviço de Compartilhamento Rápido"
           }
         },
         "ru" : {
@@ -16780,8 +16796,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quit"
+            "state" : "translated",
+            "value" : "Sair"
           }
         },
         "ru" : {
@@ -16880,8 +16896,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quit app"
+            "state" : "translated",
+            "value" : "Encerrar app"
           }
         },
         "ru" : {
@@ -16911,6 +16927,7 @@
       }
     },
     "Release name" : {
+      "comment" : "In pt-br we don’t use release (“lançamentos”) to general public, instead is more common  “Version names”",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16980,8 +16997,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Release name"
+            "state" : "translated",
+            "value" : "Nome da versão"
           }
         },
         "ru" : {
@@ -17080,8 +17097,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remember last tab"
+            "state" : "translated",
+            "value" : "Lembrar última aba"
           }
         },
         "ru" : {
@@ -17111,6 +17128,7 @@
       }
     },
     "Reminder access is denied. Please enable it in System Settings." : {
+      "comment" : "In pt-br Apple uses ‘Ajustes do Sistema’ (System Adjustments) for System Settings, using the same word helps identify which app will open.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -17180,8 +17198,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Reminder access is denied. Please enable it in System Settings."
+            "state" : "translated",
+            "value" : "Acesso aos Lembretes negado. Por favor, autorize nos Ajustes do Sistema."
           }
         },
         "ru" : {
@@ -17280,8 +17298,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Reminders"
+            "state" : "translated",
+            "value" : "Lembretes"
           }
         },
         "ru" : {
@@ -17380,8 +17398,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove from shelf after dragging"
+            "state" : "translated",
+            "value" : "Remover da prateleira após arrastar"
           }
         },
         "ru" : {
@@ -17480,8 +17498,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Replace system HUD"
+            "state" : "translated",
+            "value" : "Substituir HUDs (Indicadores do Sistema)"
           }
         },
         "ru" : {
@@ -17580,8 +17598,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design."
+            "state" : "translated",
+            "value" : "Substitui os indicadores que aparecem ao alterar o volume, brilho da tela e brilho do teclado do macOS por um design personalizado."
           }
         },
         "ru" : {
@@ -17680,8 +17698,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Request Accessibility"
+            "state" : "translated",
+            "value" : "Solicitar Recursos de Acessibilidade"
           }
         },
         "ru" : {
@@ -17780,8 +17798,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Reset to Defaults"
+            "state" : "translated",
+            "value" : "Restaurar Padrões"
           }
         },
         "ru" : {
@@ -17881,8 +17899,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Restart"
+            "state" : "translated",
+            "value" : "Reiniciar"
           }
         },
         "ru" : {
@@ -17981,8 +17999,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Restart Boring Notch"
+            "state" : "translated",
+            "value" : "Reiniciar Boring Notch"
           }
         },
         "ru" : {
@@ -18082,8 +18100,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Running"
+            "state" : "translated",
+            "value" : "Rodando"
           }
         },
         "ru" : {
@@ -18182,8 +18200,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Select the music source you want to use. You can change this later in the app settings."
+            "state" : "translated",
+            "value" : "Selecione a fonte de música que deseja usar. Você poderá alterar depois nas configurações do aplicativo."
           }
         },
         "ru" : {
@@ -18282,8 +18300,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "selected"
+            "state" : "translated",
+            "value" : "selecionado"
           }
         },
         "ru" : {
@@ -18382,8 +18400,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Selected animation"
+            "state" : "translated",
+            "value" : "Animação selecionada"
           }
         },
         "ru" : {
@@ -18482,8 +18500,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Settings"
+            "state" : "translated",
+            "value" : "Ajustes"
           }
         },
         "ru" : {
@@ -18582,8 +18600,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Shelf"
+            "state" : "translated",
+            "value" : "Prateleira"
           }
         },
         "ru" : {
@@ -18682,8 +18700,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Shortcuts"
+            "state" : "translated",
+            "value" : "Atalhos"
           }
         },
         "ru" : {
@@ -18782,8 +18800,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show battery indicator"
+            "state" : "translated",
+            "value" : "Mostrar indicador de bateria"
           }
         },
         "ru" : {
@@ -18882,8 +18900,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show battery percentage"
+            "state" : "translated",
+            "value" : "Mostrar porcentagem da bateria"
           }
         },
         "ru" : {
@@ -18982,8 +19000,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show calendar"
+            "state" : "translated",
+            "value" : "Mostrar calendário"
           }
         },
         "ru" : {
@@ -19082,8 +19100,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show cool face animation while inactive"
+            "state" : "translated",
+            "value" : "Mostrar uma animação legal de rosto quando inativo"
           }
         },
         "ru" : {
@@ -19182,8 +19200,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
+            "state" : "translated",
+            "value" : "Mostrar indicadores no entalhe aberto"
           }
         },
         "ru" : {
@@ -19282,8 +19300,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show lyrics below artist name"
+            "state" : "translated",
+            "value" : "Mostrar letra abaixo do nome de artista"
           }
         },
         "ru" : {
@@ -19382,8 +19400,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show menu bar icon"
+            "state" : "translated",
+            "value" : "Mostrar ícone na barra de menus"
           }
         },
         "ru" : {
@@ -19482,8 +19500,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show music live activity"
+            "state" : "translated",
+            "value" : "Mostrar atividade ao vivo de música"
           }
         },
         "ru" : {
@@ -19582,8 +19600,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show notch on lock screen"
+            "state" : "translated",
+            "value" : "Mostrar entalhe na tela de bloqueio"
           }
         },
         "ru" : {
@@ -19682,8 +19700,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show on all displays"
+            "state" : "translated",
+            "value" : "Mostrar em todas as telas"
           }
         },
         "ru" : {
@@ -19782,8 +19800,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show percentage"
+            "state" : "translated",
+            "value" : "Mostrar porcentagem"
           }
         },
         "ru" : {
@@ -19882,8 +19900,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show power status icons"
+            "state" : "translated",
+            "value" : "Mostrar ícones de status de energia"
           }
         },
         "ru" : {
@@ -19982,8 +20000,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show power status notifications"
+            "state" : "translated",
+            "value" : "Mostrar notificações de status de energia"
           }
         },
         "ru" : {
@@ -20082,8 +20100,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show settings icon in notch"
+            "state" : "translated",
+            "value" : "Mostrar ícone de ajustes no entalhe"
           }
         },
         "ru" : {
@@ -20182,8 +20200,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show sneak peek on playback changes"
+            "state" : "translated",
+            "value" : "Mostrar prévia ao mudar reprodução"
           }
         },
         "ru" : {
@@ -20282,8 +20300,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Slider color"
+            "state" : "translated",
+            "value" : "Cor do controle deslizante"
           }
         },
         "ru" : {
@@ -20382,8 +20400,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sneak Peek shows the media title and artist under the notch for a few seconds."
+            "state" : "translated",
+            "value" : "A Prévia mostra o título da mídia e artista sob o entalhe por alguns segundos."
           }
         },
         "ru" : {
@@ -20482,8 +20500,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sneak Peek Style"
+            "state" : "translated",
+            "value" : "Estilo da Prévia"
           }
         },
         "ru" : {
@@ -20582,8 +20600,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Software updates"
+            "state" : "translated",
+            "value" : "Atualizações de software"
           }
         },
         "ru" : {
@@ -20682,8 +20700,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Speed"
+            "state" : "translated",
+            "value" : "Velocidade"
           }
         },
         "ru" : {
@@ -20782,8 +20800,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Square"
+            "state" : "translated",
+            "value" : "Quadrado"
           }
         },
         "ru" : {
@@ -20883,8 +20901,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stopped"
+            "state" : "translated",
+            "value" : "Parado"
           }
         },
         "ru" : {
@@ -20984,8 +21002,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Support Us"
+            "state" : "translated",
+            "value" : "Apoie-nos"
           }
         },
         "ru" : {
@@ -21084,8 +21102,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "System"
+            "state" : "translated",
+            "value" : "Sistema"
           }
         },
         "ru" : {
@@ -21184,8 +21202,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "System features"
+            "state" : "translated",
+            "value" : "Recursos do aplicativo"
           }
         },
         "ru" : {
@@ -21284,8 +21302,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Time to Full Charge: %lld min"
+            "state" : "translated",
+            "value" : "Tempo para Carga Completa: %lld min"
           }
         },
         "ru" : {
@@ -21384,8 +21402,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Tint progress bar with accent color"
+            "state" : "translated",
+            "value" : "Colorir barra de progresso com cor de destaque"
           }
         },
         "ru" : {
@@ -21484,8 +21502,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Toggle Notch Open:"
+            "state" : "translated",
+            "value" : "Alternar Abertura do Entalhe:"
           }
         },
         "ru" : {
@@ -21584,8 +21602,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Toggle Sneak Peek:"
+            "state" : "translated",
+            "value" : "Alternar Prévia:"
           }
         },
         "ru" : {
@@ -21684,8 +21702,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+            "state" : "translated",
+            "value" : "Deslize dois dedos p/ cima no entalhe para fechar, dois dedos p/ baixo para abrir quando a opção **Abrir entalhe ao passar o mouse** estiver desativada"
           }
         },
         "ru" : {
@@ -21785,8 +21803,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Uninstall"
+            "state" : "translated",
+            "value" : "Desinstalar"
           }
         },
         "ru" : {
@@ -21885,8 +21903,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
+            "state" : "translated",
+            "value" : "Desbloqueie recursos avançados e melhore sua experiência. Atualize agora para obter mais opções de personalização!"
           }
         },
         "ru" : {
@@ -21985,8 +22003,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "unmuted"
+            "state" : "translated",
+            "value" : "com som"
           }
         },
         "ru" : {
@@ -22085,8 +22103,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Unmuted"
+            "state" : "translated",
+            "value" : "Com Som"
           }
         },
         "ru" : {
@@ -22185,8 +22203,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Upgrade to Pro"
+            "state" : "translated",
+            "value" : "Atualizar para Pro"
           }
         },
         "ru" : {
@@ -22285,8 +22303,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use music visualizer spectrogram"
+            "state" : "translated",
+            "value" : "Usar espectrograma do visualizador de música"
           }
         },
         "ru" : {
@@ -22385,8 +22403,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use your macOS system accent color"
+            "state" : "translated",
+            "value" : "Usar a cor de destaque do seu sistema macOS"
           }
         },
         "ru" : {
@@ -22485,8 +22503,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Using System Accent"
+            "state" : "translated",
+            "value" : "Usando Destaque do Sistema"
           }
         },
         "ru" : {
@@ -22585,8 +22603,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Version"
+            "state" : "translated",
+            "value" : "Versão"
           }
         },
         "ru" : {
@@ -22685,8 +22703,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Version info"
+            "state" : "translated",
+            "value" : "Informação da versão"
           }
         },
         "ru" : {
@@ -22785,8 +22803,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "View on GitHub: pear-devs/pear-desktop"
+            "state" : "translated",
+            "value" : "Ver no GitHub: pear-devs/pear-desktop"
           }
         },
         "ru" : {
@@ -22885,8 +22903,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Welcome"
+            "state" : "translated",
+            "value" : "Boas-vindas"
           }
         },
         "ru" : {
@@ -22985,8 +23003,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "What's New"
+            "state" : "translated",
+            "value" : "Novidades"
           }
         },
         "ru" : {
@@ -23085,8 +23103,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Window Appearance"
+            "state" : "translated",
+            "value" : "Aparência da Janela"
           }
         },
         "ru" : {
@@ -23185,8 +23203,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Window Behavior"
+            "state" : "translated",
+            "value" : "Comportamento da Janela"
           }
         },
         "ru" : {
@@ -23285,8 +23303,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
+            "state" : "translated",
+            "value" : "Agora você pode aproveitar o aplicativo. Se quiser personalizar mais, você sempre pode acessar os ajustes."
           }
         },
         "ru" : {
@@ -23385,8 +23403,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "You're All Set!"
+            "state" : "translated",
+            "value" : "Tudo Pronto!"
           }
         },
         "ru" : {
@@ -23485,8 +23503,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Your macOS system accent color"
+            "state" : "translated",
+            "value" : "Sua cor de destaque do sistema macOS"
           }
         },
         "ru" : {
@@ -23585,8 +23603,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "YouTube Music requires this third-party app to be installed: "
+            "state" : "translated",
+            "value" : "O YouTube Music requer que este app de terceiros esteja instalado: "
           }
         },
         "ru" : {
