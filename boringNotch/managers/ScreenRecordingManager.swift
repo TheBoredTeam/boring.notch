@@ -33,7 +33,7 @@ private func screenCaptureEventCallback(eventType: Int32, _: Int32, _: Int32, co
     guard let context = context else { return }
     let manager = Unmanaged<ScreenRecordingManager>.fromOpaque(context).takeUnretainedValue()
     
-    DispatchQueue.main.async {
+    Task { @MainActor in
         print("ScreenRecordingManager: 📢 Screen capture event received (type: \(eventType))")
         manager.checkRecordingStatus()
     }
@@ -55,11 +55,8 @@ class ScreenRecordingManager: ObservableObject {
     
     // MARK: - Private Properties
     private var recordingStartTime: Date?
-    private var durationTimer: Timer?
+    private var durationTask: Task<Void, Never>?
     private var debounceIdleTask: Task<Void, Never>?
-    
-    // MARK: - Configuration
-    private let debounceDelay: TimeInterval = 0.2 // Debounce rapid changes
     
     // MARK: - Initialization
     private init() {
@@ -70,7 +67,7 @@ class ScreenRecordingManager: ObservableObject {
         // Clean up monitoring state
         // Note: We can't call async methods in deinit, so we just clean up local state
         debounceIdleTask?.cancel()
-        durationTimer?.invalidate()
+        durationTask?.cancel()
     }
     
     // MARK: - Public Methods
@@ -190,10 +187,13 @@ class ScreenRecordingManager: ObservableObject {
     private func startDurationTracking() {
         recordingStartTime = Date()
         recordingDuration = 0
-        
-        durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.updateDuration()
+        durationTask?.cancel()
+        durationTask = Task { [weak self] in
+            while let self, !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(400))
+                await MainActor.run {
+                    self.updateDuration()
+                }
             }
         }
         
@@ -202,13 +202,17 @@ class ScreenRecordingManager: ObservableObject {
     
     /// Stop tracking recording duration
     private func stopDurationTracking() {
-        durationTimer?.invalidate()
-        durationTimer = nil
+        durationTask?.cancel()
+        durationTask = nil
         recordingStartTime = nil
         
         // Keep the last duration for a moment before resetting
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-            self?.recordingDuration = 0
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard let self else { return }
+            await MainActor.run {
+                self.resetDuration()
+            }
         }
         
         print("ScreenRecordingManager: ⏹️ Stopped duration tracking")
@@ -218,6 +222,11 @@ class ScreenRecordingManager: ObservableObject {
     private func updateDuration() {
         guard let startTime = recordingStartTime else { return }
         recordingDuration = Date().timeIntervalSince(startTime)
+    }
+
+    /// Reset duration value after a short delay when stopping recording
+    private func resetDuration() {
+        recordingDuration = 0
     }
     
     /// Copy EXACT music idle state logic
