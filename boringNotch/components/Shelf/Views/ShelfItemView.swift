@@ -77,7 +77,6 @@ struct ShelfItemView: View {
                 quickLookService.show(urls: urls, selectFirst: true)
             }
         }
-        .quickLookPresenter(using: quickLookService)
     }
 
     // MARK: - View Components
