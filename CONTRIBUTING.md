@@ -2,9 +2,9 @@
 
 Thank you for taking the time to contribute! ❤️
 
-By following these guidelines, you show consideration for the time and effort of the developers who maintain this open-source project. In turn, this makes it easier for us to engage with your issue, review your changes, and support you in finalizing your pull requests.
+These guidelines help streamline the contribution process for everyone involved. By following them, you'll make it easier for maintainers to review your work and collaborate with you effectively.
 
-There are many ways to contribute: creating tutorials or blog posts, improving the documentation, submitting bug reports and feature requests, or writing code to be incorporated into Boring Notch itself.
+You can contribute in many ways: writing code, improving documentation, reporting bugs, requesting features, or creating tutorials and blog posts. Every contribution, large or small, helps make Boring Notch better.
 
 ## Table of Contents
 
@@ -123,7 +123,7 @@ If you need help or have questions:
 - Check the project documentation
 - Search existing issues for similar questions
 - Open a new issue with the "question" label
-- Join our community discussions (if applicable)
+- Join our [community Discord server](https://discord.com/servers/boring-notch-1269588937320566815)
 
 ---
 
