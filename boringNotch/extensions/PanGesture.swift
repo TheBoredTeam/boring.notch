@@ -55,7 +55,8 @@ private struct ScrollMonitor: NSViewRepresentable {
         private let direction: PanDirection
         private let threshold: CGFloat
         private let action: (CGFloat, NSEvent.Phase) -> Void
-        private var monitor: Any?
+        private var localMonitor: Any?
+        private var globalMonitor: Any?
         private var accumulated: CGFloat = 0
         private var active = false
             private var endTask: Task<Void, Never>?
@@ -86,17 +87,46 @@ private struct ScrollMonitor: NSViewRepresentable {
 
         func installMonitor(on view: NSView) {
             removeMonitor()
-            monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
+
+            // Local monitor for normal in-window scroll events.
+            localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
                 guard let self = self, event.window === view?.window else { return event }
                 self.handleScroll(event)
                 return event
             }
+
+            // Global monitor to catch edge cases 
+            globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
+                guard let self = self, let view = view, let viewWindow = view.window else { return }
+
+                // Translate event to screen coordinates.
+                let eventScreenPoint: NSPoint
+                if let eventWindow = event.window {
+                    eventScreenPoint = eventWindow.convertToScreen(NSRect(origin: event.locationInWindow, size: .zero)).origin
+                } else {
+                    eventScreenPoint = NSEvent.mouseLocation
+                }
+
+                // Compute this view's frame in screen coordinates and expand it slightly.
+                let viewRectInWindow = view.convert(view.bounds, to: nil)
+                let viewRectInScreen = viewWindow.convertToScreen(viewRectInWindow)
+                let expansion: CGFloat = 2 // small tolerance for very-edge events
+                let expandedRect = viewRectInScreen.insetBy(dx: -expansion, dy: -expansion)
+
+                if expandedRect.contains(eventScreenPoint) {
+                    self.handleScroll(event)
+                }
+            }
         }
 
         func removeMonitor() {
-            if let monitor = monitor {
-                NSEvent.removeMonitor(monitor)
-                self.monitor = nil
+            if let lm = localMonitor {
+                NSEvent.removeMonitor(lm)
+                self.localMonitor = nil
+            }
+            if let gm = globalMonitor {
+                NSEvent.removeMonitor(gm)
+                self.globalMonitor = nil
             }
             accumulated = 0
             active = false
