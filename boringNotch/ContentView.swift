@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var bluetoothManager = BluetoothManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -285,6 +286,15 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
+                      } else if let event = bluetoothManager.latestEvent,
+                                vm.notchState == .closed,
+                                coordinator.bluetoothLiveActivityEnabled,
+                                bluetoothManager.shouldShowLiveActivity,
+                                !vm.hideOnClosed {
+                          BluetoothLiveActivityView(
+                              event: event,
+                              notchHeight: vm.effectiveClosedNotchHeight
+                          )
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -347,6 +357,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .bluetooth:
+                        BluetoothDevicesView()
                     }
                 }
                 .transition(
@@ -558,7 +570,13 @@ struct ContentView: View {
     // MARK: - Gesture Handling
 
     private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        // In the Bluetooth tab, to prevent closing due to scrolling, ignore the gesture
+        if coordinator.currentView == .bluetooth { return }
+        
         guard vm.notchState == .closed else { return }
+        if bluetoothManager.listInteractionActive {
+            return
+        }
 
         if phase == .ended {
             withAnimation(animationSpring) { gestureProgress = .zero }
@@ -581,7 +599,13 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        // In the Bluetooth tab, to prevent closing due to scrolling, ignore the gesture
+        if coordinator.currentView == .bluetooth { return }
+        
         guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        if bluetoothManager.listInteractionActive {
+            return
+        }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
@@ -646,6 +670,230 @@ struct GeneralDropTargetDelegate: DropDelegate {
 
     func performDrop(info: DropInfo) -> Bool {
         return false
+    }
+}
+
+// MARK: - Bluetooth UI
+
+struct BluetoothLiveActivityView: View {
+    let event: BluetoothEvent
+    let notchHeight: CGFloat
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: event.type.symbolName)
+                .foregroundStyle(event.type.tint)
+                .font(.system(size: 16, weight: .semibold))
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(event.deviceName)
+                    .foregroundStyle(.white)
+                    .font(.subheadline)
+                    .lineLimit(1)
+                Text(event.type.statusText)
+                    .foregroundStyle(.gray)
+                    .font(.caption)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 8)
+        .frame(
+            height: max(notchHeight, 28),
+            alignment: .center
+        )
+        .background(Color.black)
+    }
+}
+
+struct BluetoothDevicesView: View {
+    @ObservedObject var bluetoothManager = BluetoothManager.shared
+    @EnvironmentObject var vm: BoringViewModel
+    @GestureState private var isDraggingList: Bool = false
+    @State private var selectedDevice: BluetoothDeviceInfo?
+
+    private var shouldExpandList: Bool {
+        bluetoothManager.connectedDevices.count > 1
+    }
+
+    private var expandedScrollHeight: CGFloat {
+        max(windowSize.height - 40, vm.notchSize.height * 1.5)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            header
+            
+            if let event = bluetoothManager.latestEvent {
+                eventBanner(event)
+            }
+            
+            if bluetoothManager.connectedDevices.isEmpty {
+                emptyState
+            } else {
+                deviceList
+            }
+            
+            if let selectedDevice {
+                deviceDetail(selectedDevice)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onChange(of: isDraggingList) { active in
+            bluetoothManager.setListInteractionActive(active)
+        }
+        .onAppear {
+            bluetoothManager.setListInteractionActive(false)
+        }
+        .onDisappear {
+            bluetoothManager.setListInteractionActive(false)
+        }
+    }
+
+    @ViewBuilder
+    private var header: some View {
+        HStack(spacing: 8) {
+            Text("Bluetooth")
+                .font(.headline)
+            Spacer()
+            Button {
+                bluetoothManager.manualRefresh()
+            } label: {
+                Label("새로고침", systemImage: "arrow.clockwise")
+                    .labelStyle(.titleAndIcon)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+    }
+
+    @ViewBuilder
+    private func eventBanner(_ event: BluetoothEvent) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: event.type.symbolName)
+                .foregroundStyle(event.type.tint)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(event.deviceName)
+                    .foregroundStyle(.white)
+                Text(event.type.statusText)
+                    .foregroundStyle(.gray)
+                    .font(.caption)
+            }
+            Spacer()
+        }
+        .padding(10)
+        .background(.black.opacity(0.35))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    @ViewBuilder
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("연결된 기기가 없습니다.")
+                .foregroundStyle(.gray)
+            Text("기기를 페어링하거나 켜 두면 여기에서 상태를 확인할 수 있어요.")
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private var deviceList: some View {
+        ScrollView {
+            VStack(spacing: 8) {
+                ForEach(bluetoothManager.connectedDevices) { device in
+                    BluetoothDeviceRow(
+                        device: device,
+                        isSelected: selectedDevice?.id == device.id
+                    ) {
+                        selectedDevice = device
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxHeight: shouldExpandList ? expandedScrollHeight : 220, alignment: .top)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .updating($isDraggingList) { _, state, _ in state = true }
+                .onEnded { _ in
+                    bluetoothManager.setListInteractionActive(false)
+                }
+        )
+        .scrollIndicators(.hidden)
+    }
+
+    @ViewBuilder
+    private func deviceDetail(_ device: BluetoothDeviceInfo) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("기기 정보")
+                    .font(.headline)
+                Spacer()
+                Button {
+                    withAnimation(.smooth) {
+                        selectedDevice = nil
+                    }
+                } label: {
+                    Label("뒤로가기", systemImage: "chevron.left")
+                        .labelStyle(.titleAndIcon)
+                }
+                .buttonStyle(.bordered)
+            }
+            HStack {
+                Label("이름", systemImage: "text.badge.star")
+                Spacer()
+                Text(device.name)
+            }
+            HStack {
+                Label("주소", systemImage: "number")
+                Spacer()
+                Text(device.address)
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+            }
+            HStack {
+                Label("상태", systemImage: "bolt.horizontal.circle")
+                Spacer()
+                Text(device.isConnected ? "연결됨" : "연결 안 됨")
+                    .foregroundStyle(device.isConnected ? .green : .gray)
+            }
+        }
+        .padding(12)
+        .background(.black.opacity(0.4))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+struct BluetoothDeviceRow: View {
+    let device: BluetoothDeviceInfo
+    var isSelected: Bool = false
+    var onTap: (() -> Void)? = nil
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "dot.radiowaves.left.and.right")
+                .foregroundStyle(.blue)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(device.name)
+                    .foregroundStyle(.white)
+                Text(device.address)
+                    .foregroundStyle(.gray)
+                    .font(.caption)
+            }
+            Spacer()
+            Text(device.isConnected ? "연결됨" : "연결 안 됨")
+                .foregroundStyle(device.isConnected ? .green : .gray)
+                .font(.caption)
+        }
+        .padding(10)
+        .background(isSelected ? Color.blue.opacity(0.35) : Color.black.opacity(0.35))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .onTapGesture {
+            onTap?()
+        }
     }
 }
 

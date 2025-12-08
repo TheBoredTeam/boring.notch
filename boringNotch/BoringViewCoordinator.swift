@@ -7,7 +7,9 @@
 
 import AppKit
 import Combine
+import CoreBluetooth
 import Defaults
+import IOBluetooth
 import SwiftUI
 
 enum SneakContentType {
@@ -59,6 +61,7 @@ class BoringViewCoordinator: ObservableObject {
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @AppStorage("musicLiveActivityEnabled") var musicLiveActivityEnabled: Bool = true
+    @AppStorage("bluetoothLiveActivityEnabled") var bluetoothLiveActivityEnabled: Bool = true
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
 
     @AppStorage("alwaysShowTabs") var alwaysShowTabs: Bool = true {
@@ -296,5 +299,291 @@ class BoringViewCoordinator: ObservableObject {
     
     func showEmpty() {
         currentView = .home
+    }
+}
+
+// MARK: - Bluetooth Live Activity Support
+
+enum BluetoothEventType {
+    case connected
+    case disconnected
+    
+    var symbolName: String {
+        switch self {
+        case .connected:
+            return "checkmark.circle.fill"
+        case .disconnected:
+            return "xmark.circle.fill"
+        }
+    }
+    
+    var tint: Color {
+        switch self {
+        case .connected:
+            return .green
+        case .disconnected:
+            return .red
+        }
+    }
+    
+    var statusText: String {
+        switch self {
+        case .connected:
+            return "연결됨"
+        case .disconnected:
+            return "연결 해제됨"
+        }
+    }
+}
+
+struct BluetoothEvent: Equatable {
+    let deviceName: String
+    let address: String
+    let type: BluetoothEventType
+    let timestamp: Date
+}
+
+struct BluetoothDeviceInfo: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let address: String
+    let isConnected: Bool
+}
+
+@MainActor
+class BluetoothManager: NSObject, ObservableObject {
+    static let shared = BluetoothManager()
+    private var centralManager: CBCentralManager?
+    
+    @Published private(set) var connectedDevices: [BluetoothDeviceInfo] = []
+    @Published private(set) var latestEvent: BluetoothEvent?
+    @Published private(set) var monitoringError: String?
+    @Published private(set) var bleConnectedDevices: [BluetoothDeviceInfo] = []
+    @Published var listInteractionActive: Bool = false
+    
+    private let connectedPeripheralChannel = PassthroughSubject<CBPeripheral, Never>()
+    private let disconnectedPeripheralChannel = PassthroughSubject<CBPeripheral, Never>()
+    private var bleSubscriptions = Set<AnyCancellable>()
+    
+    var hasConnectedDevices: Bool {
+        !connectedDevices.isEmpty
+    }
+    
+    var shouldShowLiveActivity: Bool {
+        latestEvent != nil
+    }
+    
+    private let displayDuration: TimeInterval = 6
+    private let refreshInterval: TimeInterval = 7
+    
+    private var connectedIds: Set<String> = []
+    private var refreshCancellable: AnyCancellable?
+    private var eventDismissTask: Task<Void, Never>?
+    
+    override private init() {
+        super.init()
+        // BLE 권한 및 연결 기기 조회용 Central Manager
+        centralManager = CBCentralManager(delegate: self, queue: DispatchQueue(label: "BoringNotch.BluetoothManager.Central", qos: .userInitiated))
+        connectedPeripheralChannel
+            .merge(with: disconnectedPeripheralChannel)
+            .debounce(for: .milliseconds(200), scheduler: DispatchQueue.global(qos: .userInitiated))
+            .sink { [weak self] _ in
+                self?.refreshBLEConnectedDevices()
+            }
+            .store(in: &bleSubscriptions)
+        refreshConnectedDevices()
+        startMonitoring()
+    }
+    
+    func manualRefresh() {
+        refreshBLEConnectedDevices()
+        refreshConnectedDevices()
+    }
+    
+    private func startMonitoring() {
+        refreshCancellable?.cancel()
+        refreshCancellable = Timer.publish(every: refreshInterval, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.refreshBLEConnectedDevices()
+                self?.refreshConnectedDevices()
+            }
+    }
+    
+    private func refreshConnectedDevices() {
+        Task.detached(priority: .utility) { [weak self] in
+            guard let self else { return }
+            
+            // Snapshot current state from the main actor
+            let snapshot = await MainActor.run { (ids: self.connectedIds, devices: self.connectedDevices, ble: self.bleConnectedDevices) }
+            
+            let classic = self.fetchConnectedDevices()
+            let mergedDevices = self.mergeDevices(classic: classic, ble: snapshot.ble)
+            let newIds = Set(mergedDevices.map { $0.id })
+            
+            let added = newIds.subtracting(snapshot.ids)
+            let removed = snapshot.ids.subtracting(newIds)
+            
+            var pendingEvent: BluetoothEvent?
+            
+            if let addedId = added.first,
+               let device = mergedDevices.first(where: { $0.id == addedId })
+            {
+                pendingEvent = .init(
+                    deviceName: device.name,
+                    address: device.address,
+                    type: .connected,
+                    timestamp: Date()
+                )
+            } else if let removedId = removed.first,
+                      let device = snapshot.devices.first(where: { $0.id == removedId })
+            {
+                pendingEvent = .init(
+                    deviceName: device.name,
+                    address: device.address,
+                    type: .disconnected,
+                    timestamp: Date()
+                )
+            }
+            
+            await MainActor.run {
+                if let event = pendingEvent {
+                    self.register(event: event)
+                }
+                self.connectedDevices = mergedDevices
+                self.connectedIds = newIds
+            }
+        }
+    }
+    
+    private func register(event: BluetoothEvent) {
+        eventDismissTask?.cancel()
+        latestEvent = event
+        
+        eventDismissTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(displayDuration))
+            guard !Task.isCancelled else { return }
+            if self.latestEvent?.timestamp == event.timestamp {
+                self.latestEvent = nil
+            }
+        }
+    }
+    
+    nonisolated private func fetchConnectedDevices() -> [BluetoothDeviceInfo] {
+        let paired = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []
+        let recent = (IOBluetoothDevice.recentDevices(0) as? [IOBluetoothDevice]) ?? []
+        
+        let candidates = paired + recent
+        
+        let deduped: [BluetoothDeviceInfo] = Dictionary(
+            grouping: candidates,
+            by: { $0.addressString ?? UUID().uuidString }
+        )
+        .compactMap { key, group in
+            guard let device = group.first(where: { $0.isConnected() }) ?? group.first else {
+                return nil
+            }
+            
+            guard device.isConnected() else { return nil }
+            
+            return BluetoothDeviceInfo(
+                id: key,
+                name: device.name ?? "알 수 없는 기기",
+                address: device.addressString ?? key,
+                isConnected: true
+            )
+        }
+        .sorted { $0.name < $1.name }
+        
+        return deduped
+    }
+    
+    nonisolated private func mergeDevices(classic: [BluetoothDeviceInfo], ble: [BluetoothDeviceInfo]) -> [BluetoothDeviceInfo] {
+        let combined = classic + ble
+        
+        func dedupKey(_ device: BluetoothDeviceInfo) -> String {
+            if !device.address.isEmpty {
+                return device.address.lowercased()
+            }
+            if !device.id.isEmpty {
+                return device.id.lowercased()
+            }
+            return device.name.lowercased()
+        }
+        
+        let merged: [BluetoothDeviceInfo] = Dictionary(grouping: combined, by: { dedupKey($0) })
+            .compactMap { _, group in
+                // Prefer connected entries; fall back to first
+                group.first(where: { $0.isConnected }) ?? group.first
+            }
+            .sorted { $0.name < $1.name }
+        return merged
+    }
+
+    @MainActor
+    func setListInteractionActive(_ active: Bool) {
+        listInteractionActive = active
+    }
+    
+    private func refreshBLEConnectedDevices() {
+        guard let centralManager else {
+            Task { @MainActor in
+                self.bleConnectedDevices = []
+            }
+            return
+        }
+        
+        // Common services for HID/battery/device info + GAP/GATT 
+        let serviceUUIDs = [
+            CBUUID(string: "180F"), // Battery
+            CBUUID(string: "1812"), // HID
+            CBUUID(string: "180A"), // Device Information
+            CBUUID(string: "1800"), // Generic Access
+            CBUUID(string: "1801"), // Generic Attribute
+        ]
+        
+        guard centralManager.state == .poweredOn else {
+            Task { @MainActor in
+                self.bleConnectedDevices = []
+            }
+            return
+        }
+        
+        let peripherals = centralManager.retrieveConnectedPeripherals(withServices: serviceUUIDs)
+        let mapped = peripherals.map { peripheral in
+            BluetoothDeviceInfo(
+                id: peripheral.identifier.uuidString,
+                name: peripheral.name ?? "알 수 없는 기기",
+                address: peripheral.identifier.uuidString,
+                isConnected: true
+            )
+        }
+        
+        Task { @MainActor in
+            self.bleConnectedDevices = mapped
+        }
+    }
+}
+
+// MARK: - Bluetooth permission helper / Central delegate
+
+extension BluetoothManager: CBCentralManagerDelegate {
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        switch central.state {
+        case .poweredOn:
+            refreshBLEConnectedDevices()
+        default:
+            Task { @MainActor in
+                self.bleConnectedDevices = []
+            }
+        }
+    }
+
+    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        connectedPeripheralChannel.send(peripheral)
+    }
+
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        disconnectedPeripheralChannel.send(peripheral)
     }
 }

@@ -3602,6 +3602,9 @@
         }
       }
     },
+    "Bluetooth" : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
         "ar" : {
@@ -3901,6 +3904,9 @@
           }
         }
       }
+    },
+    "Both" : {
+
     },
     "Calendar" : {
       "localizations" : {
@@ -7505,8 +7511,16 @@
         }
       }
     },
+    "Download icon style" : {
+
+    },
+    "Download indicator style" : {
+
+    },
+    "Download indicators" : {
+
+    },
     "Downloads" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8707,6 +8721,9 @@
         }
       }
     },
+    "Enable Safari Downloads" : {
+
+    },
     "Enable shelf" : {
       "localizations" : {
         "ar" : {
@@ -9106,6 +9123,9 @@
           }
         }
       }
+    },
+    "Exclude apps" : {
+
     },
     "Expanded drag detection area" : {
       "localizations" : {
@@ -14909,6 +14929,9 @@
         }
       }
     },
+    "No excluded apps" : {
+
+    },
     "No extension installed" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -15510,6 +15533,12 @@
         }
       }
     },
+    "Only app icon" : {
+
+    },
+    "Only download icon" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -16110,6 +16139,9 @@
         }
       }
     },
+    "Percentage" : {
+
+    },
     "Pick a Color" : {
       "localizations" : {
         "ar" : {
@@ -16409,6 +16441,9 @@
           }
         }
       }
+    },
+    "Progress bar" : {
+
     },
     "Progress bar style" : {
       "localizations" : {
@@ -18912,6 +18947,9 @@
         }
       }
     },
+    "Show Bluetooth live activity" : {
+
+    },
     "Show calendar" : {
       "localizations" : {
         "ar" : {
@@ -19111,6 +19149,9 @@
           }
         }
       }
+    },
+    "Show download progress" : {
+
     },
     "Show HUD in open notch" : {
       "localizations" : {
@@ -23614,6 +23655,33 @@
           }
         }
       }
+    },
+    "기기 정보" : {
+
+    },
+    "기기를 페어링하거나 켜 두면 여기에서 상태를 확인할 수 있어요." : {
+
+    },
+    "상태" : {
+
+    },
+    "새로고침" : {
+
+    },
+    "연결 안 됨" : {
+
+    },
+    "연결된 기기가 없습니다." : {
+
+    },
+    "연결됨" : {
+
+    },
+    "이름" : {
+
+    },
+    "주소" : {
+
     }
   },
   "version" : "1.0"

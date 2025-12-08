@@ -15,6 +15,10 @@
 	<string>https://TheBoredTeam.github.io/boring.notch/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>B1Y47t8C/v8ImurYA+9arEsuCrpxwJSviekiflMElbI=</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>주변기기 연결 상태를 노치에서 표시하기 위해 블루투스 권한이 필요합니다.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>주변기기 연결 상태를 노치에서 표시하기 위해 블루투스 권한이 필요합니다.</string>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict/>
