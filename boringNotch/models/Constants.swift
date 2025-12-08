@@ -36,6 +36,23 @@ enum HideNotchOption: String, Defaults.Serializable {
     case never
 }
 
+// Notification delivery styles
+enum NotificationDeliveryStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case inAppOnly = "In-App Only"
+    case banner = "Banner"
+
+    var id: String { rawValue }
+
+    var description: String {
+        switch self {
+        case .inAppOnly:
+            return "Show in notch only"
+        case .banner:
+            return "Send to macOS Notification Center"
+        }
+    }
+}
+
 // Define notification names at file scope
 extension Notification.Name {
     static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
@@ -74,6 +91,22 @@ extension Defaults.Keys {
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
+    
+    // MARK: Notifications
+    static let enableNotifications = Key<Bool>("enableNotifications", default: true)
+    static let showBatteryNotifications = Key<Bool>("showBatteryNotifications", default: true)
+    static let showCalendarNotifications = Key<Bool>("showCalendarNotifications", default: true)
+    static let showShelfNotifications = Key<Bool>("showShelfNotifications", default: true)
+    static let showSystemNotifications = Key<Bool>("showSystemNotifications", default: true)
+    static let showInfoNotifications = Key<Bool>("showInfoNotifications", default: true)
+    static let notificationDeliveryStyle = Key<NotificationDeliveryStyle>(
+        "notificationDeliveryStyle",
+        default: .banner
+    )
+    static let notificationSoundEnabled = Key<Bool>("notificationSoundEnabled", default: true)
+    static let respectDoNotDisturb = Key<Bool>("respectDoNotDisturb", default: true)
+    static let notificationRetentionDays = Key<Int>("notificationRetentionDays", default: 7)
+    static let storedNotifications = Key<[NotchNotification]>("storedNotifications", default: [])
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)

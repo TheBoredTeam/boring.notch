@@ -25,6 +25,12 @@ struct TabSelectionView: View {
             TabModel(label: "Home", icon: "house.fill", view: .home)
         ]
         
+        if Defaults[.enableNotifications] || coordinator.alwaysShowTabs {
+            items.append(
+                TabModel(label: "Notifications", icon: "bell.fill", view: .notifications)
+            )
+        }
+        
         if Defaults[.boringShelf] {
             items.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
         }

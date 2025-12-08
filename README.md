@@ -77,6 +77,8 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - Hover over the notch to see it expand and reveal all its secrets.
 - Use the controls to manage your music like a rockstar.
 - Click the star in your menu bar to customize your notch to your heart's content.
+- In the Notifications tab, you can view battery and system alerts, and configure them to be delivered to the macOS Notification Center.
+- Notifications mirror an iOS-style center: filter by category (battery, calendar, shelf, system, info), mark as read or clear all, and choose banner/sound delivery from Settings.
 
 ## 📋 Roadmap
 
@@ -94,7 +96,7 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - [ ] Customizable Layout options 🛠️
 - [ ] Lock Screen Widgets 🔒
 - [ ] Extension system 🧩
-- [ ] Notifications (under consideration) 🔔
+- [x] Notifications 🔔
   <!-- - [ ] Clipboard history manager 📌 `Extension` -->
   <!-- - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`-->
   <!-- - [ ] Customizable function buttons 🎛️ -->

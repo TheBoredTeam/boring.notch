@@ -28,6 +28,8 @@ public enum NotchViews {
     case home
     case shelf
     case bluetooth
+    case notifications
+    case notifications
 }
 
 enum SettingsEnum {

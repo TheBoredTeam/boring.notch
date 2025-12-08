@@ -359,6 +359,8 @@ struct ContentView: View {
                         ShelfView()
                     case .bluetooth:
                         BluetoothDevicesView()
+                    case .notifications:
+                        NotificationsView()
                     }
                 }
                 .transition(

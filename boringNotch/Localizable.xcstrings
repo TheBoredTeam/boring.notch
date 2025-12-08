@@ -901,6 +901,16 @@
         }
       }
     },
+    "%lld day%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld day%2$@"
+          }
+        }
+      }
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -2802,6 +2812,9 @@
         }
       }
     },
+    "Authorization" : {
+
+    },
     "Auto-scroll to next event" : {
       "localizations" : {
         "ar" : {
@@ -4008,6 +4021,9 @@
         }
       }
     },
+    "Calendar & reminders" : {
+
+    },
     "Calendar access is denied. Please enable it in System Settings." : {
       "localizations" : {
         "ar" : {
@@ -4307,6 +4323,9 @@
           }
         }
       }
+    },
+    "Categories" : {
+
     },
     "Change media with horizontal gestures" : {
       "localizations" : {
@@ -5207,6 +5226,9 @@
           }
         }
       }
+    },
+    "Clear all notifications" : {
+
     },
     "Clear slot" : {
       "localizations" : {
@@ -7108,6 +7130,12 @@
         }
       }
     },
+    "Delivery" : {
+
+    },
+    "Delivery style" : {
+
+    },
     "Description" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8722,7 +8750,24 @@
       }
     },
     "Enable Safari Downloads" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Safari Downloads"
+          }
+        }
+      }
+    },
+    "Enable notifications" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable notifications"
+          }
+        }
+      }
     },
     "Enable shelf" : {
       "localizations" : {
@@ -11228,6 +11273,9 @@
         }
       }
     },
+    "History" : {
+
+    },
     "Hover delay" : {
       "localizations" : {
         "ar" : {
@@ -11728,6 +11776,9 @@
         }
       }
     },
+    "Info" : {
+
+    },
     "Inline" : {
       "localizations" : {
         "ar" : {
@@ -11928,6 +11979,9 @@
           }
         }
       }
+    },
+    "Keep history" : {
+
     },
     "Layout Preview" : {
       "localizations" : {
@@ -15534,10 +15588,34 @@
       }
     },
     "Only app icon" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only app icon"
+          }
+        }
+      }
     },
     "Only download icon" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only download icon"
+          }
+        }
+      }
+    },
+    "Notifications" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications"
+          }
+        }
+      }
     },
     "Open Calendar Settings" : {
       "localizations" : {
@@ -15638,6 +15716,9 @@
           }
         }
       }
+    },
+    "Open macOS settings" : {
+
     },
     "Open Notch" : {
       "localizations" : {
@@ -16241,6 +16322,9 @@
           }
         }
       }
+    },
+    "Play sound" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -17745,6 +17829,9 @@
         }
       }
     },
+    "Request permission" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -17844,6 +17931,9 @@
           }
         }
       }
+    },
+    "Respect Do Not Disturb / Focus" : {
+
     },
     "Restart" : {
       "extractionState" : "stale",
@@ -23657,31 +23747,212 @@
       }
     },
     "기기 정보" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device info"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기 정보"
+          }
+        }
+      }
     },
     "기기를 페어링하거나 켜 두면 여기에서 상태를 확인할 수 있어요." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair or turn on a device to see its status here."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기를 페어링하거나 켜 두면 여기에서 상태를 확인할 수 있어요."
+          }
+        }
+      }
     },
     "상태" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "상태"
+          }
+        }
+      }
     },
     "새로고침" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새로고침"
+          }
+        }
+      }
     },
     "연결 안 됨" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not connected"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결 안 됨"
+          }
+        }
+      }
     },
     "연결된 기기가 없습니다." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No connected devices."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결된 기기가 없습니다."
+          }
+        }
+      }
     },
     "연결됨" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결됨"
+          }
+        }
+      }
     },
     "이름" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이름"
+          }
+        }
+      }
     },
     "주소" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Address"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "주소"
+          }
+        }
+      }
+    },
+    "모두 읽음" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark all read"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모두 읽음"
+          }
+        }
+      }
+    },
+    "배터리와 시스템 이벤트를 한 곳에서 확인하세요." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See battery and system events in one place."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "배터리와 시스템 이벤트를 한 곳에서 확인하세요."
+          }
+        }
+      }
+    },
+    "비우기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "비우기"
+          }
+        }
+      }
+    },
+    "알림이 비활성화되어 있어요. 설정에서 켜주세요." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are disabled. Enable them in settings."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알림이 비활성화되어 있어요. 설정에서 켜주세요."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
