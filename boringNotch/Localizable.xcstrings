@@ -901,6 +901,16 @@
         }
       }
     },
+    "%lld day%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld day%2$@"
+          }
+        }
+      }
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -2802,6 +2812,9 @@
         }
       }
     },
+    "Authorization" : {
+
+    },
     "Auto-scroll to next event" : {
       "localizations" : {
         "ar" : {
@@ -4002,6 +4015,9 @@
         }
       }
     },
+    "Calendar & reminders" : {
+
+    },
     "Calendar access is denied. Please enable it in System Settings." : {
       "localizations" : {
         "ar" : {
@@ -4301,6 +4317,9 @@
           }
         }
       }
+    },
+    "Categories" : {
+
     },
     "Change media with horizontal gestures" : {
       "localizations" : {
@@ -5201,6 +5220,9 @@
           }
         }
       }
+    },
+    "Clear all notifications" : {
+
     },
     "Clear slot" : {
       "localizations" : {
@@ -7102,6 +7124,12 @@
         }
       }
     },
+    "Delivery" : {
+
+    },
+    "Delivery style" : {
+
+    },
     "Description" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8706,6 +8734,9 @@
           }
         }
       }
+    },
+    "Enable notifications" : {
+
     },
     "Enable shelf" : {
       "localizations" : {
@@ -11208,6 +11239,9 @@
         }
       }
     },
+    "History" : {
+
+    },
     "Hover delay" : {
       "localizations" : {
         "ar" : {
@@ -11708,6 +11742,9 @@
         }
       }
     },
+    "Info" : {
+
+    },
     "Inline" : {
       "localizations" : {
         "ar" : {
@@ -11908,6 +11945,9 @@
           }
         }
       }
+    },
+    "Keep history" : {
+
     },
     "Layout Preview" : {
       "localizations" : {
@@ -15510,6 +15550,9 @@
         }
       }
     },
+    "Notifications" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -15609,6 +15652,9 @@
           }
         }
       }
+    },
+    "Open macOS settings" : {
+
     },
     "Open Notch" : {
       "localizations" : {
@@ -16209,6 +16255,9 @@
           }
         }
       }
+    },
+    "Play sound" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -17710,6 +17759,9 @@
         }
       }
     },
+    "Request permission" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -17809,6 +17861,9 @@
           }
         }
       }
+    },
+    "Respect Do Not Disturb / Focus" : {
+
     },
     "Restart" : {
       "extractionState" : "stale",
@@ -23614,6 +23669,18 @@
           }
         }
       }
+    },
+    "모두 읽음" : {
+
+    },
+    "배터리와 시스템 이벤트를 한 곳에서 확인하세요." : {
+
+    },
+    "비우기" : {
+
+    },
+    "알림이 비활성화되어 있어요. 설정에서 켜주세요." : {
+
     }
   },
   "version" : "1.0"
