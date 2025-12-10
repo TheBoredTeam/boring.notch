@@ -19,7 +19,7 @@ body:
         Please provide a clear description of the problem or pain point this feature would address.
         
         **Example:** "I often miss my next meeting because I work in full-screen mode and can't see the system clock or calendar notifications."
-      placeholder: "I'm frustrated when..." or "It would be great if..."
+      placeholder: "I'm frustrated when... or It would be great if..."
     validations:
       required: true
 
@@ -38,7 +38,7 @@ body:
   - type: textarea
     id: use-cases
     attributes:
-      label: Use cases & User scenarios
+      label: Use cases & user scenarios
       description: |
         Describe specific scenarios where this feature would be valuable. Who would benefit from this and how often would it be used?
         
@@ -50,7 +50,7 @@ body:
   - type: textarea
     id: additional-context
     attributes:
-      label: Additional context & Screenshots
+      label: Additional context & screenshots
       description: |
         Add any other context, mockups, wireframes, or screenshots about the feature request here. Visuals are incredibly helpful!
         
@@ -66,9 +66,7 @@ body:
       description: "We love community contributions! Would you be willing to help build this?"
       options:
         - label: "Yes, I can write the code for this feature"
-          required: false
         - label: "Yes, I can help with design/mockups"
-          required: false
 
   - type: checkboxes
     id: checklist
