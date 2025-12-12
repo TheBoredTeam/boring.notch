@@ -82,17 +82,22 @@ struct AlbumArtView: View {
                 
 
     private var albumArtImage: some View {
-        Image(nsImage: musicManager.albumArt)
-            .resizable()
-            .aspectRatio(1, contentMode: .fit)
-            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-            .clipped()
-            .clipShape(
-                RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
-            )
+        GeometryReader { geo in
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .scaledToFill()
+                .frame(width: geo.size.width, height: geo.size.width)
+                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                .clipShape(
+                    RoundedRectangle(
+                        cornerRadius: Defaults[.cornerRadiusScaling]
+                            ? MusicPlayerImageSizes.cornerRadiusInset.opened
+                            : MusicPlayerImageSizes.cornerRadiusInset.closed
+                    )
+                )
+                .clipped()
+        }
+        .aspectRatio(1, contentMode: .fit)
     }
 
     @ViewBuilder
