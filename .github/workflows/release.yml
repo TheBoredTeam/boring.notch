@@ -245,13 +245,13 @@ jobs:
             exit 1
           fi
           echo "Found generate_appcast at $TOOL_PATH"
+      - name: Install dmgbuild
+        run: python3 -m pip install --upgrade --user "dmgbuild[badge_icons]"
+
       - name: Create DMG
         run: |
-          cd Release
-          hdiutil create -volname "boringNotch ${{ needs.preparation.outputs.version }}" \
-                          -srcfolder "${{ env.projname }}.app" \
-                          -ov -format UDZO \
-                          "${{ env.projname }}.dmg"
+          chmod +x Configuration/dmg/create_dmg.sh
+          ./Configuration/dmg/create_dmg.sh "Release/${{ env.projname }}.app" "Release/${{ env.projname }}.dmg" "boringNotch ${{ needs.preparation.outputs.version }}"
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:

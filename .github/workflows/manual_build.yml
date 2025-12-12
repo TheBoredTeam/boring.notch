@@ -75,13 +75,13 @@ jobs:
           EOF
           xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
           
+      - name: Install dmgbuild
+        run: python3 -m pip install --upgrade --user "dmgbuild[badge_icons]"
+
       - name: Create DMG
         run: |
-          cd Release
-          hdiutil create -volname "boringNotch" \
-                          -srcfolder "${{ env.projname }}.app" \
-                          -ov -format UDZO \
-                          "${{ env.projname }}.dmg"
+          chmod +x Configuration/dmg/create_dmg.sh
+          ./Configuration/dmg/create_dmg.sh "Release/${{ env.projname }}.app" "Release/${{ env.projname }}.dmg" "${{ env.projname }}"
                           
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
