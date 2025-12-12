@@ -86,6 +86,11 @@ jobs:
 
       - name: Create DMG
         run: |
+          # Ensure venv created in previous step is used (dmgbuild installed there)
+          VENV_DIR="$RUNNER_TEMP/venv"
+          if [ -d "$VENV_DIR" ]; then
+            export PATH="$VENV_DIR/bin:$PATH"
+          fi
           chmod +x Configuration/dmg/create_dmg.sh
           ./Configuration/dmg/create_dmg.sh "Release/${{ env.projname }}.app" "Release/${{ env.projname }}.dmg" "${{ env.projname }}"
                           
