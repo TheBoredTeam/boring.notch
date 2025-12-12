@@ -75,8 +75,14 @@ jobs:
           EOF
           xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
           
-      - name: Install dmgbuild
-        run: python3 -m pip install --upgrade --user "dmgbuild[badge_icons]"
+      - name: Install dmgbuild (use virtualenv)
+        run: |
+          # Create an isolated venv
+          VENV_DIR="$RUNNER_TEMP/venv"
+          python3 -m venv "$VENV_DIR"
+          source "$VENV_DIR/bin/activate"
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "dmgbuild[badge_icons]"
 
       - name: Create DMG
         run: |
