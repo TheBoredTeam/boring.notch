@@ -388,16 +388,13 @@ struct ContentView: View {
         HStack {
             Image(nsImage: musicManager.albumArt)
                 .resizable()
-                .clipped()
-                .clipShape(
-                    RoundedRectangle(
-                        cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
-                )
-                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                .scaledToFill()
                 .frame(
                     width: max(0, vm.effectiveClosedNotchHeight - 12),
                     height: max(0, vm.effectiveClosedNotchHeight - 12)
                 )
+                .clipShape(RoundedRectangle(cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed))
+                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
 
             Rectangle()
                 .fill(.black)
