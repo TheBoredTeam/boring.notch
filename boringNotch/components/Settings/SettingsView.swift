@@ -13,6 +13,7 @@ import LaunchAtLogin
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
+import UserNotifications
 
 struct SettingsView: View {
     @State private var selectedTab = "General"
@@ -44,6 +45,9 @@ struct SettingsView: View {
                 }
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
+                }
+                NavigationLink(value: "Notifications") {
+                    Label("Notifications", systemImage: "bell.badge")
                 }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
@@ -83,6 +87,8 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "Notifications":
+                    NotificationsSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -379,6 +385,132 @@ struct Charge: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Battery")
+    }
+}
+
+struct NotificationsSettings: View {
+    @ObservedObject var manager = NotificationCenterManager.shared
+    @Default(.enableNotifications) var enableNotifications
+    @Default(.showBatteryNotifications) var showBatteryNotifications
+    @Default(.showCalendarNotifications) var showCalendarNotifications
+    @Default(.showShelfNotifications) var showShelfNotifications
+    @Default(.showSystemNotifications) var showSystemNotifications
+    @Default(.showInfoNotifications) var showInfoNotifications
+    @Default(.notificationDeliveryStyle) var deliveryStyle
+    @Default(.notificationSoundEnabled) var notificationSoundEnabled
+    @Default(.respectDoNotDisturb) var respectDoNotDisturb
+    @Default(.notificationRetentionDays) var notificationRetentionDays
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .enableNotifications) {
+                    Text("Enable notifications")
+                }
+                HStack {
+                    Text("Authorization")
+                    Spacer()
+                    Text(authorizationLabel)
+                        .foregroundStyle(.secondary)
+                }
+                HStack(spacing: 12) {
+                    Button("Request permission") {
+                        manager.requestAuthorizationIfNeeded()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    Button("Open macOS settings") {
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.notifications") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                }
+            } header: {
+                Text("General")
+            }
+
+            Section {
+                Defaults.Toggle(key: .showBatteryNotifications) {
+                    Text("Battery")
+                }
+                Defaults.Toggle(key: .showCalendarNotifications) {
+                    Text("Calendar & reminders")
+                }
+                Defaults.Toggle(key: .showShelfNotifications) {
+                    Text("Shelf")
+                }
+                Defaults.Toggle(key: .showSystemNotifications) {
+                    Text("System")
+                }
+                Defaults.Toggle(key: .showInfoNotifications) {
+                    Text("Info")
+                }
+            } header: {
+                Text("Categories")
+            }
+            .disabled(!enableNotifications)
+
+            Section {
+                Picker("Delivery style", selection: $deliveryStyle) {
+                    ForEach(NotificationDeliveryStyle.allCases) { style in
+                        Text(style.description).tag(style)
+                    }
+                }
+                Defaults.Toggle(key: .notificationSoundEnabled) {
+                    Text("Play sound")
+                }
+                Defaults.Toggle(key: .respectDoNotDisturb) {
+                    Text("Respect Do Not Disturb / Focus")
+                }
+            } header: {
+                Text("Delivery")
+            }
+            .disabled(!enableNotifications)
+
+            Section {
+                Stepper(
+                    value: $notificationRetentionDays,
+                    in: 1...30,
+                    step: 1
+                ) {
+                    HStack {
+                        Text("Keep history")
+                        Spacer()
+                        Text("\(notificationRetentionDays) day\(notificationRetentionDays == 1 ? "" : "s")")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Button(role: .destructive) {
+                    manager.clear()
+                } label: {
+                    Text("Clear all notifications")
+                }
+            } header: {
+                Text("History")
+            }
+            .disabled(!enableNotifications)
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Notifications")
+        .onAppear {
+            manager.refreshAuthorizationStatus()
+        }
+    }
+
+    private var authorizationLabel: String {
+        switch manager.authorizationStatus {
+        case .authorized:
+            return "Authorized"
+        case .denied:
+            return "Denied"
+        case .notDetermined:
+            return "Not determined"
+        case .provisional:
+            return "Provisional"
+        case .ephemeral:
+            return "Ephemeral"
+        @unknown default:
+            return "Unknown"
+        }
     }
 }
 
