@@ -110,8 +110,8 @@ private struct ScrollMonitor: NSViewRepresentable {
                 // Compute this view's frame in screen coordinates and expand it slightly.
                 let viewRectInWindow = view.convert(view.bounds, to: nil)
                 let viewRectInScreen = viewWindow.convertToScreen(viewRectInWindow)
-                let expansion: CGFloat = 2 // small tolerance for very-edge events
-                let expandedRect = viewRectInScreen.insetBy(dx: -expansion, dy: -expansion)
+                let expansion: CGFloat = 4 // small tolerance for very-edge events
+                let expandedRect = viewRectInScreen.insetBy(dx: 0, dy: -expansion)
 
                 if expandedRect.contains(eventScreenPoint) {
                     self.handleScroll(event)
