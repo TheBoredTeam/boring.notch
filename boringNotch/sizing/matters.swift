@@ -36,8 +36,7 @@ enum MusicPlayerImageSizes {
     return nil
 }
 
-@MainActor func getClosedNotchSize(screenUUID: String? = nil) -> CGSize {
-    // Default notch size, to avoid using optionals
+@MainActor func getClosedNotchSize(screenUUID: String? = nil, hasLiveActivity: Bool = false) -> CGSize {
     var notchHeight: CGFloat = Defaults[.nonNotchHeight]
     var notchWidth: CGFloat = 185
 
@@ -59,20 +58,54 @@ enum MusicPlayerImageSizes {
         // Check if the Mac has a notch
         if screen.safeAreaInsets.top > 0 {
             // This is a display WITH a notch - use notch height settings
-            notchHeight = Defaults[.notchHeight]
-            if Defaults[.notchHeightMode] == .matchRealNotchSize {
-                notchHeight = screen.safeAreaInsets.top
-            } else if Defaults[.notchHeightMode] == .matchMenuBar {
-                notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+            // In the notch height calculation section
+            if Defaults[.useInactiveNotchHeight] && !hasLiveActivity {
+                notchHeight = Defaults[.inactiveNotchHeight]
+            } else {
+                // existing height logic
+                notchHeight = Defaults[.notchHeight]
+                if Defaults[.notchHeightMode] == .matchRealNotchSize {
+                    notchHeight = screen.safeAreaInsets.top
+                } else if Defaults[.notchHeightMode] == .matchMenuBar {
+                    notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+                }
             }
         } else {
-            // This is a display WITHOUT a notch - use non-notch height settings
-            notchHeight = Defaults[.nonNotchHeight]
-            if Defaults[.nonNotchHeightMode] == .matchMenuBar {
+            
+            // If there's NO live activity and mode is custom, use the custom slider value
+            if !hasLiveActivity && Defaults[.nonNotchHeightMode] == .custom {
+                notchHeight = Defaults[.nonNotchHeight]
+            }
+            // If there IS live activity OR mode is not custom, use preset heights
+            else if Defaults[.nonNotchHeightMode] == .matchMenuBar {
                 notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
+            } else if Defaults[.nonNotchHeightMode] == .matchRealNotchSize {
+                notchHeight = 32
+            } else {
+                notchHeight = 32
             }
         }
     }
 
+    return .init(width: notchWidth, height: notchHeight)
+}
+
+@MainActor func getInactiveNotchSize(screenUUID: String? = nil) -> CGSize {
+    let notchHeight: CGFloat = Defaults[.inactiveNotchHeight]
+    var notchWidth: CGFloat = 185
+    
+    var selectedScreen = NSScreen.main
+    
+    if let uuid = screenUUID {
+        selectedScreen = NSScreen.screen(withUUID: uuid)
+    }
+    
+    if let screen = selectedScreen {
+        if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
+           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
+            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
+        }
+    }
+    
     return .init(width: notchWidth, height: notchHeight)
 }

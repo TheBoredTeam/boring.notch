@@ -11708,6 +11708,12 @@
         }
       }
     },
+    "Inactive notch height" : {
+
+    },
+    "Inactive notch sizing (For non-notch displays)" : {
+
+    },
     "Inline" : {
       "localizations" : {
         "ar" : {
@@ -22314,6 +22320,9 @@
           }
         }
       }
+    },
+    "Use smaller height when inactive" : {
+
     },
     "Use your macOS system accent color" : {
       "localizations" : {
