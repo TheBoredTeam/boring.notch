@@ -93,6 +93,8 @@ extension Defaults.Keys {
     //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
+    static let inactiveNotchHeight = Key<CGFloat>("inactiveNotchHeight", default: 32)
+    static let useInactiveNotchHeight = Key<Bool>("useInactiveNotchHeight", default: false)
     
     // MARK: Appearance
     static let showEmojis = Key<Bool>("showEmojis", default: false)

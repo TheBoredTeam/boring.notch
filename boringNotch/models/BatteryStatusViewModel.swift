@@ -21,7 +21,8 @@ class BatteryStatusViewModel: ObservableObject {
     @Published private(set) var isInitial: Bool = false
     @Published private(set) var timeToFullCharge: Int = 0
     @Published private(set) var statusText: String = ""
-
+    @Published var hasActiveBatteryNotification: Bool = false
+    
     private let managerBattery = BatteryActivityManager.shared
     private var managerBatteryId: Int?
 
@@ -123,7 +124,12 @@ class BatteryStatusViewModel: ObservableObject {
     private func notifyImportanChangeStatus(delay: Double = 0.0) {
         Task {
             try? await Task.sleep(for: .seconds(delay))
+            self.hasActiveBatteryNotification = true
             self.coordinator.toggleExpandingView(status: true, type: .battery)
+            
+            // Auto-hide after a delay (e.g., 5 seconds)
+            try? await Task.sleep(for: .seconds(5))
+            self.hasActiveBatteryNotification = false
         }
     }
 

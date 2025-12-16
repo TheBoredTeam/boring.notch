@@ -41,7 +41,11 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var isCameraExpanded: Bool = false
     @Published var isRequestingAuthorization: Bool = false
     
+    var inactiveNotchSize: CGSize = .zero
+    private var inactiveHeightUpdateTask: DispatchWorkItem?
+    
     deinit {
+        NotificationCenter.default.removeObserver(self, name: Notification.Name.notchHeightChanged, object: nil)
         destroy()
     }
 
@@ -58,6 +62,7 @@ class BoringViewModel: NSObject, ObservableObject {
         self.screenUUID = screenUUID
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
+        inactiveNotchSize = getInactiveNotchSize(screenUUID: screenUUID)
 
         Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
             .map { shelf, drag, general in
@@ -67,6 +72,32 @@ class BoringViewModel: NSObject, ObservableObject {
             .store(in: &cancellables)
         
         setupDetectorObserver()
+        setupNotchHeightObserver()
+    }
+    
+    private func setupNotchHeightObserver() {
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.notchHeightChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            self.updateNotchSize()
+        }
+    }
+    
+    private func updateNotchSize() {
+        let newClosedSize = getClosedNotchSize(screenUUID: self.screenUUID)
+        let newInactiveSize = getInactiveNotchSize(screenUUID: self.screenUUID)
+        
+        withAnimation(.smooth(duration: 0.3)) {
+            self.closedNotchSize = newClosedSize
+            self.inactiveNotchSize = newInactiveSize
+            
+            if self.notchState == .closed {
+                self.notchSize = newClosedSize
+            }
+        }
     }
     
     private func setupDetectorObserver() {
@@ -101,12 +132,28 @@ class BoringViewModel: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
     }
-
-    // Computed property for effective notch height
+    
+    @ObservedObject var batteryStatus = BatteryStatusViewModel.shared
+    
     var effectiveClosedNotchHeight: CGFloat {
         let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
         let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
-        return noNotchAndFullscreen ? 0 : closedNotchSize.height
+        
+        if noNotchAndFullscreen {
+            return 0
+        }
+        
+        // Check if any live activity is active
+        let hasActiveLiveActivity = MusicManager.shared.isPlaying ||
+                                    coordinator.sneakPeek.show ||
+        batteryStatus.hasActiveBatteryNotification
+        
+        // Use inactive height when there's no live activity
+        if hasActiveLiveActivity {
+            return closedNotchSize.height
+        } else {
+            return inactiveNotchSize.height
+        }
     }
 
     var chinHeight: CGFloat {

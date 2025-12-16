@@ -147,6 +147,8 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    @Default(.inactiveNotchHeight) var inactiveNotchHeight
+    @Default(.useInactiveNotchHeight) var useInactiveNotchHeight
     
 
     var body: some View {
@@ -258,6 +260,22 @@ struct GeneralSettings: View {
             } header: {
                 Text("Notch sizing")
             }
+            
+            Section {
+                Defaults.Toggle(key: .useInactiveNotchHeight) {
+                    Text("Use smaller height when inactive")
+                }
+                .onChange(of: useInactiveNotchHeight) {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.notchHeightChanged, object: nil)
+                }
+
+                if useInactiveNotchHeight {
+                    InactiveNotchHeightSlider(maxHeight: nonNotchHeight)
+                }
+            } header: {
+                Text("Inactive notch sizing (For non-notch displays)")
+            }
 
             NotchBehaviour()
 
@@ -344,6 +362,45 @@ struct GeneralSettings: View {
             }
         } header: {
             Text("Notch behavior")
+        }
+    }
+}
+
+struct InactiveNotchHeightSlider: View {
+    @State private var localValue: Double
+    let maxHeight: Double
+    
+    init(maxHeight: Double) {
+        self.maxHeight = maxHeight
+        self._localValue = State(initialValue: Defaults[.inactiveNotchHeight])
+    }
+    
+    var body: some View {
+        let effectiveMax = max(1, maxHeight)
+        let clampedValue = min(localValue, effectiveMax)
+        
+        VStack(spacing: 8) {
+            HStack {
+                Text("Inactive notch height")
+                Spacer()
+                Text("\(Int(clampedValue))")
+                    .foregroundColor(.secondary)
+            }
+            
+            Slider(value: Binding(
+                get: { clampedValue },
+                set: { newValue in
+                    localValue = newValue
+                }
+            ), in: 1...effectiveMax, step: 1)
+                .onChange(of: localValue) { _, newValue in
+                    let finalValue = min(newValue, effectiveMax)
+                    Defaults[.inactiveNotchHeight] = finalValue
+                    NotificationCenter.default.post(
+                        name: Notification.Name.notchHeightChanged,
+                        object: nil
+                    )
+                }
         }
     }
 }
