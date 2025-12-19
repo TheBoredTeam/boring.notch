@@ -30,7 +30,30 @@ final class MediaKeyInterceptor {
     private let step: Float = 1.0 / 16.0
     private var audioPlayer: AVAudioPlayer?
     
-    private init() {}
+    private var cachedNotchScreenUUID: String = ""
+    private var screenChangeObserver: Any?
+    
+    private init() {
+        // Observe screen changes to keep cached UUID in sync
+        screenChangeObserver = NotificationCenter.default.addObserver(
+            forName: Notification.Name.selectedScreenChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.cachedNotchScreenUUID = BoringViewCoordinator.shared.selectedScreenUUID
+            }
+        }
+        Task { @MainActor in
+            self.cachedNotchScreenUUID = BoringViewCoordinator.shared.selectedScreenUUID
+        }
+    }
+    
+    deinit {
+        if let observer = screenChangeObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
     
     // MARK: - Accessibility (via XPC)
     
@@ -109,6 +132,17 @@ final class MediaKeyInterceptor {
               nsEvent.type == .systemDefined,
               nsEvent.subtype.rawValue == 8 else {
             return Unmanaged.passRetained(cgEvent)
+        }
+        
+        // Check if keyboard focus is on the notch's screen
+        if !Defaults[.showOnAllDisplays] {
+            let notchScreenUUID = cachedNotchScreenUUID
+            if let focusedScreen = NSScreen.main,
+               let focusedUUID = focusedScreen.displayUUID,
+               notchScreenUUID != focusedUUID {
+                // Pass event through to let system HUD show on the focused screen
+                return Unmanaged.passRetained(cgEvent)
+            }
         }
         
         let data1 = nsEvent.data1
