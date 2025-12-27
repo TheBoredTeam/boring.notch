@@ -48,7 +48,7 @@ struct AlbumArtView: View {
                         ? MusicPlayerImageSizes.cornerRadiusInset.opened
                         : MusicPlayerImageSizes.cornerRadiusInset.closed)
             )
-            .aspectRatio(1, contentMode: .fit)
+            .aspectRatio(contentMode: .fit)
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 40)
@@ -74,7 +74,7 @@ struct AlbumArtView: View {
 
     private var albumArtDarkOverlay: some View {
         Rectangle()
-            .aspectRatio(1, contentMode: .fit)
+            .aspectRatio(contentMode: .fit)
             .foregroundColor(Color.black)
             .opacity(musicManager.isPlaying ? 0 : 0.8)
             .blur(radius: 50)
@@ -84,7 +84,7 @@ struct AlbumArtView: View {
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
             .resizable()
-            .aspectRatio(1, contentMode: .fit)
+            .aspectRatio(contentMode: .fit)
             .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
             .clipped()
             .clipShape(
