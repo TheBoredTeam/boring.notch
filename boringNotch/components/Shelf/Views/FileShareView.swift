@@ -86,6 +86,7 @@ struct FileShareView: View {
                 Text(selectedProvider.id)
                     .font(.system(.headline, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
 
             }
             .padding(18)
