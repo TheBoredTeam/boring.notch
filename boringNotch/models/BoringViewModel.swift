@@ -31,6 +31,8 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
+    
+    @Published var backgroundImage: NSImage? = nil
 
     @Published var screenUUID: String?
 
@@ -67,6 +69,75 @@ class BoringViewModel: NSObject, ObservableObject {
             .store(in: &cancellables)
         
         setupDetectorObserver()
+        setupBackgroundImageObserver()
+    }
+    
+    private func setupBackgroundImageObserver() {
+        Defaults.publisher(.backgroundImageURL)
+            .map(\.newValue)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] url in
+                self?.loadBackgroundImage(from: url)
+            }
+            .store(in: &cancellables)
+        
+        if let url = Defaults[.backgroundImageURL] {
+            loadBackgroundImage(from: url)
+        }
+    }
+    
+    private func loadBackgroundImage(from url: URL?) {
+        guard let url = url else {
+            backgroundImage = nil
+            return
+        }
+        
+        let image = NSImage(contentsOf: url)
+        backgroundImage = image
+    }
+    
+    static func copyBackgroundImageToAppStorage(sourceURL: URL) -> URL? {
+        let fm = FileManager.default
+        
+        guard let supportDir = try? fm.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        ) else {
+            return nil
+        }
+        
+        let targetDir = supportDir
+            .appendingPathComponent("boringNotch", isDirectory: true)
+            .appendingPathComponent("Background", isDirectory: true)
+        
+        do {
+            try fm.createDirectory(at: targetDir, withIntermediateDirectories: true)
+        } catch {
+            return nil
+        }
+        
+        let fileExtension = sourceURL.pathExtension.isEmpty ? "png" : sourceURL.pathExtension
+        let destinationURL = targetDir.appendingPathComponent("background.\(fileExtension)")
+        
+        if fm.fileExists(atPath: destinationURL.path) {
+            try? fm.removeItem(at: destinationURL)
+        }
+        
+        do {
+            let didStartAccessing = sourceURL.isFileURL ? sourceURL.startAccessingSecurityScopedResource() : false
+            defer {
+                if didStartAccessing {
+                    sourceURL.stopAccessingSecurityScopedResource()
+                }
+            }
+            
+            try fm.copyItem(at: sourceURL, to: destinationURL)
+            return destinationURL
+        } catch {
+            return nil
+        }
     }
     
     private func setupDetectorObserver() {
