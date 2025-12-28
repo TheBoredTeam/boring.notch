@@ -88,32 +88,32 @@ struct WeatherView: View {
     }
     
     private func weatherContent(weather: WeatherData) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             // Location and main weather
             HStack(alignment: .center, spacing: 8) {
                 // Weather icon
                 Image(systemName: weather.systemIconName)
-                    .font(.system(size: 36))
+                    .font(.system(size: 32))
                     .foregroundColor(.white)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 36, height: 36)
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 1) {
                     // Location
                     Text(weather.location)
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundColor(Color(white: 0.65))
                         .lineLimit(1)
                     
                     // Temperature
                     Text(weather.temperatureString)
-                        .font(.system(size: 28, weight: .light))
+                        .font(.system(size: 24, weight: .light))
                         .foregroundColor(.white)
                 }
                 
                 Spacer(minLength: 0)
                 
                 // Condition on the right
-                VStack(alignment: .trailing, spacing: 2) {
+                VStack(alignment: .trailing, spacing: 1) {
                     Text(weather.condition)
                         .font(.caption2)
                         .foregroundColor(Color(white: 0.65))
@@ -124,15 +124,15 @@ struct WeatherView: View {
                         .foregroundColor(Color(white: 0.5))
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 8)
+            .padding(.horizontal, 10)
+            .padding(.top, 6)
             
             Divider()
                 .background(Color(white: 0.3))
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 10)
             
             // Weather details
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 WeatherDetailItem(
                     icon: "humidity.fill",
                     label: "Humidity",
@@ -141,7 +141,7 @@ struct WeatherView: View {
                 
                 Divider()
                     .background(Color(white: 0.3))
-                    .frame(height: 20)
+                    .frame(height: 16)
                 
                 WeatherDetailItem(
                     icon: "wind",
@@ -149,8 +149,8 @@ struct WeatherView: View {
                     value: String(format: "%.0f km/h", weather.windSpeed)
                 )
             }
-            .padding(.horizontal, 12)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 10)
+            .padding(.bottom, 6)
         }
     }
 }
@@ -161,19 +161,19 @@ struct WeatherDetailItem: View {
     let value: String
     
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Image(systemName: icon)
-                .font(.caption2)
+                .font(.system(size: 10))
                 .foregroundColor(Color(white: 0.65))
             
             VStack(alignment: .leading, spacing: 0) {
                 Text(value)
-                    .font(.caption)
+                    .font(.system(size: 11))
                     .fontWeight(.medium)
                     .foregroundColor(.white)
                 
                 Text(label)
-                    .font(.caption2)
+                    .font(.system(size: 9))
                     .foregroundColor(Color(white: 0.5))
             }
         }
