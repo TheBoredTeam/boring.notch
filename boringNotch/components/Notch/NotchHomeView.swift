@@ -3,7 +3,7 @@
 //  boringNotch
 //
 //  Created by Hugo Persson on 2024-08-18.
-//  Modified by Harsh Vardhan Goswami & Richard Kunkli & Mustafa Ramadan
+//  Modified by Harsh Vardhan Goswami & Richard Kunkli & Mustafa Ramadan & Arsh Anwar
 //
 
 import Combine
@@ -438,17 +438,58 @@ struct NotchHomeView: View {
     private var shouldShowCamera: Bool {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
+    
+    private var shouldShowCalendar: Bool {
+        Defaults[.showCalendar]
+    }
+    
+    private var shouldShowWeather: Bool {
+        Defaults[.showWeather]
+    }
+    
+    private var additionalItemsCount: Int {
+        var count = 0
+        if shouldShowCalendar { count += 1 }
+        if shouldShowWeather { count += 1 }
+        if shouldShowCamera { count += 1 }
+        return count
+    }
+    
+    private var itemWidth: CGFloat {
+        // Music player takes ~100px, we need to keep total under 640 for notch curve
+        // When camera is shown, it needs more space
+        if shouldShowCamera {
+            switch additionalItemsCount {
+            case 2: return 170  // calendar/weather + camera
+            case 3: return 130  // This shouldn't happen often
+            default: return 215
+            }
+        } else {
+            switch additionalItemsCount {
+            case 1: return 215  // Just calendar or weather
+            case 2: return 180  // Calendar + weather
+            default: return 215
+            }
+        }
+    }
 
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+        HStack(alignment: .top, spacing: additionalItemsCount >= 2 ? 10 : 15) {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
 
-            if Defaults[.showCalendar] {
+            if shouldShowCalendar {
                 CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
+                    .frame(width: itemWidth)
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
+                    .environmentObject(vm)
+                    .transition(.opacity)
+            }
+            
+            if shouldShowWeather {
+                WeatherView()
+                    .frame(width: itemWidth)
                     .environmentObject(vm)
                     .transition(.opacity)
             }

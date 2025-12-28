@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Richard Kunkli on 07/08/2024.
+//  Modified by Arsh Anwar
 //
 
 import AVFoundation
@@ -38,6 +39,9 @@ struct SettingsView: View {
                 }
                 NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
+                }
+                NavigationLink(value: "Weather") {
+                    Label("Weather", systemImage: "cloud.sun.fill")
                 }
                 NavigationLink(value: "HUD") {
                     Label("HUDs", systemImage: "dial.medium.fill")
@@ -79,6 +83,8 @@ struct SettingsView: View {
                     Media()
                 case "Calendar":
                     CalendarSettings()
+                case "Weather":
+                    WeatherSettings()
                 case "HUD":
                     HUD()
                 case "Battery":
@@ -1790,6 +1796,94 @@ func warningBadge(_ text: String, _ description: String) -> some View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+        }
+    }
+}
+
+struct WeatherSettings: View {
+    @ObservedObject private var weatherManager = WeatherManager.shared
+    @Default(.showWeather) var showWeather: Bool
+    
+    var body: some View {
+        Form {
+            Defaults.Toggle(key: .showWeather) {
+                Text("Show weather")
+            }
+            .onChange(of: showWeather) { _, newValue in
+                if newValue {
+                    // When weather is enabled, check and request location if needed
+                    weatherManager.checkLocationAuthorization()
+                }
+            }
+            
+            Section(header: Text("Location Access")) {
+                if weatherManager.locationAuthorizationStatus == .notDetermined {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Location access is required to show weather information.")
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.leading)
+                        Text("Enable 'Show weather' above to request location permission.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding()
+                } else if weatherManager.locationAuthorizationStatus == .denied || weatherManager.locationAuthorizationStatus == .restricted {
+                    Text("Location access is denied. Please enable it in System Settings.")
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    Button("Open Location Settings") {
+                        if let settingsURL = URL(
+                            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices"
+                        ) {
+                            NSWorkspace.shared.open(settingsURL)
+                        }
+                    }
+                } else {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Location access granted")
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                }
+            }
+            
+            if let weather = weatherManager.currentWeather {
+                Section(header: Text("Current Weather")) {
+                    HStack {
+                        Text("Location")
+                        Spacer()
+                        Text(weather.location)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack {
+                        Text("Temperature")
+                        Spacer()
+                        Text(weather.temperatureString)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack {
+                        Text("Condition")
+                        Spacer()
+                        Text(weather.condition)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack {
+                        Text("Last Updated")
+                        Spacer()
+                        Text(weather.lastUpdated, style: .relative)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Weather")
+        .onAppear {
+            weatherManager.checkLocationAuthorization()
         }
     }
 }
