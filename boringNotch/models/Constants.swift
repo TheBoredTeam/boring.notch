@@ -3,7 +3,7 @@
 //  boringNotch
 //
 //  Created by Richard Kunkli on 2024. 10. 17..
-+//  Modified by Arsh Anwar
+//  Modified by Arsh Anwar
 //
 
 import SwiftUI
