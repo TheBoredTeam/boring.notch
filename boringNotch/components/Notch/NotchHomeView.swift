@@ -456,12 +456,20 @@ struct NotchHomeView: View {
     }
     
     private var itemWidth: CGFloat {
-        switch additionalItemsCount {
-        case 0: return 215
-        case 1: return 215
-        case 2: return 170
-        case 3: return 150
-        default: return 150
+        // Music player takes ~100px, we need to keep total under 640 for notch curve
+        // When camera is shown, it needs more space
+        if shouldShowCamera {
+            switch additionalItemsCount {
+            case 2: return 170  // calendar/weather + camera
+            case 3: return 130  // This shouldn't happen often
+            default: return 215
+            }
+        } else {
+            switch additionalItemsCount {
+            case 1: return 215  // Just calendar or weather
+            case 2: return 180  // Calendar + weather
+            default: return 215
+            }
         }
     }
 
