@@ -395,6 +395,12 @@ class MusicManager: ObservableObject {
                 }
                 await self.fetchLyricsFromWeb(title: title, artist: artist)
             }
+        } else if let bundleIdentifier = bundleIdentifier, bundleIdentifier.contains("com.netease.163music") {
+            Task { @MainActor in
+                self.isFetchingLyrics = true
+                self.currentLyrics = ""
+                await self.fetchLyricsFromNetease(title: title, artist: artist)
+            }
         } else {
             Task { @MainActor in
                 self.isFetchingLyrics = true
@@ -460,24 +466,91 @@ class MusicManager: ObservableObject {
         }
     }
 
+    @MainActor
+    private func fetchLyricsFromNetease(title: String, artist: String) async {
+        func searchSongId(keyword: String) async -> Int? {
+            let cleanKeyword = normalizedQuery(keyword)
+            guard let encodedKeyword = cleanKeyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
+            let searchUrlString = "https://music.163.com/api/search/get/web?s=\(encodedKeyword)&type=1&offset=0&total=true&limit=1"
+            guard let searchUrl = URL(string: searchUrlString) else { return nil }
+            
+            var request = URLRequest(url: searchUrl)
+            request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36", forHTTPHeaderField: "User-Agent")
+            request.setValue("https://music.163.com", forHTTPHeaderField: "Referer")
+            
+            do {
+                let (searchData, _) = try await URLSession.shared.data(for: request)
+                if let json = try JSONSerialization.jsonObject(with: searchData) as? [String: Any],
+                   let result = json["result"] as? [String: Any],
+                   let songs = result["songs"] as? [[String: Any]],
+                   let firstSong = songs.first,
+                   let songId = firstSong["id"] as? Int {
+                    return songId
+                }
+            } catch {}
+            return nil
+        }
+        
+        // Try search strategies
+        var songId = await searchSongId(keyword: "\(title) \(artist)")
+        if songId == nil {
+            songId = await searchSongId(keyword: title)
+        }
+        
+        guard let targetId = songId else {
+            await fetchLyricsFromWeb(title: title, artist: artist)
+            return
+        }
+        
+        // Get lyrics
+        let lyricUrlString = "https://music.163.com/api/song/lyric?os=pc&id=\(targetId)&lv=-1&kv=-1&tv=-1"
+        guard let lyricUrl = URL(string: lyricUrlString) else {
+            await fetchLyricsFromWeb(title: title, artist: artist)
+            return
+        }
+        
+        var lyricRequest = URLRequest(url: lyricUrl)
+        lyricRequest.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36", forHTTPHeaderField: "User-Agent")
+        lyricRequest.setValue("https://music.163.com", forHTTPHeaderField: "Referer")
+        
+        do {
+            let (lyricData, _) = try await URLSession.shared.data(for: lyricRequest)
+            guard let lyricJson = try JSONSerialization.jsonObject(with: lyricData) as? [String: Any],
+                  let lrc = lyricJson["lrc"] as? [String: Any],
+                  let lyricString = lrc["lyric"] as? String,
+                  !lyricString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                await fetchLyricsFromWeb(title: title, artist: artist)
+                return
+            }
+            
+            self.currentLyrics = lyricString
+            self.isFetchingLyrics = false
+            self.syncedLyrics = self.parseLRC(lyricString)
+        } catch {
+            await fetchLyricsFromWeb(title: title, artist: artist)
+        }
+    }
+
     // MARK: - Synced lyrics helpers
     private func parseLRC(_ lrc: String) -> [(time: Double, text: String)] {
         var result: [(Double, String)] = []
         lrc.split(separator: "\n").forEach { lineSub in
             let line = String(lineSub)
-            // Match [mm:ss.xx] or [m:ss]
-            let pattern = #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,2}))?\]"#
+            // Match [mm:ss.xx] or [mm:ss.xxx] format
+            let pattern = #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]"#
             guard let regex = try? NSRegularExpression(pattern: pattern) else { return }
             let nsLine = line as NSString
             if let match = regex.firstMatch(in: line, range: NSRange(location: 0, length: nsLine.length)) {
                 let minStr = nsLine.substring(with: match.range(at: 1))
                 let secStr = nsLine.substring(with: match.range(at: 2))
                 let csRange = match.range(at: 3)
-                let centiStr = csRange.location != NSNotFound ? nsLine.substring(with: csRange) : "0"
+                let milliStr = csRange.location != NSNotFound ? nsLine.substring(with: csRange) : "0"
                 let minutes = Double(minStr) ?? 0
                 let seconds = Double(secStr) ?? 0
-                let centis = Double(centiStr) ?? 0
-                let time = minutes * 60 + seconds + centis / 100.0
+                // Handle both 2-digit (centiseconds) and 3-digit (milliseconds) formats
+                let milliseconds = Double(milliStr) ?? 0
+                let multiplier = milliStr.count == 3 ? 1000.0 : 100.0
+                let time = minutes * 60 + seconds + milliseconds / multiplier
                 let textStart = match.range.location + match.range.length
                 let text = nsLine.substring(from: textStart).trimmingCharacters(in: .whitespaces)
                 if !text.isEmpty {
