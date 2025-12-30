@@ -151,7 +151,8 @@ extension EventModel {
             participants: .init(from: event),
             timeZone: calendar.isSubscribed || calendar.isDelegate ? nil : event.timeZone,
             hasRecurrenceRules: event.hasRecurrenceRules || event.isDetached,
-            priority: nil
+            priority: nil,
+            alarms: (event.alarms ?? []).compactMap { EventCalendarAlarm(from: $0) }
         )
     }
     
@@ -175,7 +176,8 @@ extension EventModel {
             participants: [],
             timeZone: calendar.isSubscribed || calendar.isDelegate ? nil : reminder.timeZone,
             hasRecurrenceRules: reminder.hasRecurrenceRules,
-            priority: .init(from: reminder.priority)
+            priority: .init(from: reminder.priority),
+            alarms: (reminder.alarms ?? []).compactMap { EventCalendarAlarm(from: $0) }
         )
     }
 }
@@ -236,6 +238,18 @@ extension Priority {
         case 6...9:
             self = .low
         default:
+            return nil
+        }
+    }
+}
+
+extension EventCalendarAlarm {
+    init?(from alarm: EKAlarm) {
+        if let absoluteDate = alarm.absoluteDate {
+            self.init(absoluteDate: absoluteDate, relativeOffset: nil)
+        } else if alarm.relativeOffset != 0 {
+            self.init(absoluteDate: nil, relativeOffset: alarm.relativeOffset)
+        } else {
             return nil
         }
     }
