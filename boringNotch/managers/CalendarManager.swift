@@ -28,6 +28,8 @@ class CalendarManager: ObservableObject {
 
     private var eventStoreChangedObserver: NSObjectProtocol?
     private var scheduledAlarmTimers: [String: DispatchWorkItem] = [:]
+    private var pendingNotifications: [(event: EventModel, triggerTime: Date)] = []
+    private var currentNotificationWorkItem: DispatchWorkItem?
 
     private init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
@@ -41,6 +43,7 @@ class CalendarManager: ObservableObject {
         if let observer = eventStoreChangedObserver {
             NotificationCenter.default.removeObserver(observer)
         }
+        currentNotificationWorkItem?.cancel()
     }
 
     private func setupEventStoreChangedObserver() {
@@ -221,6 +224,9 @@ class CalendarManager: ObservableObject {
             task.cancel()
         }
         scheduledAlarmTimers.removeAll()
+        currentNotificationWorkItem?.cancel()
+        currentNotificationWorkItem = nil
+        pendingNotifications.removeAll()
     }
 
     private func scheduleEventAlarms() async {
@@ -296,7 +302,38 @@ class CalendarManager: ObservableObject {
     private func showEventNotification(for event: EventModel) {
         guard Defaults[.calendarEventNotificationsEnabled] else { return }
 
-        // Play notification sound
+        let now = Date()
+
+        // Check if this event is already pending
+        if pendingNotifications.contains(where: { $0.event.id == event.id && $0.event.start == event.start }) {
+            return
+        }
+
+        // Add to pending list with trigger time
+        pendingNotifications.append((event: event, triggerTime: now))
+
+        // Sort by trigger time to maintain order
+        pendingNotifications.sort { $0.triggerTime < $1.triggerTime }
+
+        // If no notification is currently showing, start processing
+        if currentNotificationWorkItem == nil {
+            processNextNotification()
+        }
+    }
+
+    private func processNextNotification() {
+        // Remove expired/outdated notifications
+        let now = Date()
+        pendingNotifications.removeAll { now.timeIntervalSince($0.triggerTime) > 60 }
+
+        guard !pendingNotifications.isEmpty else {
+            currentNotificationWorkItem = nil
+            return
+        }
+
+        let next = pendingNotifications[0]
+
+        // Play sound and show notification
         if let sound = NSSound(named: "Glass") {
             sound.play()
         }
@@ -305,8 +342,21 @@ class CalendarManager: ObservableObject {
             status: true,
             type: .calendarEvent,
             duration: 8.0,
-            eventTitle: event.title,
-            eventStartTime: event.start
+            eventTitle: next.event.title,
+            eventStartTime: next.event.start
         )
+
+        // Schedule next notification after 8 seconds
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            // Remove the event we just showed
+            if !self.pendingNotifications.isEmpty {
+                self.pendingNotifications.removeFirst()
+            }
+            // Process next
+            self.processNextNotification()
+        }
+        currentNotificationWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 9.0, execute: workItem)
     }
 }
