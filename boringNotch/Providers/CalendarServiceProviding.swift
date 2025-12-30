@@ -247,10 +247,8 @@ extension EventCalendarAlarm {
     init?(from alarm: EKAlarm) {
         if let absoluteDate = alarm.absoluteDate {
             self.init(absoluteDate: absoluteDate, relativeOffset: nil)
-        } else if alarm.relativeOffset != 0 {
-            self.init(absoluteDate: nil, relativeOffset: alarm.relativeOffset)
         } else {
-            return nil
+            self.init(absoluteDate: nil, relativeOffset: alarm.relativeOffset)
         }
     }
 }
