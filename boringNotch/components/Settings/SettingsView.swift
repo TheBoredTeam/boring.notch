@@ -758,10 +758,15 @@ struct CalendarSettings: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("Default notification time")
-                        Spacer()
-                        Stepper("\(calendarEventNotificationMinutes) min", value: $calendarEventNotificationMinutes, in: 1...60)
-                            .disabled(!calendarEventNotificationsEnabled)
+                        Stepper(value: $calendarEventNotificationMinutes, in: 1...60, step: 1) {
+                            HStack {
+                                Text("Default notification time")
+                                Spacer()
+                                Text("\(calendarEventNotificationMinutes) min")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .disabled(!calendarEventNotificationsEnabled)
                     }
                     Text("Used for events without calendar alarms")
                         .font(.caption)
