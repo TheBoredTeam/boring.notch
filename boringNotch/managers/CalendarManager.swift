@@ -260,9 +260,9 @@ class CalendarManager: ObservableObject {
                 let timeUntilTrigger = triggerDate.timeIntervalSince(now)
                 let timerKey = "\(event.id)_\(triggerDate.timeIntervalSince1970)"
 
-                let workItem = DispatchWorkItem { [weak self, timerKey] in
-                    Task { @MainActor [weak self, timerKey] in
-                        self?.showEventNotification(for: event)
+                let workItem = DispatchWorkItem { [weak self, timerKey, eventID = event.id, eventStart = event.start] in
+                    Task { @MainActor [weak self, timerKey, eventID, eventStart] in
+                        await self?.showEventNotificationIfValid(eventID: eventID, eventStart: eventStart, expectedTriggerDate: triggerDate)
                         self?.scheduledAlarmTimers.removeValue(forKey: timerKey)
                     }
                 }
@@ -286,9 +286,9 @@ class CalendarManager: ObservableObject {
                 let timeUntilTrigger = triggerDate.timeIntervalSince(now)
                 let timerKey = "\(event.id)_default"
 
-                let workItem = DispatchWorkItem { [weak self, timerKey] in
-                    Task { @MainActor [weak self, timerKey] in
-                        self?.showEventNotification(for: event)
+                let workItem = DispatchWorkItem { [weak self, timerKey, eventID = event.id, eventStart = event.start] in
+                    Task { @MainActor [weak self, timerKey, eventID, eventStart] in
+                        await self?.showEventNotificationIfValid(eventID: eventID, eventStart: eventStart, expectedTriggerDate: triggerDate)
                         self?.scheduledAlarmTimers.removeValue(forKey: timerKey)
                     }
                 }
@@ -299,23 +299,39 @@ class CalendarManager: ObservableObject {
         }
     }
 
+    private func showEventNotificationIfValid(eventID: String, eventStart: Date, expectedTriggerDate: Date) async {
+        guard Defaults[.calendarEventNotificationsEnabled] else { return }
+
+        guard let currentEvent = await calendarService.event(withIdentifier: eventID) else {
+            return
+        }
+
+        let alarmStillExists = currentEvent.alarms.contains { alarm in
+            guard let triggerDate = alarm.triggerDate(for: eventStart) else { return false }
+            return abs(triggerDate.timeIntervalSince(expectedTriggerDate)) < 1.0
+        }
+
+        let isDefaultNotification = currentEvent.alarms.isEmpty
+
+        guard alarmStillExists || isDefaultNotification else {
+            return
+        }
+
+        showEventNotification(for: currentEvent)
+    }
+
     private func showEventNotification(for event: EventModel) {
         guard Defaults[.calendarEventNotificationsEnabled] else { return }
 
         let now = Date()
 
-        // Check if this event is already pending
         if pendingNotifications.contains(where: { $0.event.id == event.id && $0.event.start == event.start }) {
             return
         }
 
-        // Add to pending list with trigger time
         pendingNotifications.append((event: event, triggerTime: now))
-
-        // Sort by trigger time to maintain order
         pendingNotifications.sort { $0.triggerTime < $1.triggerTime }
 
-        // If no notification is currently showing, start processing
         if currentNotificationWorkItem == nil {
             processNextNotification()
         }

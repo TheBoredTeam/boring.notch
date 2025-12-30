@@ -14,6 +14,7 @@ protocol CalendarServiceProviding {
     func requestAccess(to type: EKEntityType) async throws -> Bool
     func calendars() async -> [CalendarModel]
     func events(from start: Date, to end: Date, calendars: [String]) async -> [EventModel]
+    func event(withIdentifier identifier: String) async -> EventModel?
 }
 
 class CalendarService: CalendarServiceProviding {
@@ -115,6 +116,15 @@ class CalendarService: CalendarServiceProviding {
         } catch {
             print("Failed to update reminder completion: \(error)")
         }
+    }
+
+    func event(withIdentifier identifier: String) async -> EventModel? {
+        if let ekEvent = store.calendarItem(withIdentifier: identifier) as? EKEvent {
+            return EventModel(from: ekEvent)
+        } else if let ekReminder = store.calendarItem(withIdentifier: identifier) as? EKReminder {
+            return EventModel(from: ekReminder)
+        }
+        return nil
     }
 }
 
