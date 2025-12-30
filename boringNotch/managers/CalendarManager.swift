@@ -27,6 +27,9 @@ class CalendarManager: ObservableObject {
     private let calendarService = CalendarService()
 
     private var eventStoreChangedObserver: NSObjectProtocol?
+    private var scheduledAlarmTimers: [String: DispatchWorkItem] = [:]
+    private var pendingNotifications: [(event: EventModel, triggerTime: Date)] = []
+    private var currentNotificationWorkItem: DispatchWorkItem?
 
     private init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
@@ -40,6 +43,7 @@ class CalendarManager: ObservableObject {
         if let observer = eventStoreChangedObserver {
             NotificationCenter.default.removeObserver(observer)
         }
+        currentNotificationWorkItem?.cancel()
     }
 
     private func setupEventStoreChangedObserver() {
@@ -50,6 +54,9 @@ class CalendarManager: ObservableObject {
         ) { [weak self] _ in
             Task {
                 await self?.reloadCalendarAndReminderLists()
+                if Defaults[.calendarEventNotificationsEnabled] {
+                    await self?.scheduleEventAlarms()
+                }
             }
         }
     }
@@ -200,5 +207,172 @@ class CalendarManager: ObservableObject {
             from: currentWeekStartDate,
             to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!,
             calendars: selectedCalendars.map { $0.id })
+    }
+
+    func startEventMonitoring() {
+        guard Defaults[.calendarEventNotificationsEnabled] else { return }
+
+        stopEventMonitoring()
+
+        Task { @MainActor in
+            await scheduleEventAlarms()
+        }
+    }
+
+    func stopEventMonitoring() {
+        for (_, task) in scheduledAlarmTimers {
+            task.cancel()
+        }
+        scheduledAlarmTimers.removeAll()
+        currentNotificationWorkItem?.cancel()
+        currentNotificationWorkItem = nil
+        pendingNotifications.removeAll()
+    }
+
+    private func scheduleEventAlarms() async {
+        guard Defaults[.calendarEventNotificationsEnabled] else { return }
+
+        let now = Date()
+        let endOfWeek = Calendar.current.date(byAdding: .day, value: 7, to: now)!
+
+        let upcomingEvents = await calendarService.events(
+            from: now,
+            to: endOfWeek,
+            calendars: selectedCalendars.map { $0.id }
+        )
+
+        // Schedule notifications for each event's alarms
+        for event in upcomingEvents {
+            if event.isAllDay || event.start < now {
+                continue
+            }
+
+            if case .reminder(let completed) = event.type, completed {
+                continue
+            }
+
+            for alarm in event.alarms {
+                guard let triggerDate = alarm.triggerDate(for: event.start) else { continue }
+
+                // Only schedule if trigger is in the future
+                guard triggerDate > now else { continue }
+
+                let timeUntilTrigger = triggerDate.timeIntervalSince(now)
+                let timerKey = "\(event.id)_\(triggerDate.timeIntervalSince1970)"
+
+                let workItem = DispatchWorkItem { [weak self, timerKey, eventID = event.id, eventStart = event.start] in
+                    Task { @MainActor [weak self, timerKey, eventID, eventStart] in
+                        await self?.showEventNotificationIfValid(eventID: eventID, eventStart: eventStart, expectedTriggerDate: triggerDate)
+                        self?.scheduledAlarmTimers.removeValue(forKey: timerKey)
+                    }
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilTrigger, execute: workItem)
+                scheduledAlarmTimers[timerKey] = workItem
+            }
+        }
+
+        for event in upcomingEvents {
+            if event.alarms.isEmpty && !event.isAllDay && event.start > now {
+                if case .reminder(let completed) = event.type, completed {
+                    continue
+                }
+
+                let notificationMinutes = TimeInterval(Defaults[.calendarEventNotificationMinutes] * 60)
+                let triggerDate = event.start.addingTimeInterval(-notificationMinutes)
+
+                guard triggerDate > now else { continue }
+
+                let timeUntilTrigger = triggerDate.timeIntervalSince(now)
+                let timerKey = "\(event.id)_default"
+
+                let workItem = DispatchWorkItem { [weak self, timerKey, eventID = event.id, eventStart = event.start] in
+                    Task { @MainActor [weak self, timerKey, eventID, eventStart] in
+                        await self?.showEventNotificationIfValid(eventID: eventID, eventStart: eventStart, expectedTriggerDate: triggerDate)
+                        self?.scheduledAlarmTimers.removeValue(forKey: timerKey)
+                    }
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilTrigger, execute: workItem)
+                scheduledAlarmTimers[timerKey] = workItem
+            }
+        }
+    }
+
+    private func showEventNotificationIfValid(eventID: String, eventStart: Date, expectedTriggerDate: Date) async {
+        guard Defaults[.calendarEventNotificationsEnabled] else { return }
+
+        guard let currentEvent = await calendarService.event(withIdentifier: eventID) else {
+            return
+        }
+
+        let alarmStillExists = currentEvent.alarms.contains { alarm in
+            guard let triggerDate = alarm.triggerDate(for: eventStart) else { return false }
+            return abs(triggerDate.timeIntervalSince(expectedTriggerDate)) < 1.0
+        }
+
+        let isDefaultNotification = currentEvent.alarms.isEmpty
+
+        guard alarmStillExists || isDefaultNotification else {
+            return
+        }
+
+        showEventNotification(for: currentEvent)
+    }
+
+    private func showEventNotification(for event: EventModel) {
+        guard Defaults[.calendarEventNotificationsEnabled] else { return }
+
+        let now = Date()
+
+        if pendingNotifications.contains(where: { $0.event.id == event.id && $0.event.start == event.start }) {
+            return
+        }
+
+        pendingNotifications.append((event: event, triggerTime: now))
+        pendingNotifications.sort { $0.triggerTime < $1.triggerTime }
+
+        if currentNotificationWorkItem == nil {
+            processNextNotification()
+        }
+    }
+
+    private func processNextNotification() {
+        // Remove expired/outdated notifications
+        let now = Date()
+        pendingNotifications.removeAll { now.timeIntervalSince($0.triggerTime) > 60 }
+
+        guard !pendingNotifications.isEmpty else {
+            currentNotificationWorkItem = nil
+            return
+        }
+
+        let next = pendingNotifications[0]
+
+        // Play sound and show notification
+        if let sound = NSSound(named: "Glass") {
+            sound.play()
+        }
+
+        BoringViewCoordinator.shared.toggleSneakPeek(
+            status: true,
+            type: .calendarEvent,
+            duration: 8.0,
+            eventTitle: next.event.title,
+            eventStartTime: next.event.start
+        )
+
+        // Schedule next notification after 8 seconds
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            // Remove the event we just showed
+            if !self.pendingNotifications.isEmpty {
+                self.pendingNotifications.removeFirst()
+            }
+            // Process next
+            self.processNextNotification()
+        }
+        currentNotificationWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 9.0, execute: workItem)
     }
 }

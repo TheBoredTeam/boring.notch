@@ -24,6 +24,7 @@ struct EventModel: Equatable, Identifiable {
     let timeZone: TimeZone?
     let hasRecurrenceRules: Bool
     let priority: Priority?
+    let alarms: [EventCalendarAlarm]
 }
 
 enum AttendanceStatus: Comparable {
@@ -122,4 +123,18 @@ enum Priority {
     case high
     case medium
     case low
+}
+
+struct EventCalendarAlarm: Equatable {
+    let absoluteDate: Date?
+    let relativeOffset: TimeInterval?
+
+    func triggerDate(for eventStart: Date) -> Date? {
+        if let absoluteDate = absoluteDate {
+            return absoluteDate
+        } else if let offset = relativeOffset {
+            return eventStart.addingTimeInterval(offset)
+        }
+        return nil
+    }
 }

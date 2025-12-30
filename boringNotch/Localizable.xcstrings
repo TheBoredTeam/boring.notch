@@ -901,6 +901,9 @@
         }
       }
     },
+    "%lld min" : {
+
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -1300,6 +1303,9 @@
           }
         }
       }
+    },
+    "|" : {
+
     },
     "About" : {
       "localizations" : {
@@ -11608,6 +11614,9 @@
         }
       }
     },
+    "in %lld min" : {
+
+    },
     "In progress" : {
       "localizations" : {
         "ar" : {
@@ -15510,6 +15519,12 @@
         }
       }
     },
+    "Notifications" : {
+
+    },
+    "Notify before event" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -19111,6 +19126,9 @@
           }
         }
       }
+    },
+    "Show event notifications in notch" : {
+
     },
     "Show HUD in open notch" : {
       "localizations" : {
