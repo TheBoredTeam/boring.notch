@@ -27,6 +27,7 @@ class CalendarManager: ObservableObject {
     private let calendarService = CalendarService()
 
     private var eventStoreChangedObserver: NSObjectProtocol?
+    private var scheduledAlarmTimers: [String: DispatchWorkItem] = [:]
 
     private init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
@@ -50,6 +51,9 @@ class CalendarManager: ObservableObject {
         ) { [weak self] _ in
             Task {
                 await self?.reloadCalendarAndReminderLists()
+                if Defaults[.calendarEventNotificationsEnabled] {
+                    await self?.scheduleEventAlarms()
+                }
             }
         }
     }
@@ -200,5 +204,104 @@ class CalendarManager: ObservableObject {
             from: currentWeekStartDate,
             to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!,
             calendars: selectedCalendars.map { $0.id })
+    }
+
+    func startEventMonitoring() {
+        guard Defaults[.calendarEventNotificationsEnabled] else { return }
+
+        stopEventMonitoring()
+
+        Task { @MainActor in
+            await scheduleEventAlarms()
+        }
+    }
+
+    func stopEventMonitoring() {
+        for (_, task) in scheduledAlarmTimers {
+            task.cancel()
+        }
+        scheduledAlarmTimers.removeAll()
+    }
+
+    private func scheduleEventAlarms() async {
+        guard Defaults[.calendarEventNotificationsEnabled] else { return }
+
+        let now = Date()
+        let endOfWeek = Calendar.current.date(byAdding: .day, value: 7, to: now)!
+
+        let upcomingEvents = await calendarService.events(
+            from: now,
+            to: endOfWeek,
+            calendars: selectedCalendars.map { $0.id }
+        )
+
+        // Schedule notifications for each event's alarms
+        for event in upcomingEvents {
+            if event.isAllDay || event.start < now {
+                continue
+            }
+
+            if case .reminder(let completed) = event.type, completed {
+                continue
+            }
+
+            for alarm in event.alarms {
+                guard let triggerDate = alarm.triggerDate(for: event.start) else { continue }
+
+                // Only schedule if trigger is in the future
+                guard triggerDate > now else { continue }
+
+                let timeUntilTrigger = triggerDate.timeIntervalSince(now)
+
+                let workItem = DispatchWorkItem { [weak self] in
+                    Task { @MainActor [weak self] in
+                        self?.showEventNotification(for: event)
+                    }
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilTrigger, execute: workItem)
+
+                let timerKey = "\(event.id)_\(triggerDate.timeIntervalSince1970)"
+                scheduledAlarmTimers[timerKey] = workItem
+            }
+        }
+
+        for event in upcomingEvents {
+            if event.alarms.isEmpty && !event.isAllDay && event.start > now {
+                if case .reminder(let completed) = event.type, completed {
+                    continue
+                }
+
+                let notificationMinutes = TimeInterval(Defaults[.calendarEventNotificationMinutes] * 60)
+                let triggerDate = event.start.addingTimeInterval(-notificationMinutes)
+
+                guard triggerDate > now else { continue }
+
+                let timeUntilTrigger = triggerDate.timeIntervalSince(now)
+
+                let workItem = DispatchWorkItem { [weak self] in
+                    Task { @MainActor [weak self] in
+                        self?.showEventNotification(for: event)
+                    }
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilTrigger, execute: workItem)
+
+                let timerKey = "\(event.id)_default"
+                scheduledAlarmTimers[timerKey] = workItem
+            }
+        }
+    }
+
+    private func showEventNotification(for event: EventModel) {
+        guard Defaults[.calendarEventNotificationsEnabled] else { return }
+
+        BoringViewCoordinator.shared.toggleSneakPeek(
+            status: true,
+            type: .calendarEvent,
+            duration: 8.0,
+            eventTitle: event.title,
+            eventStartTime: event.start
+        )
     }
 }
