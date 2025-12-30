@@ -296,6 +296,11 @@ class CalendarManager: ObservableObject {
     private func showEventNotification(for event: EventModel) {
         guard Defaults[.calendarEventNotificationsEnabled] else { return }
 
+        // Play notification sound
+        if let sound = NSSound(named: "Glass") {
+            sound.play()
+        }
+
         BoringViewCoordinator.shared.toggleSneakPeek(
             status: true,
             type: .calendarEvent,
