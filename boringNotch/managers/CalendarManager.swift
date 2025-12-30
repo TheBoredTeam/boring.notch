@@ -258,16 +258,16 @@ class CalendarManager: ObservableObject {
                 guard triggerDate > now else { continue }
 
                 let timeUntilTrigger = triggerDate.timeIntervalSince(now)
+                let timerKey = "\(event.id)_\(triggerDate.timeIntervalSince1970)"
 
-                let workItem = DispatchWorkItem { [weak self] in
-                    Task { @MainActor [weak self] in
+                let workItem = DispatchWorkItem { [weak self, timerKey] in
+                    Task { @MainActor [weak self, timerKey] in
                         self?.showEventNotification(for: event)
+                        self?.scheduledAlarmTimers.removeValue(forKey: timerKey)
                     }
                 }
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilTrigger, execute: workItem)
-
-                let timerKey = "\(event.id)_\(triggerDate.timeIntervalSince1970)"
                 scheduledAlarmTimers[timerKey] = workItem
             }
         }
@@ -284,16 +284,16 @@ class CalendarManager: ObservableObject {
                 guard triggerDate > now else { continue }
 
                 let timeUntilTrigger = triggerDate.timeIntervalSince(now)
+                let timerKey = "\(event.id)_default"
 
-                let workItem = DispatchWorkItem { [weak self] in
-                    Task { @MainActor [weak self] in
+                let workItem = DispatchWorkItem { [weak self, timerKey] in
+                    Task { @MainActor [weak self, timerKey] in
                         self?.showEventNotification(for: event)
+                        self?.scheduledAlarmTimers.removeValue(forKey: timerKey)
                     }
                 }
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilTrigger, execute: workItem)
-
-                let timerKey = "\(event.id)_default"
                 scheduledAlarmTimers[timerKey] = workItem
             }
         }
