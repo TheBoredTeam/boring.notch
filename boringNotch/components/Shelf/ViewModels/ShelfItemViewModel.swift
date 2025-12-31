@@ -37,7 +37,7 @@ final class ShelfItemViewModel: ObservableObject {
     func loadThumbnail() async {
         guard let url = item.fileURL else { return }
         if let image = await ThumbnailService.shared.thumbnail(for: url, size: CGSize(width: 56, height: 56)) {
-            self.thumbnail = NSImage(cgImage: image, size: CGSize(width: 56, height: 56))
+            self.thumbnail = image
         }
     }
 
@@ -224,7 +224,6 @@ final class ShelfItemViewModel: ObservableObject {
             if case .link(let url) = itm.kind { return url }
             return nil
         }
-        let selectedFolderURLs = selectedFileURLs.filter { isDirectory($0) }
         let selectedShelfItems = selectedItems.filter { ShelfStateViewModel.shared.isStoredItem($0) }
         // URLs valid for Open/Open With (exclude folders)
         let selectedOpenableURLs = selectedItems.compactMap { itm -> URL? in

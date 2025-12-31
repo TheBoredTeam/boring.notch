@@ -32,7 +32,7 @@ struct Shelf: View {
 
     private var linkedFolderURL: URL? {
         guard let data = linkedShelfFolderBookmark else { return nil }
-        return Bookmark(data: data).resolveURL()
+        return Bookmark(data: data).resolvedURL
     }
 
     private var linkedFolderLabel: String {
@@ -202,10 +202,10 @@ struct Shelf: View {
                     .foregroundColor(.secondary)
             }
         }
-        .onChange(of: linkedShelfFolderBookmark) { _ in
+        .onChange(of: linkedShelfFolderBookmark) {
             ShelfStateViewModel.shared.refreshLinkedItems()
         }
-        .onChange(of: linkedShelfRecentItemLimit) { _ in
+        .onChange(of: linkedShelfRecentItemLimit) {
             ShelfStateViewModel.shared.refreshLinkedItems()
         }
         .accentColor(.effectiveAccent)

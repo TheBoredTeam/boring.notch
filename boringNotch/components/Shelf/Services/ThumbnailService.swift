@@ -98,3 +98,9 @@ actor ThumbnailService {
         }
     }
 }
+
+private extension CGImage {
+    var size: NSSize {
+        NSSize(width: width, height: height)
+    }
+}

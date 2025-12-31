@@ -20,7 +20,9 @@ final class ShelfStateViewModel: ObservableObject {
     @Published var isLoading: Bool = false
 
     var isEmpty: Bool { displayItems.isEmpty }
-    var displayItems: [ShelfItem] { items + linkedItems }
+    var displayItems: [ShelfItem] {
+        Defaults[.linkedShelfFolderBookmark] == nil ? items : linkedItems
+    }
     var mostRecentHomeItem: ShelfItem? {
         if let linked = linkedItems.first {
             return linked
@@ -69,41 +71,21 @@ final class ShelfStateViewModel: ObservableObject {
 
     func updateBookmark(for item: ShelfItem, bookmark: Data) {
         if let idx = items.firstIndex(where: { $0.id == item.id }) {
-            if case .file = items[idx].kind {
-                items[idx].kind = .file(bookmark: bookmark)
-            }
+            guard case .file = items[idx].kind else { return }
+            items[idx] = ShelfItem(
+                id: items[idx].id,
+                kind: .file(bookmark: bookmark),
+                isTemporary: items[idx].isTemporary
+            )
             return
         }
         if let idx = linkedItems.firstIndex(where: { $0.id == item.id }) {
-            if case .file = linkedItems[idx].kind {
-                linkedItems[idx].kind = .file(bookmark: bookmark)
-            }
-        }
-    }
-
-    private func scheduleDeferredBookmarkUpdate(for item: ShelfItem, bookmark: Data) {
-        pendingBookmarkUpdates[item.id] = bookmark
-        
-        // Cancel existing task and schedule a new one
-        updateTask?.cancel()
-        updateTask = Task { @MainActor [weak self] in
-            await Task.yield()
-            
-            guard let self = self else { return }
-            
-            for (itemID, bookmarkData) in self.pendingBookmarkUpdates {
-                if let idx = self.items.firstIndex(where: { $0.id == itemID }),
-                   case .file = self.items[idx].kind {
-                    self.items[idx].kind = .file(bookmark: bookmarkData)
-                    continue
-                }
-                if let idx = self.linkedItems.firstIndex(where: { $0.id == itemID }),
-                   case .file = self.linkedItems[idx].kind {
-                    self.linkedItems[idx].kind = .file(bookmark: bookmarkData)
-                }
-            }
-            
-            self.pendingBookmarkUpdates.removeAll()
+            guard case .file = linkedItems[idx].kind else { return }
+            linkedItems[idx] = ShelfItem(
+                id: linkedItems[idx].id,
+                kind: .file(bookmark: bookmark),
+                isTemporary: linkedItems[idx].isTemporary
+            )
         }
     }
 
@@ -112,6 +94,15 @@ final class ShelfStateViewModel: ObservableObject {
         guard !providers.isEmpty else { return }
         isLoading = true
         Task { [weak self] in
+            if let linkedBookmark = Defaults[.linkedShelfFolderBookmark] {
+                await LinkedFolderShelfService.saveItems(from: providers, to: linkedBookmark)
+                await MainActor.run {
+                    self?.refreshLinkedItems()
+                    self?.isLoading = false
+                }
+                return
+            }
+
             let dropped = await ShelfDropService.items(from: providers)
             await MainActor.run {
                 self?.add(dropped)
