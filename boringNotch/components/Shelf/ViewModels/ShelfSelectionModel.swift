@@ -28,7 +28,7 @@ final class ShelfSelectionModel: ObservableObject {
 
     var firstSelectedItem: ShelfItem? {
         guard let firstID = selectedIDs.first else { return nil }
-        return ShelfStateViewModel.shared.items.first(where: { $0.id == firstID })
+        return ShelfStateViewModel.shared.displayItems.first(where: { $0.id == firstID })
     }
 
     func selectedItems(in allItems: [ShelfItem]) -> [ShelfItem] {

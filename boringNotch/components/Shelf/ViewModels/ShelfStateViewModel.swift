@@ -6,6 +6,7 @@
 
 import Foundation
 import AppKit
+import Defaults
 
 @MainActor
 final class ShelfStateViewModel: ObservableObject {
@@ -14,10 +15,12 @@ final class ShelfStateViewModel: ObservableObject {
     @Published private(set) var items: [ShelfItem] = [] {
         didSet { ShelfPersistenceService.shared.save(items) }
     }
+    @Published private(set) var linkedItems: [ShelfItem] = []
 
     @Published var isLoading: Bool = false
 
-    var isEmpty: Bool { items.isEmpty }
+    var isEmpty: Bool { displayItems.isEmpty }
+    var displayItems: [ShelfItem] { items + linkedItems }
 
     // Queue for deferred bookmark updates to avoid publishing during view updates
     private var pendingBookmarkUpdates: [ShelfItem.ID: Data] = [:]
@@ -25,6 +28,7 @@ final class ShelfStateViewModel: ObservableObject {
 
     private init() {
         items = ShelfPersistenceService.shared.load()
+        refreshLinkedItems()
     }
 
 
@@ -49,9 +53,16 @@ final class ShelfStateViewModel: ObservableObject {
     }
 
     func updateBookmark(for item: ShelfItem, bookmark: Data) {
-        guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
-        if case .file = items[idx].kind {
-            items[idx].kind = .file(bookmark: bookmark)
+        if let idx = items.firstIndex(where: { $0.id == item.id }) {
+            if case .file = items[idx].kind {
+                items[idx].kind = .file(bookmark: bookmark)
+            }
+            return
+        }
+        if let idx = linkedItems.firstIndex(where: { $0.id == item.id }) {
+            if case .file = linkedItems[idx].kind {
+                linkedItems[idx].kind = .file(bookmark: bookmark)
+            }
         }
     }
 
@@ -69,6 +80,11 @@ final class ShelfStateViewModel: ObservableObject {
                 if let idx = self.items.firstIndex(where: { $0.id == itemID }),
                    case .file = self.items[idx].kind {
                     self.items[idx].kind = .file(bookmark: bookmarkData)
+                    continue
+                }
+                if let idx = self.linkedItems.firstIndex(where: { $0.id == itemID }),
+                   case .file = self.linkedItems[idx].kind {
+                    self.linkedItems[idx].kind = .file(bookmark: bookmarkData)
                 }
             }
             
@@ -139,5 +155,25 @@ final class ShelfStateViewModel: ObservableObject {
             if let u = resolveFileURL(for: it) { urls.append(u) }
         }
         return urls
+    }
+
+    func refreshLinkedItems() {
+        guard let bookmarkData = Defaults[.linkedShelfFolderBookmark] else {
+            linkedItems = []
+            return
+        }
+        let limit = min(Defaults[.linkedShelfRecentItemLimit], 4)
+        guard limit > 0 else {
+            linkedItems = []
+            return
+        }
+        Task { [weak self] in
+            let items = await LinkedFolderShelfService.loadItems(from: bookmarkData, limit: limit)
+            await MainActor.run { self?.linkedItems = items }
+        }
+    }
+
+    func isStoredItem(_ item: ShelfItem) -> Bool {
+        items.contains(where: { $0.id == item.id })
     }
 }
