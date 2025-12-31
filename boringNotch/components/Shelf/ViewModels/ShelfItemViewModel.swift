@@ -224,7 +224,6 @@ final class ShelfItemViewModel: ObservableObject {
             if case .link(let url) = itm.kind { return url }
             return nil
         }
-        let selectedFolderURLs = selectedFileURLs.filter { isDirectory($0) }
         let selectedShelfItems = selectedItems.filter { ShelfStateViewModel.shared.isStoredItem($0) }
         // URLs valid for Open/Open With (exclude folders)
         let selectedOpenableURLs = selectedItems.compactMap { itm -> URL? in
