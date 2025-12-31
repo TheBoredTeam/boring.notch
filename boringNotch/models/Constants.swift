@@ -175,6 +175,7 @@ extension Defaults.Keys {
     static let shelfIconSize = Key<CGFloat>("shelfIconSize", default: 56)
     static let shelfTextSize = Key<CGFloat>("shelfTextSize", default: 12)
     static let shelfLabelLineCount = Key<Int>("shelfLabelLineCount", default: 2)
+    static let showRecentShelfItemOnHome = Key<Bool>("showRecentShelfItemOnHome", default: false)
     
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
