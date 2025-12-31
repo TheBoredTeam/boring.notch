@@ -170,6 +170,11 @@ extension Defaults.Keys {
     static let copyOnDrag = Key<Bool>("copyOnDrag", default: false)
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
+    static let linkedShelfFolderBookmark = Key<Data?>("linkedShelfFolderBookmark", default: nil)
+    static let linkedShelfRecentItemLimit = Key<Int>("linkedShelfRecentItemLimit", default: 4)
+    static let shelfIconSize = Key<CGFloat>("shelfIconSize", default: 56)
+    static let shelfTextSize = Key<CGFloat>("shelfTextSize", default: 12)
+    static let shelfLabelLineCount = Key<Int>("shelfLabelLineCount", default: 2)
     
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

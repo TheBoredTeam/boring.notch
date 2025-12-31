@@ -20,6 +20,9 @@ struct ShelfItemView: View {
     @State private var showStack = false
     @State private var cachedPreviewImage: NSImage?
     @State private var debouncedDropTarget = false
+    @Default(.shelfIconSize) private var shelfIconSize
+    @Default(.shelfTextSize) private var shelfTextSize
+    @Default(.shelfLabelLineCount) private var shelfLabelLineCount
 
     private var isSelected: Bool { viewModel.isSelected }
     private var shouldHideDuringDrag: Bool { selection.isDragging && selection.isSelected(item.id) && false }
@@ -36,9 +39,9 @@ struct ShelfItemView: View {
                     iconView
                     textView
                 }
-                .frame(width: 105)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 5)
+                .frame(width: itemWidth)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 4)
                 .background(backgroundView)
                 .contentShape(Rectangle())
                 .animation(.easeInOut(duration: 0.1), value: debouncedDropTarget)
@@ -58,9 +61,9 @@ struct ShelfItemView: View {
                 )
             } else {
                 Color.clear
-                    .frame(width: 105)
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 5)
+                    .frame(width: itemWidth)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 4)
             }
         }
         .onChange(of: viewModel.isDropTargeted) { _, targeted in
@@ -98,19 +101,38 @@ struct ShelfItemView: View {
         Image(nsImage: viewModel.thumbnail ?? item.icon)
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .frame(width: 56, height: 56)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .frame(width: shelfIconSize, height: shelfIconSize)
+            .clipShape(RoundedRectangle(cornerRadius: iconCornerRadius))
             .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)
     }
 
     private var textView: some View {
-        Text(item.displayName)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(.primary)
-            .lineLimit(2)
-            .truncationMode(.middle)
-            .multilineTextAlignment(.center)
-            .frame(height: 30, alignment: .top)
+        ShelfLabelText(
+            text: item.displayName,
+            fontSize: shelfTextSize,
+            lineLimit: shelfLabelLineCount,
+            textColor: .labelColor,
+            maxWidth: labelWidth,
+            maxHeight: labelHeight
+        )
+        .frame(width: labelWidth, height: labelHeight, alignment: .top)
+    }
+
+    private var itemWidth: CGFloat {
+        max(84, shelfIconSize + 36)
+    }
+
+    private var labelWidth: CGFloat {
+        itemWidth - 10
+    }
+
+    private var labelHeight: CGFloat {
+        let lineHeight = NSFont.systemFont(ofSize: shelfTextSize, weight: .medium).shelfLineHeight
+        return ceil(lineHeight * CGFloat(max(1, shelfLabelLineCount)) + 6)
+    }
+
+    private var iconCornerRadius: CGFloat {
+        max(8, shelfIconSize * 0.22)
     }
 
     private var backgroundView: some View {
@@ -222,6 +244,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         private let dragThreshold: CGFloat = 3.0
         private var draggedURLs: [URL] = []
         private var draggedItems: [ShelfItem] = []
+        private var didDrag: Bool = false
         
         override func rightMouseDown(with event: NSEvent) {
             onRightClick?(event, self)
@@ -229,7 +252,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         
         override func mouseDown(with event: NSEvent) {
             mouseDownEvent = event
-            onClick?(event, self)
+            didDrag = false
         }
         
         override func mouseDragged(with event: NSEvent) {
@@ -245,15 +268,23 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             
             if dragDistance > dragThreshold {
                 startDragSession(with: event)
+                didDrag = true
                 self.mouseDownEvent = nil
             } else {
                 super.mouseDragged(with: event)
             }
         }
+
+        override func mouseUp(with event: NSEvent) {
+            if !didDrag {
+                onClick?(event, self)
+            }
+            super.mouseUp(with: event)
+        }
         
         private func startDragSession(with event: NSEvent) {
             // Prepare dragging items
-            let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.displayItems)
             let itemsToDrag: [ShelfItem]
 
             if selectedItems.count > 1 && selectedItems.contains(where: { $0.id == item.id }) {
