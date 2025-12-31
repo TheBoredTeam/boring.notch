@@ -464,8 +464,12 @@ struct NotchHomeView: View {
             }
 
             if Defaults[.showRecentShelfItemOnHome], let item = shelfState.mostRecentHomeItem {
-                RecentShelfItemPanel(item: item)
-                    .id(item.id)
+                VStack {
+                    Spacer(minLength: 0)
+                    RecentShelfItemPanel(item: item)
+                        .id(item.id)
+                    Spacer(minLength: 0)
+                }
             }
         }
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
