@@ -19,7 +19,7 @@ struct MusicPlayerView: View {
 
     var body: some View {
         HStack {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
+            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5)
             MusicControlsView().drawingGroup().compositingGroup()
         }
     }
@@ -42,14 +42,11 @@ struct AlbumArtView: View {
     private var albumArtBackground: some View {
         Image(nsImage: musicManager.albumArt)
             .resizable()
-            .clipped()
+            .aspectRatio(contentMode: .fit)
             .clipShape(
                 RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
-            .aspectRatio(1, contentMode: .fit)
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 40)
@@ -75,7 +72,6 @@ struct AlbumArtView: View {
 
     private var albumArtDarkOverlay: some View {
         Rectangle()
-            .aspectRatio(1, contentMode: .fit)
             .foregroundColor(Color.black)
             .opacity(musicManager.isPlaying ? 0 : 0.8)
             .blur(radius: 50)
@@ -85,15 +81,12 @@ struct AlbumArtView: View {
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
             .resizable()
-            .aspectRatio(1, contentMode: .fit)
-            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-            .clipped()
+            .aspectRatio(contentMode: .fit)
             .clipShape(
                 RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
+            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
     }
 
     @ViewBuilder
@@ -101,7 +94,7 @@ struct AlbumArtView: View {
         if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
             AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
                 .resizable()
-                .aspectRatio(contentMode: .fill)
+                .aspectRatio(contentMode: .fit)
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
                 .transition(.scale.combined(with: .opacity))
@@ -141,14 +134,11 @@ struct MusicControlsView: View {
 
     private func songInfo(width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
+            MarqueeText(musicManager.songTitle, font: .headline, color: .white, frameWidth: width)
             MarqueeText(
-                $musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white,
-                frameWidth: width)
-            MarqueeText(
-                $musicManager.artistName,
+                musicManager.artistName,
                 font: .headline,
-                nsFont: .headline,
-                textColor: Defaults[.playerColorTinting]
+                color: Defaults[.playerColorTinting]
                     ? Color(nsColor: musicManager.avgColor)
                         .ensureMinimumBrightness(factor: 0.6) : .gray,
                 frameWidth: width
@@ -163,9 +153,9 @@ struct MusicControlsView: View {
                         return min(max(progressed, 0), musicManager.songDuration)
                     }()
                     let line: String = {
-                        if musicManager.isFetchingLyrics { return "Loading lyrics…" }
-                        if !musicManager.syncedLyrics.isEmpty {
-                            return musicManager.lyricLine(at: currentElapsed)
+                        if LyricsService.shared.isFetchingLyrics { return "Loading lyrics…" }
+                        if !LyricsService.shared.syncedLyrics.isEmpty {
+                            return LyricsService.shared.lyricLine(at: currentElapsed)
                         }
                         let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
                         return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
@@ -175,10 +165,9 @@ struct MusicControlsView: View {
                         return v >= 0x0600 && v <= 0x06FF
                     }
                     MarqueeText(
-                        .constant(line),
+                        line,
                         font: .subheadline,
-                        nsFont: .subheadline,
-                        textColor: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                        color: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
                         frameWidth: width
                     )
                     .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)

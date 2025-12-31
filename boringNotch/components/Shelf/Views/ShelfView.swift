@@ -104,7 +104,7 @@ struct ShelfView: View {
                 }
             } else {
                 ScrollView(.horizontal) {
-                    HStack(spacing: spacing) {
+                    LazyHStack(spacing: spacing) {
                         ForEach(tvm.displayItems) { item in
                             ShelfItemView(item: item)
                                 .environmentObject(quickLookService)
