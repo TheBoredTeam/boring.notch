@@ -32,7 +32,7 @@ struct Shelf: View {
 
     private var linkedFolderURL: URL? {
         guard let data = linkedShelfFolderBookmark else { return nil }
-        return Bookmark(data: data).resolvedURL
+        return Bookmark(data: data).resolveURL()
     }
 
     private var linkedFolderLabel: String {

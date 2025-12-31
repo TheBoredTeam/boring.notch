@@ -13,7 +13,7 @@ enum LinkedFolderShelfService {
         guard limit > 0 else { return [] }
 
         let bookmark = Bookmark(data: bookmarkData)
-        guard let folderURL = bookmark.resolvedURL else { return [] }
+        guard let folderURL = bookmark.resolveURL() else { return [] }
 
         return await folderURL.accessSecurityScopedResource { accessibleURL in
             let keys: Set<URLResourceKey> = [
@@ -43,7 +43,9 @@ enum LinkedFolderShelfService {
 
             for url in sorted.prefix(limit) {
                 if let bookmark = try? Bookmark(url: url) {
-                    let item = await ShelfItem(kind: .file(bookmark: bookmark.data))
+                    let item = await MainActor.run {
+                        ShelfItem(kind: .file(bookmark: bookmark.data))
+                    }
                     results.append(item)
                 }
             }
@@ -55,7 +57,7 @@ enum LinkedFolderShelfService {
     static func saveItems(from providers: [NSItemProvider], to bookmarkData: Data) async {
         guard !providers.isEmpty else { return }
         let bookmark = Bookmark(data: bookmarkData)
-        guard let folderURL = bookmark.resolvedURL else { return }
+        guard let folderURL = bookmark.resolveURL() else { return }
 
         _ = await folderURL.accessSecurityScopedResource { accessibleURL in
             for provider in providers {
@@ -106,7 +108,7 @@ enum LinkedFolderShelfService {
             ext: fileURL.pathExtension
         )
 
-        _ = await fileURL.accessSecurityScopedResource { accessibleURL in
+        _ = fileURL.accessSecurityScopedResource { accessibleURL in
             do {
                 if accessibleURL.standardizedFileURL == destURL.standardizedFileURL {
                     try FileManager.default.setAttributes(

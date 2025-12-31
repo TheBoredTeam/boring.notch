@@ -30,10 +30,6 @@ final class ShelfStateViewModel: ObservableObject {
         return items.last
     }
 
-    // Queue for deferred bookmark updates to avoid publishing during view updates
-    private var pendingBookmarkUpdates: [ShelfItem.ID: Data] = [:]
-    private var updateTask: Task<Void, Never>?
-
     private init() {
         items = ShelfPersistenceService.shared.load()
         refreshLinkedItems()
@@ -130,7 +126,7 @@ final class ShelfStateViewModel: ObservableObject {
         let result = bookmark.resolve()
         if let refreshed = result.refreshedData, refreshed != bookmarkData {
             NSLog("Bookmark for \(item) stale; refreshing")
-            scheduleDeferredBookmarkUpdate(for: item, bookmark: refreshed)
+            updateBookmark(for: item, bookmark: refreshed)
         }
         return result.url
     }
