@@ -920,6 +920,7 @@ struct Shelf: View {
     @Default(.shelfIconSize) var shelfIconSize
     @Default(.shelfTextSize) var shelfTextSize
     @Default(.shelfLabelLineCount) var shelfLabelLineCount
+    @Default(.showRecentShelfItemOnHome) var showRecentShelfItemOnHome
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -972,6 +973,9 @@ struct Shelf: View {
                 }
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
+                }
+                Defaults.Toggle(key: .showRecentShelfItemOnHome) {
+                    Text("Show most recent shelf item on Home view")
                 }
                 Defaults.Toggle(key: .expandedDragDetection) {
                     Text("Expanded drag detection area")

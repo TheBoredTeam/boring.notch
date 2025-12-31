@@ -10,6 +10,7 @@ struct DragPreviewView: View {
     @Default(.shelfLabelLineCount) private var shelfLabelLineCount
 
     var body: some View {
+        #imageLiteral(resourceName: "Untitled 5.png")
         VStack(alignment: .center, spacing: 4) {
             Image(nsImage: thumbnail ?? NSImage())
                 .resizable()

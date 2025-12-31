@@ -21,6 +21,12 @@ final class ShelfStateViewModel: ObservableObject {
 
     var isEmpty: Bool { displayItems.isEmpty }
     var displayItems: [ShelfItem] { items + linkedItems }
+    var mostRecentHomeItem: ShelfItem? {
+        if let linked = linkedItems.first {
+            return linked
+        }
+        return items.last
+    }
 
     // Queue for deferred bookmark updates to avoid publishing during view updates
     private var pendingBookmarkUpdates: [ShelfItem.ID: Data] = [:]
