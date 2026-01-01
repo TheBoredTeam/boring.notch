@@ -20,7 +20,16 @@ actor ThumbnailService {
     private init() {}
     
     func thumbnail(for url: URL, size: CGSize) async -> NSImage? {
-        let cacheKey = "\(url.path)_\(size.width)x\(size.height)"
+        return await thumbnail(for: url, size: size, iconMode: true)
+    }
+
+    func previewThumbnail(for url: URL, size: CGSize) async -> NSImage? {
+        return await thumbnail(for: url, size: size, iconMode: false)
+    }
+
+    private func thumbnail(for url: URL, size: CGSize, iconMode: Bool) async -> NSImage? {
+        let modeKey = iconMode ? "icon" : "preview"
+        let cacheKey = "\(url.path)_\(modeKey)_\(size.width)x\(size.height)"
         
         if let cached = cache[cacheKey] {
             return cached
@@ -31,7 +40,7 @@ actor ThumbnailService {
         }
         
         let task = Task<NSImage?, Never> {
-            let thumbnail = await generateQuickLookThumbnail(for: url, size: size)
+            let thumbnail = await generateQuickLookThumbnail(for: url, size: size, iconMode: iconMode)
             if let thumbnail = thumbnail {
                 cache[cacheKey] = thumbnail
             }
@@ -53,7 +62,7 @@ actor ThumbnailService {
     
     // MARK: - Private Methods
     
-    private func generateQuickLookThumbnail(for url: URL, size: CGSize) async -> NSImage? {
+    private func generateQuickLookThumbnail(for url: URL, size: CGSize, iconMode: Bool) async -> NSImage? {
         let scale = await MainActor.run { NSScreen.main?.backingScaleFactor ?? 2.0 }
         
         return await url.accessSecurityScopedResource { scopedURL in
@@ -64,7 +73,7 @@ actor ThumbnailService {
                 scale: scale,
                 representationTypes: .all
             )
-            request.iconMode = true
+            request.iconMode = iconMode
 
             return await withCheckedContinuation { (continuation: CheckedContinuation<NSImage?, Never>) in
                 thumbnailGenerator.generateBestRepresentation(for: request) { representation, error in

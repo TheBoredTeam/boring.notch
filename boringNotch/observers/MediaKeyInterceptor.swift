@@ -27,8 +27,10 @@ final class MediaKeyInterceptor {
     
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
-    private let step: Float = 1.0 / 16.0
+    private let screenBrightnessStep: Float = 0.03
+    private let keyboardBrightnessStep: Float = 1.0 / 16.0
     private var audioPlayer: AVAudioPlayer?
+    private var screenBrightnessKeyDown: Bool = false
     
     private init() {}
     
@@ -115,9 +117,7 @@ final class MediaKeyInterceptor {
         let keyCode = (data1 & 0xFFFF_0000) >> 16
         let stateByte = ((data1 & 0xFF00) >> 8)
         
-        // 0xA = key down, 0xB = key up. Only handle key down.
-        guard stateByte == 0xA,
-              let keyType = NXKeyType(rawValue: keyCode) else {
+        guard let keyType = NXKeyType(rawValue: keyCode) else {
             return Unmanaged.passRetained(cgEvent)
         }
         
@@ -125,6 +125,16 @@ final class MediaKeyInterceptor {
         let option = flags.contains(.option)
         let shift = flags.contains(.shift)
         let command = flags.contains(.command)
+
+        if stateByte == 0xB {
+            handleKeyRelease(keyType: keyType, command: command)
+            return nil
+        }
+
+        // 0xA = key down
+        guard stateByte == 0xA else {
+            return Unmanaged.passRetained(cgEvent)
+        }
         
         // Handle option key action (without shift)
         if option && !shift {
@@ -214,12 +224,49 @@ final class MediaKeyInterceptor {
             Task { @MainActor in
                 VolumeManager.shared.toggleMuteAction()
             }
-        case .brightnessUp, .keyboardBrightnessUp:
-            let delta = step / stepDivisor
-            adjustBrightness(delta: delta, keyboard: keyType == .keyboardBrightnessUp || command)
-        case .brightnessDown, .keyboardBrightnessDown:
-            let delta = -(step / stepDivisor)
-            adjustBrightness(delta: delta, keyboard: keyType == .keyboardBrightnessDown || command)
+        case .brightnessUp:
+            let keyboard = command
+            let delta = (keyboard ? keyboardBrightnessStep : screenBrightnessStep) / stepDivisor
+            if keyboard {
+                adjustBrightness(delta: delta, keyboard: true)
+            } else if !screenBrightnessKeyDown {
+                screenBrightnessKeyDown = true
+                Task { @MainActor in
+                    BrightnessManager.shared.handleKeyDown(delta: delta)
+                }
+            }
+        case .brightnessDown:
+            let keyboard = command
+            let delta = -((keyboard ? keyboardBrightnessStep : screenBrightnessStep) / stepDivisor)
+            if keyboard {
+                adjustBrightness(delta: delta, keyboard: true)
+            } else if !screenBrightnessKeyDown {
+                screenBrightnessKeyDown = true
+                Task { @MainActor in
+                    BrightnessManager.shared.handleKeyDown(delta: delta)
+                }
+            }
+        case .keyboardBrightnessUp:
+            let delta = keyboardBrightnessStep / stepDivisor
+            adjustBrightness(delta: delta, keyboard: true)
+        case .keyboardBrightnessDown:
+            let delta = -(keyboardBrightnessStep / stepDivisor)
+            adjustBrightness(delta: delta, keyboard: true)
+        }
+    }
+
+    private func handleKeyRelease(keyType: NXKeyType, command: Bool) {
+        guard !command else { return }
+        switch keyType {
+        case .brightnessUp, .brightnessDown:
+            if screenBrightnessKeyDown {
+                screenBrightnessKeyDown = false
+                Task { @MainActor in
+                    BrightnessManager.shared.handleKeyUp()
+                }
+            }
+        default:
+            break
         }
     }
     
@@ -228,7 +275,7 @@ final class MediaKeyInterceptor {
             if keyboard {
                 KeyboardBacklightManager.shared.setRelative(delta: delta)
             } else {
-                BrightnessManager.shared.setRelative(delta: delta)
+                BrightnessManager.shared.handleKeyDown(delta: delta)
             }
         }
     }

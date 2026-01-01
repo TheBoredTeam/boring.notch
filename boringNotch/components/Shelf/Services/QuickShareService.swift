@@ -183,7 +183,7 @@ private class SharingServiceDelegate: NSObject {}
     }
 
     private func resolveShelfItemBookmark(for fileURL: URL) async -> URL? {
-        let items = await ShelfStateViewModel.shared.items
+        let items = await ShelfStateViewModel.shared.displayItems
 
         for itm in items {
             if let resolved = await ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: itm) {
