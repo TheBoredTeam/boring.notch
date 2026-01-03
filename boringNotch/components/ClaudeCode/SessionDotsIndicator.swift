@@ -75,6 +75,11 @@ struct SessionDot: View {
 
     private var tooltipText: String {
         var text = session.displayName
+        if session.isTerminalSession {
+            text += " (Terminal)"
+        } else {
+            text += " (\(session.ideName))"
+        }
         if state?.needsPermission == true {
             text += " - Needs permission"
         } else if state?.isActive == true {

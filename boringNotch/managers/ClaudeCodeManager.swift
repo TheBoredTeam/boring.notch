@@ -120,6 +120,15 @@ final class ClaudeCodeManager: ObservableObject {
     /// Set higher to prevent flickering between tool calls
     private let idleCheckDelay: TimeInterval = 8.0
 
+    // MARK: - Failed Session Tracking (to prevent repeated log spam)
+
+    /// Sessions that failed to start watching (no log file yet)
+    private var failedSessionIds: Set<String> = []
+    /// Timestamps of when sessions failed - retry after interval
+    private var failedSessionTimestamps: [String: Date] = [:]
+    /// Retry interval for failed sessions (seconds)
+    private let failedSessionRetryInterval: TimeInterval = 60
+
     // MARK: - Initialization
 
     private init() {
@@ -132,76 +141,175 @@ final class ClaudeCodeManager: ObservableObject {
 
     // MARK: - Public Methods
 
-    /// Scan for active Claude Code sessions
+    /// Scan for active Claude Code sessions (both IDE and terminal)
     func scanForSessions() {
         let fm = FileManager.default
 
-        guard fm.fileExists(atPath: ideDir.path) else {
-            availableSessions = []
-            return
+        var sessions: [ClaudeSession] = []
+
+        // MARK: 1. Scan IDE sessions from lock files
+        if fm.fileExists(atPath: ideDir.path) {
+            do {
+                let lockFiles = try fm.contentsOfDirectory(at: ideDir, includingPropertiesForKeys: nil)
+                    .filter { $0.pathExtension == "lock" }
+
+                for lockFile in lockFiles {
+                    guard let data = fm.contents(atPath: lockFile.path) else {
+                        continue
+                    }
+
+                    do {
+                        let lockFileData = try JSONDecoder().decode(ClaudeSessionLockFile.self, from: data)
+                        let session = lockFileData.toSession()
+
+                        // Verify process is still running
+                        if isProcessRunning(pid: session.pid) {
+                            sessions.append(session)
+                        }
+                    } catch {
+                        // Skip invalid lock files silently
+                    }
+                }
+            } catch {
+                print("[ClaudeCode] Error scanning IDE sessions: \(error)")
+            }
+        }
+
+        // MARK: 2. Scan terminal sessions from recent JSONL activity
+        let terminalSessions = scanForTerminalSessions(excludingIDEWorkspaces: sessions.compactMap { $0.workspaceFolders.first })
+        sessions.append(contentsOf: terminalSessions)
+
+        // Only log when session count changes
+        if sessions.count != availableSessions.count {
+            print("[ClaudeCode] Active sessions: \(sessions.count) (IDE: \(sessions.filter { !$0.isTerminalSession }.count), Terminal: \(sessions.filter { $0.isTerminalSession }.count))")
+        }
+        availableSessions = sessions
+
+        // Auto-select if only one session and none selected
+        if selectedSession == nil && sessions.count == 1 {
+            selectSession(sessions[0])
+        }
+
+        // Clear selection if selected session no longer exists
+        if let selected = selectedSession,
+           !sessions.contains(where: { $0.id == selected.id }) {
+            selectedSession = nil
+            state = ClaudeCodeState()
+            stopWatchingSessionFile()
+        }
+
+        // MARK: Multi-Session Watching - Watch ALL sessions for permission detection
+        let currentSessionIds = Set(sessions.map { $0.id })
+
+        // Start watching new sessions
+        for session in sessions {
+            if sessionWatchers[session.id] == nil {
+                // Skip if recently failed (retry after interval to avoid log spam)
+                if let failedTime = failedSessionTimestamps[session.id],
+                   Date().timeIntervalSince(failedTime) < failedSessionRetryInterval {
+                    continue
+                }
+                startWatchingSession(session)
+            }
+        }
+
+        // Stop watching sessions that no longer exist
+        let watchedIds = Array(sessionWatchers.keys)
+        for watchedId in watchedIds where !currentSessionIds.contains(watchedId) {
+            stopWatchingSession(id: watchedId)
+        }
+
+        // Clean up failed session tracking for sessions that no longer exist
+        failedSessionIds = failedSessionIds.intersection(currentSessionIds)
+        failedSessionTimestamps = failedSessionTimestamps.filter { currentSessionIds.contains($0.key) }
+    }
+
+    /// Scan for terminal sessions by looking for recently modified JSONL files
+    /// that don't correspond to any IDE session
+    private func scanForTerminalSessions(excludingIDEWorkspaces ideWorkspaces: [String]) -> [ClaudeSession] {
+        let fm = FileManager.default
+        var terminalSessions: [ClaudeSession] = []
+
+        // Convert IDE workspaces to project keys for comparison
+        let ideProjectKeys = Set(ideWorkspaces.map { workspace -> String in
+            workspace
+                .replacingOccurrences(of: "/", with: "-")
+                .replacingOccurrences(of: ".", with: "-")
+        })
+
+        guard fm.fileExists(atPath: projectsDir.path) else {
+            return []
         }
 
         do {
-            let lockFiles = try fm.contentsOfDirectory(at: ideDir, includingPropertiesForKeys: nil)
-                .filter { $0.pathExtension == "lock" }
+            let projectDirs = try fm.contentsOfDirectory(at: projectsDir, includingPropertiesForKeys: [.contentModificationDateKey])
 
-            var sessions: [ClaudeSession] = []
+            // Time threshold: only consider projects with activity in last 5 minutes
+            let recentThreshold = Date().addingTimeInterval(-5 * 60)
 
-            for lockFile in lockFiles {
-                guard let data = fm.contents(atPath: lockFile.path) else {
+            for projectDir in projectDirs {
+                // Skip if this is an IDE session
+                let projectKey = projectDir.lastPathComponent
+                if ideProjectKeys.contains(projectKey) {
                     continue
                 }
 
-                do {
-                    let session = try JSONDecoder().decode(ClaudeSession.self, from: data)
-
-                    // Verify process is still running
-                    if isProcessRunning(pid: session.pid) {
-                        sessions.append(session)
-                    }
-                } catch {
-                    // Skip invalid lock files silently
+                // Skip hidden files/directories
+                if projectKey.hasPrefix(".") {
+                    continue
                 }
-            }
 
-            // Only log when session count changes
-            if sessions.count != availableSessions.count {
-                print("[ClaudeCode] Active sessions: \(sessions.count)")
-            }
-            availableSessions = sessions
-
-            // Auto-select if only one session and none selected
-            if selectedSession == nil && sessions.count == 1 {
-                selectSession(sessions[0])
-            }
-
-            // Clear selection if selected session no longer exists
-            if let selected = selectedSession,
-               !sessions.contains(where: { $0.pid == selected.pid }) {
-                selectedSession = nil
-                state = ClaudeCodeState()
-                stopWatchingSessionFile()
-            }
-
-            // MARK: Multi-Session Watching - Watch ALL sessions for permission detection
-            let currentSessionIds = Set(sessions.map { $0.id })
-
-            // Start watching new sessions
-            for session in sessions {
-                if sessionWatchers[session.id] == nil {
-                    startWatchingSession(session)
+                // Check for recent JSONL file activity in this project
+                guard let mostRecentFile = findMostRecentJSONLFile(in: projectDir) else {
+                    continue
                 }
-            }
 
-            // Stop watching sessions that no longer exist
-            let watchedIds = Array(sessionWatchers.keys)
-            for watchedId in watchedIds where !currentSessionIds.contains(watchedId) {
-                stopWatchingSession(id: watchedId)
-            }
+                // Get modification date
+                guard let attrs = try? fm.attributesOfItem(atPath: mostRecentFile.path),
+                      let modDate = attrs[.modificationDate] as? Date,
+                      modDate > recentThreshold else {
+                    continue
+                }
 
+                // Convert project key back to workspace path
+                // e.g., "-Users-foo-bar" -> "/Users/foo/bar"
+                let workspacePath = projectKey
+                    .replacingOccurrences(of: "-", with: "/")
+                    .replacingOccurrences(of: "//", with: "/")  // Handle double-dashes if any
+
+                // Create terminal session
+                let session = ClaudeSession.terminalSession(projectKey: projectKey, workspacePath: workspacePath)
+                terminalSessions.append(session)
+            }
         } catch {
-            print("[ClaudeCode] Error scanning for sessions: \(error)")
+            print("[ClaudeCode] Error scanning terminal sessions: \(error)")
         }
+
+        return terminalSessions
+    }
+
+    /// Find the most recently modified JSONL file in a project directory
+    private func findMostRecentJSONLFile(in projectDir: URL) -> URL? {
+        let fm = FileManager.default
+
+        guard let files = try? fm.contentsOfDirectory(at: projectDir, includingPropertiesForKeys: [.contentModificationDateKey]) else {
+            return nil
+        }
+
+        let jsonlFiles = files.filter { $0.pathExtension == "jsonl" }
+
+        // Find the most recently modified file
+        var mostRecent: (url: URL, date: Date)?
+        for file in jsonlFiles {
+            if let attrs = try? fm.attributesOfItem(atPath: file.path),
+               let modDate = attrs[.modificationDate] as? Date {
+                if mostRecent == nil || modDate > mostRecent!.date {
+                    mostRecent = (file, modDate)
+                }
+            }
+        }
+
+        return mostRecent?.url
     }
 
     /// Select a session to monitor
@@ -364,9 +472,18 @@ final class ClaudeCodeManager: ObservableObject {
 
         let projectDir = projectsDir.appendingPathComponent(projectKey)
         guard let jsonlFile = findCurrentSessionFile(in: projectDir) else {
-            print("[ClaudeCode-Multi] No session file found for: \(session.displayName)")
+            // Only log once per session, then track as failed to avoid spam
+            if !failedSessionIds.contains(session.id) {
+                print("[ClaudeCode-Multi] No session file found for: \(session.displayName)")
+                failedSessionIds.insert(session.id)
+                failedSessionTimestamps[session.id] = Date()
+            }
             return
         }
+
+        // Session file exists - clear from failed tracking if it was there
+        failedSessionIds.remove(session.id)
+        failedSessionTimestamps.removeValue(forKey: session.id)
 
         print("[ClaudeCode-Multi] Starting to watch session: \(session.displayName)")
 
@@ -1025,7 +1142,7 @@ final class ClaudeCodeManager: ObservableObject {
 
     // MARK: - IDE Focus
 
-    /// Bring the IDE running Claude Code to the front
+    /// Bring the IDE or terminal running Claude Code to the front
     /// - Parameter session: The session to focus. If nil, focuses the selected session.
     func focusIDE(for session: ClaudeSession? = nil) {
         guard let targetSession = session ?? selectedSession else {
@@ -1034,11 +1151,18 @@ final class ClaudeCodeManager: ObservableObject {
         }
 
         let ideName = targetSession.ideName.lowercased()
-        print("[ClaudeCode] Attempting to focus IDE: \(targetSession.ideName)")
+        print("[ClaudeCode] Attempting to focus: \(targetSession.ideName) (terminal: \(targetSession.isTerminalSession))")
 
-        // Map common IDE names to bundle identifiers
+        // Map common IDE/terminal names to bundle identifiers
         let bundleIdentifiers: [String] = {
-            if ideName.contains("cursor") {
+            if targetSession.isTerminalSession {
+                // Try common terminal apps - Warp, iTerm2, Terminal
+                return [
+                    "dev.warp.Warp-Stable",  // Warp
+                    "com.googlecode.iterm2",  // iTerm2
+                    "com.apple.Terminal"  // Apple Terminal
+                ]
+            } else if ideName.contains("cursor") {
                 return ["com.todesktop.230313mzl4w4u92"]
             } else if ideName.contains("code") || ideName.contains("vscode") {
                 return ["com.microsoft.VSCode", "com.visualstudio.code.oss"]
@@ -1061,24 +1185,26 @@ final class ClaudeCodeManager: ObservableObject {
             }
         }
 
-        // Fallback: find by PID
-        let runningApps = NSWorkspace.shared.runningApplications
-        if let app = runningApps.first(where: { $0.processIdentifier == Int32(targetSession.pid) }) {
-            print("[ClaudeCode] Found app by PID: \(targetSession.pid)")
-            app.activate(options: [.activateIgnoringOtherApps])
-            return
+        // Fallback: find by PID (only works for IDE sessions)
+        if !targetSession.isTerminalSession {
+            let runningApps = NSWorkspace.shared.runningApplications
+            if let app = runningApps.first(where: { $0.processIdentifier == Int32(targetSession.pid) }) {
+                print("[ClaudeCode] Found app by PID: \(targetSession.pid)")
+                app.activate(options: [.activateIgnoringOtherApps])
+                return
+            }
+
+            // Last resort: try to find any app with matching name
+            if let app = runningApps.first(where: {
+                $0.localizedName?.lowercased().contains(ideName) == true
+            }) {
+                print("[ClaudeCode] Found app by name match: \(app.localizedName ?? "unknown")")
+                app.activate(options: [.activateIgnoringOtherApps])
+                return
+            }
         }
 
-        // Last resort: try to find any app with matching name
-        if let app = runningApps.first(where: {
-            $0.localizedName?.lowercased().contains(ideName) == true
-        }) {
-            print("[ClaudeCode] Found app by name match: \(app.localizedName ?? "unknown")")
-            app.activate(options: [.activateIgnoringOtherApps])
-            return
-        }
-
-        print("[ClaudeCode] Could not find IDE to focus")
+        print("[ClaudeCode] Could not find app to focus")
     }
 
     // MARK: - Notifications

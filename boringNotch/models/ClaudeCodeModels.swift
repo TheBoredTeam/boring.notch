@@ -9,8 +9,10 @@ import Foundation
 
 // MARK: - Session Discovery
 
-/// Represents an active Claude Code IDE session from ~/.claude/ide/*.lock
-struct ClaudeSession: Identifiable, Codable, Equatable {
+/// Represents an active Claude Code session (IDE or terminal)
+/// IDE sessions come from ~/.claude/ide/*.lock files
+/// Terminal sessions are detected from recent JSONL activity in ~/.claude/projects/
+struct ClaudeSession: Identifiable, Equatable {
     // Use workspace path as unique ID since multiple sessions can share the same PID (Cursor)
     var id: String { workspaceFolders.first ?? "\(pid)" }
 
@@ -20,8 +22,18 @@ struct ClaudeSession: Identifiable, Codable, Equatable {
     let transport: String?
     let runningInWindows: Bool?
 
+    /// True if this is a terminal session (detected from JSONL activity, no lock file)
+    let isTerminalSession: Bool
+
+    /// For terminal sessions: the project directory key (e.g., "-Users-foo-bar")
+    let terminalProjectKey: String?
+
     /// Derived from workspace path for project JSONL lookup
     var projectKey: String? {
+        // Terminal sessions already have the project key
+        if let terminalKey = terminalProjectKey {
+            return terminalKey
+        }
         guard let workspace = workspaceFolders.first else { return nil }
         // Convert /Users/foo/bar.baz to -Users-foo-bar-baz
         // Claude Code keeps the leading dash, so we only trim trailing dashes
@@ -34,6 +46,54 @@ struct ClaudeSession: Identifiable, Codable, Equatable {
     var displayName: String {
         guard let workspace = workspaceFolders.first else { return "Unknown" }
         return URL(fileURLWithPath: workspace).lastPathComponent
+    }
+
+    /// Create an IDE session from lock file data
+    init(pid: Int, workspaceFolders: [String], ideName: String, transport: String?, runningInWindows: Bool?) {
+        self.pid = pid
+        self.workspaceFolders = workspaceFolders
+        self.ideName = ideName
+        self.transport = transport
+        self.runningInWindows = runningInWindows
+        self.isTerminalSession = false
+        self.terminalProjectKey = nil
+    }
+
+    /// Create a terminal session from project directory activity
+    static func terminalSession(projectKey: String, workspacePath: String) -> ClaudeSession {
+        ClaudeSession(
+            pid: 0,  // No PID for terminal sessions
+            workspaceFolders: [workspacePath],
+            ideName: "Terminal",
+            transport: nil,
+            runningInWindows: nil,
+            isTerminalSession: true,
+            terminalProjectKey: projectKey
+        )
+    }
+
+    /// Internal initializer for terminal sessions
+    private init(pid: Int, workspaceFolders: [String], ideName: String, transport: String?, runningInWindows: Bool?, isTerminalSession: Bool, terminalProjectKey: String?) {
+        self.pid = pid
+        self.workspaceFolders = workspaceFolders
+        self.ideName = ideName
+        self.transport = transport
+        self.runningInWindows = runningInWindows
+        self.isTerminalSession = isTerminalSession
+        self.terminalProjectKey = terminalProjectKey
+    }
+}
+
+/// Codable wrapper for decoding IDE lock files
+struct ClaudeSessionLockFile: Codable {
+    let pid: Int
+    let workspaceFolders: [String]
+    let ideName: String
+    let transport: String?
+    let runningInWindows: Bool?
+
+    func toSession() -> ClaudeSession {
+        ClaudeSession(pid: pid, workspaceFolders: workspaceFolders, ideName: ideName, transport: transport, runningInWindows: runningInWindows)
     }
 }
 
