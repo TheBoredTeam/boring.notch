@@ -183,6 +183,10 @@ extension Defaults.Keys {
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     
+    // MARK: Claude Code
+    static let enableClaudeCode = Key<Bool>("enableClaudeCode", default: true)
+    static let enableClaudeCodeCollapsedView = Key<Bool>("enableClaudeCodeCollapsedView", default: true)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)

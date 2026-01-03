@@ -60,6 +60,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Advanced") {
                     Label("Advanced", systemImage: "gearshape.2")
                 }
+                NavigationLink(value: "ClaudeCode") {
+                    Label("Claude Code", systemImage: "terminal")
+                }
                 NavigationLink(value: "About") {
                     Label("About", systemImage: "info.circle")
                 }
@@ -85,6 +88,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "ClaudeCode":
+                    ClaudeCodeSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1015,6 +1020,96 @@ struct Shelf: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shelf")
+    }
+}
+
+struct ClaudeCodeSettings: View {
+    @ObservedObject var claudeCodeManager = ClaudeCodeManager.shared
+    @Default(.enableClaudeCode) var enableClaudeCode
+
+    var body: some View {
+        Form {
+            Section {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Enable Claude Code integration")
+                            .font(.headline)
+                        Text("Show Claude Code tab in the expanded notch view.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 40)
+                    Defaults.Toggle("", key: .enableClaudeCode)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.large)
+                }
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Show session dots in closed notch")
+                            .font(.headline)
+                        Text("Display session status dots below the notch when closed.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 40)
+                    Defaults.Toggle("", key: .enableClaudeCodeCollapsedView)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.large)
+                        .disabled(!enableClaudeCode)
+                }
+            } header: {
+                Text("General")
+            } footer: {
+                Text("Session dots show the status of active Claude Code sessions. Tap a dot to focus the corresponding IDE.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                HStack {
+                    Text("Active sessions")
+                    Spacer()
+                    Text("\(claudeCodeManager.availableSessions.count)")
+                        .foregroundStyle(.secondary)
+                }
+
+                if !claudeCodeManager.availableSessions.isEmpty {
+                    ForEach(claudeCodeManager.availableSessions) { session in
+                        HStack {
+                            Circle()
+                                .fill(sessionColor(for: session))
+                                .frame(width: 8, height: 8)
+                            Text(session.displayName)
+                            Spacer()
+                            Text(session.ideName)
+                                .foregroundStyle(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                }
+            } header: {
+                Text("Sessions")
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Claude Code")
+    }
+
+    private func sessionColor(for session: ClaudeSession) -> Color {
+        guard let state = claudeCodeManager.sessionStates[session.id] else {
+            return .gray
+        }
+        if state.needsPermission {
+            return .orange
+        } else if state.isActive {
+            return .green
+        }
+        return .gray
     }
 }
 

@@ -701,6 +701,12 @@
         }
       }
     },
+    "%@ / 200k" : {
+
+    },
+    "%@:" : {
+
+    },
     "%d%%" : {
       "localizations" : {
         "ar" : {
@@ -901,6 +907,16 @@
         }
       }
     },
+    "%lld session%@ available" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld session%2$@ available"
+          }
+        }
+      }
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -1000,6 +1016,9 @@
           }
         }
       }
+    },
+    "%lldms" : {
+
     },
     "• Bug fixes" : {
       "localizations" : {
@@ -1700,6 +1719,9 @@
           }
         }
       }
+    },
+    "Active sessions" : {
+
     },
     "Add" : {
       "localizations" : {
@@ -5202,6 +5224,9 @@
         }
       }
     },
+    "Claude Code" : {
+
+    },
     "Clear slot" : {
       "localizations" : {
         "ar" : {
@@ -5901,6 +5926,9 @@
           }
         }
       }
+    },
+    "Context" : {
+
     },
     "Continue" : {
       "localizations" : {
@@ -7405,6 +7433,9 @@
         }
       }
     },
+    "Display session status dots below the notch when closed." : {
+
+    },
     "Download" : {
       "localizations" : {
         "ar" : {
@@ -8305,6 +8336,9 @@
           }
         }
       }
+    },
+    "Enable Claude Code integration" : {
+
     },
     "Enable colored spectrograms" : {
       "extractionState" : "stale",
@@ -12009,6 +12043,9 @@
         }
       }
     },
+    "left" : {
+
+    },
     "Lottie JSON URL" : {
       "localizations" : {
         "ar" : {
@@ -14509,6 +14546,9 @@
         }
       }
     },
+    "No active sessions" : {
+
+    },
     "No custom animation available" : {
       "localizations" : {
         "ar" : {
@@ -15009,6 +15049,12 @@
           }
         }
       }
+    },
+    "No session selected" : {
+
+    },
+    "No sessions" : {
+
     },
     "Not Now" : {
       "localizations" : {
@@ -16910,6 +16956,9 @@
         }
       }
     },
+    "Refresh Sessions" : {
+
+    },
     "Release name" : {
       "localizations" : {
         "ar" : {
@@ -18112,6 +18161,9 @@
         }
       }
     },
+    "Select Session" : {
+
+    },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
         "ar" : {
@@ -18411,6 +18463,12 @@
           }
         }
       }
+    },
+    "Session dots show the status of active Claude Code sessions. Tap a dot to focus the corresponding IDE." : {
+
+    },
+    "Sessions" : {
+
     },
     "Settings" : {
       "localizations" : {
@@ -19011,6 +19069,9 @@
           }
         }
       }
+    },
+    "Show Claude Code tab in the expanded notch view." : {
+
     },
     "Show cool face animation while inactive" : {
       "localizations" : {
@@ -20012,6 +20073,9 @@
         }
       }
     },
+    "Show session dots in closed notch" : {
+
+    },
     "Show settings icon in notch" : {
       "localizations" : {
         "ar" : {
@@ -20811,6 +20875,9 @@
           }
         }
       }
+    },
+    "Start Claude Code to begin" : {
+
     },
     "Stopped" : {
       "extractionState" : "stale",
@@ -22414,6 +22481,9 @@
           }
         }
       }
+    },
+    "used" : {
+
     },
     "Using System Accent" : {
       "localizations" : {

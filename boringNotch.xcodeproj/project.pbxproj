@@ -142,6 +142,14 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		BBB4112A2F0816B90007988A /* ClaudeCodeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB411292F0816B90007988A /* ClaudeCodeModels.swift */; };
+		BBB4112C2F0816D40007988A /* ClaudeCodeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4112B2F0816D40007988A /* ClaudeCodeManager.swift */; };
+		BBB411352F0817830007988A /* ContextBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB411312F0817830007988A /* ContextBar.swift */; };
+		BBB411362F0817830007988A /* ClaudeCodeStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB411302F0817830007988A /* ClaudeCodeStatsView.swift */; };
+		BBB411372F0817830007988A /* SessionPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB411322F0817830007988A /* SessionPicker.swift */; };
+		BBB411382F0817830007988A /* ToolActivityIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB411332F0817830007988A /* ToolActivityIndicator.swift */; };
+		BBB411392F0817830007988A /* ClaudeCodeCompactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4112F2F0817830007988A /* ClaudeCodeCompactView.swift */; };
+		BBB4113B2F0870E30007988A /* SessionDotsIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4113A2F0870E30007988A /* SessionDotsIndicator.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -308,6 +316,14 @@
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		BBB411292F0816B90007988A /* ClaudeCodeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeModels.swift; sourceTree = "<group>"; };
+		BBB4112B2F0816D40007988A /* ClaudeCodeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeManager.swift; sourceTree = "<group>"; };
+		BBB4112F2F0817830007988A /* ClaudeCodeCompactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeCompactView.swift; sourceTree = "<group>"; };
+		BBB411302F0817830007988A /* ClaudeCodeStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeStatsView.swift; sourceTree = "<group>"; };
+		BBB411312F0817830007988A /* ContextBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextBar.swift; sourceTree = "<group>"; };
+		BBB411322F0817830007988A /* SessionPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionPicker.swift; sourceTree = "<group>"; };
+		BBB411332F0817830007988A /* ToolActivityIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolActivityIndicator.swift; sourceTree = "<group>"; };
+		BBB4113A2F0870E30007988A /* SessionDotsIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDotsIndicator.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -486,6 +502,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				BBB411342F0817830007988A /* ClaudeCode */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				B1C448992C97375A001F0858 /* Tips */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
@@ -510,6 +527,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				BBB4112B2F0816D40007988A /* ClaudeCodeManager.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
@@ -626,6 +644,7 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				BBB411292F0816B90007988A /* ClaudeCodeModels.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -755,6 +774,19 @@
 				B1C4489A2C97376A001F0858 /* TipStore.swift */,
 			);
 			path = Tips;
+			sourceTree = "<group>";
+		};
+		BBB411342F0817830007988A /* ClaudeCode */ = {
+			isa = PBXGroup;
+			children = (
+				BBB4113A2F0870E30007988A /* SessionDotsIndicator.swift */,
+				BBB4112F2F0817830007988A /* ClaudeCodeCompactView.swift */,
+				BBB411302F0817830007988A /* ClaudeCodeStatsView.swift */,
+				BBB411312F0817830007988A /* ContextBar.swift */,
+				BBB411322F0817830007988A /* SessionPicker.swift */,
+				BBB411332F0817830007988A /* ToolActivityIndicator.swift */,
+			);
+			path = ClaudeCode;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -925,6 +957,7 @@
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
 				9A0887322C7A693000C160EA /* TabButton.swift in Sources */,
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
+				BBB4112A2F0816B90007988A /* ClaudeCodeModels.swift in Sources */,
 				1194E9402EACC652009C82D6 /* Color+AccentColor.swift in Sources */,
 				B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */,
 				116398962DF5D6C00052E6AF /* CalendarServiceProviding.swift in Sources */,
@@ -936,6 +969,7 @@
 				1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */,
 				1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */,
 				118EBE292E946B3F00D54B5A /* ShareServiceFinder.swift in Sources */,
+				BBB4113B2F0870E30007988A /* SessionDotsIndicator.swift in Sources */,
 				B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */,
 				B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */,
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
@@ -969,6 +1003,11 @@
 				B1A78C822C8BA08100BD51B0 /* FullscreenMediaDetection.swift in Sources */,
 				14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */,
 				14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */,
+				BBB411352F0817830007988A /* ContextBar.swift in Sources */,
+				BBB411362F0817830007988A /* ClaudeCodeStatsView.swift in Sources */,
+				BBB411372F0817830007988A /* SessionPicker.swift in Sources */,
+				BBB411382F0817830007988A /* ToolActivityIndicator.swift in Sources */,
+				BBB411392F0817830007988A /* ClaudeCodeCompactView.swift in Sources */,
 				14D570BC2C5E98EB0011E668 /* generic.swift in Sources */,
 				118EBE272E92DE8400D54B5A /* NSMenu+AssociatedObject.swift in Sources */,
 				B1CE8CFE2C6F659400DD9871 /* KeyboardShortcutsHelper.swift in Sources */,
@@ -979,6 +1018,7 @@
 				B10F84A32C6C9596009F3026 /* TestView.swift in Sources */,
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
 				11C5E3162DFE88510065821E /* SettingsView.swift in Sources */,
+				BBB4112C2F0816D40007988A /* ClaudeCodeManager.swift in Sources */,
 				1153BD932D986E4300979FB0 /* AppleMusicController.swift in Sources */,
 				11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */,
 				110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */,
