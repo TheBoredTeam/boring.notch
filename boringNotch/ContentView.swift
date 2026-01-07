@@ -352,6 +352,7 @@ struct ContentView: View {
                         ShelfView()
                     }
                 }
+                .frame(maxHeight: .infinity, alignment: .top)
                 .transition(
                     .scale(scale: 0.8, anchor: .top)
                     .combined(with: .opacity)
