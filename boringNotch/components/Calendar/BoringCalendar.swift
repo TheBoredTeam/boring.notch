@@ -115,7 +115,7 @@ struct WheelPicker: View {
                 VStack(spacing: config.spacing) {
                     pickerContent
                 }
-                .frame(width: 65)
+                .frame(width: 50)
                 .scrollTargetLayout()
             }
             .scrollIndicators(.never)
@@ -212,15 +212,15 @@ struct WheelPicker: View {
                         dateCircle(date: date, isToday: isToday, isSelected: isSelected)
                     }
                 } else {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 4) {
                         dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
-                        Spacer()
+                            .fixedSize(horizontal: true, vertical: false)
                         dateCircle(date: date, isToday: isToday, isSelected: isSelected)
                     }
                 }
             }
             .padding(.vertical, 4)
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 4)
             .background(isSelected ? Color.effectiveAccentBackground : Color.clear)
             .contentShape(.rect)
             .cornerRadius(8)
@@ -328,7 +328,7 @@ struct CalendarView: View {
                         headerView
                         pickerView
                     }
-                    .frame(width: 65)
+                    .frame(width: 50)
 
                     eventsView
                 }
