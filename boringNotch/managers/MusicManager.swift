@@ -56,8 +56,13 @@ class MusicManager: ObservableObject {
     var isFetchingLyrics: Bool { lyricsService.isFetchingLyrics }
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
     @Published var isFavoriteTrack: Bool = false
+    
+    /// Indicates whether a music app is currently running (not just playing)
+    /// Used to determine if the music widget should be visible
+    @Published var isMusicAppActive: Bool = false
 
     private var artworkData: Data? = nil
+    private var musicAppMonitorTask: Task<Void, Never>?
 
     // Store last values at the time artwork was changed
     private var lastArtworkTitle: String = "I'm Handsome"
@@ -79,6 +84,42 @@ class MusicManager: ObservableObject {
                 self?.setActiveControllerBasedOnPreference()
             }
             .store(in: &cancellables)
+        
+        // Listen for app launch to track music app activity
+        NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didLaunchApplicationNotification)
+            .sink { [weak self] notification in
+                guard let self = self else { return }
+                // Check if the launched app might be a music app
+                if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                   let bundleID = app.bundleIdentifier {
+                    // Update if it's a dedicated music app or matches current playback
+                    if MusicManager.dedicatedMusicAppBundleIdentifiers.contains(bundleID) ||
+                       bundleID == self.bundleIdentifier {
+                        self.updateMusicAppActiveState()
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Listen for app termination to track music app activity
+        NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didTerminateApplicationNotification)
+            .sink { [weak self] notification in
+                guard let self = self else { return }
+                // Check if the terminated app might be a music app
+                if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                   let bundleID = app.bundleIdentifier {
+                    // Update if it's a dedicated music app or matches current playback
+                    if MusicManager.dedicatedMusicAppBundleIdentifiers.contains(bundleID) ||
+                       bundleID == self.bundleIdentifier {
+                        // Add a small delay to ensure the app is fully removed from running apps list
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(150))
+                            self.updateMusicAppActiveState()
+                        }
+                    }
+                }
+            }
+            .store(in: &cancellables)
 
         // Initialize deprecation check asynchronously
         Task { @MainActor in
@@ -92,6 +133,9 @@ class MusicManager: ObservableObject {
             
             // Initialize the active controller after deprecation check
             self.setActiveControllerBasedOnPreference()
+            
+            // Initial check for music app activity
+            self.updateMusicAppActiveState()
         }
     }
 
@@ -101,6 +145,7 @@ class MusicManager: ObservableObject {
     
     public func destroy() {
         debounceIdleTask?.cancel()
+        musicAppMonitorTask?.cancel()
         cancellables.removeAll()
         controllerCancellables.removeAll()
         flipWorkItem?.cancel()
@@ -583,6 +628,79 @@ class MusicManager: ObservableObject {
             await MainActor.run {
                 if abs(currentVolume - self.volume) > 0.01 {
                     self.volume = currentVolume
+                }
+            }
+        }
+    }
+    
+    // MARK: - Music App Activity Detection
+    
+    /// Dedicated music app bundle identifiers (not browsers)
+    private static let dedicatedMusicAppBundleIdentifiers: Set<String> = [
+        "com.apple.Music",
+        "com.spotify.client",
+        "com.tidal.desktop",
+        "com.amazon.music",
+        "com.pandora.desktop",
+        "com.deezer.deezer-desktop",
+        "com.soundcloud.desktop",
+        "tv.plex.plexamp",
+        "com.roon.Roon",
+        "com.vox.vox",
+        "com.coppertino.Vox",
+        "com.clementine-player.clementine",
+        "org.videolan.vlc",
+        "com.colliderli.iina",
+        "io.mpv"
+    ]
+    
+    /// Checks if any music app is currently running based on the active controller
+    /// This is smarter than just checking for running apps - it checks if the
+    /// currently configured media controller's app is active
+    private func checkIfAnyMusicAppIsRunning() -> Bool {
+        // First check: is the currently active controller's app running?
+        // This is the primary check - if user selected Spotify, check if Spotify is running
+        if let controller = activeController, controller.isActive() {
+            return true
+        }
+        
+        // Second check: if we have a bundle identifier from current playback,
+        // check if that app is running (handles NowPlaying controller case)
+        if let currentBundleID = bundleIdentifier,
+           !currentBundleID.isEmpty {
+            let runningApps = NSWorkspace.shared.runningApplications
+            if runningApps.contains(where: { $0.bundleIdentifier == currentBundleID }) {
+                return true
+            }
+        }
+        
+        // Third check: check if any dedicated music app is running
+        // This catches cases where user has a music app open but no playback yet
+        let runningApps = NSWorkspace.shared.runningApplications
+        for app in runningApps {
+            if let bundleID = app.bundleIdentifier,
+               Self.dedicatedMusicAppBundleIdentifiers.contains(bundleID) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    /// Updates the `isMusicAppActive` state based on running applications
+    /// Called when apps launch/terminate
+    private func updateMusicAppActiveState() {
+        let isActive = checkIfAnyMusicAppIsRunning()
+        
+        if isActive != isMusicAppActive {
+            withAnimation(.smooth(duration: 0.3)) {
+                isMusicAppActive = isActive
+            }
+            
+            // If music app became inactive, also mark player as idle
+            if !isActive {
+                withAnimation(.smooth(duration: 0.3)) {
+                    isPlayerIdle = true
                 }
             }
         }

@@ -144,7 +144,12 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     }
 
     func isActive() -> Bool {
-        return true
+        // Check if the currently tracked app (from playback state) is running
+        let bundleID = playbackState.bundleIdentifier
+        if bundleID.isEmpty {
+            return false
+        }
+        return NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == bundleID }
     }
     
     func toggleShuffle() async {
