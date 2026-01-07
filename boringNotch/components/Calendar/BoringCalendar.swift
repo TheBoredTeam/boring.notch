@@ -27,80 +27,146 @@ struct WheelPicker: View {
     @State private var scrollAccumulator: CGFloat = 0
     @State private var isHovering: Bool = false
     let config: Config
-    
+    @Default(.calendarLayout) var calendarLayout
+
     private let scrollThreshold: CGFloat = 2.0
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: config.spacing) {
-                let spacerNum = config.offset
-                let dateCount = totalDateItems()
-                let totalItems = dateCount + 2 * spacerNum
-                ForEach(0..<totalItems, id: \.self) { index in
-                    if index < spacerNum || index >= spacerNum + dateCount {
-                        // Leading/trailing spacers sized to match a date cell
-                        Spacer()
-                            .frame(width: 24, height: 24)
-                            .id(index)
-                    } else {
-                        let date = dateForItemIndex(index: index, spacerNum: spacerNum)
-                        let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
-                        dateButton(date: date, isSelected: isSelected, id: index) {
-                            selectedDate = date
-                            byClick = true
-                            withAnimation {
-                                scrollPosition = index
-                            }
-                            if Defaults[.enableHaptics] {
-                                haptics.toggle()
-                            }
-                        }
+        if calendarLayout == .horizontal {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: config.spacing) {
+                    pickerContent
+                }
+                .frame(height: 50)
+                .scrollTargetLayout()
+            }
+            .scrollIndicators(.never)
+            .scrollPosition(id: $scrollPosition, anchor: .center)
+            .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps the centered view
+            .safeAreaPadding(.horizontal)
+            .sensoryFeedback(.alignment, trigger: haptics)
+            .onChange(of: scrollPosition) { oldValue, newValue in
+                if !byClick {
+                    handleScrollChange(newValue: newValue, config: config)
+                } else {
+                    byClick = false
+                }
+            }
+            .onAppear {
+                scrollToToday(config: config)
+            }
+            // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
+            .onChange(of: selectedDate) { _, newValue in
+                let targetIndex = indexForDate(newValue)
+                if scrollPosition != targetIndex {
+                    byClick = true
+                    withAnimation {
+                        scrollPosition = targetIndex
                     }
                 }
             }
             .frame(height: 50)
             .scrollTargetLayout()
-        }
-        .scrollIndicators(.never)
-        .scrollPosition(id: $scrollPosition, anchor: .center)
-        .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps the centered view
-        .safeAreaPadding(.horizontal)
-        .sensoryFeedback(.alignment, trigger: haptics)
-        .onContinuousHover { phase in
-            switch phase {
-            case .active(_):
-                isHovering = true
-            case .ended:
-                isHovering = false
-            }
-        }
-        .onAppear {
-            scrollToToday(config: config)
-            
-            // Register local monitor for scroll events
-            NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
-                guard isHovering else { return event }
-                
-                if abs(event.deltaY) > abs(event.deltaX) && abs(event.deltaY) > 0.1 {
-                    navigateDateByScrollWheel(deltaY: event.deltaY)
+            .scrollIndicators(.never)
+            .scrollPosition(id: $scrollPosition, anchor: .center)
+            .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps the centered view
+            .safeAreaPadding(.horizontal)
+            .sensoryFeedback(.alignment, trigger: haptics)
+            .onContinuousHover { phase in
+                switch phase {
+                case .active(_):
+                    isHovering = true
+                case .ended:
+                    isHovering = false
                 }
-                return event
             }
-        }
-        .onChange(of: scrollPosition) { oldValue, newValue in
-            if !byClick {
-                handleScrollChange(newValue: newValue, config: config)
+            .onAppear {
+                scrollToToday(config: config)
+
+                // Register local monitor for scroll events
+                NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+                    guard isHovering else { return event }
+
+                    if abs(event.deltaY) > abs(event.deltaX) && abs(event.deltaY) > 0.1 {
+                        navigateDateByScrollWheel(deltaY: event.deltaY)
+                    }
+                    return event
+                }
+            }
+            .onChange(of: scrollPosition) { oldValue, newValue in
+                if !byClick {
+                    handleScrollChange(newValue: newValue, config: config)
+                } else {
+                    byClick = false
+                }
+            }
+            // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
+            .onChange(of: selectedDate) { _, newValue in
+                let targetIndex = indexForDate(newValue)
+                if scrollPosition != targetIndex {
+                    byClick = true
+                    withAnimation {
+                        scrollPosition = targetIndex
+                    }
+                }
+            }
+        } else {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: config.spacing) {
+                    pickerContent
+                }
+                .frame(width: 65)
+                .scrollTargetLayout()
+            }
+            .scrollIndicators(.never)
+            .scrollPosition(id: $scrollPosition, anchor: .center)
+            .scrollTargetBehavior(.viewAligned)
+            .safeAreaPadding(.vertical)
+            .sensoryFeedback(.alignment, trigger: haptics)
+            .onChange(of: scrollPosition) { oldValue, newValue in
+                if !byClick {
+                    handleScrollChange(newValue: newValue, config: config)
+                } else {
+                    byClick = false
+                }
+            }
+            .onAppear {
+                scrollToToday(config: config)
+            }
+            .onChange(of: selectedDate) { _, newValue in
+                let targetIndex = indexForDate(newValue)
+                if scrollPosition != targetIndex {
+                    byClick = true
+                    withAnimation {
+                        scrollPosition = targetIndex
+                    }
+                }
+            }
+    }
+
+    @ViewBuilder
+    private var pickerContent: some View {
+        let spacerNum = config.offset
+        let dateCount = totalDateItems()
+        let totalItems = dateCount + 2 * spacerNum
+        ForEach(0..<totalItems, id: \.self) { index in
+            if index < spacerNum || index >= spacerNum + dateCount {
+                // Leading/trailing spacers sized to match a date cell
+                Spacer()
+                    .frame(width: 24, height: 24)
+                    .id(index)
             } else {
-                byClick = false
-            }
-        }
-        // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
-        .onChange(of: selectedDate) { _, newValue in
-            let targetIndex = indexForDate(newValue)
-            if scrollPosition != targetIndex {
-                byClick = true
-                withAnimation {
-                    scrollPosition = targetIndex
+                let date = dateForItemIndex(index: index, spacerNum: spacerNum)
+                let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
+                dateButton(date: date, isSelected: isSelected, id: index) {
+                    selectedDate = date
+                    byClick = true
+                    withAnimation {
+                        scrollPosition = index
+                    }
+                    if Defaults[.enableHaptics] {
+                        haptics.toggle()
+                    }
                 }
             }
         }
@@ -139,12 +205,22 @@ struct WheelPicker: View {
     ) -> some View {
         let isToday = Calendar.current.isDateInToday(date)
         return Button(action: onClick) {
-            VStack(spacing: 8) {
-                dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
-                dateCircle(date: date, isToday: isToday, isSelected: isSelected)
+            Group {
+                if calendarLayout == .horizontal {
+                    VStack(spacing: 8) {
+                        dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
+                        dateCircle(date: date, isToday: isToday, isSelected: isSelected)
+                    }
+                } else {
+                    HStack(spacing: 8) {
+                        dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
+                        Spacer()
+                        dateCircle(date: date, isToday: isToday, isSelected: isSelected)
+                    }
+                }
             }
             .padding(.vertical, 4)
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 8)
             .background(isSelected ? Color.effectiveAccentBackground : Color.clear)
             .contentShape(.rect)
             .cornerRadius(8)
@@ -233,46 +309,29 @@ struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject private var calendarManager = CalendarManager.shared
     @State private var selectedDate = Date()
+    @Default(.calendarLayout) var calendarLayout
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .center, spacing: 8) {
-                VStack(alignment: .leading) {
-                    Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                    Text(selectedDate.formatted(.dateTime.year()))
-                        .font(.title3)
-                        .fontWeight(.light)
-                        .foregroundColor(Color(white: 0.65))
-                }
-
-                ZStack(alignment: .top) {
-                    WheelPicker(selectedDate: $selectedDate, config: Config())
-                    HStack(alignment: .top) {
-                        LinearGradient(
-                            colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
-                        Spacer()
-                        LinearGradient(
-                            colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
+        Group {
+            if calendarLayout == .horizontal {
+                VStack(spacing: 0) {
+                    HStack(alignment: .top, spacing: 8) {
+                        headerView
+                        pickerView
                     }
-                }
-            }
-            .fixedSize(horizontal: false, vertical: true)
 
-            let filteredEvents = EventListView.filteredEvents(
-                events: calendarManager.events
-            )
-            if filteredEvents.isEmpty {
-                EmptyEventsView(selectedDate: selectedDate)
-                    .frame(maxHeight: .infinity, alignment: .center)
+                    eventsView
+                }
             } else {
-                EventListView(events: calendarManager.events)
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        headerView
+                        pickerView
+                    }
+                    .frame(width: 65)
+
+                    eventsView
+                }
             }
         }
         .onChange(of: selectedDate) {
@@ -290,6 +349,72 @@ struct CalendarView: View {
             Task {
                 await calendarManager.updateCurrentDate(Date.now)
                 selectedDate = Date.now
+            }
+        }
+    }
+
+    private var headerView: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+            Text(selectedDate.formatted(.dateTime.year()))
+                .font(.title3)
+                .fontWeight(.light)
+                .foregroundColor(Color(white: 0.65))
+        }
+    }
+
+    private var pickerView: some View {
+        ZStack(alignment: .top) {
+            WheelPicker(selectedDate: $selectedDate, config: Config())
+            if calendarLayout == .horizontal {
+                HStack(alignment: .top) {
+                    LinearGradient(
+                        colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 20)
+                    Spacer()
+                    LinearGradient(
+                        colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 20)
+                }
+                .frame(height: 50)
+            } else {
+                VStack(alignment: .center) {
+                    LinearGradient(
+                        colors: [Color.black, .clear], startPoint: .top, endPoint: .bottom
+                    )
+                    .frame(height: 15)
+                    Spacer()
+                    LinearGradient(
+                        colors: [.clear, Color.black], startPoint: .top, endPoint: .bottom
+                    )
+                    .frame(height: 15)
+                }
+            }
+        }
+    }
+
+    private var eventsView: some View {
+        Group {
+            let filteredEvents = EventListView.filteredEvents(
+                events: calendarManager.events
+            )
+            if filteredEvents.isEmpty {
+                VStack {
+                    Spacer(minLength: 0)
+                    HStack {
+                        Spacer(minLength: 0)
+                        EmptyEventsView(selectedDate: selectedDate)
+                        Spacer(minLength: 0)
+                    }
+                    Spacer(minLength: 0)
+                }
+            } else {
+                EventListView(events: calendarManager.events)
             }
         }
     }
