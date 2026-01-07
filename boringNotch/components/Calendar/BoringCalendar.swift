@@ -559,6 +559,7 @@ struct EventListView: View {
                                     .font(.caption)
                             }
                         }
+                        .frame(minWidth: 22, alignment: .trailing)
                     }
                     .opacity(
                         isCompleted
@@ -607,7 +608,7 @@ struct EventListView: View {
                         }
                     }
                     .font(.caption)
-                    .frame(minWidth: 44, alignment: .trailing)
+                    .frame(minWidth: 22, alignment: .trailing)
                 }
                 .opacity(
                     event.eventStatus == .ended && Calendar.current.isDateInToday(event.start)
