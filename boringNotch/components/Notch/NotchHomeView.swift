@@ -250,7 +250,11 @@ struct MusicControlsView: View {
             }
         case .playPause:
             HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
-                MusicManager.shared.togglePlay()
+                if musicManager.isPlaying {
+                    MusicManager.shared.pause()
+                } else {
+                    MusicManager.shared.play()
+                }
             }
         case .next:
             HoverButton(icon: "forward.fill", scale: .medium) {
