@@ -646,7 +646,7 @@ private struct RecentShelfDragHandler: NSViewRepresentable {
                     draggedURLs.append(url)
                 }
                 pasteboardItem.setString(url.absoluteString, forType: .fileURL)
-                pasteboardItem.setString(url.path, forType: .string)
+                pasteboardItem.setPropertyList([url.path], forType: NSPasteboard.PasteboardType("NSFilenamesPboardType"))
                 return pasteboardItem
             case .text(let string):
                 pasteboardItem.setString(string, forType: .string)

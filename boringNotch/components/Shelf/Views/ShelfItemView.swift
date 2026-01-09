@@ -339,7 +339,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
                 }
                 
                 pasteboardItem.setString(url.absoluteString, forType: .fileURL)
-                pasteboardItem.setString(url.path, forType: .string)
+                pasteboardItem.setPropertyList([url.path], forType: NSPasteboard.PasteboardType("NSFilenamesPboardType"))
                 return pasteboardItem
 
             case .text(let string):
