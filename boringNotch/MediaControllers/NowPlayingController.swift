@@ -10,8 +10,9 @@ import Combine
 import Foundation
 
 final class NowPlayingController: ObservableObject, MediaControllerProtocol {
-    // Stub for now to conform with ControllerProtocol
-    func updatePlaybackInfo() async {}
+    func updatePlaybackInfo() async {
+        await fetchFavoriteStateIfSupported()
+    }
 
     // MARK: - Properties
     @Published private(set) var playbackState: PlaybackState = .init(
@@ -21,6 +22,39 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
+
+    var supportsVolumeControl: Bool {
+        let bundleID = playbackState.bundleIdentifier
+        return bundleID == "com.apple.Music" || bundleID == "com.spotify.client"
+    }
+
+    var supportsFavorite: Bool {
+        let bundleID = playbackState.bundleIdentifier
+        return bundleID == "com.apple.Music"
+    }
+
+    func setFavorite(_ favorite: Bool) async {
+        let bundleID = playbackState.bundleIdentifier
+        
+        if bundleID == "com.apple.Music" {
+            let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+            if !runningApps.isEmpty {
+                let script = """
+                tell application "Music"
+                    try
+                        set favorited of current track to \(favorite ? "true" : "false")
+                    end try
+                end tell
+                """
+                try? await AppleScriptHelper.executeVoid(script)
+            }
+        }
+        
+        // Update the favorite state locally and fetch updated info
+        try? await Task.sleep(for: .milliseconds(150))
+        await updatePlaybackInfo()
+    }
+
     private var lastMusicItem:
         (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
 
@@ -124,6 +158,32 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         let newRepeatMode = (playbackState.repeatMode == .off) ? 3 : (playbackState.repeatMode.rawValue - 1)
         playbackState.repeatMode = RepeatMode(rawValue: newRepeatMode) ?? .off
         MRMediaRemoteSetRepeatModeFunction(newRepeatMode)
+    }
+    
+    func setVolume(_ level: Double) async {
+        // MediaRemote framework doesn't provide direct volume control for the active audio session
+        // As a workaround, try to control the currently active music app directly
+        let clampedLevel = max(0.0, min(1.0, level))
+        let volumePercentage = Int(clampedLevel * 100)
+        
+        let bundleID = playbackState.bundleIdentifier
+        if !bundleID.isEmpty {
+            if bundleID == "com.apple.Music" {
+                let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+                if !runningApps.isEmpty {
+                    let script = "tell application \"Music\" to set sound volume to \(volumePercentage)"
+                    try? await AppleScriptHelper.executeVoid(script)
+                }
+            } else if bundleID == "com.spotify.client" {
+                let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.spotify.client")
+                if !runningApps.isEmpty {
+                    let script = "tell application \"Spotify\" to set sound volume to \(volumePercentage)"
+                    try? await AppleScriptHelper.executeVoid(script)
+                }
+            }
+        }
+        
+        playbackState.volume = clampedLevel
     }
     
     // MARK: - Setup Methods
@@ -231,8 +291,38 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             (diff ? self.playbackState.bundleIdentifier : "")
         )
         
+        newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
+        
         self.playbackState = newPlaybackState
+        
+        // Fetch favorite state for supported apps asynchronously
+        // await fetchFavoriteStateIfSupported()
     }
+    
+     private func fetchFavoriteStateIfSupported() async {
+         let bundleID = playbackState.bundleIdentifier
+        
+         if bundleID == "com.apple.Music" {
+             let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+             guard !runningApps.isEmpty else { return }
+             
+             let script = """
+             tell application "Music"
+                 try
+                     return favorited of current track
+                 on error
+                     return false
+                 end try
+             end tell
+             """
+             if let result = try? await AppleScriptHelper.execute(script) {
+                 var updated = self.playbackState
+                 updated.isFavorite = result.booleanValue
+                 self.playbackState = updated
+             }
+         }
+     }
+    
 }
 
 struct NowPlayingUpdate: Codable {
@@ -254,6 +344,7 @@ struct NowPlayingPayload: Codable {
     let playing: Bool?
     let parentApplicationBundleIdentifier: String?
     let bundleIdentifier: String?
+    let volume: Double?
 }
 
 actor JSONLinesPipeHandler {

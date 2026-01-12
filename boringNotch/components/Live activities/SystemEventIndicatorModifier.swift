@@ -45,8 +45,8 @@ struct SystemEventIndicatorModifier: View {
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .backlight:
-                    Image(systemName: "keyboard")
-                        .contentTransition(.symbolEffect)
+                    Image(systemName: value > 0.5 ? "light.max" : "light.min")
+                        .contentTransition(.interpolate)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .mic:
@@ -60,6 +60,13 @@ struct SystemEventIndicatorModifier: View {
             }
             if (eventType != .mic) {
                 DraggableProgressBar(value: $value)
+                if Defaults[.showClosedNotchHUDPercentage] {
+                    Text("\(Int(value * 100))%")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.white)
+                        .monospacedDigit()
+                        .frame(width: 35, alignment: .trailing)
+                }
             } else {
                 Text("Mic \(value > 0 ? "unmuted" : "muted")")
                     .foregroundStyle(.gray)
@@ -91,6 +98,7 @@ struct SystemEventIndicatorModifier: View {
 struct DraggableProgressBar: View {
     @EnvironmentObject var vm: BoringViewModel
     @Binding var value: CGFloat
+    var onChange: ((CGFloat) -> Void)? = nil
     
     @State private var isDragging = false
     @State private var dragOffset: CGFloat = 0
@@ -106,17 +114,17 @@ struct DraggableProgressBar: View {
                             Defaults[.enableGradient] ?
                                 AnyShapeStyle(LinearGradient(
                                     colors: Defaults[.systemEventIndicatorUseAccent] ?
-                                        [Color.accentColor, Color.accentColor.ensureMinimumBrightness(factor: 0.2)] :
+                                        [Color.effectiveAccent, Color.effectiveAccent.ensureMinimumBrightness(factor: 0.2)] :
                                         [Color.white, Color.white.opacity(0.2)],
                                     startPoint: .trailing,
                                     endPoint: .leading
                                 )) :
-                                AnyShapeStyle(Defaults[.systemEventIndicatorUseAccent] ? Color.accentColor : Color.white)
+                                AnyShapeStyle(Defaults[.systemEventIndicatorUseAccent] ? Color.effectiveAccent : Color.white)
                         )
                         .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
                         .shadow(color: Defaults[.systemEventIndicatorShadow] ?
                             (Defaults[.systemEventIndicatorUseAccent] ?
-                                Color.accentColor.ensureMinimumBrightness(factor: 0.7) :
+                                Color.effectiveAccent.ensureMinimumBrightness(factor: 0.7) :
                                 Color.white) :
                             Color.clear,
                             radius: 8, x: 3)
@@ -146,5 +154,6 @@ struct DraggableProgressBar: View {
         let newValue = dragPosition / geometry.size.width
         
         value = max(0, min(newValue, 1))
+        onChange?(value)
     }
 }

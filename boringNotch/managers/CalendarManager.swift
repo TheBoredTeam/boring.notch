@@ -20,6 +20,7 @@ class CalendarManager: ObservableObject {
     @Published var allCalendars: [CalendarModel] = []
     @Published var eventCalendars: [CalendarModel] = []
     @Published var reminderLists: [CalendarModel] = []
+    @Published var selectedCalendarIDs: Set<String> = []
     @Published var calendarAuthorizationStatus: EKAuthorizationStatus = .notDetermined
     @Published var reminderAuthorizationStatus: EKAuthorizationStatus = .notDetermined
     private var selectedCalendars: [CalendarModel] = []
@@ -130,16 +131,20 @@ class CalendarManager: ObservableObject {
         
 
     func updateSelectedCalendars() {
-        selectedCalendars = allCalendars.filter { getCalendarSelected($0) }
+        // Populate selectedCalendarIDs based on Defaults calendar selection state
+        switch Defaults[.calendarSelectionState] {
+        case .all:
+            selectedCalendarIDs = Set(allCalendars.map { $0.id })
+        case .selected(let identifiers):
+            selectedCalendarIDs = identifiers
+        }
+
+        // Update the local calendar objects that correspond to the selected ids
+        selectedCalendars = allCalendars.filter { selectedCalendarIDs.contains($0.id) }
     }
 
     func getCalendarSelected(_ calendar: CalendarModel) -> Bool {
-        switch Defaults[.calendarSelectionState] {
-        case .all:
-            return true
-        case .selected(let identifiers):
-            return identifiers.contains(calendar.id)
-        }
+        return selectedCalendarIDs.contains(calendar.id)
     }
 
     func setCalendarSelected(_ calendar: CalendarModel, isSelected: Bool) async {

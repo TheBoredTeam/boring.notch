@@ -5,10 +5,10 @@
 //  Created by Alexander on 2024-11-20.
 //
 
+import AppKit
 import Combine
 import Defaults
 import SwiftUI
-import TheBoringWorkerNotifier
 
 enum SneakContentType {
     case brightness
@@ -46,13 +46,15 @@ struct ExpandedItem {
     var browser: BrowserType = .chromium
 }
 
+@MainActor
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
-    var notifier: TheBoringWorkerNotifier = .init()
 
     @Published var currentView: NotchViews = .home
+    @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
+    private var hudEnableTask: Task<Void, Never>?
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
@@ -63,7 +65,7 @@ class BoringViewCoordinator: ObservableObject {
         didSet {
             if !alwaysShowTabs {
                 openLastTabByDefault = false
-                if TrayDrop.shared.isEmpty || !Defaults[.openShelfByDefault] {
+                if ShelfStateViewModel.shared.isEmpty || !Defaults[.openShelfByDefault] {
                     currentView = .home
                 }
             }
@@ -78,32 +80,100 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
     
-    @AppStorage("hudReplacement") var hudReplacement: Bool = true {
-        didSet {
-            notifier.postNotification(name: notifier.toggleHudReplacementNotification.name, userInfo: nil)
-        }
-    }
+    @Default(.hudReplacement) var hudReplacement: Bool
     
-    @AppStorage("preferred_screen_name") var preferredScreen = NSScreen.main?.localizedName ?? "Unknown" {
+    // Legacy storage for migration
+    @AppStorage("preferred_screen_name") private var legacyPreferredScreenName: String?
+    
+    // New UUID-based storage
+    @AppStorage("preferred_screen_uuid") var preferredScreenUUID: String? {
         didSet {
-            selectedScreen = preferredScreen
+            if let uuid = preferredScreenUUID {
+                selectedScreenUUID = uuid
+            }
             NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
         }
     }
 
-    @Published var selectedScreen: String = NSScreen.main?.localizedName ?? "Unknown"
+    @Published var selectedScreenUUID: String = NSScreen.main?.displayUUID ?? ""
 
     @Published var optionKeyPressed: Bool = true
+    private var accessibilityObserver: Any?
+    private var hudReplacementCancellable: AnyCancellable?
 
     private init() {
-        selectedScreen = preferredScreen
-        notifier = TheBoringWorkerNotifier()
-    }
-
-    func setupWorkersNotificationObservers() {
-            notifier.setupObserver(notification: notifier.micStatusNotification, handler: initialMicStatus)
-            notifier.setupObserver(notification: notifier.sneakPeakNotification, handler: sneakPeekEvent)
+        // Perform migration from name-based to UUID-based storage
+        if preferredScreenUUID == nil, let legacyName = legacyPreferredScreenName {
+            // Try to find screen by name and migrate to UUID
+            if let screen = NSScreen.screens.first(where: { $0.localizedName == legacyName }),
+               let uuid = screen.displayUUID {
+                preferredScreenUUID = uuid
+                NSLog("✅ Migrated display preference from name '\(legacyName)' to UUID '\(uuid)'")
+            } else {
+                // Fallback to main screen if legacy screen not found
+                preferredScreenUUID = NSScreen.main?.displayUUID
+                NSLog("⚠️ Could not find display named '\(legacyName)', falling back to main screen")
+            }
+            // Clear legacy value after migration
+            legacyPreferredScreenName = nil
+        } else if preferredScreenUUID == nil {
+            // No legacy value, use main screen
+            preferredScreenUUID = NSScreen.main?.displayUUID
         }
+        
+        selectedScreenUUID = preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
+        // Observe changes to accessibility authorization and react accordingly
+        accessibilityObserver = NotificationCenter.default.addObserver(
+            forName: Notification.Name.accessibilityAuthorizationChanged,
+            object: nil,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in
+                if Defaults[.hudReplacement] {
+                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                }
+            }
+        }
+
+        // Observe changes to hudReplacement
+        hudReplacementCancellable = Defaults.publisher(.hudReplacement)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self = self else { return }
+
+                    self.hudEnableTask?.cancel()
+                    self.hudEnableTask = nil
+
+                    if change.newValue {
+                        self.hudEnableTask = Task { @MainActor in
+                            let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                            if Task.isCancelled { return }
+
+                            if granted {
+                                await MediaKeyInterceptor.shared.start()
+                            } else {
+                                Defaults[.hudReplacement] = false
+                            }
+                        }
+                    } else {
+                        MediaKeyInterceptor.shared.stop()
+                    }
+                }
+            }
+
+        Task { @MainActor in
+            helloAnimationRunning = firstLaunch
+
+            if Defaults[.hudReplacement] {
+                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                if !authorized {
+                    Defaults[.hudReplacement] = false
+                } else {
+                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                }
+            }
+        }
+    }
     
     @objc func sneakPeekEvent(_ notification: Notification) {
         let decoder = JSONDecoder()
@@ -142,11 +212,11 @@ class BoringViewCoordinator: ObservableObject {
         sneakPeekDuration = duration
         if type != .music {
             // close()
-            if !hudReplacement {
+            if !Defaults[.hudReplacement] {
                 return
             }
         }
-        DispatchQueue.main.async {
+        Task { @MainActor in
             withAnimation(.smooth) {
                 self.sneakPeek.show = status
                 self.sneakPeek.type = type
@@ -212,23 +282,16 @@ class BoringViewCoordinator: ObservableObject {
             if expandingView.show {
                 expandingViewTask?.cancel()
                 let duration: TimeInterval = (expandingView.type == .download ? 2 : 3)
+                let currentType = expandingView.type
                 expandingViewTask = Task { [weak self] in
                     try? await Task.sleep(for: .seconds(duration))
                     guard let self = self, !Task.isCancelled else { return }
-                    self.toggleExpandingView(status: false, type: .battery)
+                    self.toggleExpandingView(status: false, type: currentType)
                 }
             } else {
                 expandingViewTask?.cancel()
             }
         }
-    }
-
-    @objc func initialMicStatus(_ notification: Notification) {
-        currentMicStatus = notification.userInfo?.first?.value as! Bool
-    }
-    
-    func toggleMic() {
-        notifier.postNotification(name: notifier.toggleMicNotification.name, userInfo: nil)
     }
     
     func showEmpty() {
