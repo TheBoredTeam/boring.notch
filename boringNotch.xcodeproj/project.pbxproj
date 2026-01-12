@@ -511,6 +511,8 @@
 			children = (
 				414CD641EB6D5FB3744A39CC /* Note.swift */,
 				3B3365ED066F8195C12271BE /* ClipboardItem.swift */,
+				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
+				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
 				1163988C2DF5CAB40052E6AF /* EventModel.swift */,
 				B19016232CC15B4D00E3F12E /* Constants.swift */,

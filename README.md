@@ -75,15 +75,18 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 ## 📋 Roadmap
 - [x] Playback live activity 🎧
 - [x] Calendar integration 📆
+- [x] Reminders integration ☑️
 - [x] Mirror 📷
 - [x] Charging indicator and current percentage 🔋
 - [x] Customizable gesture control 👆🏻
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
-- [ ] Reminders integration ☑️
+- [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
+- [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
+- [ ] Weather integration ⛅️
 - [ ] Customizable Layout options 🛠️
+- [ ] Lock Screen Widgets 🔒
 - [ ] Extension system 🧩
-- [ ] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
 - [ ] Notifications (under consideration) 🔔
 <!-- - [ ] Clipboard history manager 📌 `Extension` -->
 <!-- - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`-->
