@@ -39,6 +39,11 @@ struct ContentView: View {
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
+    
+    // Animation constants
+    private let hoverAnimationAnimation = Animation.smooth(duration: 0.25)
+    private let notchStateAnimation = Animation.spring(response: 0.4, dampingFraction: 0.8)
+    private let useModernCloseAnimation = false
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
@@ -190,11 +195,11 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .onChange(of: vm.notchState) { _, newState in
-                        if newState == .closed && isHovering {
-                            withAnimation {
-                                isHovering = false
-                            }
+                }
+                .onChange(of: vm.notchState) { _, newState in
+                    if newState == .closed && isHovering {
+                        withAnimation {
+                            isHovering = false
                         }
                     }
                     if newState == .closed {
@@ -232,18 +237,14 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .sensoryFeedback(.alignment, trigger: haptics)
-                    .contextMenu {
-                        Button("Settings") {
-                            SettingsWindowController.shared.showWindow()
-                        }
-                        .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-                        //                    Button("Edit") { // Doesnt work....
-                        //                        let dn = DynamicNotch(content: EditPanelView())
-                        //                        dn.toggle()
-                        //                    }
-                        //                    .keyboardShortcut("E", modifiers: .command)
+                }
+                .sensoryFeedback(.alignment, trigger: haptics)
+                .contextMenu {
+                    Button("Settings") {
+                        SettingsWindowController.shared.showWindow()
                     }
+                    .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+                }
                 if vm.chinHeight > 0 {
                     Rectangle()
                         .fill(Color.black.opacity(0.01))
@@ -397,7 +398,7 @@ struct ContentView: View {
                     case .home:
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
-                        NotchShelfView()
+                        ShelfView()
                     case .notes where Defaults[.enableNotes]:
                         NotchNotesView()
                     case .clipboard where Defaults[.enableClipboardHistory]:
