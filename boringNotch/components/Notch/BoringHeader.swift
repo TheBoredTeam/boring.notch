@@ -46,33 +46,35 @@ struct BoringHeader: View {
                             Button(action: {
                                 vm.toggleCameraPreview()
                             }) {
-                                Capsule()
-                                    .fill(.black)
+                                Circle()
+                                    .fill(Color.white.opacity(0.1))
                                     .frame(width: 30, height: 30)
                                     .overlay {
                                         Image(systemName: "web.camera")
                                             .foregroundColor(.white)
-                                            .padding()
                                             .imageScale(.medium)
                                     }
+                                    .contentShape(Circle())
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
+                            .help("Toggle camera preview")
                         }
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
                                 SettingsWindowController.shared.showWindow()
                             }) {
-                                Capsule()
-                                    .fill(.black)
+                                Circle()
+                                    .fill(Color.white.opacity(0.1))
                                     .frame(width: 30, height: 30)
                                     .overlay {
                                         Image(systemName: "gear")
                                             .foregroundColor(.white)
-                                            .padding()
                                             .imageScale(.medium)
                                     }
+                                    .contentShape(Circle())
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
+                            .help("Open Settings")
                         }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(

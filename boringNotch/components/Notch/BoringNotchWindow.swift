@@ -13,6 +13,7 @@ extension Notification.Name {
 
 class BoringNotchWindow: NSPanel {
     private static var allowsKeyboardFocus: Bool = false
+    private static var shouldResetOnResign: Bool = true
     private var keyboardObserver: NSObjectProtocol?
 
     override init(
@@ -45,7 +46,7 @@ class BoringNotchWindow: NSPanel {
         isReleasedWhenClosed = false
         level = .mainMenu + 3
         hasShadow = false
-        becomesKeyOnlyIfNeeded = true
+        becomesKeyOnlyIfNeeded = false  // Changed: allow becoming key when requested
 
         keyboardObserver = NotificationCenter.default.addObserver(
             forName: .boringNotchWindowKeyboardFocus,
@@ -54,13 +55,21 @@ class BoringNotchWindow: NSPanel {
         ) { [weak self] notification in
             guard let self else { return }
             let allow = notification.userInfo?["allow"] as? Bool ?? false
-            Self.allowsKeyboardFocus = allow
+            
             if allow {
-                if !self.isKeyWindow {
+                // Set flag FIRST, then make key
+                Self.allowsKeyboardFocus = true
+                Self.shouldResetOnResign = false  // Don't reset when we're actively wanting focus
+                
+                // Force the window to become key
+                DispatchQueue.main.async {
                     NSApp.activate(ignoringOtherApps: true)
                     self.makeKeyAndOrderFront(nil)
+                    self.makeFirstResponder(self.contentView)
                 }
             } else {
+                Self.shouldResetOnResign = true
+                Self.allowsKeyboardFocus = false
                 if self.isKeyWindow {
                     self.resignKey()
                 }
@@ -84,6 +93,9 @@ class BoringNotchWindow: NSPanel {
 
     override func resignKey() {
         super.resignKey()
-        Self.allowsKeyboardFocus = false
+        // Only reset if explicitly told to (not on natural focus loss)
+        if Self.shouldResetOnResign {
+            Self.allowsKeyboardFocus = false
+        }
     }
 }

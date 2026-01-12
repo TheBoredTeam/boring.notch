@@ -32,6 +32,9 @@ extension SkyLightOperator {
 }
 
 class BoringNotchSkyLightWindow: NSPanel {
+    private static var allowsKeyboardFocus: Bool = false
+    private static var shouldResetOnResign: Bool = true
+    private var keyboardObserver: NSObjectProtocol?
     private var isSkyLightEnabled: Bool = false
     
     override init(
@@ -49,6 +52,13 @@ class BoringNotchSkyLightWindow: NSPanel {
         
         configureWindow()
         setupObservers()
+        setupFocusHandling()
+    }
+    
+    deinit {
+        if let keyboardObserver {
+            NotificationCenter.default.removeObserver(keyboardObserver)
+        }
     }
     
     private func configureWindow() {
@@ -107,8 +117,54 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
     
-    private var observers: Set<AnyCancellable> = []
+    private func setupFocusHandling() {
+        // Allow becoming key when requested
+        becomesKeyOnlyIfNeeded = false
+
+        keyboardObserver = NotificationCenter.default.addObserver(
+            forName: .boringNotchWindowKeyboardFocus,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self else { return }
+            let allow = notification.userInfo?["allow"] as? Bool ?? false
+            
+            if allow {
+                // Set flag FIRST, then make key
+                Self.allowsKeyboardFocus = true
+                Self.shouldResetOnResign = false  // Don't reset when we're actively wanting focus
+                
+                // Force the window to become key
+                DispatchQueue.main.async {
+                    NSApp.activate(ignoringOtherApps: true)
+                    self.makeKeyAndOrderFront(nil)
+                    // Let SwiftUI handle first responder
+                }
+            } else {
+                Self.shouldResetOnResign = true
+                Self.allowsKeyboardFocus = false
+                if self.isKeyWindow {
+                    self.resignKey()
+                }
+            }
+        }
+    }
+
+    override var canBecomeKey: Bool {
+        Self.allowsKeyboardFocus
+    }
+
+    override var canBecomeMain: Bool {
+        Self.allowsKeyboardFocus
+    }
+
+    override func resignKey() {
+        super.resignKey()
+        // Only reset if explicitly told to (not on natural focus loss)
+        if Self.shouldResetOnResign {
+            Self.allowsKeyboardFocus = false
+        }
+    }
     
-    override var canBecomeKey: Bool { false }
-    override var canBecomeMain: Bool { false }
+    private var observers: Set<AnyCancellable> = []
 }

@@ -21,8 +21,8 @@ struct NotchClipboardView: View {
     }
 
     private var content: some View {
-        ScrollView(.vertical, showsIndicators: true) {
-            LazyVGrid(columns: columns, spacing: 8) {
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 12) {
                 ForEach(items) { item in
                     ClipboardCard(
                         item: item,
@@ -61,7 +61,8 @@ struct NotchClipboardView: View {
                     }
                 }
             }
-            .padding(.vertical, 8)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .disabled(!historyEnabled)
@@ -98,9 +99,6 @@ struct NotchClipboardView: View {
         }
     }
 
-    private var columns: [GridItem] {
-        [GridItem(.adaptive(minimum: 180, maximum: .infinity), spacing: 8, alignment: .top)]
-    }
 
     private func handleSelection(for id: UUID, commandPressed: Bool) {
         guard historyEnabled else { return }
@@ -146,9 +144,34 @@ private struct ClipboardCard: View {
     let onCopy: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
+            // App icon and type header
+            HStack(spacing: 6) {
+                Image(nsImage: AppIconHelper.icon(for: item.sourceApp))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                
+                Text(item.sourceApp ?? item.kind.title)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                
+                Spacer()
+                
+                if item.isFavorite {
+                    Image(systemName: "pin.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.yellow)
+                }
+            }
+            
+            // Content preview
             preview
+                .frame(maxWidth: .infinity, alignment: .leading)
 
+            // Action buttons
             HStack(spacing: 8) {
                 Spacer()
                 Button(action: onCopy) {
@@ -179,15 +202,16 @@ private struct ClipboardCard: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .frame(width: 180, height: 100, alignment: .topLeading)
+        .frame(width: 200, height: 120, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.white.opacity(isSelected ? 0.16 : 0.12))
+                .fill(Color.white.opacity(isSelected ? 0.16 : 0.08))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(isSelected ? Color.accentColor : Color.white.opacity(0.08), lineWidth: isSelected ? 2 : 1)
         )
+        .contentShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private var preview: some View {

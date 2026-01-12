@@ -5,369 +5,224 @@ struct NotchNotesView: View {
     @ObservedObject private var notesManager = NotesManager.shared
     @Default(.enableNotes) private var notesEnabled
     @FocusState private var editorFocused: Bool
-
-    private var selectedNote: Note? {
-        notesManager.note(for: notesManager.selectedNoteID)
+    @State private var showCopiedFeedback = false
+    
+    /// The scratchpad note - always use the first note or create one
+    private var scratchpadNote: Note? {
+        if let first = notesManager.notes.first {
+            // Ensure it's selected
+            if notesManager.selectedNoteID != first.id {
+                Task { @MainActor in
+                    notesManager.selectedNoteID = first.id
+                }
+            }
+            return first
+        }
+        return nil
+    }
+    
+    private var characterCount: Int {
+        scratchpadNote?.content.count ?? 0
+    }
+    
+    private var wordCount: Int {
+        guard let content = scratchpadNote?.content, !content.isEmpty else { return 0 }
+        return content.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
     }
 
     var body: some View {
         Group {
             if notesEnabled {
-                GeometryReader { _ in
-                    HStack(spacing: 0) {
-                        editorPane
-                            .frame(minWidth: 360, maxWidth: .infinity)
-                            .layoutPriority(1)
-                            .allowsHitTesting(true)
-
-                        Divider()
-                            .background(Color.white.opacity(0.1))
-
-                        sidebar
-                            .frame(minWidth: 180, idealWidth: 210, maxWidth: 240)
-                            .allowsHitTesting(true)
-                            .background(Color.black.opacity(0.04))
-                    }
-                    .allowsHitTesting(true)
-                }
+                scratchpadContent
             } else {
                 disabledState
             }
         }
         .onAppear {
-            warmupIfNeeded()
-            NotificationCenter.default.post(
-                name: .boringNotchWindowKeyboardFocus,
-                object: nil,
-                userInfo: ["allow": true]
-            )
-        }
-        .onChange(of: notesEnabled) { enabled in
-            if enabled {
-                warmupIfNeeded()
-            }
-        }
-        .onChange(of: notesManager.selectedNoteID) { _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                if selectedNote != nil {
-                    editorFocused = true
-                } else {
-                    editorFocused = false
-                }
-            }
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                if selectedNote != nil {
-                    editorFocused = true
-                } else {
-                    editorFocused = false
-                }
-            }
+            ensureScratchpadExists()
+            requestKeyboardFocus()
         }
         .onDisappear {
-            NotificationCenter.default.post(
-                name: .boringNotchWindowKeyboardFocus,
-                object: nil,
-                userInfo: ["allow": false]
-            )
+            releaseKeyboardFocus()
         }
     }
-
-    // MARK: - Editor
-
-    private var editorPane: some View {
-        Group {
-            if let note = selectedNote {
-                ZStack(alignment: .topLeading) {
-                    TextEditor(text: binding(for: note))
+    
+    // MARK: - Scratchpad Content
+    
+    private var scratchpadContent: some View {
+        VStack(spacing: 0) {
+            // Editor area
+            ZStack(alignment: .topLeading) {
+                if let note = scratchpadNote {
+                    TextEditor(text: contentBinding(for: note))
                         .focused($editorFocused)
-                        .font(note.isMonospaced ? .system(.body, design: .monospaced) : .system(.body))
+                        .font(.system(.body, design: note.isMonospaced ? .monospaced : .default))
                         .scrollContentBackground(.hidden)
-                        .padding(8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.white.opacity(editorFocused ? 0.12 : 0.08))
-                                .allowsHitTesting(false)
-                                .animation(.easeInOut(duration: 0.2), value: editorFocused)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(editorFocused ? Color.accentColor.opacity(0.35) : Color.white.opacity(0.12), lineWidth: editorFocused ? 2 : 1)
-                                .allowsHitTesting(false)
-                                .animation(.easeInOut(duration: 0.2), value: editorFocused)
-                        )
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            editorFocused = true
-                        }
-                        .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity)
-
-                    if note.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text("Start typing…")
+                        .padding(12)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                    // Placeholder
+                    if note.content.isEmpty {
+                        Text("Start typing...")
                             .font(.body)
-                            .foregroundStyle(.secondary.opacity(0.7))
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 18)
+                            .foregroundStyle(.secondary.opacity(0.5))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 20)
                             .allowsHitTesting(false)
                     }
                 }
-            } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "square.and.pencil")
-                        .font(.title2)
-                        .foregroundStyle(.secondary)
-                    Text("No note selected")
-                        .font(.title3.weight(.semibold))
-                    Text("Create or select a note from the list to begin editing.")
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity)
             }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity, alignment: .topLeading)
-    }
-
-        // MARK: - Sidebar
-
-    private var sidebar: some View {
-        VStack(spacing: 12) {
-            // Search and Add Button
-            HStack(spacing: 8) {
-                TextField("Search notes...", text: $notesManager.searchText)
-                    .textFieldStyle(.plain)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.white.opacity(0.08))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                    )
-
-                Button(action: createAndFocusNote) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 30, height: 30)
-                        .background(
-                            Circle()
-                                .fill(Color.blue)
-                        )
-                }
-                .buttonStyle(.plain)
-                .help("New note")
-            }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
-
-            if notesManager.filteredNotes.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "note.text")
-                        .font(.system(size: 32))
-                        .foregroundStyle(.secondary.opacity(0.6))
-                    
-                    VStack(spacing: 4) {
-                        Text(notesManager.searchText.isEmpty ? "No notes yet" : "No results")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                        
-                        if notesManager.searchText.isEmpty {
-                            Text("Create your first note to get started")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, 20)
-            } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 6) {
-                        ForEach(notesManager.filteredNotes) { note in
-                            sidebarRow(for: note)
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                }
-            }
-        }
-    }
-
-    private func sidebarRow(for note: Note) -> some View {
-        let isSelected = note.id == notesManager.selectedNoteID
-
-        return Button {
-            notesManager.selectedNoteID = note.id
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                editorFocused = true
-            }
-        } label: {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(note.headingTitle)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    if !note.previewText.isEmpty {
-                        Text(note.previewText)
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    
-                    HStack {
-                        Text(timestamp(note.updatedAt))
-                            .font(.system(size: 11))
-                            .foregroundStyle(.tertiary)
-                        Spacer()
-                    }
-                }
-        
-                VStack(spacing: 8) {
-                    Button {
-                        notesManager.togglePinned(id: note.id)
-                    } label: {
-                        Image(systemName: note.isPinned ? "pin.fill" : "pin")
-                            .font(.system(size: 12))
-                            .foregroundStyle(note.isPinned ? Color.yellow : .secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .opacity(isSelected ? 1 : 0.6)
-                    .help(note.isPinned ? "Unpin" : "Pin note")
-
-                    Button(role: .destructive) {
-                        notesManager.deleteNotes(with: Set([note.id]))
-                        warmupIfNeeded()
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.red)
-                    }
-                    .buttonStyle(.plain)
-                    .opacity(isSelected ? 1 : 0.6)
-                    .help("Delete note")
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isSelected ? Color.blue.opacity(0.2) : Color.clear)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.white.opacity(editorFocused ? 0.1 : 0.06))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(isSelected ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(editorFocused ? Color.accentColor.opacity(0.4) : Color.white.opacity(0.1), lineWidth: 1)
             )
-        }
-        .buttonStyle(.plain)
-        .contextMenu {
-            Button(note.isPinned ? "Unpin" : "Pin") {
-                notesManager.togglePinned(id: note.id)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                requestKeyboardFocus()
             }
-            Button("Delete", role: .destructive) {
-                notesManager.deleteNotes(with: Set([note.id]))
-                warmupIfNeeded()
+            
+            Spacer().frame(height: 10)
+            
+            // Bottom toolbar
+            HStack(spacing: 12) {
+                // Word/character count
+                Text("\(wordCount) words · \(characterCount) chars")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                
+                Spacer()
+                
+                // Font toggle
+                if let note = scratchpadNote {
+                    Button {
+                        notesManager.toggleMonospaced(id: note.id)
+                    } label: {
+                        Image(systemName: note.isMonospaced ? "textformat" : "textformat.alt")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help(note.isMonospaced ? "Switch to regular font" : "Switch to monospace font")
+                }
+                
+                // Copy button
+                Button {
+                    copyContent()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: showCopiedFeedback ? "checkmark" : "doc.on.doc")
+                        if showCopiedFeedback {
+                            Text("Copied")
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(showCopiedFeedback ? .green : .secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Copy all content")
+                .disabled(characterCount == 0)
+                
+                // Clear button
+                Button {
+                    clearContent()
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Clear scratchpad")
+                .disabled(characterCount == 0)
             }
+            .padding(.horizontal, 4)
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
     }
-
-    // MARK: - Helpers
-
-    private func binding(for note: Note) -> Binding<String> {
-        Binding(
-            get: { notesManager.note(for: note.id)?.content ?? note.content },
-            set: { newValue in
-                notesManager.updateNote(id: note.id) { $0.content = newValue }
-            }
-        )
-    }
-
-    private func createAndFocusNote() {
-        let note = notesManager.createNote(initialContent: "")
-        notesManager.selectedNoteID = note.id
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            editorFocused = true
-        }
-    }
-
-    private func warmup() {
-        if notesManager.note(for: notesManager.selectedNoteID) == nil,
-           let first = notesManager.filteredNotes.first {
-            notesManager.selectedNoteID = first.id
-        }
-    }
-
-    private func warmupIfNeeded() {
-        guard notesEnabled else { return }
-        warmup()
-    }
-
+    
+    // MARK: - Disabled State
+    
     private var disabledState: some View {
         VStack(spacing: 12) {
             Image(systemName: "note.text")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
-            Text("Notes are disabled")
+            Text("Scratchpad is disabled")
                 .font(.title3.weight(.semibold))
-            Text("Enable notes in Settings to take quick jot-downs from the notch.")
+            Text("Enable it in Settings to quickly jot down notes.")
                 .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
             Button("Open Settings") {
                 SettingsWindowController.shared.showWindow()
             }
             .buttonStyle(.borderedProminent)
         }
-        .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
     }
-
-    private func timestamp(_ date: Date) -> String {
-        date.formatted(date: .abbreviated, time: .shortened)
-    }
-}
-
-private struct NoteListRow: View {
-    let note: Note
-    let lastUpdated: String
-    let isSelected: Bool
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(note.headingTitle)
-                .font(.headline)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if !note.previewText.isEmpty {
-                Text(note.previewText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(3)
-                    .multilineTextAlignment(.leading)
+    
+    // MARK: - Helpers
+    
+    private func contentBinding(for note: Note) -> Binding<String> {
+        Binding(
+            get: { notesManager.note(for: note.id)?.content ?? "" },
+            set: { newValue in
+                notesManager.updateNote(id: note.id) { $0.content = newValue }
             }
-
-            HStack {
-                Text(lastUpdated)
-                    .font(.caption2)
-                    .foregroundStyle(isSelected ? Color.white.opacity(0.8) : Color.secondary.opacity(0.6))
-
-                Spacer()
-
-                if note.isPinned {
-                    Image(systemName: "pin.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.yellow)
-                }
+        )
+    }
+    
+    private func ensureScratchpadExists() {
+        if notesManager.notes.isEmpty && notesEnabled {
+            _ = notesManager.createNote(initialContent: "")
+        }
+        if let first = notesManager.notes.first {
+            notesManager.selectedNoteID = first.id
+        }
+    }
+    
+    private func requestKeyboardFocus() {
+        // Post notification to make window key
+        NotificationCenter.default.post(
+            name: .boringNotchWindowKeyboardFocus,
+            object: nil,
+            userInfo: ["allow": true]
+        )
+        // Focus the editor after window becomes key
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            editorFocused = true
+        }
+    }
+    
+    private func releaseKeyboardFocus() {
+        NotificationCenter.default.post(
+            name: .boringNotchWindowKeyboardFocus,
+            object: nil,
+            userInfo: ["allow": false]
+        )
+    }
+    
+    private func copyContent() {
+        guard let content = scratchpadNote?.content, !content.isEmpty else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(content, forType: .string)
+        
+        withAnimation(.easeInOut(duration: 0.2)) {
+            showCopiedFeedback = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showCopiedFeedback = false
             }
         }
-        .frame(maxWidth: CGFloat.infinity, alignment: .leading)
+    }
+    
+    private func clearContent() {
+        guard let note = scratchpadNote else { return }
+        notesManager.updateNote(id: note.id) { $0.content = "" }
     }
 }
