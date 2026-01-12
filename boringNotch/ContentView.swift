@@ -155,12 +155,6 @@ struct ContentView: View {
                     return view
                         .animation(notchStateAnimation, value: vm.notchState)
                 }
-                .onHover { hovering in
-                    handleHover(hovering)
-                }
-                .onTapGesture {
-                    doOpen()
-                }
                 .conditionalModifier(Defaults[.enableGestures]) { view in
                     view
                         .panGesture(direction: .down) { translation, phase in
@@ -198,6 +192,7 @@ struct ContentView: View {
                 }
                 .onChange(of: vm.notchState) { _, newState in
                     if newState == .closed && isHovering {
+                        hoverTask?.cancel()  // Cancel any pending hover state changes
                         withAnimation {
                             isHovering = false
                         }
