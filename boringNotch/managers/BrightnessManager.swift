@@ -66,7 +66,7 @@ final class BrightnessManager: ObservableObject {
 	func setAbsolute(value: Float) {
 		let clamped = max(0, min(1, value))
 		Task { @MainActor in
-			let ok = await client.adjustScreenBrightness(by: clamped)
+			let ok = await client.setScreenBrightness(clamped)
 			if ok {
 				publish(brightness: clamped, touchDate: true)
 			} else {
@@ -104,9 +104,10 @@ final class BrightnessManager: ObservableObject {
 
 		for _ in 0..<steps {
 			if Task.isCancelled { return }
-			current = max(0, min(1, current + direction * stepSize))
-			let ok = await client.adjustScreenBrightness(by: current)
+			let stepDelta = direction * stepSize
+			let ok = await client.adjustScreenBrightness(by: stepDelta)
 			if ok {
+				current = max(0, min(1, current + stepDelta))
 				publish(brightness: current, touchDate: true)
 				BoringViewCoordinator.shared.toggleSneakPeek(
 					status: true,
@@ -127,7 +128,7 @@ final class BrightnessManager: ObservableObject {
 	}
 
 	@MainActor private func setAndPublishBrightness(_ value: Float) async {
-		let ok = await client.adjustScreenBrightness(by: value)
+		let ok = await client.setScreenBrightness(value)
 		if ok {
 			publish(brightness: value, touchDate: true)
 			BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(value))
