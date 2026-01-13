@@ -145,10 +145,15 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             return
         }
         if let io = ioServiceFor(displayID: CGMainDisplayID()) {
-            let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, value) == kIOReturnSuccess
+            var ioCurrent: Float = 0
+            if IODisplayGetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, &ioCurrent) == kIOReturnSuccess {
+                let target = max(0, min(1, ioCurrent + value))
+                let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, target) == kIOReturnSuccess
+                IOObjectRelease(io)
+                reply(ok)
+                return
+            }
             IOObjectRelease(io)
-            reply(ok)
-            return
         }
         reply(false)
     }
