@@ -7,6 +7,7 @@
 import Foundation
 import AppKit
 import Defaults
+import Darwin
 
 @MainActor
 final class ShelfStateViewModel: ObservableObject {
@@ -18,6 +19,11 @@ final class ShelfStateViewModel: ObservableObject {
     @Published private(set) var linkedItems: [ShelfItem] = []
 
     @Published var isLoading: Bool = false
+
+    private let linkedFolderWatcherQueue = DispatchQueue(label: "linked-shelf-watcher", qos: .utility)
+    private var linkedFolderWatcher: DispatchSourceFileSystemObject?
+    private var linkedFolderWatcherURL: URL?
+    private var refreshDebounceWorkItem: DispatchWorkItem?
 
     var isEmpty: Bool { displayItems.isEmpty }
     var displayItems: [ShelfItem] {
@@ -152,9 +158,11 @@ final class ShelfStateViewModel: ObservableObject {
 
     func refreshLinkedItems() {
         guard let bookmarkData = Defaults[.linkedShelfFolderBookmark] else {
+            stopLinkedFolderWatcher()
             linkedItems = []
             return
         }
+        updateLinkedFolderWatcher(bookmarkData)
         let limit = min(Defaults[.linkedShelfRecentItemLimit], 4)
         guard limit > 0 else {
             linkedItems = []
@@ -168,5 +176,67 @@ final class ShelfStateViewModel: ObservableObject {
 
     func isStoredItem(_ item: ShelfItem) -> Bool {
         items.contains(where: { $0.id == item.id })
+    }
+
+    private func updateLinkedFolderWatcher(_ bookmarkData: Data) {
+        let bookmark = Bookmark(data: bookmarkData)
+        guard let folderURL = bookmark.resolveURL() else {
+            stopLinkedFolderWatcher()
+            return
+        }
+
+        let standardizedURL = folderURL.standardizedFileURL
+        if linkedFolderWatcherURL == standardizedURL {
+            return
+        }
+
+        stopLinkedFolderWatcher()
+
+        guard standardizedURL.startAccessingSecurityScopedResource() else {
+            return
+        }
+
+        let fd = open(standardizedURL.path, O_EVTONLY)
+        guard fd >= 0 else {
+            standardizedURL.stopAccessingSecurityScopedResource()
+            return
+        }
+
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .extend, .attrib, .rename, .delete],
+            queue: linkedFolderWatcherQueue
+        )
+        source.setEventHandler { [weak self] in
+            Task { @MainActor in
+                self?.scheduleLinkedItemsRefresh()
+            }
+        }
+        source.setCancelHandler {
+            close(fd)
+            standardizedURL.stopAccessingSecurityScopedResource()
+        }
+        linkedFolderWatcherURL = standardizedURL
+        linkedFolderWatcher = source
+        source.resume()
+    }
+
+    private func stopLinkedFolderWatcher() {
+        refreshDebounceWorkItem?.cancel()
+        refreshDebounceWorkItem = nil
+        linkedFolderWatcher?.cancel()
+        linkedFolderWatcher = nil
+        linkedFolderWatcherURL = nil
+    }
+
+    private func scheduleLinkedItemsRefresh() {
+        refreshDebounceWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            Task { @MainActor in
+                self?.refreshLinkedItems()
+            }
+        }
+        refreshDebounceWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: workItem)
     }
 }
