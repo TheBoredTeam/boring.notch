@@ -75,6 +75,14 @@ struct ShelfView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture { selection.clear() }
+            .contextMenu {
+                if !tvm.isEmpty {
+                    Button(NSLocalizedString("Clear All", comment: "Button to clear all files from shelf")) {
+                        tvm.clearAll()
+                        selection.clear()
+                    }
+                }
+            }
     }
 
     var content: some View {
@@ -93,18 +101,47 @@ struct ShelfView: View {
                         .fontWeight(.medium)
                 }
             } else {
-                ScrollView(.horizontal) {
-                    HStack(spacing: spacing) {
-                        ForEach(tvm.items) { item in
-                            ShelfItemView(item: item)
-                                .environmentObject(quickLookService)
+                ZStack(alignment: .topTrailing) {
+                    ScrollView(.horizontal) {
+                        HStack(spacing: spacing) {
+                            ForEach(tvm.items) { item in
+                                ShelfItemView(item: item)
+                                    .environmentObject(quickLookService)
+                            }
                         }
                     }
-                }
-                .padding(-spacing)
-                .scrollIndicators(.never)
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-                    handleDrop(providers: providers)
+                    .padding(-spacing)
+                    .scrollIndicators(.never)
+                    .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                        handleDrop(providers: providers)
+                    }
+                    
+                    // Clear All button
+                    Button(action: {
+                        withAnimation {
+                            tvm.clearAll()
+                            selection.clear()
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 11))
+                            Text(NSLocalizedString("Clear All", comment: "Button to clear all files from shelf"))
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundStyle(.white.opacity(0.7))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(.black.opacity(0.4))
+                                .overlay(
+                                    Capsule()
+                                        .strokeBorder(Color.white.opacity(0.15), lineWidth: 0.5)
+                                )
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
