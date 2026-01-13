@@ -241,10 +241,24 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
+
+    nonisolated func adjustScreenBrightness(by value: Float) async -> Bool {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.adjustScreenBrightness(by: value) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
 }
 
 extension Notification.Name {
     static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")
 }
-
 
