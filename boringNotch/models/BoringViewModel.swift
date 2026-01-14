@@ -210,8 +210,8 @@ class BoringViewModel: NSObject, ObservableObject {
         self.edgeAutoOpenActive = false
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
-        // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+        // BUT only if the shelf extension is also enabled
+        if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] && Defaults[.boringShelf] {
             coordinator.currentView = .shelf
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home
