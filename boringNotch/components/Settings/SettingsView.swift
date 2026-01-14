@@ -33,30 +33,12 @@ struct SettingsView: View {
                 NavigationLink(value: "Appearance") {
                     Label("Appearance", systemImage: "eye")
                 }
-                NavigationLink(value: "Media") {
-                    Label("Media", systemImage: "play.laptopcomputer")
-                }
-                NavigationLink(value: "Calendar") {
-                    Label("Calendar", systemImage: "calendar")
-                }
-                NavigationLink(value: "HUD") {
-                    Label("HUDs", systemImage: "dial.medium.fill")
-                }
-                NavigationLink(value: "Battery") {
-                    Label("Battery", systemImage: "battery.100.bolt")
-                }
-//                NavigationLink(value: "Downloads") {
-//                    Label("Downloads", systemImage: "square.and.arrow.down")
-//                }
-                NavigationLink(value: "Shelf") {
-                    Label("Shelf", systemImage: "books.vertical")
+                NavigationLink(value: "Extensions") {
+                    Label("Extensions", systemImage: "puzzlepiece.extension")
                 }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-                // NavigationLink(value: "Extensions") {
-                //     Label("Extensions", systemImage: "puzzlepiece.extension")
-                // }
                 NavigationLink(value: "Advanced") {
                     Label("Advanced", systemImage: "gearshape.2")
                 }
@@ -69,43 +51,36 @@ struct SettingsView: View {
             .toolbar(removing: .sidebarToggle)
             .navigationSplitViewColumnWidth(200)
         } detail: {
-            Group {
-                switch selectedTab {
-                case "General":
-                    GeneralSettings()
-                case "Appearance":
-                    Appearance()
-                case "Media":
-                    Media()
-                case "Calendar":
-                    CalendarSettings()
-                case "HUD":
-                    HUD()
-                case "Battery":
-                    Charge()
-                case "Shelf":
-                    Shelf()
-                case "Shortcuts":
-                    Shortcuts()
-                case "Extensions":
-                    GeneralSettings()
-                case "Advanced":
-                    Advanced()
-                case "About":
-                    if let controller = updaterController {
-                        About(updaterController: controller)
-                    } else {
-                        // Fallback with a default controller
-                        About(
-                            updaterController: SPUStandardUpdaterController(
-                                startingUpdater: false, updaterDelegate: nil,
-                                userDriverDelegate: nil))
+            NavigationStack {
+                Group {
+                    switch selectedTab {
+                    case "General":
+                        GeneralSettings()
+                    case "Appearance":
+                        Appearance()
+                    case "Extensions":
+                        ExtensionsHubView()
+                    case "Shortcuts":
+                        Shortcuts()
+                    case "Advanced":
+                        Advanced()
+                    case "About":
+                        if let controller = updaterController {
+                            About(updaterController: controller)
+                        } else {
+                            // Fallback with a default controller
+                            About(
+                                updaterController: SPUStandardUpdaterController(
+                                    startingUpdater: false, updaterDelegate: nil,
+                                    userDriverDelegate: nil))
+                        }
+                    default:
+                        // Fallback or legacy handling
+                        ExtensionsHubView()
                     }
-                default:
-                    GeneralSettings()
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationSplitViewStyle(.balanced)
         .toolbar(removing: .sidebarToggle)

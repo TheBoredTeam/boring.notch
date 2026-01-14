@@ -439,26 +439,42 @@ struct NotchHomeView: View {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
+    private var isMusicEnabled: Bool {
+        coordinator.musicLiveActivityEnabled
+    }
+
+    private var isEmpty: Bool {
+        !isMusicEnabled && !Defaults[.showCalendar] && !shouldShowCamera
+    }
+
     private var mainContent: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+            
+            if isEmpty {
+                EmptyNotchView()
+                    .transition(AnyTransition.opacity)
+            } else {
+                if isMusicEnabled {
+                    MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                }
 
-            if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
-                    }
-                    .environmentObject(vm)
-                    .transition(.opacity)
-            }
+                if Defaults[.showCalendar] {
+                    CalendarView()
+                        .frame(width: shouldShowCamera ? 170 : 215)
+                        .onHover { isHovering in
+                            vm.isHoveringCalendar = isHovering
+                        }
+                        .environmentObject(vm)
+                        .transition(.opacity)
+                }
 
-            if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
-                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                if shouldShowCamera {
+                    CameraPreviewView(webcamManager: webcamManager)
+                        .scaledToFit()
+                        .opacity(vm.notchState == .closed ? 0 : 1)
+                        .blur(radius: vm.notchState == .closed ? 20 : 0)
+                        .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                }
             }
         }
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))

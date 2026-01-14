@@ -198,5 +198,6 @@ extension Defaults.Keys {
         }
     }
 
+    static let installedExtensions = Key<[String]>("installedExtensions", default: [])
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
 }
