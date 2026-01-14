@@ -26,12 +26,15 @@ class ExtensionManager: ObservableObject {
         
         // Initial Load
         refreshExtensions()
+        fetchMarketplaceExtensions()
         
-        // Observe changes to installedExtensions list
+        // Observe changes to installed/downloaded lists
         Defaults.publisher(.installedExtensions)
-            .sink { [weak self] _ in
-                self?.refreshExtensions()
-            }
+            .sink { [weak self] _ in self?.refreshExtensions() }
+            .store(in: &cancellables)
+            
+        Defaults.publisher(.downloadedExtensions)
+            .sink { [weak self] _ in self?.refreshExtensions() }
             .store(in: &cancellables)
             
         // Observe enabled states to trigger UI updates if needed
@@ -42,7 +45,7 @@ class ExtensionManager: ObservableObject {
         var initialInstalled: [String] = []
         for ext in registry.builtInExtensions {
             // Check if feature is currently enabled
-            if ext.isEnabled() {
+            if ext.isEnabled?() ?? false {
                 initialInstalled.append(ext.id)
             }
             // Optional: Force install specific core extensions if desired
@@ -59,36 +62,120 @@ class ExtensionManager: ObservableObject {
     }
     
     func refreshExtensions() {
-        let installedIDs = Set(Defaults[.installedExtensions])
+        let downloadedIDs = Set(Defaults[.downloadedExtensions])
+        let enabledIDs = Set(Defaults[.enabledExtensions])
         
-        installedExtensions = registry.builtInExtensions.filter { installedIDs.contains($0.id) }
-        availableExtensions = registry.builtInExtensions.filter { !installedIDs.contains($0.id) }
+        var installed: [ExtensionDescriptor] = []
+        
+        // 1. Built-ins are always "Installed"
+        installed.append(contentsOf: registry.builtInExtensions)
+        
+        // 2. Downloaded Marketplace items are "Installed"
+        // We use the cached marketplace definitions for now. In real app, we'd load metadata from disk/bundle.
+        let downloadedItems = marketplaceExtensions.filter { downloadedIDs.contains($0.id) }
+        
+        // Map downloaded items to have the correct Enabled/Disabled logic using Defaults[.enabledExtensions]
+        let configuredDownloadedItems = downloadedItems.map { desc -> ExtensionDescriptor in
+            let id = desc.id
+            var newDesc = desc
+            
+            newDesc.isEnabled = {
+                Defaults[.enabledExtensions].contains(id)
+            }
+            
+            newDesc.setEnabled = { enabled in
+                var current = Defaults[.enabledExtensions]
+                if enabled {
+                    if !current.contains(id) { current.append(id) }
+                } else {
+                    current.removeAll { $0 == id }
+                }
+                Defaults[.enabledExtensions] = current
+                // Trigger refresh to update UI state if needed, though binding usually handles it
+                self.objectWillChange.send()
+            }
+            
+            return newDesc
+        }
+        
+        installed.append(contentsOf: configuredDownloadedItems)
+        
+        installedExtensions = installed
+        
+        // "Available" is now deprecated/empty as per new design
+        availableExtensions = []
+    }
+    
+    // Mock Marketplace Data
+    @Published var marketplaceExtensions: [ExtensionDescriptor] = []
+    
+    func fetchMarketplaceExtensions() {
+        // Simulating network request delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            let mockData = [
+                ExtensionDescriptor(
+                    id: "com.boring.spotify-mini",
+                    name: "Spotify Mini",
+                    description: "Control your Spotify playback directly from the notch with album art.",
+                    icon: "play.circle.fill",
+                    developer: "Alex Lewis",
+                    version: "1.0.0"
+                ),
+                ExtensionDescriptor(
+                    id: "com.boring.focus-timer",
+                    name: "Focus Timer",
+                    description: "A simple pomodoro timer to keep you productive.",
+                    icon: "timer",
+                    developer: "Bored Team",
+                    version: "0.5.0"
+                )
+            ]
+            
+            self.marketplaceExtensions = mockData
+            self.refreshExtensions()
+        }
     }
     
     // Actions
-    func install(extensionID: String) {
-        var current = Defaults[.installedExtensions]
-        if !current.contains(extensionID) {
-            current.append(extensionID)
-            Defaults[.installedExtensions] = current
+    
+    func download(extensionID: String) {
+        var downloaded = Defaults[.downloadedExtensions]
+        if !downloaded.contains(extensionID) {
+            downloaded.append(extensionID)
+            Defaults[.downloadedExtensions] = downloaded
             
-            // Auto-enable upon install?
-            if let ext = registry.builtInExtensions.first(where: { $0.id == extensionID }) {
-                ext.setEnabled(true)
+            // Auto-enable upon download?
+            var enabled = Defaults[.enabledExtensions]
+            if !enabled.contains(extensionID) {
+                enabled.append(extensionID)
+                Defaults[.enabledExtensions] = enabled
             }
+            
+            refreshExtensions()
         }
     }
     
+    // "Install" is now synonymous with "Download" in the new flow, or enabling.
+    // We keep this named 'download' for clarity of action from Marketplace.
+    
     func uninstall(extensionID: String) {
-        var current = Defaults[.installedExtensions]
-        if let index = current.firstIndex(of: extensionID) {
-            current.remove(at: index)
-            Defaults[.installedExtensions] = current
-            
-            // Auto-disable upon uninstall?
-            if let ext = registry.builtInExtensions.first(where: { $0.id == extensionID }) {
-                ext.setEnabled(false)
-            }
+        // Remove from downloaded list
+        var downloaded = Defaults[.downloadedExtensions]
+        downloaded.removeAll { $0 == extensionID }
+        Defaults[.downloadedExtensions] = downloaded
+        
+        // Remove from enabled list
+        var enabled = Defaults[.enabledExtensions]
+        enabled.removeAll { $0 == extensionID }
+        Defaults[.enabledExtensions] = enabled
+        
+        // If built-in, we just disable it
+        if let ext = registry.builtInExtensions.first(where: { $0.id == extensionID }) {
+            ext.setEnabled?(false)
         }
+        
+        refreshExtensions()
     }
+    
+
 }

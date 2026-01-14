@@ -89,15 +89,17 @@ struct ExtensionCard: View {
                             .help(extensionDescriptor.binding.wrappedValue ? "Disable extension" : "Enable extension")
                         
                         // Configure Button
-                        NavigationLink(destination: extensionDescriptor.settingsView()) {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 14))
-                                .foregroundStyle(.secondary)
-                                .frame(width: 20, height: 20)
-                                .contentShape(Rectangle())
+                        if let settingsView = extensionDescriptor.settingsView {
+                            NavigationLink(destination: settingsView()) {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 20, height: 20)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .help("Configure settings")
                         }
-                        .buttonStyle(.plain)
-                        .help("Configure settings")
                         
                         // Uninstall Button
                         Button {
@@ -118,7 +120,7 @@ struct ExtensionCard: View {
                     // Install Button
                     Button("Install") {
                         withAnimation {
-                            manager.install(extensionID: extensionDescriptor.id)
+                            manager.download(extensionID: extensionDescriptor.id)
                         }
                     }
                     .buttonStyle(.borderedProminent)

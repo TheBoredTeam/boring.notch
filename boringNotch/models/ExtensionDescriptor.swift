@@ -17,18 +17,46 @@ struct ExtensionDescriptor: Identifiable {
     let version: String
     let isBuiltIn: Bool
     
-    // State management
-    var isEnabled: () -> Bool
-    var setEnabled: (Bool) -> Void
+    // State management (Optional for remote extensions)
+    var isEnabled: (() -> Bool)?
+    var setEnabled: ((Bool) -> Void)?
     
-    // Configuration view
-    var settingsView: () -> AnyView
+    // Configuration view (Optional)
+    var settingsView: (() -> AnyView)?
     
     // Computed property for easy binding
     var binding: Binding<Bool> {
         Binding(
-            get: { isEnabled() },
-            set: { setEnabled($0) }
+            get: { isEnabled?() ?? false },
+            set: { setEnabled?($0) }
         )
+    }
+    
+    // Remote Extension Initializer
+    init(id: String, name: String, description: String, icon: String, developer: String, version: String) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.icon = icon
+        self.developer = developer
+        self.version = version
+        self.isBuiltIn = false
+        self.isEnabled = nil
+        self.setEnabled = nil
+        self.settingsView = nil
+    }
+    
+    // Built-in/Full Extension Initializer
+    init(id: String, name: String, description: String, icon: String, developer: String, version: String, isBuiltIn: Bool, isEnabled: @escaping () -> Bool, setEnabled: @escaping (Bool) -> Void, settingsView: @escaping () -> AnyView) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.icon = icon
+        self.developer = developer
+        self.version = version
+        self.isBuiltIn = isBuiltIn
+        self.isEnabled = isEnabled
+        self.setEnabled = setEnabled
+        self.settingsView = settingsView
     }
 }
