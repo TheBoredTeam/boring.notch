@@ -1,0 +1,96 @@
+name: "Manual Build"
+on:
+  workflow_dispatch:
+
+env:
+  projname: boringNotch
+  EXPORT_METHOD: "development"
+
+jobs:
+  build:
+    name: Build and sign app
+    runs-on: macos-latest
+    env:
+      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
+      CODE_SIGN_IDENTITY: "Apple Development"
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project ${{ env.projname }}.xcodeproj
+        
+      - name: Install Apple certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERT_PATH=$RUNNER_TEMP/build_certificate.p12
+          KC=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security list-keychain -d user -s "$KC"
+          
+      - name: Switch Xcode version
+        run: |
+          sudo xcode-select -s "/Applications/Xcode_16.4.app"
+          /usr/bin/xcodebuild -version
+          
+      - name: Set build number
+        run: |
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${{ github.run_number }}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
+      - name: Build and archive
+        run: |
+          xcodebuild clean archive \
+            -project ${{ env.projname }}.xcodeproj \
+            -scheme ${{ env.projname }} \
+            -archivePath ${{ env.projname }} \
+            -destination "generic/platform=macOS" \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            ONLY_ACTIVE_ARCH=NO \
+            -allowProvisioningUpdates
+            
+      - name: Export app
+        env:
+          DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
+        run: |
+          TEMP_PLIST="$RUNNER_TEMP/export_options.plist"
+          cat > "$TEMP_PLIST" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>${EXPORT_METHOD}</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>$DEVELOPMENT_TEAM</string>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
+          
+      - name: Create DMG
+        run: |
+          cd Release
+          hdiutil create -volname "boringNotch" \
+                          -srcfolder "${{ env.projname }}.app" \
+                          -ov -format UDZO \
+                          "${{ env.projname }}.dmg"
+                          
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.projname }}.dmg
+          path: Release/${{ env.projname }}.dmg
+
+      - name: Upload .app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.projname }}.app
+          path: Release/${{ env.projname }}.app

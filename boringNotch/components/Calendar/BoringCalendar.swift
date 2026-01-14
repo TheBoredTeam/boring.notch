@@ -95,7 +95,7 @@ struct WheelPicker: View {
             }
             .padding(.vertical, 4)
             .padding(.horizontal, 4)
-            .background(isSelected ? Color.accentColor.opacity(0.25) : Color.clear)
+            .background(isSelected ? Color.effectiveAccentBackground : Color.clear)
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
@@ -111,7 +111,7 @@ struct WheelPicker: View {
     private func dateCircle(date: Date, isToday: Bool, isSelected: Bool) -> some View {
         ZStack {
             Circle()
-                .fill(isToday ? Color.accentColor : .clear)
+                .fill(isToday ? Color.effectiveAccent : .clear)
                 .frame(width: 20, height: 20)
                 .overlay(
                     Circle()
@@ -217,7 +217,7 @@ struct CalendarView: View {
                 events: calendarManager.events
             )
             if filteredEvents.isEmpty {
-                EmptyEventsView()
+                EmptyEventsView(selectedDate: selectedDate)
                 Spacer(minLength: 0)
             } else {
                 EventListView(events: calendarManager.events)
@@ -246,12 +246,14 @@ struct CalendarView: View {
 }
 
 struct EmptyEventsView: View {
+    let selectedDate: Date
+    
     var body: some View {
         VStack {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.title)
                 .foregroundColor(Color(white: 0.65))
-            Text("No events today")
+            Text(Calendar.current.isDateInToday(selectedDate) ? "No events today" : "No events")
                 .font(.subheadline)
                 .foregroundColor(.white)
             Text("Enjoy your free time!")
@@ -265,6 +267,8 @@ struct EventListView: View {
     @Environment(\.openURL) private var openURL
     @ObservedObject private var calendarManager = CalendarManager.shared
     let events: [EventModel]
+    @Default(.autoScrollToNextEvent) private var autoScrollToNextEvent
+    @Default(.showFullEventTitles) private var showFullEventTitles
 
 
     static func filteredEvents(events: [EventModel]) -> [EventModel] {
@@ -286,27 +290,54 @@ struct EventListView: View {
         Self.filteredEvents(events: events)
     }
 
-    var body: some View {
-        List {
-            ForEach(filteredEvents) { event in
-                Button(action: {
-                    if let url = event.calendarAppURL() {
-                        openURL(url)
-                    }
-                }) {
-                    eventRow(event)
-                }
-                .padding(.leading, -5)
-                .buttonStyle(PlainButtonStyle())
-                .listRowSeparator(.automatic)
-                .listRowSeparatorTint(.gray.opacity(0.2))
-                .listRowBackground(Color.clear)
+    private func scrollToRelevantEvent(proxy: ScrollViewProxy) {
+        let now = Date()
+        // Determine a single target using preferred search order:
+        // 1) first non-all-day upcoming/in-progress event
+        // 2) first all-day event
+        // 3) last event (fallback)
+        let nonAllDayUpcoming = filteredEvents.first(where: { !$0.isAllDay && $0.end > now })
+        let firstAllDay = filteredEvents.first(where: { $0.isAllDay })
+        let lastEvent = filteredEvents.last
+        guard let target = nonAllDayUpcoming ?? firstAllDay ?? lastEvent else { return }
+
+        Task { @MainActor in
+            withTransaction(Transaction(animation: nil)) {
+                proxy.scrollTo(target.id, anchor: .top)
             }
         }
-        .listStyle(.plain)
-        .scrollIndicators(.never)
-        .scrollContentBackground(.hidden)
-        .background(Color.clear)
+    }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            List {
+                ForEach(filteredEvents) { event in
+                    Button(action: {
+                        if let url = event.calendarAppURL() {
+                            openURL(url)
+                        }
+                    }) {
+                        eventRow(event)
+                    }
+                    .id(event.id)
+                    .padding(.leading, -5)
+                    .buttonStyle(PlainButtonStyle())
+                    .listRowSeparator(.automatic)
+                    .listRowSeparatorTint(.gray.opacity(0.2))
+                    .listRowBackground(Color.clear)
+                }
+            }
+            .listStyle(.plain)
+            .scrollIndicators(.never)
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
+            .onAppear {
+                scrollToRelevantEvent(proxy: proxy)
+            }
+            .onChange(of: filteredEvents) { _, _ in
+                scrollToRelevantEvent(proxy: proxy)
+            }
+        }
         Spacer(minLength: 0)
     }
 
@@ -338,7 +369,7 @@ struct EventListView: View {
                         Text(event.title)
                             .font(.callout)
                             .foregroundColor(.white)
-                            .lineLimit(1)
+                            .lineLimit(showFullEventTitles ? nil : 1)
                         Spacer(minLength: 0)
                         VStack(alignment: .trailing, spacing: 4) {
                             if event.isAllDay {
@@ -376,7 +407,7 @@ struct EventListView: View {
                             .font(.callout)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
-                            .lineLimit(2)
+                            .lineLimit(showFullEventTitles ? nil : 2)
 
                         if let location = event.location, !location.isEmpty {
                             Text(location)

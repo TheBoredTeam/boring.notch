@@ -10,14 +10,13 @@ import Defaults
 import EventKit
 import KeyboardShortcuts
 import LaunchAtLogin
-import LottieUI
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
 struct SettingsView: View {
-    @StateObject var extensionManager = BoringExtensionManager()
     @State private var selectedTab = "General"
+    @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
 
@@ -40,37 +39,33 @@ struct SettingsView: View {
                 NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
                 }
-                if extensionManager.installedExtensions
-                    .contains(where: { $0.bundleIdentifier == hudExtension })
-                {
-                    NavigationLink(value: "HUD") {
-                        Label("HUDs", systemImage: "dial.medium.fill")
-                    }
+                NavigationLink(value: "HUD") {
+                    Label("HUDs", systemImage: "dial.medium.fill")
                 }
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
-                if extensionManager.installedExtensions
-                    .contains(where: { $0.bundleIdentifier == downloadManagerExtension })
-                {
-                    NavigationLink(value: "Downloads") {
-                        Label("Downloads", systemImage: "square.and.arrow.down")
-                    }
-                }
+//                NavigationLink(value: "Downloads") {
+//                    Label("Downloads", systemImage: "square.and.arrow.down")
+//                }
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-                NavigationLink(value: "Extensions") {
-                    Label("Extensions", systemImage: "puzzlepiece.extension")
+                // NavigationLink(value: "Extensions") {
+                //     Label("Extensions", systemImage: "puzzlepiece.extension")
+                // }
+                NavigationLink(value: "Advanced") {
+                    Label("Advanced", systemImage: "gearshape.2")
                 }
                 NavigationLink(value: "About") {
                     Label("About", systemImage: "info.circle")
                 }
             }
             .listStyle(SidebarListStyle())
+            .tint(.effectiveAccent)
             .toolbar(removing: .sidebarToggle)
             .navigationSplitViewColumnWidth(200)
         } detail: {
@@ -93,7 +88,9 @@ struct SettingsView: View {
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
-                    Extensions()
+                    GeneralSettings()
+                case "Advanced":
+                    Advanced()
                 case "About":
                     if let controller = updaterController {
                         About(updaterController: controller)
@@ -113,20 +110,28 @@ struct SettingsView: View {
         .navigationSplitViewStyle(.balanced)
         .toolbar(removing: .sidebarToggle)
         .toolbar {
-            Button("") {}  // Empty label, does nothing
-                .controlSize(.extraLarge)
-                .opacity(0)  // Invisible, but reserves space for a consistent look between tabs
-                .disabled(true)
+            ToolbarItem(placement: .principal) {
+                Text("")
+                    .frame(width: 0, height: 0)
+                    .accessibilityHidden(true)
+            }
         }
-        .environmentObject(extensionManager)
         .formStyle(.grouped)
         .frame(width: 700)
         .background(Color(NSColor.windowBackgroundColor))
+        .tint(.effectiveAccent)
+        .id(accentColorUpdateTrigger)
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AccentColorChanged"))) { _ in
+            accentColorUpdateTrigger = UUID()
+        }
     }
 }
 
 struct GeneralSettings: View {
-    @State private var screens: [String] = NSScreen.screens.compactMap { $0.localizedName }
+    @State private var screens: [(uuid: String, name: String)] = NSScreen.screens.compactMap { screen in
+        guard let uuid = screen.displayUUID else { return nil }
+        return (uuid, screen.localizedName)
+    }
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
@@ -142,13 +147,18 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    
 
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle(key: .menubarIcon) {
-                    Text("Menubar icon")
+                Toggle(isOn: Binding(
+                    get: { Defaults[.menubarIcon] },
+                    set: { Defaults[.menubarIcon] = $0 }
+                )) {
+                    Text("Show menu bar icon")
                 }
+                .tint(.effectiveAccent)
                 LaunchAtLogin.Toggle("Launch at login")
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
@@ -157,15 +167,19 @@ struct GeneralSettings: View {
                     NotificationCenter.default.post(
                         name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
-                Picker("Show on a specific display", selection: $coordinator.preferredScreen) {
-                    ForEach(screens, id: \.self) { screen in
-                        Text(screen)
+                Picker("Preferred display", selection: $coordinator.preferredScreenUUID) {
+                    ForEach(screens, id: \.uuid) { screen in
+                        Text(screen.name).tag(screen.uuid as String?)
                     }
                 }
                 .onChange(of: NSScreen.screens) {
-                    screens = NSScreen.screens.compactMap({ $0.localizedName })
+                    screens = NSScreen.screens.compactMap { screen in
+                        guard let uuid = screen.displayUUID else { return nil }
+                        return (uuid, screen.localizedName)
+                    }
                 }
                 .disabled(showOnAllDisplays)
+                
                 Defaults.Toggle(key: .automaticallySwitchDisplay) {
                     Text("Automatically switch displays")
                 }
@@ -182,11 +196,11 @@ struct GeneralSettings: View {
                 Picker(
                     selection: $notchHeightMode,
                     label:
-                        Text("Notch display height")
+                        Text("Notch height on notch displays")
                 ) {
-                    Text("Match real notch size")
+                    Text("Match real notch height")
                         .tag(WindowHeightMode.matchRealNotchSize)
-                    Text("Match menubar height")
+                    Text("Match menu bar height")
                         .tag(WindowHeightMode.matchMenuBar)
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
@@ -212,10 +226,10 @@ struct GeneralSettings: View {
                             name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
-                Picker("Non-notch display height", selection: $nonNotchHeightMode) {
+                Picker("Notch height on non-notch displays", selection: $nonNotchHeightMode) {
                     Text("Match menubar height")
                         .tag(WindowHeightMode.matchMenuBar)
-                    Text("Match real notch size")
+                    Text("Match real notch height")
                         .tag(WindowHeightMode.matchRealNotchSize)
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
@@ -242,7 +256,7 @@ struct GeneralSettings: View {
                     }
                 }
             } header: {
-                Text("Notch Height")
+                Text("Notch sizing")
             }
 
             NotchBehaviour()
@@ -255,6 +269,7 @@ struct GeneralSettings: View {
             }
             .controlSize(.extraLarge)
         }
+        .accentColor(.effectiveAccent)
         .navigationTitle("General")
         .onChange(of: openNotchOnHover) {
             if !openNotchOnHover {
@@ -271,7 +286,7 @@ struct GeneralSettings: View {
             }
                 .disabled(!openNotchOnHover)
             if enableGestures {
-                Toggle("Media change with horizontal gestures", isOn: .constant(false))
+                Toggle("Change media with horizontal gestures", isOn: .constant(false))
                     .disabled(true)
                 Defaults.Toggle(key: .closeGestureEnabled) {
                     Text("Close gesture")
@@ -306,20 +321,17 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-            Defaults.Toggle(key: .extendHoverArea) {
-                Text("Extend hover area")
-            }
-            Defaults.Toggle(key: .enableHaptics) {
-                Text("Enable haptics")
-            }
             Defaults.Toggle(key: .openNotchOnHover) {
                 Text("Open notch on hover")
+            }
+            Defaults.Toggle(key: .enableHaptics) {
+                    Text("Enable haptic feedback")
             }
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
-                        Text("Minimum hover duration")
+                        Text("Hover delay")
                         Spacer()
                         Text("\(minimumHoverDuration, specifier: "%.1f")s")
                             .foregroundStyle(.secondary)
@@ -360,6 +372,12 @@ struct Charge: View {
                 Text("Battery Information")
             }
         }
+        .onAppear {
+            Task { @MainActor in
+                await XPCHelperClient.shared.isAccessibilityAuthorized()
+            }
+        }
+        .accentColor(.effectiveAccent)
         .navigationTitle("Battery")
     }
 }
@@ -448,14 +466,88 @@ struct HUD: View {
     @EnvironmentObject var vm: BoringViewModel
     @Default(.inlineHUD) var inlineHUD
     @Default(.enableGradient) var enableGradient
+    @Default(.optionKeyAction) var optionKeyAction
+    @Default(.hudReplacement) var hudReplacement
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @State private var accessibilityAuthorized = false
+    
     var body: some View {
         Form {
             Section {
-                Toggle("Enable HUD replacement", isOn: $coordinator.hudReplacement)
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Replace system HUD")
+                            .font(.headline)
+                        Text("Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 40)
+                    Defaults.Toggle("", key: .hudReplacement)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.large)
+                    .disabled(!accessibilityAuthorized)
+                }
+                
+                if !accessibilityAuthorized {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Accessibility access is required to replace the system HUD.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: 12) {
+                            Button("Request Accessibility") {
+                                XPCHelperClient.shared.requestAccessibilityAuthorization()
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                    }
+                    .padding(.top, 6)
+                }
+            }
+            
+            Section {
+                Picker("Option key behaviour", selection: $optionKeyAction) {
+                    ForEach(OptionKeyAction.allCases) { opt in
+                        Text(opt.rawValue).tag(opt)
+                    }
+                }
+                
+                Picker("Progress bar style", selection: $enableGradient) {
+                    Text("Hierarchical")
+                        .tag(false)
+                    Text("Gradient")
+                        .tag(true)
+                }
+                Defaults.Toggle(key: .systemEventIndicatorShadow) {
+                    Text("Enable glowing effect")
+                }
+                Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
+                    Text("Tint progress bar with accent color")
+                }
             } header: {
                 Text("General")
             }
+            .disabled(!hudReplacement)
+            
+            Section {
+                Defaults.Toggle(key: .showOpenNotchHUD) {
+                    Text("Show HUD in open notch")
+                }
+                Defaults.Toggle(key: .showOpenNotchHUDPercentage) {
+                    Text("Show percentage")
+                }
+                .disabled(!Defaults[.showOpenNotchHUD])
+            } header: {
+                HStack {
+                    Text("Open Notch")
+                    customBadge(text: "Beta")
+                }
+            }
+            .disabled(!hudReplacement)
+            
             Section {
                 Picker("HUD style", selection: $inlineHUD) {
                     Text("Default")
@@ -471,25 +563,31 @@ struct HUD: View {
                         }
                     }
                 }
-                Picker("Progressbar style", selection: $enableGradient) {
-                    Text("Hierarchical")
-                        .tag(false)
-                    Text("Gradient")
-                        .tag(true)
-                }
-                Defaults.Toggle(key: .systemEventIndicatorShadow) {
-                    Text("Enable glowing effect")
-                }
-                Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
-                    Text("Use accent color")
+                
+                Defaults.Toggle(key: .showClosedNotchHUDPercentage) {
+                    Text("Show percentage")
                 }
             } header: {
-                HStack {
-                    Text("Appearance")
-                }
+                Text("Closed Notch")
+            }
+            .disabled(!Defaults[.hudReplacement])
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("HUDs")
+        .task {
+            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+        }
+        .onAppear {
+            XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
+        }
+        .onDisappear {
+            XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
+            if let granted = notification.userInfo?["granted"] as? Bool {
+                accessibilityAuthorized = granted
             }
         }
-        .navigationTitle("HUDs")
     }
 }
 
@@ -500,6 +598,8 @@ struct Media: View {
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
+
+    @Default(.enableLyrics) var enableLyrics
 
     var body: some View {
         Form {
@@ -524,8 +624,8 @@ struct Media: View {
                             .foregroundStyle(.secondary)
                             .font(.caption)
                         Link(
-                            "https://github.com/th-ch/youtube-music",
-                            destination: URL(string: "https://github.com/th-ch/youtube-music")!
+                            "https://github.com/pear-devs/pear-desktop",
+                            destination: URL(string: "https://github.com/pear-devs/pear-desktop")!
                         )
                         .font(.caption)
                         .foregroundColor(.blue)  // Ensures it's visibly a link
@@ -538,22 +638,13 @@ struct Media: View {
                     .font(.caption)
                 }
             }
-            Section {
-                Defaults.Toggle(key: .showShuffleAndRepeat) {
-                    HStack {
-                        Text("Show shuffle and repeat buttons")
-                        customBadge(text: "Beta")
-                    }
-                }
-            } header: {
-                Text("Media controls")
-            }
+            
             Section {
                 Toggle(
-                    "Enable music live activity",
+                    "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Toggle("Enable automatic sneak peek (show on media changes)", isOn: $enableSneakPeek)
+                Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
                         Text(style.rawValue).tag(style)
@@ -569,27 +660,40 @@ struct Media: View {
                         }
                     }
                 }
+                Picker(
+                    selection: $hideNotchOption,
+                    label:
+                        HStack {
+                            Text("Full screen behavior")
+                            customBadge(text: "Beta")
+                        }
+                ) {
+                    Text("Hide for all apps").tag(HideNotchOption.always)
+                    Text("Hide for media app only").tag(
+                        HideNotchOption.nowPlayingOnly)
+                    Text("Never hide").tag(HideNotchOption.never)
+                }
             } header: {
                 Text("Media playback live activity")
             }
-
-            Picker(
-                selection: $hideNotchOption,
-                label:
+            
+            Section {
+                MusicSlotConfigurationView()
+                Defaults.Toggle(key: .enableLyrics) {
                     HStack {
-                        Text("Hide BoringNotch Options")
+                        Text("Show lyrics below artist name")
                         customBadge(text: "Beta")
                     }
-            ) {
-                Text("Always hide in fullscreen").tag(HideNotchOption.always)
-                Text("Hide only when NowPlaying app is in fullscreen").tag(
-                    HideNotchOption.nowPlayingOnly)
-                Text("Never hide").tag(HideNotchOption.never)
-            }
-            .onChange(of: hideNotchOption) {
-                Defaults[.enableFullscreenMediaDetection] = hideNotchOption != .never
+                }
+            } header: {
+                Text("Media controls")
+            }  footer: {
+                Text("Customize which controls appear in the music player. Volume expands when active.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
+        .accentColor(.effectiveAccent)
         .navigationTitle("Media")
     }
 
@@ -608,6 +712,7 @@ struct CalendarSettings: View {
     @Default(.showCalendar) var showCalendar: Bool
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
+    @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
 
     var body: some View {
         Form {
@@ -619,6 +724,12 @@ struct CalendarSettings: View {
             }
             Defaults.Toggle(key: .hideAllDayEvents) {
                 Text("Hide all-day events")
+            }
+            Defaults.Toggle(key: .autoScrollToNextEvent) {
+                Text("Auto-scroll to next event")
+            }
+            Defaults.Toggle(key: .showFullEventTitles) {
+                Text("Always show full event titles")
             }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
@@ -650,6 +761,7 @@ struct CalendarSettings: View {
                             ) {
                                 Text(calendar.title)
                             }
+                            .accentColor(lighterColor(from: calendar.color))
                             .disabled(!showCalendar)
                         }
                     }
@@ -685,12 +797,15 @@ struct CalendarSettings: View {
                             ) {
                                 Text(calendar.title)
                             }
+                            .accentColor(lighterColor(from: calendar.color))
                             .disabled(!showCalendar)
                         }
                     }
                 }
             }
         }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Calendar")
         .onAppear {
             Task {
                 await calendarManager.checkCalendarAuthorization()
@@ -698,6 +813,23 @@ struct CalendarSettings: View {
             }
         }
     }
+}
+
+func lighterColor(from nsColor: NSColor, amount: CGFloat = 0.14) -> Color {
+    let srgb = nsColor.usingColorSpace(.sRGB) ?? nsColor
+    var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0,0,0,0)
+    srgb.getRed(&r, green: &g, blue: &b, alpha: &a)
+
+    func lighten(_ c: CGFloat) -> CGFloat {
+        let increased = c + (1.0 - c) * amount
+        return min(max(increased, 0), 1)
+    }
+
+    let nr = lighten(r)
+    let ng = lighten(g)
+    let nb = lighten(b)
+
+    return Color(red: Double(nr), green: Double(ng), blue: Double(nb), opacity: Double(a))
 }
 
 struct About: View {
@@ -738,19 +870,9 @@ struct About: View {
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
-                        NSWorkspace.shared.open(sponsorPage)
-                    } label: {
-                        VStack(spacing: 5) {
-                            Image(systemName: "cup.and.saucer.fill")
-                                .imageScale(.large)
-                            Text("Support Us")
-                                .foregroundStyle(.white)
+                        if let url = URL(string: "https://github.com/TheBoredTeam/boring.notch") {
+                            NSWorkspace.shared.open(url)
                         }
-                        .contentShape(Rectangle())
-                    }
-                    Spacer(minLength: 0)
-                    Button {
-                        NSWorkspace.shared.open(productPage)
                     } label: {
                         VStack(spacing: 5) {
                             Image("Github")
@@ -758,7 +880,6 @@ struct About: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 18)
                             Text("GitHub")
-                                .foregroundStyle(.white)
                         }
                         .contentShape(Rectangle())
                     }
@@ -791,16 +912,41 @@ struct About: View {
 struct Shelf: View {
     
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
+    @Default(.quickShareProvider) var quickShareProvider
+    @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @StateObject private var quickShareService = QuickShareService.shared
+
+    private var selectedProvider: QuickShareProvider? {
+        quickShareService.availableProviders.first(where: { $0.id == quickShareProvider })
+    }
+    
+    init() {
+        Task { await QuickShareService.shared.discoverAvailableProviders() }
+    }
     
     var body: some View {
         Form {
             Section {
-
                 Defaults.Toggle(key: .boringShelf) {
                     Text("Enable shelf")
                 }
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
+                }
+                Defaults.Toggle(key: .expandedDragDetection) {
+                    Text("Expanded drag detection area")
+                }
+                .onChange(of: expandedDragDetection) {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.expandedDragDetectionChanged,
+                        object: nil
+                    )
+                }
+                Defaults.Toggle(key: .copyOnDrag) {
+                    Text("Copy items on drag")
+                }
+                Defaults.Toggle(key: .autoRemoveShelfItems) {
+                    Text("Remove from shelf after dragging")
                 }
 
             } header: {
@@ -808,150 +954,208 @@ struct Shelf: View {
                     Text("General")
                 }
             }
+            
+            Section {
+                Picker("Quick Share Service", selection: $quickShareProvider) {
+                    ForEach(quickShareService.availableProviders, id: \.id) { provider in
+                        HStack {
+                            Group {
+                                if let imgData = provider.imageData, let nsImg = NSImage(data: imgData) {
+                                    Image(nsImage: nsImg)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                } else {
+                                    Image(systemName: "square.and.arrow.up")
+                                }
+                            }
+                            .frame(width: 16, height: 16)
+                            .foregroundColor(.accentColor)
+                            Text(provider.id)
+                        }
+                        .tag(provider.id)
+                    }
+                }
+                .pickerStyle(.menu)
+                
+                if let selectedProvider = selectedProvider {
+                    HStack {
+                        Group {
+                            if let imgData = selectedProvider.imageData, let nsImg = NSImage(data: imgData) {
+                                Image(nsImage: nsImg)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                            } else {
+                                Image(systemName: "square.and.arrow.up")
+                            }
+                        }
+                        .frame(width: 16, height: 16)
+                        .foregroundColor(.accentColor)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Currently selected: \(selectedProvider.id)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("Files dropped on the shelf will be shared via this service")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                // Providers are always enabled; user can pick default service above.
+                
+            } header: {
+                HStack {
+                    Text("Quick Share")
+                }
+            } footer: {
+                Text("Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
+        .accentColor(.effectiveAccent)
         .navigationTitle("Shelf")
     }
 }
 
-struct Extensions: View {
-    @EnvironmentObject var extensionManager: BoringExtensionManager
-    @State private var effectTrigger: Bool = false
-    var body: some View {
-        Form {
-            //warningBadge("We don't support extensions yet") // Uhhhh You do? <><><> Oori.S
-            Section {
-                List {
-                    ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
-                        let item = extensionManager.installedExtensions[index]
-                        HStack {
-                            AppIcon(for: item.bundleIdentifier)
-                                .resizable()
-                                .frame(width: 24, height: 24)
-                            Text(item.name)
-                            ListItemPopover {
-                                Text("Description")
-                            }
-                            Spacer(minLength: 0)
-                            HStack(spacing: 6) {
-                                Circle()
-                                    .frame(width: 6, height: 6)
-                                    .foregroundColor(
-                                        isExtensionRunning(item.bundleIdentifier)
-                                            ? .green : item.status == .disabled ? .gray : .red
-                                    )
-                                    .conditionalModifier(isExtensionRunning(item.bundleIdentifier))
-                                { view in
-                                    view
-                                        .shadow(color: .green, radius: 3)
-                                }
-                                Text(
-                                    isExtensionRunning(item.bundleIdentifier)
-                                        ? "Running"
-                                        : item.status == .disabled ? "Disabled" : "Stopped"
-                                )
-                                .contentTransition(.numericText())
-                                .foregroundStyle(.secondary)
-                                .font(.footnote)
-                            }
-                            .frame(width: 60, alignment: .leading)
-
-                            Menu(
-                                content: {
-                                    Button("Restart") {
-                                        let ws = NSWorkspace.shared
-
-                                        if let ext = ws.runningApplications.first(where: {
-                                            $0.bundleIdentifier == item.bundleIdentifier
-                                        }) {
-                                            ext.terminate()
-                                        }
-
-                                        if let appURL = ws.urlForApplication(
-                                            withBundleIdentifier: item.bundleIdentifier)
-                                        {
-                                            ws.openApplication(
-                                                at: appURL, configuration: .init(),
-                                                completionHandler: nil)
-                                        }
-                                    }
-                                    .keyboardShortcut("R", modifiers: .command)
-                                    Button("Disable") {
-                                        if let ext = NSWorkspace.shared.runningApplications.first(
-                                            where: { $0.bundleIdentifier == item.bundleIdentifier })
-                                        {
-                                            ext.terminate()
-                                        }
-                                        extensionManager.installedExtensions[index].status =
-                                            .disabled
-                                    }
-                                    .keyboardShortcut("D", modifiers: .command)
-                                    Divider()
-                                    Button("Uninstall", role: .destructive) {
-                                        //
-                                    }
-                                },
-                                label: {
-                                    Image(systemName: "ellipsis.circle")
-                                        .foregroundStyle(.secondary)
-                                }
-                            )
-                            .controlSize(.regular)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.vertical, 5)
-                    }
-                }
-                .frame(minHeight: 120)
-                .actionBar {
-                    Button {
-                    } label: {
-                        HStack(spacing: 3) {
-                            Image(systemName: "plus")
-                            Text("Add manually")
-                        }
-                        .foregroundStyle(.secondary)
-                    }
-                    .disabled(true)
-                    Spacer()
-                    Button {
-                        withAnimation(.linear(duration: 1)) {
-                            effectTrigger.toggle()
-                        } completion: {
-                            effectTrigger.toggle()
-                        }
-                        extensionManager.checkIfExtensionsAreInstalled()
-                    } label: {
-                        HStack(spacing: 3) {
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                                .rotationEffect(effectTrigger ? .degrees(360) : .zero)
-                        }
-                        .foregroundStyle(.secondary)
-                    }
-                }
-                .controlSize(.small)
-                .buttonStyle(PlainButtonStyle())
-                .overlay {
-                    if extensionManager.installedExtensions.isEmpty {
-                        Text("No extension installed")
-                            .foregroundStyle(Color(.secondaryLabelColor))
-                            .padding(.bottom, 22)
-                    }
-                }
-            } header: {
-                HStack(spacing: 0) {
-                    Text("Installed extensions")
-                    if !extensionManager.installedExtensions.isEmpty {
-                        Text(" – \(extensionManager.installedExtensions.count)")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        }
-        .navigationTitle("Extensions")
-        // TipsView()
-        // .padding(.horizontal, 19)
-    }
-}
+//struct Extensions: View {
+//    @State private var effectTrigger: Bool = false
+//    var body: some View {
+//        Form {
+//            Section {
+//                List {
+//                    ForEach(extensionManager.installedExtensions.indices, id: \.self) { index in
+//                        let item = extensionManager.installedExtensions[index]
+//                        HStack {
+//                            AppIcon(for: item.bundleIdentifier)
+//                                .resizable()
+//                                .frame(width: 24, height: 24)
+//                            Text(item.name)
+//                            ListItemPopover {
+//                                Text("Description")
+//                            }
+//                            Spacer(minLength: 0)
+//                            HStack(spacing: 6) {
+//                                Circle()
+//                                    .frame(width: 6, height: 6)
+//                                    .foregroundColor(
+//                                        isExtensionRunning(item.bundleIdentifier)
+//                                            ? .green : item.status == .disabled ? .gray : .red
+//                                    )
+//                                    .conditionalModifier(isExtensionRunning(item.bundleIdentifier))
+//                                { view in
+//                                    view
+//                                        .shadow(color: .green, radius: 3)
+//                                }
+//                                Text(
+//                                    isExtensionRunning(item.bundleIdentifier)
+//                                        ? "Running"
+//                                        : item.status == .disabled ? "Disabled" : "Stopped"
+//                                )
+//                                .contentTransition(.numericText())
+//                                .foregroundStyle(.secondary)
+//                                .font(.footnote)
+//                            }
+//                            .frame(width: 60, alignment: .leading)
+//
+//                            Menu(
+//                                content: {
+//                                    Button("Restart") {
+//                                        let ws = NSWorkspace.shared
+//
+//                                        if let ext = ws.runningApplications.first(where: {
+//                                            $0.bundleIdentifier == item.bundleIdentifier
+//                                        }) {
+//                                            ext.terminate()
+//                                        }
+//
+//                                        if let appURL = ws.urlForApplication(
+//                                            withBundleIdentifier: item.bundleIdentifier)
+//                                        {
+//                                            ws.openApplication(
+//                                                at: appURL, configuration: .init(),
+//                                                completionHandler: nil)
+//                                        }
+//                                    }
+//                                    .keyboardShortcut("R", modifiers: .command)
+//                                    Button("Disable") {
+//                                        if let ext = NSWorkspace.shared.runningApplications.first(
+//                                            where: { $0.bundleIdentifier == item.bundleIdentifier })
+//                                        {
+//                                            ext.terminate()
+//                                        }
+//                                        extensionManager.installedExtensions[index].status =
+//                                            .disabled
+//                                    }
+//                                    .keyboardShortcut("D", modifiers: .command)
+//                                    Divider()
+//                                    Button("Uninstall", role: .destructive) {
+//                                        //
+//                                    }
+//                                },
+//                                label: {
+//                                    Image(systemName: "ellipsis.circle")
+//                                        .foregroundStyle(.secondary)
+//                                }
+//                            )
+//                            .controlSize(.regular)
+//                        }
+//                        .buttonStyle(PlainButtonStyle())
+//                        .padding(.vertical, 5)
+//                    }
+//                }
+//                .frame(minHeight: 120)
+//                .actionBar {
+//                    Button {
+//                    } label: {
+//                        HStack(spacing: 3) {
+//                            Image(systemName: "plus")
+//                            Text("Add manually")
+//                        }
+//                        .foregroundStyle(.secondary)
+//                    }
+//                    .disabled(true)
+//                    Spacer()
+//                    Button {
+//                        withAnimation(.linear(duration: 1)) {
+//                            effectTrigger.toggle()
+//                        } completion: {
+//                            effectTrigger.toggle()
+//                        }
+//                        extensionManager.checkIfExtensionsAreInstalled()
+//                    } label: {
+//                        HStack(spacing: 3) {
+//                            Image(systemName: "arrow.triangle.2.circlepath")
+//                                .rotationEffect(effectTrigger ? .degrees(360) : .zero)
+//                        }
+//                        .foregroundStyle(.secondary)
+//                    }
+//                }
+//                .controlSize(.small)
+//                .buttonStyle(PlainButtonStyle())
+//                .overlay {
+//                    if extensionManager.installedExtensions.isEmpty {
+//                        Text("No extension installed")
+//                            .foregroundStyle(Color(.secondaryLabelColor))
+//                            .padding(.bottom, 22)
+//                    }
+//                }
+//            } header: {
+//                HStack(spacing: 0) {
+//                    Text("Installed extensions")
+//                    if !extensionManager.installedExtensions.isEmpty {
+//                        Text(" – \(extensionManager.installedExtensions.count)")
+//                            .foregroundStyle(.secondary)
+//                    }
+//                }
+//            }
+//        }
+//        .accentColor(.effectiveAccent)
+//        .navigationTitle("Extensions")
+//        // TipsView()
+//        // .padding(.horizontal, 19)
+//    }
+//}
 
 struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -960,10 +1164,10 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     @State private var selectedListVisualizer: CustomVisualizer? = nil
-
     @State private var isPresented: Bool = false
     @State private var name: String = ""
     @State private var url: String = ""
@@ -973,24 +1177,16 @@ struct Appearance: View {
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
                 Defaults.Toggle(key: .settingsIconInNotch) {
-                    Text("Settings icon in notch")
+                    Text("Show settings icon in notch")
                 }
-                Defaults.Toggle(key: .enableShadow) {
-                    Text("Enable window shadow")
-                }
-                Defaults.Toggle(key: .cornerRadiusScaling) {
-                    Text("Corner radius scaling")
-                }
-                Defaults.Toggle(key: .useModernCloseAnimation) {
-                    Text("Use simpler close animation")
-                }
+
             } header: {
                 Text("General")
             }
 
             Section {
                 Defaults.Toggle(key: .coloredSpectrogram) {
-                    Text("Enable colored spectrograms")
+                    Text("Colored spectrogram")
                 }
                 Defaults
                     .Toggle("Player tinting", key: .playerColorTinting)
@@ -1047,9 +1243,8 @@ struct Appearance: View {
                     ForEach(customVisualizers, id: \.self) { visualizer in
                         HStack {
                             LottieView(
-                                state: LUStateData(
-                                    type: .loadedFrom(visualizer.url), speed: visualizer.speed,
-                                    loopMode: .loop)
+                                url: visualizer.url, speed: visualizer.speed,
+                                loopMode: .loop
                             )
                             .frame(width: 30, height: 30, alignment: .center)
                             Text(visualizer.name)
@@ -1067,7 +1262,7 @@ struct Appearance: View {
                         .background(
                             selectedListVisualizer != nil
                                 ? selectedListVisualizer == visualizer
-                                    ? Color.accentColor : Color.clear : Color.clear,
+                                    ? Color.effectiveAccent : Color.clear : Color.clear,
                             in: RoundedRectangle(cornerRadius: 5)
                         )
                         .contentShape(Rectangle())
@@ -1193,14 +1388,186 @@ struct Appearance: View {
                         .tag(MirrorShapeEnum.rectangle)
                 }
                 Defaults.Toggle(key: .showNotHumanFace) {
-                    Text("Show cool face animation while inactivity")
+                    Text("Show cool face animation while inactive")
                 }
             } header: {
                 HStack {
                     Text("Additional features")
                 }
             }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Appearance")
+    }
 
+    func checkVideoInput() -> Bool {
+        if AVCaptureDevice.default(for: .video) != nil {
+            return true
+        }
+
+        return false
+    }
+}
+
+struct Advanced: View {
+    @Default(.useCustomAccentColor) var useCustomAccentColor
+    @Default(.customAccentColorData) var customAccentColorData
+    @Default(.extendHoverArea) var extendHoverArea
+    @Default(.showOnLockScreen) var showOnLockScreen
+    @Default(.hideFromScreenRecording) var hideFromScreenRecording
+    
+    @State private var customAccentColor: Color = .accentColor
+    @State private var selectedPresetColor: PresetAccentColor? = nil
+    let icons: [String] = ["logo2"]
+    @State private var selectedIcon: String = "logo2"
+    
+    // macOS accent colors
+    enum PresetAccentColor: String, CaseIterable, Identifiable {
+        case blue = "Blue"
+        case purple = "Purple"
+        case pink = "Pink"
+        case red = "Red"
+        case orange = "Orange"
+        case yellow = "Yellow"
+        case green = "Green"
+        case graphite = "Graphite"
+        
+        var id: String { self.rawValue }
+        
+        var color: Color {
+            switch self {
+            case .blue: return Color(red: 0.0, green: 0.478, blue: 1.0)
+            case .purple: return Color(red: 0.686, green: 0.322, blue: 0.871)
+            case .pink: return Color(red: 1.0, green: 0.176, blue: 0.333)
+            case .red: return Color(red: 1.0, green: 0.271, blue: 0.227)
+            case .orange: return Color(red: 1.0, green: 0.584, blue: 0.0)
+            case .yellow: return Color(red: 1.0, green: 0.8, blue: 0.0)
+            case .green: return Color(red: 0.4, green: 0.824, blue: 0.176)
+            case .graphite: return Color(red: 0.557, green: 0.557, blue: 0.576)
+            }
+        }
+    }
+    
+    var body: some View {
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Toggle between system and custom
+                    Picker("Accent color", selection: $useCustomAccentColor) {
+                        Text("System").tag(false)
+                        Text("Custom").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                    
+                    if !useCustomAccentColor {
+                        // System accent info
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 12) {
+                                AccentCircleButton(
+                                    isSelected: true,
+                                    color: .accentColor,
+                                    isSystemDefault: true
+                                ) {}
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Using System Accent")
+                                        .font(.body)
+                                    Text("Your macOS system accent color")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                    } else {
+                        // Custom color options
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Color Presets")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
+                            
+                            HStack(spacing: 12) {
+                                ForEach(PresetAccentColor.allCases) { preset in
+                                    AccentCircleButton(
+                                        isSelected: selectedPresetColor == preset,
+                                        color: preset.color,
+                                        isMulticolor: false
+                                    ) {
+                                        selectedPresetColor = preset
+                                        customAccentColor = preset.color
+                                        saveCustomColor(preset.color)
+                                        forceUiUpdate()
+                                    }
+                                }
+                                Spacer()
+                            }
+                            
+                            Divider()
+                                .padding(.vertical, 4)
+                            
+                            // Custom color picker
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Pick a Color")
+                                        .font(.body)
+                                    Text("Choose any color")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                ColorPicker(selection: Binding(
+                                    get: { customAccentColor },
+                                    set: { newColor in
+                                        customAccentColor = newColor
+                                        selectedPresetColor = nil
+                                        saveCustomColor(newColor)
+                                        forceUiUpdate()
+                                    }
+                                ), supportsOpacity: false) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(customAccentColor)
+                                            .frame(width: 32, height: 32)
+                                        
+                                        if selectedPresetColor == nil {
+                                            Circle()
+                                                .strokeBorder(.primary.opacity(0.3), lineWidth: 2)
+                                                .frame(width: 32, height: 32)
+                                        }
+                                    }
+                                }
+                                .labelsHidden()
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("Accent color")
+            } footer: {
+                Text("Choose between your system accent color or customize it with your own selection.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            .onAppear {
+                initializeAccentColorState()
+            }
+            
+            Section {
+                Defaults.Toggle(key: .enableShadow) {
+                    Text("Enable window shadow")
+                }
+                Defaults.Toggle(key: .cornerRadiusScaling) {
+                    Text("Corner radius scaling")
+                }
+            } header: {
+                Text("Window Appearance")
+            }
+            
             Section {
                 HStack {
                     ForEach(icons, id: \.self) { icon in
@@ -1212,7 +1579,7 @@ struct Appearance: View {
                                 .background(
                                     RoundedRectangle(cornerRadius: 20, style: .circular)
                                         .strokeBorder(
-                                            icon == selectedIcon ? Color.accentColor : .clear,
+                                            icon == selectedIcon ? Color.effectiveAccent : .clear,
                                             lineWidth: 2.5
                                         )
                                 )
@@ -1225,7 +1592,7 @@ struct Appearance: View {
                                 .padding(.vertical, 3)
                                 .background(
                                     Capsule()
-                                        .fill(icon == selectedIcon ? Color.accentColor : .clear)
+                                        .fill(icon == selectedIcon ? Color.effectiveAccent : .clear)
                                 )
                         }
                         .onTapGesture {
@@ -1244,16 +1611,114 @@ struct Appearance: View {
                     customBadge(text: "Coming soon")
                 }
             }
+            
+            Section {
+                Defaults.Toggle(key: .extendHoverArea) {
+                    Text("Extend hover area")
+                }
+                Defaults.Toggle(key: .hideTitleBar) {
+                    Text("Hide title bar")
+                }
+                Defaults.Toggle(key: .showOnLockScreen) {
+                    Text("Show notch on lock screen")
+                }
+                Defaults.Toggle(key: .hideFromScreenRecording) {
+                    Text("Hide from screen recording")
+                }
+            } header: {
+                Text("Window Behavior")
+            }
         }
-        .navigationTitle("Appearance")
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Advanced")
+        .onAppear {
+            loadCustomColor()
+        }
     }
-
-    func checkVideoInput() -> Bool {
-        if AVCaptureDevice.default(for: .video) != nil {
-            return true
+    
+    private func forceUiUpdate() {
+        // Force refresh the UI
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: Notification.Name("AccentColorChanged"), object: nil)
         }
+    }
+    
+    private func saveCustomColor(_ color: Color) {
+        let nsColor = NSColor(color)
+        if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: nsColor, requiringSecureCoding: false) {
+            Defaults[.customAccentColorData] = colorData
+            forceUiUpdate()
+        }
+    }
+    
+    private func loadCustomColor() {
+        if let colorData = Defaults[.customAccentColorData],
+           let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
+            customAccentColor = Color(nsColor: nsColor)
+            
+            // Check if loaded color matches a preset
+            selectedPresetColor = nil
+            for preset in PresetAccentColor.allCases {
+                if colorsAreEqual(Color(nsColor: nsColor), preset.color) {
+                    selectedPresetColor = preset
+                    break
+                }
+            }
+        }
+    }
+    
+    private func colorsAreEqual(_ color1: Color, _ color2: Color) -> Bool {
+        let nsColor1 = NSColor(color1).usingColorSpace(.sRGB) ?? NSColor(color1)
+        let nsColor2 = NSColor(color2).usingColorSpace(.sRGB) ?? NSColor(color2)
+        
+        return abs(nsColor1.redComponent - nsColor2.redComponent) < 0.01 &&
+               abs(nsColor1.greenComponent - nsColor2.greenComponent) < 0.01 &&
+               abs(nsColor1.blueComponent - nsColor2.blueComponent) < 0.01
+    }
+    
+    private func initializeAccentColorState() {
+        if !useCustomAccentColor {
+            selectedPresetColor = nil // Multicolor is selected when useCustomAccentColor is false
+        } else {
+            loadCustomColor()
+        }
+    }
+}
 
-        return false
+// MARK: - Accent Circle Button Component
+struct AccentCircleButton: View {
+    let isSelected: Bool
+    let color: Color
+    var isSystemDefault: Bool = false
+    var isMulticolor: Bool = false
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                // Color circle
+                Circle()
+                    .fill(color)
+                    .frame(width: 32, height: 32)
+                
+                // Subtle border
+                Circle()
+                    .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
+                    .frame(width: 32, height: 32)
+                
+                // Apple-style highlight ring around the middle when selected
+                if isSelected {
+                    Circle()
+                        .strokeBorder(
+                            Color.white.opacity(0.5),
+                            lineWidth: 2
+                        )
+                        .frame(width: 28, height: 28)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .help(isSystemDefault ? "Use your macOS system accent color" : "")
     }
 }
 
@@ -1276,6 +1741,7 @@ struct Shortcuts: View {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
         }
+        .accentColor(.effectiveAccent)
         .navigationTitle("Shortcuts")
     }
 }

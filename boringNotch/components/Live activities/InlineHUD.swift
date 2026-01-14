@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Defaults
 
 struct InlineHUD: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -37,7 +38,7 @@ struct InlineHUD: View {
                                 .contentTransition(.interpolate)
                                 .frame(width: 20, height: 15, alignment: .center)
                         case .backlight:
-                            Image(systemName: "keyboard")
+                            Image(systemName: value > 0.5 ? "light.max" : "light.min")
                                 .contentTransition(.interpolate)
                                 .frame(width: 20, height: 15, alignment: .center)
                         case .mic:
@@ -76,10 +77,24 @@ struct InlineHUD: View {
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .contentTransition(.interpolate)
                 } else {
-                    HStack {
-                        DraggableProgressBar(value: $value)
+                        HStack {
+                        DraggableProgressBar(value: $value, onChange: { v in
+                            if type == .volume {
+                                VolumeManager.shared.setAbsolute(Float32(v))
+                            } else if type == .brightness {
+                                BrightnessManager.shared.setAbsolute(value: Float32(v))
+                            }
+                        })
                         if (type == .volume && value.isZero) {
                             Text("muted")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.gray)
+                                .lineLimit(1)
+                                .allowsTightening(true)
+                                .multilineTextAlignment(.trailing)
+                        } else if Defaults[.showClosedNotchHUDPercentage] {
+                            Text("\(Int(value * 100))%")
                                 .font(.caption)
                                 .fontWeight(.medium)
                                 .foregroundStyle(.gray)
