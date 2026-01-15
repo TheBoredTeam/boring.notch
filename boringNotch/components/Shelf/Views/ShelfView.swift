@@ -7,13 +7,16 @@
 
 import SwiftUI
 import AppKit
+import Defaults
 
 struct ShelfView: View {
     @EnvironmentObject var vm: BoringViewModel
     @StateObject var tvm = ShelfStateViewModel.shared
     @StateObject var selection = ShelfSelectionModel.shared
     @StateObject private var quickLookService = QuickLookService()
-    private let spacing: CGFloat = 8
+    @Default(.linkedShelfFolderBookmark) private var linkedShelfFolderBookmark
+    @Default(.linkedShelfRecentItemLimit) private var linkedShelfRecentItemLimit
+    private let spacing: CGFloat = 6
 
     var body: some View {
         HStack(spacing: 12) {
@@ -30,6 +33,13 @@ struct ShelfView: View {
             updateQuickLookSelection()
         }
         .quickLookPresenter(using: quickLookService)
+        .onAppear { tvm.refreshLinkedItems() }
+        .onChange(of: linkedShelfFolderBookmark) { _ in
+            tvm.refreshLinkedItems()
+        }
+        .onChange(of: linkedShelfRecentItemLimit) { _ in
+            tvm.refreshLinkedItems()
+        }
     }
     
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
@@ -42,7 +52,7 @@ struct ShelfView: View {
     private func updateQuickLookSelection() {
         guard quickLookService.isQuickLookOpen && !selection.selectedIDs.isEmpty else { return }
         
-        let selectedItems = selection.selectedItems(in: tvm.items)
+        let selectedItems = selection.selectedItems(in: tvm.displayItems)
         let urls: [URL] = selectedItems.compactMap { item in
             if let fileURL = item.fileURL {
                 return fileURL
@@ -95,7 +105,7 @@ struct ShelfView: View {
             } else {
                 ScrollView(.horizontal) {
                     HStack(spacing: spacing) {
-                        ForEach(tvm.items) { item in
+                        ForEach(tvm.displayItems) { item in
                             ShelfItemView(item: item)
                                 .environmentObject(quickLookService)
                         }

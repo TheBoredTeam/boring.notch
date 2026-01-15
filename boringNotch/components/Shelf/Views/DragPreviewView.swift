@@ -1,29 +1,52 @@
 import SwiftUI
 import AppKit
+import Defaults
 
 struct DragPreviewView: View {
     let thumbnail: NSImage?
     let displayName: String
+    @Default(.shelfIconSize) private var shelfIconSize
+    @Default(.shelfTextSize) private var shelfTextSize
+    @Default(.shelfLabelLineCount) private var shelfLabelLineCount
 
     var body: some View {
         VStack(alignment: .center, spacing: 4) {
             Image(nsImage: thumbnail ?? NSImage())
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 56, height: 56)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .frame(width: shelfIconSize, height: shelfIconSize)
+                .clipShape(RoundedRectangle(cornerRadius: iconCornerRadius))
 
-            Text(displayName)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.white)
-                .lineLimit(2)
-                .truncationMode(.middle)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
-                .background(RoundedRectangle(cornerRadius: 4).fill(Color.accentColor))
-                .frame(alignment: .top)
+            ShelfLabelText(
+                text: displayName,
+                fontSize: shelfTextSize,
+                lineLimit: shelfLabelLineCount,
+                textColor: NSColor.white,
+                maxWidth: labelWidth,
+                maxHeight: labelHeight
+            )
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .background(RoundedRectangle(cornerRadius: 4).fill(Color.accentColor))
+            .frame(width: labelWidth, height: labelHeight, alignment: .top)
         }
-        .frame(width: 105)
+        .frame(width: itemWidth)
+    }
+
+    private var itemWidth: CGFloat {
+        max(84, shelfIconSize + 36)
+    }
+
+    private var labelWidth: CGFloat {
+        itemWidth - 10
+    }
+
+    private var labelHeight: CGFloat {
+        let lineHeight = NSFont.systemFont(ofSize: shelfTextSize, weight: .medium).shelfLineHeight
+        return ceil(lineHeight * CGFloat(max(1, shelfLabelLineCount)) + 6)
+    }
+
+    private var iconCornerRadius: CGFloat {
+        max(8, shelfIconSize * 0.22)
     }
 }

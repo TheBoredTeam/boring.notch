@@ -6,6 +6,8 @@
 
 import Foundation
 import AppKit
+import Defaults
+import Darwin
 
 @MainActor
 final class ShelfStateViewModel: ObservableObject {
@@ -14,17 +16,29 @@ final class ShelfStateViewModel: ObservableObject {
     @Published private(set) var items: [ShelfItem] = [] {
         didSet { ShelfPersistenceService.shared.save(items) }
     }
+    @Published private(set) var linkedItems: [ShelfItem] = []
 
     @Published var isLoading: Bool = false
 
-    var isEmpty: Bool { items.isEmpty }
+    private let linkedFolderWatcherQueue = DispatchQueue(label: "linked-shelf-watcher", qos: .utility)
+    private var linkedFolderWatcher: DispatchSourceFileSystemObject?
+    private var linkedFolderWatcherURL: URL?
+    private var refreshDebounceWorkItem: DispatchWorkItem?
 
-    // Queue for deferred bookmark updates to avoid publishing during view updates
-    private var pendingBookmarkUpdates: [ShelfItem.ID: Data] = [:]
-    private var updateTask: Task<Void, Never>?
+    var isEmpty: Bool { displayItems.isEmpty }
+    var displayItems: [ShelfItem] {
+        Defaults[.linkedShelfFolderBookmark] == nil ? items : linkedItems
+    }
+    var mostRecentHomeItem: ShelfItem? {
+        if let linked = linkedItems.first {
+            return linked
+        }
+        return items.last
+    }
 
     private init() {
         items = ShelfPersistenceService.shared.load()
+        refreshLinkedItems()
     }
 
 
@@ -49,30 +63,22 @@ final class ShelfStateViewModel: ObservableObject {
     }
 
     func updateBookmark(for item: ShelfItem, bookmark: Data) {
-        guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
-        if case .file = items[idx].kind {
-            items[idx].kind = .file(bookmark: bookmark)
+        if let idx = items.firstIndex(where: { $0.id == item.id }) {
+            guard case .file = items[idx].kind else { return }
+            items[idx] = ShelfItem(
+                id: items[idx].id,
+                kind: .file(bookmark: bookmark),
+                isTemporary: items[idx].isTemporary
+            )
+            return
         }
-    }
-
-    private func scheduleDeferredBookmarkUpdate(for item: ShelfItem, bookmark: Data) {
-        pendingBookmarkUpdates[item.id] = bookmark
-        
-        // Cancel existing task and schedule a new one
-        updateTask?.cancel()
-        updateTask = Task { @MainActor [weak self] in
-            await Task.yield()
-            
-            guard let self = self else { return }
-            
-            for (itemID, bookmarkData) in self.pendingBookmarkUpdates {
-                if let idx = self.items.firstIndex(where: { $0.id == itemID }),
-                   case .file = self.items[idx].kind {
-                    self.items[idx].kind = .file(bookmark: bookmarkData)
-                }
-            }
-            
-            self.pendingBookmarkUpdates.removeAll()
+        if let idx = linkedItems.firstIndex(where: { $0.id == item.id }) {
+            guard case .file = linkedItems[idx].kind else { return }
+            linkedItems[idx] = ShelfItem(
+                id: linkedItems[idx].id,
+                kind: .file(bookmark: bookmark),
+                isTemporary: linkedItems[idx].isTemporary
+            )
         }
     }
 
@@ -81,6 +87,15 @@ final class ShelfStateViewModel: ObservableObject {
         guard !providers.isEmpty else { return }
         isLoading = true
         Task { [weak self] in
+            if let linkedBookmark = Defaults[.linkedShelfFolderBookmark] {
+                await LinkedFolderShelfService.saveItems(from: providers, to: linkedBookmark)
+                await MainActor.run {
+                    self?.refreshLinkedItems()
+                    self?.isLoading = false
+                }
+                return
+            }
+
             let dropped = await ShelfDropService.items(from: providers)
             await MainActor.run {
                 self?.add(dropped)
@@ -117,7 +132,7 @@ final class ShelfStateViewModel: ObservableObject {
         let result = bookmark.resolve()
         if let refreshed = result.refreshedData, refreshed != bookmarkData {
             NSLog("Bookmark for \(item) stale; refreshing")
-            scheduleDeferredBookmarkUpdate(for: item, bookmark: refreshed)
+            updateBookmark(for: item, bookmark: refreshed)
         }
         return result.url
     }
@@ -139,5 +154,89 @@ final class ShelfStateViewModel: ObservableObject {
             if let u = resolveFileURL(for: it) { urls.append(u) }
         }
         return urls
+    }
+
+    func refreshLinkedItems() {
+        guard let bookmarkData = Defaults[.linkedShelfFolderBookmark] else {
+            stopLinkedFolderWatcher()
+            linkedItems = []
+            return
+        }
+        updateLinkedFolderWatcher(bookmarkData)
+        let limit = min(Defaults[.linkedShelfRecentItemLimit], 4)
+        guard limit > 0 else {
+            linkedItems = []
+            return
+        }
+        Task { [weak self] in
+            let items = await LinkedFolderShelfService.loadItems(from: bookmarkData, limit: limit)
+            await MainActor.run { self?.linkedItems = items }
+        }
+    }
+
+    func isStoredItem(_ item: ShelfItem) -> Bool {
+        items.contains(where: { $0.id == item.id })
+    }
+
+    private func updateLinkedFolderWatcher(_ bookmarkData: Data) {
+        let bookmark = Bookmark(data: bookmarkData)
+        guard let folderURL = bookmark.resolveURL() else {
+            stopLinkedFolderWatcher()
+            return
+        }
+
+        let standardizedURL = folderURL.standardizedFileURL
+        if linkedFolderWatcherURL == standardizedURL {
+            return
+        }
+
+        stopLinkedFolderWatcher()
+
+        guard standardizedURL.startAccessingSecurityScopedResource() else {
+            return
+        }
+
+        let fd = open(standardizedURL.path, O_EVTONLY)
+        guard fd >= 0 else {
+            standardizedURL.stopAccessingSecurityScopedResource()
+            return
+        }
+
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .extend, .attrib, .rename, .delete],
+            queue: linkedFolderWatcherQueue
+        )
+        source.setEventHandler { [weak self] in
+            Task { @MainActor in
+                self?.scheduleLinkedItemsRefresh()
+            }
+        }
+        source.setCancelHandler {
+            close(fd)
+            standardizedURL.stopAccessingSecurityScopedResource()
+        }
+        linkedFolderWatcherURL = standardizedURL
+        linkedFolderWatcher = source
+        source.resume()
+    }
+
+    private func stopLinkedFolderWatcher() {
+        refreshDebounceWorkItem?.cancel()
+        refreshDebounceWorkItem = nil
+        linkedFolderWatcher?.cancel()
+        linkedFolderWatcher = nil
+        linkedFolderWatcherURL = nil
+    }
+
+    private func scheduleLinkedItemsRefresh() {
+        refreshDebounceWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            Task { @MainActor in
+                self?.refreshLinkedItems()
+            }
+        }
+        refreshDebounceWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: workItem)
     }
 }

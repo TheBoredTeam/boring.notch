@@ -6,6 +6,7 @@
 //  Modified by Harsh Vardhan Goswami & Richard Kunkli & Mustafa Ramadan
 //
 
+import AppKit
 import Combine
 import Defaults
 import SwiftUI
@@ -423,6 +424,7 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject private var shelfState = ShelfStateViewModel.shared
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
@@ -460,9 +462,222 @@ struct NotchHomeView: View {
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
                     .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
             }
+
+            if Defaults[.showRecentShelfItemOnHome], let item = shelfState.mostRecentHomeItem {
+                VStack {
+                    Spacer(minLength: 0)
+                    RecentShelfItemPanel(item: item)
+                        .id(item.id)
+                    Spacer(minLength: 0)
+                }
+            }
         }
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
+    }
+}
+
+private struct RecentShelfItemPanel: View {
+    let item: ShelfItem
+    @Default(.shelfIconSize) private var shelfIconSize
+    @Default(.shelfTextSize) private var shelfTextSize
+    @Default(.shelfLabelLineCount) private var shelfLabelLineCount
+    @State private var thumbnail: NSImage?
+    @State private var dragPreviewImage: NSImage?
+
+    private var iconSize: CGFloat { min(max(40, shelfIconSize), 64) }
+    private var textSize: CGFloat { min(max(10, shelfTextSize), 14) }
+    private var labelLines: Int { min(max(1, shelfLabelLineCount), 2) }
+    private var panelWidth: CGFloat { max(130, iconSize + 52) }
+    private var labelWidth: CGFloat { panelWidth - 20 }
+    private var labelHeight: CGFloat {
+        let lineHeight = NSFont.systemFont(ofSize: textSize, weight: .medium).shelfLineHeight
+        return ceil(lineHeight * CGFloat(labelLines) + 6)
+    }
+    private var panelHeight: CGFloat {
+        iconSize + labelHeight + 34
+    }
+
+    private var displayImage: NSImage {
+        thumbnail ?? item.icon
+    }
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(
+                    Color.white.opacity(0.16),
+                    style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [8])
+                )
+                .overlay {
+                    VStack(spacing: 10) {
+                        Image(nsImage: displayImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: iconSize, height: iconSize)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        ShelfLabelText(
+                            text: item.displayName,
+                            fontSize: textSize,
+                            lineLimit: labelLines,
+                            textColor: .labelColor,
+                            maxWidth: labelWidth,
+                            maxHeight: labelHeight
+                        )
+                    }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 10)
+                }
+                .frame(width: panelWidth, height: panelHeight)
+
+            RecentShelfDragHandler(
+                item: item,
+                dragPreviewImage: dragPreviewImage ?? displayImage,
+                onClick: {
+                    ShelfActionService.open(item)
+                }
+            )
+            .frame(width: panelWidth, height: panelHeight)
+        }
+        .task(id: item.id) {
+            await loadThumbnail()
+            dragPreviewImage = await renderDragPreview()
+        }
+    }
+
+    @MainActor
+    private func loadThumbnail() async {
+        guard let url = item.fileURL else {
+            thumbnail = nil
+            return
+        }
+        let targetSize = max(56, iconSize)
+        let size = CGSize(width: targetSize, height: targetSize)
+        thumbnail = await ThumbnailService.shared.previewThumbnail(for: url, size: size)
+    }
+
+    @MainActor
+    private func renderDragPreview() async -> NSImage {
+        let content = DragPreviewView(thumbnail: displayImage, displayName: item.displayName)
+        let renderer = ImageRenderer(content: content)
+        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+        return renderer.nsImage ?? displayImage
+    }
+}
+
+private struct RecentShelfDragHandler: NSViewRepresentable {
+    let item: ShelfItem
+    let dragPreviewImage: NSImage
+    let onClick: () -> Void
+
+    func makeNSView(context: Context) -> DragView {
+        let view = DragView()
+        view.item = item
+        view.dragPreviewImage = dragPreviewImage
+        view.onClick = onClick
+        return view
+    }
+
+    func updateNSView(_ nsView: DragView, context: Context) {
+        nsView.item = item
+        nsView.dragPreviewImage = dragPreviewImage
+        nsView.onClick = onClick
+    }
+
+    final class DragView: NSView, NSDraggingSource {
+        var item: ShelfItem!
+        var dragPreviewImage: NSImage?
+        var onClick: (() -> Void)?
+        private var draggedURLs: [URL] = []
+        private var mouseDownEvent: NSEvent?
+        private var didDrag = false
+        private let dragThreshold: CGFloat = 3.0
+
+        override func mouseDown(with event: NSEvent) {
+            mouseDownEvent = event
+            didDrag = false
+        }
+
+        override func mouseDragged(with event: NSEvent) {
+            guard let mouseDownEvent else {
+                super.mouseDragged(with: event)
+                return
+            }
+
+            let dragDistance = hypot(
+                event.locationInWindow.x - mouseDownEvent.locationInWindow.x,
+                event.locationInWindow.y - mouseDownEvent.locationInWindow.y
+            )
+
+            if dragDistance > dragThreshold {
+                startDragSession(with: event)
+                didDrag = true
+                self.mouseDownEvent = nil
+            } else {
+                super.mouseDragged(with: event)
+            }
+        }
+
+        override func mouseUp(with event: NSEvent) {
+            if !didDrag {
+                onClick?()
+            }
+            super.mouseUp(with: event)
+        }
+
+        private func startDragSession(with event: NSEvent) {
+            guard let pasteboardItem = createPasteboardItem(for: item) else { return }
+            let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardItem)
+            let image = dragPreviewImage ?? item.icon
+            let imageFrame = NSRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
+            draggingItem.setDraggingFrame(imageFrame, contents: image)
+            beginDraggingSession(with: [draggingItem], event: event, source: self)
+        }
+
+        private func createPasteboardItem(for item: ShelfItem) -> NSPasteboardItem? {
+            let pasteboardItem = NSPasteboardItem()
+            switch item.kind {
+            case .file:
+                guard let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) else {
+                    pasteboardItem.setString(item.displayName, forType: .string)
+                    return pasteboardItem
+                }
+                if url.startAccessingSecurityScopedResource() {
+                    draggedURLs.append(url)
+                }
+                pasteboardItem.setString(url.absoluteString, forType: .fileURL)
+                pasteboardItem.setPropertyList([url.path], forType: NSPasteboard.PasteboardType("NSFilenamesPboardType"))
+                return pasteboardItem
+            case .text(let string):
+                pasteboardItem.setString(string, forType: .string)
+                return pasteboardItem
+            case .link(let url):
+                pasteboardItem.setString(url.absoluteString, forType: .URL)
+                pasteboardItem.setString(url.absoluteString, forType: .string)
+                return pasteboardItem
+            }
+        }
+
+        func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
+            if Defaults[.copyOnDrag] {
+                return [.copy]
+            }
+            switch context {
+            case .outsideApplication:
+                return [.copy, .move]
+            case .withinApplication:
+                return [.copy, .move, .generic]
+            @unknown default:
+                return [.copy]
+            }
+        }
+
+        func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
+            for url in draggedURLs {
+                url.stopAccessingSecurityScopedResource()
+            }
+            draggedURLs.removeAll()
+        }
     }
 }
 
