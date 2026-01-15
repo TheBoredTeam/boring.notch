@@ -15,7 +15,40 @@ struct Config: Equatable {
     var steps: Int = 1  // Each step is one day
     var spacing: CGFloat = 0
     var showsText: Bool = true
-    var offset: Int = 2  // Number of dates to the left of the selected date
+    var offset: Int = 2  // Number of dates to the left/top of the selected date
+}
+
+// MARK: - Layout Constants
+/// Centralized layout configuration for the WheelPicker to ensure consistent sizing
+/// across both horizontal and vertical layouts
+enum WheelPickerLayout {
+    // MARK: - Shared Constants
+    static let dateCircleSize: CGFloat = 20
+    static let itemPadding: CGFloat = 4
+    static let cornerRadius: CGFloat = 8
+    
+    // MARK: - Horizontal Layout
+    enum Horizontal {
+        static let contentHeight: CGFloat = 50
+        static let itemSpacing: CGFloat = 8  // VStack spacing between day text and circle
+        static let spacerSize: CGFloat = 24
+        static let gradientWidth: CGFloat = 20
+    }
+    
+    // MARK: - Vertical Layout
+    enum Vertical {
+        static let contentWidth: CGFloat = 50
+        static let contentHeight: CGFloat = 80  // Fixed height for the vertical scroll area
+        static let itemSpacing: CGFloat = 4   // HStack spacing between day text and circle
+        static let itemHeight: CGFloat = 32   // Height of each date item (circle + padding)
+        static let gradientHeight: CGFloat = 15
+        
+        /// Calculate spacer height to allow proper centering
+        /// This ensures items can scroll to center position
+        static func spacerHeight(for containerHeight: CGFloat) -> CGFloat {
+            return (containerHeight - itemHeight) / 2
+        }
+    }
 }
 
 struct WheelPicker: View {
@@ -25,41 +58,28 @@ struct WheelPicker: View {
     @State private var haptics: Bool = false
     @State private var byClick: Bool = false
     let config: Config
+    @Default(.calendarLayout) var calendarLayout
 
     var body: some View {
+        if calendarLayout == .horizontal {
+            horizontalPicker
+        } else {
+            verticalPicker
+        }
+    }
+    
+    // MARK: - Horizontal Picker
+    private var horizontalPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: config.spacing) {
-                let spacerNum = config.offset
-                let dateCount = totalDateItems()
-                let totalItems = dateCount + 2 * spacerNum
-                ForEach(0..<totalItems, id: \.self) { index in
-                    if index < spacerNum || index >= spacerNum + dateCount {
-                        // Leading/trailing spacers sized to match a date cell
-                        Spacer()
-                            .frame(width: 24, height: 24)
-                            .id(index)
-                    } else {
-                        let date = dateForItemIndex(index: index, spacerNum: spacerNum)
-                        let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
-                        dateButton(date: date, isSelected: isSelected, id: index) {
-                            selectedDate = date
-                            byClick = true
-                            withAnimation {
-                                scrollPosition = index
-                            }
-                            if Defaults[.enableHaptics] {
-                                haptics.toggle()
-                            }
-                        }
-                    }
-                }
+                horizontalPickerContent
             }
-            .frame(height: 50)
+            .frame(height: WheelPickerLayout.Horizontal.contentHeight)
             .scrollTargetLayout()
         }
         .scrollIndicators(.never)
         .scrollPosition(id: $scrollPosition, anchor: .center)
-        .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps the centered view
+        .scrollTargetBehavior(.viewAligned)
         .safeAreaPadding(.horizontal)
         .sensoryFeedback(.alignment, trigger: haptics)
         .onChange(of: scrollPosition) { oldValue, newValue in
@@ -72,7 +92,6 @@ struct WheelPicker: View {
         .onAppear {
             scrollToToday(config: config)
         }
-        // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
         .onChange(of: selectedDate) { _, newValue in
             let targetIndex = indexForDate(newValue)
             if scrollPosition != targetIndex {
@@ -83,20 +102,128 @@ struct WheelPicker: View {
             }
         }
     }
+    
+    // MARK: - Vertical Picker
+    private var verticalPicker: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: config.spacing) {
+                verticalPickerContent
+            }
+            .frame(width: WheelPickerLayout.Vertical.contentWidth)
+            .scrollTargetLayout()
+        }
+        .scrollIndicators(.never)
+        .scrollPosition(id: $scrollPosition, anchor: .center)
+        .scrollTargetBehavior(.viewAligned)
+        .frame(height: WheelPickerLayout.Vertical.contentHeight)
+        .sensoryFeedback(.alignment, trigger: haptics)
+        .onChange(of: scrollPosition) { oldValue, newValue in
+            if !byClick {
+                handleScrollChange(newValue: newValue, config: config)
+            } else {
+                byClick = false
+            }
+        }
+        .onAppear {
+            scrollToToday(config: config)
+        }
+        .onChange(of: selectedDate) { _, newValue in
+            let targetIndex = indexForDate(newValue)
+            if scrollPosition != targetIndex {
+                byClick = true
+                withAnimation {
+                    scrollPosition = targetIndex
+                }
+            }
+        }
+    }
+    
+    // MARK: - Horizontal Picker Content
+    @ViewBuilder
+    private var horizontalPickerContent: some View {
+        let spacerNum = config.offset
+        let dateCount = totalDateItems()
+        let totalItems = dateCount + 2 * spacerNum
+        ForEach(0..<totalItems, id: \.self) { index in
+            if index < spacerNum || index >= spacerNum + dateCount {
+                // Leading/trailing spacers sized to match a date cell
+                Spacer()
+                    .frame(width: WheelPickerLayout.Horizontal.spacerSize, height: WheelPickerLayout.Horizontal.spacerSize)
+                    .id(index)
+            } else {
+                let date = dateForItemIndex(index: index, spacerNum: spacerNum)
+                let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
+                dateButton(date: date, isSelected: isSelected, id: index) {
+                    selectedDate = date
+                    byClick = true
+                    withAnimation {
+                        scrollPosition = index
+                    }
+                    if Defaults[.enableHaptics] {
+                        haptics.toggle()
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Vertical Picker Content
+    @ViewBuilder
+    private var verticalPickerContent: some View {
+        let dateCount = totalDateItems()
+        let spacerHeight = WheelPickerLayout.Vertical.spacerHeight(for: WheelPickerLayout.Vertical.contentHeight)
+        
+        // Top spacer to allow first item to center
+        Spacer()
+            .frame(width: WheelPickerLayout.Vertical.contentWidth, height: spacerHeight)
+            .id(-1)  // Unique ID for top spacer
+        
+        // Date items
+        ForEach(0..<dateCount, id: \.self) { index in
+            let date = dateForItemIndex(index: index, spacerNum: 0)
+            let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
+            dateButton(date: date, isSelected: isSelected, id: index) {
+                selectedDate = date
+                byClick = true
+                withAnimation {
+                    scrollPosition = index
+                }
+                if Defaults[.enableHaptics] {
+                    haptics.toggle()
+                }
+            }
+            .frame(height: WheelPickerLayout.Vertical.itemHeight)
+        }
+        
+        // Bottom spacer to allow last item to center
+        Spacer()
+            .frame(width: WheelPickerLayout.Vertical.contentWidth, height: spacerHeight)
+            .id(-2)  // Unique ID for bottom spacer
+    }
 
     private func dateButton(
         date: Date, isSelected: Bool, id: Int, onClick: @escaping () -> Void
     ) -> some View {
         let isToday = Calendar.current.isDateInToday(date)
         return Button(action: onClick) {
-            VStack(spacing: 8) {
-                dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
-                dateCircle(date: date, isToday: isToday, isSelected: isSelected)
+            Group {
+                if calendarLayout == .horizontal {
+                    VStack(spacing: WheelPickerLayout.Horizontal.itemSpacing) {
+                        dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
+                        dateCircle(date: date, isToday: isToday, isSelected: isSelected)
+                    }
+                } else {
+                    HStack(spacing: WheelPickerLayout.Vertical.itemSpacing) {
+                        dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
+                            .fixedSize(horizontal: true, vertical: false)
+                        dateCircle(date: date, isToday: isToday, isSelected: isSelected)
+                    }
+                }
             }
-            .padding(.vertical, 4)
-            .padding(.horizontal, 4)
+            .padding(.vertical, WheelPickerLayout.itemPadding)
+            .padding(.horizontal, WheelPickerLayout.itemPadding)
             .background(isSelected ? Color.effectiveAccentBackground : Color.clear)
-            .cornerRadius(8)
+            .cornerRadius(WheelPickerLayout.cornerRadius)
         }
         .buttonStyle(PlainButtonStyle())
         .id(id)
@@ -112,7 +239,7 @@ struct WheelPicker: View {
         ZStack {
             Circle()
                 .fill(isToday ? Color.effectiveAccent : .clear)
-                .frame(width: 20, height: 20)
+                .frame(width: WheelPickerLayout.dateCircleSize, height: WheelPickerLayout.dateCircleSize)
                 .overlay(
                     Circle()
                         .stroke(Color.gray.opacity(0.3), lineWidth: 0)
@@ -126,14 +253,29 @@ struct WheelPicker: View {
 
     func handleScrollChange(newValue: Int?, config: Config) {
         guard let newIndex = newValue else { return }
-        let spacerNum = config.offset
-        let dateCount = totalDateItems()
-        guard (spacerNum..<(spacerNum + dateCount)).contains(newIndex) else { return }
-        let date = dateForItemIndex(index: newIndex, spacerNum: spacerNum)
-        if !Calendar.current.isDate(date, inSameDayAs: selectedDate) {
-            selectedDate = date
-            if Defaults[.enableHaptics] {
-                haptics.toggle()
+        
+        if calendarLayout == .horizontal {
+            // Horizontal uses spacer offset
+            let spacerNum = config.offset
+            let dateCount = totalDateItems()
+            guard (spacerNum..<(spacerNum + dateCount)).contains(newIndex) else { return }
+            let date = dateForItemIndex(index: newIndex, spacerNum: spacerNum)
+            if !Calendar.current.isDate(date, inSameDayAs: selectedDate) {
+                selectedDate = date
+                if Defaults[.enableHaptics] {
+                    haptics.toggle()
+                }
+            }
+        } else {
+            // Vertical uses direct 0-based indices (spacers have negative IDs)
+            let dateCount = totalDateItems()
+            guard (0..<dateCount).contains(newIndex) else { return }
+            let date = dateForItemIndex(index: newIndex, spacerNum: 0)
+            if !Calendar.current.isDate(date, inSameDayAs: selectedDate) {
+                selectedDate = date
+                if Defaults[.enableHaptics] {
+                    haptics.toggle()
+                }
             }
         }
     }
@@ -147,14 +289,20 @@ struct WheelPicker: View {
 
     // MARK: - Index/Date mapping with steps and spacers
     private func indexForDate(_ date: Date) -> Int {
-        let spacerNum = config.offset
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         let startDate = cal.startOfDay(for: cal.date(byAdding: .day, value: -config.past, to: today) ?? today)
         let target = cal.startOfDay(for: date)
         let days = cal.dateComponents([.day], from: startDate, to: target).day ?? 0
         let stepIndex = max(0, min(days / max(config.steps, 1), totalDateItems() - 1))
-        return spacerNum + stepIndex
+        
+        if calendarLayout == .horizontal {
+            // Horizontal uses spacer offset
+            return config.offset + stepIndex
+        } else {
+            // Vertical uses direct 0-based indices
+            return stepIndex
+        }
     }
 
     private func dateForItemIndex(index: Int, spacerNum: Int) -> Date {
@@ -182,45 +330,29 @@ struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject private var calendarManager = CalendarManager.shared
     @State private var selectedDate = Date()
+    @Default(.calendarLayout) var calendarLayout
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading) {
-                    Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                    Text(selectedDate.formatted(.dateTime.year()))
-                        .font(.title3)
-                        .fontWeight(.light)
-                        .foregroundColor(Color(white: 0.65))
-                }
-
-                ZStack(alignment: .top) {
-                    WheelPicker(selectedDate: $selectedDate, config: Config())
-                    HStack(alignment: .top) {
-                        LinearGradient(
-                            colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
-                        Spacer()
-                        LinearGradient(
-                            colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
+        Group {
+            if calendarLayout == .horizontal {
+                VStack(spacing: 0) {
+                    HStack(alignment: .top, spacing: 8) {
+                        headerView
+                        pickerView
                     }
-                }
-            }
 
-            let filteredEvents = EventListView.filteredEvents(
-                events: calendarManager.events
-            )
-            if filteredEvents.isEmpty {
-                EmptyEventsView(selectedDate: selectedDate)
-                Spacer(minLength: 0)
+                    eventsView
+                }
             } else {
-                EventListView(events: calendarManager.events)
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        headerView
+                        pickerView
+                    }
+                    .frame(width: WheelPickerLayout.Vertical.contentWidth)
+
+                    eventsView
+                }
             }
         }
         .listRowBackground(Color.clear)
@@ -240,6 +372,79 @@ struct CalendarView: View {
             Task {
                 await calendarManager.updateCurrentDate(Date.now)
                 selectedDate = Date.now
+            }
+        }
+    }
+
+    private var headerView: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+            Text(selectedDate.formatted(.dateTime.year()))
+                .font(.title3)
+                .fontWeight(.light)
+                .foregroundColor(Color(white: 0.65))
+        }
+    }
+
+    private var pickerView: some View {
+        ZStack(alignment: calendarLayout == .horizontal ? .top : .center) {
+            WheelPicker(selectedDate: $selectedDate, config: Config())
+            if calendarLayout == .horizontal {
+                // Horizontal gradient overlays
+                HStack(alignment: .top) {
+                    LinearGradient(
+                        colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: WheelPickerLayout.Horizontal.gradientWidth)
+                    Spacer()
+                    LinearGradient(
+                        colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: WheelPickerLayout.Horizontal.gradientWidth)
+                }
+                .frame(height: WheelPickerLayout.Horizontal.contentHeight)
+            } else {
+                // Vertical gradient overlays
+                VStack(alignment: .center, spacing: 0) {
+                    LinearGradient(
+                        colors: [Color.black, .clear], startPoint: .top, endPoint: .bottom
+                    )
+                    .frame(height: WheelPickerLayout.Vertical.gradientHeight)
+                    Spacer()
+                    LinearGradient(
+                        colors: [.clear, Color.black], startPoint: .top, endPoint: .bottom
+                    )
+                    .frame(height: WheelPickerLayout.Vertical.gradientHeight)
+                }
+                .frame(height: WheelPickerLayout.Vertical.contentHeight)
+            }
+        }
+        .frame(
+            width: calendarLayout == .vertical ? WheelPickerLayout.Vertical.contentWidth : nil,
+            height: calendarLayout == .vertical ? WheelPickerLayout.Vertical.contentHeight : nil
+        )
+    }
+
+    private var eventsView: some View {
+        Group {
+            let filteredEvents = EventListView.filteredEvents(
+                events: calendarManager.events
+            )
+            if filteredEvents.isEmpty {
+                VStack {
+                    Spacer(minLength: 0)
+                    HStack {
+                        Spacer(minLength: 0)
+                        EmptyEventsView(selectedDate: selectedDate)
+                        Spacer(minLength: 0)
+                    }
+                    Spacer(minLength: 0)
+                }
+            } else {
+                EventListView(events: calendarManager.events)
             }
         }
     }
@@ -384,6 +589,7 @@ struct EventListView: View {
                                     .font(.caption)
                             }
                         }
+                        .frame(minWidth: 22, alignment: .trailing)
                     }
                     .opacity(
                         isCompleted
@@ -432,7 +638,7 @@ struct EventListView: View {
                         }
                     }
                     .font(.caption)
-                    .frame(minWidth: 44, alignment: .trailing)
+                    .frame(minWidth: 22, alignment: .trailing)
                 }
                 .opacity(
                     event.eventStatus == .ended && Calendar.current.isDateInToday(event.start)

@@ -59,6 +59,14 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     var id: String { self.rawValue }
 }
 
+// Calendar layout for selection in settings
+enum CalendarLayout: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case horizontal = "Horizontal"
+    case vertical = "Vertical"
+    
+    var id: String { self.rawValue }
+}
+
 // Action to perform when Option (⌥) is held while pressing media keys
 enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable {
     case openSettings = "Open System Settings"
@@ -173,6 +181,7 @@ extension Defaults.Keys {
     
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
+    static let calendarLayout = Key<CalendarLayout>("calendarLayout", default: .horizontal)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
     static let showFullEventTitles = Key<Bool>("showFullEventTitles", default: false)
     static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: true)

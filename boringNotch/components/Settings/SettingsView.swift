@@ -710,6 +710,7 @@ struct Media: View {
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     @Default(.showCalendar) var showCalendar: Bool
+    @Default(.calendarLayout) var calendarLayout: CalendarLayout
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
@@ -719,6 +720,12 @@ struct CalendarSettings: View {
             Defaults.Toggle(key: .showCalendar) {
                 Text("Show calendar")
             }
+            Picker("Layout", selection: $calendarLayout) {
+                ForEach(CalendarLayout.allCases) { layout in
+                    Text(layout.rawValue).tag(layout)
+                }
+            }
+            .pickerStyle(.menu)
             Defaults.Toggle(key: .hideCompletedReminders) {
                 Text("Hide completed reminders")
             }
