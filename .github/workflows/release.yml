@@ -245,13 +245,25 @@ jobs:
             exit 1
           fi
           echo "Found generate_appcast at $TOOL_PATH"
+      - name: Install dmgbuild (use virtualenv)
+        run: |
+          # Create an isolated venv
+          VENV_DIR="$RUNNER_TEMP/venv"
+          python3 -m venv "$VENV_DIR"
+          # Install into the venv
+          source "$VENV_DIR/bin/activate"
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "dmgbuild[badge_icons]"
+
       - name: Create DMG
         run: |
-          cd Release
-          hdiutil create -volname "boringNotch ${{ needs.preparation.outputs.version }}" \
-                          -srcfolder "${{ env.projname }}.app" \
-                          -ov -format UDZO \
-                          "${{ env.projname }}.dmg"
+          # Ensure venv created in previous step is used (dmgbuild installed there)
+          VENV_DIR="$RUNNER_TEMP/venv"
+          if [ -d "$VENV_DIR" ]; then
+            export PATH="$VENV_DIR/bin:$PATH"
+          fi
+          chmod +x Configuration/dmg/create_dmg.sh
+          ./Configuration/dmg/create_dmg.sh "Release/${{ env.projname }}.app" "Release/${{ env.projname }}.dmg" "boringNotch ${{ needs.preparation.outputs.version }}"
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
