@@ -713,6 +713,9 @@ struct CalendarSettings: View {
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
+    @Default(.calendarEventNotificationsEnabled) var calendarEventNotificationsEnabled
+    @Default(.calendarEventNotificationMinutes) var calendarEventNotificationMinutes
+    @Default(.calendarNotificationBarStyle) var calendarNotificationBarStyle
 
     var body: some View {
         Form {
@@ -731,6 +734,46 @@ struct CalendarSettings: View {
             Defaults.Toggle(key: .showFullEventTitles) {
                 Text("Always show full event titles")
             }
+
+            Section(header: Text("Notifications")) {
+                Defaults.Toggle(key: .calendarEventNotificationsEnabled) {
+                    Text("Show event notifications in notch")
+                }
+                .onChange(of: calendarEventNotificationsEnabled) { _, newValue in
+                    if newValue {
+                        Task { @MainActor in
+                            CalendarManager.shared.startEventMonitoring()
+                        }
+                    } else {
+                        CalendarManager.shared.stopEventMonitoring()
+                    }
+                }
+
+                Picker("Notification bar style", selection: $calendarNotificationBarStyle) {
+                    ForEach(NotificationBarStyle.allCases) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }
+                .disabled(!calendarEventNotificationsEnabled)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Stepper(value: $calendarEventNotificationMinutes, in: 1...60, step: 1) {
+                            HStack {
+                                Text("Default notification time")
+                                Spacer()
+                                Text("\(calendarEventNotificationMinutes) min")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .disabled(!calendarEventNotificationsEnabled)
+                    }
+                    Text("Used for events without calendar alarms")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
                     Text("Calendar access is denied. Please enable it in System Settings.")

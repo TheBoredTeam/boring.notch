@@ -434,6 +434,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousScreens = NSScreen.screens
+
+        Task { @MainActor in
+            CalendarManager.shared.startEventMonitoring()
+        }
     }
 
     func playWelcomeSound() {

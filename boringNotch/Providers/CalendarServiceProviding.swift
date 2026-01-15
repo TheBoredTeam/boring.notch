@@ -14,6 +14,7 @@ protocol CalendarServiceProviding {
     func requestAccess(to type: EKEntityType) async throws -> Bool
     func calendars() async -> [CalendarModel]
     func events(from start: Date, to end: Date, calendars: [String]) async -> [EventModel]
+    func event(withIdentifier identifier: String) async -> EventModel?
 }
 
 class CalendarService: CalendarServiceProviding {
@@ -116,6 +117,15 @@ class CalendarService: CalendarServiceProviding {
             print("Failed to update reminder completion: \(error)")
         }
     }
+
+    func event(withIdentifier identifier: String) async -> EventModel? {
+        if let ekEvent = store.calendarItem(withIdentifier: identifier) as? EKEvent {
+            return EventModel(from: ekEvent)
+        } else if let ekReminder = store.calendarItem(withIdentifier: identifier) as? EKReminder {
+            return EventModel(from: ekReminder)
+        }
+        return nil
+    }
 }
 
 // MARK: - Model Extensions
@@ -151,7 +161,8 @@ extension EventModel {
             participants: .init(from: event),
             timeZone: calendar.isSubscribed || calendar.isDelegate ? nil : event.timeZone,
             hasRecurrenceRules: event.hasRecurrenceRules || event.isDetached,
-            priority: nil
+            priority: nil,
+            alarms: (event.alarms ?? []).compactMap { EventCalendarAlarm(from: $0) }
         )
     }
     
@@ -175,7 +186,8 @@ extension EventModel {
             participants: [],
             timeZone: calendar.isSubscribed || calendar.isDelegate ? nil : reminder.timeZone,
             hasRecurrenceRules: reminder.hasRecurrenceRules,
-            priority: .init(from: reminder.priority)
+            priority: .init(from: reminder.priority),
+            alarms: (reminder.alarms ?? []).compactMap { EventCalendarAlarm(from: $0) }
         )
     }
 }
@@ -237,6 +249,16 @@ extension Priority {
             self = .low
         default:
             return nil
+        }
+    }
+}
+
+extension EventCalendarAlarm {
+    init?(from alarm: EKAlarm) {
+        if let absoluteDate = alarm.absoluteDate {
+            self.init(absoluteDate: absoluteDate, relativeOffset: nil)
+        } else {
+            self.init(absoluteDate: nil, relativeOffset: alarm.relativeOffset)
         }
     }
 }

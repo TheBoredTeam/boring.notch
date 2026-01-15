@@ -55,7 +55,15 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     case standard = "Default"
     case inline = "Inline"
-    
+
+    var id: String { self.rawValue }
+}
+
+// Notification bar styles for calendar event notifications
+enum NotificationBarStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case `default` = "Default"
+    case inline = "Inline"
+
     var id: String { self.rawValue }
 }
 
@@ -176,7 +184,10 @@ extension Defaults.Keys {
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
     static let showFullEventTitles = Key<Bool>("showFullEventTitles", default: false)
     static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: true)
-    
+    static let calendarEventNotificationsEnabled = Key<Bool>("calendarEventNotificationsEnabled", default: false)
+    static let calendarEventNotificationMinutes = Key<Int>("calendarEventNotificationMinutes", default: 10)
+    static let calendarNotificationBarStyle = Key<NotificationBarStyle>("calendarNotificationBarStyle", default: .default)
+
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
     

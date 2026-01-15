@@ -282,10 +282,16 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
-                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
+                      } else if coordinator.sneakPeek.show && coordinator.sneakPeek.type == .calendarEvent && Defaults[.calendarNotificationBarStyle] == .inline && vm.notchState == .closed {
+                          CalendarEventNotificationView(
+                              eventTitle: coordinator.sneakPeek.eventTitle,
+                              eventStartTime: coordinator.sneakPeek.eventStartTime,
+                              style: .inline
+                          )
+                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && (coordinator.sneakPeek.type != .calendarEvent) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
+                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed && !(coordinator.sneakPeek.show && coordinator.sneakPeek.type == .calendarEvent && Defaults[.calendarNotificationBarStyle] == .default) {
                           MusicLiveActivity()
                               .frame(alignment: .center)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
@@ -299,7 +305,7 @@ struct ContentView: View {
                        }
 
                       if coordinator.sneakPeek.show {
-                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
+                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && (coordinator.sneakPeek.type != .calendarEvent) && !Defaults[.inlineHUD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: $coordinator.sneakPeek.type,
                                   value: $coordinator.sneakPeek.value,
@@ -318,6 +324,14 @@ struct ContentView: View {
                               .padding(.bottom, 10)
                               .padding(.leading, 4)
                               .padding(.trailing, 8)
+                          } else if coordinator.sneakPeek.type == .calendarEvent && Defaults[.calendarNotificationBarStyle] == .default && vm.notchState == .closed {
+                              CalendarEventNotificationView(
+                                  eventTitle: coordinator.sneakPeek.eventTitle,
+                                  eventStartTime: coordinator.sneakPeek.eventStartTime,
+                                  style: .default
+                              )
+                              .padding(.bottom, 6)
+                              .transition(.opacity)
                           }
                           // Old sneak peek music
                           else if coordinator.sneakPeek.type == .music {
@@ -646,6 +660,97 @@ struct GeneralDropTargetDelegate: DropDelegate {
 
     func performDrop(info: DropInfo) -> Bool {
         return false
+    }
+}
+
+private struct CalendarEventNotificationView: View {
+    let eventTitle: String
+    let eventStartTime: Date
+    let style: NotificationBarStyle
+    @EnvironmentObject var vm: BoringViewModel
+
+    private var minutesUntilEvent: Int {
+        let interval = eventStartTime.timeIntervalSinceNow
+        return max(0, Int(ceil(interval / 60)))
+    }
+
+    private var formattedEventTime: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: eventStartTime)
+    }
+
+    var body: some View {
+        Group {
+            if style == .inline {
+                inlineView
+            } else {
+                defaultView
+            }
+        }
+    }
+
+    private var defaultView: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "calendar")
+                .font(.system(size: 13))
+                .foregroundStyle(.white)
+
+            if eventTitle.count > 35 {
+                GeometryReader { geo in
+                    MarqueeText(
+                        .constant("\(eventTitle)    "), 
+                        textColor: .white, 
+                        minDuration: 1, 
+                        frameWidth: geo.size.width)
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .frame(width: vm.closedNotchSize.width * 2)
+            } else {
+                Text(eventTitle)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+            }
+            Text("• in \(minutesUntilEvent) min • \(formattedEventTime)")
+                .foregroundStyle(.gray)
+                .font(.system(size: 12))
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+    }
+
+    private var inlineView: some View {
+        HStack(spacing: 0) {
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.white)
+                GeometryReader { geo in
+                    MarqueeText(
+                        .constant(eventTitle), 
+                        textColor: .white, 
+                        minDuration: 1, 
+                        frameWidth: geo.size.width)
+                        .frame(maxHeight: .infinity, alignment: .center)
+                }
+            }
+            .frame(width: 152, alignment: .leading)
+            .padding(.leading, 8)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width + 10)
+
+            HStack(spacing: 4) {
+                Text("in \(minutesUntilEvent) min • \(formattedEventTime)")
+                    .foregroundStyle(.gray)
+                    .font(.system(size: 11))
+            }
+            .frame(width: 152, alignment: .trailing)
+            .padding(.trailing, 8)
+        }
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
     }
 }
 
