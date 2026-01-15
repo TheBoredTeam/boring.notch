@@ -241,7 +241,6 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
-    
     nonisolated func adjustScreenBrightness(by value: Float) async -> Bool {
         do {
             let service = await MainActor.run {
@@ -261,5 +260,3 @@ final class XPCHelperClient: NSObject {
 extension Notification.Name {
     static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")
 }
-
-
