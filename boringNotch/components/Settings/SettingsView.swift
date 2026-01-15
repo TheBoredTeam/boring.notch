@@ -26,28 +26,29 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedTab) {
-                NavigationLink(value: "General") {
-                    Label("General", systemImage: "gear")
+            VStack(spacing: 4) {
+                SidebarItem(icon: "gear", title: "General", isSelected: selectedTab == "General") {
+                    selectedTab = "General"
                 }
-                NavigationLink(value: "Appearance") {
-                    Label("Appearance", systemImage: "eye")
+                SidebarItem(icon: "eye", title: "Appearance", isSelected: selectedTab == "Appearance") {
+                    selectedTab = "Appearance"
                 }
-                NavigationLink(value: "Extensions") {
-                    Label("Extensions", systemImage: "puzzlepiece.extension")
+                SidebarItem(icon: "puzzlepiece.extension", title: "Extensions", isSelected: selectedTab == "Extensions") {
+                    selectedTab = "Extensions"
                 }
-                NavigationLink(value: "Shortcuts") {
-                    Label("Shortcuts", systemImage: "keyboard")
+                SidebarItem(icon: "keyboard", title: "Shortcuts", isSelected: selectedTab == "Shortcuts") {
+                    selectedTab = "Shortcuts"
                 }
-                NavigationLink(value: "Advanced") {
-                    Label("Advanced", systemImage: "gearshape.2")
+                SidebarItem(icon: "gearshape.2", title: "Advanced", isSelected: selectedTab == "Advanced") {
+                    selectedTab = "Advanced"
                 }
-                NavigationLink(value: "About") {
-                    Label("About", systemImage: "info.circle")
+                SidebarItem(icon: "info.circle", title: "About", isSelected: selectedTab == "About") {
+                    selectedTab = "About"
                 }
+                Spacer()
             }
-            .listStyle(SidebarListStyle())
-            .tint(.effectiveAccent)
+            .padding(.top, 8)
+            .padding(.horizontal, 8)
             .toolbar(removing: .sidebarToggle)
             .navigationSplitViewColumnWidth(200)
         } detail: {
@@ -1766,6 +1767,39 @@ func warningBadge(_ text: String, _ description: String) -> some View {
             }
             Spacer()
         }
+    }
+}
+
+// MARK: - Custom Sidebar Item
+struct SidebarItem: View {
+    let icon: String
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .frame(width: 20)
+                    .foregroundStyle(isSelected ? Color.effectiveAccent : .secondary)
+                
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(isSelected ? .primary : .secondary)
+                
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? Color.effectiveAccent.opacity(0.15) : Color.clear)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

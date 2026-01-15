@@ -86,6 +86,7 @@ struct ExtensionCard: View {
                             .labelsHidden()
                             .toggleStyle(.switch)
                             .controlSize(.small)
+                            .tint(Color.effectiveAccent)
                             .help(extensionDescriptor.binding.wrappedValue ? "Disable extension" : "Enable extension")
                         
                         // Configure Button

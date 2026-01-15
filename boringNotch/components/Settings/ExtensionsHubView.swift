@@ -161,7 +161,7 @@ struct MarketplaceView: View {
                                 .foregroundStyle(selectedTab == tab ? .primary : .secondary)
                                 .padding(.vertical, 8)
                                 .padding(.horizontal, 20)
-                                .background(selectedTab == tab ? Color.accentColor.opacity(0.1) : Color.clear)
+                                .background(selectedTab == tab ? Color.effectiveAccent.opacity(0.1) : Color.clear)
                                 .cornerRadius(8)
                         }
                         .buttonStyle(.plain)
@@ -205,7 +205,7 @@ struct MarketplaceItemCard: View {
                 .frame(width: 48, height: 48)
                 .foregroundStyle(.white)
                 .padding(12)
-                .background(Color.accentColor.gradient)
+                .background(Color.effectiveAccent.gradient)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
             
             VStack(alignment: .leading, spacing: 6) {
@@ -263,7 +263,7 @@ struct ExtensionDetailView: View {
                         .frame(width: 100, height: 100)
                         .foregroundStyle(.white)
                         .padding(24)
-                        .background(Color.accentColor.gradient)
+                        .background(Color.effectiveAccent.gradient)
                         .clipShape(RoundedRectangle(cornerRadius: 28))
                         .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
                     
@@ -311,7 +311,6 @@ struct ExtensionDetailView: View {
                             .padding(.vertical, 14)
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(.orange)
                     }
                 }
                 .padding(.vertical, 32)
@@ -372,8 +371,8 @@ struct ExtensionDetailView: View {
                                     .font(.caption)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
-                                    .background(Color.accentColor.opacity(0.1))
-                                    .foregroundStyle(Color.accentColor)
+                                    .background(Color.effectiveAccent.opacity(0.1))
+                                    .foregroundStyle(Color.effectiveAccent)
                                     .cornerRadius(6)
                             }
                         }
