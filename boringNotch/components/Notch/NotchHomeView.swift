@@ -423,6 +423,7 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var extensionManager = ExtensionManager.shared
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
@@ -434,17 +435,29 @@ struct NotchHomeView: View {
         // simplified: use a straightforward opacity transition
         .transition(.opacity)
     }
+    
+    /// Context for extension providers with all dependencies
+    private var extensionContext: ExtensionContext {
+        ExtensionContext(
+            vm: vm,
+            albumArtNamespace: albumArtNamespace,
+            webcamManager: webcamManager,
+            batteryModel: batteryModel
+        )
+    }
 
     private var shouldShowCamera: Bool {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
-    private var isMusicEnabled: Bool {
-        coordinator.musicLiveActivityEnabled
-    }
-
+    /// Check if any .notchContent extensions are active
     private var isEmpty: Bool {
-        !isMusicEnabled && !Defaults[.showCalendar] && !shouldShowCamera
+        extensionManager.extensions(for: .notchContent).isEmpty
+    }
+    
+    /// Get enabled .notchContent extensions
+    private var activeNotchExtensions: [ExtensionDescriptor] {
+        extensionManager.extensions(for: .notchContent)
     }
 
     private var mainContent: some View {
@@ -454,26 +467,11 @@ struct NotchHomeView: View {
                 EmptyNotchView()
                     .transition(AnyTransition.opacity)
             } else {
-                if isMusicEnabled {
-                    MusicPlayerView(albumArtNamespace: albumArtNamespace)
-                }
-
-                if Defaults[.showCalendar] {
-                    CalendarView()
-                        .frame(width: shouldShowCamera ? 170 : 215)
-                        .onHover { isHovering in
-                            vm.isHoveringCalendar = isHovering
-                        }
-                        .environmentObject(vm)
-                        .transition(.opacity)
-                }
-
-                if shouldShowCamera {
-                    CameraPreviewView(webcamManager: webcamManager)
-                        .scaledToFit()
-                        .opacity(vm.notchState == .closed ? 0 : 1)
-                        .blur(radius: vm.notchState == .closed ? 20 : 0)
-                        .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                // Extension-driven content rendering
+                ForEach(activeNotchExtensions, id: \.id) { ext in
+                    if let view = ext.contentProvider?().view(for: .notchContent, context: extensionContext) {
+                        view
+                    }
                 }
             }
         }

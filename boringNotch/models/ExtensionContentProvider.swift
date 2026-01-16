@@ -8,6 +8,7 @@
 import SwiftUI
 
 /// Protocol that all extensions implement to provide content at extension points
+@MainActor
 protocol ExtensionContentProvider {
     
     // MARK: - Identity
@@ -24,6 +25,10 @@ protocol ExtensionContentProvider {
     /// Default is 50. Music playing might be 100, idle camera might be 20.
     var priority: Int { get }
     
+    /// Display order for side-by-side rendering (lower = more left)
+    /// Default is 50. Media=10 (left), Calendar=20 (middle), Camera=30 (right)
+    var displayOrder: Int { get }
+    
     // MARK: - Navigation Tab
     
     /// SF Symbol name for tab icon (required if supporting .navigationTab)
@@ -34,10 +39,12 @@ protocol ExtensionContentProvider {
     
     // MARK: - Content
     
-    /// Provides the view for a given extension point
-    /// - Parameter point: The extension point to render for
+    /// Provides the view for a given extension point with context
+    /// - Parameters:
+    ///   - point: The extension point to render for
+    ///   - context: Dependencies for rendering (vm, namespace, managers)
     /// - Returns: The view to display, or nil if not supported
-    func view(for point: ExtensionPoint) -> AnyView?
+    func view(for point: ExtensionPoint, context: ExtensionContext) -> AnyView?
     
     // MARK: - Settings
     
@@ -60,6 +67,7 @@ protocol ExtensionContentProvider {
 
 extension ExtensionContentProvider {
     var priority: Int { 50 }
+    var displayOrder: Int { 50 }
     var tabIcon: String? { nil }
     var tabTitle: String? { nil }
     var hasSettings: Bool { false }
@@ -73,13 +81,15 @@ extension ExtensionContentProvider {
 
 /// Type-erased wrapper for ExtensionContentProvider
 /// Allows storing different provider types in collections
+@MainActor
 struct AnyExtensionContentProvider: ExtensionContentProvider {
     private let _extensionID: () -> String
     private let _supportedPoints: () -> Set<ExtensionPoint>
     private let _priority: () -> Int
+    private let _displayOrder: () -> Int
     private let _tabIcon: () -> String?
     private let _tabTitle: () -> String?
-    private let _view: (ExtensionPoint) -> AnyView?
+    private let _view: (ExtensionPoint, ExtensionContext) -> AnyView?
     private let _hasSettings: () -> Bool
     private let _settingsView: () -> AnyView?
     private let _onEnable: () -> Void
@@ -89,9 +99,10 @@ struct AnyExtensionContentProvider: ExtensionContentProvider {
         _extensionID = { provider.extensionID }
         _supportedPoints = { provider.supportedPoints }
         _priority = { provider.priority }
+        _displayOrder = { provider.displayOrder }
         _tabIcon = { provider.tabIcon }
         _tabTitle = { provider.tabTitle }
-        _view = { provider.view(for: $0) }
+        _view = { provider.view(for: $0, context: $1) }
         _hasSettings = { provider.hasSettings }
         _settingsView = { provider.settingsView() }
         _onEnable = { provider.onEnable() }
@@ -101,12 +112,14 @@ struct AnyExtensionContentProvider: ExtensionContentProvider {
     var extensionID: String { _extensionID() }
     var supportedPoints: Set<ExtensionPoint> { _supportedPoints() }
     var priority: Int { _priority() }
+    var displayOrder: Int { _displayOrder() }
     var tabIcon: String? { _tabIcon() }
     var tabTitle: String? { _tabTitle() }
     var hasSettings: Bool { _hasSettings() }
     
-    func view(for point: ExtensionPoint) -> AnyView? { _view(point) }
+    func view(for point: ExtensionPoint, context: ExtensionContext) -> AnyView? { _view(point, context) }
     func settingsView() -> AnyView? { _settingsView() }
     func onEnable() { _onEnable() }
     func onDisable() { _onDisable() }
 }
+

@@ -117,6 +117,7 @@
 		954834492F1AB92800FDF6AD /* ExtensionPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954834482F1AB92800FDF6AD /* ExtensionPoint.swift */; };
 		9548344A2F1AB92800FDF6AD /* ExtensionContentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954834472F1AB92800FDF6AD /* ExtensionContentProvider.swift */; };
 		9548344C2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9548344B2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift */; };
+		9548344E2F1AD00500FDF6AD /* ExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9548344D2F1AD00500FDF6AD /* ExtensionContext.swift */; };
 		965A145090FD331BDA5CC412 /* ExtensionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FB4072399D5AED32B87AF9 /* ExtensionRegistry.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
@@ -298,6 +299,7 @@
 		954834472F1AB92800FDF6AD /* ExtensionContentProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionContentProvider.swift; sourceTree = "<group>"; };
 		954834482F1AB92800FDF6AD /* ExtensionPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPoint.swift; sourceTree = "<group>"; };
 		9548344B2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuiltInExtensionProviders.swift; sourceTree = "<group>"; };
+		9548344D2F1AD00500FDF6AD /* ExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionContext.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* ShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
@@ -649,6 +651,7 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				9548344D2F1AD00500FDF6AD /* ExtensionContext.swift */,
 				954834472F1AB92800FDF6AD /* ExtensionContentProvider.swift */,
 				954834482F1AB92800FDF6AD /* ExtensionPoint.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
@@ -958,6 +961,7 @@
 				116398962DF5D6C00052E6AF /* CalendarServiceProviding.swift in Sources */,
 				59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */,
 				1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */,
+				9548344E2F1AD00500FDF6AD /* ExtensionContext.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
 				11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */,
 				1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */,

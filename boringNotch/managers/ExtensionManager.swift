@@ -181,11 +181,12 @@ class ExtensionManager: ObservableObject {
     // MARK: - Extension Point Methods
     
     /// Get all enabled extensions that support a given extension point
+    /// Sorted by displayOrder (lower = more left) for side-by-side rendering
     func extensions(for point: ExtensionPoint) -> [ExtensionDescriptor] {
         installedExtensions
             .filter { $0.isEnabled?() ?? false }
             .filter { $0.supportedPoints.contains(point) }
-            .sorted { ($0.contentProvider?().priority ?? 50) > ($1.contentProvider?().priority ?? 50) }
+            .sorted { ($0.contentProvider?().displayOrder ?? 50) < ($1.contentProvider?().displayOrder ?? 50) }
     }
     
     /// Get all enabled extensions that have navigation tabs
@@ -198,10 +199,10 @@ class ExtensionManager: ObservableObject {
         extensions(for: point).first
     }
     
-    /// Render all views for a given extension point
-    func renderViews(for point: ExtensionPoint) -> [AnyView] {
+    /// Render all views for a given extension point with context
+    func renderViews(for point: ExtensionPoint, context: ExtensionContext) -> [AnyView] {
         extensions(for: point).compactMap { ext in
-            ext.contentProvider?().view(for: point)
+            ext.contentProvider?().view(for: point, context: context)
         }
     }
     

@@ -12,7 +12,19 @@ struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var extensionManager = ExtensionManager.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+    
+    /// Context for extension providers
+    private var extensionContext: ExtensionContext {
+        ExtensionContext(
+            vm: vm,
+            albumArtNamespace: nil,
+            webcamManager: WebcamManager.shared,
+            batteryModel: batteryModel
+        )
+    }
+    
     var body: some View {
         HStack(spacing: 0) {
             HStack {
@@ -75,17 +87,10 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if Defaults[.showBatteryIndicator] {
-                            BoringBatteryView(
-                                batteryWidth: 30,
-                                isCharging: batteryModel.isCharging,
-                                isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                isPluggedIn: batteryModel.isPluggedIn,
-                                levelBattery: batteryModel.levelBattery,
-                                maxCapacity: batteryModel.maxCapacity,
-                                timeToFullCharge: batteryModel.timeToFullCharge,
-                                isForNotification: false
-                            )
+                        
+                        // Extension-driven status indicators
+                        ForEach(Array(extensionManager.renderViews(for: .statusIndicators, context: extensionContext).enumerated()), id: \.offset) { _, view in
+                            view
                         }
                     }
                 }
@@ -113,3 +118,4 @@ struct BoringHeader: View {
 #Preview {
     BoringHeader().environmentObject(BoringViewModel())
 }
+

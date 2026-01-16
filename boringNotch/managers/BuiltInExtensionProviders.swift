@@ -21,19 +21,24 @@ class MediaContentProvider: ExtensionContentProvider {
     
     var priority: Int {
         // High priority when music is playing
-        BoringViewCoordinator.shared.musicLiveActivityEnabled ? 100 : 30
+        MusicManager.shared.isPlaying ? 100 : 30
     }
+    
+    var displayOrder: Int { 10 }  // Leftmost position
     
     var hasSettings: Bool { true }
     
-    func view(for point: ExtensionPoint) -> AnyView? {
+    func view(for point: ExtensionPoint, context: ExtensionContext) -> AnyView? {
         switch point {
         case .notchContent:
-            // Music player view will be rendered here
-            return nil  // TODO: Return actual music player view
+            guard let namespace = context.albumArtNamespace else { return nil }
+            return AnyView(
+                MusicPlayerView(albumArtNamespace: namespace)
+                    .environmentObject(context.vm)
+            )
         case .backgroundAmbient:
-            // Music visualizer
-            return nil  // TODO: Return visualizer if enabled
+            // Music visualizer - could be added here
+            return nil
         default:
             return nil
         }
@@ -46,6 +51,7 @@ class MediaContentProvider: ExtensionContentProvider {
 
 // MARK: - Calendar Extension Provider
 
+@MainActor
 class CalendarContentProvider: ExtensionContentProvider {
     var extensionID: String { "calendar" }
     
@@ -53,19 +59,30 @@ class CalendarContentProvider: ExtensionContentProvider {
         [.notchContent, .statusIndicators, .settings]
     }
     
-    var priority: Int {
-        // Higher priority if there's an upcoming event
-        80
-    }
+    var priority: Int { 80 }
+    
+    var displayOrder: Int { 20 }  // Middle position
     
     var hasSettings: Bool { true }
     
-    func view(for point: ExtensionPoint) -> AnyView? {
+    func view(for point: ExtensionPoint, context: ExtensionContext) -> AnyView? {
         switch point {
         case .notchContent:
-            return nil  // TODO: Return calendar widget view
+            let shouldShowCamera = Defaults[.showMirror] && 
+                context.webcamManager.cameraAvailable && 
+                context.vm.isCameraExpanded
+            return AnyView(
+                CalendarView()
+                    .frame(width: shouldShowCamera ? 170 : 215)
+                    .onHover { isHovering in
+                        context.vm.isHoveringCalendar = isHovering
+                    }
+                    .environmentObject(context.vm)
+                    .transition(.opacity)
+            )
         case .statusIndicators:
-            return nil  // TODO: Return calendar icon indicator
+            // Calendar icon indicator could go here
+            return nil
         default:
             return nil
         }
@@ -78,6 +95,7 @@ class CalendarContentProvider: ExtensionContentProvider {
 
 // MARK: - Battery Extension Provider
 
+@MainActor
 class BatteryContentProvider: ExtensionContentProvider {
     var extensionID: String { "battery" }
     
@@ -89,10 +107,22 @@ class BatteryContentProvider: ExtensionContentProvider {
     
     var hasSettings: Bool { true }
     
-    func view(for point: ExtensionPoint) -> AnyView? {
+    func view(for point: ExtensionPoint, context: ExtensionContext) -> AnyView? {
         switch point {
         case .statusIndicators:
-            return nil  // TODO: Return battery indicator view
+            // Battery indicator view - use batteryModel from context
+            return AnyView(
+                BoringBatteryView(
+                    batteryWidth: 26,
+                    isCharging: context.batteryModel.isCharging,
+                    isInLowPowerMode: context.batteryModel.isInLowPowerMode,
+                    isPluggedIn: context.batteryModel.isPluggedIn,
+                    levelBattery: context.batteryModel.levelBattery,
+                    maxCapacity: context.batteryModel.maxCapacity,
+                    timeToFullCharge: context.batteryModel.timeToFullCharge
+                )
+                .environmentObject(context.vm)
+            )
         default:
             return nil
         }
@@ -105,6 +135,7 @@ class BatteryContentProvider: ExtensionContentProvider {
 
 // MARK: - HUD Extension Provider
 
+@MainActor
 class HUDContentProvider: ExtensionContentProvider {
     var extensionID: String { "hud" }
     
@@ -116,10 +147,12 @@ class HUDContentProvider: ExtensionContentProvider {
     
     var hasSettings: Bool { true }
     
-    func view(for point: ExtensionPoint) -> AnyView? {
+    func view(for point: ExtensionPoint, context: ExtensionContext) -> AnyView? {
         switch point {
         case .hudOverlay:
-            return nil  // TODO: Return HUD overlay view
+            // HUD overlay is handled separately by the HUD system
+            // This would return the HUD view when we integrate it
+            return nil
         default:
             return nil
         }
@@ -132,6 +165,7 @@ class HUDContentProvider: ExtensionContentProvider {
 
 // MARK: - Shelf Extension Provider
 
+@MainActor
 class ShelfContentProvider: ExtensionContentProvider {
     var extensionID: String { "shelf" }
     
@@ -146,10 +180,14 @@ class ShelfContentProvider: ExtensionContentProvider {
     
     var hasSettings: Bool { true }
     
-    func view(for point: ExtensionPoint) -> AnyView? {
+    func view(for point: ExtensionPoint, context: ExtensionContext) -> AnyView? {
         switch point {
         case .navigationTab:
-            return nil  // TODO: Return full shelf view
+            // Shelf view for the navigation tab
+            return AnyView(
+                ShelfView()
+                    .environmentObject(context.vm)
+            )
         default:
             return nil
         }
@@ -162,6 +200,7 @@ class ShelfContentProvider: ExtensionContentProvider {
 
 // MARK: - Camera Mirror Extension Provider
 
+@MainActor
 class CameraContentProvider: ExtensionContentProvider {
     var extensionID: String { "camera" }
     
@@ -171,12 +210,26 @@ class CameraContentProvider: ExtensionContentProvider {
     
     var priority: Int { 40 }  // Low priority, shows when nothing else is active
     
+    var displayOrder: Int { 30 }  // Rightmost position
+    
     var hasSettings: Bool { true }
     
-    func view(for point: ExtensionPoint) -> AnyView? {
+    func view(for point: ExtensionPoint, context: ExtensionContext) -> AnyView? {
         switch point {
         case .notchContent:
-            return nil  // TODO: Return camera mirror view
+            // Only show camera when it's actually expanded and available
+            guard context.webcamManager.cameraAvailable && context.vm.isCameraExpanded else {
+                return nil
+            }
+            
+            let isVisible = context.vm.notchState != .closed
+            return AnyView(
+                CameraPreviewView(webcamManager: context.webcamManager)
+                    .scaledToFit()
+                    .opacity(isVisible ? 1 : 0)
+                    .blur(radius: isVisible ? 0 : 20)
+                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: isVisible)
+            )
         default:
             return nil
         }
