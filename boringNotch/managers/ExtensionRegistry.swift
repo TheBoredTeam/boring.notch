@@ -93,6 +93,20 @@ class ExtensionRegistry {
                 isEnabled: { Defaults[.boringShelf] },
                 setEnabled: { Defaults[.boringShelf] = $0 },
                 settingsView: { AnyView(Shelf()) }
+            ),
+            
+            // Camera Mirror
+            ExtensionDescriptor(
+                id: "camera",
+                name: "Camera Mirror",
+                description: "Preview yourself with your webcam in the notch.",
+                icon: "camera.fill",
+                developer: "TheBoredTeam",
+                version: "1.0.0",
+                isBuiltIn: true,
+                isEnabled: { Defaults[.showMirror] },
+                setEnabled: { Defaults[.showMirror] = $0 },
+                settingsView: { AnyView(MirrorSettings()) }
             )
         ]
     }

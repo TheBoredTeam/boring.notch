@@ -1803,6 +1803,44 @@ struct SidebarItem: View {
     }
 }
 
+// MARK: - Mirror Settings (for Camera Mirror extension)
+struct MirrorSettings: View {
+    @Default(.mirrorShape) var mirrorShape
+    
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .showMirror) {
+                    Text("Enable boring mirror")
+                }
+                .disabled(!checkVideoInput())
+                
+                Picker("Mirror shape", selection: $mirrorShape) {
+                    Text("Circle")
+                        .tag(MirrorShapeEnum.circle)
+                    Text("Square")
+                        .tag(MirrorShapeEnum.rectangle)
+                }
+                
+                Defaults.Toggle(key: .showNotHumanFace) {
+                    Text("Show cool face animation while inactive")
+                }
+            } header: {
+                Text("Camera Mirror")
+            } footer: {
+                Text("Preview yourself with your webcam in the notch area.")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Camera Mirror")
+    }
+    
+    private func checkVideoInput() -> Bool {
+        AVCaptureDevice.default(for: .video) != nil
+    }
+}
+
 #Preview {
     HUD()
 }
