@@ -115,18 +115,18 @@ class ExtensionManager: ObservableObject {
             let mockData = [
                 ExtensionDescriptor(
                     id: "com.boring.spotify-mini",
-                    name: "Spotify Mini",
-                    description: "Control your Spotify playback directly from the notch with album art.",
+                    name: "[DEMO] Spotify Mini",
+                    description: "Demo extension - non-functional placeholder for marketplace preview.",
                     icon: "play.circle.fill",
-                    developer: "Alex Lewis",
+                    developer: "Demo Developer",
                     version: "1.0.0"
                 ),
                 ExtensionDescriptor(
                     id: "com.boring.focus-timer",
-                    name: "Focus Timer",
-                    description: "A simple pomodoro timer to keep you productive.",
+                    name: "[DEMO] Focus Timer",
+                    description: "Demo extension - non-functional placeholder for marketplace preview.",
                     icon: "timer",
-                    developer: "Bored Team",
+                    developer: "Demo Developer",
                     version: "0.5.0"
                 )
             ]
