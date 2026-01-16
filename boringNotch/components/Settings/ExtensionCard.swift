@@ -13,6 +13,9 @@ struct ExtensionCard: View {
     
     @ObservedObject var manager = ExtensionManager.shared
     
+    // Track toggle state locally to ensure reactivity
+    @State private var isEnabled: Bool = false
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
@@ -81,13 +84,13 @@ struct ExtensionCard: View {
                 // Right side: Actions
                 if isInstalled {
                     HStack(spacing: 12) {
-                        // Enable/Disable Toggle
-                        Toggle("Enabled", isOn: extensionDescriptor.binding)
+                        // Enable/Disable Toggle  
+                        Toggle("Enabled", isOn: $isEnabled)
                             .labelsHidden()
                             .toggleStyle(.switch)
                             .controlSize(.small)
                             .tint(Color.effectiveAccent)
-                            .help(extensionDescriptor.binding.wrappedValue ? "Disable extension" : "Enable extension")
+                            .help(isEnabled ? "Disable extension" : "Enable extension")
                         
                         // Configure Button (check both legacy and new provider)
                         if manager.hasSettings(for: extensionDescriptor.id),
@@ -138,5 +141,13 @@ struct ExtensionCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
         )
+        .onAppear {
+            // Initialize local state from descriptor
+            isEnabled = extensionDescriptor.isEnabled?() ?? false
+        }
+        .onChange(of: isEnabled) { _, newValue in
+            // Sync changes back to the descriptor
+            extensionDescriptor.setEnabled?(newValue)
+        }
     }
 }

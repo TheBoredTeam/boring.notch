@@ -1790,20 +1790,11 @@ struct MirrorSettings: View {
     var body: some View {
         Form {
             Section {
-                Defaults.Toggle(key: .showMirror) {
-                    Text("Enable boring mirror")
-                }
-                .disabled(!checkVideoInput())
-                
                 Picker("Mirror shape", selection: $mirrorShape) {
                     Text("Circle")
                         .tag(MirrorShapeEnum.circle)
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
-                }
-                
-                Defaults.Toggle(key: .showNotHumanFace) {
-                    Text("Show cool face animation while inactive")
                 }
             } header: {
                 Text("Camera Mirror")
@@ -1814,10 +1805,6 @@ struct MirrorSettings: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Camera Mirror")
-    }
-    
-    private func checkVideoInput() -> Bool {
-        AVCaptureDevice.default(for: .video) != nil
     }
 }
 
