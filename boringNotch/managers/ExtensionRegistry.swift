@@ -8,6 +8,7 @@
 import SwiftUI
 import Defaults
 
+@MainActor
 class ExtensionRegistry {
     static let shared = ExtensionRegistry()
     
@@ -30,13 +31,13 @@ class ExtensionRegistry {
                 version: "1.0.0",
                 isBuiltIn: true,
                 isEnabled: { @MainActor in
-                    // Using musicLiveActivityEnabled as a proxy for 'Media' being active
                     BoringViewCoordinator.shared.musicLiveActivityEnabled
                 },
                 setEnabled: { @MainActor newValue in
                     BoringViewCoordinator.shared.musicLiveActivityEnabled = newValue
                 },
-                settingsView: { AnyView(Media()) }
+                supportedPoints: [.notchContent, .backgroundAmbient, .settings],
+                contentProvider: { AnyExtensionContentProvider(MediaContentProvider()) }
             ),
             
             // Calendar
@@ -50,7 +51,8 @@ class ExtensionRegistry {
                 isBuiltIn: true,
                 isEnabled: { Defaults[.showCalendar] },
                 setEnabled: { Defaults[.showCalendar] = $0 },
-                settingsView: { AnyView(CalendarSettings()) }
+                supportedPoints: [.notchContent, .statusIndicators, .settings],
+                contentProvider: { AnyExtensionContentProvider(CalendarContentProvider()) }
             ),
             
             // Battery
@@ -64,7 +66,8 @@ class ExtensionRegistry {
                 isBuiltIn: true,
                 isEnabled: { Defaults[.showBatteryIndicator] },
                 setEnabled: { Defaults[.showBatteryIndicator] = $0 },
-                settingsView: { AnyView(Charge()) }
+                supportedPoints: [.statusIndicators, .settings],
+                contentProvider: { AnyExtensionContentProvider(BatteryContentProvider()) }
             ),
             
             // HUD
@@ -78,7 +81,8 @@ class ExtensionRegistry {
                 isBuiltIn: true,
                 isEnabled: { Defaults[.hudReplacement] },
                 setEnabled: { Defaults[.hudReplacement] = $0 },
-                settingsView: { AnyView(HUD()) }
+                supportedPoints: [.hudOverlay, .settings],
+                contentProvider: { AnyExtensionContentProvider(HUDContentProvider()) }
             ),
             
             // Shelf
@@ -92,7 +96,10 @@ class ExtensionRegistry {
                 isBuiltIn: true,
                 isEnabled: { Defaults[.boringShelf] },
                 setEnabled: { Defaults[.boringShelf] = $0 },
-                settingsView: { AnyView(Shelf()) }
+                supportedPoints: [.navigationTab, .settings],
+                contentProvider: { AnyExtensionContentProvider(ShelfContentProvider()) },
+                tabIcon: "books.vertical",
+                tabTitle: "Shelf"
             ),
             
             // Camera Mirror
@@ -106,8 +113,10 @@ class ExtensionRegistry {
                 isBuiltIn: true,
                 isEnabled: { Defaults[.showMirror] },
                 setEnabled: { Defaults[.showMirror] = $0 },
-                settingsView: { AnyView(MirrorSettings()) }
+                supportedPoints: [.notchContent, .settings],
+                contentProvider: { AnyExtensionContentProvider(CameraContentProvider()) }
             )
         ]
     }
 }
+

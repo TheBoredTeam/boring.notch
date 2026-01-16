@@ -89,9 +89,10 @@ struct ExtensionCard: View {
                             .tint(Color.effectiveAccent)
                             .help(extensionDescriptor.binding.wrappedValue ? "Disable extension" : "Enable extension")
                         
-                        // Configure Button
-                        if let settingsView = extensionDescriptor.settingsView {
-                            NavigationLink(destination: settingsView()) {
+                        // Configure Button (check both legacy and new provider)
+                        if manager.hasSettings(for: extensionDescriptor.id),
+                           let settingsView = manager.settingsView(for: extensionDescriptor.id) {
+                            NavigationLink(destination: settingsView) {
                                 Image(systemName: "gearshape.fill")
                                     .font(.system(size: 14))
                                     .foregroundStyle(.secondary)

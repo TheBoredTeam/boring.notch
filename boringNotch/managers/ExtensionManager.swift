@@ -9,6 +9,7 @@ import SwiftUI
 import Combine
 import Defaults
 
+@MainActor
 class ExtensionManager: ObservableObject {
     static let shared = ExtensionManager()
     
@@ -177,5 +178,55 @@ class ExtensionManager: ObservableObject {
         refreshExtensions()
     }
     
-
+    // MARK: - Extension Point Methods
+    
+    /// Get all enabled extensions that support a given extension point
+    func extensions(for point: ExtensionPoint) -> [ExtensionDescriptor] {
+        installedExtensions
+            .filter { $0.isEnabled?() ?? false }
+            .filter { $0.supportedPoints.contains(point) }
+            .sorted { ($0.contentProvider?().priority ?? 50) > ($1.contentProvider?().priority ?? 50) }
+    }
+    
+    /// Get all enabled extensions that have navigation tabs
+    func tabExtensions() -> [ExtensionDescriptor] {
+        extensions(for: .navigationTab)
+    }
+    
+    /// Get the highest priority extension for exclusive extension points
+    func primaryExtension(for point: ExtensionPoint) -> ExtensionDescriptor? {
+        extensions(for: point).first
+    }
+    
+    /// Render all views for a given extension point
+    func renderViews(for point: ExtensionPoint) -> [AnyView] {
+        extensions(for: point).compactMap { ext in
+            ext.contentProvider?().view(for: point)
+        }
+    }
+    
+    /// Get settings view for a specific extension (by ID)
+    func settingsView(for extensionID: String) -> AnyView? {
+        // First check if extension has a contentProvider with settings
+        if let ext = installedExtensions.first(where: { $0.id == extensionID }) {
+            if let provider = ext.contentProvider?(), provider.hasSettings {
+                return provider.settingsView()
+            }
+            // Fallback to legacy settingsView property
+            return ext.settingsView?()
+        }
+        return nil
+    }
+    
+    /// Check if an extension has settings available
+    func hasSettings(for extensionID: String) -> Bool {
+        if let ext = installedExtensions.first(where: { $0.id == extensionID }) {
+            if let provider = ext.contentProvider?() {
+                return provider.hasSettings
+            }
+            return ext.settingsView != nil
+        }
+        return false
+    }
 }
+

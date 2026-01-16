@@ -114,6 +114,9 @@
 		7D9E259124A1070038D276FD /* ExtensionsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858B309184ACE5CB37EE35AF /* ExtensionsHubView.swift */; };
 		909F274BCE99E3EF39B524DD /* EmptyNotchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA9DE1531084428C4309188B /* EmptyNotchView.swift */; };
 		954834462F1A94D800FDF6AD /* ExtensionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954834452F1A94D800FDF6AD /* ExtensionCard.swift */; };
+		954834492F1AB92800FDF6AD /* ExtensionPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954834482F1AB92800FDF6AD /* ExtensionPoint.swift */; };
+		9548344A2F1AB92800FDF6AD /* ExtensionContentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954834472F1AB92800FDF6AD /* ExtensionContentProvider.swift */; };
+		9548344C2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9548344B2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift */; };
 		965A145090FD331BDA5CC412 /* ExtensionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FB4072399D5AED32B87AF9 /* ExtensionRegistry.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
@@ -292,6 +295,9 @@
 		858B309184ACE5CB37EE35AF /* ExtensionsHubView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExtensionsHubView.swift; sourceTree = "<group>"; };
 		8AC72BC153F866DAB0343FEB /* ExtensionCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExtensionCard.swift; sourceTree = "<group>"; };
 		954834452F1A94D800FDF6AD /* ExtensionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionCard.swift; sourceTree = "<group>"; };
+		954834472F1AB92800FDF6AD /* ExtensionContentProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionContentProvider.swift; sourceTree = "<group>"; };
+		954834482F1AB92800FDF6AD /* ExtensionPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPoint.swift; sourceTree = "<group>"; };
+		9548344B2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuiltInExtensionProviders.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* ShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
@@ -524,6 +530,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				9548344B2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
@@ -642,6 +649,8 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				954834472F1AB92800FDF6AD /* ExtensionContentProvider.swift */,
+				954834482F1AB92800FDF6AD /* ExtensionPoint.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -966,6 +975,8 @@
 				1113ABCB2E80E27000EC13B2 /* QuickLookService.swift in Sources */,
 				1113ABCC2E80E27000EC13B2 /* ShelfDropService.swift in Sources */,
 				1100292E2E86940F00035A57 /* QuickShareService.swift in Sources */,
+				954834492F1AB92800FDF6AD /* ExtensionPoint.swift in Sources */,
+				9548344A2F1AB92800FDF6AD /* ExtensionContentProvider.swift in Sources */,
 				1113ABCE2E80E27000EC13B2 /* ShelfActionService.swift in Sources */,
 				1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */,
 				5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */,
@@ -989,6 +1000,7 @@
 				B1A78C822C8BA08100BD51B0 /* FullscreenMediaDetection.swift in Sources */,
 				14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */,
 				14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */,
+				9548344C2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift in Sources */,
 				14D570BC2C5E98EB0011E668 /* generic.swift in Sources */,
 				118EBE272E92DE8400D54B5A /* NSMenu+AssociatedObject.swift in Sources */,
 				B1CE8CFE2C6F659400DD9871 /* KeyboardShortcutsHelper.swift in Sources */,
