@@ -22,4 +22,3 @@ import Foundation
     func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
     func adjustScreenBrightness(by value: Float, with reply: @escaping (Bool) -> Void)
 }
-
