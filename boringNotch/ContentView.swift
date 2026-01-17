@@ -348,6 +348,12 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .extensionTab(let extensionID):
+                        // Render extension view dynamically
+                        ExtensionTabView(
+                            extensionID: extensionID,
+                            albumArtNamespace: albumArtNamespace
+                        )
                     }
                 }
                 .transition(
