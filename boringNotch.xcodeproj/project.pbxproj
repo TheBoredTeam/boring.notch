@@ -118,7 +118,6 @@
 		9548344A2F1AB92800FDF6AD /* ExtensionContentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954834472F1AB92800FDF6AD /* ExtensionContentProvider.swift */; };
 		9548344C2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9548344B2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift */; };
 		9548344E2F1AD00500FDF6AD /* ExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9548344D2F1AD00500FDF6AD /* ExtensionContext.swift */; };
-		9548346D2F1B086C00FDF6AD /* ExtensionTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9548346B2F1B086C00FDF6AD /* ExtensionTabView.swift */; };
 		965A145090FD331BDA5CC412 /* ExtensionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FB4072399D5AED32B87AF9 /* ExtensionRegistry.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
@@ -301,7 +300,6 @@
 		954834482F1AB92800FDF6AD /* ExtensionPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPoint.swift; sourceTree = "<group>"; };
 		9548344B2F1AB99300FDF6AD /* BuiltInExtensionProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuiltInExtensionProviders.swift; sourceTree = "<group>"; };
 		9548344D2F1AD00500FDF6AD /* ExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionContext.swift; sourceTree = "<group>"; };
-		9548346B2F1B086C00FDF6AD /* ExtensionTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionTabView.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* ShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
@@ -510,7 +508,6 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
-				9548346C2F1B086C00FDF6AD /* Extensions */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				B1C448992C97375A001F0858 /* Tips */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
@@ -668,14 +665,6 @@
 				C9149D67CE50FD96D3F671A2 /* ExtensionDescriptor.swift */,
 			);
 			path = models;
-			sourceTree = "<group>";
-		};
-		9548346C2F1B086C00FDF6AD /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				9548346B2F1B086C00FDF6AD /* ExtensionTabView.swift */,
-			);
-			path = Extensions;
 			sourceTree = "<group>";
 		};
 		9A0887332C7AFF7E00C160EA /* Tabs */ = {
@@ -1071,7 +1060,6 @@
 				965A145090FD331BDA5CC412 /* ExtensionRegistry.swift in Sources */,
 				B35C55206F0A41061EC4FAB7 /* ExtensionManager.swift in Sources */,
 				449352D97D633F0599B5789D /* ExtensionCard.swift in Sources */,
-				9548346D2F1B086C00FDF6AD /* ExtensionTabView.swift in Sources */,
 				7D9E259124A1070038D276FD /* ExtensionsHubView.swift in Sources */,
 				909F274BCE99E3EF39B524DD /* EmptyNotchView.swift in Sources */,
 			);

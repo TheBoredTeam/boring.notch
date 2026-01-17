@@ -24,10 +24,9 @@ public enum NotchState {
     case open
 }
 
-public enum NotchViews: Equatable, Hashable {
+public enum NotchViews {
     case home
     case shelf
-    case extensionTab(id: String)  // Dynamic tabs for extensions
 }
 
 enum SettingsEnum {
