@@ -193,40 +193,32 @@ class MusicManager: ObservableObject {
                 self.updateSneakPeek()
             }
         }
-
-        // Check for changes in track metadata using last artwork change values
+        
+        // Determine if anything changed
         let titleChanged = state.title != self.lastArtworkTitle
         let artistChanged = state.artist != self.lastArtworkArtist
         let albumChanged = state.album != self.lastArtworkAlbum
         let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
-
-        // Check for artwork changes
         let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
         let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged || bundleChanged
-
-        // Handle artwork and visual transitions for changed content
+        
         if hasContentChange {
-            self.triggerFlipAnimation()
-
-            if artworkChanged, let artwork = state.artwork {
-                self.updateArtwork(artwork)
-            } else if state.artwork == nil {
-                // Try to use app icon if no artwork but track changed
-                if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
-                    self.usingAppIconForArtwork = true
-                    self.updateAlbumArt(newAlbumArt: appIconImage)
-                }
-            }
+            // Update all content together
+            self.updatePlaybackContent(
+                title: state.title,
+                artist: state.artist,
+                album: state.album,
+                artworkData: state.artwork,
+                bundleIdentifier: state.bundleIdentifier
+            )
+            
+            // Update last values
+            self.lastArtworkTitle = state.title
+            self.lastArtworkArtist = state.artist
+            self.lastArtworkAlbum = state.album
+            self.lastArtworkBundleIdentifier = state.bundleIdentifier
             self.artworkData = state.artwork
-
-            if artworkChanged || state.artwork == nil {
-                // Update last artwork change values
-                self.lastArtworkTitle = state.title
-                self.lastArtworkArtist = state.artist
-                self.lastArtworkAlbum = state.album
-                self.lastArtworkBundleIdentifier = state.bundleIdentifier
-            }
-
+            
             // Only update sneak peek if there's actual content and something changed
             if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
                 self.updateSneakPeek()
@@ -521,15 +513,52 @@ class MusicManager: ObservableObject {
         flipWorkItem = workItem
         DispatchQueue.main.async(execute: workItem)
     }
+    
+    private var albumArtTask: Task<Void, Never>?
+    private func updatePlaybackContent(
+        title: String,
+        artist: String,
+        album: String,
+        artworkData: Data?,
+        bundleIdentifier: String?
+    ) {
+        // cancel previous task
+        albumArtTask?.cancel()
+        
+        var newAlbumArt: NSImage = defaultImage
+        var usingAppIcon = false
 
-    private func updateArtwork(_ artworkData: Data) {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-
-            if let artworkImage = NSImage(data: artworkData) {
-                DispatchQueue.main.async { [weak self] in
-                    self?.usingAppIconForArtwork = false
-                    self?.updateAlbumArt(newAlbumArt: artworkImage)
+        if let data = artworkData, let image = NSImage(data: data) {
+            newAlbumArt = image
+            usingAppIcon = false
+            updateAlbumArt(newAlbumArt: image)
+        } else if let bundleID = bundleIdentifier,
+                  let appIcon = AppIconAsNSImage(for: bundleID) {
+            newAlbumArt = appIcon
+            usingAppIcon = true
+            updateAlbumArt(newAlbumArt: appIcon)
+        }
+        
+        // Update metadata
+        self.songTitle = title
+        self.artistName = artist
+        self.album = album
+        triggerFlipAnimation()
+        
+        // debounced artwork update
+        albumArtTask = Task(priority: .userInitiated) { [weak self] in
+            if usingAppIcon {
+                try? await Task.sleep(for: .milliseconds(400))
+            }
+            
+            guard let self = self, !Task.isCancelled else { return }
+            
+            await MainActor.run {
+                self.albumArt = newAlbumArt
+                self.usingAppIconForArtwork = usingAppIcon
+                
+                if Defaults[.coloredSpectrogram] {
+                    self.calculateAverageColor()
                 }
             }
         }
