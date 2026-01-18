@@ -35,10 +35,11 @@ body:
         What version of our software are you running? (Go to ✦ in the menu bar >
         Settings > About)
       options:
+        - Select a version
+        - v2.7.2
+        - v2.7.1
+        - v2.7
         - v2.7-rc.3
-        - v2.7-rc.2
-        - v2.7-rc.1
-        - v2.7-rc.0
         - v2.6
     validations:
       required: true

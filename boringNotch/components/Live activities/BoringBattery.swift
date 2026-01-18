@@ -11,8 +11,6 @@ struct BatteryView: View {
     var batteryWidth: CGFloat = 26
     var isForNotification: Bool
 
-    var animationStyle: BoringAnimations = BoringAnimations()
-
     var icon: String = "battery.0"
 
     /// Determines the icon to display when charging.
@@ -75,6 +73,14 @@ struct BatteryView: View {
                 .frame(width: batteryWidth, height: batteryWidth)
             }
         }
+    }
+}
+
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
     }
 }
 
@@ -160,7 +166,6 @@ struct BatteryMenuView: View {
     }
 }
 
-
 /// A view that displays the battery status and allows interaction to show detailed information.
 struct BoringBatteryView: View {
     
@@ -175,42 +180,35 @@ struct BoringBatteryView: View {
     
     @State private var showPopupMenu: Bool = false
     @State private var isPressed: Bool = false
+    @State private var isHoveringButton: Bool = false
     @State private var isHoveringPopover: Bool = false
+    @State private var hideTask: Task<Void, Never>? = nil
 
     @EnvironmentObject var vm: BoringViewModel
 
     var body: some View {
-        HStack {
-            if Defaults[.showBatteryPercentage] {
-                Text("\(Int32(levelBattery))%")
-                    .font(.callout)
-                    .foregroundStyle(.white)
+        Button(action: {
+            withAnimation {
+                showPopupMenu.toggle()
             }
-            BatteryView(
-                levelBattery: levelBattery,
-                isPluggedIn: isPluggedIn,
-                isCharging: isCharging,
-                isInLowPowerMode: isInLowPowerMode,
-                batteryWidth: batteryWidth,
-                isForNotification: isForNotification
-            )
+        }) {
+            HStack {
+                if Defaults[.showBatteryPercentage] {
+                    Text("\(Int32(levelBattery))%")
+                        .font(.callout)
+                        .foregroundStyle(.white)
+                }
+                BatteryView(
+                    levelBattery: levelBattery,
+                    isPluggedIn: isPluggedIn,
+                    isCharging: isCharging,
+                    isInLowPowerMode: isInLowPowerMode,
+                    batteryWidth: batteryWidth,
+                    isForNotification: isForNotification
+                )
+            }
         }
-        .scaleEffect(isPressed ? 0.95 : 1.0)
-        .animation(.easeInOut(duration: 0.2), value: isPressed)
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    withAnimation {
-                        isPressed = true
-                    }
-                }
-                .onEnded { _ in
-                    withAnimation {
-                        isPressed = false
-                        showPopupMenu.toggle()
-                    }
-                }
-        )
+        .buttonStyle(ScaleButtonStyle())
         .popover(
             isPresented: $showPopupMenu,
             arrowEdge: .bottom) {
@@ -227,18 +225,31 @@ struct BoringBatteryView: View {
             )
             .onHover { hovering in
                 isHoveringPopover = hovering
+                if hovering {
+                    hideTask?.cancel()
+                    hideTask = nil
+                } else {
+                    scheduleHideIfNeeded()
+                }
             }
         }
-        .onChange(of: showPopupMenu) { _, _ in
-            updateBatteryPopoverActiveState()
+        .onChange(of: showPopupMenu) {
+            vm.isBatteryPopoverActive = showPopupMenu
         }
-        .onChange(of: isHoveringPopover) { _, _ in
-            updateBatteryPopoverActiveState()
+        .onDisappear {
+            hideTask?.cancel()
+            hideTask = nil
         }
     }
 
-    private func updateBatteryPopoverActiveState() {
-        vm.isBatteryPopoverActive = showPopupMenu && isHoveringPopover
+    private func scheduleHideIfNeeded() {
+        if isHoveringButton || isHoveringPopover { return }
+        hideTask?.cancel()
+        hideTask = Task {
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            await MainActor.run { withAnimation { showPopupMenu = false } }
+        }
     }
 }
 

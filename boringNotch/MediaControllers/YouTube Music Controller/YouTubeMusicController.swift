@@ -21,7 +21,28 @@ final class YouTubeMusicController: MediaControllerProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
-    
+
+    var supportsVolumeControl: Bool {
+        return true
+    }
+
+    var supportsFavorite: Bool { true }
+
+    func setFavorite(_ favorite: Bool) async {
+        do {
+            let token = try await authManager.authenticate()
+            if favorite && !playbackState.isFavorite {
+                _ = try await httpClient.toggleLike(token: token)
+            } else if !favorite && playbackState.isFavorite {
+                _ = try await httpClient.toggleLike(token: token)
+            }
+            try? await Task.sleep(for: .milliseconds(150))
+            await updatePlaybackInfo()
+        } catch {
+            print("[YouTubeMusicController] Failed to set favorite: \(error)")
+        }
+    }
+
     // MARK: - Private Properties
     private let configuration: YouTubeMusicConfiguration
     private let httpClient: YouTubeMusicHTTPClient
@@ -63,6 +84,13 @@ final class YouTubeMusicController: MediaControllerProtocol {
         let payload = ["seconds": time]
         await sendCommand(endpoint: "/seek-to", method: "POST", body: payload)
     }
+
+    func setVolume(_ level: Double) async {
+        let clampedLevel = max(0.0, min(1.0, level))
+        let volumePercentage = Int(clampedLevel * 100)
+        let payload = ["volume": volumePercentage]
+        await sendCommand(endpoint: "/volume", method: "POST", body: payload)
+    }
     func fetchShuffleState() async { await sendCommand(endpoint: "/shuffle", method: "GET", refresh: false) }
     func fetchRepeatMode() async { await sendCommand(endpoint: "/repeat-mode", method: "GET", refresh: false) }
     
@@ -85,6 +113,27 @@ final class YouTubeMusicController: MediaControllerProtocol {
             let token = try await authManager.authenticate()
             let response = try await httpClient.getPlaybackInfo(token: token)
             await updatePlaybackState(with: response)
+            // Fetch like state if supported
+            do {
+                let likeResp = try await httpClient.getLikeState(token: token)
+                var newState = playbackState
+                    if let state = likeResp.state {
+                        switch state.uppercased() {
+                        case "LIKE":
+                            newState.isFavorite = true
+                        case "DISLIKE":
+                            // We don't have a separate dislike UI yet, treat as not favorited
+                            newState.isFavorite = false
+                        default:
+                            newState.isFavorite = false
+                        }
+                    } else {
+                        newState.isFavorite = false
+                    }
+                playbackState = newState
+            } catch {
+                // Don't treat it as an error if the like endpoint doesn't exist — just skip
+            }
         } catch YouTubeMusicError.authenticationRequired {
             await authManager.invalidateToken()
         } catch {
@@ -241,7 +290,15 @@ final class YouTubeMusicController: MediaControllerProtocol {
             if copy != playbackState { playbackState = copy }
 
         case .volumeChanged:
-            break
+            guard let data = message.extractData() else { return }
+            var copy = playbackState
+            if let volume = data["volume"] as? Double {
+                copy.volume = volume / 100.0
+            } else if let volume = data["volume"] as? Int {
+                copy.volume = Double(volume) / 100.0
+            }
+            copy.lastUpdated = Date()
+            if copy != playbackState { playbackState = copy }
         }
     }
     
@@ -371,6 +428,10 @@ final class YouTubeMusicController: MediaControllerProtocol {
             case 2: newState.repeatMode = .one
             default: break
             }
+        }
+
+        if let volume = response.volume {
+            newState.volume = volume / 100.0
         }
 
         if newState != playbackState {
