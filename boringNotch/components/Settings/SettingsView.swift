@@ -113,7 +113,6 @@ struct SettingsView: View {
         }
     }
 }
-
 #Preview {
     HUD()
 }
