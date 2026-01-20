@@ -35,6 +35,8 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    
+    @Default(.nonNotchCompact) var nonNotchCompact // compact notch flag
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive

@@ -106,6 +106,7 @@ extension Defaults.Keys {
     //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
+    static let nonNotchCompact = Key<Bool>("nonNotchCompact", default: false) // flag to enable compact idle notch on external displays
     
     // MARK: Appearance
     //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
