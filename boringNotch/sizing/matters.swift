@@ -9,9 +9,6 @@ import Defaults
 import Foundation
 import SwiftUI
 
-// Default notch size, to avoid using optionals
-var notchHeight: CGFloat = Defaults[.nonNotchHeight]
-var notchWidth: CGFloat = 185
 var hasNotch: Bool = false // Added global hasNotch variable
 
 let downloadSneakSize: CGSize = .init(width: 65, height: 1)
@@ -54,6 +51,9 @@ enum MusicPlayerImageSizes {
 }
 
 @MainActor func getClosedNotchSize(screenUUID: String? = nil) -> CGSize {
+    // Default notch size, to avoid using optionals
+    var notchHeight: CGFloat = Defaults[.nonNotchHeight]
+    var notchWidth: CGFloat = 185
 
     var selectedScreen = NSScreen.main
 
