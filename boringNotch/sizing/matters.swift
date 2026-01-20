@@ -9,6 +9,11 @@ import Defaults
 import Foundation
 import SwiftUI
 
+// Default notch size, to avoid using optionals
+var notchHeight: CGFloat = Defaults[.nonNotchHeight]
+var notchWidth: CGFloat = 185
+var hasNotch: Bool = false // Added global hasNotch variable
+
 let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
@@ -36,10 +41,19 @@ enum MusicPlayerImageSizes {
     return nil
 }
 
+// Moved this logic out of getClosedNotchSize
+@MainActor func getNotch(screen: NSScreen) {
+    // Check if the Mac has a notch
+    if screen.safeAreaInsets.top > 0 {
+        // This is a display WITH a notch
+        hasNotch = true
+    } else {
+        // This is a display WITHOUT a notch
+        return
+    }
+}
+
 @MainActor func getClosedNotchSize(screenUUID: String? = nil) -> CGSize {
-    // Default notch size, to avoid using optionals
-    var notchHeight: CGFloat = Defaults[.nonNotchHeight]
-    var notchWidth: CGFloat = 185
 
     var selectedScreen = NSScreen.main
 
@@ -55,10 +69,11 @@ enum MusicPlayerImageSizes {
         {
             notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
         }
-
-        // Check if the Mac has a notch
-        if screen.safeAreaInsets.top > 0 {
-            // This is a display WITH a notch - use notch height settings
+        getNotch(screen: screen) // call getNotch to update hasNotch bool for current screen
+        
+        // Set height based on hasNotch
+        if hasNotch {
+            // Use notch height settings
             notchHeight = Defaults[.notchHeight]
             if Defaults[.notchHeightMode] == .matchRealNotchSize {
                 notchHeight = screen.safeAreaInsets.top
@@ -66,7 +81,7 @@ enum MusicPlayerImageSizes {
                 notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
             }
         } else {
-            // This is a display WITHOUT a notch - use non-notch height settings
+            // Use non-notch height settings
             notchHeight = Defaults[.nonNotchHeight]
             if Defaults[.nonNotchHeightMode] == .matchMenuBar {
                 notchHeight = screen.frame.maxY - screen.visibleFrame.maxY

@@ -141,6 +141,7 @@ struct GeneralSettings: View {
     @Default(.minimumHoverDuration) var minimumHoverDuration
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
+    @Default(.nonNotchCompact) var nonNotchCompact
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
@@ -255,6 +256,14 @@ struct GeneralSettings: View {
                             name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
+                // New toggle for compact idle notch on external displays
+                Defaults.Toggle(key: .nonNotchCompact) {
+                    Text("Compact idle notch (external display)")
+                }
+                    .onChange(of: nonNotchCompact) {
+                        NotificationCenter.default.post(
+                            name: Notification.Name.nonNotchCompact, object: nil)
+                    }
             } header: {
                 Text("Notch sizing")
             }
