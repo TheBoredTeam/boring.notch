@@ -29,15 +29,14 @@ final class BrightnessManager: ObservableObject {
 
 	@MainActor func setRelative(delta: Float) {
 		Task { @MainActor in
-			let starting = await client.currentScreenBrightness() ?? rawBrightness
-			let target = max(0, min(1, starting + delta))
-			let ok = await client.setScreenBrightness(target)
+            let ok = await client.adjustScreenBrightness(by: delta)
 			if ok {
-				publish(brightness: target, touchDate: true)
+                let current = await client.currentScreenBrightness() ?? rawBrightness
+				publish(brightness: current, touchDate: true)
+                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(current))
 			} else {
 				refresh()
 			}
-			BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(target))
 		}
 	}
 
@@ -127,4 +126,3 @@ final class KeyboardBacklightManager: ObservableObject {
 		}
 	}
 }
-
