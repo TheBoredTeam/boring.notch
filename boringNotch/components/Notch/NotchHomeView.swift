@@ -41,6 +41,9 @@ struct AlbumArtView: View {
     private var albumArtBackground: some View {
         Image(nsImage: musicManager.albumArt)
             .resizable()
+            .scaledToFill()
+            .frame(width: MusicPlayerImageSizes.size.opened.width,
+                   height: MusicPlayerImageSizes.size.opened.height)
             .clipped()
             .clipShape(
                 RoundedRectangle(
@@ -48,7 +51,6 @@ struct AlbumArtView: View {
                         ? MusicPlayerImageSizes.cornerRadiusInset.opened
                         : MusicPlayerImageSizes.cornerRadiusInset.closed)
             )
-            .aspectRatio(1, contentMode: .fit)
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 40)
@@ -74,7 +76,8 @@ struct AlbumArtView: View {
 
     private var albumArtDarkOverlay: some View {
         Rectangle()
-            .aspectRatio(1, contentMode: .fit)
+            .frame(width: MusicPlayerImageSizes.size.opened.width,
+                   height: MusicPlayerImageSizes.size.opened.height)
             .foregroundColor(Color.black)
             .opacity(musicManager.isPlaying ? 0 : 0.8)
             .blur(radius: 50)
@@ -84,8 +87,9 @@ struct AlbumArtView: View {
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
             .resizable()
-            .aspectRatio(1, contentMode: .fit)
-            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+            .scaledToFill()
+            .frame(width: MusicPlayerImageSizes.size.opened.width,
+                   height: MusicPlayerImageSizes.size.opened.height)
             .clipped()
             .clipShape(
                 RoundedRectangle(
@@ -93,6 +97,7 @@ struct AlbumArtView: View {
                         ? MusicPlayerImageSizes.cornerRadiusInset.opened
                         : MusicPlayerImageSizes.cornerRadiusInset.closed)
             )
+            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
     }
 
     @ViewBuilder
