@@ -4,7 +4,7 @@
 //
 //  Created by Hugo Persson on 2024-08-18.
 //  Modified by Harsh Vardhan Goswami & Richard Kunkli & Mustafa Ramadan
-//
+//  Modified by Yuvraj soni 
 
 import Combine
 import Defaults
@@ -20,6 +20,143 @@ struct MusicPlayerView: View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
             MusicControlsView().drawingGroup().compositingGroup()
+        }
+    }
+}
+
+
+struct NotchShinyText: View {
+    enum Direction: Equatable { case left, right }
+    let text: String
+    var disabled: Bool = false
+    var speed: Double = 2.0
+    var color: Color = .gray
+    var shineColor: Color = .white
+    var spread: Double = 120
+    var yoyo: Bool = false
+    var pauseOnHover: Bool = false
+    var direction: Direction = .left
+    var delay: Double = 0.0
+    var font: Font? = nil
+
+    @State private var isPaused: Bool = false
+    @State private var elapsed: Double = 0
+    @State private var lastDate: Date? = nil
+
+    private var animationDuration: Double { max(0.01, speed) }
+    private var delayDuration: Double { max(0.0, delay) }
+
+    private func computeProgress(_ elapsed: Double) -> Double {
+        let anim = animationDuration
+        let del = delayDuration
+        if yoyo {
+            let cycle = anim + del
+            let full = cycle * 2
+            let t = elapsed.truncatingRemainder(dividingBy: full)
+            if t < anim {
+                let p = (t / anim) * 100.0
+                return direction == .left ? p : (100.0 - p)
+            } else if t < cycle {
+                return direction == .left ? 100.0 : 0.0
+            } else if t < cycle + anim {
+                let rt = t - cycle
+                let p = 100.0 - (rt / anim) * 100.0
+                return direction == .left ? p : (100.0 - p)
+            } else {
+                return direction == .left ? 0.0 : 100.0
+            }
+        } else {
+            let cycle = animationDuration + delayDuration
+            let t = elapsed.truncatingRemainder(dividingBy: cycle)
+            if t < animationDuration {
+                let p = (t / animationDuration) * 100.0
+                return direction == .left ? p : (100.0 - p)
+            } else {
+                return direction == .left ? 100.0 : 0.0
+            }
+        }
+    }
+
+    private func gradientStops(progress: Double) -> [Gradient.Stop] {
+        let p = max(0.0, min(1.0, progress / 100.0))
+        // Longer, richer bright band around the shine center
+        let inner = max(0.0, p - 0.10)
+        let outer = min(1.0, p + 0.10)
+        var stops: [Gradient.Stop] = []
+        stops.append(.init(color: color, location: 0.0))
+        if inner > 0 { stops.append(.init(color: color, location: inner)) }
+        // Bright core with a wider plateau to feel richer
+        stops.append(.init(color: shineColor, location: max(0.0, p - 0.02)))
+        stops.append(.init(color: shineColor, location: p))
+        stops.append(.init(color: shineColor, location: min(1.0, p + 0.02)))
+        if outer < 1 { stops.append(.init(color: color, location: outer)) }
+        stops.append(.init(color: color, location: 1.0))
+        return stops.sorted { $0.location < $1.location }
+    }
+
+    private func startPointEndPoint(angleDegrees: Double) -> (UnitPoint, UnitPoint) {
+        let theta = angleDegrees * .pi / 180.0
+        let dx = cos(theta)
+        let dy = sin(theta)
+        let sx = 0.5 - dx * 0.5
+        let sy = 0.5 - dy * 0.5
+        let ex = 0.5 + dx * 0.5
+        let ey = 0.5 + dy * 0.5
+        return (UnitPoint(x: sx, y: sy), UnitPoint(x: ex, y: ey))
+    }
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1.0 / 60.0)) { context in
+            let now = context.date
+            let delta: Double = {
+                if let last = lastDate {
+                    return now.timeIntervalSince(last)
+                } else {
+                    return 0
+                }
+            }()
+
+            // Update timing state outside of the returned view-building path
+            // to avoid confusing the type inference of TimelineView's Content.
+            DispatchQueue.main.async {
+                if !disabled && !isPaused {
+                    elapsed += delta
+                }
+                lastDate = now
+            }
+
+            let prog = computeProgress(elapsed)
+            let stops = gradientStops(progress: prog)
+            let (sp, ep) = startPointEndPoint(angleDegrees: spread)
+
+            let base = Text(text).font(font)
+            return AnyView(
+                base
+                    .foregroundStyle(.clear)
+                    .overlay(
+                        LinearGradient(gradient: Gradient(stops: stops), startPoint: sp, endPoint: ep)
+                    )
+                    .mask(base)
+                    // Single masked glow layer to avoid multiple bright bands
+                    .overlay(
+                        LinearGradient(gradient: Gradient(stops: stops), startPoint: sp, endPoint: ep)
+                            .blur(radius: 12)
+                            .blendMode(.screen)
+                            .opacity(1.0)
+                            .mask(base)
+                    )
+                    // Subtle fallback so text never disappears
+                    .overlay(
+                        base.foregroundColor(shineColor.opacity(0.18))
+                    )
+            )
+        }
+        .onHover { hovering in
+            if pauseOnHover { isPaused = hovering }
+        }
+        .onChange(of: direction) { _ in
+            elapsed = 0
+            lastDate = nil
         }
     }
 }
@@ -173,14 +310,47 @@ struct MusicControlsView: View {
                         let v = scalar.value
                         return v >= 0x0600 && v <= 0x06FF
                     }
-                    MarqueeText(
-                        .constant(line),
-                        font: .subheadline,
-                        nsFont: .subheadline,
-                        textColor: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
-                        frameWidth: width
+                    let idx: Int? = {
+                        guard !musicManager.syncedLyrics.isEmpty else { return nil }
+                        var low = 0
+                        var high = musicManager.syncedLyrics.count - 1
+                        var found = 0
+                        while low <= high {
+                            let mid = (low + high) / 2
+                            if musicManager.syncedLyrics[mid].time <= currentElapsed {
+                                found = mid
+                                low = mid + 1
+                            } else {
+                                high = mid - 1
+                            }
+                        }
+                        return found
+                    }()
+                    let currentTime: Double? = idx != nil ? musicManager.syncedLyrics[idx!].time : nil
+                    let nextTime: Double? = {
+                        guard let i = idx, i + 1 < musicManager.syncedLyrics.count else { return nil as Double? }
+                        return musicManager.syncedLyrics[i + 1].time
+                    }()
+                    let lineDuration: Double = {
+                        guard let start = currentTime, let end = nextTime else { return 2.0 }
+                        return max(0.5, min(6.0, end - start))
+                    }()
+                    let shouldShine = musicManager.isPlaying && !musicManager.isFetchingLyrics && !(musicManager.syncedLyrics.isEmpty)
+
+                    NotchShinyText(
+                        text: line,
+                        disabled: !shouldShine,
+                        speed: lineDuration * 1.3,
+                        color: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray.opacity(0.55),
+                        shineColor: .white,
+                        spread: 120,
+                        yoyo: false,
+                        pauseOnHover: false,
+                        direction: .right,
+                        delay: 0.0,
+                        font: isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline
                     )
-                    .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
+                    .id(line)
                     .lineLimit(1)
                     .opacity(musicManager.isPlaying ? 1 : 0)
                     .transition(.opacity.combined(with: .move(edge: .top)))
@@ -576,3 +746,4 @@ struct CustomSlider: View {
         }
     }
 }
+
