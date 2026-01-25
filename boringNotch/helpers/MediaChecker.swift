@@ -41,7 +41,7 @@ final class MediaChecker: Sendable {
                     return true
                 }
                 group.addTask {
-                    try await Task.sleep(for: .seconds(10))
+                    try await Task.compatibleSleep(seconds: 10)
                     if process.isRunning {
                         process.terminate()
                     }

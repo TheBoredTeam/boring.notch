@@ -25,7 +25,7 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
+        CompatibleNavigationSplitView(sidebarWidth: 200) {
             List(selection: $selectedTab) {
                 NavigationLink(value: "General") {
                     Label("General", systemImage: "gear")
@@ -66,8 +66,7 @@ struct SettingsView: View {
             }
             .listStyle(SidebarListStyle())
             .tint(.effectiveAccent)
-            .toolbar(removing: .sidebarToggle)
-            .navigationSplitViewColumnWidth(200)
+            .compatibleToolbarRemovingSidebarToggle()
         } detail: {
             Group {
                 switch selectedTab {
@@ -107,8 +106,7 @@ struct SettingsView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .navigationSplitViewStyle(.balanced)
-        .toolbar(removing: .sidebarToggle)
+        .compatibleToolbarRemovingSidebarToggle()
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("")
@@ -163,7 +161,7 @@ struct GeneralSettings: View {
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
                 }
-                .onChange(of: showOnAllDisplays) {
+                .onChange(of: showOnAllDisplays) { _ in
                     NotificationCenter.default.post(
                         name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
@@ -172,7 +170,7 @@ struct GeneralSettings: View {
                         Text(screen.name).tag(screen.uuid as String?)
                     }
                 }
-                .onChange(of: NSScreen.screens) {
+                .onChange(of: NSScreen.screens) { _ in
                     screens = NSScreen.screens.compactMap { screen in
                         guard let uuid = screen.displayUUID else { return nil }
                         return (uuid, screen.localizedName)
@@ -183,7 +181,7 @@ struct GeneralSettings: View {
                 Defaults.Toggle(key: .automaticallySwitchDisplay) {
                     Text("Automatically switch displays")
                 }
-                    .onChange(of: automaticallySwitchDisplay) {
+                    .onChange(of: automaticallySwitchDisplay) { _ in
                         NotificationCenter.default.post(
                             name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
                     }
@@ -205,7 +203,7 @@ struct GeneralSettings: View {
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
                 }
-                .onChange(of: notchHeightMode) {
+                .onChange(of: notchHeightMode) { _ in
                     switch notchHeightMode {
                     case .matchRealNotchSize:
                         notchHeight = 38
@@ -221,7 +219,7 @@ struct GeneralSettings: View {
                     Slider(value: $notchHeight, in: 15...45, step: 1) {
                         Text("Custom notch size - \(notchHeight, specifier: "%.0f")")
                     }
-                    .onChange(of: notchHeight) {
+                    .onChange(of: notchHeight) { _ in
                         NotificationCenter.default.post(
                             name: Notification.Name.notchHeightChanged, object: nil)
                     }
@@ -234,7 +232,7 @@ struct GeneralSettings: View {
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
                 }
-                .onChange(of: nonNotchHeightMode) {
+                .onChange(of: nonNotchHeightMode) { _ in
                     switch nonNotchHeightMode {
                     case .matchMenuBar:
                         nonNotchHeight = 24
@@ -250,7 +248,7 @@ struct GeneralSettings: View {
                     Slider(value: $nonNotchHeight, in: 0...40, step: 1) {
                         Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
                     }
-                    .onChange(of: nonNotchHeight) {
+                    .onChange(of: nonNotchHeight) { _ in
                         NotificationCenter.default.post(
                             name: Notification.Name.notchHeightChanged, object: nil)
                     }
@@ -271,7 +269,7 @@ struct GeneralSettings: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("General")
-        .onChange(of: openNotchOnHover) {
+        .onChange(of: openNotchOnHover) { _ in
             if !openNotchOnHover {
                 enableGestures = true
             }
@@ -337,7 +335,7 @@ struct GeneralSettings: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .onChange(of: minimumHoverDuration) {
+                .onChange(of: minimumHoverDuration) { _ in
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
@@ -555,7 +553,7 @@ struct HUD: View {
                     Text("Inline")
                         .tag(true)
                 }
-                .onChange(of: Defaults[.inlineHUD]) {
+                .onChange(of: Defaults[.inlineHUD]) { _ in
                     if Defaults[.inlineHUD] {
                         withAnimation {
                             Defaults[.systemEventIndicatorShadow] = false
@@ -609,7 +607,7 @@ struct Media: View {
                         Text(controller.rawValue).tag(controller)
                     }
                 }
-                .onChange(of: mediaController) { _, _ in
+                .onChange(of: mediaController) { _ in
                     NotificationCenter.default.post(
                         name: Notification.Name.mediaControllerChanged,
                         object: nil
@@ -936,7 +934,7 @@ struct Shelf: View {
                 Defaults.Toggle(key: .expandedDragDetection) {
                     Text("Expanded drag detection area")
                 }
-                .onChange(of: expandedDragDetection) {
+                .onChange(of: expandedDragDetection) { _ in
                     NotificationCenter.default.post(
                         name: Notification.Name.expandedDragDetectionChanged,
                         object: nil
@@ -1275,9 +1273,7 @@ struct Appearance: View {
                         }
                     }
                 }
-                .safeAreaPadding(
-                    EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0)
-                )
+                .padding(.vertical, 5)
                 .frame(minHeight: 120)
                 .actionBar {
                     HStack(spacing: 5) {

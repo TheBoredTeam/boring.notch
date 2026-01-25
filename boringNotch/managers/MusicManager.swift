@@ -184,7 +184,7 @@ class MusicManager: ObservableObject {
         // Check for playback state changes (playing/paused)
         if state.isPlaying != self.isPlaying {
             NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
-            withAnimation(.smooth) {
+            withAnimation(.compatibleSmooth()) {
                 self.isPlaying = state.isPlaying
                 self.updateIdleState(state: state.isPlaying)
             }
@@ -330,7 +330,7 @@ class MusicManager: ObservableObject {
 
         Task { @MainActor in
             await controller.setFavorite(favorite)
-            try? await Task.sleep(for: .milliseconds(150))
+            try? await Task.compatibleSleep(milliseconds: 150)
             await controller.updatePlaybackInfo()
         }
     }
@@ -543,7 +543,7 @@ class MusicManager: ObservableObject {
             debounceIdleTask?.cancel()
             debounceIdleTask = Task { [weak self] in
                 guard let self = self else { return }
-                try? await Task.sleep(for: .seconds(Defaults[.waitInterval]))
+                try? await Task.compatibleSleep(seconds: Defaults[.waitInterval])
                 withAnimation {
                     self.isPlayerIdle = !self.isPlaying
                 }
@@ -555,7 +555,7 @@ class MusicManager: ObservableObject {
 
     func updateAlbumArt(newAlbumArt: NSImage) {
         workItem?.cancel()
-        withAnimation(.smooth) {
+        withAnimation(.compatibleSmooth()) {
             self.albumArt = newAlbumArt
             if Defaults[.coloredSpectrogram] {
                 self.calculateAverageColor()
@@ -575,7 +575,7 @@ class MusicManager: ObservableObject {
     func calculateAverageColor() {
         albumArt.averageColor { [weak self] color in
             DispatchQueue.main.async {
-                withAnimation(.smooth) {
+                withAnimation(.compatibleSmooth()) {
                     self?.avgColor = color ?? .white
                 }
             }

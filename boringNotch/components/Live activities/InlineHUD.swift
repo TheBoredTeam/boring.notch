@@ -23,29 +23,29 @@ struct InlineHUD: View {
                         case .volume:
                             if icon.isEmpty {
                                 Image(systemName: SpeakerSymbol(value))
-                                    .contentTransition(.interpolate)
+                                    .compatibleContentTransition(.interpolate)
                                     .symbolVariant(value > 0 ? .none : .slash)
                                     .frame(width: 20, height: 15, alignment: .leading)
                             } else {
                                 Image(systemName: icon)
-                                    .contentTransition(.interpolate)
+                                    .compatibleContentTransition(.interpolate)
                                     .opacity(value.isZero ? 0.6 : 1)
                                     .scaleEffect(value.isZero ? 0.85 : 1)
                                     .frame(width: 20, height: 15, alignment: .leading)
                             }
                         case .brightness:
                             Image(systemName: BrightnessSymbol(value))
-                                .contentTransition(.interpolate)
+                                .compatibleContentTransition(.interpolate)
                                 .frame(width: 20, height: 15, alignment: .center)
                         case .backlight:
                             Image(systemName: value > 0.5 ? "light.max" : "light.min")
-                                .contentTransition(.interpolate)
+                                .compatibleContentTransition(.interpolate)
                                 .frame(width: 20, height: 15, alignment: .center)
                         case .mic:
                             Image(systemName: "mic")
                                 .symbolRenderingMode(.hierarchical)
                                 .symbolVariant(value > 0 ? .none : .slash)
-                                .contentTransition(.interpolate)
+                                .compatibleContentTransition(.interpolate)
                                 .frame(width: 20, height: 15, alignment: .center)
                         default:
                             EmptyView()
@@ -59,7 +59,7 @@ struct InlineHUD: View {
                     .fontWeight(.medium)
                     .lineLimit(1)
                     .allowsTightening(true)
-                    .contentTransition(.numericText())
+                    .compatibleContentTransition(.numericText)
             }
             .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.notchSize.height - (hoverAnimation ? 0 : 12), alignment: .leading)
             
@@ -75,7 +75,7 @@ struct InlineHUD: View {
                         .allowsTightening(true)
                         .multilineTextAlignment(.trailing)
                         .frame(maxWidth: .infinity, alignment: .trailing)
-                        .contentTransition(.interpolate)
+                        .compatibleContentTransition(.interpolate)
                 } else {
                         HStack {
                         DraggableProgressBar(value: $value, onChange: { v in

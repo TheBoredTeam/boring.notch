@@ -217,7 +217,7 @@ class BoringViewCoordinator: ObservableObject {
             }
         }
         Task { @MainActor in
-            withAnimation(.smooth) {
+            withAnimation(.compatibleSmooth()) {
                 self.sneakPeek.show = status
                 self.sneakPeek.type = type
                 self.sneakPeek.value = value
@@ -238,7 +238,7 @@ class BoringViewCoordinator: ObservableObject {
         sneakPeekTask?.cancel()
 
         sneakPeekTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(duration))
+            try? await Task.compatibleSleep(seconds: duration)
             guard let self = self, !Task.isCancelled else { return }
             await MainActor.run {
                 withAnimation {
@@ -266,7 +266,7 @@ class BoringViewCoordinator: ObservableObject {
         browser: BrowserType = .chromium
     ) {
         Task { @MainActor in
-            withAnimation(.smooth) {
+            withAnimation(.compatibleSmooth()) {
                 self.expandingView.show = status
                 self.expandingView.type = type
                 self.expandingView.value = value
@@ -284,7 +284,7 @@ class BoringViewCoordinator: ObservableObject {
                 let duration: TimeInterval = (expandingView.type == .download ? 2 : 3)
                 let currentType = expandingView.type
                 expandingViewTask = Task { [weak self] in
-                    try? await Task.sleep(for: .seconds(duration))
+                    try? await Task.compatibleSleep(seconds: duration)
                     guard let self = self, !Task.isCancelled else { return }
                     self.toggleExpandingView(status: false, type: currentType)
                 }

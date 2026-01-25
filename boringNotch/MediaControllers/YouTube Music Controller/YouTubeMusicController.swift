@@ -36,7 +36,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             } else if !favorite && playbackState.isFavorite {
                 _ = try await httpClient.toggleLike(token: token)
             }
-            try? await Task.sleep(for: .milliseconds(150))
+            try? await Task.compatibleSleep(milliseconds: 150)
             await updatePlaybackInfo()
         } catch {
             print("[YouTubeMusicController] Failed to set favorite: \(error)")
@@ -309,7 +309,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     }
     
     private func scheduleReconnect() async {
-        try? await Task.sleep(for: .seconds(reconnectDelay))
+        try? await Task.compatibleSleep(seconds: reconnectDelay)
         reconnectDelay = min(reconnectDelay * 2, configuration.reconnectDelay.upperBound)
         
         if isActive() {
@@ -380,7 +380,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
                 }
                 playbackState.repeatMode = nextMode
             } else if refresh && webSocketClient == nil {
-                try? await Task.sleep(for: .milliseconds(100))
+                try? await Task.compatibleSleep(milliseconds: 100)
                 await updatePlaybackInfo()
             }
         } catch YouTubeMusicError.authenticationRequired {

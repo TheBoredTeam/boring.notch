@@ -63,16 +63,16 @@ struct ShelfItemView: View {
                     .padding(.horizontal, 5)
             }
         }
-        .onChange(of: viewModel.isDropTargeted) { _, targeted in
+        .onChange(of: viewModel.isDropTargeted) { targeted in
             vm.dragDetectorTargeting = targeted
             // Debounce drop target state changes
             Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(50))
+                try? await Task.compatibleSleep(milliseconds: 50)
                 debouncedDropTarget = targeted
             }
         }
         .onAppear {
-            Task { 
+            Task {
                 await viewModel.loadThumbnail()
                 // Pre-render drag preview once on appear
                 if cachedPreviewImage == nil {
@@ -83,7 +83,7 @@ struct ShelfItemView: View {
                 quickLookService.show(urls: urls, selectFirst: true)
             }
         }
-        .onChange(of: viewModel.thumbnail) { _, _ in
+        .onChange(of: viewModel.thumbnail) { _ in
             // Invalidate cached preview when thumbnail changes
             Task {
                 cachedPreviewImage = await renderDragPreview()

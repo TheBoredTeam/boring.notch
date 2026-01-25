@@ -79,7 +79,7 @@ final class XPCHelperClient: NSObject {
                 // Call the helper method periodically which will notify on change
                 _ = await self.isAccessibilityAuthorized()
                 do {
-                    try await Task.sleep(for: .seconds(interval))
+                    try await Task.compatibleSleep(seconds: interval)
                 } catch { break }
             }
         }

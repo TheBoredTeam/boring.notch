@@ -233,7 +233,7 @@ struct BoringBatteryView: View {
                 }
             }
         }
-        .onChange(of: showPopupMenu) {
+        .onChange(of: showPopupMenu) { _ in
             vm.isBatteryPopoverActive = showPopupMenu
         }
         .onDisappear {
@@ -246,7 +246,7 @@ struct BoringBatteryView: View {
         if isHoveringButton || isHoveringPopover { return }
         hideTask?.cancel()
         hideTask = Task {
-            try? await Task.sleep(for: .milliseconds(350))
+            try? await Task.compatibleSleep(milliseconds: 350)
             guard !Task.isCancelled else { return }
             await MainActor.run { withAnimation { showPopupMenu = false } }
         }

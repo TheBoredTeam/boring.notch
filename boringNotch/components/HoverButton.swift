@@ -12,13 +12,13 @@ struct HoverButton: View {
     var iconColor: Color = .primary
     var scale: Image.Scale = .medium
     var action: () -> Void
-    var contentTransition: ContentTransition = .symbolEffect;
-    
+    var compatibleTransition: CompatibleContentTransition = .symbolEffect
+
     @State private var isHovering = false
 
     var body: some View {
         let size = CGFloat(scale == .large ? 40 : 30)
-        
+
         Button(action: action) {
             Rectangle()
                 .fill(.clear)
@@ -31,14 +31,14 @@ struct HoverButton: View {
                         .overlay {
                             Image(systemName: icon)
                                 .foregroundColor(iconColor)
-                                .contentTransition(contentTransition)
+                                .compatibleContentTransition(compatibleTransition)
                                 .font(scale == .large ? .largeTitle : .body)
                         }
                 }
         }
         .buttonStyle(PlainButtonStyle())
         .onHover { hovering in
-            withAnimation(.smooth(duration: 0.3)) {
+            withAnimation(.compatibleSmooth(duration: 0.3)) {
                 isHovering = hovering
             }
         }

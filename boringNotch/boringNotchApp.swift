@@ -125,7 +125,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func disableSkyLightOnAllWindows() {
         // Delay disabling SkyLight to avoid flicker during unlock transition
         Task {
-            try? await Task.sleep(for: .milliseconds(150))
+            try? await Task.compatibleSleep(milliseconds: 150)
             await MainActor.run {
                 if Defaults[.showOnAllDisplays] {
                     self.windows.values.forEach { window in
@@ -393,7 +393,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                     let task = Task { [weak viewModel] in
                         do {
-                            try await Task.sleep(for: .seconds(3))
+                            try await Task.compatibleSleep(seconds: 3)
                             await MainActor.run {
                                 viewModel?.close()
                             }

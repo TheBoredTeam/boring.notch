@@ -27,6 +27,16 @@ struct WheelPicker: View {
     let config: Config
 
     var body: some View {
+        if #available(macOS 14.0, *) {
+            modernScrollView
+        } else {
+            legacyScrollView
+        }
+    }
+
+    // MARK: - macOS 14+ Implementation
+    @available(macOS 14.0, *)
+    private var modernScrollView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: config.spacing) {
                 let spacerNum = config.offset
@@ -34,7 +44,6 @@ struct WheelPicker: View {
                 let totalItems = dateCount + 2 * spacerNum
                 ForEach(0..<totalItems, id: \.self) { index in
                     if index < spacerNum || index >= spacerNum + dateCount {
-                        // Leading/trailing spacers sized to match a date cell
                         Spacer()
                             .frame(width: 24, height: 24)
                             .id(index)
@@ -59,7 +68,7 @@ struct WheelPicker: View {
         }
         .scrollIndicators(.never)
         .scrollPosition(id: $scrollPosition, anchor: .center)
-        .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps the centered view
+        .scrollTargetBehavior(.viewAligned)
         .safeAreaPadding(.horizontal)
         .sensoryFeedback(.alignment, trigger: haptics)
         .onChange(of: scrollPosition) { oldValue, newValue in
@@ -72,13 +81,64 @@ struct WheelPicker: View {
         .onAppear {
             scrollToToday(config: config)
         }
-        // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
         .onChange(of: selectedDate) { _, newValue in
             let targetIndex = indexForDate(newValue)
             if scrollPosition != targetIndex {
                 byClick = true
                 withAnimation {
                     scrollPosition = targetIndex
+                }
+            }
+        }
+    }
+
+    // MARK: - macOS 12/13 Implementation (using ScrollViewReader)
+    private var legacyScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: config.spacing) {
+                    let spacerNum = config.offset
+                    let dateCount = totalDateItems()
+                    let totalItems = dateCount + 2 * spacerNum
+                    ForEach(0..<totalItems, id: \.self) { index in
+                        if index < spacerNum || index >= spacerNum + dateCount {
+                            Spacer()
+                                .frame(width: 24, height: 24)
+                                .id(index)
+                        } else {
+                            let date = dateForItemIndex(index: index, spacerNum: spacerNum)
+                            let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
+                            dateButton(date: date, isSelected: isSelected, id: index) {
+                                selectedDate = date
+                                byClick = true
+                                withAnimation {
+                                    proxy.scrollTo(index, anchor: .center)
+                                }
+                                if Defaults[.enableHaptics] {
+                                    haptics.toggle()
+                                }
+                            }
+                        }
+                    }
+                }
+                .frame(height: 50)
+            }
+            .padding(.horizontal)
+            .onAppear {
+                let today = Date()
+                byClick = true
+                selectedDate = today
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation {
+                        proxy.scrollTo(indexForDate(today), anchor: .center)
+                    }
+                }
+            }
+            .onChange(of: selectedDate) { newValue in
+                let targetIndex = indexForDate(newValue)
+                byClick = true
+                withAnimation {
+                    proxy.scrollTo(targetIndex, anchor: .center)
                 }
             }
         }
@@ -225,12 +285,12 @@ struct CalendarView: View {
         }
         .listRowBackground(Color.clear)
         .frame(height: 120)
-        .onChange(of: selectedDate) {
+        .onChange(of: selectedDate) { _ in
             Task {
                 await calendarManager.updateCurrentDate(selectedDate)
             }
         }
-        .onChange(of: vm.notchState) { _, _ in
+        .onChange(of: vm.notchState) { _ in
             Task {
                 await calendarManager.updateCurrentDate(Date.now)
                 selectedDate = Date.now
@@ -322,19 +382,19 @@ struct EventListView: View {
                     .id(event.id)
                     .padding(.leading, -5)
                     .buttonStyle(PlainButtonStyle())
-                    .listRowSeparator(.automatic)
-                    .listRowSeparatorTint(.gray.opacity(0.2))
+                    .compatibleListRowSeparator(.automatic)
+                    .compatibleListRowSeparatorTint(.gray.opacity(0.2))
                     .listRowBackground(Color.clear)
                 }
             }
             .listStyle(.plain)
-            .scrollIndicators(.never)
-            .scrollContentBackground(.hidden)
+            .compatibleScrollIndicators(.never)
+            .compatibleScrollContentBackground(.hidden)
             .background(Color.clear)
             .onAppear {
                 scrollToRelevantEvent(proxy: proxy)
             }
-            .onChange(of: filteredEvents) { _, _ in
+            .onChange(of: filteredEvents) { _ in
                 scrollToRelevantEvent(proxy: proxy)
             }
         }

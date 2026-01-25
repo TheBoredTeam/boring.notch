@@ -29,30 +29,30 @@ struct SystemEventIndicatorModifier: View {
                 case .volume:
                     if icon.isEmpty {
                         Image(systemName: SpeakerSymbol(value))
-                            .contentTransition(.interpolate)
+                            .compatibleContentTransition(.interpolate)
                             .symbolVariant(value > 0 ? .none : .slash)
                             .frame(width: 20, height: 15, alignment: .leading)
                     } else {
                         Image(systemName: icon)
-                            .contentTransition(.interpolate)
+                            .compatibleContentTransition(.interpolate)
                             .opacity(value.isZero ? 0.6 : 1)
                             .scaleEffect(value.isZero ? 0.85 : 1)
                             .frame(width: 20, height: 15, alignment: .leading)
                     }
                 case .brightness:
                     Image(systemName: "sun.max.fill")
-                        .contentTransition(.symbolEffect)
+                        .compatibleContentTransition(.symbolEffect)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .backlight:
                     Image(systemName: value > 0.5 ? "light.max" : "light.min")
-                        .contentTransition(.interpolate)
+                        .compatibleContentTransition(.interpolate)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 case .mic:
                     Image(systemName: "mic")
                         .symbolVariant(value > 0 ? .none : .slash)
-                        .contentTransition(.interpolate)
+                        .compatibleContentTransition(.interpolate)
                         .frame(width: 20, height: 15)
                         .foregroundStyle(.white)
                 default:
@@ -133,13 +133,13 @@ struct DraggableProgressBar: View {
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { gesture in
-                            withAnimation(.smooth(duration: 0.3)) {
+                            withAnimation(.compatibleSmooth(duration: 0.3)) {
                                 isDragging = true
                                 updateValue(gesture: gesture, in: geo)
                             }
                         }
                         .onEnded { _ in
-                            withAnimation(.smooth(duration: 0.3)) {
+                            withAnimation(.compatibleSmooth(duration: 0.3)) {
                                 isDragging = false
                             }
                         }

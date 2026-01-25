@@ -23,21 +23,21 @@ struct OpenNotchHUD: View {
                 case .volume:
                     if icon.isEmpty {
                         Image(systemName: SpeakerSymbol(value))
-                            .contentTransition(.interpolate)
+                            .compatibleContentTransition(.interpolate)
                     } else {
                         Image(systemName: icon)
-                            .contentTransition(.interpolate)
+                            .compatibleContentTransition(.interpolate)
                     }
                 case .brightness:
                     Image(systemName: "sun.max.fill")
-                        .contentTransition(.symbolEffect)
+                        .compatibleContentTransition(.symbolEffect)
                 case .backlight:
                     Image(systemName: value > 0.5 ? "light.max" : "light.min")
-                        .contentTransition(.interpolate)
+                        .compatibleContentTransition(.interpolate)
                 case .mic:
                     Image(systemName: "mic")
                         .symbolVariant(value > 0 ? .none : .slash)
-                        .contentTransition(.interpolate)
+                        .compatibleContentTransition(.interpolate)
                 default:
                     EmptyView()
                 }

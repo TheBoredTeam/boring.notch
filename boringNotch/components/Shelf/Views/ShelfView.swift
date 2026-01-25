@@ -26,7 +26,7 @@ struct ShelfView: View {
                 }
         }
         // Bind Quick Look to shelf selection
-        .onChange(of: selection.selectedIDs) {
+        .onChange(of: selection.selectedIDs) { _ in
             updateQuickLookSelection()
         }
         .quickLookPresenter(using: quickLookService)
@@ -102,7 +102,7 @@ struct ShelfView: View {
                     }
                 }
                 .padding(-spacing)
-                .scrollIndicators(.never)
+                .compatibleScrollIndicators(.never)
                 .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
                 }

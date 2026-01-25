@@ -17,7 +17,7 @@ struct EmptyStateView: View {
             Text(message)
                 .font(.system(size:14))
                 .foregroundColor(.gray)
-        }.transition(.blurReplace.animation(.spring(.bouncy(duration: 0.3)))) // Smooth animation
+        }.transition(.compatibleBlurReplace.animation(.compatibleBouncy(duration: 0.3))) // Smooth animation
     }
 }
 

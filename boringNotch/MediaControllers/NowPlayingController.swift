@@ -51,7 +51,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         }
         
         // Update the favorite state locally and fetch updated info
-        try? await Task.sleep(for: .milliseconds(150))
+        try? await Task.compatibleSleep(milliseconds: 150)
         await updatePlaybackInfo()
     }
 

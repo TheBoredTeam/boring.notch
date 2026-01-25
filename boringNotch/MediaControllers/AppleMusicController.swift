@@ -84,7 +84,7 @@ class AppleMusicController: MediaControllerProtocol {
     
     func toggleShuffle() async {
         await executeCommand("set shuffle enabled to not shuffle enabled")
-        try? await Task.sleep(for: .milliseconds(150))
+        try? await Task.compatibleSleep(milliseconds: 150)
         await updatePlaybackInfo()
     }
     
@@ -98,7 +98,7 @@ class AppleMusicController: MediaControllerProtocol {
                 set song repeat to off
             end if
             """)
-        try? await Task.sleep(for: .milliseconds(150))
+        try? await Task.compatibleSleep(milliseconds: 150)
         await updatePlaybackInfo()
     }
     
@@ -106,7 +106,7 @@ class AppleMusicController: MediaControllerProtocol {
         let clampedLevel = max(0.0, min(1.0, level))
         let volumePercentage = Int(clampedLevel * 100)
         await executeCommand("set sound volume to \(volumePercentage)")
-        try? await Task.sleep(for: .milliseconds(150))
+        try? await Task.compatibleSleep(milliseconds: 150)
         await updatePlaybackInfo()
     }
     
@@ -124,7 +124,7 @@ class AppleMusicController: MediaControllerProtocol {
         end tell
         """
         try? await AppleScriptHelper.executeVoid(script)
-        try? await Task.sleep(for: .milliseconds(150))
+        try? await Task.compatibleSleep(milliseconds: 150)
         await updatePlaybackInfo()
     }
     

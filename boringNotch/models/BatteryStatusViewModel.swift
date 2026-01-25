@@ -122,7 +122,7 @@ class BatteryStatusViewModel: ObservableObject {
     /// - Parameter delay: The delay before notifying the change, default is 0.0
     private func notifyImportanChangeStatus(delay: Double = 0.0) {
         Task {
-            try? await Task.sleep(for: .seconds(delay))
+            try? await Task.compatibleSleep(seconds: delay)
             self.coordinator.toggleExpandingView(status: true, type: .battery)
         }
     }

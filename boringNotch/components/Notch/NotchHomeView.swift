@@ -387,7 +387,7 @@ struct VolumeControlView: View {
                 }
             }
         }
-        .onChange(of: showVolumeSlider) { _, isShowing in
+        .onChange(of: showVolumeSlider) { isShowing in
             if isShowing {
                 // Sync volume from app when slider appears
                 Task {
@@ -506,7 +506,7 @@ struct MusicSliderView: View {
             )
             .font(.caption)
         }
-        .onChange(of: currentDate) {
+        .onChange(of: currentDate) { _ in
            guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
             sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: currentDate)
         }

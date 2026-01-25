@@ -31,8 +31,8 @@ class SpotifyController: MediaControllerProtocol {
 
     private var notificationTask: Task<Void, Never>?
     
-    // Constant for time between command and update
-    private let commandUpdateDelay: Duration = .milliseconds(25)
+    // Constant for time between command and update (in milliseconds)
+    private let commandUpdateDelayMs: Int = 25
 
     private var lastArtworkURL: String?
     private var artworkFetchTask: Task<Void, Never>?
@@ -88,7 +88,7 @@ class SpotifyController: MediaControllerProtocol {
         let clampedLevel = max(0.0, min(1.0, level))
         let volumePercentage = Int(clampedLevel * 100)
         await executeCommand("set sound volume to \(volumePercentage)")
-        try? await Task.sleep(for: commandUpdateDelay)
+        try? await Task.compatibleSleep(milliseconds: commandUpdateDelayMs)
         await updatePlaybackInfo()
     }
     
@@ -169,7 +169,7 @@ class SpotifyController: MediaControllerProtocol {
 
     private func executeAndRefresh(_ command: String) async {
         await executeCommand(command)
-        try? await Task.sleep(for: commandUpdateDelay)
+        try? await Task.compatibleSleep(milliseconds: commandUpdateDelayMs)
         await updatePlaybackInfo()
     }
     

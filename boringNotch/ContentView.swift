@@ -125,7 +125,7 @@ struct ContentView: View {
                         
                         return view
                             .animation(vm.notchState == .open ? openAnimation : closeAnimation, value: vm.notchState)
-                            .animation(.smooth, value: gestureProgress)
+                            .animation(.compatibleSmooth(), value: gestureProgress)
                     }
                     .contentShape(Rectangle())
                     .onHover { hovering in
@@ -150,7 +150,7 @@ struct ContentView: View {
                         if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
                             hoverTask?.cancel()
                             hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
+                                try? await Task.compatibleSleep(milliseconds: 100)
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
                                     if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
@@ -160,18 +160,18 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .onChange(of: vm.notchState) { _, newState in
+                    .onChange(of: vm.notchState) { newState in
                         if newState == .closed && isHovering {
                             withAnimation {
                                 isHovering = false
                             }
                         }
                     }
-                    .onChange(of: vm.isBatteryPopoverActive) {
+                    .onChange(of: vm.isBatteryPopoverActive) { _ in
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
                             hoverTask?.cancel()
                             hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
+                                try? await Task.compatibleSleep(milliseconds: 100)
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
                                     if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
@@ -181,7 +181,7 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .sensoryFeedback(.alignment, trigger: haptics)
+                    .compatibleSensoryFeedback(.alignment, trigger: haptics)
                     .contextMenu {
                         Button("Settings") {
                             SettingsWindowController.shared.showWindow()
@@ -208,11 +208,11 @@ struct ContentView: View {
             y: gestureScale,
             anchor: .top
         )
-        .animation(.smooth, value: gestureProgress)
+        .animation(.compatibleSmooth(), value: gestureProgress)
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
-        .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
+        .onChange(of: vm.anyDropZoneTargeting) { isTargeted in
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
@@ -224,7 +224,7 @@ struct ContentView: View {
             }
 
             anyDropDebounceTask = Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(500))
+                try? await Task.compatibleSleep(milliseconds: 500)
                 guard !Task.isCancelled else { return }
 
                 if vm.dropEvent {
@@ -352,7 +352,7 @@ struct ContentView: View {
                 .transition(
                     .scale(scale: 0.8, anchor: .top)
                     .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
+                    .animation(.compatibleSmooth(duration: 0.35))
                 )
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
@@ -526,20 +526,20 @@ struct ContentView: View {
                   Defaults[.openNotchOnHover] else { return }
             
             hoverTask = Task {
-                try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
+                try? await Task.compatibleSleep(seconds: Defaults[.minimumHoverDuration])
                 guard !Task.isCancelled else { return }
-                
+
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
                           !self.coordinator.sneakPeek.show else { return }
-                    
+
                     self.doOpen()
                 }
             }
         } else {
             hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(100))
+                try? await Task.compatibleSleep(milliseconds: 100)
                 guard !Task.isCancelled else { return }
                 
                 await MainActor.run {

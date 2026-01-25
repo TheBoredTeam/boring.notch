@@ -72,7 +72,7 @@ private struct ScrollMonitor: NSViewRepresentable {
             endTask?.cancel()
             endTask = Task { @MainActor in
                 // If no new scroll event arrives within this window, consider the gesture ended.
-                try? await Task.sleep(for: .milliseconds(300))
+                try? await Task.compatibleSleep(milliseconds: 300)
                 guard !Task.isCancelled else { return }
                 if active {
                     action(accumulated.magnitude, .ended)

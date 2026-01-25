@@ -160,7 +160,7 @@ struct MusicSlotConfigurationView: View {
                     }
                     .padding(.vertical, 4)
                 }
-                .scrollIndicators(.visible)
+                .compatibleScrollIndicators(.visible)
             }
         }
     }
