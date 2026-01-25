@@ -8,9 +8,10 @@ import SwiftUI
 
 struct MinimalFaceFeatures: View {
     @State private var isBlinking = false
-    @State var height:CGFloat = 20;
-    @State var width:CGFloat = 30;
-    
+    @State private var blinkTask: Task<Void, Never>? = nil
+    @State var height: CGFloat = 20
+    @State var width: CGFloat = 30
+
     var body: some View {
         VStack(spacing: 4) { // Adjusted spacing to fit within 30x30
             // Eyes
@@ -43,25 +44,42 @@ struct MinimalFaceFeatures: View {
         .onAppear {
             startBlinking()
         }
+        .onDisappear {
+            stopBlinking()
+        }
     }
     
     func startBlinking() {
-        Task {
+        if blinkTask != nil { return }
+        blinkTask = Task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(3))
                 if Task.isCancelled { break }
-                
-                withAnimation(.spring(duration: 0.2)) {
-                    isBlinking = true
+
+                await MainActor.run {
+                    withAnimation(.spring(duration: 0.2)) {
+                        isBlinking = true
+                    }
                 }
-                
+
                 try? await Task.sleep(for: .milliseconds(100))
-                
-                withAnimation(.spring(duration: 0.2)) {
-                    isBlinking = false
+                if Task.isCancelled { break }
+
+                await MainActor.run {
+                    withAnimation(.spring(duration: 0.2)) {
+                        isBlinking = false
+                    }
                 }
             }
+            await MainActor.run {
+                blinkTask = nil
+            }
         }
+    }
+
+    func stopBlinking() {
+        blinkTask?.cancel()
+        blinkTask = nil
     }
 }
 
