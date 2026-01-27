@@ -32,18 +32,18 @@ extension Animation {
 // MARK: - Task Sleep Compatibility
 
 extension Task where Success == Never, Failure == Never {
-    /// Sleep for specified seconds. Uses Duration on macOS 14+, nanoseconds on older.
+    /// Sleep for specified seconds. Uses Duration on macOS 13+, nanoseconds on older.
     static func compatibleSleep(seconds: Double) async throws {
-        if #available(macOS 14.0, *) {
+        if #available(macOS 13.0, *) {
             try await Task.sleep(for: .seconds(seconds))
         } else {
             try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
         }
     }
 
-    /// Sleep for specified milliseconds. Uses Duration on macOS 14+, nanoseconds on older.
+    /// Sleep for specified milliseconds. Uses Duration on macOS 13+, nanoseconds on older.
     static func compatibleSleep(milliseconds: Int) async throws {
-        if #available(macOS 14.0, *) {
+        if #available(macOS 13.0, *) {
             try await Task.sleep(for: .milliseconds(milliseconds))
         } else {
             try await Task.sleep(nanoseconds: UInt64(milliseconds) * 1_000_000)
@@ -80,7 +80,7 @@ extension View {
     /// Backward-compatible contentTransition. No-op on macOS < 13.
     @ViewBuilder
     func compatibleContentTransition(_ transition: CompatibleContentTransition) -> some View {
-        if #available(macOS 14.0, *) {
+        if #available(macOS 13.0, *) {
             self.contentTransition(transition.systemTransition)
         } else {
             self
@@ -169,12 +169,17 @@ enum CompatibleContentTransition {
     case numericText
     case symbolEffect
 
-    @available(macOS 14.0, *)
+    @available(macOS 13.0, *)
     var systemTransition: ContentTransition {
         switch self {
         case .interpolate: return .interpolate
         case .numericText: return .numericText()
-        case .symbolEffect: return .symbolEffect
+        case .symbolEffect:
+            if #available(macOS 14.0, *) {
+                return .symbolEffect
+            } else {
+                return .interpolate
+            }
         }
     }
 }
@@ -201,12 +206,37 @@ enum CompatibleScrollIndicatorVisibility {
 // MARK: - Transition Compatibility
 
 extension AnyTransition {
-    /// Returns `.blurReplace` on macOS 14+, `.opacity` on older versions.
+    /// Returns `.opacity` as a universally compatible transition.
+    /// `.blurReplace` is only available on the `Transition` protocol (macOS 14+), not on `AnyTransition`.
     static var compatibleBlurReplace: AnyTransition {
+        return .opacity
+    }
+}
+
+// MARK: - Control Size Compatibility
+
+extension View {
+    /// Backward-compatible `.controlSize(.extraLarge)`. Uses `.large` on macOS < 14.
+    @ViewBuilder
+    func compatibleControlSizeExtraLarge() -> some View {
         if #available(macOS 14.0, *) {
-            return .blurReplace
+            self.controlSize(.extraLarge)
         } else {
-            return .opacity
+            self.controlSize(.large)
+        }
+    }
+}
+
+// MARK: - Form Style Compatibility
+
+extension View {
+    /// Backward-compatible `.formStyle(.grouped)`. No-op on macOS < 13.
+    @ViewBuilder
+    func compatibleFormStyleGrouped() -> some View {
+        if #available(macOS 13.0, *) {
+            self.formStyle(.grouped)
+        } else {
+            self
         }
     }
 }

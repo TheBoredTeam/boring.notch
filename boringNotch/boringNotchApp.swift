@@ -15,8 +15,6 @@ import SwiftUI
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @Default(.menubarIcon) var showMenuBarIcon
-    @Environment(\.openWindow) var openWindow
 
     let updaterController: SPUStandardUpdaterController
 
@@ -29,20 +27,11 @@ struct DynamicNotchApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
-            Button("Settings") {
-                SettingsWindowController.shared.showWindow()
-            }
-            .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-            CheckForUpdatesView(updater: updaterController.updater)
-            Divider()
-            Button("Restart Boring Notch") {
-                ApplicationRelauncher.restart()
-            }
-            Button("Quit", role: .destructive) {
-                NSApplication.shared.terminate(self)
-            }
-            .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
+        // MenuBarExtra requires macOS 13+ and SceneBuilder doesn't support
+        // if #available on macOS 12. Menu bar is handled via NSStatusItem
+        // in AppDelegate instead for universal compatibility.
+        Settings {
+            EmptyView()
         }
     }
 }
@@ -65,6 +54,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
+    private var menuBarIconObserver: AnyCancellable?
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -420,6 +410,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupDragDetectors()
 
+        // MenuBarExtra requires macOS 13+ and SceneBuilder doesn't support
+        // if #available on macOS 12, so use NSStatusItem for all versions.
+        setupMenuBar()
+
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
@@ -538,6 +532,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+    }
+
+    private func setupMenuBar() {
+        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        statusItem.button?.image = NSImage(systemSymbolName: "sparkle", accessibilityDescription: "boring.notch")
+        let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: "Settings", action: #selector(openSettings), keyEquivalent: ","))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Restart Boring Notch", action: #selector(restartApp), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "Q"))
+        statusItem.menu = menu
+        statusItem.isVisible = Defaults[.menubarIcon]
+        self.statusItem = statusItem
+
+        // Observe menubarIcon preference to show/hide the status item
+        menuBarIconObserver = Defaults.publisher(.menubarIcon)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] change in
+                self?.statusItem?.isVisible = change.newValue
+            }
+    }
+
+    @objc func openSettings() {
+        SettingsWindowController.shared.showWindow()
+    }
+
+    @objc func restartApp() {
+        ApplicationRelauncher.restart()
     }
 
     @objc func togglePopover(_ sender: Any?) {

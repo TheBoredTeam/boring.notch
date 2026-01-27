@@ -21,7 +21,7 @@ struct EditPanelView: View {
                 } label: {
                     Label("Close", systemImage: "xmark")
                 }
-                .controlSize(.extraLarge)
+                .compatibleControlSizeExtraLarge()
                 .buttonStyle(AccessoryBarButtonStyle())
             }
             .padding()

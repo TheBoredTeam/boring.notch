@@ -15,7 +15,7 @@ import SwiftUI
 import SwiftUIIntrospect
 
 struct SettingsView: View {
-    @State private var selectedTab = "General"
+    @State private var selectedTab: String? = "General"
     @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
@@ -24,45 +24,67 @@ struct SettingsView: View {
         self.updaterController = updaterController
     }
 
+    @ViewBuilder
+    private var settingsSidebarItems: some View {
+        if #available(macOS 13.0, *) {
+            NavigationLink(value: "General") {
+                Label("General", systemImage: "gear")
+            }
+            NavigationLink(value: "Appearance") {
+                Label("Appearance", systemImage: "eye")
+            }
+            NavigationLink(value: "Media") {
+                Label("Media", systemImage: "play.laptopcomputer")
+            }
+            NavigationLink(value: "Calendar") {
+                Label("Calendar", systemImage: "calendar")
+            }
+            NavigationLink(value: "HUD") {
+                Label("HUDs", systemImage: "dial.medium.fill")
+            }
+            NavigationLink(value: "Battery") {
+                Label("Battery", systemImage: "battery.100.bolt")
+            }
+            NavigationLink(value: "Shelf") {
+                Label("Shelf", systemImage: "books.vertical")
+            }
+            NavigationLink(value: "Shortcuts") {
+                Label("Shortcuts", systemImage: "keyboard")
+            }
+            NavigationLink(value: "Advanced") {
+                Label("Advanced", systemImage: "gearshape.2")
+            }
+            NavigationLink(value: "About") {
+                Label("About", systemImage: "info.circle")
+            }
+        } else {
+            Label("General", systemImage: "gear")
+                .tag("General" as String?)
+            Label("Appearance", systemImage: "eye")
+                .tag("Appearance" as String?)
+            Label("Media", systemImage: "play.laptopcomputer")
+                .tag("Media" as String?)
+            Label("Calendar", systemImage: "calendar")
+                .tag("Calendar" as String?)
+            Label("HUDs", systemImage: "dial.medium.fill")
+                .tag("HUD" as String?)
+            Label("Battery", systemImage: "battery.100.bolt")
+                .tag("Battery" as String?)
+            Label("Shelf", systemImage: "books.vertical")
+                .tag("Shelf" as String?)
+            Label("Shortcuts", systemImage: "keyboard")
+                .tag("Shortcuts" as String?)
+            Label("Advanced", systemImage: "gearshape.2")
+                .tag("Advanced" as String?)
+            Label("About", systemImage: "info.circle")
+                .tag("About" as String?)
+        }
+    }
+
     var body: some View {
         CompatibleNavigationSplitView(sidebarWidth: 200) {
             List(selection: $selectedTab) {
-                NavigationLink(value: "General") {
-                    Label("General", systemImage: "gear")
-                }
-                NavigationLink(value: "Appearance") {
-                    Label("Appearance", systemImage: "eye")
-                }
-                NavigationLink(value: "Media") {
-                    Label("Media", systemImage: "play.laptopcomputer")
-                }
-                NavigationLink(value: "Calendar") {
-                    Label("Calendar", systemImage: "calendar")
-                }
-                NavigationLink(value: "HUD") {
-                    Label("HUDs", systemImage: "dial.medium.fill")
-                }
-                NavigationLink(value: "Battery") {
-                    Label("Battery", systemImage: "battery.100.bolt")
-                }
-//                NavigationLink(value: "Downloads") {
-//                    Label("Downloads", systemImage: "square.and.arrow.down")
-//                }
-                NavigationLink(value: "Shelf") {
-                    Label("Shelf", systemImage: "books.vertical")
-                }
-                NavigationLink(value: "Shortcuts") {
-                    Label("Shortcuts", systemImage: "keyboard")
-                }
-                // NavigationLink(value: "Extensions") {
-                //     Label("Extensions", systemImage: "puzzlepiece.extension")
-                // }
-                NavigationLink(value: "Advanced") {
-                    Label("Advanced", systemImage: "gearshape.2")
-                }
-                NavigationLink(value: "About") {
-                    Label("About", systemImage: "info.circle")
-                }
+                settingsSidebarItems
             }
             .listStyle(SidebarListStyle())
             .tint(.effectiveAccent)
@@ -114,7 +136,7 @@ struct SettingsView: View {
                     .accessibilityHidden(true)
             }
         }
-        .formStyle(.grouped)
+        .compatibleFormStyleGrouped()
         .frame(width: 700)
         .background(Color(NSColor.windowBackgroundColor))
         .tint(.effectiveAccent)
@@ -265,7 +287,7 @@ struct GeneralSettings: View {
             Button("Quit app") {
                 NSApp.terminate(self)
             }
-            .controlSize(.extraLarge)
+            .compatibleControlSizeExtraLarge()
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("General")
@@ -833,7 +855,6 @@ func lighterColor(from nsColor: NSColor, amount: CGFloat = 0.14) -> Color {
 struct About: View {
     @State private var showBuildNumber: Bool = false
     let updaterController: SPUStandardUpdaterController
-    @Environment(\.openWindow) var openWindow
     var body: some View {
         VStack {
             Form {
@@ -1359,7 +1380,7 @@ struct Appearance: View {
                         }
                     }
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .controlSize(.extraLarge)
+                    .compatibleControlSizeExtraLarge()
                     .padding()
                 }
             } header: {

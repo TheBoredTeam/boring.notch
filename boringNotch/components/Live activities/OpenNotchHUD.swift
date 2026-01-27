@@ -73,7 +73,10 @@ struct OpenNotchHUD: View {
         .background(
             Capsule()
                 .fill(Color.black)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                .overlay(
+                    Capsule()
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
         )
     }
     
