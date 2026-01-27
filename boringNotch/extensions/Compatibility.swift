@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import ServiceManagement
+import os.log
 
 // MARK: - Animation Compatibility
 
@@ -290,6 +292,33 @@ extension View {
             self.listRowSeparatorTint(color)
         } else {
             self
+        }
+    }
+}
+
+// MARK: - Launch at Login Compatibility
+
+/// A toggle for launch-at-login that uses SMAppService on macOS 13+ and is hidden on macOS 12.
+struct CompatibleLaunchAtLoginToggle: View {
+    @State private var isEnabled = false
+
+    var body: some View {
+        if #available(macOS 13.0, *) {
+            Toggle("Launch at login", isOn: $isEnabled)
+                .onAppear {
+                    isEnabled = SMAppService.mainApp.status == .enabled
+                }
+                .onChange(of: isEnabled) { newValue in
+                    do {
+                        if newValue {
+                            try SMAppService.mainApp.register()
+                        } else {
+                            try SMAppService.mainApp.unregister()
+                        }
+                    } catch {
+                        os_log("Failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
+                    }
+                }
         }
     }
 }
