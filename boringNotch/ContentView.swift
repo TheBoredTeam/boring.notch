@@ -388,18 +388,11 @@ struct ContentView: View {
     @ViewBuilder
     func BoringFaceAnimation() -> some View {
         HStack {
-            HStack {
-                Rectangle()
-                    .fill(.clear)
-                    .frame(
-                        width: max(0, displayClosedNotchHeight - 12),
-                        height: max(0, displayClosedNotchHeight - 12)
-                    )
-                Rectangle()
-                    .fill(.black)
-                    .frame(width: vm.closedNotchSize.width - 20)
-                MinimalFaceFeatures()
-            }
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width + 20)
+            let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
+            MinimalFaceFeatures(height: 24.0 * faceScale, width: 30.0 * faceScale)
         }.frame(
             height: displayClosedNotchHeight,
             alignment: .center
