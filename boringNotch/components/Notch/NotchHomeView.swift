@@ -80,6 +80,7 @@ struct AlbumArtView: View {
 
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
+            .interpolation(.high)
             .resizable()
             .aspectRatio(contentMode: .fit)
             .clipShape(
