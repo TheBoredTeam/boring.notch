@@ -56,10 +56,9 @@ private struct ScrollMonitor: NSViewRepresentable {
         private let threshold: CGFloat
         private let action: (CGFloat, NSEvent.Phase) -> Void
         private var localMonitor: Any?
-        private var globalMonitor: Any?
         private var accumulated: CGFloat = 0
         private var active = false
-            private var endTask: Task<Void, Never>?
+        private var endTask: Task<Void, Never>?
         private let noiseThreshold: CGFloat = 0.2
 
         init(direction: PanDirection, threshold: CGFloat, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
@@ -94,29 +93,6 @@ private struct ScrollMonitor: NSViewRepresentable {
                 self.handleScroll(event)
                 return event
             }
-
-            // Global monitor to catch edge cases 
-            globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
-                guard let self = self, let view = view, let viewWindow = view.window else { return }
-
-                // Translate event to screen coordinates.
-                let eventScreenPoint: NSPoint
-                if let eventWindow = event.window {
-                    eventScreenPoint = eventWindow.convertToScreen(NSRect(origin: event.locationInWindow, size: .zero)).origin
-                } else {
-                    eventScreenPoint = NSEvent.mouseLocation
-                }
-
-                // Compute this view's frame in screen coordinates and expand it slightly.
-                let viewRectInWindow = view.convert(view.bounds, to: nil)
-                let viewRectInScreen = viewWindow.convertToScreen(viewRectInWindow)
-                let expansion: CGFloat = 4 // small tolerance for very-edge events
-                let expandedRect = viewRectInScreen.insetBy(dx: 0, dy: -expansion)
-
-                if expandedRect.contains(eventScreenPoint) {
-                    self.handleScroll(event)
-                }
-            }
         }
 
         func removeMonitor() {
@@ -124,10 +100,7 @@ private struct ScrollMonitor: NSViewRepresentable {
                 NSEvent.removeMonitor(lm)
                 self.localMonitor = nil
             }
-            if let gm = globalMonitor {
-                NSEvent.removeMonitor(gm)
-                self.globalMonitor = nil
-            }
+
             accumulated = 0
             active = false
             endTask?.cancel()
