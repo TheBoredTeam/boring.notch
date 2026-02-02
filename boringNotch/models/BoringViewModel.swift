@@ -109,6 +109,12 @@ class BoringViewModel: NSObject, ObservableObject {
         return noNotchAndFullscreen ? 0 : closedNotchSize.height
     }
 
+    /// Whether the current screen has a notch (safe area top inset > 0)
+    var hasNotch: Bool {
+        let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
+        return (currentScreen?.safeAreaInsets.top ?? 0) > 0
+    }
+
     var chinHeight: CGFloat {
         if !Defaults[.hideTitleBar] {
             return 0
