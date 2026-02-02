@@ -317,6 +317,10 @@ struct ContentView: View {
                            BoringHeader()
                                .frame(height: max(24, displayClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                       }
+                        // New case to enable compact notch on external displays
+                        else if !vm.hasNotch {
+                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
