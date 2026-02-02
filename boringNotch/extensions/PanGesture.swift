@@ -127,9 +127,16 @@ private struct ScrollMonitor: NSViewRepresentable {
             let isAxisDominant: Bool = direction.isHorizontal ? (absDX >= axisDominanceFactor * absDY) : (absDY >= axisDominanceFactor * absDX)
             guard isAxisDominant else { return }
 
+            // Normalize to the physical scroll direction so macOS “Natural scrolling”
+            // does not invert the gesture semantics.
+            let deviceDirectionMultiplier: CGFloat = event.isDirectionInvertedFromDevice ? -1 : 1
+            
             // Scale non-precise (mouse wheel) scrolling deltas so they feel similar to
             // trackpad gestures.
-            let raw = direction.signed(deltaX: event.scrollingDeltaX, deltaY: event.scrollingDeltaY)
+            let raw = direction.signed(
+                deltaX: event.scrollingDeltaX * deviceDirectionMultiplier,
+                deltaY: event.scrollingDeltaY * deviceDirectionMultiplier
+            )
             let scale: CGFloat = event.hasPreciseScrollingDeltas ? 1 : 8
             let s = raw * scale
             guard s.magnitude > noiseThreshold else { return }
