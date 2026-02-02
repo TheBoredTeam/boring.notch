@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Alexander on 2025-06-23.
+//  Modified by Arsh Anwar
 //
 
 import SwiftUI
@@ -13,6 +14,7 @@ enum OnboardingStep {
     case cameraPermission
     case calendarPermission
     case remindersPermission
+    case weatherPermission
     case accessibilityPermission
     case musicPermission
     case finished
@@ -90,6 +92,28 @@ struct OnboardingView: View {
                             Task {
                                 await requestRemindersPermission()
                                 withAnimation(.easeInOut(duration: 0.6)) {
+                                    step = .weatherPermission
+                                }
+                            }
+                        },
+                        onSkip: {
+                            withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .weatherPermission
+                            }
+                        }
+                    )
+                    .transition(.opacity)
+                
+                case .weatherPermission:
+                    PermissionRequestView(
+                        icon: Image(systemName: "cloud.sun.fill"),
+                        title: "Enable Weather Access",
+                        description: "Boring Notch can display current weather conditions right in the notch. Location access is needed to show weather for your current location.",
+                        privacyNote: "Your location is only used to fetch weather data and is never shared or stored.",
+                        onAllow: {
+                            Task {
+                                await requestWeatherPermission()
+                                withAnimation(.easeInOut(duration: 0.6)) {
                                     step = .accessibilityPermission
                                 }
                             }
@@ -154,6 +178,10 @@ struct OnboardingView: View {
 
     func requestRemindersPermission() async {
         _ = try? await calendarService.requestAccess(to: .reminder)
+    }
+    
+    func requestWeatherPermission() async {
+        await WeatherManager.shared.checkLocationAuthorization()
     }
     
     func requestAccessibilityPermission() async {

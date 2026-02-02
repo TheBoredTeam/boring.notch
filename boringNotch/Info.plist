@@ -19,5 +19,11 @@
 	<array>
 		<dict/>
 	</array>
+	<key>NSLocationUsageDescription</key>
+	<string>We need your location to show local weather information in the notch</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need your location to show local weather information in the notch</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>We need your location to show local weather information in the notch</string>
 </dict>
 </plist>
