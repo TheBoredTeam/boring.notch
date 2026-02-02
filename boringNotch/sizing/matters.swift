@@ -9,8 +9,6 @@ import Defaults
 import Foundation
 import SwiftUI
 
-var hasNotch: Bool = false // Added global hasNotch variable
-
 let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
