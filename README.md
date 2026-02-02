@@ -13,7 +13,7 @@
   <a href="https://discord.gg/c8JXA7qrPm">
     <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat" alt="Discord Badge" />
   </a>
-  <a href="ttps://ko-fi.com/brandonhimpfen">
+  <a href="https://www.ko-fi.com/alexander5015">
     <img src="https://srv-cdn.himpfen.io/badges/kofi/kofi-flat.svg" alt="Ko-Fi" />
   </a>
 </p>
