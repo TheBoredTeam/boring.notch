@@ -414,6 +414,7 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var musicManager = MusicManager.shared
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
@@ -429,14 +430,33 @@ struct NotchHomeView: View {
     private var shouldShowCamera: Bool {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
+    
+    /// Determines if the music player should be visible based on whether a music app is active
+    private var shouldShowMusicPlayer: Bool {
+        musicManager.isMusicAppActive
+    }
+    
+    /// Calculate the width for calendar when music player is hidden
+    private var calendarWidthWhenMusicHidden: CGFloat {
+        shouldShowCamera ? 280 : 400
+    }
 
     private var mainContent: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+            // Music Player - only show when a music app is active
+            if shouldShowMusicPlayer {
+                MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .scale(scale: 0.9, anchor: .leading)).combined(with: .move(edge: .leading)),
+                        removal: .opacity.combined(with: .scale(scale: 0.9, anchor: .leading)).combined(with: .move(edge: .leading))
+                    ))
+            }
 
             if Defaults[.showCalendar] {
                 CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
+                    .frame(width: shouldShowMusicPlayer 
+                           ? (shouldShowCamera ? 170 : 215)
+                           : calendarWidthWhenMusicHidden)
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
@@ -451,9 +471,39 @@ struct NotchHomeView: View {
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
                     .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
             }
+            
+            // When no music app is active and neither calendar nor camera is shown,
+            // show an empty state or placeholder
+            if !shouldShowMusicPlayer && !Defaults[.showCalendar] && !shouldShowCamera {
+                EmptyMusicPlaceholder()
+                    .transition(.opacity)
+            }
         }
+        .animation(.smooth(duration: 0.35), value: shouldShowMusicPlayer)
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
+    }
+}
+
+/// A placeholder view shown when no music app is active and no other widgets are enabled
+private struct EmptyMusicPlaceholder: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "music.note")
+                .font(.system(size: 32, weight: .light))
+                .foregroundStyle(.secondary)
+            
+            Text("No music app active")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            
+            Text("Open a music app to see playback controls")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
     }
 }
 

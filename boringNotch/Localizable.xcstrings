@@ -14216,6 +14216,9 @@
         }
       }
     },
+    "No music app active" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -14715,6 +14718,9 @@
           }
         }
       }
+    },
+    "Open a music app to see playback controls" : {
+
     },
     "Open Calendar Settings" : {
       "localizations" : {
