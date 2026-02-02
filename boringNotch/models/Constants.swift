@@ -8,6 +8,7 @@
 import SwiftUI
 import Defaults
 
+// MARK: - File System Paths
 private let availableDirectories = FileManager
     .default
     .urls(for: .documentDirectory, in: .userDomainMask)
@@ -17,13 +18,6 @@ let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as
 
 let temporaryDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
 let spacing: CGFloat = 16
-
-struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
-    let UUID: UUID
-    var name: String
-    var url: URL
-    var speed: CGFloat = 1.0
-}
 
 enum CalendarSelectionState: Codable, Defaults.Serializable {
     case all
@@ -38,7 +32,26 @@ enum HideNotchOption: String, Defaults.Serializable {
 
 // Define notification names at file scope
 extension Notification.Name {
+    // MARK: - Media
     static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
+    
+    // MARK: - Display
+    static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
+    static let notchHeightChanged = Notification.Name("NotchHeightChanged")
+    static let showOnAllDisplaysChanged = Notification.Name("showOnAllDisplaysChanged")
+    static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
+    
+    // MARK: - Shelf
+    static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")
+    
+    // MARK: - System
+    static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")
+    
+    // MARK: - Sharing
+    static let sharingDidFinish = Notification.Name("com.boringNotch.sharingDidFinish")
+    
+    // MARK: - UI
+    static let accentColorChanged = Notification.Name("AccentColorChanged")
 }
 
 // Media controller types for selection in settings
@@ -95,7 +108,6 @@ extension Defaults.Keys {
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
     
     // MARK: Appearance
-    static let showEmojis = Key<Bool>("showEmojis", default: false)
     //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
@@ -113,9 +125,6 @@ extension Defaults.Keys {
         default: SliderColorEnum.white
     )
     static let playerColorTinting = Key<Bool>("playerColorTinting", default: true)
-    static let useMusicVisualizer = Key<Bool>("useMusicVisualizer", default: true)
-    static let customVisualizers = Key<[CustomVisualizer]>("customVisualizers", default: [])
-    static let selectedVisualizer = Key<CustomVisualizer?>("selectedVisualizer", default: nil)
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
@@ -188,6 +197,7 @@ extension Defaults.Keys {
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
     // Show or hide the title bar
     static let hideTitleBar = Key<Bool>("hideTitleBar", default: true)
+    static let hideNonNotchedFromMissionControl = Key<Bool>("hideNonNotchedFromMissionControl", default: true)
     
     // Helper to determine the default media controller based on NowPlaying deprecation status
     static var defaultMediaController: MediaControllerType {

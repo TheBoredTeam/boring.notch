@@ -55,10 +55,10 @@ private struct ScrollMonitor: NSViewRepresentable {
         private let direction: PanDirection
         private let threshold: CGFloat
         private let action: (CGFloat, NSEvent.Phase) -> Void
-        private var monitor: Any?
+        private var localMonitor: Any?
         private var accumulated: CGFloat = 0
         private var active = false
-            private var endTask: Task<Void, Never>?
+        private var endTask: Task<Void, Never>?
         private let noiseThreshold: CGFloat = 0.2
 
         init(direction: PanDirection, threshold: CGFloat, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
@@ -86,7 +86,9 @@ private struct ScrollMonitor: NSViewRepresentable {
 
         func installMonitor(on view: NSView) {
             removeMonitor()
-            monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
+
+            // Local monitor for normal in-window scroll events.
+            localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
                 guard let self = self, event.window === view?.window else { return event }
                 self.handleScroll(event)
                 return event
@@ -94,10 +96,11 @@ private struct ScrollMonitor: NSViewRepresentable {
         }
 
         func removeMonitor() {
-            if let monitor = monitor {
-                NSEvent.removeMonitor(monitor)
-                self.monitor = nil
+            if let lm = localMonitor {
+                NSEvent.removeMonitor(lm)
+                self.localMonitor = nil
             }
+
             accumulated = 0
             active = false
             endTask?.cancel()
