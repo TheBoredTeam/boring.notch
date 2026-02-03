@@ -12,7 +12,28 @@ struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject private var brightnessManager = BrightnessManager.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+
+    private var hudValueBinding: Binding<CGFloat> {
+        Binding(
+            get: {
+                coordinator.sneakPeek.type == .brightness
+                    ? CGFloat(brightnessManager.animatedBrightness)
+                    : coordinator.sneakPeek.value
+            },
+            set: { newVal in
+                if coordinator.sneakPeek.type == .brightness {
+                    BrightnessManager.shared.setAbsolute(value: Float32(newVal))
+                } else {
+                    var peek = coordinator.sneakPeek
+                    peek.value = newVal
+                    coordinator.sneakPeek = peek
+                }
+            }
+        )
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             HStack {
@@ -39,7 +60,7 @@ struct BoringHeader: View {
             HStack(spacing: 4) {
                 if vm.notchState == .open {
                     if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
-                        OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
+                        OpenNotchHUD(type: $coordinator.sneakPeek.type, value: hudValueBinding, icon: $coordinator.sneakPeek.icon)
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
                         if Defaults[.showMirror] {

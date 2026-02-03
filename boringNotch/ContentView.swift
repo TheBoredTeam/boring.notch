@@ -33,6 +33,25 @@ struct ContentView: View {
 
     @Namespace var albumArtNamespace
 
+    private var sneakPeekValueBinding: Binding<CGFloat> {
+        Binding(
+            get: {
+                coordinator.sneakPeek.type == .brightness
+                    ? CGFloat(brightnessManager.animatedBrightness)
+                    : coordinator.sneakPeek.value
+            },
+            set: { newVal in
+                if coordinator.sneakPeek.type == .brightness {
+                    BrightnessManager.shared.setAbsolute(value: Float32(newVal))
+                } else {
+                    var peek = coordinator.sneakPeek
+                    peek.value = newVal
+                    coordinator.sneakPeek = peek
+                }
+            }
+        )
+    }
+
     @Default(.useMusicVisualizer) var useMusicVisualizer
 
     @Default(.showNotHumanFace) var showNotHumanFace
@@ -283,7 +302,7 @@ struct ContentView: View {
                         }
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
-                          InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
+                          InlineHUD(type: $coordinator.sneakPeek.type, value: sneakPeekValueBinding, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
@@ -302,7 +321,7 @@ struct ContentView: View {
                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: $coordinator.sneakPeek.type,
-                                  value: $coordinator.sneakPeek.value,
+                                  value: sneakPeekValueBinding,
                                   icon: $coordinator.sneakPeek.icon,
                                   sendEventBack: { newVal in
                                       switch coordinator.sneakPeek.type {

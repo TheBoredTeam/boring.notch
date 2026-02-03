@@ -13,7 +13,10 @@ final class BrightnessManager: ObservableObject {
 	@Published private(set) var lastChangeAt: Date = .distantPast
 
 	private let visibleDuration: TimeInterval = 1.2
+	private let animationDuration: TimeInterval = 0.25
 	private let client = XPCHelperClient.shared
+
+	private var brightnessAnimationTask: Task<Void, Never>?
 
 	private init() { refresh() }
 
@@ -28,15 +31,12 @@ final class BrightnessManager: ObservableObject {
 	}
 
 	@MainActor func setRelative(delta: Float) {
+		brightnessAnimationTask?.cancel()
 		Task { @MainActor in
 			let starting = await client.currentScreenBrightness() ?? rawBrightness
 			let target = max(0, min(1, starting + delta))
-			let ok = await client.setScreenBrightness(target)
-			if ok {
-				publish(brightness: target, touchDate: true)
-			} else {
-				refresh()
-			}
+			startSmoothAnimation(from: starting, to: target)
+			lastChangeAt = Date()
 			BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(target))
 		}
 	}
@@ -44,13 +44,43 @@ final class BrightnessManager: ObservableObject {
 	func setAbsolute(value: Float) {
 		let clamped = max(0, min(1, value))
 		Task { @MainActor in
-			let ok = await client.setScreenBrightness(clamped)
-			if ok {
-				publish(brightness: clamped, touchDate: true)
-			} else {
-				refresh()
-			}
+			brightnessAnimationTask?.cancel()
+			startSmoothAnimation(from: animatedBrightness, to: clamped)
+			lastChangeAt = Date()
 		}
+	}
+
+	@MainActor private func startSmoothAnimation(from start: Float, to target: Float) {
+		brightnessAnimationTask?.cancel()
+		let startValue = start
+		let targetValue = target
+		brightnessAnimationTask = Task { @MainActor in
+			let startTime = CACurrentMediaTime()
+			let frameInterval: UInt64 = 16_000_000 // ~60 fps
+			while !Task.isCancelled {
+				let elapsed = CACurrentMediaTime() - startTime
+				let t = min(1.0, elapsed / animationDuration)
+				let eased = easeInOutCubic(t)
+				let value = startValue + (targetValue - startValue) * Float(eased)
+				_ = await client.setScreenBrightness(value)
+				await MainActor.run {
+					self.animatedBrightness = value
+					if t >= 1.0 {
+						self.rawBrightness = targetValue
+						self.animatedBrightness = targetValue
+					}
+				}
+				if t >= 1.0 { return }
+				try? await Task.sleep(nanoseconds: frameInterval)
+			}
+			// Cancelled: leave rawBrightness as-is; next animation will start from animatedBrightness
+		}
+	}
+
+	private func easeInOutCubic(_ t: Double) -> Double {
+		if t <= 0 { return 0 }
+		if t >= 1 { return 1 }
+		return t * t * (3 - 2 * t)
 	}
 
 	private func publish(brightness: Float, touchDate: Bool) {
