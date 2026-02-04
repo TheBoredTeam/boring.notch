@@ -5,11 +5,6 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import AVFoundation
-import Defaults
-import EventKit
-import KeyboardShortcuts
-import LaunchAtLogin
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
@@ -97,7 +92,7 @@ struct SettingsView: View {
         .background(Color(NSColor.windowBackgroundColor))
         .tint(.effectiveAccent)
         .id(accentColorUpdateTrigger)
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AccentColorChanged"))) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
             accentColorUpdateTrigger = UUID()
         }
     }
