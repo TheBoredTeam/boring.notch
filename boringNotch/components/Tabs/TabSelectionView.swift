@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Defaults
 
 struct TabModel: Identifiable {
     let id = UUID()
@@ -21,10 +22,24 @@ let tabs = [
 
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.boringShelf) var shelfEnabled
     @Namespace var animation
+    
+    // Filter tabs based on extension settings
+    var visibleTabs: [TabModel] {
+        tabs.filter { tab in
+            switch tab.view {
+            case .home:
+                return true // Home is always visible
+            case .shelf:
+                return shelfEnabled // Shelf only if extension is enabled
+            }
+        }
+    }
+    
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(tabs) { tab in
+            ForEach(visibleTabs) { tab in
                     TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view

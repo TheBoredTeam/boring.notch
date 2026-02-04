@@ -239,7 +239,8 @@ struct ContentView: View {
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
-                if vm.notchState == .closed {
+                // Only open shelf if the extension is enabled
+                if vm.notchState == .closed && Defaults[.boringShelf] {
                     coordinator.currentView = .shelf
                     doOpen()
                 }
