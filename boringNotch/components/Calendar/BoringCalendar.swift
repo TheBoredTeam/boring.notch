@@ -24,7 +24,11 @@ struct WheelPicker: View {
     @State private var scrollPosition: Int?
     @State private var haptics: Bool = false
     @State private var byClick: Bool = false
+    @State private var scrollAccumulator: CGFloat = 0
+    @State private var isHovering: Bool = false
     let config: Config
+    
+    private let scrollThreshold: CGFloat = 2.0
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -62,15 +66,33 @@ struct WheelPicker: View {
         .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps the centered view
         .safeAreaPadding(.horizontal)
         .sensoryFeedback(.alignment, trigger: haptics)
+        .onContinuousHover { phase in
+            switch phase {
+            case .active(_):
+                isHovering = true
+            case .ended:
+                isHovering = false
+            }
+        }
+        .onAppear {
+            scrollToToday(config: config)
+            
+            // Register local monitor for scroll events
+            NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+                guard isHovering else { return event }
+                
+                if abs(event.deltaY) > abs(event.deltaX) && abs(event.deltaY) > 0.1 {
+                    navigateDateByScrollWheel(deltaY: event.deltaY)
+                }
+                return event
+            }
+        }
         .onChange(of: scrollPosition) { oldValue, newValue in
             if !byClick {
                 handleScrollChange(newValue: newValue, config: config)
             } else {
                 byClick = false
             }
-        }
-        .onAppear {
-            scrollToToday(config: config)
         }
         // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
         .onChange(of: selectedDate) { _, newValue in
@@ -79,6 +101,34 @@ struct WheelPicker: View {
                 byClick = true
                 withAnimation {
                     scrollPosition = targetIndex
+                }
+            }
+        }
+    }
+    
+    /// Navigate date based on vertical scroll wheel input
+    private func navigateDateByScrollWheel(deltaY: CGFloat) {
+        scrollAccumulator += deltaY
+        
+        // Use threshold to prevent overly sensitive scrolling
+        if abs(scrollAccumulator) >= scrollThreshold {
+            let direction = scrollAccumulator > 0 ? -1 : 1  // Scroll up = go back, scroll down = go forward
+            scrollAccumulator = 0
+            
+            guard let currentIndex = scrollPosition else { return }
+            let spacerNum = config.offset
+            let dateCount = totalDateItems()
+            let newIndex = max(spacerNum, min(currentIndex + direction, spacerNum + dateCount - 1))
+            
+            if newIndex != currentIndex {
+                byClick = true
+                withAnimation {
+                    scrollPosition = newIndex
+                }
+                let newDate = dateForItemIndex(index: newIndex, spacerNum: spacerNum)
+                selectedDate = newDate
+                if Defaults[.enableHaptics] {
+                    haptics.toggle()
                 }
             }
         }
