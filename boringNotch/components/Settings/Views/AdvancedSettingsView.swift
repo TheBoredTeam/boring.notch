@@ -166,6 +166,34 @@ struct Advanced: View {
             } header: {
                 Text("Window Appearance")
             }
+
+            Section {
+                Defaults.Toggle(key: .extendHoverArea) {
+                    Text("Extend hover area")
+                }
+                Defaults.Toggle(key: .hideTitleBar) {
+                    Text("Hide title bar")
+                }
+                Defaults.Toggle(key: .showOnLockScreen) {
+                    Text("Show notch on lock screen")
+                }
+                Defaults.Toggle(key: .hideFromScreenRecording) {
+                    Text("Hide from screen recording")
+                }
+                Defaults.Toggle(key: .hideNonNotchedFromMissionControl) {
+                    Text("Hide windows on non-notch displays from Mission Control")
+                }
+            } header: {
+                Text("Window Behavior")
+            }
+            
+            Section {
+                Defaults.Toggle(key: .normalizeGestureDirection) {
+                    Text("Normalize gesture direction")
+                }
+            } header: {
+                Text("Miscellaneous")
+            }
             
             Section {
                 HStack {
@@ -209,26 +237,6 @@ struct Advanced: View {
                     Text("App icon")
                     customBadge(text: "Coming soon")
                 }
-            }
-            
-            Section {
-                Defaults.Toggle(key: .extendHoverArea) {
-                    Text("Extend hover area")
-                }
-                Defaults.Toggle(key: .hideTitleBar) {
-                    Text("Hide title bar")
-                }
-                Defaults.Toggle(key: .showOnLockScreen) {
-                    Text("Show notch on lock screen")
-                }
-                Defaults.Toggle(key: .hideFromScreenRecording) {
-                    Text("Hide from screen recording")
-                }
-                Defaults.Toggle(key: .hideNonNotchedFromMissionControl) {
-                    Text("Hide windows on non-notch displays from Mission Control")
-                }
-            } header: {
-                Text("Window Behavior")
             }
         }
         .accentColor(.effectiveAccent)
