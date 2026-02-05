@@ -13314,6 +13314,9 @@
         }
       }
     },
+    "Miscellaneous" : {
+
+    },
     "More" : {
       "localizations" : {
         "ar" : {
@@ -14215,6 +14218,9 @@
           }
         }
       }
+    },
+    "Normalize scroll/gesture direction" : {
+
     },
     "Not Now" : {
       "localizations" : {
