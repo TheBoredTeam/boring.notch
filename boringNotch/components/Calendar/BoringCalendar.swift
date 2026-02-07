@@ -146,6 +146,7 @@ struct WheelPicker: View {
             .padding(.vertical, 4)
             .padding(.horizontal, 4)
             .background(isSelected ? Color.effectiveAccentBackground : Color.clear)
+            .contentShape(.rect)
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
