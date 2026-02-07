@@ -235,7 +235,7 @@ struct CalendarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .center, spacing: 8) {
                 VStack(alignment: .leading) {
                     Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
                         .font(.title3)
@@ -262,13 +262,14 @@ struct CalendarView: View {
                     }
                 }
             }
+            .fixedSize(horizontal: false, vertical: true)
 
             let filteredEvents = EventListView.filteredEvents(
                 events: calendarManager.events
             )
             if filteredEvents.isEmpty {
                 EmptyEventsView(selectedDate: selectedDate)
-                Spacer(minLength: 0)
+                    .frame(maxHeight: .infinity, alignment: .center)
             } else {
                 EventListView(events: calendarManager.events)
             }
