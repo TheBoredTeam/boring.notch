@@ -1,5 +1,5 @@
 //
-//  HUDSettingsView.swift
+//  OSDSettingsView.swift
 //  boringNotch
 //
 //  Created by Richard Kunkli on 07/08/2024.
@@ -8,13 +8,12 @@
 import Defaults
 import SwiftUI
 
-struct HUD: View {
+struct OSDSettings: View {
     @EnvironmentObject var vm: BoringViewModel
-    @Default(.inlineHUD) var inlineHUD
+    @Default(.inlineOSD) var inlineOSD
     @Default(.enableGradient) var enableGradient
     @Default(.optionKeyAction) var optionKeyAction
-    @Default(.hudReplacement) var hudReplacement
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.osdReplacement) var osdReplacement
     @State private var accessibilityAuthorized = false
     
     var body: some View {
@@ -22,15 +21,15 @@ struct HUD: View {
             Section {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Replace system HUD")
+                        Text("Replace system OSD")
                             .font(.headline)
-                        Text("Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design.")
+                        Text("Replaces the standard macOS volume, display brightness, and keyboard brightness OSD with a custom design.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 40)
-                    Defaults.Toggle("", key: .hudReplacement)
+                    Defaults.Toggle("", key: .osdReplacement)
                     .labelsHidden()
                     .toggleStyle(.switch)
                     .controlSize(.large)
@@ -39,7 +38,7 @@ struct HUD: View {
                 
                 if !accessibilityAuthorized {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Accessibility access is required to replace the system HUD.")
+                        Text("Accessibility access is required to replace the system OSD.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
 
@@ -76,33 +75,33 @@ struct HUD: View {
             } header: {
                 Text("General")
             }
-            .disabled(!hudReplacement)
+            .disabled(!osdReplacement)
             
             Section {
-                Defaults.Toggle(key: .showOpenNotchHUD) {
-                    Text("Show HUD in open notch")
+                Defaults.Toggle(key: .showOpenNotchOSD) {
+                    Text("Show OSD in open notch")
                 }
-                Defaults.Toggle(key: .showOpenNotchHUDPercentage) {
+                Defaults.Toggle(key: .showOpenNotchOSDPercentage) {
                     Text("Show percentage")
                 }
-                .disabled(!Defaults[.showOpenNotchHUD])
+                .disabled(!Defaults[.showOpenNotchOSD])
             } header: {
                 HStack {
                     Text("Open Notch")
                     customBadge(text: "Beta")
                 }
             }
-            .disabled(!hudReplacement)
+            .disabled(!osdReplacement)
             
             Section {
-                Picker("HUD style", selection: $inlineHUD) {
+                Picker("OSD style", selection: $inlineOSD) {
                     Text("Default")
                         .tag(false)
                     Text("Inline")
                         .tag(true)
                 }
-                .onChange(of: Defaults[.inlineHUD]) {
-                    if Defaults[.inlineHUD] {
+                .onChange(of: Defaults[.inlineOSD]) {
+                    if Defaults[.inlineOSD] {
                         withAnimation {
                             Defaults[.systemEventIndicatorShadow] = false
                             Defaults[.enableGradient] = false
@@ -110,18 +109,19 @@ struct HUD: View {
                     }
                 }
                 
-                Defaults.Toggle(key: .showClosedNotchHUDPercentage) {
+                Defaults.Toggle(key: .showClosedNotchOSDPercentage) {
                     Text("Show percentage")
                 }
             } header: {
                 Text("Closed Notch")
             }
-            .disabled(!Defaults[.hudReplacement])
+            .disabled(!Defaults[.osdReplacement])
         }
         .accentColor(.effectiveAccent)
-        .navigationTitle("HUDs")
+        .navigationTitle("OSD")
         .task {
             accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            lunar.refreshAvailability()
         }
         .onAppear {
             XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
