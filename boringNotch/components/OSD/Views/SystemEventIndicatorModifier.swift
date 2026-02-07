@@ -11,14 +11,7 @@ import Defaults
 struct SystemEventIndicatorModifier: View {
     @EnvironmentObject var vm: BoringViewModel
     @Binding var eventType: SneakContentType
-    @Binding var value: CGFloat {
-        didSet {
-            DispatchQueue.main.async {
-                self.sendEventBack(value)
-                self.vm.objectWillChange.send()
-            }
-        }
-    }
+    @Binding var value: CGFloat
     @Binding var icon: String
     let showSlider: Bool = false
     var sendEventBack: (CGFloat) -> Void
@@ -60,7 +53,7 @@ struct SystemEventIndicatorModifier: View {
             }
             if (eventType != .mic) {
                 DraggableProgressBar(value: $value)
-                if Defaults[.showClosedNotchHUDPercentage] {
+                if Defaults[.showClosedNotchOSDPercentage] {
                     Text("\(Int(value * 100))%")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.white)
@@ -145,7 +138,7 @@ struct DraggableProgressBar: View {
                         }
                 )
             }
-            .frame(height: Defaults[.inlineHUD] ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
+            .frame(height: Defaults[.inlineOSD] ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
         }
     }
     

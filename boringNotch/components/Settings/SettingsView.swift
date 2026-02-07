@@ -69,7 +69,7 @@ struct SettingsView: View {
                 case "Calendar":
                     CalendarSettings()
                 case "HUD":
-                    HUD()
+                    OSDSettings()
                 case "Battery":
                     Charge()
                 case "Shelf":

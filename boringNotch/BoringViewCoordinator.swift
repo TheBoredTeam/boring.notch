@@ -25,6 +25,7 @@ struct sneakPeek {
     var type: SneakContentType = .music
     var value: CGFloat = 0
     var icon: String = ""
+    var targetScreenUUID: String?
 }
 
 struct SharedSneakPeek: Codable {
@@ -54,7 +55,7 @@ class BoringViewCoordinator: ObservableObject {
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
-    private var hudEnableTask: Task<Void, Never>?
+    private var osdEnableTask: Task<Void, Never>?
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
@@ -80,8 +81,6 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
     
-    @Default(.hudReplacement) var hudReplacement: Bool
-    
     // Legacy storage for migration
     @AppStorage("preferred_screen_name") private var legacyPreferredScreenName: String?
     
@@ -99,7 +98,7 @@ class BoringViewCoordinator: ObservableObject {
 
     @Published var optionKeyPressed: Bool = true
     private var accessibilityObserver: Any?
-    private var hudReplacementCancellable: AnyCancellable?
+    private var osdReplacementCancellable: AnyCancellable?
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -129,30 +128,30 @@ class BoringViewCoordinator: ObservableObject {
             queue: .main
         ) { _ in
             Task { @MainActor in
-                if Defaults[.hudReplacement] {
+                if Defaults[.osdReplacement] {
                     await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                 }
             }
         }
 
-        // Observe changes to hudReplacement
-        hudReplacementCancellable = Defaults.publisher(.hudReplacement)
+        // Observe changes to osdReplacement
+        osdReplacementCancellable = Defaults.publisher(.osdReplacement)
             .sink { [weak self] change in
                 Task { @MainActor in
                     guard let self = self else { return }
 
-                    self.hudEnableTask?.cancel()
-                    self.hudEnableTask = nil
+                    self.osdEnableTask?.cancel()
+                    self.osdEnableTask = nil
 
                     if change.newValue {
-                        self.hudEnableTask = Task { @MainActor in
+                        self.osdEnableTask = Task { @MainActor in
                             let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
                             if Task.isCancelled { return }
 
                             if granted {
                                 await MediaKeyInterceptor.shared.start()
                             } else {
-                                Defaults[.hudReplacement] = false
+                                Defaults[.osdReplacement] = false
                             }
                         }
                     } else {
@@ -164,10 +163,10 @@ class BoringViewCoordinator: ObservableObject {
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
 
-            if Defaults[.hudReplacement] {
+            if Defaults[.osdReplacement] {
                 let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
                 if !authorized {
-                    Defaults[.hudReplacement] = false
+                    Defaults[.osdReplacement] = false
                 } else {
                     await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                 }
@@ -207,12 +206,12 @@ class BoringViewCoordinator: ObservableObject {
 
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
-        icon: String = ""
+        icon: String = "", targetScreenUUID: String? = nil
     ) {
         sneakPeekDuration = duration
         if type != .music {
             // close()
-            if !Defaults[.hudReplacement] {
+            if !Defaults[.osdReplacement] {
                 return
             }
         }
@@ -222,12 +221,17 @@ class BoringViewCoordinator: ObservableObject {
                 self.sneakPeek.type = type
                 self.sneakPeek.value = value
                 self.sneakPeek.icon = icon
+                self.sneakPeek.targetScreenUUID = targetScreenUUID
             }
         }
 
         if type == .mic {
             currentMicStatus = value == 1
         }
+    }
+
+    func shouldShowSneakPeek(on screenUUID: String?) -> Bool {
+        return sneakPeek.show && (sneakPeek.targetScreenUUID == nil || sneakPeek.targetScreenUUID == screenUUID)
     }
 
     private var sneakPeekDuration: TimeInterval = 1.5

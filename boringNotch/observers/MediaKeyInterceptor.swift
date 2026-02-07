@@ -48,7 +48,7 @@ final class MediaKeyInterceptor {
         guard eventTap == nil else { return }
 
         // Ensure HUD replacement is enabled
-        guard Defaults[.hudReplacement] else {
+        guard Defaults[.osdReplacement] else {
             stop()
             return
         }
@@ -148,8 +148,8 @@ final class MediaKeyInterceptor {
         case .openSettings:
             openSystemSettings(for: keyType, command: command)
             return true
-        case .showHUD:
-            showHUD(for: keyType, command: command)
+        case .showOSD:
+            showOSD(for: keyType, command: command)
             return true
         case .none:
             return true
@@ -236,7 +236,7 @@ final class MediaKeyInterceptor {
         }
     }
 
-    private func showHUD(for keyType: NXKeyType, command: Bool) {
+    private func showOSD(for keyType: NXKeyType, command: Bool) {
         Task { @MainActor in
             switch keyType {
             case .soundUp, .soundDown, .mute:
