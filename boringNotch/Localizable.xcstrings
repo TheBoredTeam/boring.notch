@@ -1201,9 +1201,6 @@
         }
       }
     },
-    "Accessibility access is required to replace the system OSD." : {
-
-    },
     "Add" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3006,8 +3003,6 @@
         }
       }
     },
-
-    },
     "Boring Notch" : {
       "localizations" : {
         "ar" : {
@@ -3207,6 +3202,9 @@
           }
         }
       }
+    },
+    "Brightness Source" : {
+
     },
     "Calendar" : {
       "localizations" : {
@@ -4810,6 +4808,7 @@
       }
     },
     "Closed Notch" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5308,6 +5307,9 @@
           }
         }
       }
+    },
+    "Control Backends" : {
+
     },
     "Copy items on drag" : {
       "localizations" : {
@@ -7314,6 +7316,7 @@
       }
     },
     "Enable glowing effect" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8915,6 +8918,7 @@
       }
     },
     "Gradient" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -9618,6 +9622,7 @@
 
     },
     "Hierarchical" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10017,106 +10022,6 @@
         }
       }
     },
-    "HUDs" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDs"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDy"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDs"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "HUDs"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "HUDs"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Estilos de información en pantalla"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDs"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDs"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDs"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUD들"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Interfejsy HUD"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDs"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDs"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "BÜG (Baş Üstü Göstergesi)"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDs"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUD"
-          }
-        }
-      }
-    },
     "In progress" : {
       "localizations" : {
         "ar" : {
@@ -10218,6 +10123,7 @@
       }
     },
     "Inline" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10417,6 +10323,12 @@
           }
         }
       }
+    },
+    "Interaction" : {
+
+    },
+    "Keyboard Source" : {
+
     },
     "Layout Preview" : {
       "localizations" : {
@@ -13727,6 +13639,7 @@
       }
     },
     "Open Notch" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14126,7 +14039,11 @@
         }
       }
     },
+    "Option (⌥) Key Behavior" : {
+
+    },
     "Option key behaviour" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14229,8 +14146,8 @@
     "OSD" : {
 
     },
-    "OSD style" : {
-
+    "OSD.ValueLabel" : {
+      "comment" : "Label for OSD value slider"
     },
     "Pick a Color" : {
       "localizations" : {
@@ -14533,6 +14450,7 @@
       }
     },
     "Progress bar style" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -15532,13 +15450,8 @@
         }
       }
     },
-    "Replace system OSD" : {
-
-    },
-    "Replaces the standard macOS volume, display brightness, and keyboard brightness OSD with a custom design." : {
-
-    },
     "Request Accessibility" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16209,6 +16122,9 @@
           }
         }
       }
+    },
+    "Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running." : {
+
     },
     "selected" : {
       "extractionState" : "stale",
@@ -17511,10 +17427,8 @@
         }
       }
     },
-    "Show OSD in open notch" : {
-
-    },
     "Show percentage" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19017,6 +18931,7 @@
       }
     },
     "Tint progress bar with accent color" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -20317,6 +20232,12 @@
         }
       }
     },
+    "Visibility" : {
+
+    },
+    "Volume Source" : {
+
+    },
     "Welcome" : {
       "localizations" : {
         "ar" : {
@@ -20416,7 +20337,6 @@
           }
         }
       }
-    },
     },
     "Window Appearance" : {
       "localizations" : {

@@ -11,6 +11,8 @@ final class XPCHelperClient: NSObject {
     private var connection: NSXPCConnection?
     private var lastKnownAuthorization: Bool?
     private var monitoringTask: Task<Void, Never>?
+    private var lunarListener: BoringNotchXPCHelperLunarListener?
+    private var hasLunarListener: Bool = false
     
     deinit {
         connection?.invalidate()
@@ -20,17 +22,33 @@ final class XPCHelperClient: NSObject {
     // MARK: - Connection Management (Main Actor Isolated)
     
     @MainActor
-    private func ensureRemoteService() -> RemoteXPCService<BoringNotchXPCHelperProtocol> {
-        if let existing = remoteService {
+    private func ensureRemoteService(needsListener: Bool = false) -> RemoteXPCService<BoringNotchXPCHelperProtocol> {
+        if let existing = remoteService, (!needsListener || hasLunarListener) {
             return existing
+        }
+
+        if let connection {
+            connection.invalidate()
+            self.connection = nil
+            self.remoteService = nil
         }
         
         let conn = NSXPCConnection(serviceName: serviceName)
+
+        if needsListener, let lunarListener {
+            let listenerInterface = makeLunarListenerInterface()
+            conn.exportedInterface = listenerInterface
+            conn.exportedObject = lunarListener
+            hasLunarListener = true
+        } else {
+            hasLunarListener = false
+        }
         
         conn.interruptionHandler = { [weak self] in
             Task { @MainActor in
                 self?.connection = nil
                 self?.remoteService = nil
+                self?.hasLunarListener = false
             }
         }
         
@@ -38,6 +56,7 @@ final class XPCHelperClient: NSObject {
             Task { @MainActor in
                 self?.connection = nil
                 self?.remoteService = nil
+                self?.hasLunarListener = false
             }
         }
         
@@ -56,6 +75,17 @@ final class XPCHelperClient: NSObject {
     @MainActor
     private func getRemoteService() -> RemoteXPCService<BoringNotchXPCHelperProtocol>? {
         remoteService
+    }
+
+    private func makeLunarListenerInterface() -> NSXPCInterface {
+        let interface = NSXPCInterface(with: (any BoringNotchXPCHelperLunarListener).self)
+        interface.setClasses(
+            NSSet(array: [BNLunarBrightnessEvent.self]) as! Set<AnyHashable>,
+            for: #selector(BoringNotchXPCHelperLunarListener.lunarEventDidUpdate(_:)),
+            argumentIndex: 0,
+            ofReply: false
+        )
+        return interface
     }
     
     @MainActor
@@ -253,6 +283,54 @@ final class XPCHelperClient: NSObject {
             }
         } catch {
             return false
+        }
+    }
+
+    // MARK: - Lunar Events
+
+    nonisolated func isLunarAvailable() async -> Bool {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.isLunarAvailable { available in
+                    continuation.resume(returning: available)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    nonisolated func startLunarEventStream(listener: BoringNotchXPCHelperLunarListener) async -> Bool {
+        await MainActor.run {
+            lunarListener = listener
+        }
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService(needsListener: true)
+            }
+            return try await service.withContinuation { service, continuation in
+                service.startLunarEventStream { started in
+                    continuation.resume(returning: started)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    nonisolated func stopLunarEventStream() async {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService(needsListener: true)
+            }
+            try await service.withService { service in
+                service.stopLunarEventStream()
+            }
+        } catch {
+            return
         }
     }
 }

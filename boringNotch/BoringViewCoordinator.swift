@@ -25,6 +25,7 @@ struct sneakPeek {
     var type: SneakContentType = .music
     var value: CGFloat = 0
     var icon: String = ""
+    var accent: Color? = nil
     var targetScreenUUID: String?
 }
 
@@ -99,6 +100,7 @@ class BoringViewCoordinator: ObservableObject {
     @Published var optionKeyPressed: Bool = true
     private var accessibilityObserver: Any?
     private var osdReplacementCancellable: AnyCancellable?
+    private var osdSourceCancellables: [AnyCancellable] = []
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -145,32 +147,29 @@ class BoringViewCoordinator: ObservableObject {
 
                     if change.newValue {
                         self.osdEnableTask = Task { @MainActor in
-                            let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-                            if Task.isCancelled { return }
-
-                            if granted {
-                                await MediaKeyInterceptor.shared.start()
-                            } else {
-                                Defaults[.osdReplacement] = false
-                            }
+                            await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                         }
                     } else {
                         MediaKeyInterceptor.shared.stop()
                     }
+                    
+                    self.applyOSDSources()
                 }
             }
+        // Observe changes to any of the OSD source selections
+        osdSourceCancellables = [
+            Defaults.publisher(.osdBrightnessSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } },
+            Defaults.publisher(.osdVolumeSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } },
+            Defaults.publisher(.osdKeyboardSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } }
+        ]
 
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
 
             if Defaults[.osdReplacement] {
-                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                if !authorized {
-                    Defaults[.osdReplacement] = false
-                } else {
-                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
-                }
+                await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
             }
+            self.applyOSDSources()
         }
     }
     
@@ -206,7 +205,7 @@ class BoringViewCoordinator: ObservableObject {
 
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
-        icon: String = "", targetScreenUUID: String? = nil
+        icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil
     ) {
         sneakPeekDuration = duration
         if type != .music {
@@ -221,6 +220,7 @@ class BoringViewCoordinator: ObservableObject {
                 self.sneakPeek.type = type
                 self.sneakPeek.value = value
                 self.sneakPeek.icon = icon
+                self.sneakPeek.accent = accent
                 self.sneakPeek.targetScreenUUID = targetScreenUUID
             }
         }
@@ -232,6 +232,31 @@ class BoringViewCoordinator: ObservableObject {
 
     func shouldShowSneakPeek(on screenUUID: String?) -> Bool {
         return sneakPeek.show && (sneakPeek.targetScreenUUID == nil || sneakPeek.targetScreenUUID == screenUUID)
+    }
+
+    private func applyOSDSources() {
+        guard Defaults[.osdReplacement] else {
+            BetterDisplayManager.shared.stopObserving()
+            LunarManager.shared.stopListening()
+            return
+        }
+
+        let brightness = Defaults[.osdBrightnessSource]
+        let volume = Defaults[.osdVolumeSource]
+
+        // BetterDisplay is used when either brightness or volume is set to it
+        if brightness == .betterDisplay || volume == .betterDisplay {
+            BetterDisplayManager.shared.startObserving()
+        } else {
+            BetterDisplayManager.shared.stopObserving()
+        }
+
+        // Lunar only supports brightness
+        if brightness == .lunar {
+            LunarManager.shared.startListening()
+        } else {
+            LunarManager.shared.stopListening()
+        }
     }
 
     private var sneakPeekDuration: TimeInterval = 1.5

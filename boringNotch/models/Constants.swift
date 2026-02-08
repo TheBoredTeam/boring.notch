@@ -81,6 +81,15 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     var id: String { self.rawValue }
 }
 
+// Source/provider for OSD control (user-facing: "Source")
+enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case builtin = "Built-in"
+    case betterDisplay = "BetterDisplay"
+    case lunar = "Lunar"
+
+    var id: String { self.rawValue }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -159,17 +168,21 @@ extension Defaults.Keys {
     static let selectedDownloadIndicatorStyle = Key<DownloadIndicatorStyle>("selectedDownloadIndicatorStyle", default: DownloadIndicatorStyle.progress)
     static let selectedDownloadIconStyle = Key<DownloadIconStyle>("selectedDownloadIconStyle", default: DownloadIconStyle.onlyAppIcon)
     
-    // MARK: HUD
+    // MARK: OSD
     static let osdReplacement = Key<Bool>("osdReplacement", default: false)
     static let inlineOSD = Key<Bool>("inlineOSD", default: false)
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
-    static let showOpenNotchOSD = Key<Bool>("showOpenNotchHUD", default: true)
+    static let showOpenNotchOSD = Key<Bool>("showOpenNotchOSD", default: true)
     static let showOpenNotchOSDPercentage = Key<Bool>("showOpenNotchOSDPercentage", default: true)
     static let showClosedNotchOSDPercentage = Key<Bool>("showClosedNotchOSDPercentage", default: false)
     // Option key modifier behaviour for media keys
     static let optionKeyAction = Key<OptionKeyAction>("optionKeyAction", default: OptionKeyAction.openSettings)
+    // Brightness/volume/keyboard source selection
+    static let osdBrightnessSource = Key<OSDControlSource>("osdBrightnessSource", default: .builtin)
+    static let osdVolumeSource = Key<OSDControlSource>("osdVolumeSource", default: .builtin)
+    static let osdKeyboardSource = Key<OSDControlSource>("osdKeyboardSource", default: .builtin)
     
     // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
