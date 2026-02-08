@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Alexander on 2025-09-24.
+//  Edited by Ben Lloyd on 2026-02-08.
 //
 
 import SwiftUI
@@ -103,7 +104,7 @@ struct ShelfView: View {
             } else {
                 ZStack(alignment: .topTrailing) {
                     ScrollView(.horizontal) {
-                        HStack(spacing: spacing) {
+                        LazyHStack(spacing: spacing) {
                             ForEach(tvm.items) { item in
                                 ShelfItemView(item: item)
                                     .environmentObject(quickLookService)
