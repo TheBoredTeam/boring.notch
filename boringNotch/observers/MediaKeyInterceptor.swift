@@ -47,20 +47,23 @@ final class MediaKeyInterceptor {
     func start(promptIfNeeded: Bool = false) async {
         guard eventTap == nil else { return }
 
-        // Ensure HUD replacement is enabled
+        // Ensure OSD replacement is enabled
         guard Defaults[.osdReplacement] else {
             stop()
             return
         }
 
-        // Check accessibility authorization
-        let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-        if !authorized {
-            if promptIfNeeded {
-                let granted = await ensureAccessibilityAuthorization(promptIfNeeded: true)
-                guard granted else { return }
-            } else {
-                return
+        // Only require Accessibility if any selected source uses the built-in controls
+        let needsAccessibility = Defaults[.osdBrightnessSource] == .builtin || Defaults[.osdVolumeSource] == .builtin || Defaults[.osdKeyboardSource] == .builtin
+        if needsAccessibility {
+            let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            if !authorized {
+                if promptIfNeeded {
+                    let granted = await ensureAccessibilityAuthorization(promptIfNeeded: true)
+                    guard granted else { return }
+                } else {
+                    return
+                }
             }
         }
 
@@ -122,6 +125,32 @@ final class MediaKeyInterceptor {
         guard stateByte == 0xA,
               let keyType = NXKeyType(rawValue: keyCode) else {
             return Unmanaged.passUnretained(cgEvent)
+        }
+
+        // Determine which source is selected for this control (brightness/volume/keyboard)
+        let selectedSource: OSDControlSource = {
+            switch keyType {
+            case .soundUp, .soundDown, .mute:
+                return Defaults[.osdVolumeSource]
+            case .brightnessUp, .brightnessDown:
+                return Defaults[.osdBrightnessSource]
+            case .keyboardBrightnessUp, .keyboardBrightnessDown:
+                return Defaults[.osdKeyboardSource]
+            }
+        }()
+
+        // If an external source is selected and available, allow the event to pass through (external app will emit OSD notifications)
+        switch selectedSource {
+        case .betterDisplay:
+            if BetterDisplayManager.shared.isBetterDisplayAvailable {
+                return Unmanaged.passUnretained(cgEvent)
+            }
+        case .lunar:
+            if LunarManager.shared.isLunarAvailable {
+                return Unmanaged.passUnretained(cgEvent)
+            }
+        case .builtin:
+            break
         }
 
         let flags = nsEvent.modifierFlags

@@ -54,3 +54,25 @@ func warningBadge(_ text: String, _ description: String) -> some View {
         }
     }
 }
+
+// Consistent settings row with optional help text and trailing content
+func SettingsRow<Content: View>(_ label: String, help: String? = nil, @ViewBuilder content: () -> Content) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+        HStack {
+            Text(label)
+            Spacer()
+            content()
+        }
+        if let help = help {
+            HelpText(help)
+        }
+    }
+    .padding(.vertical, 6)
+}
+
+func HelpText(_ text: String) -> some View {
+    Text(text)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+}
+

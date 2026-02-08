@@ -345,6 +345,7 @@ struct ContentView: View {
                                   eventType: $coordinator.sneakPeek.type,
                                   value: $coordinator.sneakPeek.value,
                                   icon: $coordinator.sneakPeek.icon,
+                                  accent: $coordinator.sneakPeek.accent,
                                   sendEventBack: { newVal in
                                       switch coordinator.sneakPeek.type {
                                       case .volume:

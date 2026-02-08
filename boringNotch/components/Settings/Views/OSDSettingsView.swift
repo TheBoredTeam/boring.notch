@@ -2,137 +2,121 @@
 //  OSDSettingsView.swift
 //  boringNotch
 //
-//  Created by Richard Kunkli on 07/08/2024.
+//  Created by Alexander on 2026-02-07.
 //
 
-import Defaults
 import SwiftUI
+import Defaults
 
 struct OSDSettings: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @Default(.inlineOSD) var inlineOSD
-    @Default(.enableGradient) var enableGradient
-    @Default(.optionKeyAction) var optionKeyAction
-    @Default(.osdReplacement) var osdReplacement
-    @State private var accessibilityAuthorized = false
-    
+    @StateObject private var vm = OSDSettingsViewModel()
+
     var body: some View {
         Form {
-            Section {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Replace system OSD")
-                            .font(.headline)
-                        Text("Replaces the standard macOS volume, display brightness, and keyboard brightness OSD with a custom design.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer(minLength: 40)
-                    Defaults.Toggle("", key: .osdReplacement)
-                    .labelsHidden()
-                    .toggleStyle(.switch)
-                    .controlSize(.large)
-                    .disabled(!accessibilityAuthorized)
+            Section(header: Text("General")) {
+                SettingsRow("Replace System OSD") {
+                    Toggle(isOn: $vm.osdReplacement) { EmptyView() }
                 }
-                
-                if !accessibilityAuthorized {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Accessibility access is required to replace the system OSD.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                if vm.osdReplacement {
+                    SettingsRow("Use inline style") {
+                        Toggle(isOn: $vm.inlineOSD) { EmptyView() }
+                    }
+                    .padding(.leading, 12)
+                }
+            }
 
-                        HStack(spacing: 12) {
-                            Button("Request Accessibility") {
-                                XPCHelperClient.shared.requestAccessibilityAuthorization()
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                    }
-                    .padding(.top, 6)
-                }
-            }
-            
-            Section {
-                Picker("Option key behaviour", selection: $optionKeyAction) {
-                    ForEach(OptionKeyAction.allCases) { opt in
-                        Text(opt.rawValue).tag(opt)
-                    }
-                }
-                
-                Picker("Progress bar style", selection: $enableGradient) {
-                    Text("Hierarchical")
-                        .tag(false)
-                    Text("Gradient")
-                        .tag(true)
-                }
-                Defaults.Toggle(key: .systemEventIndicatorShadow) {
-                    Text("Enable glowing effect")
-                }
-                Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
-                    Text("Tint progress bar with accent color")
-                }
-            } header: {
-                Text("General")
-            }
-            .disabled(!osdReplacement)
-            
-            Section {
-                Defaults.Toggle(key: .showOpenNotchOSD) {
-                    Text("Show OSD in open notch")
-                }
-                Defaults.Toggle(key: .showOpenNotchOSDPercentage) {
-                    Text("Show percentage")
-                }
-                .disabled(!Defaults[.showOpenNotchOSD])
-            } header: {
+            Section(header: Text("Control Backends"), footer: Text("Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running.")) {
                 HStack {
-                    Text("Open Notch")
-                    customBadge(text: "Beta")
-                }
-            }
-            .disabled(!osdReplacement)
-            
-            Section {
-                Picker("OSD style", selection: $inlineOSD) {
-                    Text("Default")
-                        .tag(false)
-                    Text("Inline")
-                        .tag(true)
-                }
-                .onChange(of: Defaults[.inlineOSD]) {
-                    if Defaults[.inlineOSD] {
-                        withAnimation {
-                            Defaults[.systemEventIndicatorShadow] = false
-                            Defaults[.enableGradient] = false
+                    Text("Brightness Source")
+                    Spacer()
+                    Picker("", selection: $vm.osdBrightnessSource) {
+                        ForEach(OSDControlSource.allCases) { source in
+                            Text(source.rawValue).tag(source)
                         }
                     }
+                    .pickerStyle(.menu)
                 }
-                
-                Defaults.Toggle(key: .showClosedNotchOSDPercentage) {
-                    Text("Show percentage")
+                if vm.osdBrightnessSource == .betterDisplay && !vm.isBetterDisplayAvailable {
+                    HelpText("BetterDisplay is not installed or not running")
                 }
-            } header: {
-                Text("Closed Notch")
+
+                HStack {
+                    Text("Volume Source")
+                    Spacer()
+                    Picker("", selection: $vm.osdVolumeSource) {
+                        ForEach(OSDControlSource.allCases) { source in
+                            Text(source.rawValue).tag(source)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                if vm.osdVolumeSource == .betterDisplay && !vm.isBetterDisplayAvailable {
+                    HelpText("BetterDisplay is not installed or not running")
+                }
+
+                HStack {
+                    Text("Keyboard Source")
+                    Spacer()
+                    Picker("", selection: $vm.osdKeyboardSource) {
+                        ForEach(OSDControlSource.allCases) { source in
+                            Text(source.rawValue).tag(source)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                if vm.osdKeyboardSource == .lunar && !vm.isLunarAvailable {
+                    HelpText("Lunar is not installed or not reachable")
+                }
             }
-            .disabled(!Defaults[.osdReplacement])
+
+            Section(header: Text("Appearance")) {
+                SettingsRow("Enable gradient") {
+                    Toggle(isOn: $vm.enableGradient) { EmptyView() }
+                }
+                SettingsRow("Show shadow") {
+                    Toggle(isOn: $vm.systemEventIndicatorShadow) { EmptyView() }
+                }
+                SettingsRow("Use accent color") {
+                    Toggle(isOn: $vm.systemEventIndicatorUseAccent) { EmptyView() }
+                }
+            }
+
+            Section(header: Text("Visibility")) {
+                SettingsRow("Show in open notch") {
+                    Toggle(isOn: $vm.showOpenNotchOSD) { EmptyView() }
+                }
+                if vm.showOpenNotchOSD {
+                    SettingsRow("Show percentage (open)", help: "Show numeric percentage when notch is open") {
+                        Toggle(isOn: $vm.showOpenNotchOSDPercentage) { EmptyView() }
+                    }
+                }
+                SettingsRow("Show percentage (closed)", help: "Show numeric percentage when notch is closed") {
+                    Toggle(isOn: $vm.showClosedNotchOSDPercentage) { EmptyView() }
+                }
+            }
+
+            Section(header: Text("Interaction")) {
+                HStack {
+                    Text("Option (⌥) Key Behavior")
+                    Spacer()
+                    Picker("", selection: $vm.optionKeyAction) {
+                        ForEach(OptionKeyAction.allCases) { action in
+                            Text(action.rawValue).tag(action)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                HelpText("Define what happens when you hold the Option key while pressing media keys.")
+            }
+
         }
+        .formStyle(.grouped)
         .accentColor(.effectiveAccent)
-        .navigationTitle("OSD")
-        .task {
-            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-            lunar.refreshAvailability()
-        }
-        .onAppear {
-            XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
-        }
-        .onDisappear {
-            XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
-            if let granted = notification.userInfo?["granted"] as? Bool {
-                accessibilityAuthorized = granted
-            }
-        }
+
     }
+}
+
+#Preview {
+    OSDSettings()
+        .frame(width: 500, height: 600)
 }
