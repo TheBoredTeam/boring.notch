@@ -256,11 +256,11 @@ final class VolumeManager: NSObject, ObservableObject {
         case kAudioDeviceTransportTypeBuiltIn:
             return isHeadphonesLike ? .wiredHeadphones : .builtInSpeaker
         case kAudioDeviceTransportTypeBluetooth, kAudioDeviceTransportTypeBluetoothLE:
-            if isApple {
-                return .airPods
-            }
+            // AirPods variants are matched by name above; all other Bluetooth devices use default headphones icon.
             return .bluetoothHeadphones
-        case kAudioDeviceTransportTypeUSB, kAudioDeviceTransportTypeHDMI, kAudioDeviceTransportTypeDisplayPort:
+        case kAudioDeviceTransportTypeUSB:
+            return .wiredHeadphones
+        case kAudioDeviceTransportTypeHDMI, kAudioDeviceTransportTypeDisplayPort:
             return isHeadphonesLike ? .wiredHeadphones : .externalSpeaker
         default:
             if isHeadphonesLike {
