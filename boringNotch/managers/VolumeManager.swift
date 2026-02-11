@@ -233,8 +233,6 @@ final class VolumeManager: NSObject, ObservableObject {
         transportType: UInt32?
     ) -> AudioOutputRouteKind {
         let normalizedName = deviceName.lowercased()
-        let normalizedManufacturer = manufacturer.lowercased()
-        let isApple = normalizedManufacturer.contains("apple")
 
         if normalizedName.contains("airpods max") {
             return .airPodsMax
