@@ -18802,6 +18802,9 @@
         }
       }
     },
+    "Show mute indicator when closed" : {
+
+    },
     "Show notch on lock screen" : {
       "localizations" : {
         "ar" : {

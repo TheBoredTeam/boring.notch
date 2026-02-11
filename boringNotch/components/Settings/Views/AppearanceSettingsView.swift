@@ -50,6 +50,9 @@ struct Appearance: View {
                 Defaults.Toggle(key: .showMicrophoneButtonInNotch) {
                     Text("Show microphone mute button")
                 }
+                Defaults.Toggle(key: .showMuteIndicator) {
+                    Text("Show mute indicator when closed")
+                }
                 Defaults.Toggle(key: .showMirror) {
                     Text("Enable boring mirror")
                 }

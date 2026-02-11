@@ -381,6 +381,7 @@ final class MicrophoneManager: NSObject, ObservableObject {
 
     private var previousInputVolumeBeforeMute: Float32 = 0.8
     private var softwareMuted: Bool = false
+    private var didInitialFetch = false
     private var currentInputDeviceID: AudioObjectID = kAudioObjectUnknown
     private let audioQueue = DispatchQueue(label: "boring.notch.audio.microphone", qos: .userInitiated)
     private let audioQueueKey = DispatchSpecificKey<Void>()
@@ -571,10 +572,12 @@ final class MicrophoneManager: NSObject, ObservableObject {
     private func fetchCurrentMute() {
         let muted = isMutedInternal()
         DispatchQueue.main.async {
-            if self.isMuted != muted {
+            let didChange = self.isMuted != muted
+            if self.didInitialFetch && didChange {
                 self.lastChangeAt = Date()
             }
             self.isMuted = muted
+            self.didInitialFetch = true
         }
     }
 
