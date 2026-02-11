@@ -29,6 +29,15 @@ enum StandardAnimations {
     /// Smooth animation for general transitions
     static let smooth = Animation.smooth
     
+    /// Entry animation for the closed-notch mute badge
+    static let muteBadgeIn = Animation.spring(response: 0.28, dampingFraction: 0.78, blendDuration: 0)
+    
+    /// Exit animation for the closed-notch mute badge
+    static let muteBadgeOut = Animation.easeOut(duration: 0.16)
+    
+    /// One-shot pulse used when mute turns on
+    static let muteBadgeBurst = Animation.spring(response: 0.38, dampingFraction: 0.72, blendDuration: 0)
+    
     /// Timing curve fallback for older macOS versions
     static let timingCurve = Animation.timingCurve(0.16, 1, 0.3, 1, duration: 0.7)
 }

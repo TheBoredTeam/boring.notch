@@ -14219,7 +14219,7 @@
         }
       }
     },
-    "Normalize scroll/gesture direction" : {
+    "Normalize gesture direction" : {
 
     },
     "Not Now" : {
@@ -14421,6 +14421,9 @@
           }
         }
       }
+    },
+    "Notch buttons" : {
+
     },
     "Notch height on non-notch displays" : {
       "localizations" : {
@@ -18696,6 +18699,9 @@
         }
       }
     },
+    "Show microphone mute button" : {
+
+    },
     "Show music live activity" : {
       "localizations" : {
         "ar" : {
@@ -18795,6 +18801,9 @@
           }
         }
       }
+    },
+    "Show mute indicator when closed" : {
+
     },
     "Show notch on lock screen" : {
       "localizations" : {
@@ -19296,7 +19305,11 @@
         }
       }
     },
+    "Show settings icon" : {
+
+    },
     "Show settings icon in notch" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -20597,6 +20610,9 @@
           }
         }
       }
+    },
+    "Toggle Microphone:" : {
+
     },
     "Toggle Notch Open:" : {
       "localizations" : {

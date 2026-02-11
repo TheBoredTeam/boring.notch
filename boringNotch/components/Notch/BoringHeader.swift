@@ -12,6 +12,7 @@ struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var microphoneManager = MicrophoneManager.shared
     @StateObject var tvm = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
@@ -52,6 +53,22 @@ struct BoringHeader: View {
                                     .overlay {
                                         Image(systemName: "web.camera")
                                             .foregroundColor(.white)
+                                            .padding()
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        if Defaults[.showMicrophoneButtonInNotch] {
+                            Button(action: {
+                                MicrophoneManager.shared.toggleMuteAction()
+                            }) {
+                                Capsule()
+                                    .fill(.black)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: microphoneManager.isMuted ? "mic.slash" : "mic")
+                                            .foregroundColor(microphoneManager.isMuted ? .red : .white)
                                             .padding()
                                             .imageScale(.medium)
                                     }

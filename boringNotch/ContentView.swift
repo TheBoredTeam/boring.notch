@@ -23,9 +23,11 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var microphoneManager = MicrophoneManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
+    @State private var muteIndicatorBurstTrigger: UInt = 0
 
     @State private var gestureProgress: CGFloat = .zero
 
@@ -34,6 +36,7 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.showMuteIndicator) var showMuteIndicator
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -135,6 +138,19 @@ struct ContentView: View {
                             .fill(.black)
                             .frame(height: 1)
                             .padding(.horizontal, topCornerRadius)
+                    }
+                    .overlay {
+                        if showMuteIndicator && !isNotchHeightZero {
+                            MuteIndicatorEdges(
+                                isMuted: microphoneManager.isMuted,
+                                notchState: vm.notchState,
+                                closedNotchHeight: displayClosedNotchHeight,
+                                burstTrigger: muteIndicatorBurstTrigger
+                            )
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .mask(currentNotchShape)
+                            .allowsHitTesting(false)
+                        }
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
@@ -260,6 +276,10 @@ struct ContentView: View {
                     vm.close()
                 }
             }
+        }
+        .onChange(of: microphoneManager.isMuted) { oldValue, newValue in
+            guard !oldValue, newValue, microphoneManager.shouldShowOverlay else { return }
+            muteIndicatorBurstTrigger &+= 1
         }
     }
 
