@@ -60,9 +60,7 @@ struct BoringHeader: View {
                             .buttonStyle(PlainButtonStyle())
                         }
                         Button(action: {
-                            Task { @MainActor in
-                                MicrophoneManager.shared.toggleMuteAction()
-                            }
+                            MicrophoneManager.shared.toggleMuteAction()
                         }) {
                             Capsule()
                                 .fill(.black)

@@ -14219,7 +14219,7 @@
         }
       }
     },
-    "Normalize scroll/gesture direction" : {
+    "Normalize gesture direction" : {
 
     },
     "Not Now" : {
@@ -20597,6 +20597,9 @@
           }
         }
       }
+    },
+    "Toggle Microphone:" : {
+
     },
     "Toggle Notch Open:" : {
       "localizations" : {

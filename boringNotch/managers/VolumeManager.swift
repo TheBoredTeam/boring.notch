@@ -382,12 +382,15 @@ final class MicrophoneManager: NSObject, ObservableObject {
     private var previousInputVolumeBeforeMute: Float32 = 0.8
     private var softwareMuted: Bool = false
     private var currentInputDeviceID: AudioObjectID = kAudioObjectUnknown
+    private let audioQueue = DispatchQueue(label: "boring.notch.audio.microphone", qos: .userInitiated)
+    private let audioQueueKey = DispatchSpecificKey<Void>()
 
     private var defaultInputDeviceListener: AudioObjectPropertyListenerBlock = { _, _ in }
     private var inputDeviceListener: AudioObjectPropertyListenerBlock = { _, _ in }
 
     private override init() {
         super.init()
+        audioQueue.setSpecific(key: audioQueueKey, value: ())
 
         defaultInputDeviceListener = { [weak self] _, _ in
             guard let self else { return }
@@ -399,30 +402,46 @@ final class MicrophoneManager: NSObject, ObservableObject {
             self?.fetchCurrentMute()
         }
 
-        setupAudioListener()
-        fetchCurrentMute()
+        audioQueue.async { [weak self] in
+            guard let self else { return }
+            self.setupAudioListener()
+            self.fetchCurrentMute()
+        }
     }
 
     deinit {
-        removeDefaultInputDeviceListener()
-        removeInputDeviceListeners(from: currentInputDeviceID)
+        if DispatchQueue.getSpecific(key: audioQueueKey) != nil {
+            removeDefaultInputDeviceListener()
+            removeInputDeviceListeners(from: currentInputDeviceID)
+        } else {
+            audioQueue.sync {
+                self.removeDefaultInputDeviceListener()
+                self.removeInputDeviceListeners(from: self.currentInputDeviceID)
+            }
+        }
     }
 
     var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
-    @MainActor func toggleMuteAction() {
-        toggleMuteInternal()
-        let muted = isMutedInternal()
-        publish(muted: muted, touchDate: true)
-        BoringViewCoordinator.shared.toggleSneakPeek(
-            status: true,
-            type: .mic,
-            value: muted ? 0 : 1
-        )
+    func toggleMuteAction() {
+        audioQueue.async { [weak self] in
+            guard let self else { return }
+            self.toggleMuteInternal()
+            let muted = self.isMutedInternal()
+            Task { @MainActor in
+                BoringViewCoordinator.shared.toggleSneakPeek(
+                    status: true,
+                    type: .mic,
+                    value: muted ? 0 : 1
+                )
+            }
+        }
     }
 
     func refresh() {
-        fetchCurrentMute()
+        audioQueue.async { [weak self] in
+            self?.fetchCurrentMute()
+        }
     }
 
     private func setupAudioListener() {
@@ -434,7 +453,7 @@ final class MicrophoneManager: NSObject, ObservableObject {
         AudioObjectAddPropertyListenerBlock(
             AudioObjectID(kAudioObjectSystemObject),
             &defaultInputAddress,
-            nil,
+            audioQueue,
             defaultInputDeviceListener
         )
 
@@ -450,7 +469,7 @@ final class MicrophoneManager: NSObject, ObservableObject {
         AudioObjectRemovePropertyListenerBlock(
             AudioObjectID(kAudioObjectSystemObject),
             &defaultInputAddress,
-            nil,
+            audioQueue,
             defaultInputDeviceListener
         )
     }
@@ -473,7 +492,7 @@ final class MicrophoneManager: NSObject, ObservableObject {
             mElement: kAudioObjectPropertyElementMain
         )
         if AudioObjectHasProperty(deviceID, &muteAddress) {
-            AudioObjectAddPropertyListenerBlock(deviceID, &muteAddress, nil, inputDeviceListener)
+            AudioObjectAddPropertyListenerBlock(deviceID, &muteAddress, audioQueue, inputDeviceListener)
         }
 
         for element in [kAudioObjectPropertyElementMain, 1, 2, 3, 4] {
@@ -486,7 +505,7 @@ final class MicrophoneManager: NSObject, ObservableObject {
                 AudioObjectAddPropertyListenerBlock(
                     deviceID,
                     &volumeAddress,
-                    nil,
+                    audioQueue,
                     inputDeviceListener
                 )
             }
@@ -505,7 +524,7 @@ final class MicrophoneManager: NSObject, ObservableObject {
             AudioObjectRemovePropertyListenerBlock(
                 deviceID,
                 &muteAddress,
-                nil,
+                audioQueue,
                 inputDeviceListener
             )
         }
@@ -520,7 +539,7 @@ final class MicrophoneManager: NSObject, ObservableObject {
                 AudioObjectRemovePropertyListenerBlock(
                     deviceID,
                     &volumeAddress,
-                    nil,
+                    audioQueue,
                     inputDeviceListener
                 )
             }

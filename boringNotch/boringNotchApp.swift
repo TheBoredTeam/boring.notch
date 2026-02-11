@@ -371,9 +371,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         KeyboardShortcuts.onKeyDown(for: .toggleMicrophone) {
-            Task { @MainActor in
-                MicrophoneManager.shared.toggleMuteAction()
-            }
+            MicrophoneManager.shared.toggleMuteAction()
         }
 
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
