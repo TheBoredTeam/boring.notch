@@ -11,6 +11,7 @@ import SwiftUI
 
 struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.showMirror) var showMirror
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
 
@@ -20,10 +21,6 @@ struct Appearance: View {
         Form {
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
-                Defaults.Toggle(key: .settingsIconInNotch) {
-                    Text("Show settings icon in notch")
-                }
-
             } header: {
                 Text("General")
             }
@@ -46,19 +43,29 @@ struct Appearance: View {
                 Text("Media")
             }
 
-
-
             Section {
+                Defaults.Toggle(key: .settingsIconInNotch) {
+                    Text("Show settings icon")
+                }
+                Defaults.Toggle(key: .showMicrophoneButtonInNotch) {
+                    Text("Show microphone mute button")
+                }
                 Defaults.Toggle(key: .showMirror) {
                     Text("Enable boring mirror")
                 }
-                    .disabled(!checkVideoInput())
+                .disabled(!checkVideoInput())
                 Picker("Mirror shape", selection: $mirrorShape) {
                     Text("Circle")
                         .tag(MirrorShapeEnum.circle)
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
+                .disabled(!checkVideoInput() || !showMirror)
+            } header: {
+                Text("Notch buttons")
+            }
+
+            Section {
                 Defaults.Toggle(key: .showNotHumanFace) {
                     Text("Show cool face animation while inactive")
                 }

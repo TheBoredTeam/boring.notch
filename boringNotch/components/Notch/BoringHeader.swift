@@ -59,20 +59,22 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        Button(action: {
-                            MicrophoneManager.shared.toggleMuteAction()
-                        }) {
-                            Capsule()
-                                .fill(.black)
-                                .frame(width: 30, height: 30)
-                                .overlay {
-                                    Image(systemName: microphoneManager.isMuted ? "mic.slash" : "mic")
-                                        .foregroundColor(microphoneManager.isMuted ? .red : .white)
-                                        .padding()
-                                        .imageScale(.medium)
-                                }
+                        if Defaults[.showMicrophoneButtonInNotch] {
+                            Button(action: {
+                                MicrophoneManager.shared.toggleMuteAction()
+                            }) {
+                                Capsule()
+                                    .fill(.black)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: microphoneManager.isMuted ? "mic.slash" : "mic")
+                                            .foregroundColor(microphoneManager.isMuted ? .red : .white)
+                                            .padding()
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
                                 SettingsWindowController.shared.showWindow()
