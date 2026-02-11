@@ -335,7 +335,7 @@ struct VolumeControlView: View {
                     }
                 }
             }) {
-                Image(systemName: volumeIcon)
+                Image(systemName: VolumeManager.shared.volumeHUDSymbol(for: CGFloat(volumeSliderValue)))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
             }
@@ -388,21 +388,6 @@ struct VolumeControlView: View {
         }
         .onDisappear {
             // volumeUpdateTask?.cancel() // No longer needed
-        }
-    }
-    
-    
-    private var volumeIcon: String {
-        if !musicManager.volumeControlSupported {
-            return "speaker.slash"
-        } else if volumeSliderValue == 0 {
-            return "speaker.slash.fill"
-        } else if volumeSliderValue < 0.33 {
-            return "speaker.1.fill"
-        } else if volumeSliderValue < 0.66 {
-            return "speaker.2.fill"
-        } else {
-            return "speaker.3.fill"
         }
     }
 }

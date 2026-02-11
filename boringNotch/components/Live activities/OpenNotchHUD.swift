@@ -21,13 +21,8 @@ struct OpenNotchHUD: View {
             Group {
                 switch type {
                 case .volume:
-                    if icon.isEmpty {
-                        Image(systemName: SpeakerSymbol(value))
-                            .contentTransition(.interpolate)
-                    } else {
-                        Image(systemName: icon)
-                            .contentTransition(.interpolate)
-                    }
+                    Image(systemName: icon.isEmpty ? VolumeManager.shared.volumeHUDSymbol(for: value) : icon)
+                        .contentTransition(.interpolate)
                 case .brightness:
                     Image(systemName: "sun.max.fill")
                         .contentTransition(.symbolEffect)
@@ -75,15 +70,6 @@ struct OpenNotchHUD: View {
                 .fill(Color.black)
                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
-    }
-    
-    func SpeakerSymbol(_ value: CGFloat) -> String {
-        switch(value) {
-            case 0: return "speaker.slash"
-            case 0...0.33: return "speaker.wave.1"
-            case 0.33...0.66: return "speaker.wave.2"
-            default: return "speaker.wave.3"
-        }
     }
     
     func updateSystemValue(_ newVal: CGFloat) {
