@@ -10,26 +10,12 @@ import Combine
 import CoreAudio
 import Foundation
 
-enum AudioOutputRouteKind: Equatable {
-    case builtInSpeaker
-    case wiredHeadphones
-    case airPods
-    case airPodsPro
-    case airPodsMax
-    case bluetoothHeadphones
-    case externalSpeaker
-    case unknown
-}
-
 final class VolumeManager: NSObject, ObservableObject {
     static let shared = VolumeManager()
 
     @Published private(set) var rawVolume: Float = 0
     @Published private(set) var isMuted: Bool = false
     @Published private(set) var lastChangeAt: Date = .distantPast
-    @Published private(set) var outputRouteKind: AudioOutputRouteKind = .unknown
-    @Published private(set) var outputDeviceName: String = ""
-    @Published private(set) var outputDeviceManufacturer: String = ""
 
     let visibleDuration: TimeInterval = 1.2
 
@@ -46,23 +32,6 @@ final class VolumeManager: NSObject, ObservableObject {
     }
 
     var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
-
-    func volumeHUDSymbol(for value: CGFloat) -> String {
-        let clampedValue = max(0, min(1, value))
-
-        switch outputRouteKind {
-        case .airPods:
-            return "airpods"
-        case .airPodsPro:
-            return "airpodspro"
-        case .airPodsMax:
-            return "airpodsmax"
-        case .wiredHeadphones, .bluetoothHeadphones:
-            return "headphones"
-        case .builtInSpeaker, .externalSpeaker, .unknown:
-            return speakerSymbol(for: clampedValue)
-        }
-    }
 
     // MARK: - Public Control API
     @MainActor func increase(stepDivisor: Float = 1.0) {
@@ -155,7 +124,6 @@ final class VolumeManager: NSObject, ObservableObject {
     private func fetchCurrentVolume() {
         let deviceID = systemOutputDeviceID()
         guard deviceID != kAudioObjectUnknown else { return }
-        refreshOutputRoute(deviceID: deviceID)
         var volumes: [Float32] = []
         let candidateElements: [UInt32] = [kAudioObjectPropertyElementMain, 1, 2, 3, 4]
         for element in candidateElements {
@@ -198,130 +166,6 @@ final class VolumeManager: NSObject, ObservableObject {
                     }
                 }
             }
-        }
-    }
-
-    private func refreshOutputRoute(deviceID: AudioObjectID) {
-        let deviceName = readStringProperty(deviceID: deviceID, selector: kAudioObjectPropertyName)
-        let manufacturer = readStringProperty(
-            deviceID: deviceID,
-            selector: kAudioObjectPropertyManufacturer
-        )
-        let transportType = readTransportType(deviceID: deviceID)
-        let route = classifyOutputRoute(
-            deviceName: deviceName,
-            manufacturer: manufacturer,
-            transportType: transportType
-        )
-
-        DispatchQueue.main.async {
-            if self.outputDeviceName != deviceName {
-                self.outputDeviceName = deviceName
-            }
-            if self.outputDeviceManufacturer != manufacturer {
-                self.outputDeviceManufacturer = manufacturer
-            }
-            if self.outputRouteKind != route {
-                self.outputRouteKind = route
-            }
-        }
-    }
-
-    private func classifyOutputRoute(
-        deviceName: String,
-        manufacturer: String,
-        transportType: UInt32?
-    ) -> AudioOutputRouteKind {
-        let normalizedName = deviceName.lowercased()
-
-        if normalizedName.contains("airpods max") {
-            return .airPodsMax
-        }
-        if normalizedName.contains("airpods pro") {
-            return .airPodsPro
-        }
-        if normalizedName.contains("airpods") {
-            return .airPods
-        }
-
-        let isHeadphonesLike = normalizedName.contains("headphone")
-            || normalizedName.contains("headset")
-            || normalizedName.contains("earbud")
-            || normalizedName.contains("earphone")
-            || normalizedName.contains("pods")
-
-        switch transportType {
-        case kAudioDeviceTransportTypeBuiltIn:
-            return isHeadphonesLike ? .wiredHeadphones : .builtInSpeaker
-        case kAudioDeviceTransportTypeBluetooth, kAudioDeviceTransportTypeBluetoothLE:
-            // AirPods variants are matched by name above; all other Bluetooth devices use default headphones icon.
-            return .bluetoothHeadphones
-        case kAudioDeviceTransportTypeUSB:
-            return .wiredHeadphones
-        case kAudioDeviceTransportTypeHDMI, kAudioDeviceTransportTypeDisplayPort:
-            return isHeadphonesLike ? .wiredHeadphones : .externalSpeaker
-        default:
-            if isHeadphonesLike {
-                return .wiredHeadphones
-            }
-            if normalizedName.contains("speaker") || normalizedName.contains("display") {
-                return .externalSpeaker
-            }
-            return .unknown
-        }
-    }
-
-    private func readTransportType(deviceID: AudioObjectID) -> UInt32? {
-        var transportType: UInt32 = 0
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyTransportType,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var dataSize = UInt32(MemoryLayout<UInt32>.size)
-
-        let status = AudioObjectGetPropertyData(
-            deviceID,
-            &address,
-            0,
-            nil,
-            &dataSize,
-            &transportType
-        )
-
-        return status == noErr ? transportType : nil
-    }
-
-    private func readStringProperty(
-        deviceID: AudioObjectID,
-        selector: AudioObjectPropertySelector
-    ) -> String {
-        var address = AudioObjectPropertyAddress(
-            mSelector: selector,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-
-        var value: CFString = "" as CFString
-        var propertySize: UInt32 = UInt32(MemoryLayout<CFString>.size)
-        guard AudioObjectGetPropertyData(deviceID, &address, 0, nil, &propertySize, &value) == noErr
-        else {
-            return ""
-        }
-
-        return value as String
-    }
-
-    private func speakerSymbol(for value: CGFloat) -> String {
-        switch value {
-        case 0:
-            return "speaker.slash"
-        case 0...0.33:
-            return "speaker.wave.1"
-        case 0.33...0.66:
-            return "speaker.wave.2"
-        default:
-            return "speaker.wave.3"
         }
     }
 

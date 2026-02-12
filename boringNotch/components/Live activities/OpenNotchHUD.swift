@@ -21,7 +21,7 @@ struct OpenNotchHUD: View {
             Group {
                 switch type {
                 case .volume:
-                    Image(systemName: icon.isEmpty ? VolumeManager.shared.volumeHUDSymbol(for: value) : icon)
+                    Image(systemName: icon.isEmpty ? AudioOutputRouteResolver.shared.volumeSymbol(for: value) : icon)
                         .contentTransition(.interpolate)
                 case .brightness:
                     Image(systemName: "sun.max.fill")

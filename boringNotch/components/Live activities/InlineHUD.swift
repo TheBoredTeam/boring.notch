@@ -21,7 +21,7 @@ struct InlineHUD: View {
                 Group {
                     switch (type) {
                         case .volume:
-                            Image(systemName: icon.isEmpty ? VolumeManager.shared.volumeHUDSymbol(for: value) : icon)
+                            Image(systemName: icon.isEmpty ? AudioOutputRouteResolver.shared.volumeSymbol(for: value) : icon)
                                 .contentTransition(.interpolate)
                                 .opacity(value.isZero ? 0.6 : 1)
                                 .scaleEffect(value.isZero ? 0.85 : 1)

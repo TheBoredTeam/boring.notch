@@ -335,7 +335,7 @@ struct VolumeControlView: View {
                     }
                 }
             }) {
-                Image(systemName: VolumeManager.shared.volumeHUDSymbol(for: CGFloat(volumeSliderValue)))
+                Image(systemName: AudioOutputRouteResolver.shared.volumeSymbol(for: CGFloat(volumeSliderValue)))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
             }
