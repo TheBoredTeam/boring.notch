@@ -75,10 +75,11 @@
 			11DB26782EDD0CDF001EA0CF /* BatterySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266A2EDD0CDF001EA0CF /* BatterySettingsView.swift */; };
 			11DB26792EDD0CDF001EA0CF /* AdvancedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */; };
 			11DB267A2EDD0CDF001EA0CF /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB26672EDD0CDF001EA0CF /* AboutView.swift */; };
-			11DB267B2EDD0CDF001EA0CF /* CalendarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266B2EDD0CDF001EA0CF /* CalendarSettingsView.swift */; };
-			11DB267C2EDD0CDF001EA0CF /* HUDSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266D2EDD0CDF001EA0CF /* HUDSettingsView.swift */; };
-			11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */; };
-			E1A100022F00000100ABCDEF /* EyeBreakReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A100012F00000100ABCDEF /* EyeBreakReminderManager.swift */; };
+				11DB267B2EDD0CDF001EA0CF /* CalendarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266B2EDD0CDF001EA0CF /* CalendarSettingsView.swift */; };
+				11DB267C2EDD0CDF001EA0CF /* HUDSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266D2EDD0CDF001EA0CF /* HUDSettingsView.swift */; };
+				11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */; };
+				E1A200022F01000100ABCDEF /* WellnessSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A200012F01000100ABCDEF /* WellnessSettingsView.swift */; };
+				E1A100022F00000100ABCDEF /* EyeBreakReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A100012F00000100ABCDEF /* EyeBreakReminderManager.swift */; };
 		11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */; };
 		11F747CE2EC75CEA00F841DB /* DragPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */; };
 		11F7485B2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = 11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -251,11 +252,12 @@
 		11DB266A2EDD0CDF001EA0CF /* BatterySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatterySettingsView.swift; sourceTree = "<group>"; };
 		11DB266B2EDD0CDF001EA0CF /* CalendarSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarSettingsView.swift; sourceTree = "<group>"; };
 		11DB266C2EDD0CDF001EA0CF /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
-		11DB266D2EDD0CDF001EA0CF /* HUDSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDSettingsView.swift; sourceTree = "<group>"; };
-		11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaSettingsView.swift; sourceTree = "<group>"; };
-		11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHelpers.swift; sourceTree = "<group>"; };
-		11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfSettingsView.swift; sourceTree = "<group>"; };
-		11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsSettingsView.swift; sourceTree = "<group>"; };
+			11DB266D2EDD0CDF001EA0CF /* HUDSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDSettingsView.swift; sourceTree = "<group>"; };
+			11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaSettingsView.swift; sourceTree = "<group>"; };
+			11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHelpers.swift; sourceTree = "<group>"; };
+			11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfSettingsView.swift; sourceTree = "<group>"; };
+			11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsSettingsView.swift; sourceTree = "<group>"; };
+			E1A200012F01000100ABCDEF /* WellnessSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WellnessSettingsView.swift; sourceTree = "<group>"; };
 		11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfItemViewModel.swift; sourceTree = "<group>"; };
 		11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragPreviewView.swift; sourceTree = "<group>"; };
 		11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = BoringNotchXPCHelper.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -474,12 +476,13 @@
 				11DB266C2EDD0CDF001EA0CF /* GeneralSettingsView.swift */,
 				11DB266D2EDD0CDF001EA0CF /* HUDSettingsView.swift */,
 				11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */,
-				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
-				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
-				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
+					11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
+					11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
+					11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
+					E1A200012F01000100ABCDEF /* WellnessSettingsView.swift */,
+				);
+				path = Views;
+				sourceTree = "<group>";
 		};
 		11F748672EC9AC9600F841DB /* XPCHelperClient */ = {
 			isa = PBXGroup;
@@ -1017,11 +1020,12 @@
 				11DB26772EDD0CDF001EA0CF /* SettingsHelpers.swift in Sources */,
 				11DB26782EDD0CDF001EA0CF /* BatterySettingsView.swift in Sources */,
 				11DB26792EDD0CDF001EA0CF /* AdvancedSettingsView.swift in Sources */,
-				11DB267A2EDD0CDF001EA0CF /* AboutView.swift in Sources */,
-				11DB267B2EDD0CDF001EA0CF /* CalendarSettingsView.swift in Sources */,
-				11DB267C2EDD0CDF001EA0CF /* HUDSettingsView.swift in Sources */,
-				11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */,
-				14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */,
+					11DB267A2EDD0CDF001EA0CF /* AboutView.swift in Sources */,
+					11DB267B2EDD0CDF001EA0CF /* CalendarSettingsView.swift in Sources */,
+					11DB267C2EDD0CDF001EA0CF /* HUDSettingsView.swift in Sources */,
+					11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */,
+					E1A200022F01000100ABCDEF /* WellnessSettingsView.swift in Sources */,
+					14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */,
 				B17266E32C65F7FB0031BA0D /* WhatsNewView.swift in Sources */,
 				14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */,
 				14D570CD2C5F4BB70011E668 /* BoringBattery.swift in Sources */,
