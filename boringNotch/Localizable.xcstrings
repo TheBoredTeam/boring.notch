@@ -902,6 +902,12 @@
         }
       }
     },
+    "%lld min" : {
+
+    },
+    "%lld sec" : {
+
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -1701,6 +1707,12 @@
           }
         }
       }
+    },
+    "Active interval" : {
+
+    },
+    "Active timer" : {
+
     },
     "Add" : {
       "extractionState" : "stale",
@@ -3104,6 +3116,9 @@
         }
       }
     },
+    "Available only in DEBUG builds." : {
+
+    },
     "Battery" : {
       "localizations" : {
         "ar" : {
@@ -3803,6 +3818,9 @@
           }
         }
       }
+    },
+    "Break countdown" : {
+
     },
     "Calendar" : {
       "localizations" : {
@@ -6005,6 +6023,9 @@
         }
       }
     },
+    "Counting time" : {
+
+    },
     "Currently selected: %@" : {
       "localizations" : {
         "ar" : {
@@ -6604,6 +6625,9 @@
           }
         }
       }
+    },
+    "Debug" : {
+
     },
     "Default" : {
       "localizations" : {
@@ -7509,6 +7533,9 @@
         }
       }
     },
+    "Due pending" : {
+
+    },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
       "localizations" : {
         "ar" : {
@@ -7908,6 +7935,9 @@
           }
         }
       }
+    },
+    "Enable eye-break reminders" : {
+
     },
     "Enable gestures" : {
       "localizations" : {
@@ -8909,6 +8939,9 @@
           }
         }
       }
+    },
+    "Eye break" : {
+
     },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
@@ -13918,6 +13951,9 @@
         }
       }
     },
+    "No" : {
+
+    },
     "No events" : {
       "localizations" : {
         "ar" : {
@@ -14219,7 +14255,7 @@
         }
       }
     },
-    "Normalize scroll/gesture direction" : {
+    "Normalize gesture direction" : {
 
     },
     "Not Now" : {
@@ -15322,6 +15358,9 @@
         }
       }
     },
+    "Pause media when reminder appears" : {
+
+    },
     "Pick a Color" : {
       "localizations" : {
         "ar" : {
@@ -15421,6 +15460,9 @@
           }
         }
       }
+    },
+    "Play sound for reminder and completion" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -16422,6 +16464,9 @@
         }
       }
     },
+    "Reminder settings" : {
+
+    },
     "Reminders" : {
       "localizations" : {
         "ar" : {
@@ -16921,6 +16966,9 @@
           }
         }
       }
+    },
+    "Reset" : {
+
     },
     "Reset to Defaults" : {
       "localizations" : {
@@ -19496,6 +19544,9 @@
         }
       }
     },
+    "Skip" : {
+
+    },
     "Slider color" : {
       "localizations" : {
         "ar" : {
@@ -19795,6 +19846,12 @@
           }
         }
       }
+    },
+    "Snooze %lldm" : {
+
+    },
+    "Snooze duration" : {
+
     },
     "Software updates" : {
       "localizations" : {
@@ -20798,6 +20855,9 @@
         }
       }
     },
+    "Trigger now" : {
+
+    },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
       "localizations" : {
         "ar" : {
@@ -21499,6 +21559,9 @@
         }
       }
     },
+    "Uses the 20-20-20 rule to reduce eye strain: every 20 minutes, look 20 feet away for 20 seconds." : {
+
+    },
     "Using System Accent" : {
       "localizations" : {
         "ar" : {
@@ -21999,6 +22062,9 @@
         }
       }
     },
+    "Wellness" : {
+
+    },
     "What's New" : {
       "localizations" : {
         "ar" : {
@@ -22298,6 +22364,9 @@
           }
         }
       }
+    },
+    "Yes" : {
+
     },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
       "localizations" : {

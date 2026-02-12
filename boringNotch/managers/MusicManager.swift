@@ -452,14 +452,24 @@ class MusicManager: ObservableObject {
 
     func play() {
         Task {
-            await activeController?.play()
+            await playAsync()
         }
     }
 
     func pause() {
         Task {
-            await activeController?.pause()
+            await pauseAsync()
         }
+    }
+
+    @MainActor
+    func playAsync() async {
+        await activeController?.play()
+    }
+
+    @MainActor
+    func pauseAsync() async {
+        await activeController?.pause()
     }
 
     func toggleShuffle() {
