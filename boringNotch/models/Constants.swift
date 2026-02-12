@@ -34,7 +34,7 @@ enum HideNotchOption: String, Defaults.Serializable {
 extension Notification.Name {
     // MARK: - Media
     static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
-    
+
     // MARK: - Display
     static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
     static let notchHeightChanged = Notification.Name("NotchHeightChanged")
@@ -189,6 +189,14 @@ extension Defaults.Keys {
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
     
+    // MARK: Wellness
+    static let eyeBreakEnabled = Key<Bool>("eyeBreakEnabled", default: true)
+    static let eyeBreakIntervalMinutes = Key<Int>("eyeBreakIntervalMinutes", default: 20)
+    static let eyeBreakDurationSeconds = Key<Int>("eyeBreakDurationSeconds", default: 20)
+    static let eyeBreakSnoozeMinutes = Key<Int>("eyeBreakSnoozeMinutes", default: 5)
+    static let eyeBreakSoundEnabled = Key<Bool>("eyeBreakSoundEnabled", default: true)
+    static let eyeBreakPauseMediaOnPopup = Key<Bool>("eyeBreakPauseMediaOnPopup", default: false)
+
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     

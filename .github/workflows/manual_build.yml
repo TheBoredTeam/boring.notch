@@ -75,13 +75,24 @@ jobs:
           EOF
           xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
           
+      - name: Install dmgbuild (use virtualenv)
+        run: |
+          # Create an isolated venv
+          VENV_DIR="$RUNNER_TEMP/venv"
+          python3 -m venv "$VENV_DIR"
+          source "$VENV_DIR/bin/activate"
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "dmgbuild[badge_icons]"
+
       - name: Create DMG
         run: |
-          cd Release
-          hdiutil create -volname "boringNotch" \
-                          -srcfolder "${{ env.projname }}.app" \
-                          -ov -format UDZO \
-                          "${{ env.projname }}.dmg"
+          # Ensure venv created in previous step is used (dmgbuild installed there)
+          VENV_DIR="$RUNNER_TEMP/venv"
+          if [ -d "$VENV_DIR" ]; then
+            export PATH="$VENV_DIR/bin:$PATH"
+          fi
+          chmod +x Configuration/dmg/create_dmg.sh
+          ./Configuration/dmg/create_dmg.sh "Release/${{ env.projname }}.app" "Release/${{ env.projname }}.dmg" "${{ env.projname }}"
                           
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4

@@ -40,6 +40,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "Wellness") {
+                    Label("Wellness", systemImage: "eye")
+                }
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
@@ -72,6 +75,8 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "Wellness":
+                    WellnessSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":

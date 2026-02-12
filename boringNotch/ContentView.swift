@@ -23,9 +23,13 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var eyeBreakReminder = EyeBreakReminderManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
+    @State private var didAutoOpenForEyeBreak: Bool = false
+    @State private var isClosingEyeBreakPanel: Bool = false
+    @State private var eyeBreakPanelSnapshot: EyeBreakBannerState?
 
     @State private var gestureProgress: CGFloat = .zero
 
@@ -170,13 +174,13 @@ struct ContentView: View {
                             }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
-                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
+                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive && eyeBreakReminder.banner == nil {
                             hoverTask?.cancel()
                             hoverTask = Task {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && self.eyeBreakReminder.banner == nil && !SharingStateManager.shared.preventNotchClose {
                                         self.vm.close()
                                     }
                                 }
@@ -191,13 +195,13 @@ struct ContentView: View {
                         }
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
-                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && eyeBreakReminder.banner == nil && !SharingStateManager.shared.preventNotchClose {
                             hoverTask?.cancel()
                             hoverTask = Task {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && self.eyeBreakReminder.banner == nil && !SharingStateManager.shared.preventNotchClose {
                                         self.vm.close()
                                     }
                                 }
@@ -235,6 +239,38 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onChange(of: eyeBreakReminder.banner != nil) { _, hasBanner in
+            if hasBanner {
+                eyeBreakPanelSnapshot = eyeBreakReminder.banner
+                isClosingEyeBreakPanel = false
+                guard vm.notchState == .closed else { return }
+                didAutoOpenForEyeBreak = true
+                withAnimation(animationSpring) {
+                    vm.open()
+                }
+            } else if didAutoOpenForEyeBreak {
+                didAutoOpenForEyeBreak = false
+                guard vm.notchState == .open else { return }
+                guard !SharingStateManager.shared.preventNotchClose else { return }
+                if eyeBreakPanelSnapshot == nil {
+                    eyeBreakPanelSnapshot = EyeBreakBannerState(
+                        remainingSeconds: 0,
+                        breakDurationSeconds: 1,
+                        snoozeMinutes: Defaults[.eyeBreakSnoozeMinutes]
+                    )
+                }
+                isClosingEyeBreakPanel = true
+                withAnimation(animationSpring) {
+                    vm.close()
+                }
+            }
+        }
+        .onChange(of: vm.notchState) { _, newState in
+            if newState == .closed {
+                isClosingEyeBreakPanel = false
+                eyeBreakPanelSnapshot = nil
+            }
+        }
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -369,11 +405,19 @@ struct ContentView: View {
               .zIndex(1)
             if vm.notchState == .open {
                 VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
-                    case .shelf:
-                        ShelfView()
+                    if let banner = currentEyeBreakPanelState {
+                        EyeBreakReminderPanel(
+                            banner: banner,
+                            onSkip: { handleEyeBreakAction { eyeBreakReminder.skipBreak() } },
+                            onSnooze: { handleEyeBreakAction { eyeBreakReminder.snoozeBreak() } }
+                        )
+                    } else {
+                        switch coordinator.currentView {
+                        case .home:
+                            NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        case .shelf:
+                            ShelfView()
+                        }
                     }
                 }
                 .transition(
@@ -533,6 +577,29 @@ struct ContentView: View {
         }
     }
 
+    private func handleEyeBreakAction(_ action: () -> Void) {
+        eyeBreakPanelSnapshot = eyeBreakReminder.banner
+        isClosingEyeBreakPanel = true
+        action()
+        didAutoOpenForEyeBreak = false
+        guard vm.notchState == .open else { return }
+        guard !SharingStateManager.shared.preventNotchClose else { return }
+        withAnimation(animationSpring) {
+            isHovering = false
+            vm.close()
+        }
+    }
+
+    private var currentEyeBreakPanelState: EyeBreakBannerState? {
+        if let liveBanner = eyeBreakReminder.banner {
+            return liveBanner
+        }
+        if isClosingEyeBreakPanel {
+            return eyeBreakPanelSnapshot
+        }
+        return nil
+    }
+
     // MARK: - Hover Management
 
     private func handleHover(_ hovering: Bool) {
@@ -574,7 +641,7 @@ struct ContentView: View {
                         self.isHovering = false
                     }
                     
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && self.eyeBreakReminder.banner == nil && !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }
                 }
@@ -633,6 +700,84 @@ struct ContentView: View {
                 haptics.toggle()
             }
         }
+    }
+}
+
+private struct EyeBreakReminderPanel: View {
+    let banner: EyeBreakBannerState
+    let onSkip: () -> Void
+    let onSnooze: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Label("Eye break", systemImage: "eye")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Spacer(minLength: 8)
+                Text(countdownText)
+                    .font(.system(size: 26, weight: .bold, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.95))
+            }
+
+            ProgressView(value: progressValue)
+                .tint(.white.opacity(0.9))
+                .controlSize(.small)
+
+            HStack(spacing: 10) {
+                Button("Skip", action: onSkip)
+                    .buttonStyle(EyeBreakReminderButtonStyle(variant: .secondary))
+                Spacer()
+                Button("Snooze \(banner.snoozeMinutes)m", action: onSnooze)
+                    .buttonStyle(EyeBreakReminderButtonStyle(variant: .primary))
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.black.opacity(0.88))
+        )
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
+        .shadow(color: .black.opacity(0.28), radius: 8, y: 3)
+        .animation(.smooth, value: banner.remainingSeconds)
+    }
+
+    private var countdownText: String {
+        let clamped = max(0, banner.remainingSeconds)
+        let minutes = clamped / 60
+        let seconds = clamped % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    private var progressValue: Double {
+        guard banner.breakDurationSeconds > 0 else { return 0 }
+        let completed = banner.breakDurationSeconds - max(0, banner.remainingSeconds)
+        return Double(completed) / Double(banner.breakDurationSeconds)
+    }
+}
+
+private struct EyeBreakReminderButtonStyle: ButtonStyle {
+    enum Variant {
+        case primary
+        case secondary
+    }
+
+    let variant: Variant
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(.white.opacity(variant == .primary ? 1.0 : 0.9))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(variant == .primary ? Color.white.opacity(0.22) : Color.white.opacity(0.12))
+            )
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.smooth(duration: 0.12), value: configuration.isPressed)
     }
 }
 
