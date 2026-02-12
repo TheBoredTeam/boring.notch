@@ -1201,6 +1201,12 @@
         }
       }
     },
+    "Accessibility Access Granted" : {
+
+    },
+    "Accessibility Access Required" : {
+
+    },
     "Add" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3003,6 +3009,9 @@
         }
       }
     },
+    "BetterDisplay" : {
+
+    },
     "Boring Notch" : {
       "localizations" : {
         "ar" : {
@@ -3202,6 +3211,9 @@
           }
         }
       }
+    },
+    "BoringNotch needs accessibility permissions to intercept media keys." : {
+
     },
     "Brightness Source" : {
 
@@ -9018,6 +9030,9 @@
         }
       }
     },
+    "Grant Access" : {
+
+    },
     "Hide all-day events" : {
       "localizations" : {
         "ar" : {
@@ -10629,6 +10644,9 @@
           }
         }
       }
+    },
+    "Lunar" : {
+
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
@@ -13038,6 +13056,9 @@
     "Normalize gesture direction" : {
 
     },
+    "Not Found" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -14148,6 +14169,9 @@
     },
     "OSD.ValueLabel" : {
       "comment" : "Label for OSD value slider"
+    },
+    "Permissions" : {
+
     },
     "Pick a Color" : {
       "localizations" : {
@@ -15551,6 +15575,9 @@
         }
       }
     },
+    "Required for built-in brightness, volume, and keyboard backlight control." : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -15853,7 +15880,6 @@
       }
     },
     "Running" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16123,7 +16149,7 @@
         }
       }
     },
-    "Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running." : {
+    "Select which provider to use for system controls." : {
 
     },
     "selected" : {

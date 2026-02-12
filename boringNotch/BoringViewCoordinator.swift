@@ -26,7 +26,7 @@ struct sneakPeek {
     var value: CGFloat = 0
     var icon: String = ""
     var accent: Color? = nil
-    var targetScreenUUID: String?
+    var targetScreenUUID: String? = nil
 }
 
 struct SharedSneakPeek: Codable {
@@ -203,35 +203,77 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
+    // MARK: - Per-Screen Sneak Peek Management
+
+    // Dictionary to hold sneak peek state for each screen UUID
+    @Published var sneakPeekStates: [String: sneakPeek] = [:]
+    
+    // Dictionary to hold hide tasks for each screen UUID
+    private var sneakPeekTasks: [String: Task<Void, Never>] = [:]
+    
+    // Default duration
+    private var defaultSneakPeekDuration: TimeInterval = 1.5
+
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
         icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil
     ) {
-        sneakPeekDuration = duration
         if type != .music {
             // close()
             if !Defaults[.osdReplacement] {
                 return
             }
         }
+        
         Task { @MainActor in
-            withAnimation(.smooth) {
-                self.sneakPeek.show = status
-                self.sneakPeek.type = type
-                self.sneakPeek.value = value
-                self.sneakPeek.icon = icon
-                self.sneakPeek.accent = accent
-                self.sneakPeek.targetScreenUUID = targetScreenUUID
+            // Helper to update state for a specific UUID
+            @MainActor
+            func updateState(for uuid: String) {
+                // If we don't have a state for this screen yet, initialize it
+                var state = self.sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+                
+                withAnimation(.smooth) {
+                    state.show = status
+                    state.type = type
+                    state.value = value
+                    state.icon = icon
+                    state.accent = accent
+                    state.targetScreenUUID = uuid // Ensure UUID is set
+                }
+                
+                self.sneakPeekStates[uuid] = state
+                
+                if status {
+                    self.scheduleSneakPeekHide(for: uuid, duration: duration)
+                } else {
+                    self.sneakPeekTasks[uuid]?.cancel()
+                    self.sneakPeekTasks[uuid] = nil
+                }
+            }
+            
+            if let targetUUID = targetScreenUUID {
+                // Update specific screen
+                updateState(for: targetUUID)
+            } else {
+                // Update ALL connected screens + the main screen as fallback
+                // We use known screen UUIDs from NSScreen
+                let screens = NSScreen.screens.compactMap { $0.displayUUID }
+                if screens.isEmpty {
+                    // Fallback if no screens detected (unlikely in UI app but safe)
+                     if let mainUUID = NSScreen.main?.displayUUID {
+                         updateState(for: mainUUID)
+                     }
+                } else {
+                    for uuid in screens {
+                        updateState(for: uuid)
+                    }
+                }
             }
         }
 
         if type == .mic {
             currentMicStatus = value == 1
         }
-    }
-
-    func shouldShowSneakPeek(on screenUUID: String?) -> Bool {
-        return sneakPeek.show && (sneakPeek.targetScreenUUID == nil || sneakPeek.targetScreenUUID == screenUUID)
     }
 
     private func applyOSDSources() {
@@ -262,31 +304,53 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
-    private var sneakPeekDuration: TimeInterval = 1.5
-    private var sneakPeekTask: Task<Void, Never>?
-
-    // Helper function to manage sneakPeek timer using Swift Concurrency
-    private func scheduleSneakPeekHide(after duration: TimeInterval) {
-        sneakPeekTask?.cancel()
-
-        sneakPeekTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(duration))
-            guard let self = self, !Task.isCancelled else { return }
-            await MainActor.run {
-                withAnimation {
-                    self.toggleSneakPeek(status: false, type: .music)
-                    self.sneakPeekDuration = 1.5
-                }
+    func shouldShowSneakPeek(on screenUUID: String?) -> Bool {
+        guard let uuid = screenUUID else { return false }
+        return sneakPeekStates[uuid]?.show == true
+    }
+    
+    var isAnySneakPeekShowing: Bool {
+        return sneakPeekStates.values.contains { $0.show }
+    }
+    
+    // Helper to get state safely for binding/reading
+    func sneakPeekState(for screenUUID: String?) -> sneakPeek {
+        guard let uuid = screenUUID else { return sneakPeek() }
+        return sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+    }
+    
+    // Helper to get binding for SwiftUI views
+    func binding(for screenUUID: String?) -> Binding<sneakPeek> {
+        Binding(
+            get: { [weak self] in
+                guard let self = self, let uuid = screenUUID else { return sneakPeek() }
+                return self.sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+            },
+            set: { [weak self] newValue in
+                guard let self = self, let uuid = screenUUID else { return }
+                self.sneakPeekStates[uuid] = newValue
             }
-        }
+        )
     }
 
-    @Published var sneakPeek: sneakPeek = .init() {
-        didSet {
-            if sneakPeek.show {
-                scheduleSneakPeekHide(after: sneakPeekDuration)
-            } else {
-                sneakPeekTask?.cancel()
+    private func scheduleSneakPeekHide(for screenUUID: String, duration: TimeInterval) {
+        sneakPeekTasks[screenUUID]?.cancel()
+
+        sneakPeekTasks[screenUUID] = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(duration))
+            guard let self = self, !Task.isCancelled else { return }
+            
+            await MainActor.run {
+                withAnimation {
+                    // We only want to hide it, not reset everything instantly which might cause glitches
+                    if var state = self.sneakPeekStates[screenUUID] {
+                         state.show = false
+                         // Optional: reset type to something default if needed, but keeping last state is often fine until next show
+                         // keeping original logic:
+                         state.type = .music 
+                         self.sneakPeekStates[screenUUID] = state
+                    }
+                }
             }
         }
     }

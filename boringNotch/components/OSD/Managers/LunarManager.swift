@@ -94,11 +94,27 @@ final class LunarManager: ObservableObject {
             return CGDirectDisplayID(number.uint32Value) == CGDirectDisplayID(display)
         }?.displayUUID
         
-        // Handle lunar "sub-zero" dimming: Lunar may return negative brightness values to indicate sub-zero dimming.
+        // Handle Lunar "sub-zero" dimming and XDR brightness
         let isSubZero = brightness < 0
-        let normalizedBrightness = isSubZero ? brightness + 1.0 : brightness
-        let iconString: String = isSubZero ? "moon.circle" : ""
-        let accentColor: Color? = isSubZero ? Color(red: 1, green: 0.443, blue: 0.509) : nil
+        let isXDR = brightness > 1.0
+
+        let normalizedBrightness: Double = switch true {
+            case isSubZero: max(0, 1 + brightness)
+            case isXDR:     min(1, brightness - 1)
+            default:        brightness
+        }
+
+        let iconString: String = switch true {
+            case isSubZero: "moon.circle"
+            case isXDR:     "sun.max.circle"
+            default:        ""
+        }
+
+        let accentColor: Color? = switch true {
+            case isSubZero: Color(red: 1,    green: 0.443, blue: 0.509)
+            case isXDR:     Color(red: 0.58, green: 0.647, blue: 0.78)
+            default:        nil
+        }
 
         Task { @MainActor in
             BoringViewCoordinator.shared.toggleSneakPeek(

@@ -361,9 +361,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if Defaults[.sneakPeekStyles] == .inline {
                 let newStatus = !self.coordinator.expandingView.show
                 self.coordinator.toggleExpandingView(status: newStatus, type: .music)
+                KeyboardShortcuts.onKeyUp(for: .toggleSneakPeek) {
+                    self.coordinator.toggleSneakPeek(
+                        status: !self.coordinator.isAnySneakPeekShowing,
+                        type: .music
+                    )
+                }
             } else {
                 self.coordinator.toggleSneakPeek(
-                    status: !self.coordinator.sneakPeek.show,
+                    status: !self.coordinator.isAnySneakPeekShowing,
                     type: .music,
                     duration: 3.0
                 )

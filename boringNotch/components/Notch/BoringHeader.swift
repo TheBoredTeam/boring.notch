@@ -38,8 +38,13 @@ struct BoringHeader: View {
 
             HStack(spacing: 4) {
                 if vm.notchState == .open {
-                    if isOSDType(coordinator.sneakPeek.type) && coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.showOpenNotchOSD] {
-                        OpenNotchOSD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, accent: $coordinator.sneakPeek.accent)
+                    if isOSDType(coordinator.sneakPeekState(for: vm.screenUUID).type) && coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.showOpenNotchOSD] {
+                        OpenNotchOSD(
+                             type: coordinator.binding(for: vm.screenUUID).type,
+                             value: coordinator.binding(for: vm.screenUUID).value,
+                             icon: coordinator.binding(for: vm.screenUUID).icon,
+                             accent: coordinator.binding(for: vm.screenUUID).accent
+                        )
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
                         if Defaults[.showMirror] {
