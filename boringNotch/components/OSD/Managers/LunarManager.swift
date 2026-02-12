@@ -9,6 +9,7 @@ import Foundation
 import AppKit
 import CoreGraphics
 import SwiftUI
+import Combine
 
 final class LunarManager: ObservableObject {
     static let shared = LunarManager()
@@ -16,10 +17,23 @@ final class LunarManager: ObservableObject {
     @Published private(set) var isLunarAvailable: Bool = false
     @Published private(set) var isListening: Bool = false
     
+    /// Tracks the last value sent to setLunarOSDHidden to avoid redundant XPC calls.
+    private var lastOSDHidden: Bool?
+    
     private var eventListener: LunarEventListener?
+    private var cancellables: Set<AnyCancellable> = []
     
     private init() {
         refreshAvailability()
+        // Restore Lunar OSD when we quit so the user gets it back
+        NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)
+            .sink { _ in
+                Task {
+                    // Always restore on termination regardless of lastOSDHidden
+                    _ = await XPCHelperClient.shared.setLunarOSDHidden(false)
+                }
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - Availability
@@ -62,6 +76,13 @@ final class LunarManager: ObservableObject {
         }
     }
     
+    /// Asks the XPC helper to write Lunar's hideOSD preference (disable Lunar's OSD when we replace it, restore when we don't).
+    func configureLunarOSD(hide: Bool) {
+        guard hide != lastOSDHidden else { return }
+        lastOSDHidden = hide
+        Task { _ = await XPCHelperClient.shared.setLunarOSDHidden(hide) }
+    }
+
     // MARK: - Brightness Handling
     
     private func handleBrightnessChange(display: Int, brightness: Double) {

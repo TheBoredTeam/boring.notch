@@ -333,5 +333,20 @@ final class XPCHelperClient: NSObject {
             return
         }
     }
+
+    nonisolated func setLunarOSDHidden(_ hide: Bool) async -> Bool {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.setLunarOSDHidden(hide) { ok in
+                    continuation.resume(returning: ok)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
 }
 
