@@ -238,6 +238,7 @@ class BoringViewCoordinator: ObservableObject {
         guard Defaults[.osdReplacement] else {
             BetterDisplayManager.shared.stopObserving()
             LunarManager.shared.stopListening()
+            LunarManager.shared.configureLunarOSD(hide: false)
             return
         }
 
@@ -251,11 +252,13 @@ class BoringViewCoordinator: ObservableObject {
             BetterDisplayManager.shared.stopObserving()
         }
 
-        // Lunar only supports brightness
+        // Lunar only supports brightness; disable Lunar's OSD when we replace it, restore when we don't
         if brightness == .lunar {
+            LunarManager.shared.configureLunarOSD(hide: true)
             LunarManager.shared.startListening()
         } else {
             LunarManager.shared.stopListening()
+            LunarManager.shared.configureLunarOSD(hide: false)
         }
     }
 

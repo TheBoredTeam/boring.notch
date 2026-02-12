@@ -317,6 +317,21 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
     }
 
+    // MARK: - Lunar OSD preference (hideOSD)
+
+    private static let lunarBundleID = "fyi.lunar.Lunar"
+    private static let lunarHideOSDKey = "hideOSD"
+
+    @objc func setLunarOSDHidden(_ hide: Bool, with reply: @escaping (Bool) -> Void) {
+        let appID = Self.lunarBundleID as CFString
+        let key = Self.lunarHideOSDKey as CFString
+        let value = hide as CFBoolean
+        NSLog("Hide OSD in Lunar: \(hide)")
+        CFPreferencesSetValue(key, value, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+        let ok = CFPreferencesSynchronize(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+        reply(ok)
+    }
+
     // MARK: - Private helpers for DisplayServices / IOKit access
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesGetBrightness") else { return false }

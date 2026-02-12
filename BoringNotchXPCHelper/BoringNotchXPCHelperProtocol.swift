@@ -55,6 +55,8 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func isLunarAvailable(with reply: @escaping (Bool) -> Void)
     func startLunarEventStream(with reply: @escaping (Bool) -> Void)
     func stopLunarEventStream()
+    /// Write Lunar's hideOSD preference (disable/enable Lunar's OSD when we replace it).
+    func setLunarOSDHidden(_ hide: Bool, with reply: @escaping (Bool) -> Void)
 }
 
 /*
