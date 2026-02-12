@@ -14219,6 +14219,9 @@
         }
       }
     },
+    "No Input Devices Available" : {
+
+    },
     "Normalize gesture direction" : {
 
     },
@@ -19908,6 +19911,9 @@
           }
         }
       }
+    },
+    "Sound Settings…" : {
+
     },
     "Speed" : {
       "extractionState" : "stale",

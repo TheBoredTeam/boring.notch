@@ -74,6 +74,30 @@ struct BoringHeader: View {
                                     }
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .contextMenu {
+                                if microphoneManager.availableInputDevices.isEmpty {
+                                    Button("No Input Devices Available") {}
+                                        .disabled(true)
+                                } else {
+                                    ForEach(microphoneManager.availableInputDevices) { device in
+                                        Button(action: {
+                                            microphoneManager.setDefaultInputDevice(device.id)
+                                        }) {
+                                            if device.isCurrentDefault {
+                                                Label(device.name, systemImage: "checkmark")
+                                            } else {
+                                                Text(device.name)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Divider()
+
+                                Button("Sound Settings…") {
+                                    microphoneManager.openInputSoundSettings()
+                                }
+                            }
                         }
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
@@ -114,6 +138,9 @@ struct BoringHeader: View {
         }
         .foregroundColor(.gray)
         .environmentObject(vm)
+        .onAppear {
+            microphoneManager.refreshAvailableInputDevices()
+        }
     }
 
     func isHUDType(_ type: SneakContentType) -> Bool {

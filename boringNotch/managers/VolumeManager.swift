@@ -371,11 +371,18 @@ final class VolumeManager: NSObject, ObservableObject {
     }
 }
 
+struct InputDevice: Identifiable, Equatable {
+    let id: AudioObjectID
+    let name: String
+    let isCurrentDefault: Bool
+}
+
 final class MicrophoneManager: NSObject, ObservableObject {
     static let shared = MicrophoneManager()
 
     @Published private(set) var isMuted: Bool = false
     @Published private(set) var lastChangeAt: Date = .distantPast
+    @Published private(set) var availableInputDevices: [InputDevice] = []
 
     let visibleDuration: TimeInterval = 1.2
 
@@ -387,6 +394,7 @@ final class MicrophoneManager: NSObject, ObservableObject {
     private let audioQueueKey = DispatchSpecificKey<Void>()
 
     private var defaultInputDeviceListener: AudioObjectPropertyListenerBlock = { _, _ in }
+    private var devicesListener: AudioObjectPropertyListenerBlock = { _, _ in }
     private var inputDeviceListener: AudioObjectPropertyListenerBlock = { _, _ in }
 
     private override init() {
@@ -397,6 +405,14 @@ final class MicrophoneManager: NSObject, ObservableObject {
             guard let self else { return }
             self.rebindInputDeviceListeners()
             self.fetchCurrentMute()
+            self.refreshAvailableInputDevicesInternal()
+        }
+
+        devicesListener = { [weak self] _, _ in
+            guard let self else { return }
+            self.rebindInputDeviceListeners()
+            self.fetchCurrentMute()
+            self.refreshAvailableInputDevicesInternal()
         }
 
         inputDeviceListener = { [weak self] _, _ in
@@ -413,10 +429,12 @@ final class MicrophoneManager: NSObject, ObservableObject {
     deinit {
         if DispatchQueue.getSpecific(key: audioQueueKey) != nil {
             removeDefaultInputDeviceListener()
+            removeDevicesListener()
             removeInputDeviceListeners(from: currentInputDeviceID)
         } else {
             audioQueue.sync {
                 self.removeDefaultInputDeviceListener()
+                self.removeDevicesListener()
                 self.removeInputDeviceListeners(from: self.currentInputDeviceID)
             }
         }
@@ -445,6 +463,63 @@ final class MicrophoneManager: NSObject, ObservableObject {
         }
     }
 
+    func refreshAvailableInputDevices() {
+        audioQueue.async { [weak self] in
+            self?.refreshAvailableInputDevicesInternal()
+        }
+    }
+
+    func setDefaultInputDevice(_ deviceID: AudioObjectID) {
+        audioQueue.async { [weak self] in
+            guard let self else { return }
+            guard self.isInputCapableDevice(deviceID) else {
+                print("❌ [MicrophoneManager] Device \(deviceID) is not input-capable")
+                return
+            }
+
+            var defaultInputAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioHardwarePropertyDefaultInputDevice,
+                mScope: kAudioObjectPropertyScopeGlobal,
+                mElement: kAudioObjectPropertyElementMain
+            )
+            var targetDeviceID = deviceID
+            let dataSize = UInt32(MemoryLayout<AudioObjectID>.size)
+
+            let status = AudioObjectSetPropertyData(
+                AudioObjectID(kAudioObjectSystemObject),
+                &defaultInputAddress,
+                0,
+                nil,
+                dataSize,
+                &targetDeviceID
+            )
+
+            if status == noErr {
+                self.rebindInputDeviceListeners()
+                self.fetchCurrentMute()
+                self.refreshAvailableInputDevicesInternal()
+            } else {
+                print("❌ [MicrophoneManager] Failed to set default input device \(deviceID), status: \(status)")
+            }
+        }
+    }
+
+    func openInputSoundSettings() {
+        let settingsURLs = [
+            "x-apple.systempreferences:com.apple.preference.sound?input",
+            "x-apple.systempreferences:com.apple.preference.sound",
+        ]
+
+        DispatchQueue.main.async {
+            for urlString in settingsURLs {
+                guard let url = URL(string: urlString) else { continue }
+                if NSWorkspace.shared.open(url) {
+                    return
+                }
+            }
+        }
+    }
+
     private func setupAudioListener() {
         var defaultInputAddress = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultInputDevice,
@@ -458,7 +533,20 @@ final class MicrophoneManager: NSObject, ObservableObject {
             defaultInputDeviceListener
         )
 
+        var devicesAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDevices,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        AudioObjectAddPropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject),
+            &devicesAddress,
+            audioQueue,
+            devicesListener
+        )
+
         rebindInputDeviceListeners()
+        refreshAvailableInputDevicesInternal()
     }
 
     private func removeDefaultInputDeviceListener() {
@@ -472,6 +560,20 @@ final class MicrophoneManager: NSObject, ObservableObject {
             &defaultInputAddress,
             audioQueue,
             defaultInputDeviceListener
+        )
+    }
+
+    private func removeDevicesListener() {
+        var devicesAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDevices,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        AudioObjectRemovePropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject),
+            &devicesAddress,
+            audioQueue,
+            devicesListener
         )
     }
 
@@ -567,6 +669,133 @@ final class MicrophoneManager: NSObject, ObservableObject {
             return kAudioObjectUnknown
         }
         return defaultDeviceID
+    }
+
+    private func refreshAvailableInputDevicesInternal() {
+        let defaultInputDeviceID = systemInputDeviceID()
+        let devices = allAudioDeviceIDs()
+
+        let inputDevices = devices.compactMap { deviceID -> InputDevice? in
+            guard isInputCapableDevice(deviceID) else { return nil }
+            let displayName = deviceName(for: deviceID) ?? "Unknown Input"
+            return InputDevice(
+                id: deviceID,
+                name: displayName,
+                isCurrentDefault: deviceID == defaultInputDeviceID
+            )
+        }
+        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+
+        DispatchQueue.main.async {
+            self.availableInputDevices = inputDevices
+        }
+    }
+
+    private func allAudioDeviceIDs() -> [AudioObjectID] {
+        var propertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDevices,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+
+        var dataSize: UInt32 = 0
+        guard AudioObjectGetPropertyDataSize(
+            AudioObjectID(kAudioObjectSystemObject),
+            &propertyAddress,
+            0,
+            nil,
+            &dataSize
+        ) == noErr else {
+            return []
+        }
+
+        let deviceCount = Int(dataSize) / MemoryLayout<AudioObjectID>.size
+        guard deviceCount > 0 else { return [] }
+
+        var deviceIDs = [AudioObjectID](repeating: kAudioObjectUnknown, count: deviceCount)
+        guard AudioObjectGetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject),
+            &propertyAddress,
+            0,
+            nil,
+            &dataSize,
+            &deviceIDs
+        ) == noErr else {
+            return []
+        }
+
+        return deviceIDs.filter { $0 != kAudioObjectUnknown }
+    }
+
+    private func isInputCapableDevice(_ deviceID: AudioObjectID) -> Bool {
+        var streamConfigAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyStreamConfiguration,
+            mScope: kAudioDevicePropertyScopeInput,
+            mElement: kAudioObjectPropertyElementMain
+        )
+
+        guard AudioObjectHasProperty(deviceID, &streamConfigAddress) else { return false }
+
+        var dataSize: UInt32 = 0
+        guard AudioObjectGetPropertyDataSize(
+            deviceID,
+            &streamConfigAddress,
+            0,
+            nil,
+            &dataSize
+        ) == noErr, dataSize > 0 else {
+            return false
+        }
+
+        let rawBufferList = UnsafeMutableRawPointer.allocate(
+            byteCount: Int(dataSize),
+            alignment: MemoryLayout<AudioBufferList>.alignment
+        )
+        defer { rawBufferList.deallocate() }
+
+        guard AudioObjectGetPropertyData(
+            deviceID,
+            &streamConfigAddress,
+            0,
+            nil,
+            &dataSize,
+            rawBufferList
+        ) == noErr else {
+            return false
+        }
+
+        let audioBufferList = rawBufferList.assumingMemoryBound(to: AudioBufferList.self)
+        let buffers = UnsafeMutableAudioBufferListPointer(audioBufferList)
+        let channelCount = buffers.reduce(0) { partial, buffer in
+            partial + Int(buffer.mNumberChannels)
+        }
+
+        return channelCount > 0
+    }
+
+    private func deviceName(for deviceID: AudioObjectID) -> String? {
+        var nameAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioObjectPropertyName,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+
+        guard AudioObjectHasProperty(deviceID, &nameAddress) else { return nil }
+
+        var name: CFString = "" as CFString
+        var dataSize = UInt32(MemoryLayout<CFString>.size)
+
+        let status = AudioObjectGetPropertyData(
+            deviceID,
+            &nameAddress,
+            0,
+            nil,
+            &dataSize,
+            &name
+        )
+
+        guard status == noErr else { return nil }
+        return name as String
     }
 
     private func fetchCurrentMute() {
