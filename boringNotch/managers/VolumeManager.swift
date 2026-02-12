@@ -374,5 +374,3 @@ final class VolumeManager: NSObject, ObservableObject {
 extension Array where Element == Float32 {
     fileprivate var average: Float32? { isEmpty ? nil : reduce(0, +) / Float32(count) }
 }
-
-
