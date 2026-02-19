@@ -310,9 +310,10 @@ struct CalendarView: View {
     private var eventsSection: some View {
         if filteredEvents.isEmpty {
             EmptyEventsView(selectedDate: selectedDate)
-                .frame(maxHeight: .infinity, alignment: .center)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         } else {
             EventListView(events: calendarManager.events)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 
@@ -490,6 +491,7 @@ struct EventListView: View {
             .scrollIndicators(.never)
             .scrollContentBackground(.hidden)
             .background(Color.clear)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .onAppear {
                 scrollToRelevantEvent(proxy: proxy)
             }
@@ -497,7 +499,7 @@ struct EventListView: View {
                 scrollToRelevantEvent(proxy: proxy)
             }
         }
-        Spacer(minLength: 0)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private func eventRow(_ event: EventModel) -> some View {
@@ -552,6 +554,7 @@ struct EventListView: View {
                     )
                 }
                 .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
             )
         } else {
             return AnyView(
@@ -596,6 +599,7 @@ struct EventListView: View {
                 .opacity(
                     event.eventStatus == .ended && Calendar.current.isDateInToday(event.start)
                         ? 0.6 : 1.0)
+                .frame(maxWidth: .infinity, alignment: .leading)
             )
         }
     }
