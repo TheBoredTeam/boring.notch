@@ -282,8 +282,9 @@ struct CalendarView: View {
                         .frame(width: 220)
 
                     eventsSection
-                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .onChange(of: selectedDate) {

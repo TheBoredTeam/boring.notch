@@ -446,6 +446,10 @@ struct NotchHomeView: View {
     private var shouldUseMonthAndEventsCalendar: Bool {
         !shouldShowMusicPlayer && Defaults[.showCalendar] && !shouldShowCamera
     }
+    
+    private var shouldUseExpandedHomeLayout: Bool {
+        !shouldShowMusicPlayer
+    }
 
     private var mainContent: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
@@ -456,7 +460,7 @@ struct NotchHomeView: View {
             if Defaults[.showCalendar] {
                 CalendarView(layoutStyle: shouldUseMonthAndEventsCalendar ? .monthAndEvents : .compact)
                     .frame(maxWidth: shouldUseMonthAndEventsCalendar ? .infinity : nil, alignment: .leading)
-                    .frame(width: shouldUseMonthAndEventsCalendar ? nil : (shouldShowCamera ? 170 : 215))
+                    .frame(width: shouldUseMonthAndEventsCalendar ? nil : (shouldShowMusicPlayer && shouldShowCamera ? 170 : 215))
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
@@ -467,11 +471,13 @@ struct NotchHomeView: View {
             if shouldShowCamera {
                 CameraPreviewView(webcamManager: webcamManager)
                     .scaledToFit()
+                    .frame(maxWidth: shouldUseExpandedHomeLayout ? .infinity : nil, alignment: .topLeading)
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
                     .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
             }
         }
+        .frame(maxWidth: shouldUseExpandedHomeLayout ? .infinity : nil, alignment: .leading)
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
