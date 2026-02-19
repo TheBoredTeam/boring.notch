@@ -354,9 +354,13 @@ struct FullMonthCalendarView: View {
     private var shortWeekdaySymbols: [String] {
         let formatter = DateFormatter()
         formatter.locale = .current
-        let symbols = formatter.veryShortStandaloneWeekdaySymbols
+        let symbols = formatter.veryShortStandaloneWeekdaySymbols ?? formatter.shortStandaloneWeekdaySymbols ?? ["S", "M", "T", "W", "T", "F", "S"]
+        guard !symbols.isEmpty else { return ["S", "M", "T", "W", "T", "F", "S"] }
+
         let shift = max(0, min(calendar.firstWeekday - 1, symbols.count - 1))
-        return Array(symbols[shift...] + symbols[..<shift])
+        let head = Array(symbols[shift...])
+        let tail = Array(symbols[..<shift])
+        return head + tail
     }
 
     private var monthGridDates: [Date?] {
