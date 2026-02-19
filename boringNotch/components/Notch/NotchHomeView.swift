@@ -451,34 +451,53 @@ struct NotchHomeView: View {
     private var shouldUseExpandedHomeLayout: Bool {
         !shouldShowMusicPlayer
     }
+    
+    private var compactCameraWidth: CGFloat {
+        max(150, min(220, vm.notchSize.height - 24))
+    }
 
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            if shouldShowMusicPlayer {
-                MusicPlayerView(albumArtNamespace: albumArtNamespace)
-            }
+        GeometryReader { geometry in
+            let spacing: CGFloat = (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15
+            let shouldExpandCalendarForCamera = !shouldShowMusicPlayer && Defaults[.showCalendar] && shouldShowCamera
+            let calendarWidth: CGFloat? = {
+                guard Defaults[.showCalendar] else { return nil }
+                if shouldUseMonthAndEventsCalendar {
+                    return geometry.size.width
+                }
+                if shouldExpandCalendarForCamera {
+                    return max(220, geometry.size.width - compactCameraWidth - spacing)
+                }
+                return (shouldShowMusicPlayer && shouldShowCamera) ? 170 : 215
+            }()
+            
+            HStack(alignment: .top, spacing: spacing) {
+                if shouldShowMusicPlayer {
+                    MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                }
 
-            if Defaults[.showCalendar] {
-                CalendarView(layoutStyle: shouldUseMonthAndEventsCalendar ? .monthAndEvents : .compact)
-                    .frame(maxWidth: shouldUseMonthAndEventsCalendar ? .infinity : nil, alignment: .leading)
-                    .frame(width: shouldUseMonthAndEventsCalendar ? nil : (shouldShowMusicPlayer && shouldShowCamera ? 170 : 215))
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
-                    }
-                    .environmentObject(vm)
-                    .transition(.opacity)
-            }
+                if Defaults[.showCalendar] {
+                    CalendarView(layoutStyle: shouldUseMonthAndEventsCalendar ? .monthAndEvents : .compact)
+                        .frame(width: calendarWidth, alignment: .leading)
+                        .onHover { isHovering in
+                            vm.isHoveringCalendar = isHovering
+                        }
+                        .environmentObject(vm)
+                        .transition(.opacity)
+                }
 
-            if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .frame(maxWidth: shouldUseExpandedHomeLayout ? .infinity : nil, alignment: .topLeading)
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
-                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                if shouldShowCamera {
+                    CameraPreviewView(webcamManager: webcamManager)
+                        .scaledToFit()
+                        .frame(width: shouldShowMusicPlayer ? nil : compactCameraWidth, alignment: .topLeading)
+                        .opacity(vm.notchState == .closed ? 0 : 1)
+                        .blur(radius: vm.notchState == .closed ? 20 : 0)
+                        .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                }
             }
+            .frame(maxWidth: shouldUseExpandedHomeLayout ? .infinity : nil, maxHeight: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: shouldUseExpandedHomeLayout ? .infinity : nil, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }

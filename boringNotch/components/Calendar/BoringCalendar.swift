@@ -277,12 +277,19 @@ struct CalendarView: View {
                     eventsSection
                 }
             case .monthAndEvents:
-                HStack(alignment: .top, spacing: 12) {
-                    FullMonthCalendarView(selectedDate: $selectedDate)
-                        .frame(width: 220)
+                GeometryReader { geometry in
+                    let monthWidth: CGFloat = 220
+                    let columnSpacing: CGFloat = 12
+                    let eventsWidth = max(0, geometry.size.width - monthWidth - columnSpacing)
 
-                    eventsSection
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    HStack(alignment: .top, spacing: columnSpacing) {
+                        FullMonthCalendarView(selectedDate: $selectedDate)
+                            .frame(width: monthWidth)
+
+                        eventsSection
+                            .frame(width: eventsWidth, maxHeight: .infinity, alignment: .topLeading)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
