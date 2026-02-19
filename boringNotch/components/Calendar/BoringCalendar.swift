@@ -8,6 +8,11 @@
 import Defaults
 import SwiftUI
 
+enum CalendarLayoutStyle {
+    case compact
+    case monthAndEvents
+}
+
 struct Config: Equatable {
     //    var count: Int = 10  // 3 days past + today + 7 days future
     var past: Int = 7
@@ -233,46 +238,52 @@ struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject private var calendarManager = CalendarManager.shared
     @State private var selectedDate = Date()
+    var layoutStyle: CalendarLayoutStyle = .compact
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .center, spacing: 8) {
-                VStack(alignment: .leading) {
-                    Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                    Text(selectedDate.formatted(.dateTime.year()))
-                        .font(.title3)
-                        .fontWeight(.light)
-                        .foregroundColor(Color(white: 0.65))
-                }
+        Group {
+            switch layoutStyle {
+            case .compact:
+                VStack(spacing: 0) {
+                    HStack(alignment: .center, spacing: 8) {
+                        VStack(alignment: .leading) {
+                            Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                            Text(selectedDate.formatted(.dateTime.year()))
+                                .font(.title3)
+                                .fontWeight(.light)
+                                .foregroundColor(Color(white: 0.65))
+                        }
 
-                ZStack(alignment: .top) {
-                    WheelPicker(selectedDate: $selectedDate, config: Config())
-                    HStack(alignment: .top) {
-                        LinearGradient(
-                            colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
-                        Spacer()
-                        LinearGradient(
-                            colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
+                        ZStack(alignment: .top) {
+                            WheelPicker(selectedDate: $selectedDate, config: Config())
+                            HStack(alignment: .top) {
+                                LinearGradient(
+                                    colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
+                                )
+                                .frame(width: 20)
+                                Spacer()
+                                LinearGradient(
+                                    colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
+                                )
+                                .frame(width: 20)
+                            }
+                        }
                     }
-                }
-            }
-            .fixedSize(horizontal: false, vertical: true)
+                    .fixedSize(horizontal: false, vertical: true)
 
-            let filteredEvents = EventListView.filteredEvents(
-                events: calendarManager.events
-            )
-            if filteredEvents.isEmpty {
-                EmptyEventsView(selectedDate: selectedDate)
-                    .frame(maxHeight: .infinity, alignment: .center)
-            } else {
-                EventListView(events: calendarManager.events)
+                    eventsSection
+                }
+            case .monthAndEvents:
+                HStack(alignment: .top, spacing: 12) {
+                    FullMonthCalendarView(selectedDate: $selectedDate)
+                        .frame(width: 220)
+
+                    eventsSection
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
             }
         }
         .onChange(of: selectedDate) {
@@ -292,6 +303,99 @@ struct CalendarView: View {
                 selectedDate = Date.now
             }
         }
+    }
+
+    @ViewBuilder
+    private var eventsSection: some View {
+        if filteredEvents.isEmpty {
+            EmptyEventsView(selectedDate: selectedDate)
+                .frame(maxHeight: .infinity, alignment: .center)
+        } else {
+            EventListView(events: calendarManager.events)
+        }
+    }
+
+    private var filteredEvents: [EventModel] {
+        EventListView.filteredEvents(events: calendarManager.events)
+    }
+}
+
+struct FullMonthCalendarView: View {
+    @Binding var selectedDate: Date
+    private let calendar = Calendar.current
+    private let dayColumns = Array(repeating: GridItem(.flexible(minimum: 22), spacing: 4), count: 7)
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(selectedDate.formatted(.dateTime.month(.abbreviated).year()))
+                .font(.headline)
+                .foregroundColor(.white)
+
+            LazyVGrid(columns: dayColumns, spacing: 4) {
+                ForEach(shortWeekdaySymbols, id: \.self) { symbol in
+                    Text(symbol)
+                        .font(.caption2)
+                        .foregroundColor(Color(white: 0.65))
+                        .frame(maxWidth: .infinity)
+                }
+
+                ForEach(Array(monthGridDates.enumerated()), id: \.offset) { _, value in
+                    if let day = value {
+                        dayButton(day)
+                    } else {
+                        Color.clear
+                            .frame(height: 22)
+                    }
+                }
+            }
+        }
+    }
+
+    private var shortWeekdaySymbols: [String] {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        let symbols = formatter.veryShortStandaloneWeekdaySymbols
+        let shift = max(0, min(calendar.firstWeekday - 1, symbols.count - 1))
+        return Array(symbols[shift...] + symbols[..<shift])
+    }
+
+    private var monthGridDates: [Date?] {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: selectedDate),
+              let monthRange = calendar.range(of: .day, in: .month, for: selectedDate)
+        else {
+            return []
+        }
+
+        let firstDay = monthInterval.start
+        let weekday = calendar.component(.weekday, from: firstDay)
+        let firstWeekdayIndex = (weekday - calendar.firstWeekday + 7) % 7
+
+        var days: [Date?] = Array(repeating: nil, count: firstWeekdayIndex)
+        for day in monthRange {
+            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDay) {
+                days.append(date)
+            }
+        }
+
+        return days
+    }
+
+    private func dayButton(_ day: Date) -> some View {
+        let isSelected = calendar.isDate(day, inSameDayAs: selectedDate)
+        let isToday = calendar.isDateInToday(day)
+
+        return Button {
+            selectedDate = day
+        } label: {
+            Text("\(calendar.component(.day, from: day))")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(isSelected ? .white : Color(white: isToday ? 0.95 : 0.7))
+                .frame(maxWidth: .infinity, minHeight: 22)
+                .background(isSelected ? Color.effectiveAccent : .clear)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

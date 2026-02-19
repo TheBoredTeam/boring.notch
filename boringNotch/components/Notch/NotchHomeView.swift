@@ -443,8 +443,8 @@ struct NotchHomeView: View {
         }
     }
     
-    private var shouldUseExpandedLayout: Bool {
-        !shouldShowMusicPlayer
+    private var shouldUseMonthAndEventsCalendar: Bool {
+        !shouldShowMusicPlayer && Defaults[.showCalendar] && !shouldShowCamera
     }
 
     private var mainContent: some View {
@@ -454,12 +454,9 @@ struct NotchHomeView: View {
             }
 
             if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(
-                        maxWidth: shouldUseExpandedLayout ? .infinity : nil,
-                        alignment: .leading
-                    )
-                    .frame(width: shouldUseExpandedLayout ? nil : (shouldShowCamera ? 170 : 215))
+                CalendarView(layoutStyle: shouldUseMonthAndEventsCalendar ? .monthAndEvents : .compact)
+                    .frame(maxWidth: shouldUseMonthAndEventsCalendar ? .infinity : nil, alignment: .leading)
+                    .frame(width: shouldUseMonthAndEventsCalendar ? nil : (shouldShowCamera ? 170 : 215))
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
@@ -470,16 +467,11 @@ struct NotchHomeView: View {
             if shouldShowCamera {
                 CameraPreviewView(webcamManager: webcamManager)
                     .scaledToFit()
-                    .frame(
-                        maxWidth: shouldUseExpandedLayout ? .infinity : nil,
-                        alignment: .top
-                    )
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
                     .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
