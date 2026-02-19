@@ -414,6 +414,8 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var musicManager = MusicManager.shared
+    @Default(.musicPlayerVisibilityMode) private var musicPlayerVisibilityMode
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
@@ -430,9 +432,22 @@ struct NotchHomeView: View {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
+    private var shouldShowMusicPlayer: Bool {
+        switch musicPlayerVisibilityMode {
+        case .always:
+            return true
+        case .onlyWhenPlaying:
+            return musicManager.isPlaying
+        case .never:
+            return false
+        }
+    }
+
     private var mainContent: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+            if shouldShowMusicPlayer {
+                MusicPlayerView(albumArtNamespace: albumArtNamespace)
+            }
 
             if Defaults[.showCalendar] {
                 CalendarView()

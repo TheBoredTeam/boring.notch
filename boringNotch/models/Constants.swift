@@ -30,6 +30,14 @@ enum HideNotchOption: String, Defaults.Serializable {
     case never
 }
 
+enum MusicPlayerVisibilityMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case always = "Always"
+    case onlyWhenPlaying = "Only when music is playing"
+    case never = "Never"
+
+    var id: String { self.rawValue }
+}
+
 // Define notification names at file scope
 extension Notification.Name {
     // MARK: - Media
@@ -138,6 +146,10 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    static let musicPlayerVisibilityMode = Key<MusicPlayerVisibilityMode>(
+        "musicPlayerVisibilityMode",
+        default: .always
+    )
     static let musicControlSlots = Key<[MusicControlButton]>(
         "musicControlSlots",
         default: MusicControlButton.defaultLayout
