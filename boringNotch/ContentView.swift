@@ -3,7 +3,7 @@
 //  boringNotchApp
 //
 //  Created by Harsh Vardhan Goswami  on 02/08/24
-//  Modified by Richard Kunkli on 24/08/2024.
+//  Modified by Richard Kunkli on 24/08/2024 + Edwin Salcedo on 19/02/2026.
 //
 
 import AVFoundation
@@ -414,109 +414,154 @@ struct ContentView: View {
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
-        HStack(spacing: 0) {
-            // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
-            let baseArtSize = displayClosedNotchHeight - 12
-            let scaledArtSize: CGFloat = {
-                if let scale = cornerRadiusScaleFactor {
-                    return displayClosedNotchHeight - 12 * scale
-                }
-                return baseArtSize
-            }()
+        // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
+        let baseArtSize = displayClosedNotchHeight - 12
+        let scaledArtSize: CGFloat = {
+            if let scale = cornerRadiusScaleFactor {
+                return displayClosedNotchHeight - 12 * scale
+            }
+            return baseArtSize
+        }()
+        
+        let closedCornerRadius: CGFloat = {
+            let base = MusicPlayerImageSizes.cornerRadiusInset.closed
+            if let scale = cornerRadiusScaleFactor {
+                return max(0, base * scale)
+            }
+            return base
+        }()
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                Image(nsImage: musicManager.albumArt)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .clipShape(
+                        RoundedRectangle(
+                            cornerRadius: closedCornerRadius)
+                    )
+                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                    .frame(
+                        width: scaledArtSize,
+                        height: scaledArtSize
+                    )
 
-            let closedCornerRadius: CGFloat = {
-                let base = MusicPlayerImageSizes.cornerRadiusInset.closed
-                if let scale = cornerRadiusScaleFactor {
-                    return max(0, base * scale)
-                }
-                return base
-            }()
-
-            Image(nsImage: musicManager.albumArt)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .clipShape(
-                    RoundedRectangle(
-                        cornerRadius: closedCornerRadius)
-                )
-                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                .frame(
-                    width: scaledArtSize,
-                    height: scaledArtSize
-                )
-
-            Rectangle()
-                .fill(.black)
-                .overlay(
-                    HStack(alignment: .top) {
-                        if coordinator.expandingView.show
-                            && coordinator.expandingView.type == .music
-                        {
-                            MarqueeText(
-                                musicManager.songTitle,
-                                color: Defaults[.coloredSpectrogram]
-                                    ? Color(nsColor: musicManager.avgColor) : Color.gray,
-                                delayDuration: 0.4,
-                                frameWidth: 100
-                            )
-                            .opacity(
-                                (coordinator.expandingView.show
-                                    && Defaults[.sneakPeekStyles] == .inline)
-                                    ? 1 : 0
-                            )
-                            Spacer(minLength: vm.closedNotchSize.width)
-                            // Song Artist
-                            Text(musicManager.artistName)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .foregroundStyle(
-                                    Defaults[.coloredSpectrogram]
-                                        ? Color(nsColor: musicManager.avgColor)
-                                        : Color.gray
+                Rectangle()
+                    .fill(.black)
+                    .overlay(
+                        HStack(alignment: .top) {
+                            if coordinator.expandingView.show
+                                && coordinator.expandingView.type == .music
+                            {
+                                MarqueeText(
+                                    musicManager.songTitle,
+                                    color: Defaults[.coloredSpectrogram]
+                                        ? Color(nsColor: musicManager.avgColor) : Color.gray,
+                                    delayDuration: 0.4,
+                                    frameWidth: 100
                                 )
                                 .opacity(
                                     (coordinator.expandingView.show
-                                        && coordinator.expandingView.type == .music
                                         && Defaults[.sneakPeekStyles] == .inline)
                                         ? 1 : 0
                                 )
+                                Spacer(minLength: vm.closedNotchSize.width)
+                                // Song Artist
+                                Text(musicManager.artistName)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                    .foregroundStyle(
+                                        Defaults[.coloredSpectrogram]
+                                            ? Color(nsColor: musicManager.avgColor)
+                                            : Color.gray
+                                    )
+                                    .opacity(
+                                        (coordinator.expandingView.show
+                                            && coordinator.expandingView.type == .music
+                                            && Defaults[.sneakPeekStyles] == .inline)
+                                            ? 1 : 0
+                                    )
+                            }
                         }
-                    }
-                )
-                .frame(
-                    width: (coordinator.expandingView.show
-                        && coordinator.expandingView.type == .music
-                        && Defaults[.sneakPeekStyles] == .inline)
-                        ? 380
-                        : vm.closedNotchSize.width
-                            + -cornerRadiusInsets.closed.top
-                )
+                    )
+                    .frame(
+                        width: (coordinator.expandingView.show
+                            && coordinator.expandingView.type == .music
+                            && Defaults[.sneakPeekStyles] == .inline)
+                            ? 380
+                            : vm.closedNotchSize.width
+                                + -cornerRadiusInsets.closed.top
+                    )
 
-            HStack {
-                AudioSpectrumView(
-                    isPlaying: musicManager.isPlaying,
-                    tintColor: Defaults[.coloredSpectrogram]
-                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
-                    : Color.gray
+                HStack {
+                    AudioSpectrumView(
+                        isPlaying: musicManager.isPlaying,
+                        tintColor: Defaults[.coloredSpectrogram]
+                        ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                        : Color.gray
+                    )
+                    .frame(width: 16, height: 12)
+                }
+                .frame(
+                    width: max(
+                        0,
+                        displayClosedNotchHeight - 12
+                            + gestureProgress / 2
+                    ),
+                    height: max(
+                        0,
+                        displayClosedNotchHeight - 12
+                    ),
+                    alignment: .center
                 )
-                .frame(width: 16, height: 12)
             }
             .frame(
-                width: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                        + gestureProgress / 2
-                ),
-                height: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                ),
+                height: displayClosedNotchHeight,
                 alignment: .center
             )
+            
+            if Defaults[.enableLyricsOnClosedNotch] && !coordinator.sneakPeek.show {
+                TimelineView(.animation(minimumInterval: 0.25)) { timeline in
+                    let currentElapsed: Double = {
+                        guard musicManager.isPlaying else { return musicManager.elapsedTime }
+                        let delta = timeline.date.timeIntervalSince(musicManager.timestampDate)
+                        let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
+                        return min(max(progressed, 0), musicManager.songDuration)
+                    }()
+                    let line: String = {
+                        if LyricsService.shared.isFetchingLyrics { return "Loading lyrics…" }
+                        if !LyricsService.shared.syncedLyrics.isEmpty {
+                            return LyricsService.shared.lyricLine(at: currentElapsed)
+                        }
+                        let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+                        return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+                    }()
+                    let isPersian = line.unicodeScalars.contains { scalar in
+                        let v = scalar.value
+                        return v >= 0x0600 && v <= 0x06FF
+                    }
+                    GeometryReader { geo in
+                        MarqueeText(
+                            line,
+                            font: .subheadline,
+                            color: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                            frameWidth: geo.size.width
+                        )                        
+                    }
+                    .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
+                    .lineLimit(1)
+                    .opacity(musicManager.isPlaying ? 1 : 0)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
         }
         .frame(
-            height: displayClosedNotchHeight,
-            alignment: .center
+            // Based on width sizes from the inner HStack -> Album art + Rectangle Overlay + AudioSpectrumView
+            // Probably a better way to calulcate that width
+            width: scaledArtSize +
+            (vm.closedNotchSize.width + -cornerRadiusInsets.closed.top) +
+            (displayClosedNotchHeight - 12 + gestureProgress / 2),
+            // Extra height to display lyrics
+            height: Defaults[.enableLyricsOnClosedNotch] ? displayClosedNotchHeight + 16 : displayClosedNotchHeight
         )
     }
 
