@@ -287,7 +287,8 @@ struct CalendarView: View {
                             .frame(width: monthWidth)
 
                         eventsSection
-                            .frame(width: eventsWidth, maxHeight: .infinity, alignment: .topLeading)
+                            .frame(width: eventsWidth, alignment: .topLeading)
+                            .frame(maxHeight: .infinity, alignment: .topLeading)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 }
