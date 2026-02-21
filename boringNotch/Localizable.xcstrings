@@ -1318,9 +1318,6 @@
         }
       }
     },
-    "Accessibility Access Granted" : {
-
-    },
     "Accessibility Access Required" : {
 
     },
@@ -3130,9 +3127,6 @@
         }
       }
     },
-    "BetterDisplay" : {
-
-    },
     "Boring Notch" : {
       "localizations" : {
         "ar" : {
@@ -3332,12 +3326,6 @@
           }
         }
       }
-    },
-    "BoringNotch needs accessibility permissions to intercept media keys." : {
-
-    },
-    "Brightness Source" : {
-
     },
     "Calendar" : {
       "localizations" : {
@@ -9162,6 +9150,9 @@
     "Grant Access" : {
 
     },
+    "Grant Accessibility access so built-in keyboard brightness controls can be intercepted." : {
+
+    },
     "Hide all-day events" : {
       "localizations" : {
         "ar" : {
@@ -10469,9 +10460,6 @@
       }
     },
     "Interaction" : {
-
-    },
-    "Keyboard Source" : {
 
     },
     "Layout Preview" : {
@@ -13394,9 +13382,6 @@
     "Normalize gesture direction" : {
 
     },
-    "Not Found" : {
-
-    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -14398,9 +14383,6 @@
         }
       }
     },
-    "Option (⌥) Key Behavior" : {
-
-    },
     "Option key behaviour" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -14507,9 +14489,6 @@
     },
     "OSD.ValueLabel" : {
       "comment" : "Label for OSD value slider"
-    },
-    "Permissions" : {
-
     },
     "Pick a Color" : {
       "localizations" : {
@@ -15917,9 +15896,6 @@
         }
       }
     },
-    "Required for built-in brightness, volume, and keyboard backlight control." : {
-
-    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -16222,6 +16198,7 @@
       }
     },
     "Running" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16491,7 +16468,7 @@
         }
       }
     },
-    "Select which provider to use for system controls." : {
+    "Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running." : {
 
     },
     "selected" : {
@@ -20717,9 +20694,6 @@
       }
     },
     "Visibility" : {
-
-    },
-    "Volume Source" : {
 
     },
     "Welcome" : {

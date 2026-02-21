@@ -54,7 +54,7 @@ final class MediaKeyInterceptor {
         }
 
         // Only require Accessibility if any selected source uses the built-in controls
-        let needsAccessibility = Defaults[.osdBrightnessSource] == .builtin || Defaults[.osdVolumeSource] == .builtin || Defaults[.osdKeyboardSource] == .builtin
+        let needsAccessibility = Defaults[.osdBrightnessSource] == .builtin || Defaults[.osdVolumeSource] == .builtin
         if needsAccessibility {
             let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
             if !authorized {
@@ -135,7 +135,7 @@ final class MediaKeyInterceptor {
             case .brightnessUp, .brightnessDown:
                 return Defaults[.osdBrightnessSource]
             case .keyboardBrightnessUp, .keyboardBrightnessDown:
-                return Defaults[.osdKeyboardSource]
+                return .builtin
             }
         }()
 
