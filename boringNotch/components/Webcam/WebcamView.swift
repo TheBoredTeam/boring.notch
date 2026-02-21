@@ -59,7 +59,6 @@ struct CameraPreviewView: View {
                             .background(.black.opacity(0.35), in: Circle())
                     }
                     .buttonStyle(.borderless)
-                    .help(isMirrored ? "webcam.unflip" : "webcam.flip")
                     .padding(8)
                 }
             }
