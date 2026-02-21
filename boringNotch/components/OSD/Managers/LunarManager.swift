@@ -5,35 +5,31 @@
 //  Created by Alexander on 2026-02-07.
 //
 
-import Foundation
 import AppKit
 import CoreGraphics
 import SwiftUI
-import Combine
 
-final class LunarManager: ObservableObject {
+@Observable
+final class LunarManager {
     static let shared = LunarManager()
     
-    @Published private(set) var isLunarAvailable: Bool = false
-    @Published private(set) var isListening: Bool = false
+    private(set) var isLunarAvailable: Bool = false
+    private(set) var isListening: Bool = false
     
-    /// Tracks the last value sent to setLunarOSDHidden to avoid redundant XPC calls.
     private var lastOSDHidden: Bool?
-    
     private var eventListener: LunarEventListener?
-    private var cancellables: Set<AnyCancellable> = []
     
     private init() {
         refreshAvailability()
-        // Restore Lunar OSD when we quit so the user gets it back
-        NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)
-            .sink { _ in
-                Task {
-                    // Always restore on termination regardless of lastOSDHidden
-                    _ = await XPCHelperClient.shared.setLunarOSDHidden(false)
-                }
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            Task {
+                _ = await XPCHelperClient.shared.setLunarOSDHidden(false)
             }
-            .store(in: &cancellables)
+        }
     }
     
     // MARK: - Availability
@@ -76,7 +72,6 @@ final class LunarManager: ObservableObject {
         }
     }
     
-    /// Asks the XPC helper to write Lunar's hideOSD preference (disable Lunar's OSD when we replace it, restore when we don't).
     func configureLunarOSD(hide: Bool) {
         guard hide != lastOSDHidden else { return }
         lastOSDHidden = hide
@@ -86,15 +81,11 @@ final class LunarManager: ObservableObject {
     // MARK: - Brightness Handling
     
     private func handleBrightnessChange(display: Int, brightness: Double) {
-        NSLog("Received Lunar brightness event: brightness=\(brightness), display=\(String(describing: display))")
-        let targetScreenUUID: String?
-       
-        targetScreenUUID = NSScreen.screens.first { screen in
+        let targetScreenUUID = NSScreen.screens.first { screen in
             guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else { return false }
             return CGDirectDisplayID(number.uint32Value) == CGDirectDisplayID(display)
         }?.displayUUID
         
-        // Handle Lunar "sub-zero" dimming and XDR brightness
         let isSubZero = brightness < 0
         let isXDR = brightness > 1.0
 
@@ -129,10 +120,7 @@ final class LunarManager: ObservableObject {
     }
     
     fileprivate func handleLunarEvent(_ event: BNLunarBrightnessEvent) {
-        handleBrightnessChange(
-            display: event.display,
-            brightness: event.brightness
-        )
+        handleBrightnessChange(display: event.display, brightness: event.brightness)
     }
 
     fileprivate func handleLunarStreamStopped(reason: String?) {

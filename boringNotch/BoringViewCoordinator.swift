@@ -159,8 +159,7 @@ class BoringViewCoordinator: ObservableObject {
         // Observe changes to any of the OSD source selections
         osdSourceCancellables = [
             Defaults.publisher(.osdBrightnessSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } },
-            Defaults.publisher(.osdVolumeSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } },
-            Defaults.publisher(.osdKeyboardSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } }
+            Defaults.publisher(.osdVolumeSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } }
         ]
 
         Task { @MainActor in

@@ -60,7 +60,6 @@
 		11985BE22F37A3C800F81585 /* LunarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BDE2F37A3C800F81585 /* LunarManager.swift */; };
 		11985BE62F37A3FC00F81585 /* BetterDisplayNotificationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BE42F37A3FC00F81585 /* BetterDisplayNotificationModels.swift */; };
 		11985BEF2F37E48900F81585 /* OSDIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BEE2F37E48900F81585 /* OSDIconView.swift */; };
-		11985BF22F3851C500F81585 /* OSDSettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BF02F3851C500F81585 /* OSDSettingsViewModel.swift */; };
 		11985BF42F38520A00F81585 /* DraggableProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BF32F38520A00F81585 /* DraggableProgressBar.swift */; };
 		11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A45C782E34E63100CEB175 /* MediaChecker.swift */; };
 		11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3112DFE85970065821E /* SettingsWindowController.swift */; };
@@ -241,7 +240,6 @@
 		11985BDE2F37A3C800F81585 /* LunarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LunarManager.swift; sourceTree = "<group>"; };
 		11985BE42F37A3FC00F81585 /* BetterDisplayNotificationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetterDisplayNotificationModels.swift; sourceTree = "<group>"; };
 		11985BEE2F37E48900F81585 /* OSDIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSDIconView.swift; sourceTree = "<group>"; };
-		11985BF02F3851C500F81585 /* OSDSettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSDSettingsViewModel.swift; sourceTree = "<group>"; };
 		11985BF32F38520A00F81585 /* DraggableProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraggableProgressBar.swift; sourceTree = "<group>"; };
 		11A45C782E34E63100CEB175 /* MediaChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaChecker.swift; sourceTree = "<group>"; };
 		11C5E3112DFE85970065821E /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
@@ -516,14 +514,6 @@
 				B1D365CF2C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift */,
 			);
 			path = Views;
-			sourceTree = "<group>";
-		};
-		11985BF12F3851C500F81585 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				11985BF02F3851C500F81585 /* OSDSettingsViewModel.swift */,
-			);
-			path = ViewModels;
 			sourceTree = "<group>";
 		};
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
@@ -813,7 +803,6 @@
 		B18654302C6F4590000B926A /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				11985BF12F3851C500F81585 /* ViewModels */,
 				11DB26722EDD0CDF001EA0CF /* Views */,
 				11F748832ECB27DC00F841DB /* MusicSlotConfigurationView.swift */,
 				11C5E3152DFE88510065821E /* SettingsView.swift */,
@@ -1047,7 +1036,6 @@
 				14A7E5882C64A89C008C1BE9 /* HelloAnimation.swift in Sources */,
 				111BEA612ED09B1B0079DD4E /* NSScreen+UUID.swift in Sources */,
 				1153BD8F2D986B1F00979FB0 /* MediaControllerProtocol.swift in Sources */,
-				11985BF22F3851C500F81585 /* OSDSettingsViewModel.swift in Sources */,
 				11985BF42F38520A00F81585 /* DraggableProgressBar.swift in Sources */,
 				9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */,
 				B172AAC02C95DA0B001623F1 /* InlineOSD.swift in Sources */,
