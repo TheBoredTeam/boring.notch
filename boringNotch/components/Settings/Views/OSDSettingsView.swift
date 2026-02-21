@@ -74,8 +74,10 @@ struct OSDSettings: View {
                     }
                     if !isAccessibilityAuthorized {
                         HStack(alignment: .center, spacing: 12) {
-                            Image(systemName: "figure.2.and.child.holdinghands")
-                                .foregroundStyle(.yellow)
+                            Image(systemName: "accessibility")
+                                .font(.title)
+                                .foregroundStyle(Color.effectiveAccent)
+                                
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Accessibility Access Required")
                                     .font(.headline)
