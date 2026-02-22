@@ -56,7 +56,8 @@ struct OSDSettings: View {
 
                     SettingsRow("Volume Source") {
                         Picker("", selection: $osdVolumeSourceDefault) {
-                            ForEach(OSDControlSource.allCases) { source in
+                            // Lunar does not support volume control so hide it from the picker
+                            ForEach(OSDControlSource.allCases.filter { $0 != .lunar }) { source in
                                 Text(source.rawValue).tag(source)
                             }
                         }
@@ -64,9 +65,6 @@ struct OSDSettings: View {
                     }
                     if osdVolumeSourceDefault == .betterDisplay && !BetterDisplayManager.shared.isBetterDisplayAvailable {
                         HelpText("BetterDisplay is not installed or not running")
-                    }
-                    if osdVolumeSourceDefault == .lunar && !LunarManager.shared.isLunarAvailable {
-                        HelpText("Lunar is not installed or not reachable")
                     }
 
                     SettingsRow("Keyboard Source", help: "Keyboard brightness currently supports the built-in source only.") {
@@ -144,6 +142,11 @@ struct OSDSettings: View {
         .task(id: osdReplacementDefault) {
             guard osdReplacementDefault else { return }
             isAccessibilityAuthorized = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notif in
+            if let granted = notif.userInfo?["granted"] as? Bool {
+                isAccessibilityAuthorized = granted
+            }
         }
 
     }
