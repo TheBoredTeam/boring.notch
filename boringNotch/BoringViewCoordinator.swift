@@ -135,6 +135,8 @@ class BoringViewCoordinator: ObservableObject {
             }
         }
 
+        XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
+
         // Observe changes to osdReplacement
         osdReplacementCancellable = Defaults.publisher(.osdReplacement)
             .sink { [weak self] change in
@@ -284,6 +286,9 @@ class BoringViewCoordinator: ObservableObject {
         let brightness = Defaults[.osdBrightnessSource]
         let volume = Defaults[.osdVolumeSource]
 
+        Task { @MainActor in
+            await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+        }
         // BetterDisplay is used when either brightness or volume is set to it
         if brightness == .betterDisplay || volume == .betterDisplay {
             BetterDisplayManager.shared.startObserving()
