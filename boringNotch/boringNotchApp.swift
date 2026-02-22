@@ -87,6 +87,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MusicManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
+        BetterDisplayManager.shared.stopObserving()
+        LunarManager.shared.stopListening()
+        LunarManager.shared.configureLunarOSD(hide: false)
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
         
         observers.forEach { NotificationCenter.default.removeObserver($0) }
