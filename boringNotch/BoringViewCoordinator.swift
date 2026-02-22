@@ -59,7 +59,6 @@ class BoringViewCoordinator: ObservableObject {
     private var osdEnableTask: Task<Void, Never>?
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
-    @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @AppStorage("musicLiveActivityEnabled") var musicLiveActivityEnabled: Bool = true
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
 
@@ -238,9 +237,8 @@ class BoringViewCoordinator: ObservableObject {
                     state.icon = icon
                     state.accent = accent
                     state.targetScreenUUID = uuid // Ensure UUID is set
+                    self.sneakPeekStates[uuid] = state
                 }
-                
-                self.sneakPeekStates[uuid] = state
                 
                 if status {
                     self.scheduleSneakPeekHide(for: uuid, duration: duration)
