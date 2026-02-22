@@ -139,24 +139,30 @@ final class MediaKeyInterceptor {
             }
         }()
 
+        let flags = nsEvent.modifierFlags
+        let option = flags.contains(.option)
+        let shift = flags.contains(.shift)
+        let command = flags.contains(.command)
+
         // If an external source is selected and available, allow the event to pass through (external app will emit OSD notifications)
         switch selectedSource {
         case .betterDisplay:
             if BetterDisplayManager.shared.isBetterDisplayAvailable {
+                if (keyType == .brightnessUp || keyType == .brightnessDown) && command {
+                    break
+                }
                 return Unmanaged.passUnretained(cgEvent)
             }
         case .lunar:
             if LunarManager.shared.isLunarAvailable {
+                if (keyType == .brightnessUp || keyType == .brightnessDown) && command {
+                    break
+                }
                 return Unmanaged.passUnretained(cgEvent)
             }
         case .builtin:
             break
         }
-
-        let flags = nsEvent.modifierFlags
-        let option = flags.contains(.option)
-        let shift = flags.contains(.shift)
-        let command = flags.contains(.command)
 
         // Handle option key action (without shift)
         if option && !shift {
