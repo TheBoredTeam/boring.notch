@@ -56,9 +56,7 @@ final class LunarManager {
             let started = await XPCHelperClient.shared.startLunarEventStream(listener: listener)
             await MainActor.run {
                 self.isListening = started
-                if !started {
-                    self.isLunarAvailable = false
-                }
+                self.isLunarAvailable = started
             }
         }
     }
