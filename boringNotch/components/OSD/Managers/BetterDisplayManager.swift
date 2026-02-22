@@ -12,6 +12,30 @@ import CoreGraphics
 final class BetterDisplayManager {
     static let shared = BetterDisplayManager()
     
+    let betterDisplayBundleIdentifier = "pro.betterdisplay.BetterDisplay"
+
+    private enum ControlTarget {
+        case brightness
+        case volume
+        case mute
+        case other(String)
+
+        init(from notification: BetterDisplayOSDNotification) {
+            let target = notification.controlTarget ?? ""
+            let iconID = notification.systemIconID ?? -1
+
+            if target.contains("Brightness") || target.contains("brightness") || iconID == 1 {
+                self = .brightness
+            } else if target == "volume" || iconID == 3 {
+                self = .volume
+            } else if target == "mute" || iconID == 4 {
+                self = .mute
+            } else {
+                self = .other(target)
+            }
+        }
+    }
+
     private(set) var isBetterDisplayAvailable = false
     private(set) var brightnessValue: Float = 0.0
     private(set) var lastChangeAt: Date = .distantPast
@@ -40,9 +64,9 @@ final class BetterDisplayManager {
     
     private func checkBetterDisplayAvailability() {
         let workspace = NSWorkspace.shared
-        let betterDisplayURL = workspace.urlForApplication(withBundleIdentifier: "pro.betterdisplay.BetterDisplay")
+        let betterDisplayURL = workspace.urlForApplication(withBundleIdentifier: betterDisplayBundleIdentifier)
         isBetterDisplayAvailable = betterDisplayURL != nil && workspace.runningApplications.contains(where: {
-            $0.bundleIdentifier == "pro.betterdisplay.BetterDisplay"
+            $0.bundleIdentifier == betterDisplayBundleIdentifier
         })
     }
     
@@ -68,7 +92,7 @@ final class BetterDisplayManager {
             queue: .main
         ) { [weak self] notification in
             if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-               app.bundleIdentifier == "pro.betterdisplay.BetterDisplay" {
+               app.bundleIdentifier == self?.betterDisplayBundleIdentifier {
                 self?.checkBetterDisplayAvailability()
                 self?.configureBetterDisplayIntegration(enabled: true)
             }
@@ -81,7 +105,7 @@ final class BetterDisplayManager {
             queue: .main
         ) { [weak self] notification in
             if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-               app.bundleIdentifier == "pro.betterdisplay.BetterDisplay" {
+               app.bundleIdentifier == self?.betterDisplayBundleIdentifier {
                 self?.isBetterDisplayAvailable = false
             }
         }
@@ -111,16 +135,12 @@ final class BetterDisplayManager {
             osd = try JSONDecoder().decode(BetterDisplayOSDNotification.self, from: data)
         } catch { return }
         
-        let target = osd.controlTarget ?? ""
-        let iconID = osd.systemIconID ?? -1
-        let isBrightness = target.contains("Brightness") || target.contains("brightness") || iconID == 1
-        let isVolume = target == "volume" || iconID == 3
-        let isMute = target == "mute" || iconID == 4
-        
+        let targetType = ControlTarget(from: osd)
         guard let rawValue = osd.value else { return }
         let maxVal = osd.maxValue ?? 1.0
         
-        if isBrightness {
+        switch targetType {
+        case .brightness:
             let targetScreenUUID = NSScreen.screens.first { screen in
                 guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber,
                       let displayID = osd.displayID else { return false }
@@ -137,15 +157,20 @@ final class BetterDisplayManager {
                     targetScreenUUID: targetScreenUUID
                 )
             }
-        } else if isVolume {
+
+        case .volume:
             let normalized = maxVal > 0 ? Float(rawValue / maxVal) : Float(rawValue)
             await MainActor.run {
                 BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(normalized))
             }
-        } else if isMute {
+
+        case .mute:
             await MainActor.run {
                 BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(rawValue))
             }
+
+        case .other:
+            return
         }
     }
     
