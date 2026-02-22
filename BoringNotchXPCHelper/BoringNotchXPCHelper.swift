@@ -5,10 +5,9 @@
 //  Created by Alexander on 2025-11-16.
 //
 
-import Foundation
+import AppKit
 import ApplicationServices
 import IOKit
-import CoreGraphics
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
@@ -144,18 +143,42 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
     // MARK: - Screen Brightness (moved from client app into helper)
 
+    private func brightnessDisplayID() -> CGDirectDisplayID {
+        let mainDisplayID = CGMainDisplayID()
+        var tmp: Float = 0
+
+        if displayServicesGetBrightness(displayID: mainDisplayID, out: &tmp) || ioServiceFor(displayID: mainDisplayID) != nil {
+            return mainDisplayID
+        }
+
+        var count: UInt32 = 0
+        CGGetOnlineDisplayList(0, nil, &count)
+        let allocated = Int(count)
+        var ids = [CGDirectDisplayID](repeating: 0, count: allocated)
+        CGGetOnlineDisplayList(count, &ids, &count)
+        for id in ids {
+            if CGDisplayIsBuiltin(id) != 0 {
+                return id
+            }
+        }
+
+        return mainDisplayID
+    }
+
     @objc func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void) {
+        let displayID = brightnessDisplayID()
         var b: Float = 0
-        reply(displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) || ioServiceFor(displayID: CGMainDisplayID()) != nil)
+        reply(displayServicesGetBrightness(displayID: displayID, out: &b) || ioServiceFor(displayID: displayID) != nil)
     }
 
     @objc func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void) {
+        let displayID = brightnessDisplayID()
         var b: Float = 0
-        if displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) {
+        if displayServicesGetBrightness(displayID: displayID, out: &b) {
             reply(NSNumber(value: b))
             return
         }
-        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+        if let io = ioServiceFor(displayID: displayID) {
             var level: Float = 0
             if IODisplayGetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, &level) == kIOReturnSuccess {
                 IOObjectRelease(io)
@@ -169,11 +192,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     @objc func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void) {
         let clamped = max(0, min(1, value))
-        if displayServicesSetBrightness(displayID: CGMainDisplayID(), value: clamped) {
+        let displayID = brightnessDisplayID()
+        if displayServicesSetBrightness(displayID: displayID, value: clamped) {
             reply(true)
             return
         }
-        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+        if let io = ioServiceFor(displayID: displayID) {
             let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, clamped) == kIOReturnSuccess
             IOObjectRelease(io)
             reply(ok)
@@ -183,11 +207,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
     
     @objc func adjustScreenBrightness(by value: Float, with reply: @escaping (Bool) -> Void) {
-        if displayServicesSetBrightnessSmooth(displayID: CGMainDisplayID(), value: value) {
+        let displayID = brightnessDisplayID()
+        if displayServicesSetBrightnessSmooth(displayID: displayID, value: value) {
             reply(true)
             return
         }
-        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+        if let io = ioServiceFor(displayID: displayID) {
             var ioCurrent: Float = 0
             if IODisplayGetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, &ioCurrent) == kIOReturnSuccess {
                 let target = max(0, min(1, ioCurrent + value))
@@ -202,6 +227,11 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     // MARK: - Lunar Events
+
+    @objc func displayIDForBrightness(with reply: @escaping (NSNumber?) -> Void) {
+        let id = brightnessDisplayID()
+        reply(NSNumber(value: id))
+    }
 
     @objc func isLunarAvailable(with reply: @escaping (Bool) -> Void) {
         reply(FileManager.default.isExecutableFile(atPath: lunarExecutableURL.path))

@@ -17,6 +17,19 @@ final class BrightnessManager: ObservableObject {
 
 	private init() { refresh() }
 
+	/// Determine which screen UUID should be used for brightness OSDs
+	/// when the built‑in source is selected.  This mirrors the logic in the
+	/// XPC helper, which chooses the menu-bar display if it supports brightness and
+	/// otherwise falls back to an internal panel.
+	func brightnessTargetUUID() async -> String? {
+		if let displayID = await client.displayIDForBrightness() {
+			if let screen = NSScreen.screens.first(where: { $0.cgDisplayID == displayID }) {
+				return screen.displayUUID
+			}
+		}
+		return NSScreen.main?.displayUUID
+	}
+
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
 	func refresh() {
@@ -33,7 +46,9 @@ final class BrightnessManager: ObservableObject {
 			if ok {
                 let current = await client.currentScreenBrightness() ?? rawBrightness
 				publish(brightness: current, touchDate: true)
-                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(current), targetScreenUUID: NSScreen.main?.displayUUID)
+
+                let targetUUID = await brightnessTargetUUID()
+                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(current), targetScreenUUID: targetUUID)
 			} else {
 				refresh()
 			}
@@ -46,6 +61,9 @@ final class BrightnessManager: ObservableObject {
 			let ok = await client.setScreenBrightness(clamped)
 			if ok {
 				publish(brightness: clamped, touchDate: true)
+                // optionally show peek when user uses slider/controls
+                let targetUUID = await brightnessTargetUUID()
+                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(clamped), targetScreenUUID: targetUUID)
 			} else {
 				refresh()
 			}

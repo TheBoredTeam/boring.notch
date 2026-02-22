@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Defaults
+import CoreGraphics
 
 struct OSDSettings: View {
     // Defaults-backed storage
@@ -22,6 +23,7 @@ struct OSDSettings: View {
     @Default(.osdBrightnessSource) private var osdBrightnessSourceDefault
     @Default(.osdVolumeSource) private var osdVolumeSourceDefault
     @State private var isAccessibilityAuthorized = true
+    @State private var menuBarBrightnessSupported = true
 
     var body: some View {
         Form {
@@ -46,6 +48,9 @@ struct OSDSettings: View {
                             }
                         }
                         .pickerStyle(.menu)
+                    }
+                    if osdBrightnessSourceDefault == .builtin {
+                        HelpText("Only Apple displays are supported. In multi-display setups, the brightness OSD appears on the active display if supported, or on another supported display otherwise.")
                     }
                     if osdBrightnessSourceDefault == .betterDisplay && !BetterDisplayManager.shared.isBetterDisplayAvailable {
                         HelpText("BetterDisplay is not installed or not running")
@@ -146,6 +151,18 @@ struct OSDSettings: View {
         .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notif in
             if let granted = notif.userInfo?["granted"] as? Bool {
                 isAccessibilityAuthorized = granted
+            }
+        }
+        .task(id: osdBrightnessSourceDefault) {
+            if osdBrightnessSourceDefault == .builtin {
+                if let displayID = await XPCHelperClient.shared.displayIDForBrightness() {
+                    let menuID = NSScreen.main?.cgDisplayID ?? CGMainDisplayID()
+                    menuBarBrightnessSupported = (displayID == menuID)
+                } else {
+                    menuBarBrightnessSupported = false
+                }
+            } else {
+                menuBarBrightnessSupported = true
             }
         }
 
