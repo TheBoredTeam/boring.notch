@@ -38,7 +38,7 @@ struct OSDSettings: View {
             }
 
             if osdReplacementDefault {
-                Section(header: Text("Control Backends"), footer: Text("Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running.")) {
+                Section(header: Text("Control Sources"), footer: Text("Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running.")) {
                     SettingsRow("Brightness Source") {
                         Picker("", selection: $osdBrightnessSourceDefault) {
                             ForEach(OSDControlSource.allCases) { source in
