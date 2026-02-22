@@ -171,6 +171,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             self.window = nil
         }
+
+        // ensure OSD integration reflects the current window state
+        coordinator.applyOSDSources()
     }
 
     private func cleanupDragDetectors() {
@@ -453,6 +456,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousScreens = NSScreen.screens
+
+        // make sure OSD subsystems are in the right state now that initial
+        // notch windows have been created/cleaned up
+        coordinator.applyOSDSources()
     }
 
     func playWelcomeSound() {
@@ -560,6 +567,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+
+        // windows might have been added/removed during the earlier logic –
+        // update the OSD subsystems accordingly.
+        coordinator.applyOSDSources()
     }
 
     @objc func togglePopover(_ sender: Any?) {
