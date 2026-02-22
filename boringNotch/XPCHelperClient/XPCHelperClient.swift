@@ -256,6 +256,23 @@ final class XPCHelperClient: NSObject {
             return nil
         }
     }
+
+    nonisolated func displayIDForBrightness() async -> CGDirectDisplayID? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let result: NSNumber? = try await service.withContinuation { service, continuation in
+                service.displayIDForBrightness(with: { value in
+                    continuation.resume(returning: value)
+                })
+            }
+            guard let num = result else { return nil }
+            return CGDirectDisplayID(num.uint32Value)
+        } catch {
+            return nil
+        }
+    }
     
     nonisolated func setScreenBrightness(_ value: Float) async -> Bool {
         do {

@@ -48,6 +48,8 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func setKeyboardBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
     // Screen brightness access (performed by the helper)
     func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void)
+    // returns the displayID that will be used for built-in brightness operations (main or internal fallback)
+    func displayIDForBrightness(with reply: @escaping (NSNumber?) -> Void)
     func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void)
     func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
     func adjustScreenBrightness(by value: Float, with reply: @escaping (Bool) -> Void)
