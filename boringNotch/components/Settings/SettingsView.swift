@@ -600,6 +600,7 @@ struct Media: View {
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
     @Default(.enableLyrics) var enableLyrics
+    @Default(.lyricsColumnLayout) var lyricsColumnLayout
 
     var body: some View {
         Form {
@@ -684,6 +685,12 @@ struct Media: View {
                         Text("Show lyrics below artist name")
                         customBadge(text: "Beta")
                     }
+                }
+                if enableLyrics {
+                    Defaults.Toggle(key: .lyricsColumnLayout) {
+                        Text("Show lyrics column beside player")
+                    }
+                    .padding(.leading, 16)
                 }
             } header: {
                 Text("Media controls")

@@ -42,6 +42,24 @@ struct BoringHeader: View {
                         OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
+                        if Defaults[.showCalendar] {
+                            Button(action: {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    vm.calendarPanelOpen.toggle()
+                                }
+                            }) {
+                                Capsule()
+                                    .fill(vm.calendarPanelOpen ? Color.effectiveAccent : .black)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: "calendar")
+                                            .foregroundColor(.white)
+                                            .padding()
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
                         if Defaults[.showMirror] {
                             Button(action: {
                                 vm.toggleCameraPreview()

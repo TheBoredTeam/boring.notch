@@ -51,6 +51,32 @@ class MusicManager: ObservableObject {
     @Published var currentLyrics: String = ""
     @Published var isFetchingLyrics: Bool = false
     @Published var syncedLyrics: [(time: Double, text: String)] = []
+
+    // MARK: - Lyrics cache
+    private struct LyricsCacheEntry: Codable {
+        let plainLyrics: String
+        let syncedLyrics: String
+    }
+    private var lyricsCache: [String: LyricsCacheEntry] = [:]
+    private var lyricsCacheURL: URL {
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("boringNotch", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("lyrics_cache.json")
+    }
+    private func lyricsCacheKey(title: String, artist: String) -> String {
+        "\(normalizedQuery(title))|\(normalizedQuery(artist))"
+    }
+    private func loadLyricsCache() {
+        guard let data = try? Data(contentsOf: lyricsCacheURL),
+              let decoded = try? JSONDecoder().decode([String: LyricsCacheEntry].self, from: data)
+        else { return }
+        lyricsCache = decoded
+    }
+    private func saveLyricsCache() {
+        guard let data = try? JSONEncoder().encode(lyricsCache) else { return }
+        try? data.write(to: lyricsCacheURL, options: .atomic)
+    }
     @Published var canFavoriteTrack: Bool = false
     @Published var isFavoriteTrack: Bool = false
 
@@ -70,6 +96,8 @@ class MusicManager: ObservableObject {
 
     // MARK: - Initialization
     init() {
+        loadLyricsCache()
+
         // Listen for changes to the default controller preference
         NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
             .sink { [weak self] _ in
@@ -404,6 +432,15 @@ class MusicManager: ObservableObject {
         }
     }
 
+    func retryLyricsFetch() {
+        guard !isFetchingLyrics else { return }
+        fetchLyricsIfAvailable(
+            bundleIdentifier: bundleIdentifier,
+            title: songTitle,
+            artist: artistName
+        )
+    }
+
     private func normalizedQuery(_ string: String) -> String {
         string
             .folding(options: .diacriticInsensitive, locale: .current)
@@ -411,9 +448,19 @@ class MusicManager: ObservableObject {
     }
 
     @MainActor
-    private func fetchLyricsFromWeb(title: String, artist: String) async {
+    private func fetchLyricsFromWeb(title: String, artist: String, retries: Int = 1) async {
         let cleanTitle = normalizedQuery(title)
         let cleanArtist = normalizedQuery(artist)
+
+        // Check in-memory/disk cache first
+        let cacheKey = lyricsCacheKey(title: title, artist: artist)
+        if let cached = lyricsCache[cacheKey] {
+            self.currentLyrics = cached.plainLyrics
+            self.isFetchingLyrics = false
+            self.syncedLyrics = cached.syncedLyrics.isEmpty ? [] : self.parseLRC(cached.syncedLyrics)
+            return
+        }
+
         guard let encodedTitle = cleanTitle.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let encodedArtist = cleanArtist.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             self.currentLyrics = ""
@@ -431,6 +478,11 @@ class MusicManager: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                if retries > 0 {
+                    try? await Task.sleep(for: .seconds(2))
+                    await fetchLyricsFromWeb(title: title, artist: artist, retries: retries - 1)
+                    return
+                }
                 self.currentLyrics = ""
                 self.isFetchingLyrics = false
                 return
@@ -448,12 +500,22 @@ class MusicManager: ObservableObject {
                 } else {
                     self.syncedLyrics = []
                 }
+                // Persist to cache only when we actually got lyrics
+                if !plain.isEmpty || !synced.isEmpty {
+                    lyricsCache[cacheKey] = LyricsCacheEntry(plainLyrics: plain, syncedLyrics: synced)
+                    saveLyricsCache()
+                }
             } else {
                 self.currentLyrics = ""
                 self.isFetchingLyrics = false
                 self.syncedLyrics = []
             }
         } catch {
+            if retries > 0 {
+                try? await Task.sleep(for: .seconds(2))
+                await fetchLyricsFromWeb(title: title, artist: artist, retries: retries - 1)
+                return
+            }
             self.currentLyrics = ""
             self.isFetchingLyrics = false
             self.syncedLyrics = []
@@ -504,6 +566,23 @@ class MusicManager: ObservableObject {
             }
         }
         return syncedLyrics[idx].text
+    }
+
+    func lyricContext(at elapsed: Double, offset: Int = 0) -> (prev: String?, current: String, next: String?) {
+        guard !syncedLyrics.isEmpty else { return (nil, currentLyrics, nil) }
+        var low = 0, high = syncedLyrics.count - 1, idx = 0
+        while low <= high {
+            let mid = (low + high) / 2
+            if syncedLyrics[mid].time <= elapsed {
+                idx = mid; low = mid + 1
+            } else { high = mid - 1 }
+        }
+        let target = max(0, min(syncedLyrics.count - 1, idx + offset))
+        return (
+            target > 0 ? syncedLyrics[target - 1].text : nil,
+            syncedLyrics[target].text,
+            target < syncedLyrics.count - 1 ? syncedLyrics[target + 1].text : nil
+        )
     }
 
     private func triggerFlipAnimation() {
