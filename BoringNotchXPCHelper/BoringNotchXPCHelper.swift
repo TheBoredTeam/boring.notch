@@ -5,12 +5,54 @@
 //  Created by Alexander on 2025-11-16.
 //
 
-import Foundation
+import AppKit
 import ApplicationServices
 import IOKit
-import CoreGraphics
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
+
+    private weak var connection: NSXPCConnection?
+
+    private let lunarStateQueue = DispatchQueue(label: "BoringNotchXPCHelper.lunar.state")
+    private let lunarExecutableURL = URL(fileURLWithPath: "/Applications/Lunar.app/Contents/MacOS/Lunar")
+    private var lunarProcess: Process?
+    private var lunarPipeHandler: JSONLinesPipeHandler?
+    private var lunarStreamTask: Task<Void, Never>?
+    private var lunarListener: BoringNotchXPCHelperLunarListener?
+
+    init(connection: NSXPCConnection) {
+        self.connection = connection
+        super.init()
+    }
+
+    override init() {
+        super.init()
+    }
+
+    deinit {
+        var processToTerminate: Process?
+        var taskToCancel: Task<Void, Never>?
+        var pipeHandlerToClose: JSONLinesPipeHandler?
+
+        lunarStateQueue.sync {
+            processToTerminate = self.lunarProcess
+            self.lunarProcess = nil
+
+            taskToCancel = self.lunarStreamTask
+            self.lunarStreamTask = nil
+
+            pipeHandlerToClose = self.lunarPipeHandler
+            self.lunarPipeHandler = nil
+
+            self.lunarListener = nil
+        }
+
+        taskToCancel?.cancel()
+        if let p = processToTerminate, p.isRunning { p.terminate() }
+        if let ph = pipeHandlerToClose {
+            Task { await ph.close() }
+        }
+    }
     
     @objc func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void) {
         reply(AXIsProcessTrusted())
@@ -101,18 +143,42 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
     // MARK: - Screen Brightness (moved from client app into helper)
 
+    private func brightnessDisplayID() -> CGDirectDisplayID {
+        let mainDisplayID = CGMainDisplayID()
+        var tmp: Float = 0
+
+        if displayServicesGetBrightness(displayID: mainDisplayID, out: &tmp) || ioServiceFor(displayID: mainDisplayID) != nil {
+            return mainDisplayID
+        }
+
+        var count: UInt32 = 0
+        CGGetOnlineDisplayList(0, nil, &count)
+        let allocated = Int(count)
+        var ids = [CGDirectDisplayID](repeating: 0, count: allocated)
+        CGGetOnlineDisplayList(count, &ids, &count)
+        for id in ids {
+            if CGDisplayIsBuiltin(id) != 0 {
+                return id
+            }
+        }
+
+        return mainDisplayID
+    }
+
     @objc func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void) {
+        let displayID = brightnessDisplayID()
         var b: Float = 0
-        reply(displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) || ioServiceFor(displayID: CGMainDisplayID()) != nil)
+        reply(displayServicesGetBrightness(displayID: displayID, out: &b) || ioServiceFor(displayID: displayID) != nil)
     }
 
     @objc func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void) {
+        let displayID = brightnessDisplayID()
         var b: Float = 0
-        if displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) {
+        if displayServicesGetBrightness(displayID: displayID, out: &b) {
             reply(NSNumber(value: b))
             return
         }
-        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+        if let io = ioServiceFor(displayID: displayID) {
             var level: Float = 0
             if IODisplayGetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, &level) == kIOReturnSuccess {
                 IOObjectRelease(io)
@@ -126,11 +192,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     @objc func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void) {
         let clamped = max(0, min(1, value))
-        if displayServicesSetBrightness(displayID: CGMainDisplayID(), value: clamped) {
+        let displayID = brightnessDisplayID()
+        if displayServicesSetBrightness(displayID: displayID, value: clamped) {
             reply(true)
             return
         }
-        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+        if let io = ioServiceFor(displayID: displayID) {
             let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, clamped) == kIOReturnSuccess
             IOObjectRelease(io)
             reply(ok)
@@ -140,11 +207,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
     
     @objc func adjustScreenBrightness(by value: Float, with reply: @escaping (Bool) -> Void) {
-        if displayServicesSetBrightnessSmooth(displayID: CGMainDisplayID(), value: value) {
+        let displayID = brightnessDisplayID()
+        if displayServicesSetBrightnessSmooth(displayID: displayID, value: value) {
             reply(true)
             return
         }
-        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+        if let io = ioServiceFor(displayID: displayID) {
             var ioCurrent: Float = 0
             if IODisplayGetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, &ioCurrent) == kIOReturnSuccess {
                 let target = max(0, min(1, ioCurrent + value))
@@ -156,6 +224,142 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             IOObjectRelease(io)
         }
         reply(false)
+    }
+
+    // MARK: - Lunar Events
+
+    @objc func displayIDForBrightness(with reply: @escaping (NSNumber?) -> Void) {
+        let id = brightnessDisplayID()
+        reply(NSNumber(value: id))
+    }
+
+    @objc func isLunarAvailable(with reply: @escaping (Bool) -> Void) {
+        reply(FileManager.default.isExecutableFile(atPath: lunarExecutableURL.path))
+    }
+
+    @objc func startLunarEventStream(with reply: @escaping (Bool) -> Void) {
+        lunarStateQueue.async { [weak self] in
+            guard let self else {
+                reply(false)
+                return
+            }
+
+            if let lunarProcess = self.lunarProcess, lunarProcess.isRunning {
+                reply(true)
+                return
+            }
+
+            guard FileManager.default.isExecutableFile(atPath: self.lunarExecutableURL.path) else {
+                reply(false)
+                return
+            }
+
+            guard let connection = self.connection else {
+                reply(false)
+                return
+            }
+
+            let listenerProxy = connection.remoteObjectProxyWithErrorHandler { _ in
+                self.stopLunarEventStream()
+            } as? BoringNotchXPCHelperLunarListener
+
+            guard let listenerProxy else {
+                reply(false)
+                return
+            }
+
+            let process = Process()
+            process.executableURL = self.lunarExecutableURL
+            process.arguments = ["@", "listen", "--only-user-adjustments", "-j"]
+
+            let pipeHandler = JSONLinesPipeHandler(decoder: JSONDecoder())
+            process.standardOutput = pipeHandler.getPipe()
+            process.standardError = FileHandle.nullDevice
+
+            process.terminationHandler = { [weak self] _ in
+                self?.stopLunarEventStream(reason: "Lunar stream ended")
+            }
+
+            do {
+                try process.run()
+            } catch {
+                reply(false)
+                return
+            }
+
+            self.lunarProcess = process
+            self.lunarPipeHandler = pipeHandler
+            self.lunarListener = listenerProxy
+
+            let currentPipeHandler = pipeHandler
+            self.lunarStreamTask = Task { [weak self] in
+                await self?.readLunarEvents(pipeHandler: currentPipeHandler)
+            }
+
+            reply(true)
+        }
+    }
+
+    @objc func stopLunarEventStream() {
+        stopLunarEventStream(reason: nil)
+    }
+
+    private func stopLunarEventStream(reason: String?) {
+        lunarStateQueue.async { [weak self] in
+            guard let self else { return }
+
+            self.lunarStreamTask?.cancel()
+            self.lunarStreamTask = nil
+
+            if let lunarProcess = self.lunarProcess, lunarProcess.isRunning {
+                lunarProcess.terminate()
+            }
+
+            self.lunarProcess = nil
+
+            if let pipeHandler = self.lunarPipeHandler {
+                Task { await pipeHandler.close() }
+            }
+
+            self.lunarPipeHandler = nil
+
+            if let reason {
+                self.lunarListener?.lunarStreamDidStop(reason)
+            }
+
+            self.lunarListener = nil
+        }
+    }
+
+    private func readLunarEvents(pipeHandler: JSONLinesPipeHandler) async {
+        await pipeHandler.readJSONLines(as: LunarBrightnessEvent.self) { [weak self] event in
+            self?.emitLunarEvent(event)
+        }
+    }
+
+    private func emitLunarEvent(_ event: LunarBrightnessEvent) {
+        let payload = BNLunarBrightnessEvent(
+            brightness: event.brightness,
+            display: event.display
+        )
+        lunarStateQueue.async { [weak self] in
+            self?.lunarListener?.lunarEventDidUpdate(payload)
+        }
+    }
+
+    // MARK: - Lunar OSD preference (hideOSD)
+
+    private static let lunarBundleID = "fyi.lunar.Lunar"
+    private static let lunarHideOSDKey = "hideOSD"
+
+    @objc func setLunarOSDHidden(_ hide: Bool, with reply: @escaping (Bool) -> Void) {
+        let appID = Self.lunarBundleID as CFString
+        let key = Self.lunarHideOSDKey as CFString
+        let value = hide as CFBoolean
+        NSLog("Hide OSD in Lunar: \(hide)")
+        CFPreferencesSetValue(key, value, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+        let ok = CFPreferencesSynchronize(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+        reply(ok)
     }
 
     // MARK: - Private helpers for DisplayServices / IOKit access
@@ -213,5 +417,93 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             }
             return nil
         }()
+    }
+}
+
+// MARK: - Lunar Parsing
+
+private struct LunarBrightnessEvent: Decodable {
+    let brightness: Double
+    let display: Int
+
+    init(from decoder: NSCoder) {
+        display = decoder.decodeInteger(forKey: "display")
+        brightness = decoder.decodeDouble(forKey: "brightness")
+    }
+}
+
+private actor JSONLinesPipeHandler {
+    nonisolated let pipe: Pipe
+    private let fileHandle: FileHandle
+    private var buffer = ""
+    private let decoder: JSONDecoder
+
+    init(decoder: JSONDecoder = JSONDecoder()) {
+        let pipe = Pipe()
+        self.pipe = pipe
+        self.fileHandle = pipe.fileHandleForReading
+        self.decoder = decoder
+    }
+
+    nonisolated func getPipe() -> Pipe {
+        return pipe
+    }
+
+    func readJSONLines<T: Decodable>(as type: T.Type, onLine: @escaping (T) -> Void) async {
+        do {
+            try await processLines(as: type) { decodedObject in
+                onLine(decodedObject)
+            }
+        } catch {
+            // Ignore stream errors to keep the helper lightweight.
+        }
+    }
+
+    private func processLines<T: Decodable>(as type: T.Type, onLine: @escaping (T) -> Void) async throws {
+        while true {
+            let data = try await readData()
+            guard !data.isEmpty else { break }
+
+            if let chunk = String(data: data, encoding: .utf8) {
+                buffer.append(chunk)
+
+                while let range = buffer.range(of: "\n") {
+                    let line = String(buffer[..<range.lowerBound])
+                    buffer = String(buffer[range.upperBound...])
+
+                    if !line.isEmpty {
+                        processJSONLine(line, as: type, onLine: onLine)
+                    }
+                }
+            }
+        }
+    }
+
+    private func processJSONLine<T: Decodable>(_ line: String, as type: T.Type, onLine: @escaping (T) -> Void) {
+        guard let data = line.data(using: .utf8) else { return }
+        if let decodedObject = try? decoder.decode(T.self, from: data) {
+            onLine(decodedObject)
+        }
+    }
+
+    private func readData() async throws -> Data {
+        return try await withCheckedThrowingContinuation { continuation in
+            fileHandle.readabilityHandler = { handle in
+                let data = handle.availableData
+                handle.readabilityHandler = nil
+                continuation.resume(returning: data)
+            }
+        }
+    }
+
+    func close() async {
+        do {
+            fileHandle.readabilityHandler = nil
+
+            try fileHandle.close()
+            try pipe.fileHandleForWriting.close()
+        } catch {
+            // Ignore close errors.
+        }
     }
 }
