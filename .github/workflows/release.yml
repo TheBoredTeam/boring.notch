@@ -14,7 +14,6 @@ env:
 permissions:
   contents: read
   pull-requests: write
-  workflows: write
 
 jobs:
   preparation:
@@ -24,7 +23,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      workflows: write
     outputs:
       is_beta: ${{ steps.extract-version.outputs.is_beta }}
       version: ${{ steps.extract-version.outputs.version }}
@@ -178,19 +176,6 @@ jobs:
           git checkout "$HEAD_REF"
           git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
           git push origin "$HEAD_REF"
-
-      - name: Trigger update-version-dropdown workflow
-        if: ${{ success() }}
-        uses: actions/github-script@v6
-        with:
-          result-encoding: string
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'update-version-dropdown.yml',
-              ref: context.payload.repository.default_branch
-            });
 
   build:
     name: Build and sign app
