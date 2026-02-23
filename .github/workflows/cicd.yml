@@ -31,9 +31,9 @@ jobs:
     runs-on: macos-latest
     steps:
     - name: Code Checkout
-      # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      # TODO: pin to immutable SHA
       uses: actions/checkout@v2
-    - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+    - # TODO: pin to immutable SHA
       uses: mxcl/xcodebuild@v3
       with:
         xcode: ${{ matrix.xcode }}

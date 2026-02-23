@@ -17,7 +17,7 @@ jobs:
       DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
       CODE_SIGN_IDENTITY: "Apple Development"
     steps:
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: actions/checkout@v3
       
       - name: Resolve Swift packages
@@ -99,14 +99,14 @@ jobs:
           ./Configuration/dmg/create_dmg.sh "Release/${{ env.projname }}.app" "Release/${{ env.projname }}.dmg" "${{ env.projname }}"
                           
       - name: Upload DMG artifact
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.projname }}.dmg
           path: Release/${{ env.projname }}.dmg
 
       - name: Upload .app artifact
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.projname }}.app
