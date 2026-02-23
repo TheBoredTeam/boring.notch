@@ -2,6 +2,9 @@ name: "Manual Build"
 on:
   workflow_dispatch:
 
+# Least-privilege: workflow_dispatch build only; no token access needed beyond artifacts.
+permissions: {}
+
 env:
   projname: boringNotch
   EXPORT_METHOD: "development"
@@ -14,7 +17,8 @@ jobs:
       DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
       CODE_SIGN_IDENTITY: "Apple Development"
     steps:
-      - uses: actions/checkout@v3
+      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        uses: actions/checkout@v3
       
       - name: Resolve Swift packages
         run: xcodebuild -resolvePackageDependencies -project ${{ env.projname }}.xcodeproj
@@ -95,12 +99,14 @@ jobs:
           ./Configuration/dmg/create_dmg.sh "Release/${{ env.projname }}.app" "Release/${{ env.projname }}.dmg" "${{ env.projname }}"
                           
       - name: Upload DMG artifact
+        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.projname }}.dmg
           path: Release/${{ env.projname }}.dmg
 
       - name: Upload .app artifact
+        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.projname }}.app

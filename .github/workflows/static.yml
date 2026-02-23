@@ -31,14 +31,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
         uses: actions/checkout@v4
       - name: Setup Pages
+        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
         uses: actions/configure-pages@v5
       - name: Upload artifact
+        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
           path: 'updater/'
       - name: Deploy to GitHub Pages
         id: deployment
+        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
         uses: actions/deploy-pages@v4
