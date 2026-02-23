@@ -31,18 +31,18 @@ jobs:
       release_notes: ${{ steps.generate-release-notes.outputs.release_notes }}
       release_notes_github: ${{ steps.generate-release-notes.outputs.release_notes_github }}
     steps:
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
 
       - name: Add reaction to comment
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: eyes
           
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: actions/github-script@v6
         with:
           result-encoding: string
@@ -71,7 +71,7 @@ jobs:
               if (pr.data.draft || !pr.data.mergeable) {
                 core.setFailed("PR is not ready to be merged");
               }
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: actions/checkout@v3
         if: success()
         with:
@@ -91,7 +91,6 @@ jobs:
         id: extract-version
         shell: bash
         env:
-          # Pass untrusted comment body via env to prevent script injection.
           COMMENT: ${{ github.event.comment.body }}
         run: |
           set -euo pipefail
@@ -117,7 +116,7 @@ jobs:
 
       - name: Generate release notes and title
         id: generate-release-notes
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/github-script@v6
         with:
           result-encoding: string
@@ -162,8 +161,6 @@ jobs:
 
       - name: Sync branch (for stable releases)
         if: ${{ steps.extract-version.outputs.is_beta == 'false' }}
-        # Replaced devmasx/merge-branch@master (floating third-party action) with
-        # native git commands to eliminate supply-chain risk.
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           BASE_REF: ${{ steps.comment-branch.outputs.base_ref }}
@@ -190,10 +187,10 @@ jobs:
       DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
       CODE_SIGN_IDENTITY: "Apple Development"
     steps:
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: actions/checkout@v3
         if: success()
         with:
@@ -297,14 +294,14 @@ jobs:
           chmod +x Configuration/dmg/create_dmg.sh
           ./Configuration/dmg/create_dmg.sh "Release/${{ env.projname }}.app" "Release/${{ env.projname }}.dmg" "boringNotch ${VERSION}"
       - name: Upload DMG artifact
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.projname }}.dmg
           path: Release/${{ env.projname }}.dmg
 
       - name: Upload .app artifact
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.projname }}.app
@@ -317,16 +314,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: actions/checkout@v3
         if: success()
         with:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
       - name: Download DMG artifact
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.projname }}.dmg
@@ -347,7 +344,6 @@ jobs:
           fi
           echo "Found generate_appcast at $TOOL_PATH"
       - name: Generate signed appcast
-        # Pass secret via env to avoid direct interpolation of secrets into shell commands.
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
           VERSION: ${{ needs.preparation.outputs.version }}
@@ -406,7 +402,6 @@ jobs:
     runs-on: macos-latest
     needs: [preparation, publish]
     if: ${{ needs.preparation.outputs.is_beta == 'false' }}
-    # Uses a PAT (HOMEBREW_TAP_TOKEN) to push to the tap repo; GITHUB_TOKEN needs no permissions.
     permissions: {}
     steps:
       - name: Generate Homebrew stable cask
@@ -476,7 +471,7 @@ jobs:
           EOF
 
       - name: Upload Homebrew cask artifacts
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/upload-artifact@v4
         with:
           name: homebrew-cask-${{ needs.preparation.outputs.version }}
@@ -485,7 +480,7 @@ jobs:
             boring-notch@rc.rb
 
       - name: Checkout Homebrew tap
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/checkout@v3
         with:
           repository: TheBoredTeam/homebrew-boring-notch
@@ -510,7 +505,6 @@ jobs:
     runs-on: macos-latest
     needs: [preparation, publish]
     if: ${{ needs.preparation.outputs.is_beta == 'true' }}
-    # Uses a PAT (HOMEBREW_TAP_TOKEN) to push to the tap repo; GITHUB_TOKEN needs no permissions.
     permissions: {}
     steps:
       - name: Generate Homebrew beta cask
@@ -546,14 +540,14 @@ jobs:
           end
           EOF
       - name: Upload Homebrew beta cask artifact
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/upload-artifact@v4
         with:
           name: homebrew-cask-${{ needs.preparation.outputs.version }}
           path: boring-notch@rc.rb
 
       - name: Checkout Homebrew tap
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: actions/checkout@v3
         with:
           repository: TheBoredTeam/homebrew-boring-notch
@@ -578,18 +572,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: [preparation, build, publish, upgrade-brew]
     steps:
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: xt0rted/pull-request-comment-branch@v1
         id: comment-branch
-      - # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+      - # TODO: pin to immutable SHA
         uses: actions/checkout@v3
         if: ${{ contains(join(needs.*.result, ','), 'success') }}
         with:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
       - name: Merge PR (for stable releases)
         if: ${{ needs.preparation.outputs.is_beta == 'false' && contains(join(needs.*.result, ','), 'success') }}
-        # Replaced devmasx/merge-branch@master (floating third-party action) with
-        # native git commands to eliminate supply-chain risk.
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           HEAD_REF: ${{ steps.comment-branch.outputs.head_ref }}
@@ -608,14 +600,14 @@ jobs:
           git push origin "$BASE_REF"
       - name: Add success reactions
         if: ${{ !contains(join(needs.*.result, ','), 'failure') }}
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: rocket
       - name: Add negative reaction
         if: ${{ contains(join(needs.*.result, ','), 'failure') }}
-        # TODO: pin to immutable SHA – run scripts/pin-actions.sh to resolve
+        # TODO: pin to immutable SHA
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ github.event.comment.id }}
