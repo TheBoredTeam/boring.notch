@@ -13,6 +13,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Least-privilege: only needs to read code for building.
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build Boring Notch
@@ -27,8 +31,10 @@ jobs:
     runs-on: macos-latest
     steps:
     - name: Code Checkout
+      # TODO: pin to immutable SHA
       uses: actions/checkout@v2
-    - uses: mxcl/xcodebuild@v3
+    - # TODO: pin to immutable SHA
+      uses: mxcl/xcodebuild@v3
       with:
         xcode: ${{ matrix.xcode }}
         platform: ${{ matrix.platform }}
