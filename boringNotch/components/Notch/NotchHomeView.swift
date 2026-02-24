@@ -229,6 +229,10 @@ struct MusicControlsView: View {
             )
             .fontWeight(.medium)
             if Defaults[.enableLyrics] && !hideLyricsLine {
+                let lyricsUnavailable = !musicManager.isFetchingLyrics
+                    && musicManager.syncedLyrics.isEmpty
+                    && musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    && !musicManager.songTitle.isEmpty
                 TimelineView(.animation(minimumInterval: 0.25)) { timeline in
                     let currentElapsed: Double = {
                         guard musicManager.isPlaying else { return musicManager.elapsedTime }
@@ -242,7 +246,7 @@ struct MusicControlsView: View {
                             return musicManager.lyricLine(at: currentElapsed)
                         }
                         let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-                        return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+                        return trimmed.isEmpty ? "No lyrics found — tap to retry" : trimmed.replacingOccurrences(of: "\n", with: " ")
                     }()
                     let isPersian = line.unicodeScalars.contains { scalar in
                         let v = scalar.value
@@ -261,13 +265,16 @@ struct MusicControlsView: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
                 .onTapGesture {
-                    guard !musicManager.syncedLyrics.isEmpty else { return }
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        lyricsColumnLayout = true
+                    if lyricsUnavailable {
+                        musicManager.retryLyricsFetch()
+                    } else if !musicManager.syncedLyrics.isEmpty {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            lyricsColumnLayout = true
+                        }
                     }
                 }
                 .onHover { hovering in
-                    guard !musicManager.syncedLyrics.isEmpty else { return }
+                    guard !musicManager.syncedLyrics.isEmpty || lyricsUnavailable else { return }
                     if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
                 }
             }
