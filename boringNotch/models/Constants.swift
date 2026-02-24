@@ -119,6 +119,8 @@ extension Defaults.Keys {
     // MARK: Appearance
     //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)
+    static let mirrorWebcam = Key<Bool>("mirrorWebcam", default: true)
+    static let enableFlipWebcamToggle = Key<Bool>("enableFlipWebcamToggle", default: false)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
