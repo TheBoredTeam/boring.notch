@@ -35,11 +35,7 @@ enum StandardAnimations {
 
 public class BoringAnimations {
     @Published var notchStyle: Style = .notch
-    
-    init() {
-        self.notchStyle = .notch
-    }
-    
+        
     var animation: Animation {
         if #available(macOS 14.0, *), notchStyle == .notch {
             StandardAnimations.bouncy

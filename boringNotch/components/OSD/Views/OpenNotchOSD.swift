@@ -1,5 +1,5 @@
 //
-//  OpenNotchHUD.swift
+//  OpenNotchOSD.swift
 //  boringNotch
 //
 //  Created by Alexander on 2024-11-23.
@@ -8,50 +8,28 @@
 import SwiftUI
 import Defaults
 
-struct OpenNotchHUD: View {
+struct OpenNotchOSD: View {
     @EnvironmentObject var vm: BoringViewModel
     @Binding var type: SneakContentType
     @Binding var value: CGFloat
     @Binding var icon: String
-    @Default(.showOpenNotchHUDPercentage) var showPercentage
+    @Binding var accent: Color?
+    @Default(.showOpenNotchOSDPercentage) var showPercentage
     
     var body: some View {
         HStack(spacing: 8) {
             // Icon
-            Group {
-                switch type {
-                case .volume:
-                    if icon.isEmpty {
-                        Image(systemName: SpeakerSymbol(value))
-                            .contentTransition(.interpolate)
-                    } else {
-                        Image(systemName: icon)
-                            .contentTransition(.interpolate)
-                    }
-                case .brightness:
-                    Image(systemName: "sun.max.fill")
-                        .contentTransition(.symbolEffect)
-                case .backlight:
-                    Image(systemName: value > 0.5 ? "light.max" : "light.min")
-                        .contentTransition(.interpolate)
-                case .mic:
-                    Image(systemName: "mic")
-                        .symbolVariant(value > 0 ? .none : .slash)
-                        .contentTransition(.interpolate)
-                default:
-                    EmptyView()
-                }
-            }
-            .font(.system(size: 14, weight: .medium))
-            .foregroundStyle(.white)
-            .frame(width: 20, alignment: .center)
+            OSDIconView(eventType: type, icon: icon, value: value, accent: accent)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.white)
+                .frame(width: 20, alignment: .center)
             
             // Slider or Status Text
             if type != .mic {
-                DraggableProgressBar(value: $value, onChange: { newVal in
+                 DraggableProgressBar(value: $value, onChange: { newVal in
                      updateSystemValue(newVal)
-                })
-                .frame(width: showPercentage ? 65 : 108) // Fixed width for consistency
+                 }, accentColor: accent, compact: true)
+                    .frame(maxWidth: .infinity)
             } else {
                 Text(value > 0 ? "Unmuted" : "Muted")
                     .font(.system(size: 13, weight: .medium))
@@ -99,7 +77,7 @@ struct OpenNotchHUD: View {
 }
 
 #Preview {
-    OpenNotchHUD(type: .constant(.volume), value: .constant(0.5), icon: .constant(""))
+    OpenNotchOSD(type: .constant(.volume), value: .constant(0.5), icon: .constant(""), accent: .constant(nil))
         .environmentObject(BoringViewModel())
         .padding()
         .background(Color.gray)

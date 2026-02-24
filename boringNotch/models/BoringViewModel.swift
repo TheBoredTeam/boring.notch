@@ -16,7 +16,6 @@ class BoringViewModel: NSObject, ObservableObject {
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
 
-    @Published var contentType: ContentType = .normal
     @Published private(set) var notchState: NotchState = .closed
 
     @Published var dragDetectorTargeting: Bool = false
@@ -212,7 +211,9 @@ class BoringViewModel: NSObject, ObservableObject {
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
         self.isBatteryPopoverActive = false
-        self.coordinator.sneakPeek.show = false
+        if self.coordinator.shouldShowSneakPeek(on: self.screenUUID) {
+            self.coordinator.toggleSneakPeek(status: false, type: .music, targetScreenUUID: self.screenUUID)
+        }
         self.edgeAutoOpenActive = false
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault

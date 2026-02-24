@@ -87,6 +87,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MusicManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
+        BetterDisplayManager.shared.stopObserving()
+        LunarManager.shared.stopListening()
+        LunarManager.shared.configureLunarOSD(hide: false)
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
         
         observers.forEach { NotificationCenter.default.removeObserver($0) }
@@ -168,6 +171,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             self.window = nil
         }
+
+        // ensure OSD integration reflects the current window state
+        coordinator.applyOSDSources()
     }
 
     private func cleanupDragDetectors() {
@@ -361,9 +367,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if Defaults[.sneakPeekStyles] == .inline {
                 let newStatus = !self.coordinator.expandingView.show
                 self.coordinator.toggleExpandingView(status: newStatus, type: .music)
+                KeyboardShortcuts.onKeyUp(for: .toggleSneakPeek) {
+                    self.coordinator.toggleSneakPeek(
+                        status: !self.coordinator.isAnySneakPeekShowing,
+                        type: .music
+                    )
+                }
             } else {
                 self.coordinator.toggleSneakPeek(
-                    status: !self.coordinator.sneakPeek.show,
+                    status: !self.coordinator.isAnySneakPeekShowing,
                     type: .music,
                     duration: 3.0
                 )
@@ -444,6 +456,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousScreens = NSScreen.screens
+
+        // make sure OSD subsystems are in the right state now that initial
+        // notch windows have been created/cleaned up
+        coordinator.applyOSDSources()
     }
 
     func playWelcomeSound() {
@@ -551,6 +567,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+
+        // windows might have been added/removed during the earlier logic –
+        // update the OSD subsystems accordingly.
+        coordinator.applyOSDSources()
     }
 
     @objc func togglePopover(_ sender: Any?) {
