@@ -41,29 +41,55 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 ## Installation
 
-**System Requirements:**  
-- macOS **14 Sonoma** or later  
+**System Requirements:**
+- macOS **14 Sonoma** or later
 - Apple Silicon or Intel Mac
 
 ---
-> [!IMPORTANT]
-> We don't have an Apple Developer account yet. The application will show a popup on first launch that the app is from an unidentified developer.
-> 1. Click **OK** to close the popup.
-> 2. Open **System Settings** > **Privacy & Security**.
-> 3. Scroll down and click **Open Anyway** next to the warning about the app.
-> 4. Confirm your choice if prompted.
->
-> You only need to do this once.
-
 
 ### Option 1: Download and Install Manually
+
 <a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+
+Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
+
+> [!IMPORTANT]
+> We don't have an Apple Developer account (yet 👀), so macOS will warn you that Boring Notch is from an unidentified developer on first launch. This is expected behavior.
+>
+> You'll need to bypass this before the app will open. You only need to do this once. Use one of the methods below.
+
+---
+
+#### Recommended: Terminal (Always Works)
+
+This is the fastest and simplest method. It requires just one command and works reliably for all users, unlike System Settings, which occasionally doesn't.
+
+After moving Boring Notch to your Applications folder, run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/boringNotch.app
+```
+
+Then open the app normally.
+
+---
+
+#### Alternative: System Settings
+
+> [!NOTE]
+> This method doesn't work for all users. If this doesn't work, use the Terminal method above.
+
+1. Try to open the app — you'll see a security warning.
+2. Click **OK** to dismiss it.
+3. Open **System Settings** > **Privacy & Security**.
+4. Scroll to the bottom and click **Open Anyway** next to the Boring Notch warning.
+5. Confirm if prompted.
 
 ---
 
 ### Option 2: Install via Homebrew
 
-You can also install the app using [Homebrew](https://brew.sh):
+You can also install using [Homebrew](https://brew.sh). The `--no-quarantine` flag is included to automatically bypass the same macOS security warning described above.
 
 ```bash
 brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
