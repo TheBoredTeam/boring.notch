@@ -186,7 +186,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupDragDetectors() {
         cleanupDragDetectors()
 
-        guard Defaults[.expandedDragDetection] else { return }
+        guard Defaults[.boringShelf] && Defaults[.expandedDragDetection] else { return }
 
         if Defaults[.showOnAllDisplays] {
             for screen in NSScreen.screens {
@@ -349,6 +349,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.expandedDragDetectionChanged, object: nil, queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.setupDragDetectors()
+            }
+        })
+
+        observers.append(NotificationCenter.default.addObserver(
+            forName: Notification.Name.boringShelfChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.setupDragDetectors()

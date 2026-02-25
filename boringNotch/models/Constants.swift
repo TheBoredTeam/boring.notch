@@ -43,6 +43,7 @@ extension Notification.Name {
     
     // MARK: - Shelf
     static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")
+    static let boringShelfChanged = Notification.Name("boringShelfChanged")
     
     // MARK: - System
     static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")

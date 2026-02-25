@@ -10,6 +10,7 @@ import SwiftUI
 
 struct Shelf: View {
     
+    @Default(.boringShelf) var boringShelf: Bool
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
@@ -25,6 +26,12 @@ struct Shelf: View {
             Section {
                 Defaults.Toggle(key: .boringShelf) {
                     Text("Enable shelf")
+                }
+                .onChange(of: boringShelf) {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.boringShelfChanged,
+                        object: nil
+                    )
                 }
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
