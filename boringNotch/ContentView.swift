@@ -410,9 +410,9 @@ struct ContentView: View {
                 } else {
                     // If disabled, force target to false to be safe
                     vm.generalDropTargeting = false
-                    }
                 }
-            )))
+            }
+        )))
     }
 
     @ViewBuilder
