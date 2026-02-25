@@ -185,8 +185,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setupDragDetectors() {
         cleanupDragDetectors()
-
-        guard Defaults[.expandedDragDetection] else { return }
+        
+        // Return early if disabled
+        if Defaults[.dragDetectionArea] == .disabled { return }
 
         if Defaults[.showOnAllDisplays] {
             for screen in NSScreen.screens {
@@ -207,10 +208,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let uuid = screen.displayUUID else { return }
         
         let screenFrame = screen.frame
-        let notchHeight = openNotchSize.height
-        let notchWidth = openNotchSize.width
+        let closedNotchSize = getClosedNotchSize(screenUUID: uuid)
         
-        // Create notch region at the top-center of the screen where an open notch would occupy
+        var notchHeight: CGFloat = 0
+        var notchWidth: CGFloat = 0
+        
+        switch Defaults[.dragDetectionArea] {
+        case .openNotch:
+            notchHeight = openNotchSize.height
+            notchWidth = openNotchSize.width
+        case .closedNotch:
+            notchHeight = closedNotchSize.height
+            notchWidth = windowSize.width
+        case .disabled:
+            return
+        }
+        
+        // Create notch region at the top-center of the screen
         let notchRegion = CGRect(
             x: screenFrame.midX - notchWidth / 2,
             y: screenFrame.maxY - notchHeight,

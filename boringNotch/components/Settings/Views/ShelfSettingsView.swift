@@ -12,7 +12,7 @@ struct Shelf: View {
     
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
-    @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @Default(.dragDetectionArea) var dragDetectionArea: DragDetectionArea
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -28,15 +28,19 @@ struct Shelf: View {
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
                 }
-                Defaults.Toggle(key: .expandedDragDetection) {
-                    Text("Expanded drag detection area")
+                
+                Picker("Drag detection area", selection: $dragDetectionArea) {
+                    ForEach(DragDetectionArea.allCases) { area in
+                        Text(area.rawValue).tag(area)
+                    }
                 }
-                .onChange(of: expandedDragDetection) {
+                .onChange(of: dragDetectionArea) {
                     NotificationCenter.default.post(
                         name: Notification.Name.expandedDragDetectionChanged,
                         object: nil
                     )
                 }
+
                 Defaults.Toggle(key: .copyOnDrag) {
                     Text("Copy items on drag")
                 }
