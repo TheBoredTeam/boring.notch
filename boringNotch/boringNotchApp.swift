@@ -219,6 +219,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             notchWidth = openNotchSize.width
         case .closedNotch:
             notchHeight = closedNotchSize.height
+            // We use windowSize.width (the full width of the interface) instead of the physical notch width (closedNotchSize.width)
+            // to ensure the drop zone covers the entire visible area of boring.notch, which can be wider than the physical notch
+            // (e.g. when showing music or battery info).
             notchWidth = windowSize.width
         case .disabled:
             return
@@ -305,6 +308,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        
+        // One-time migration from legacy `expandedDragDetection` to `dragDetectionArea`
+        if !Defaults.hasKey(.dragDetectionArea) {
+            let expandedDragDetectionEnabled = Defaults[.expandedDragDetection]
+            
+            if expandedDragDetectionEnabled == false {
+                Defaults[.dragDetectionArea] = .disabled
+            } else {
+                Defaults[.dragDetectionArea] = .openNotch
+            }
+            
+            // Remove the old key after migration to avoid confusion
+            Defaults.remove(.expandedDragDetection)
+        }
 
         NotificationCenter.default.addObserver(
             self,
@@ -352,7 +369,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         })
 
         observers.append(NotificationCenter.default.addObserver(
-            forName: Notification.Name.expandedDragDetectionChanged, object: nil, queue: nil
+            forName: Notification.Name.dragDetectionAreaChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.setupDragDetectors()

@@ -36,7 +36,7 @@ struct Shelf: View {
                 }
                 .onChange(of: dragDetectionArea) {
                     NotificationCenter.default.post(
-                        name: Notification.Name.expandedDragDetectionChanged,
+                        name: Notification.Name.dragDetectionAreaChanged,
                         object: nil
                     )
                 }

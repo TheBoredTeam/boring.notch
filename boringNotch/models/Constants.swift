@@ -42,7 +42,7 @@ extension Notification.Name {
     static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
     
     // MARK: - Shelf
-    static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")
+    static let dragDetectionAreaChanged = Notification.Name("dragDetectionAreaChanged")
     
     // MARK: - System
     static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")
@@ -198,7 +198,11 @@ extension Defaults.Keys {
     static let quickShareProvider = Key<String>("quickShareProvider", default: QuickShareProvider.defaultProvider.id)
     static let copyOnDrag = Key<Bool>("copyOnDrag", default: false)
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
+    
+    // Legacy: Use `dragDetectionArea` instead.
+    @available(*, deprecated, message: "Use `dragDetectionArea` instead.")
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
+    
     static let dragDetectionArea = Key<DragDetectionArea>("dragDetectionArea", default: .openNotch)
     
     // MARK: Calendar
