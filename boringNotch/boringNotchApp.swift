@@ -310,17 +310,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         
         // One-time migration from legacy `expandedDragDetection` to `dragDetectionArea`
-        if !Defaults.hasKey(.dragDetectionArea) {
-            let expandedDragDetectionEnabled = Defaults[.expandedDragDetection]
-            
-            if expandedDragDetectionEnabled == false {
-                Defaults[.dragDetectionArea] = .disabled
-            } else {
-                Defaults[.dragDetectionArea] = .openNotch
+        // Check if the new key is NOT set yet (using UserDefaults directly to check for existence)
+        if UserDefaults.standard.object(forKey: "dragDetectionArea") == nil {
+            // Check if the old key was set
+            if let legacyValue = UserDefaults.standard.object(forKey: "expandedDragDetection") as? Bool {
+                // Migrate the value
+                if legacyValue == false {
+                    Defaults[.dragDetectionArea] = .disabled
+                } else {
+                    Defaults[.dragDetectionArea] = .openNotch
+                }
+                
+                // Remove the old key
+                UserDefaults.standard.removeObject(forKey: "expandedDragDetection")
             }
-            
-            // Remove the old key after migration to avoid confusion
-            Defaults.remove(.expandedDragDetection)
         }
 
         NotificationCenter.default.addObserver(
