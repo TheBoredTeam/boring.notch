@@ -233,6 +233,7 @@ struct ContentView: View {
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .ignoresSafeArea(.all)
         .compositingGroup()
         .scaleEffect(
             x: gestureScale,
