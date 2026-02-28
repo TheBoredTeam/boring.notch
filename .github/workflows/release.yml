@@ -12,6 +12,7 @@ env:
   BETA_CHANNEL_NAME: beta
   RELEASE_COMMAND: /release
   EXPORT_METHOD: development
+  XCODE_VERSION: "16.4"
 
 permissions:
   contents: read
@@ -191,9 +192,16 @@ jobs:
           security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
           security list-keychain -d user -s "$KC"
 
-      - name: Select Xcode
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
         run: |
-          sudo xcode-select -s "/Applications/Xcode_16.4.app"
+          XCODE_PATH="/Applications/Xcode_${XCODE_VERSION}.app"
+          if [[ ! -d "$XCODE_PATH" ]]; then
+            echo "::error::Xcode ${XCODE_VERSION} not found at ${XCODE_PATH}"
+            echo "Available Xcode versions:"
+            ls -d /Applications/Xcode*.app 2>/dev/null || echo "  (none found)"
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_PATH"
           xcodebuild -version
 
       - name: Set version and build number
