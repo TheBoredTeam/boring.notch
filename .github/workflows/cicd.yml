@@ -19,27 +19,27 @@ permissions:
 
 jobs:
   build:
-    name: Build Boring Notch
+    name: Build Boring Notch (${{ matrix.xcode }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        platform:
-          - macOS
-        xcode:
-          - ^16
-        scheme:
-          - boringNotch
-    runs-on: macos-latest
+        include:
+          - os: macos-15
+            xcode: "^16"
+          - os: macos-26
+            xcode: "^26"
     steps:
-    - name: Code Checkout
-      # TODO: pin to immutable SHA
-      uses: actions/checkout@v2
-    - # TODO: pin to immutable SHA
-      uses: mxcl/xcodebuild@v3
-      with:
-        xcode: ${{ matrix.xcode }}
-        platform: ${{ matrix.platform }}
-        scheme: ${{ matrix.scheme }}
-        action: build
-        verbosity: xcpretty
-        upload-logs: always
-        configuration: release
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Build
+        uses: mxcl/xcodebuild@e366f14791346edb74397fe9a762ccee86eddc06 # v3.5.0
+        with:
+          xcode: ${{ matrix.xcode }}
+          platform: macOS
+          scheme: boringNotch
+          action: build
+          verbosity: xcpretty
+          upload-logs: always
+          configuration: release

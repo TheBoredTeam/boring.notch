@@ -25,6 +25,8 @@ struct sneakPeek {
     var type: SneakContentType = .music
     var value: CGFloat = 0
     var icon: String = ""
+    var accent: Color? = nil
+    var targetScreenUUID: String? = nil
 }
 
 struct SharedSneakPeek: Codable {
@@ -54,10 +56,9 @@ class BoringViewCoordinator: ObservableObject {
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
-    private var hudEnableTask: Task<Void, Never>?
+    private var osdEnableTask: Task<Void, Never>?
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
-    @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @AppStorage("musicLiveActivityEnabled") var musicLiveActivityEnabled: Bool = true
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
 
@@ -80,8 +81,6 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
     
-    @Default(.hudReplacement) var hudReplacement: Bool
-    
     // Legacy storage for migration
     @AppStorage("preferred_screen_name") private var legacyPreferredScreenName: String?
     
@@ -99,7 +98,8 @@ class BoringViewCoordinator: ObservableObject {
 
     @Published var optionKeyPressed: Bool = true
     private var accessibilityObserver: Any?
-    private var hudReplacementCancellable: AnyCancellable?
+    private var osdReplacementCancellable: AnyCancellable?
+    private var osdSourceCancellables: [AnyCancellable] = []
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -129,49 +129,47 @@ class BoringViewCoordinator: ObservableObject {
             queue: .main
         ) { _ in
             Task { @MainActor in
-                if Defaults[.hudReplacement] {
+                if Defaults[.osdReplacement] {
                     await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                 }
             }
         }
 
-        // Observe changes to hudReplacement
-        hudReplacementCancellable = Defaults.publisher(.hudReplacement)
+        XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
+
+        // Observe changes to osdReplacement
+        osdReplacementCancellable = Defaults.publisher(.osdReplacement)
             .sink { [weak self] change in
                 Task { @MainActor in
                     guard let self = self else { return }
 
-                    self.hudEnableTask?.cancel()
-                    self.hudEnableTask = nil
+                    self.osdEnableTask?.cancel()
+                    self.osdEnableTask = nil
 
                     if change.newValue {
-                        self.hudEnableTask = Task { @MainActor in
-                            let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-                            if Task.isCancelled { return }
-
-                            if granted {
-                                await MediaKeyInterceptor.shared.start()
-                            } else {
-                                Defaults[.hudReplacement] = false
-                            }
+                        self.osdEnableTask = Task { @MainActor in
+                            await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                         }
                     } else {
                         MediaKeyInterceptor.shared.stop()
                     }
+                    
+                    self.applyOSDSources()
                 }
             }
+        // Observe changes to any of the OSD source selections
+        osdSourceCancellables = [
+            Defaults.publisher(.osdBrightnessSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } },
+            Defaults.publisher(.osdVolumeSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } }
+        ]
 
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
 
-            if Defaults[.hudReplacement] {
-                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                if !authorized {
-                    Defaults[.hudReplacement] = false
-                } else {
-                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
-                }
+            if Defaults[.osdReplacement] {
+                await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
             }
+            self.applyOSDSources()
         }
     }
     
@@ -205,23 +203,70 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
+    // MARK: - Per-Screen Sneak Peek Management
+
+    // Dictionary to hold sneak peek state for each screen UUID
+    @Published var sneakPeekStates: [String: sneakPeek] = [:]
+    
+    // Dictionary to hold hide tasks for each screen UUID
+    private var sneakPeekTasks: [String: Task<Void, Never>] = [:]
+    
+    // Default duration
+    private var defaultSneakPeekDuration: TimeInterval = 1.5
+
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
-        icon: String = ""
+        icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil
     ) {
-        sneakPeekDuration = duration
         if type != .music {
             // close()
-            if !Defaults[.hudReplacement] {
+            if !Defaults[.osdReplacement] {
                 return
             }
         }
+        
         Task { @MainActor in
-            withAnimation(.smooth) {
-                self.sneakPeek.show = status
-                self.sneakPeek.type = type
-                self.sneakPeek.value = value
-                self.sneakPeek.icon = icon
+            // Helper to update state for a specific UUID
+            @MainActor
+            func updateState(for uuid: String) {
+                // If we don't have a state for this screen yet, initialize it
+                var state = self.sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+                
+                withAnimation(.smooth) {
+                    state.show = status
+                    state.type = type
+                    state.value = value
+                    state.icon = icon
+                    state.accent = accent
+                    state.targetScreenUUID = uuid // Ensure UUID is set
+                    self.sneakPeekStates[uuid] = state
+                }
+                
+                if status {
+                    self.scheduleSneakPeekHide(for: uuid, duration: duration)
+                } else {
+                    self.sneakPeekTasks[uuid]?.cancel()
+                    self.sneakPeekTasks[uuid] = nil
+                }
+            }
+            
+            if let targetUUID = targetScreenUUID {
+                // Update specific screen
+                updateState(for: targetUUID)
+            } else {
+                // Update ALL connected screens + the main screen as fallback
+                // We use known screen UUIDs from NSScreen
+                let screens = NSScreen.screens.compactMap { $0.displayUUID }
+                if screens.isEmpty {
+                    // Fallback if no screens detected (unlikely in UI app but safe)
+                     if let mainUUID = NSScreen.main?.displayUUID {
+                         updateState(for: mainUUID)
+                     }
+                } else {
+                    for uuid in screens {
+                        updateState(for: uuid)
+                    }
+                }
             }
         }
 
@@ -230,31 +275,92 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
-    private var sneakPeekDuration: TimeInterval = 1.5
-    private var sneakPeekTask: Task<Void, Never>?
+     func applyOSDSources() {
+        if NotchSpaceManager.shared.notchSpace.windows.isEmpty {
+            BetterDisplayManager.shared.stopObserving()
+            LunarManager.shared.stopListening()
+            LunarManager.shared.configureLunarOSD(hide: false)
+            MediaKeyInterceptor.shared.stop()
+            return
+        }
 
-    // Helper function to manage sneakPeek timer using Swift Concurrency
-    private func scheduleSneakPeekHide(after duration: TimeInterval) {
-        sneakPeekTask?.cancel()
+        guard Defaults[.osdReplacement] else {
+            BetterDisplayManager.shared.stopObserving()
+            LunarManager.shared.stopListening()
+            LunarManager.shared.configureLunarOSD(hide: false)
+            return
+        }
 
-        sneakPeekTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(duration))
-            guard let self = self, !Task.isCancelled else { return }
-            await MainActor.run {
-                withAnimation {
-                    self.toggleSneakPeek(status: false, type: .music)
-                    self.sneakPeekDuration = 1.5
-                }
-            }
+        let brightness = Defaults[.osdBrightnessSource]
+        let volume = Defaults[.osdVolumeSource]
+
+        Task { @MainActor in
+            await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+        }
+        // BetterDisplay is used when either brightness or volume is set to it
+        if brightness == .betterDisplay || volume == .betterDisplay {
+            BetterDisplayManager.shared.startObserving()
+        } else {
+            BetterDisplayManager.shared.stopObserving()
+        }
+
+        // Lunar only supports brightness; disable Lunar's OSD when we replace it, restore when we don't
+        if brightness == .lunar {
+            LunarManager.shared.configureLunarOSD(hide: true)
+            LunarManager.shared.startListening()
+        } else {
+            LunarManager.shared.stopListening()
+            LunarManager.shared.configureLunarOSD(hide: false)
         }
     }
 
-    @Published var sneakPeek: sneakPeek = .init() {
-        didSet {
-            if sneakPeek.show {
-                scheduleSneakPeekHide(after: sneakPeekDuration)
-            } else {
-                sneakPeekTask?.cancel()
+    func shouldShowSneakPeek(on screenUUID: String?) -> Bool {
+        guard let uuid = screenUUID else { return false }
+        return sneakPeekStates[uuid]?.show == true
+    }
+    
+    var isAnySneakPeekShowing: Bool {
+        return sneakPeekStates.values.contains { $0.show }
+    }
+    
+    // Helper to get state safely for binding/reading
+    func sneakPeekState(for screenUUID: String?) -> sneakPeek {
+        guard let uuid = screenUUID else { return sneakPeek() }
+        return sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+    }
+    
+    // Helper to get binding for SwiftUI views
+    func binding(for screenUUID: String?) -> Binding<sneakPeek> {
+        Binding(
+            get: { [weak self] in
+                guard let self = self, let uuid = screenUUID else { return sneakPeek() }
+                return self.sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+            },
+            set: { [weak self] newValue in
+                guard let self = self, let uuid = screenUUID else { return }
+                self.sneakPeekStates[uuid] = newValue
+            }
+        )
+    }
+
+    private func scheduleSneakPeekHide(for screenUUID: String, duration: TimeInterval) {
+        sneakPeekTasks[screenUUID]?.cancel()
+
+        sneakPeekTasks[screenUUID] = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(duration))
+            guard let self = self, !Task.isCancelled else { return }
+            
+            await MainActor.run {
+                withAnimation {
+                    // We only want to hide it, not reset everything instantly which might cause glitches
+                    if var state = self.sneakPeekStates[screenUUID] {
+                         state.show = false
+                         // Optional: reset type to something default if needed, but keeping last state is often fine until next show
+                         // keeping original logic:
+                         state.type = .music 
+                         self.sneakPeekStates[screenUUID] = state
+                    }
+                }
             }
         }
     }
