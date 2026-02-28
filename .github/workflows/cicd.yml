@@ -31,10 +31,10 @@ jobs:
             xcode: "^26"
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Build
-        uses: mxcl/xcodebuild@701e0c29b2dab2a2a66fc31e1f6cf2f93a03b6ae # v3.5.0
+        uses: mxcl/xcodebuild@e366f14791346edb74397fe9a762ccee86eddc06 # v3.5.0
         with:
           xcode: ${{ matrix.xcode }}
           platform: macOS
