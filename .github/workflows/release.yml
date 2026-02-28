@@ -43,7 +43,7 @@ jobs:
           reactions: eyes
           
       - # TODO: pin to immutable SHA
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           result-encoding: string
           script: |
@@ -117,7 +117,7 @@ jobs:
       - name: Generate release notes and title
         id: generate-release-notes
         # TODO: pin to immutable SHA
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           result-encoding: string
           script: |
