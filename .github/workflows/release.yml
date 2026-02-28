@@ -37,7 +37,7 @@ jobs:
 
       - name: Add reaction to comment
         # TODO: pin to immutable SHA
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: eyes
@@ -601,14 +601,14 @@ jobs:
       - name: Add success reactions
         if: ${{ !contains(join(needs.*.result, ','), 'failure') }}
         # TODO: pin to immutable SHA
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: rocket
       - name: Add negative reaction
         if: ${{ contains(join(needs.*.result, ','), 'failure') }}
         # TODO: pin to immutable SHA
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: confused
