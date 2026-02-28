@@ -1,18 +1,27 @@
 name: Update Version Dropdown in Issue Form
-permissions: write-all
+# Least-privilege: only needs to push the updated issue template file.
+permissions:
+  contents: write
 on:
   push:
     tags:
       - '*'
+  workflow_dispatch: {}
+  release:
+    types:
+      - published
 jobs:
   update-dropdown:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
+        # TODO: pin to immutable SHA
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: Fetch tags
         run: git fetch --tags
@@ -25,6 +34,7 @@ jobs:
           echo "versions=$VERSIONS" >> $GITHUB_OUTPUT
 
       - name: Issue Forms Dropdown Options
+        # TODO: pin to immutable SHA
         uses: ShaMan123/gha-form-dropdown-options@v2.1.0
         with:
           form: .github/ISSUE_TEMPLATE/1-bug-report-form.yml
