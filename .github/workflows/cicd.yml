@@ -19,8 +19,10 @@ permissions:
 
 jobs:
   build:
-    name: Build Boring Notch
+    name: Build Boring Notch (${{ matrix.xcode }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         platform:
           - macOS
