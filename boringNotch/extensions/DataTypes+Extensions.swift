@@ -42,6 +42,31 @@ extension Date {
     }
 }
 
+struct LunarDateStyle: FormatStyle {
+    func format(_ value: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Foundation.Calendar(identifier: .chinese)
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        
+        let fullDate = formatter.string(from: value)
+        
+        if let yearRange = fullDate.range(of: "年") {
+            let extracted = String(fullDate[yearRange.upperBound...])
+            return extracted
+        }
+        
+        return fullDate
+    }
+}
+
+extension Date.FormatStyle {
+    func lunar() -> LunarDateStyle {
+        LunarDateStyle()
+    }
+}
+
 extension NSSize {
     var s: String { "\(width.i)×\(height.i)" }
     
