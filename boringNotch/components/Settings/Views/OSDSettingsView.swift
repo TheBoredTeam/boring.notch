@@ -44,7 +44,7 @@ struct OSDSettings: View {
                     SettingsRow("Brightness Source") {
                         Picker("", selection: $osdBrightnessSourceDefault) {
                             ForEach(OSDControlSource.allCases) { source in
-                                Text(source.rawValue).tag(source)
+                                Text(source.localizedString).tag(source)
                             }
                         }
                         .pickerStyle(.menu)
@@ -63,7 +63,7 @@ struct OSDSettings: View {
                         Picker("", selection: $osdVolumeSourceDefault) {
                             // Lunar does not support volume control so hide it from the picker
                             ForEach(OSDControlSource.allCases.filter { $0 != .lunar }) { source in
-                                Text(source.rawValue).tag(source)
+                                Text(source.localizedString).tag(source)
                             }
                         }
                         .pickerStyle(.menu)
@@ -73,7 +73,7 @@ struct OSDSettings: View {
                     }
 
                     SettingsRow("Keyboard Source", help: "Keyboard brightness currently supports the built-in source only.") {
-                        Text(OSDControlSource.builtin.rawValue)
+                        Text(OSDControlSource.builtin.localizedString)
                     }
                     if !isAccessibilityAuthorized {
                         HStack(alignment: .center, spacing: 12) {
@@ -132,7 +132,7 @@ struct OSDSettings: View {
                     SettingsRow("Option (⌥) Key Behavior") {
                         Picker("", selection: $optionKeyActionDefault) {
                             ForEach(OptionKeyAction.allCases) { action in
-                                Text(action.rawValue).tag(action)
+                                Text(action.localizedString).tag(action)
                             }
                         }
                         .pickerStyle(.menu)

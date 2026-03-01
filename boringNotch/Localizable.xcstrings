@@ -10333,6 +10333,9 @@
     "Interaction" : {
 
     },
+    "Launch at login" : {
+
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -14143,8 +14146,52 @@
         }
       }
     },
+    "option_key_no_action" : {
+      "comment" : "Option (⌥) key behavior: No action",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No action"
+          }
+        }
+      }
+    },
+    "option_key_open_system_settings" : {
+      "comment" : "Option (⌥) key behavior: Open System Settings",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        }
+      }
+    },
+    "option_key_show_osd" : {
+      "comment" : "Option (⌥) key behavior: Show OSD",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show OSD"
+          }
+        }
+      }
+    },
     "OSD" : {
 
+    },
+    "osd_sources_built_in" : {
+      "comment" : "OSD Sources: Built-in",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Built-in"
+          }
+        }
+      }
     },
     "OSD.ValueLabel" : {
       "comment" : "Label for OSD value slider"
@@ -14248,6 +14295,9 @@
           }
         }
       }
+    },
+    "Player tinting" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -18028,6 +18078,39 @@
         }
       }
     },
+    "slider_color_accent" : {
+      "comment" : "Slider color option: accent color",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accent color"
+          }
+        }
+      }
+    },
+    "slider_color_album_art" : {
+      "comment" : "Slider color option: match album art",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match album art"
+          }
+        }
+      }
+    },
+    "slider_color_white" : {
+      "comment" : "Slider color option: white",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "White"
+          }
+        }
+      }
+    },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {
         "ar" : {
@@ -18224,6 +18307,28 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Sneak Peek 样式"
+          }
+        }
+      }
+    },
+    "sneak_peek_inline" : {
+      "comment" : "Sneak Peek style: Inline",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inline"
+          }
+        }
+      }
+    },
+    "sneak_peek_standard" : {
+      "comment" : "Sneak Peek style: Default",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
           }
         }
       }

@@ -66,28 +66,59 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
 
 // Sneak peek styles for selection in settings
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case standard = "Default"
-    case inline = "Inline"
+    case standard
+    case inline
     
     var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .standard:
+            return NSLocalizedString("sneak_peek_standard", comment: "Sneak Peek style: Default")
+        case .inline:
+            return NSLocalizedString("sneak_peek_inline", comment: "Sneak Peek style: Inline")
+        }
+    }
 }
 
 // Action to perform when Option (⌥) is held while pressing media keys
 enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case openSettings = "Open System Settings"
-    case showOSD = "Show OSD"
-    case none = "No Action"
+    case openSettings
+    case showOSD
+    case none
 
     var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .openSettings:
+            return NSLocalizedString("option_key_open_system_settings", comment: "Option (⌥) key behavior: Open System Settings")
+        case .showOSD:
+            return NSLocalizedString("option_key_show_osd", comment: "Option (⌥) key behavior: Show OSD")
+        case .none:
+            return NSLocalizedString("option_key_no_action", comment: "Option (⌥) key behavior: No action")
+        }
+    }
 }
 
 // Source/provider for OSD control (user-facing: "Source")
 enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case builtin = "Built-in"
+    case builtin
     case betterDisplay = "BetterDisplay"
     case lunar = "Lunar"
 
     var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .builtin:
+            return NSLocalizedString("osd_sources_built_in", comment: "OSD Sources: Built-in")
+        case .betterDisplay:
+            return "BetterDisplay"
+        case .lunar:
+            return "Lunar"
+        }
+    }
 }
 
 extension Defaults.Keys {
