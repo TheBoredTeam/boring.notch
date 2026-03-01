@@ -75,6 +75,13 @@ struct ShelfView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture { selection.clear() }
+            .background(
+                KeyboardEventHandler(
+                    onCommandA: {
+                        selection.selectAll(in: tvm.items)
+                    }
+                )
+            )
     }
 
     var content: some View {
@@ -110,6 +117,36 @@ struct ShelfView: View {
         }
         .onAppear {
             ShelfStateViewModel.shared.cleanupInvalidItems()
+        }
+    }
+}
+
+// MARK: - Keyboard Event Handler
+private struct KeyboardEventHandler: NSViewRepresentable {
+    let onCommandA: () -> Void
+
+    func makeNSView(context: Context) -> KeyEventView {
+        let view = KeyEventView()
+        view.onCommandA = onCommandA
+        return view
+    }
+
+    func updateNSView(_ nsView: KeyEventView, context: Context) {
+        nsView.onCommandA = onCommandA
+    }
+
+    final class KeyEventView: NSView {
+        var onCommandA: (() -> Void)?
+
+        override var acceptsFirstResponder: Bool { true }
+
+        override func performKeyEquivalent(with event: NSEvent) -> Bool {
+            // Check for Command+A (Select All)
+            if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "a" {
+                onCommandA?()
+                return true
+            }
+            return super.performKeyEquivalent(with: event)
         }
     }
 }

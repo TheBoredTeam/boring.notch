@@ -141,6 +141,39 @@ struct ShelfItemView: View {
             return 1
         }
     }
+
+    // MARK: - Drag Preview Rendering
+
+    @MainActor
+    private func renderDragPreview() async -> NSImage {
+        // Check if multiple items are selected
+        let selectedItems = selection.selectedItems(in: ShelfStateViewModel.shared.items)
+
+        if selectedItems.count > 1 && selectedItems.contains(where: { $0.id == item.id }) {
+            // Render stacked preview for multi-item drag
+            return renderStackedPreview(for: selectedItems)
+        } else {
+            // Render single item preview
+            let content = DragPreviewView(thumbnail: viewModel.thumbnail ?? item.icon, displayName: item.displayName)
+            let renderer = ImageRenderer(content: content)
+            renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+            return renderer.nsImage ?? (viewModel.thumbnail ?? item.icon)
+        }
+    }
+
+    @MainActor
+    private func renderStackedPreview(for items: [ShelfItem]) -> NSImage {
+        // Collect icons from selected items (max 3)
+        // We use icons instead of thumbnails for simplicity and performance
+        let thumbnails = items.prefix(3).map { $0.icon }
+
+        let content = StackedDragPreviewView(thumbnails: Array(thumbnails), count: items.count)
+        let renderer = ImageRenderer(content: content)
+        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+        return renderer.nsImage ?? (thumbnails.first ?? item.icon)
+    }
+
+
 }
 
 // MARK: - Draggable Click Handler with NSDraggingSource
@@ -175,14 +208,32 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     }
     
     private func renderDragPreview() -> NSImage {
+        // Check if multiple items are selected
+        let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+
+        if selectedItems.count > 1 && selectedItems.contains(where: { $0.id == item.id }) {
+            // Render stacked preview for multi-item drag
+            // Use icons for simplicity and performance
+            let thumbnails = selectedItems.prefix(3).map { $0.icon }
+
+            let stackedContent = StackedDragPreviewView(thumbnails: Array(thumbnails), count: selectedItems.count)
+            let stackedRenderer = ImageRenderer(content: stackedContent)
+            stackedRenderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+
+            if let nsImage = stackedRenderer.nsImage {
+                return nsImage
+            }
+        }
+
+        // Render single item preview
         let content = dragPreviewContent()
         let renderer = ImageRenderer(content: content)
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
-        
+
         if let nsImage = renderer.nsImage {
             return nsImage
         }
-        
+
         // Fallback to icon if rendering fails
         return viewModel.thumbnail ?? item.icon
     }
