@@ -32,7 +32,7 @@ jobs:
     steps:
     - name: Code Checkout
       # TODO: pin to immutable SHA
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6.0.2
     - # TODO: pin to immutable SHA
       uses: mxcl/xcodebuild@v3
       with:
