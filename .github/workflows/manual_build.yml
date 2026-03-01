@@ -18,7 +18,7 @@ jobs:
       CODE_SIGN_IDENTITY: "Apple Development"
     steps:
       - # TODO: pin to immutable SHA
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
       
       - name: Resolve Swift packages
         run: xcodebuild -resolvePackageDependencies -project ${{ env.projname }}.xcodeproj
