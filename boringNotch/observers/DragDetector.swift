@@ -46,7 +46,7 @@ final class DragDetector {
             .string
         ]
         let isValid = dragPasteboard.pasteboardItems?.allSatisfy { item in
-            item.types.allSatisfy { validTypes.contains($0) }
+            item.types.contains { validTypes.contains($0) }
         }
         return isValid ?? false
     }
@@ -79,7 +79,7 @@ final class DragDetector {
             if self.isContentDragging {
                 let mouseLocation = NSEvent.mouseLocation
                 self.onDragMove?(mouseLocation)
-                
+
                 // Track notch region entry/exit
                 let containsMouse = self.notchRegion.contains(mouseLocation)
                 if containsMouse && !self.hasEnteredNotchRegion {

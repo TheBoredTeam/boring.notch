@@ -186,7 +186,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupDragDetectors() {
         cleanupDragDetectors()
 
-        guard Defaults[.expandedDragDetection] else { return }
+        guard Defaults[.boringShelf] && Defaults[.expandedDragDetection] else { return }
 
         if Defaults[.showOnAllDisplays] {
             for screen in NSScreen.screens {
@@ -205,19 +205,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setupDragDetectorForScreen(_ screen: NSScreen) {
         guard let uuid = screen.displayUUID else { return }
-        
+
         let screenFrame = screen.frame
-        let notchHeight = openNotchSize.height
-        let notchWidth = openNotchSize.width
-        
-        // Create notch region at the top-center of the screen where an open notch would occupy
+        let closedNotchSize = getClosedNotchSize(screenUUID: uuid)
+
+        var notchHeight: CGFloat
+        var notchWidth: CGFloat
+
+        switch Defaults[.dragDetectionArea] {
+        case .openNotch:
+            notchHeight = openNotchSize.height
+            notchWidth = openNotchSize.width
+        case .closedNotch:
+            notchHeight = closedNotchSize.height
+            notchWidth = closedNotchSize.width
+        }
+
         let notchRegion = CGRect(
             x: screenFrame.midX - notchWidth / 2,
             y: screenFrame.maxY - notchHeight,
             width: notchWidth,
             height: notchHeight
         )
-        
+
         let detector = DragDetector(notchRegion: notchRegion)
         
         detector.onDragEntersNotchRegion = { [weak self] in
@@ -339,6 +349,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.expandedDragDetectionChanged, object: nil, queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.setupDragDetectors()
+            }
+        })
+
+        observers.append(NotificationCenter.default.addObserver(
+            forName: Notification.Name.boringShelfChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.setupDragDetectors()

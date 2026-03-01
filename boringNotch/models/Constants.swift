@@ -43,6 +43,7 @@ extension Notification.Name {
     
     // MARK: - Shelf
     static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")
+    static let boringShelfChanged = Notification.Name("boringShelfChanged")
     
     // MARK: - System
     static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")
@@ -69,6 +70,13 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     case standard = "Default"
     case inline = "Inline"
     
+    var id: String { self.rawValue }
+}
+
+enum DragDetectionArea: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case openNotch = "Expanded area"
+    case closedNotch = "Notch only"
+
     var id: String { self.rawValue }
 }
 
@@ -191,7 +199,8 @@ extension Defaults.Keys {
     static let copyOnDrag = Key<Bool>("copyOnDrag", default: false)
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
-    
+    static let dragDetectionArea = Key<DragDetectionArea>("dragDetectionArea", default: .openNotch)
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
