@@ -178,6 +178,7 @@ struct WheelPicker: View {
     }
 }
 
+
 struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject private var calendarManager = CalendarManager.shared
@@ -191,10 +192,17 @@ struct CalendarView: View {
                         .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
-                    Text(selectedDate.formatted(.dateTime.year()))
-                        .font(.title3)
-                        .fontWeight(.light)
-                        .foregroundColor(Color(white: 0.65))
+                    if Locale.current.identifier.hasPrefix("zh") {
+                        Text(selectedDate.formatted(.dateTime.lunar()))
+                            .font(.title3)
+                            .fontWeight(.light)
+                            .foregroundColor(Color(white: 0.65))
+                    } else {
+                        Text(selectedDate.formatted(.dateTime.year()))
+                            .font(.title3)
+                            .fontWeight(.light)
+                            .foregroundColor(Color(white: 0.65))
+                    }
                 }
 
                 ZStack(alignment: .top) {

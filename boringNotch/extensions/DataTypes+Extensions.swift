@@ -42,6 +42,34 @@ extension Date {
     }
 }
 
+struct LunarDateStyle: FormatStyle {
+    func format(_ value: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Foundation.Calendar(identifier: .chinese)
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        
+        // dateStyle .long 通常会输出 "甲辰年正月十三"
+        // 我们只需要 "正月十三"
+        let fullDate = formatter.string(from: value)
+        
+        // 尝试去掉年份部分 (通常是前3-4个字，或者直到‘年’字)
+        if let yearRange = fullDate.range(of: "年") {
+            let extracted = String(fullDate[yearRange.upperBound...])
+            return extracted
+        }
+        
+        return fullDate
+    }
+}
+
+extension Date.FormatStyle {
+    func lunar() -> LunarDateStyle {
+        LunarDateStyle()
+    }
+}
+
 extension NSSize {
     var s: String { "\(width.i)×\(height.i)" }
     
