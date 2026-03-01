@@ -31,6 +31,9 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
 - **Discuss major changes**: For significant features or major changes, please open an issue first to discuss your approach with maintainers and the community.
 <!-- - **Review the code style**: Familiarize yourself with our code style guidelines below to ensure consistency. -->
 
+> [!IMPORTANT]
+> All code contributions must be based on the `dev` branch, not `main`. Documentation changes should be based on `main` instead.
+
 ### Setting Up Your Environment
 
 1. **Fork the repository**: Click the "Fork" button at the top of the repository page to create your own copy.
@@ -46,7 +49,7 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
    ```bash
    git checkout dev
    ```
-   All code contributions should be based on the `dev` branch, not `main`. (documentation corrections or improvements can be based on `main`)
+   All code contributions must be based on the `dev` branch, not `main`. Documentation changes should be based on `main` instead.
 
 5. **Create a new feature branch**:
    ```bash
