@@ -100,14 +100,14 @@ jobs:
                           
       - name: Upload DMG artifact
         # TODO: pin to immutable SHA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.projname }}.dmg
           path: Release/${{ env.projname }}.dmg
 
       - name: Upload .app artifact
         # TODO: pin to immutable SHA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.projname }}.app
           path: Release/${{ env.projname }}.app
