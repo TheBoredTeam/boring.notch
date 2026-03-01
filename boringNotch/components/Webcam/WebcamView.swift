@@ -15,16 +15,36 @@ struct CameraPreviewView: View {
     
     // Track if authorization request is in progress to avoid multiple requests
     @State private var isRequestingAuthorization: Bool = false
-
+    // Track the current state of mirror effect and the mirror icon in camera preview
+    @Default(.isMirrored) private var isMirrored
+    @Default(.enableFlipWebcamToggle) private var enableFlipWebcamToggle
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 if let previewLayer = webcamManager.previewLayer {
-                    CameraPreviewLayerView(previewLayer: previewLayer)
-                        .scaleEffect(x: -1, y: 1)
-                        .clipShape(RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? MusicPlayerImageSizes.cornerRadiusInset.opened : 100))
-                        .frame(width: geometry.size.width, height: geometry.size.width)
-                        .opacity(webcamManager.isSessionRunning ? 1 : 0)
+                    ZStack(alignment: .bottomTrailing) {
+                        CameraPreviewLayerView(previewLayer: previewLayer)
+                            .scaleEffect(x: isMirrored ? -1 : 1, y: 1)
+                            .clipShape(RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? MusicPlayerImageSizes.cornerRadiusInset.opened : 100))
+                            .frame(width: geometry.size.width, height: geometry.size.width)
+                            .opacity(webcamManager.isSessionRunning ? 1 : 0)
+
+                        // The mirror toggle button should only be visible if the webcam session is running and the setting to enable it is turned on
+                        if enableFlipWebcamToggle && webcamManager.isSessionRunning {
+                            Button {
+                                isMirrored.toggle()
+                            } label: {
+                                Image(systemName: isMirrored ? "arrow.left.and.right.circle.fill" : "arrow.left.and.right.circle")
+                                                            .font(.system(size: 14, weight: .semibold))
+                                                            .foregroundStyle(.white.opacity(0.9))
+                                                            .padding(6)
+                                                            .background(.black.opacity(0.35), in: Circle())
+                            }
+                            .buttonStyle(.plain)
+                            .padding(8)
+                        }
+                    }
                 }
 
                 if !webcamManager.isSessionRunning {
