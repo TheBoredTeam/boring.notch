@@ -19,9 +19,24 @@ permissions:
   pull-requests: write
 
 jobs:
+  # helper job to test for the release command in the comment; env is safe to use here
+  check_release:
+    name: Check for release command
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.check.outputs.is_release }}
+    steps:
+      - id: check
+        run: |
+          if [[ "${{ github.event.comment.body }}" == *"${{ env.RELEASE_COMMAND }}"* ]]; then
+            echo "is_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+
   preparation:
     name: Preparation
-    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, env.RELEASE_COMMAND) }}
+    if: ${{ github.event.issue.pull_request && needs.check_release.outputs.is_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -341,8 +356,8 @@ jobs:
 
   ending:
     name: Finalize
-    if: ${{ always() && needs.preparation.result != 'skipped' && contains(github.event.comment.body, env.RELEASE_COMMAND) }}
-    needs: [preparation, build, publish, upgrade-brew]
+    if: ${{ always() && needs.preparation.result != 'skipped' && needs.check_release.outputs.is_release == 'true' }}
+    needs: [check_release, preparation, build, publish, upgrade-brew]
     runs-on: ubuntu-latest
     permissions:
       contents: write
