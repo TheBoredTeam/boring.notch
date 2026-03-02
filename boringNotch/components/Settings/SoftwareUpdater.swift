@@ -6,7 +6,18 @@
 //
 
 import SwiftUI
+import Defaults
 import Sparkle
+
+final class UpdateChannelUpdaterDelegate: NSObject, SPUUpdaterDelegate {
+    @objc func feedURLString(for updater: SPUUpdater) -> String? {
+        Defaults[.updateChannel].feedURLString
+    }
+
+    @objc func allowedChannels(for updater: SPUUpdater) -> Set<String> {
+        Defaults[.updateChannel].allowedSparkleChannels
+    }
+}
 
 final class CheckForUpdatesViewModel: ObservableObject {
     @Published var canCheckForUpdates = false
@@ -37,6 +48,7 @@ struct CheckForUpdatesView: View {
 struct UpdaterSettingsView: View {
     private let updater: SPUUpdater
     
+    @Default(.updateChannel) private var updateChannel
     @State private var automaticallyChecksForUpdates: Bool
     @State private var automaticallyDownloadsUpdates: Bool
     
@@ -48,6 +60,15 @@ struct UpdaterSettingsView: View {
     
     var body: some View {
         Section {
+            Picker(
+                NSLocalizedString("Update channel", comment: "Software updates channel picker label"),
+                selection: $updateChannel
+            ) {
+                ForEach(UpdateChannel.allCases) { channel in
+                    Text(channel.title).tag(channel)
+                }
+            }
+
             Toggle("Automatically check for updates", isOn: $automaticallyChecksForUpdates)
                 .onChange(of: automaticallyChecksForUpdates) { _, newValue in
                     updater.automaticallyChecksForUpdates = newValue
@@ -58,6 +79,13 @@ struct UpdaterSettingsView: View {
                 .onChange(of: automaticallyDownloadsUpdates) { _, newValue in
                     updater.automaticallyDownloadsUpdates = newValue
                 }
+        } footer: {
+            Text(
+                NSLocalizedString(
+                    "Stable and Beta come from official releases. Main and Dev use nightly builds from those branches.",
+                    comment: "Software updates channel footer"
+                )
+            )
         } header: {
             HStack {
                 Text("Software updates")
