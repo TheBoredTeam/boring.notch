@@ -5,6 +5,7 @@
 //  Created by Harsh Vardhan  Goswami  on  04/08/24.
 //
 
+import Defaults
 import Foundation
 import SwiftUI
 
@@ -15,7 +16,9 @@ enum StandardAnimations {
     static let interactive = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
     
     /// Spring animation for opening the notch
-    static let open = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
+    static var open: Animation {
+        Animation.spring(response: Defaults[.openingAnimationResponse], dampingFraction: 0.8, blendDuration: 0)
+    }
     
     /// Spring animation for closing the notch
     static let close = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
