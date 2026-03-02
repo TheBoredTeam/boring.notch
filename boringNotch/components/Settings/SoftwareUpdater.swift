@@ -59,7 +59,17 @@ struct UpdaterSettingsView: View {
     }
     
     var body: some View {
-        Section {
+        Section(
+            header: HStack {
+                Text("Software updates")
+            },
+            footer: Text(
+                NSLocalizedString(
+                    "Stable and Beta come from official releases. Main and Dev use nightly builds from those branches.",
+                    comment: "Software updates channel footer"
+                )
+            )
+        ) {
             Picker(
                 NSLocalizedString("Update channel", comment: "Software updates channel picker label"),
                 selection: $updateChannel
@@ -73,23 +83,12 @@ struct UpdaterSettingsView: View {
                 .onChange(of: automaticallyChecksForUpdates) { _, newValue in
                     updater.automaticallyChecksForUpdates = newValue
                 }
-            
+
             Toggle("Automatically download updates", isOn: $automaticallyDownloadsUpdates)
                 .disabled(!automaticallyChecksForUpdates)
                 .onChange(of: automaticallyDownloadsUpdates) { _, newValue in
                     updater.automaticallyDownloadsUpdates = newValue
                 }
-        } footer: {
-            Text(
-                NSLocalizedString(
-                    "Stable and Beta come from official releases. Main and Dev use nightly builds from those branches.",
-                    comment: "Software updates channel footer"
-                )
-            )
-        } header: {
-            HStack {
-                Text("Software updates")
-            }
         }
     }
 }
