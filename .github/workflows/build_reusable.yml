@@ -19,6 +19,13 @@ on:
         required: false
         type: string
         default: "Apple Development"
+    secrets:
+      BUILD_CERTIFICATE_BASE64:
+        required: true
+      P12_PASSWORD:
+        required: true
+      KEYCHAIN_PASSWORD:
+        required: true
 
 jobs:
   build:
