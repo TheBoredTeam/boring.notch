@@ -166,8 +166,6 @@ jobs:
       head_ref: ${{ needs.preparation.outputs.head_ref }}
       version: ${{ needs.preparation.outputs.version }}
       build_number: ${{ needs.preparation.outputs.build_number }}
-      project_name: ${{ env.PROJECT_NAME }}
-      export_method: ${{ env.EXPORT_METHOD }}
       xcode_version: ${{ env.XCODE_VERSION }}
       code_sign_identity: ${{ env.CODE_SIGN_IDENTITY }}
     secrets:

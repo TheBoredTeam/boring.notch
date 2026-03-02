@@ -20,9 +20,6 @@ on:
 # Least-privilege: workflow_dispatch build only; no token access needed beyond artifacts.
 permissions: {}
 
-env:
-  PROJECT_NAME: boringNotch
-  EXPORT_METHOD: "development"
 
 jobs:
   build:
@@ -32,8 +29,6 @@ jobs:
       head_ref: ${{ github.event.inputs.head_ref || github.ref_name || 'main' }}
       version: ${{ github.event.inputs.version || '' }}
       build_number: ${{ github.event.inputs.build_number || '' }}
-      project_name: ${{ env.PROJECT_NAME }}
-      export_method: ${{ env.EXPORT_METHOD }}
       xcode_version: ${{ github.event.inputs.xcode_version || '16.4' }}
       code_sign_identity: "Apple Development"
     secrets:

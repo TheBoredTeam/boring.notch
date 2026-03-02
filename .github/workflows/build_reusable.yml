@@ -11,14 +11,6 @@ on:
       build_number:
         required: false
         type: string
-      project_name:
-        required: false
-        type: string
-        default: boringNotch
-      export_method:
-        required: false
-        type: string
-        default: development
       xcode_version:
         required: false
         type: string
@@ -34,12 +26,12 @@ jobs:
     permissions:
       contents: write
     env:
-      PROJECT_NAME: ${{ inputs.project_name }}
+      PROJECT_NAME: boringNotch
+      EXPORT_METHOD: development
       VERSION_INPUT: ${{ inputs.version }}
       BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
       DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
       CODE_SIGN_IDENTITY: ${{ inputs.code_sign_identity }}
-      EXPORT_METHOD: ${{ inputs.export_method }}
       XCODE_VERSION: ${{ inputs.xcode_version }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
