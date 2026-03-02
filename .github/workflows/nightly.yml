@@ -44,7 +44,7 @@ jobs:
           SHORT_SHA="${COMMIT_SHA::7}"
           TAG="nightly-${BRANCH_NAME}-${SHORT_SHA}"
           APPCAST_FILE="appcast-${BRANCH_NAME}.xml"
-          BUILD_NUMBER="$(date -u +%Y%m%d%H%M%S)"
+          BUILD_NUMBER="$(date -u +%Y%m%d%H%M%S)$(printf '%06d%02d' "${GITHUB_RUN_NUMBER:-0}" "${GITHUB_RUN_ATTEMPT:-0}")"
           ASSET_NAME="boringNotch-${BRANCH_NAME}-${SHORT_SHA}.dmg"
           {
             echo "branch_name=$BRANCH_NAME"
@@ -107,16 +107,20 @@ jobs:
 
       - name: Create embedded release notes
         run: |
+          ESCAPED_COMMIT_MESSAGE="$(printf '%s' "$COMMIT_MESSAGE" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')"
           cat > Release/boringNotch.html <<HTML
           <h2>Nightly ${BRANCH_NAME}</h2>
           <p>Commit: <code>${COMMIT_SHA}</code></p>
-          <p>Message: ${COMMIT_MESSAGE}</p>
+          <p>Message: ${ESCAPED_COMMIT_MESSAGE}</p>
           <p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/${COMMIT_SHA}">View commit</a></p>
           HTML
 
       - name: Generate signed nightly appcast
         run: |
           set -euo pipefail
+          test -x Configuration/sparkle/generate_appcast || {
+            echo "::error::Configuration/sparkle/generate_appcast missing or not executable"; exit 1;
+          }
           DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/${TAG}/"
           printf '%s' "$SPARKLE_PRIVATE_KEY" | ./Configuration/sparkle/generate_appcast \
             --ed-key-file - \
@@ -157,5 +161,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "updater/${APPCAST_FILE}"
-          git commit -m "Update ${APPCAST_FILE} to ${SHORT_SHA}" || true
-          git push origin "HEAD:${BRANCH_NAME}" || true
+          if git diff --cached --quiet; then
+            echo "No changes detected in ${APPCAST_FILE}; skipping commit and push."
+            exit 0
+          fi
+          git commit -m "Update ${APPCAST_FILE} to ${SHORT_SHA}"
+          git push origin "HEAD:${BRANCH_NAME}"
