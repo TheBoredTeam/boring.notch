@@ -115,7 +115,7 @@ jobs:
           OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
           VERSION=$(awk -F= '/^version=/{print $2; exit}' <<<"$OUTPUT")
           IS_BETA=$(awk -F= '/^is_beta=/{print $2; exit}' <<<"$OUTPUT")
-          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+          BUILD_NUMBER="$(date -u +%Y%m%d%H%M%S)"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "is_beta=$IS_BETA" >> "$GITHUB_OUTPUT"
           echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
@@ -180,14 +180,12 @@ jobs:
       head_ref: ${{ needs.preparation.outputs.head_ref }}
       version: ${{ needs.preparation.outputs.version }}
       build_number: ${{ needs.preparation.outputs.build_number }}
-      xcode_version: ${{ needs.preparation.outputs.xcode_version }}
-      code_sign_identity: ${{ needs.preparation.outputs.code_sign_identity }}
+      xcode_version: ${{ env.XCODE_VERSION }}
+      code_sign_identity: ${{ env.CODE_SIGN_IDENTITY }}
     secrets:
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
       P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
   publish:
     name: Publish release
