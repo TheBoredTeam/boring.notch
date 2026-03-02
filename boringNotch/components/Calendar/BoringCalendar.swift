@@ -233,6 +233,34 @@ struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject private var calendarManager = CalendarManager.shared
     @State private var selectedDate = Date()
+    @Default(.calendarSubtitleDisplayMode) var displayMode
+    @Default(.alternativeCalendar) var alternativeCalendar
+    @Default(.calendarIsShowingAlternate) var isShowingAlternate
+
+    private var shouldShowAlternate: Bool {
+        switch displayMode {
+        case .alwaysDefault:
+            return false
+        case .alwaysAlternate:
+            return true
+        case .tapToSwitch:
+            return isShowingAlternate
+        }
+    }
+
+    // A hidden view strictly for sizing
+    private func subtitleSizingView(date: Date) -> some View {
+        ZStack {
+            Text(date.formatted(.dateTime.year()))
+            switch alternativeCalendar {
+            case .lunar:
+                Text(date.formatted(.dateTime.lunar()))
+            }
+        }
+        .font(.title3)
+        .fontWeight(.light)
+        .fixedSize() // Ensure it takes up its natural calculated size
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -242,10 +270,34 @@ struct CalendarView: View {
                         .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
-                    Text(selectedDate.formatted(.dateTime.year()))
+                    
+                    ZStack(alignment: .leading) {
+                        // Invisible layer to reserve space for the widest possible content
+                        subtitleSizingView(date: selectedDate)
+                            .hidden()
+                            
+                        // Visible content
+                        Group {
+                            if shouldShowAlternate {
+                                switch alternativeCalendar {
+                                case .lunar:
+                                    Text(selectedDate.formatted(.dateTime.lunar()))
+                                }
+                            } else {
+                                Text(selectedDate.formatted(.dateTime.year()))
+                            }
+                        }
                         .font(.title3)
                         .fontWeight(.light)
                         .foregroundColor(Color(white: 0.65))
+                        .onTapGesture {
+                            if displayMode == .tapToSwitch {
+                                withAnimation(.smooth(duration: 0.2)) {
+                                    isShowingAlternate.toggle()
+                                }
+                            }
+                        }
+                    }
                 }
 
                 ZStack(alignment: .top) {
