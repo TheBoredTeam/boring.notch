@@ -175,6 +175,8 @@ jobs:
   build:
     name: Build and sign
     needs: preparation
+    permissions:
+      contents: write
     uses: ./.github/workflows/build_reusable.yml
     with:
       head_ref: ${{ needs.preparation.outputs.head_ref }}
