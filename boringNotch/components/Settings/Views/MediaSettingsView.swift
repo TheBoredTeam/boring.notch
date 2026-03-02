@@ -23,7 +23,7 @@ struct Media: View {
             Section {
                 Picker("Music Source", selection: $mediaController) {
                     ForEach(availableMediaControllers) { controller in
-                        Text(controller.rawValue).tag(controller)
+                        Text(controller.localizedString).tag(controller)
                     }
                 }
                 .onChange(of: mediaController) { _, _ in

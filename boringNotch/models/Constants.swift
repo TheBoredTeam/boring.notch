@@ -56,12 +56,25 @@ extension Notification.Name {
 
 // Media controller types for selection in settings
 enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case nowPlaying = "Now Playing"
-    case appleMusic = "Apple Music"
-    case spotify = "Spotify"
-    case youtubeMusic = "YouTube Music"
+    case nowPlaying
+    case appleMusic
+    case spotify
+    case youtubeMusic
     
     var id: String { self.rawValue }
+
+    var localizedString: String {
+        switch self {
+        case .nowPlaying:
+            return NSLocalizedString("Now Playing", comment: "")
+        case .appleMusic:
+            return "Apple Music"
+        case .spotify:
+            return "Spotify"
+        case .youtubeMusic:
+            return "YouTube Music"
+        }
+    }
 }
 
 // Sneak peek styles for selection in settings
