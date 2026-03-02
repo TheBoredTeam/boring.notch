@@ -31,8 +31,3 @@ jobs:
       build_number: ${{ github.event.inputs.build_number || '' }}
       xcode_version: ${{ github.event.inputs.xcode_version || '16.4' }}
       code_sign_identity: "Apple Development"
-    secrets:
-      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
