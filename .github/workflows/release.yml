@@ -12,6 +12,7 @@ env:
   BETA_CHANNEL_NAME: beta
   RELEASE_COMMAND: /release
   EXPORT_METHOD: development
+  CODE_SIGN_IDENTITY: "Apple Development"
   XCODE_VERSION: "16.4"
 
 permissions:
@@ -160,117 +161,21 @@ jobs:
   build:
     name: Build and sign
     needs: preparation
-    runs-on: macos-latest
-    permissions:
-      contents: write
-    env:
-      HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
-      VERSION: ${{ needs.preparation.outputs.version }}
-      BUILD_NUMBER: ${{ needs.preparation.outputs.build_number }}
-      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
-      CODE_SIGN_IDENTITY: "Apple Development"
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-        with:
-          ref: ${{ env.HEAD_REF }}
-
-      - name: Resolve Swift packages
-        run: xcodebuild -resolvePackageDependencies -project ${{ env.PROJECT_NAME }}.xcodeproj
-
-      - name: Install Apple certificate
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          CERT_PATH="$RUNNER_TEMP/build_certificate.p12"
-          KC="$RUNNER_TEMP/app-signing.keychain-db"
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
-          security set-keychain-settings -lut 21600 "$KC"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
-          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
-          security list-keychain -d user -s "$KC"
-
-      - name: Select Xcode ${{ env.XCODE_VERSION }}
-        run: |
-          XCODE_PATH="/Applications/Xcode_${XCODE_VERSION}.app"
-          if [[ ! -d "$XCODE_PATH" ]]; then
-            echo "::error::Xcode ${XCODE_VERSION} not found at ${XCODE_PATH}"
-            echo "Available Xcode versions:"
-            ls -d /Applications/Xcode*.app 2>/dev/null || echo "  (none found)"
-            exit 1
-          fi
-          sudo xcode-select -s "$XCODE_PATH"
-          xcodebuild -version
-
-      - name: Set version and build number
-        run: |
-          PBXPROJ="${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
-          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${VERSION}/g" "$PBXPROJ"
-          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${BUILD_NUMBER}/g" "$PBXPROJ"
-
-      - name: Commit version changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
-          git commit -m "Set version to v${VERSION} (build ${BUILD_NUMBER})" || true
-          git push origin "HEAD:${HEAD_REF}" || true
-
-      - name: Build and archive
-        run: |
-          xcodebuild clean archive \
-            -project ${{ env.PROJECT_NAME }}.xcodeproj \
-            -scheme ${{ env.PROJECT_NAME }} \
-            -archivePath ${{ env.PROJECT_NAME }} \
-            -destination "generic/platform=macOS" \
-            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-            ONLY_ACTIVE_ARCH=NO \
-            -allowProvisioningUpdates
-
-      - name: Export app
-        run: |
-          cat > "$RUNNER_TEMP/export_options.plist" <<PLIST
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>${EXPORT_METHOD}</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-            <key>teamID</key>
-            <string>${DEVELOPMENT_TEAM}</string>
-          </dict>
-          </plist>
-          PLIST
-          xcodebuild -exportArchive \
-            -archivePath "${{ env.PROJECT_NAME }}.xcarchive" \
-            -exportPath Release \
-            -exportOptionsPlist "$RUNNER_TEMP/export_options.plist"
-
-      - name: Verify generate_appcast exists
-        run: test -x Configuration/sparkle/generate_appcast
-
-      - name: Create DMG
-        run: |
-          VENV_DIR="$RUNNER_TEMP/venv"
-          python3 -m venv "$VENV_DIR"
-          source "$VENV_DIR/bin/activate"
-          pip install --upgrade pip setuptools wheel "dmgbuild[badge_icons]"
-          chmod +x Configuration/dmg/create_dmg.sh
-          ./Configuration/dmg/create_dmg.sh \
-            "Release/${{ env.PROJECT_NAME }}.app" \
-            "Release/${{ env.PROJECT_NAME }}.dmg" \
-            "boringNotch ${VERSION}"
-
-      - name: Upload DMG
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        with:
-          name: ${{ env.PROJECT_NAME }}.dmg
-          path: Release/${{ env.PROJECT_NAME }}.dmg
+    uses: ./.github/workflows/build_reusable.yml
+    with:
+      head_ref: ${{ needs.preparation.outputs.head_ref }}
+      version: ${{ needs.preparation.outputs.version }}
+      build_number: ${{ needs.preparation.outputs.build_number }}
+      project_name: ${{ env.PROJECT_NAME }}
+      export_method: ${{ env.EXPORT_METHOD }}
+      xcode_version: ${{ env.XCODE_VERSION }}
+      code_sign_identity: ${{ env.CODE_SIGN_IDENTITY }}
+    secrets:
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
   publish:
     name: Publish release
