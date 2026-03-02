@@ -174,12 +174,61 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     }
 }
 
+enum UpdateChannel: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case stable
+    case beta
+    case main
+    case dev
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .stable:
+            return NSLocalizedString("Stable", comment: "Update channel: stable")
+        case .beta:
+            return NSLocalizedString("Beta", comment: "Update channel: beta")
+        case .main:
+            return NSLocalizedString("Main (Nightly)", comment: "Update channel: main nightly")
+        case .dev:
+            return NSLocalizedString("Dev (Nightly)", comment: "Update channel: dev nightly")
+        }
+    }
+
+    var feedURLString: String {
+        switch self {
+        case .stable:
+            return "https://TheBoredTeam.github.io/boring.notch/appcast.xml"
+        case .beta:
+            return "https://TheBoredTeam.github.io/boring.notch/appcast.xml"
+        case .main:
+            return "https://raw.githubusercontent.com/TheBoredTeam/boring.notch/main/updater/appcast-main.xml"
+        case .dev:
+            return "https://raw.githubusercontent.com/TheBoredTeam/boring.notch/dev/updater/appcast-dev.xml"
+        }
+    }
+
+    var allowedSparkleChannels: Set<String> {
+        switch self {
+        case .stable:
+            return []
+        case .beta:
+            return ["beta"]
+        case .main:
+            return ["main"]
+        case .dev:
+            return ["dev"]
+        }
+    }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
+    static let updateChannel = Key<UpdateChannel>("updateChannel", default: .stable)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
