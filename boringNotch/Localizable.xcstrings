@@ -606,6 +606,9 @@
         }
       }
     },
+    "%.2fs" : {
+
+    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -13903,6 +13906,9 @@
         }
       }
     },
+    "Now Playing" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -14403,6 +14409,9 @@
           }
         }
       }
+    },
+    "Opening animation duration" : {
+
     },
     "Option key behaviour" : {
       "extractionState" : "stale",

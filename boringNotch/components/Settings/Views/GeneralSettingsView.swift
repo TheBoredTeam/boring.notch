@@ -28,6 +28,7 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    @Default(.openingAnimationResponse) var openingAnimationResponse
 
     var body: some View {
         Form {
@@ -230,6 +231,14 @@ struct GeneralSettings: View {
                 .onChange(of: minimumHoverDuration) {
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
+                }
+            }
+            Slider(value: $openingAnimationResponse, in: 0.1...1.0) {
+                HStack {
+                    Text("Opening animation duration")
+                    Spacer()
+                    Text("\(openingAnimationResponse, specifier: "%.2f")s")
+                        .foregroundStyle(.secondary)
                 }
             }
         } header: {
