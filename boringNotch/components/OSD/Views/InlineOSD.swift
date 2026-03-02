@@ -82,13 +82,13 @@ struct InlineOSD: View {
     func Type2Name(_ type: SneakContentType) -> String {
         switch(type) {
             case .volume:
-                return "Volume"
+                return NSLocalizedString("Volume", comment: "")
             case .brightness:
-                return "Brightness"
+                return NSLocalizedString("Brightness", comment: "")
             case .backlight:
-                return "Backlight"
+                return NSLocalizedString("Backlight", comment: "")
             case .mic:
-                return "Mic"
+                return NSLocalizedString("Mic", comment: "")
             default:
                 return ""
         }
