@@ -2606,6 +2606,9 @@
         }
       }
     },
+    "Backlight" : {
+
+    },
     "Battery" : {
       "localizations" : {
         "ar" : {
@@ -3205,6 +3208,9 @@
           }
         }
       }
+    },
+    "Brightness" : {
+
     },
     "Calendar" : {
       "localizations" : {
@@ -3806,6 +3812,9 @@
           }
         }
       }
+    },
+    "Charging battery" : {
+
     },
     "Charging on Hold: Desktop Mode" : {
       "localizations" : {
@@ -8317,6 +8326,9 @@
         }
       }
     },
+    "Full charge" : {
+
+    },
     "Full screen behavior" : {
       "localizations" : {
         "ar" : {
@@ -11935,6 +11947,9 @@
           }
         }
       }
+    },
+    "Mic" : {
+
     },
     "Mic %@" : {
       "localizations" : {
@@ -16477,6 +16492,54 @@
         }
       }
     },
+    "Shelf.ContextMenu.Compress" : {
+      "comment" : "Context menu item: Compress"
+    },
+    "Shelf.ContextMenu.ConvertImage" : {
+      "comment" : "Context menu item: Convert Image…"
+    },
+    "Shelf.ContextMenu.Copy" : {
+      "comment" : "Context menu item: Copy"
+    },
+    "Shelf.ContextMenu.CopyPath" : {
+      "comment" : "Context menu item: Copy Path"
+    },
+    "Shelf.ContextMenu.CreatePDF" : {
+      "comment" : "Context menu item: Create PDF"
+    },
+    "Shelf.ContextMenu.ImageActions" : {
+      "comment" : "Context menu item: Image Actions"
+    },
+    "Shelf.ContextMenu.NoCompatibleAppsFound" : {
+      "comment" : "Context menu item: No Compatible Apps Found"
+    },
+    "Shelf.ContextMenu.Open" : {
+      "comment" : "Context menu item: Open"
+    },
+    "Shelf.ContextMenu.OpenWith" : {
+      "comment" : "Context menu item: Open With"
+    },
+    "Shelf.ContextMenu.Other" : {
+      "comment" : "Context menu item: Other…"
+    },
+    "Shelf.ContextMenu.QuickLook" : {
+      "comment" : "Context menu item: Quick Look"
+    },
+    "Shelf.ContextMenu.Remove" : {
+      "comment" : "Context menu item: Remove"
+    },
+    "Shelf.ContextMenu.RemoveBackground" : {
+      "comment" : "Context menu item: Remove Background"
+    },
+    "Shelf.ContextMenu.Rename" : {
+      "comment" : "Context menu item: Rename"
+    },
+    "Shelf.ContextMenu.Share" : {
+      "comment" : "Context menu item: Share…"
+    },
+    "Shelf.ContextMenu.ShowInFinder" : {
+      "comment" : "Context menu item: Show in Finder"
+    },
     "Shortcuts" : {
       "localizations" : {
         "ar" : {
@@ -20338,6 +20401,9 @@
       }
     },
     "Visibility" : {
+
+    },
+    "Volume" : {
 
     },
     "Welcome" : {
