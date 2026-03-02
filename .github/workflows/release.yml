@@ -11,7 +11,6 @@ env:
   PROJECT_NAME: boringNotch
   BETA_CHANNEL_NAME: beta
   RELEASE_COMMAND: /release
-  EXPORT_METHOD: development
   CODE_SIGN_IDENTITY: "Apple Development"
   XCODE_VERSION: "16.4"
 
@@ -166,8 +165,8 @@ jobs:
       head_ref: ${{ needs.preparation.outputs.head_ref }}
       version: ${{ needs.preparation.outputs.version }}
       build_number: ${{ needs.preparation.outputs.build_number }}
-      xcode_version: ${{ env.XCODE_VERSION }}
-      code_sign_identity: ${{ env.CODE_SIGN_IDENTITY }}
+      xcode_version: ${{ needs.preparation.outputs.xcode_version }}
+      code_sign_identity: ${{ needs.preparation.outputs.code_sign_identity }}
     secrets:
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
       P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
