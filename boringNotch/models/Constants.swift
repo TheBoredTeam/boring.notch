@@ -134,6 +134,38 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     }
 }
 
+enum CalendarSubtitleDisplayMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case alwaysDefault
+    case alwaysAlternate
+    case tapToSwitch
+    
+    var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .alwaysDefault:
+            return NSLocalizedString("Always default", comment: "")
+        case .alwaysAlternate:
+            return NSLocalizedString("Always alternate", comment: "")
+        case .tapToSwitch:
+            return NSLocalizedString("Tap to switch", comment: "")
+        }
+    }
+}
+
+enum AlternativeCalendarType: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case lunar = "Lunar"
+    
+    var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .lunar:
+            return NSLocalizedString("Lunar", comment: "")
+        }
+    }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -241,6 +273,10 @@ extension Defaults.Keys {
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
     static let showFullEventTitles = Key<Bool>("showFullEventTitles", default: false)
     static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: true)
+    
+    static let calendarSubtitleDisplayMode = Key<CalendarSubtitleDisplayMode>("calendarSubtitleDisplayMode", default: .alwaysDefault)
+    static let alternativeCalendar = Key<AlternativeCalendarType>("alternativeCalendar", default: .lunar)
+    static let calendarIsShowingAlternate = Key<Bool>("calendarIsShowingAlternate", default: false)
     
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
