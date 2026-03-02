@@ -1,4 +1,8 @@
 name: "Deploy Boring Notch"
+
+vars:
+  RELEASE_COMMAND: /release
+
 on:
   issue_comment:
     types: [created]
@@ -10,7 +14,7 @@ concurrency:
 env:
   PROJECT_NAME: boringNotch
   BETA_CHANNEL_NAME: beta
-  RELEASE_COMMAND: /release
+  RELEASE_COMMAND: ${{ vars.RELEASE_COMMAND }}
   CODE_SIGN_IDENTITY: "Apple Development"
   XCODE_VERSION: "16.4"
 
@@ -21,7 +25,7 @@ permissions:
 jobs:
   preparation:
     name: Preparation
-    if: github.event.issue.pull_request && contains(github.event.comment.body, env.RELEASE_COMMAND)
+    if: github.event.issue.pull_request && contains(github.event.comment.body, vars.RELEASE_COMMAND)
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -341,7 +345,7 @@ jobs:
 
   ending:
     name: Finalize
-    if: always() && needs.preparation.result != 'skipped' && contains(github.event.comment.body, env.RELEASE_COMMAND)
+    if: always() && needs.preparation.result != 'skipped' && contains(github.event.comment.body, vars.RELEASE_COMMAND)
     needs: [preparation, build, publish, upgrade-brew]
     runs-on: ubuntu-latest
     permissions:
