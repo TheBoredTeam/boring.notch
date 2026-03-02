@@ -18,7 +18,8 @@ on:
         default: '16.4'
 
 # Least-privilege: workflow_dispatch build only; no token access needed beyond artifacts.
-permissions: {}
+permissions:
+  contents: write
 
 
 jobs:
