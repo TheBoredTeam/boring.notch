@@ -17,11 +17,13 @@ enum StandardAnimations {
     
     /// Spring animation for opening the notch
     static var open: Animation {
-        Animation.spring(response: Defaults[.openingAnimationResponse], dampingFraction: 0.8, blendDuration: 0)
+        Animation.spring(response: 0.42 * Defaults[.animationSpeedMultiplier], dampingFraction: 0.8, blendDuration: 0)
     }
-    
+
     /// Spring animation for closing the notch
-    static let close = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
+    static var close: Animation {
+        Animation.spring(response: 0.45 * Defaults[.animationSpeedMultiplier], dampingFraction: 1.0, blendDuration: 0)
+    }
     
     /// Bouncy spring for playful animations
     @available(macOS 14.0, *)
