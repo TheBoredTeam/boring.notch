@@ -606,7 +606,7 @@
         }
       }
     },
-    "%.2fs" : {
+    "%.1fx" : {
 
     },
     "%@" : {
@@ -2125,6 +2125,9 @@
           }
         }
       }
+    },
+    "Animation speed" : {
+
     },
     "App icon" : {
       "localizations" : {
@@ -14409,9 +14412,6 @@
           }
         }
       }
-    },
-    "Opening animation duration" : {
-
     },
     "Option key behaviour" : {
       "extractionState" : "stale",

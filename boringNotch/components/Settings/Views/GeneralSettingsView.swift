@@ -28,7 +28,7 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
-    @Default(.openingAnimationResponse) var openingAnimationResponse
+    @Default(.animationSpeedMultiplier) var animationSpeedMultiplier
 
     var body: some View {
         Form {
@@ -233,11 +233,11 @@ struct GeneralSettings: View {
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
             }
-            Slider(value: $openingAnimationResponse, in: 0.1...1.0) {
+            Slider(value: $animationSpeedMultiplier, in: 0.0...2.0, step: 0.1) {
                 HStack {
-                    Text("Opening animation duration")
+                    Text("Animation speed")
                     Spacer()
-                    Text("\(openingAnimationResponse, specifier: "%.2f")s")
+                    Text("\(animationSpeedMultiplier, specifier: "%.1f")x")
                         .foregroundStyle(.secondary)
                 }
             }
