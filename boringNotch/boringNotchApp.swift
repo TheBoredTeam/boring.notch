@@ -441,6 +441,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+        
+        checkForApplicationsFolder() // added check call here
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
@@ -625,5 +627,59 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
         onboardingWindowController?.window?.orderFrontRegardless()
+    }
+    
+    private func checkForApplicationsFolder() {
+        // Define Application folders paths
+        let systemAppsPath = "/Applications"
+        let userAppsPath = NSHomeDirectory() + "/Applications"
+
+        // Get path of executable
+        let appPath = Bundle.main.bundlePath
+
+        // Check if the app is already in either Applications folder
+        if !appPath.hasPrefix(systemAppsPath) && !appPath.hasPrefix(userAppsPath) {
+            
+            // Alert move is recommended
+            let alertMove = NSAlert()
+            alertMove.messageText = "Move to Applications folder?"
+            alertMove.informativeText = "Boring Notch works best when run from your Applications folder. Would you like to move it there now?"
+            alertMove.alertStyle = .informational
+            alertMove.addButton(withTitle: "Move")
+            alertMove.addButton(withTitle: "Keep in Place")
+            
+            // Move application if selected
+            if alertMove.runModal() == .alertFirstButtonReturn {
+                moveSelfToApplications(appPath: appPath)
+            }
+        }
+    }
+
+    private func moveSelfToApplications(appPath: String) {
+        // Retrieve app name at runtime
+        let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+            ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
+            ?? "BoringNotch" // Default to BoringNotch if no name was found
+        
+        // Run script to move application and relaunch
+        let scripts = """
+        tell application "Finder"
+            set appPath to POSIX file "\(appPath)" as alias
+            set targetPath to POSIX file "/Applications" as alias
+            move appPath to targetPath with replacing
+        end tell
+        tell application "\(appName)" to activate
+        """
+        
+        // Error handling
+        var error: NSDictionary?
+        if let scriptObject = NSAppleScript(source: scripts) {
+            scriptObject.executeAndReturnError(&error)
+        }
+        
+        if error != nil {
+            // Handle error if script fails
+            print("Error moving app: \(String(describing: error))")
+        }
     }
 }
