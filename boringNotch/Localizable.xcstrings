@@ -3218,6 +3218,9 @@
     "Brightness" : {
 
     },
+    "Brightness Source" : {
+
+    },
     "Calendar" : {
       "localizations" : {
         "ar" : {
@@ -7431,6 +7434,9 @@
         }
       }
     },
+    "Enable gradient" : {
+
+    },
     "Enable haptic feedback" : {
       "localizations" : {
         "ar" : {
@@ -10349,6 +10355,9 @@
       }
     },
     "Interaction" : {
+
+    },
+    "Keyboard Source" : {
 
     },
     "Launch at login" : {
@@ -14075,6 +14084,9 @@
         }
       }
     },
+    "Option (⌥) Key Behavior" : {
+
+    },
     "Option key behaviour" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -15529,6 +15541,9 @@
           }
         }
       }
+    },
+    "Replace System OSD" : {
+
     },
     "Request Accessibility" : {
       "extractionState" : "stale",
@@ -17555,6 +17570,9 @@
         }
       }
     },
+    "Show OSD in open notch" : {
+
+    },
     "Show percentage" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -17655,6 +17673,12 @@
           }
         }
       }
+    },
+    "Show percentage (closed notch)" : {
+
+    },
+    "Show percentage (open notch)" : {
+
     },
     "Show power status icons" : {
       "localizations" : {
@@ -17955,6 +17979,9 @@
           }
         }
       }
+    },
+    "Show shadow" : {
+
     },
     "Show sneak peek on playback changes" : {
       "localizations" : {
@@ -19915,6 +19942,12 @@
         }
       }
     },
+    "Use accent color" : {
+
+    },
+    "Use inline style" : {
+
+    },
     "Use your macOS system accent color" : {
       "localizations" : {
         "ar" : {
@@ -20419,6 +20452,9 @@
 
     },
     "Volume" : {
+
+    },
+    "Volume Source" : {
 
     },
     "Welcome" : {
