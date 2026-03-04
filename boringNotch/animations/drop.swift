@@ -18,7 +18,7 @@ enum StandardAnimations {
     /// Spring animation for opening the notch
     static var open: Animation {
         guard Defaults[.enableOpeningAnimation] else {
-            return Animation.spring(response: 0, dampingFraction: 0.8, blendDuration: 0)
+            return Animation.linear(duration: 0)
         }
         return Animation.spring(response: 0.42 / Defaults[.animationSpeedMultiplier], dampingFraction: 0.8, blendDuration: 0)
     }
@@ -26,7 +26,7 @@ enum StandardAnimations {
     /// Spring animation for closing the notch
     static var close: Animation {
         guard Defaults[.enableOpeningAnimation] else {
-            return Animation.spring(response: 0, dampingFraction: 1.0, blendDuration: 0)
+            return Animation.linear(duration: 0)
         }
         return Animation.spring(response: 0.45 / Defaults[.animationSpeedMultiplier], dampingFraction: 1.0, blendDuration: 0)
     }
