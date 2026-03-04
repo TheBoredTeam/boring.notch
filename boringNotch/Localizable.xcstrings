@@ -501,6 +501,9 @@
         }
       }
     },
+    "%.1fx" : {
+
+    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -2006,6 +2009,9 @@
         }
       }
     },
+    "Animation speed" : {
+
+    },
     "App icon" : {
       "localizations" : {
         "ar" : {
@@ -3210,6 +3216,9 @@
       }
     },
     "Brightness" : {
+
+    },
+    "Brightness Source" : {
 
     },
     "Calendar" : {
@@ -7425,6 +7434,9 @@
         }
       }
     },
+    "Enable gradient" : {
+
+    },
     "Enable haptic feedback" : {
       "localizations" : {
         "ar" : {
@@ -10345,6 +10357,9 @@
     "Interaction" : {
 
     },
+    "Keyboard Source" : {
+
+    },
     "Launch at login" : {
 
     },
@@ -13162,6 +13177,9 @@
         }
       }
     },
+    "Notch animation" : {
+
+    },
     "Notch behavior" : {
       "localizations" : {
         "ar" : {
@@ -13561,6 +13579,9 @@
           }
         }
       }
+    },
+    "Now Playing" : {
+
     },
     "Open Calendar Settings" : {
       "localizations" : {
@@ -14062,6 +14083,9 @@
           }
         }
       }
+    },
+    "Option (⌥) Key Behavior" : {
+
     },
     "Option key behaviour" : {
       "extractionState" : "stale",
@@ -15517,6 +15541,9 @@
           }
         }
       }
+    },
+    "Replace System OSD" : {
+
     },
     "Request Accessibility" : {
       "extractionState" : "stale",
@@ -17543,6 +17570,9 @@
         }
       }
     },
+    "Show OSD in open notch" : {
+
+    },
     "Show percentage" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -17643,6 +17673,12 @@
           }
         }
       }
+    },
+    "Show percentage (closed notch)" : {
+
+    },
+    "Show percentage (open notch)" : {
+
     },
     "Show power status icons" : {
       "localizations" : {
@@ -17943,6 +17979,9 @@
           }
         }
       }
+    },
+    "Show shadow" : {
+
     },
     "Show sneak peek on playback changes" : {
       "localizations" : {
@@ -19903,6 +19942,12 @@
         }
       }
     },
+    "Use accent color" : {
+
+    },
+    "Use inline style" : {
+
+    },
     "Use your macOS system accent color" : {
       "localizations" : {
         "ar" : {
@@ -20407,6 +20452,9 @@
 
     },
     "Volume" : {
+
+    },
+    "Volume Source" : {
 
     },
     "Welcome" : {
