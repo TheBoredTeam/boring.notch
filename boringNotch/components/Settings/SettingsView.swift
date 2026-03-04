@@ -40,6 +40,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "SystemMonitor") {
+                    Label("System Monitor", systemImage: "gauge.with.dots.needle.33percent")
+                }
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
@@ -72,6 +75,8 @@ struct SettingsView: View {
                     OSDSettings()
                 case "Battery":
                     Charge()
+                case "SystemMonitor":
+                    SystemMonitorSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":

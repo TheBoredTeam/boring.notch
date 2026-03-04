@@ -155,6 +155,9 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		E5A00004AAAA000000000004 /* SystemMonitorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A00001AAAA000000000001 /* SystemMonitorManager.swift */; };
+		E5A00005AAAA000000000005 /* SystemMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A00002AAAA000000000002 /* SystemMonitorView.swift */; };
+		E5A00006AAAA000000000006 /* SystemMonitorSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A00003AAAA000000000003 /* SystemMonitorSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -333,6 +336,9 @@
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		E5A00001AAAA000000000001 /* SystemMonitorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorManager.swift; sourceTree = "<group>"; };
+		E5A00002AAAA000000000002 /* SystemMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorView.swift; sourceTree = "<group>"; };
+		E5A00003AAAA000000000003 /* SystemMonitorSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -530,6 +536,7 @@
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
 				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
+				E5A00003AAAA000000000003 /* SystemMonitorSettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -584,6 +591,7 @@
 				149E0B982C737D26006418B1 /* Webcam */,
 				B18654312C6F45AE000B926A /* Live activities */,
 				B18654302C6F4590000B926A /* Settings */,
+				E5A00007AAAA000000000001 /* SystemMonitor */,
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
 				B186542E2C6F453B000B926A /* Music */,
@@ -605,8 +613,17 @@
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
+				E5A00001AAAA000000000001 /* SystemMonitorManager.swift */,
 			);
 			path = managers;
+			sourceTree = "<group>";
+		};
+		E5A00007AAAA000000000001 /* SystemMonitor */ = {
+			isa = PBXGroup;
+			children = (
+				E5A00002AAAA000000000002 /* SystemMonitorView.swift */,
+			);
+			path = SystemMonitor;
 			sourceTree = "<group>";
 		};
 		149E0B982C737D26006418B1 /* Webcam */ = {
@@ -1108,6 +1125,9 @@
 				1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */,
 				11CFC6632E09918400748C80 /* MusicControllerSelectionView.swift in Sources */,
 				B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */,
+				E5A00004AAAA000000000004 /* SystemMonitorManager.swift in Sources */,
+				E5A00005AAAA000000000005 /* SystemMonitorView.swift in Sources */,
+				E5A00006AAAA000000000006 /* SystemMonitorSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
