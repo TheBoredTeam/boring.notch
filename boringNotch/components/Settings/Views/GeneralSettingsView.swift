@@ -236,7 +236,7 @@ struct GeneralSettings: View {
             }
             Toggle("Notch animation", isOn: $enableOpeningAnimation)
             if enableOpeningAnimation {
-                Slider(value: $animationSpeedMultiplier, in: 0.1...2.0, step: 0.1) {
+                Slider(value: $animationSpeedMultiplier, in: 0.1...2.01, step: 0.1) {
                     HStack {
                         Text("Animation speed")
                         Spacer()
