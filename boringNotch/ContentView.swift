@@ -544,19 +544,26 @@ struct ContentView: View {
                             line,
                             font: .subheadline,
                             color: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                            delayDuration: 1.0,
                             frameWidth: geo.size.width
                         )                        
                     }
                     .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
                     .lineLimit(1)
                     .opacity(musicManager.isPlaying ? 1 : 0)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .transition(
+                        .asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .bottom)),
+                            removal: .opacity.animation(.easeIn(duration: 0.2)).combined(with: .move(edge: .top))
+                        )
+                    )
+                    .id(line)
+                    .animation(.easeInOut(duration: 0.5), value: line)
                 }
             }
         }
         .frame(
             // Based on width sizes from the inner HStack -> Album art + Rectangle Overlay + AudioSpectrumView
-            // Probably a better way to calulcate that width
             width: scaledArtSize +
             (vm.closedNotchSize.width + -cornerRadiusInsets.closed.top) +
             (displayClosedNotchHeight - 12 + gestureProgress / 2),
