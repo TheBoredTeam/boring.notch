@@ -17,8 +17,33 @@ class BatteryActivityManager {
     private var batterySource: CFRunLoopSource?
     private var observers: [(BatteryEvent) -> Void] = []
     private var previousBatteryInfo: BatteryInfo?
-    private var notificationQueue: [BatteryEvent] = []
-    private var isProcessingNotifications = false
+    // actor-based queue to serialize notification delivery
+    private let notificationQueueActor = NotificationQueue()
+
+    /// An actor responsible for serializing and delivering events with a 1‑second delay.
+    private actor NotificationQueue {
+        private var queue: [BatteryEvent] = []
+        private var processing = false
+
+        /// Enqueue an event; the `deliver` closure is always invoked on the main actor.
+        func enqueue(_ event: BatteryEvent, deliver: @MainActor @escaping (BatteryEvent) -> Void) {
+            queue.append(event)
+            if !processing {
+                processing = true
+                Task { await process(deliver: deliver) }
+            }
+        }
+
+        private func process(deliver: @MainActor @escaping (BatteryEvent) -> Void) async {
+            while !queue.isEmpty {
+                let event = queue.removeFirst()
+                // pause between notifications
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                await deliver(event)
+            }
+            processing = false
+        }
+    }
 
     enum BatteryEvent {
         case powerSourceChanged(isPluggedIn: Bool)
@@ -165,29 +190,11 @@ class BatteryActivityManager {
         }
     }
 
-    /// Enqueues a notification to be processed
-    /// - Parameter event: The battery event
+    /// Enqueues a notification to be processed using the concurrency-based queue actor.
     private func enqueueNotification(_ event: BatteryEvent) {
-        notificationQueue.append(event)
-        processNextNotification()
-    }
-    
-    /// Processes the next notification in the queue
-    /// If there are no more notifications, the queue is cleared
-    /// and the processing flag is set to false
-    private func processNextNotification() {
-        guard !isProcessingNotifications, !notificationQueue.isEmpty else { return }
-        isProcessingNotifications = true
-        
-        let event = notificationQueue.removeFirst()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self = self else { return }
-            self.notifyObservers(event: event)
-            self.isProcessingNotifications = false
-            
-            // Check if there are more items in the queue
-            if !self.notificationQueue.isEmpty {
-                self.processNextNotification()
+        Task { @MainActor in
+            await notificationQueueActor.enqueue(event) { [weak self] ev in
+                self?.notifyObservers(event: ev)
             }
         }
     }
