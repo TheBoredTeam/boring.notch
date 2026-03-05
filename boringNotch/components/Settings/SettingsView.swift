@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import AppKit
 import Defaults
 import EventKit
 import KeyboardShortcuts
@@ -13,6 +14,7 @@ import LaunchAtLogin
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @State private var selectedTab = "General"
@@ -1164,6 +1166,7 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.backgroundImageURL) var backgroundImageURL: URL?
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1200,6 +1203,63 @@ struct Appearance: View {
                 }
             } header: {
                 Text("Media")
+            }
+
+            Section {
+                ZStack {
+                    if let imageURL = backgroundImageURL,
+                       let nsImage = NSImage(contentsOf: imageURL) {
+                        ZStack(alignment: .topTrailing) {
+                            Image(nsImage: nsImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 80, height: 80)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            
+                            Button {
+                                if let imageURL = backgroundImageURL {
+                                    try? FileManager.default.removeItem(at: imageURL)
+                                }
+                                backgroundImageURL = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.white)
+                                    .background(Circle().fill(Color.black.opacity(0.5)))
+                                    .font(.system(size: 20))
+                            }
+                            .buttonStyle(.plain)
+                            .offset(x: 6, y: -6)
+                        }
+                    } else {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(NSColor.controlBackgroundColor))
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 24))
+                            )
+                    }
+                }
+                .frame(width: 80, height: 80)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    let panel = NSOpenPanel()
+                    panel.allowsMultipleSelection = false
+                    panel.canChooseDirectories = false
+                    panel.canChooseFiles = true
+                    panel.allowedContentTypes = [.image]
+                    panel.message = "Select Background Image"
+                    
+                    if panel.runModal() == .OK, let sourceURL = panel.url {
+                        if let copiedURL = BoringViewModel.copyBackgroundImageToAppStorage(sourceURL: sourceURL) {
+                            backgroundImageURL = copiedURL
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("Notch Background")
             }
 
             Section {
