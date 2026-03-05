@@ -14,13 +14,86 @@ import SwiftUI
 
 struct MusicPlayerView: View {
     @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var musicManager = MusicManager.shared
     let albumArtNamespace: Namespace.ID
+    @Default(.lyricsColumnLayout) private var lyricsColumnLayout
+    @State private var separatorHovered: Bool = false
+
+    var showLyricsColumn: Bool {
+        Defaults[.enableLyrics] && lyricsColumnLayout && !musicManager.syncedLyrics.isEmpty
+    }
+
+    var showSplitLayout: Bool {
+        showLyricsColumn || vm.calendarPanelOpen
+    }
 
     var body: some View {
-        HStack {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
-            MusicControlsView().drawingGroup().compositingGroup()
+        if showSplitLayout {
+            HStack(alignment: .center, spacing: 0) {
+                // Compact player (~270px)
+                HStack {
+                    AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
+                        .padding(.all, 5)
+                        .frame(width: 90, height: 90)
+                    MusicControlsView(hideLyricsLine: true)
+                        .drawingGroup().compositingGroup()
+                }
+                .frame(width: 270)
+
+                // Separator — tap to collapse right panel
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        if vm.calendarPanelOpen {
+                            vm.calendarPanelOpen = false
+                        } else {
+                            lyricsColumnLayout = false
+                        }
+                    }
+                } label: {
+                    ZStack {
+                        Color.clear.frame(width: 17, height: 80)
+                        Rectangle()
+                            .fill(.white.opacity(separatorHovered ? 0.4 : 0.15))
+                            .frame(width: 1, height: 70)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 4)
+                .onHover { h in
+                    separatorHovered = h
+                    if h { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+                }
+
+                // Right panel: calendar or lyrics column
+                Group {
+                    if vm.calendarPanelOpen {
+                        CalendarView()
+                            .onHover { vm.isHoveringCalendar = $0 }
+                            .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .trailing)))
+                    } else {
+                        TimelineView(.animation(minimumInterval: 0.25)) { timeline in
+                            LyricsColumnView(elapsed: computeElapsed(from: timeline.date))
+                        }
+                        .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .leading)))
+                    }
+                }
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: vm.calendarPanelOpen)
+            }
+        } else {
+            HStack {
+                AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
+                MusicControlsView(hideLyricsLine: false)
+                    .drawingGroup().compositingGroup()
+            }
         }
+    }
+
+    private func computeElapsed(from date: Date) -> Double {
+        guard musicManager.isPlaying else { return musicManager.elapsedTime }
+        let delta = date.timeIntervalSince(musicManager.timestampDate)
+        let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
+        return min(max(progressed, 0), musicManager.songDuration)
     }
 }
 
@@ -110,6 +183,7 @@ struct AlbumArtView: View {
 }
 
 struct MusicControlsView: View {
+    var hideLyricsLine: Bool = false
     @ObservedObject var musicManager = MusicManager.shared
         @EnvironmentObject var vm: BoringViewModel
         @ObservedObject var webcamManager = WebcamManager.shared
@@ -118,6 +192,7 @@ struct MusicControlsView: View {
     @State private var lastDragged: Date = .distantPast
     @Default(.musicControlSlots) private var slotConfig
     @Default(.musicControlSlotLimit) private var slotLimit
+    @Default(.lyricsColumnLayout) private var lyricsColumnLayout
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -153,7 +228,11 @@ struct MusicControlsView: View {
                 frameWidth: width
             )
             .fontWeight(.medium)
-            if Defaults[.enableLyrics] {
+            if Defaults[.enableLyrics] && !hideLyricsLine {
+                let lyricsUnavailable = !musicManager.isFetchingLyrics
+                    && musicManager.syncedLyrics.isEmpty
+                    && musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    && !musicManager.songTitle.isEmpty
                 TimelineView(.animation(minimumInterval: 0.25)) { timeline in
                     let currentElapsed: Double = {
                         guard musicManager.isPlaying else { return musicManager.elapsedTime }
@@ -167,7 +246,7 @@ struct MusicControlsView: View {
                             return musicManager.lyricLine(at: currentElapsed)
                         }
                         let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-                        return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+                        return trimmed.isEmpty ? "No lyrics found — tap to retry" : trimmed.replacingOccurrences(of: "\n", with: " ")
                     }()
                     let isPersian = line.unicodeScalars.contains { scalar in
                         let v = scalar.value
@@ -184,6 +263,19 @@ struct MusicControlsView: View {
                     .lineLimit(1)
                     .opacity(musicManager.isPlaying ? 1 : 0)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+                .onTapGesture {
+                    if lyricsUnavailable {
+                        musicManager.retryLyricsFetch()
+                    } else if !musicManager.syncedLyrics.isEmpty {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            lyricsColumnLayout = true
+                        }
+                    }
+                }
+                .onHover { hovering in
+                    guard !musicManager.syncedLyrics.isEmpty || lyricsUnavailable else { return }
+                    if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
                 }
             }
         }
@@ -318,6 +410,154 @@ struct FavoriteControlButton: View {
     }
 }
 
+// MARK: - Scroll wheel capture (macOS only)
+
+private class ScrollWheelNSView: NSView {
+    var onScroll: ((CGFloat) -> Void)?
+    private var monitor: Any?
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window != nil {
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+                guard let self,
+                      let eventWindow = event.window,
+                      let selfWindow = self.window,
+                      eventWindow === selfWindow else { return event }
+                let mouseInView = self.convert(event.locationInWindow, from: nil)
+                if self.bounds.contains(mouseInView) {
+                    DispatchQueue.main.async { self.onScroll?(event.scrollingDeltaY) }
+                    return nil // consume so nothing else scrolls
+                }
+                return event
+            }
+        } else {
+            if let m = monitor { NSEvent.removeMonitor(m); monitor = nil }
+        }
+    }
+
+    deinit {
+        if let m = monitor { NSEvent.removeMonitor(m) }
+    }
+}
+
+private struct ScrollWheelCapture: NSViewRepresentable {
+    let onScroll: (CGFloat) -> Void
+    func makeNSView(context: Context) -> ScrollWheelNSView {
+        let v = ScrollWheelNSView()
+        v.onScroll = onScroll
+        return v
+    }
+    func updateNSView(_ nsView: ScrollWheelNSView, context: Context) {
+        nsView.onScroll = onScroll
+    }
+}
+
+struct LyricsColumnView: View {
+    @ObservedObject var musicManager = MusicManager.shared
+    let elapsed: Double
+
+    @State private var userOffset: Int = 0
+    @State private var scrollAccumulator: CGFloat = 0
+    @State private var resetWorkItem: DispatchWorkItem?
+
+    private var isScrolled: Bool { userOffset != 0 }
+
+    private var lyricsUnavailable: Bool {
+        !musicManager.isFetchingLyrics
+            && musicManager.syncedLyrics.isEmpty
+            && musicManager.currentLyrics.isEmpty
+            && !musicManager.songTitle.isEmpty
+    }
+
+    var body: some View {
+        let context: (prev: String?, current: String, next: String?) = {
+            if musicManager.isFetchingLyrics { return (nil, "Loading lyrics…", nil) }
+            if lyricsUnavailable { return (nil, "", nil) }
+            return musicManager.lyricContext(at: elapsed, offset: userOffset)
+        }()
+
+        VStack(alignment: .leading, spacing: 8) {
+            // Previous line
+            Text(context.prev ?? " ")
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.3))
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Current line — highlighted, or retry button when unavailable
+            if lyricsUnavailable {
+                Button {
+                    musicManager.retryLyricsFetch()
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "arrow.clockwise")
+                        Text("Lyrics unavailable — tap to retry")
+                    }
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white.opacity(0.4))
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Text(context.current)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    // Dim when browsing away from the live line
+                    .foregroundColor(isScrolled ? .white.opacity(0.6) : .white)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            // Next line
+            Text(context.next ?? " ")
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.3))
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .id(lyricsUnavailable ? "unavailable" : "\(context.current)-\(userOffset)")
+        .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .leading)))
+        .padding(.leading, 4)
+        .padding(.trailing, 8)
+        .opacity(musicManager.isPlaying ? 1 : 0.5)
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: userOffset)
+        .animation(.spring(response: 0.55, dampingFraction: 0.85), value: context.current)
+        .background(
+            ScrollWheelCapture { delta in
+                guard !musicManager.syncedLyrics.isEmpty else { return }
+                handleScroll(delta)
+            }
+        )
+    }
+
+    private func handleScroll(_ delta: CGFloat) {
+        scrollAccumulator += delta
+        let threshold: CGFloat = 18
+        guard abs(scrollAccumulator) >= threshold else { return }
+
+        let steps = Int(scrollAccumulator / threshold)
+        let maxOffset = musicManager.syncedLyrics.count - 1
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            // scroll up (delta > 0) → earlier lines (negative offset)
+            // scroll down (delta < 0) → later lines (positive offset)
+            userOffset = max(-maxOffset, min(maxOffset, userOffset - steps))
+        }
+        scrollAccumulator -= CGFloat(steps) * threshold
+
+        // Auto-snap back to live position after 2 s of inactivity
+        resetWorkItem?.cancel()
+        let work = DispatchWorkItem {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                userOffset = 0
+            }
+        }
+        resetWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: work)
+    }
+}
+
 private extension Array where Element == MusicControlButton {
     func padded(to length: Int, filler: MusicControlButton) -> [MusicControlButton] {
         if count >= length { return self }
@@ -440,18 +680,8 @@ struct NotchHomeView: View {
     }
 
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+        HStack(alignment: .top, spacing: 15) {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
-
-            if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
-                    }
-                    .environmentObject(vm)
-                    .transition(.opacity)
-            }
 
             if shouldShowCamera {
                 CameraPreviewView(webcamManager: webcamManager)
