@@ -34,6 +34,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
                 }
+                NavigationLink(value: "Weather") {
+                    Label("Weather", systemImage: "cloud.sun")
+                }
                 NavigationLink(value: "OSD") {
                     Label("OSD", systemImage: "dial.medium.fill")
                 }
@@ -68,6 +71,8 @@ struct SettingsView: View {
                     Media()
                 case "Calendar":
                     CalendarSettings()
+                case "Weather":
+                    WeatherSettings()
                 case "OSD":
                     OSDSettings()
                 case "Battery":

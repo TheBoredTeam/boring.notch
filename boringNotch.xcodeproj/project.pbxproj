@@ -83,6 +83,9 @@
 		11DB267B2EDD0CDF001EA0CF /* CalendarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266B2EDD0CDF001EA0CF /* CalendarSettingsView.swift */; };
 		11DB267C2EDD0CDF001EA0CF /* OSDSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266D2EDD0CDF001EA0CF /* OSDSettingsView.swift */; };
 		11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */; };
+		6A5F2C0C2F6A0001A1B2C3D4 /* WeatherSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F2C0B2F6A0001A1B2C3D4 /* WeatherSettingsView.swift */; };
+		6A5F2C0E2F6A0001A1B2C3D4 /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F2C0D2F6A0001A1B2C3D4 /* WeatherManager.swift */; };
+		6A5F2C102F6A0001A1B2C3D4 /* WeatherTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F2C0F2F6A0001A1B2C3D4 /* WeatherTabView.swift */; };
 		11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */; };
 		11F747CE2EC75CEA00F841DB /* DragPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */; };
 		11F7485B2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = 11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -263,6 +266,9 @@
 		11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHelpers.swift; sourceTree = "<group>"; };
 		11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfSettingsView.swift; sourceTree = "<group>"; };
 		11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsSettingsView.swift; sourceTree = "<group>"; };
+		6A5F2C0B2F6A0001A1B2C3D4 /* WeatherSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherSettingsView.swift; sourceTree = "<group>"; };
+		6A5F2C0D2F6A0001A1B2C3D4 /* WeatherManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherManager.swift; sourceTree = "<group>"; };
+		6A5F2C0F2F6A0001A1B2C3D4 /* WeatherTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherTabView.swift; sourceTree = "<group>"; };
 		11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfItemViewModel.swift; sourceTree = "<group>"; };
 		11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragPreviewView.swift; sourceTree = "<group>"; };
 		11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = BoringNotchXPCHelper.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -530,6 +536,7 @@
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
 				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
+				6A5F2C0B2F6A0001A1B2C3D4 /* WeatherSettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -600,6 +607,7 @@
 			children = (
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
+				6A5F2C0D2F6A0001A1B2C3D4 /* WeatherManager.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
@@ -793,6 +801,7 @@
 				1194E8862EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift */,
 				1160F8D72DD98230006FBB94 /* NotchShape.swift */,
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
+				6A5F2C0F2F6A0001A1B2C3D4 /* WeatherTabView.swift */,
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
 				1471A8582C6281BD0058408D /* BoringNotchWindow.swift */,
@@ -1038,6 +1047,7 @@
 				1153BD8F2D986B1F00979FB0 /* MediaControllerProtocol.swift in Sources */,
 				11985BF42F38520A00F81585 /* DraggableProgressBar.swift in Sources */,
 				9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */,
+				6A5F2C102F6A0001A1B2C3D4 /* WeatherTabView.swift in Sources */,
 				B172AAC02C95DA0B001623F1 /* InlineOSD.swift in Sources */,
 				14E9FEAA2C70BF610062E83F /* DownloadView.swift in Sources */,
 				B1B112912C6A572100093D8F /* EditPanelView.swift in Sources */,
@@ -1059,6 +1069,7 @@
 				11DB267B2EDD0CDF001EA0CF /* CalendarSettingsView.swift in Sources */,
 				11DB267C2EDD0CDF001EA0CF /* OSDSettingsView.swift in Sources */,
 				11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */,
+				6A5F2C0C2F6A0001A1B2C3D4 /* WeatherSettingsView.swift in Sources */,
 				14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */,
 				14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */,
 				14D570CD2C5F4BB70011E668 /* BoringBattery.swift in Sources */,
@@ -1099,6 +1110,7 @@
 				11CFC6612E097F6800748C80 /* PermissionsRequestView.swift in Sources */,
 				14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */,
 				11D58EA22E760AE100FA8377 /* ImageService.swift in Sources */,
+				6A5F2C0E2F6A0001A1B2C3D4 /* WeatherManager.swift in Sources */,
 				11F748822ECB07A400F841DB /* MusicControlButton.swift in Sources */,
 				14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */,
 				149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */,
