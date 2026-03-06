@@ -83,6 +83,7 @@
 		11DB267B2EDD0CDF001EA0CF /* CalendarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266B2EDD0CDF001EA0CF /* CalendarSettingsView.swift */; };
 		11DB267C2EDD0CDF001EA0CF /* OSDSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266D2EDD0CDF001EA0CF /* OSDSettingsView.swift */; };
 		11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */; };
+		6A5F2C0C2F6A0001A1B2C3D4 /* WeatherSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F2C0B2F6A0001A1B2C3D4 /* WeatherSettingsView.swift */; };
 		11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */; };
 		11F747CE2EC75CEA00F841DB /* DragPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */; };
 		11F7485B2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = 11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -263,6 +264,7 @@
 		11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHelpers.swift; sourceTree = "<group>"; };
 		11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfSettingsView.swift; sourceTree = "<group>"; };
 		11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsSettingsView.swift; sourceTree = "<group>"; };
+		6A5F2C0B2F6A0001A1B2C3D4 /* WeatherSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherSettingsView.swift; sourceTree = "<group>"; };
 		11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfItemViewModel.swift; sourceTree = "<group>"; };
 		11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragPreviewView.swift; sourceTree = "<group>"; };
 		11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = BoringNotchXPCHelper.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -530,6 +532,7 @@
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
 				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
+				6A5F2C0B2F6A0001A1B2C3D4 /* WeatherSettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1059,6 +1062,7 @@
 				11DB267B2EDD0CDF001EA0CF /* CalendarSettingsView.swift in Sources */,
 				11DB267C2EDD0CDF001EA0CF /* OSDSettingsView.swift in Sources */,
 				11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */,
+				6A5F2C0C2F6A0001A1B2C3D4 /* WeatherSettingsView.swift in Sources */,
 				14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */,
 				14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */,
 				14D570CD2C5F4BB70011E668 /* BoringBattery.swift in Sources */,

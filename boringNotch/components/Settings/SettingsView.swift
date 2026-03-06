@@ -9,8 +9,22 @@ import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
+private enum SettingsTab: String, CaseIterable, Hashable {
+    case general
+    case appearance
+    case media
+    case calendar
+    case weather
+    case osd
+    case battery
+    case shelf
+    case shortcuts
+    case advanced
+    case about
+}
+
 struct SettingsView: View {
-    @State private var selectedTab = "General"
+    @State private var selectedTab: SettingsTab? = .general
     @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
@@ -22,34 +36,37 @@ struct SettingsView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
-                NavigationLink(value: "General") {
+                NavigationLink(value: SettingsTab.general) {
                     Label("General", systemImage: "gear")
                 }
-                NavigationLink(value: "Appearance") {
+                NavigationLink(value: SettingsTab.appearance) {
                     Label("Appearance", systemImage: "eye")
                 }
-                NavigationLink(value: "Media") {
+                NavigationLink(value: SettingsTab.media) {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
-                NavigationLink(value: "Calendar") {
+                NavigationLink(value: SettingsTab.calendar) {
                     Label("Calendar", systemImage: "calendar")
                 }
-                NavigationLink(value: "OSD") {
+                NavigationLink(value: SettingsTab.weather) {
+                    Label("Weather", systemImage: "cloud.sun")
+                }
+                NavigationLink(value: SettingsTab.osd) {
                     Label("OSD", systemImage: "dial.medium.fill")
                 }
-                NavigationLink(value: "Battery") {
+                NavigationLink(value: SettingsTab.battery) {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
-                NavigationLink(value: "Shelf") {
+                NavigationLink(value: SettingsTab.shelf) {
                     Label("Shelf", systemImage: "books.vertical")
                 }
-                NavigationLink(value: "Shortcuts") {
+                NavigationLink(value: SettingsTab.shortcuts) {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-                NavigationLink(value: "Advanced") {
+                NavigationLink(value: SettingsTab.advanced) {
                     Label("Advanced", systemImage: "gearshape.2")
                 }
-                NavigationLink(value: "About") {
+                NavigationLink(value: SettingsTab.about) {
                     Label("About", systemImage: "info.circle")
                 }
             }
@@ -60,25 +77,27 @@ struct SettingsView: View {
         } detail: {
             Group {
                 switch selectedTab {
-                case "General":
+                case .general:
                     GeneralSettings()
-                case "Appearance":
+                case .appearance:
                     Appearance()
-                case "Media":
+                case .media:
                     Media()
-                case "Calendar":
+                case .calendar:
                     CalendarSettings()
-                case "OSD":
+                case .weather:
+                    WeatherSettings()
+                case .osd:
                     OSDSettings()
-                case "Battery":
+                case .battery:
                     Charge()
-                case "Shelf":
+                case .shelf:
                     Shelf()
-                case "Shortcuts":
+                case .shortcuts:
                     Shortcuts()
-                case "Advanced":
+                case .advanced:
                     Advanced()
-                case "About":
+                case .about:
                     if let controller = updaterController {
                         About(updaterController: controller)
                     } else {

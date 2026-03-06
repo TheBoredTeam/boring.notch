@@ -377,14 +377,17 @@ struct ContentView: View {
               }
               .zIndex(1)
             if vm.notchState == .open {
-                VStack {
+                VStack(alignment: .leading, spacing: 0) {
                     switch coordinator.currentView {
                     case .home:
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .weather:
+                        WeatherTabView()
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .transition(
                     .scale(scale: 0.8, anchor: .top)
                     .combined(with: .opacity)

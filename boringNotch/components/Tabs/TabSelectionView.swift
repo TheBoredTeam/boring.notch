@@ -5,6 +5,7 @@
 //  Created by Hugo Persson on 2024-08-25.
 //
 
+import Defaults
 import SwiftUI
 
 struct TabModel: Identifiable {
@@ -14,14 +15,52 @@ struct TabModel: Identifiable {
     let view: NotchViews
 }
 
-let tabs = [
-    TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
-]
-
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @StateObject private var shelfState = ShelfStateViewModel.shared
+    @Default(.showWeather) private var showWeather
+    @Default(.boringShelf) private var showShelf
     @Namespace var animation
+
+    private var tabs: [TabModel] {
+        var visibleTabs: [TabModel] = [
+            TabModel(
+                label: NSLocalizedString("Home", comment: "Notch tab label: Home"),
+                icon: "house.fill",
+                view: .home
+            )
+        ]
+
+        if showWeather {
+            visibleTabs.append(
+                TabModel(
+                    label: NSLocalizedString("Weather", comment: "Notch tab label: Weather"),
+                    icon: "cloud.sun.fill",
+                    view: .weather
+                )
+            )
+        }
+
+        if showShelf && (!shelfState.isEmpty || coordinator.alwaysShowTabs) {
+            visibleTabs.append(
+                TabModel(
+                    label: NSLocalizedString("Shelf", comment: "Notch tab label: Shelf"),
+                    icon: "tray.fill",
+                    view: .shelf
+                )
+            )
+        }
+
+        return visibleTabs
+    }
+
+    private func ensureCurrentViewIsVisible() {
+        if tabs.contains(where: { $0.view == coordinator.currentView }) {
+            return
+        }
+        coordinator.currentView = .home
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             ForEach(tabs) { tab in
@@ -47,6 +86,11 @@ struct TabSelectionView: View {
             }
         }
         .clipShape(Capsule())
+        .onAppear(perform: ensureCurrentViewIsVisible)
+        .onChange(of: showWeather) { _, _ in ensureCurrentViewIsVisible() }
+        .onChange(of: showShelf) { _, _ in ensureCurrentViewIsVisible() }
+        .onChange(of: shelfState.isEmpty) { _, _ in ensureCurrentViewIsVisible() }
+        .onChange(of: coordinator.alwaysShowTabs) { _, _ in ensureCurrentViewIsVisible() }
     }
 }
 

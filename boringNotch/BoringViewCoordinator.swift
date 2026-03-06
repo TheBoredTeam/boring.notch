@@ -70,6 +70,7 @@ class BoringViewCoordinator: ObservableObject {
                     currentView = .home
                 }
             }
+            ensureCurrentViewIsVisible()
         }
     }
 
@@ -100,6 +101,7 @@ class BoringViewCoordinator: ObservableObject {
     private var accessibilityObserver: Any?
     private var osdReplacementCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
+    private var currentViewVisibilityCancellables: [AnyCancellable] = []
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -162,6 +164,8 @@ class BoringViewCoordinator: ObservableObject {
             Defaults.publisher(.osdBrightnessSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } },
             Defaults.publisher(.osdVolumeSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } }
         ]
+        bindCurrentViewVisibility()
+        ensureCurrentViewIsVisible()
 
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
@@ -401,6 +405,47 @@ class BoringViewCoordinator: ObservableObject {
     }
     
     func showEmpty() {
+        currentView = .home
+    }
+
+    private func bindCurrentViewVisibility() {
+        currentViewVisibilityCancellables = [
+            Defaults.publisher(.showWeather, options: [])
+                .sink { [weak self] _ in
+                    Task { @MainActor in self?.ensureCurrentViewIsVisible() }
+                },
+            Defaults.publisher(.boringShelf, options: [])
+                .sink { [weak self] _ in
+                    Task { @MainActor in self?.ensureCurrentViewIsVisible() }
+                },
+            ShelfStateViewModel.shared.$items
+                .sink { [weak self] _ in
+                    Task { @MainActor in self?.ensureCurrentViewIsVisible() }
+                },
+        ]
+    }
+
+    private func isShelfViewVisible() -> Bool {
+        Defaults[.boringShelf] && (!ShelfStateViewModel.shared.isEmpty || alwaysShowTabs)
+    }
+
+    private func isWeatherViewVisible() -> Bool {
+        Defaults[.showWeather]
+    }
+
+    private func isViewVisible(_ view: NotchViews) -> Bool {
+        switch view {
+        case .home:
+            return true
+        case .shelf:
+            return isShelfViewVisible()
+        case .weather:
+            return isWeatherViewVisible()
+        }
+    }
+
+    func ensureCurrentViewIsVisible() {
+        guard !isViewVisible(currentView) else { return }
         currentView = .home
     }
 }
