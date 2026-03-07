@@ -11,7 +11,6 @@ struct WeatherSnapshot {
     let cityName: String
     let temperature: Double
     let unit: WeatherTemperatureUnit
-    let timeZone: TimeZone
     let weatherCode: Int
     let isDay: Bool
     let highTemperature: Double?
@@ -545,7 +544,6 @@ final class WeatherManager: ObservableObject {
             cityName: preferredDisplayName(for: location),
             temperature: current.temperature,
             unit: unit,
-            timeZone: weatherTimeZone,
             weatherCode: current.weatherCode,
             isDay: current.isDay == 1,
             highTemperature: today?.maxTemperature,
@@ -826,7 +824,6 @@ private struct WeatherForecastResponse: Decodable {
     var resolvedCurrent: ResolvedCurrentWeather? {
         if let current {
             return ResolvedCurrentWeather(
-                time: current.time,
                 temperature: current.temperature2m,
                 weatherCode: current.weatherCode,
                 isDay: current.isDay,
@@ -837,7 +834,6 @@ private struct WeatherForecastResponse: Decodable {
         }
         if let currentWeather {
             return ResolvedCurrentWeather(
-                time: currentWeather.time,
                 temperature: currentWeather.temperature,
                 weatherCode: currentWeather.weatherCode,
                 isDay: currentWeather.isDay,
@@ -863,7 +859,6 @@ private struct WeatherForecastResponse: Decodable {
 }
 
 private struct ResolvedCurrentWeather {
-    let time: String?
     let temperature: Double
     let weatherCode: Int
     let isDay: Int
@@ -873,7 +868,6 @@ private struct ResolvedCurrentWeather {
 }
 
 private struct CurrentWeatherModern: Decodable {
-    let time: String?
     let temperature2m: Double
     let weatherCode: Int
     let isDay: Int
@@ -882,7 +876,6 @@ private struct CurrentWeatherModern: Decodable {
     let windSpeed10m: Double?
 
     enum CodingKeys: String, CodingKey {
-        case time
         case temperature2m = "temperature_2m"
         case weatherCode = "weather_code"
         case isDay = "is_day"
@@ -909,14 +902,12 @@ private struct DailyWeather: Decodable {
 }
 
 private struct CurrentWeather: Decodable {
-    let time: String?
     let temperature: Double
     let windSpeed: Double?
     let weatherCode: Int
     let isDay: Int
 
     enum CodingKeys: String, CodingKey {
-        case time
         case temperature
         case windSpeed = "windspeed"
         case weatherCode = "weathercode"
