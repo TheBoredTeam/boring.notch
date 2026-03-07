@@ -197,11 +197,11 @@ final class AudioOutputRouteResolver {
         case 0:
             return "speaker.slash.fill"
         case 0...0.33:
-            return "speaker.wave.1"
+            return "speaker.wave.1.fill"
         case 0.33...0.66:
-            return "speaker.wave.2"
+            return "speaker.wave.2.fill"
         default:
-            return "speaker.wave.3"
+            return "speaker.wave.3.fill"
         }
     }
 }
