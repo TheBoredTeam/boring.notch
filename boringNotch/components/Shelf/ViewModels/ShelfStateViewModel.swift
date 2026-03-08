@@ -163,7 +163,7 @@ final class ShelfStateViewModel: ObservableObject {
             return
         }
         updateLinkedFolderWatcher(bookmarkData)
-        let limit = min(Defaults[.linkedShelfRecentItemLimit], 4)
+        let limit = min(Defaults[.linkedShelfRecentItemLimit], 50)
         guard limit > 0 else {
             linkedItems = []
             return

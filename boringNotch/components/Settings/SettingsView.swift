@@ -1016,7 +1016,7 @@ struct Shelf: View {
                         }
                     }
                 }
-                Stepper(value: $linkedShelfRecentItemLimit, in: 1...4, step: 1) {
+                Stepper(value: $linkedShelfRecentItemLimit, in: 1...50, step: 1) {
                     Text("Recent items: \(linkedShelfRecentItemLimit)")
                 }
                 .disabled(linkedShelfFolderBookmark == nil)
