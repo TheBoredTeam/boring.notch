@@ -27,6 +27,9 @@ struct ContentView: View {
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
+    @Default(.boringShelf) var boringShelf
+    @Default(.expandedDragDetection) var expandedDragDetection
+
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
@@ -395,7 +398,22 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+        // Disable general drop target if shelf or detection is disabled
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: Binding<Bool>(
+            get: {
+                // Return true only if BOTH shelf AND detection are enabled
+                return boringShelf && expandedDragDetection && vm.generalDropTargeting
+            },
+            set: { newValue in
+                // Only update the actual model IF shelf AND detection are enabled
+                if boringShelf && expandedDragDetection {
+                    vm.generalDropTargeting = newValue
+                } else {
+                    // If disabled, force target to false to be safe
+                    vm.generalDropTargeting = false
+                }
+            }
+        )))
     }
 
     @ViewBuilder
@@ -522,7 +540,7 @@ struct ContentView: View {
 
     @ViewBuilder
     var dragDetector: some View {
-        if Defaults[.boringShelf] && vm.notchState == .closed {
+        if boringShelf && expandedDragDetection && vm.notchState == .closed {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())

@@ -10,9 +10,11 @@ import SwiftUI
 
 struct Shelf: View {
     
+    @Default(.boringShelf) var boringShelf: Bool
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @Default(.dragDetectionArea) var dragDetectionArea: DragDetectionArea
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -25,13 +27,31 @@ struct Shelf: View {
                 Defaults.Toggle(key: .boringShelf) {
                     Text("Enable shelf")
                 }
+                .onChange(of: boringShelf) {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.boringShelfChanged,
+                        object: nil
+                    )
+                }
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
                 }
                 Defaults.Toggle(key: .expandedDragDetection) {
-                    Text("Expanded drag detection area")
+                    Text("Enable drag detection")
                 }
                 .onChange(of: expandedDragDetection) {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.expandedDragDetectionChanged,
+                        object: nil
+                    )
+                }
+                Picker("Detection area", selection: $dragDetectionArea) {
+                    ForEach(DragDetectionArea.allCases) { area in
+                        Text(area.rawValue).tag(area)
+                    }
+                }
+                .disabled(!expandedDragDetection)
+                .onChange(of: dragDetectionArea) {
                     NotificationCenter.default.post(
                         name: Notification.Name.expandedDragDetectionChanged,
                         object: nil
