@@ -229,6 +229,9 @@ extension Defaults.Keys {
     static let osdBrightnessSource = Key<OSDControlSource>("osdBrightnessSource", default: .builtin)
     static let osdVolumeSource = Key<OSDControlSource>("osdVolumeSource", default: .builtin)
     
+    // MARK: System Monitor
+    static let showSystemMonitor = Key<Bool>("showSystemMonitor", default: false)
+    
     // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
