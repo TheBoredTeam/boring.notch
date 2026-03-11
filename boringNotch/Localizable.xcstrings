@@ -2419,7 +2419,56 @@
 
     },
     "Animation scale" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "مقياس الحركة" }
+        },
+        "cs" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Měřítko animace" }
+        },
+        "de" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Animationsskalierung" }
+        },
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "Animation scale" }
+        },
+        "en-GB" : {
+          "stringUnit" : { "state" : "translated", "value" : "Animation scale" }
+        },
+        "es" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Escala de animación" }
+        },
+        "fr" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Échelle d'animation" }
+        },
+        "hu" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Animáció méretezése" }
+        },
+        "it" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Scala dell'animazione" }
+        },
+        "ko" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "애니메이션 배율" }
+        },
+        "pl" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Skala animacji" }
+        },
+        "pt-BR" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Escala da animação" }
+        },
+        "ru" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Масштаб анимации" }
+        },
+        "tr" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Animasyon ölçeği" }
+        },
+        "uk" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "Масштаб анімації" }
+        },
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "needs_review", "value" : "动画缩放" }
+        }
+      }
     },
     "App icon" : {
       "localizations" : {
