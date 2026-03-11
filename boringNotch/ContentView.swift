@@ -36,6 +36,8 @@ struct ContentView: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.selectedIdleAnimation) var selectedIdleAnimation
+    @Default(.idleAnimationScale) var idleAnimationScale
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
@@ -375,7 +377,17 @@ struct ContentView: View {
                 Rectangle()
                     .fill(.black)
                     .frame(width: vm.closedNotchSize.width - 20)
-                MinimalFaceFeatures()
+                if let idleAnim = selectedIdleAnimation {
+                    LottieView(url: idleAnim.url, speed: idleAnim.speed, loopMode: .loop)
+                        .scaleEffect(idleAnimationScale)
+                        .frame(
+                            width: max(0, vm.effectiveClosedNotchHeight - 12),
+                            height: max(0, vm.effectiveClosedNotchHeight - 12)
+                        )
+                        .clipped()
+                } else {
+                    MinimalFaceFeatures()
+                }
             }
         }.frame(
             height: vm.effectiveClosedNotchHeight,

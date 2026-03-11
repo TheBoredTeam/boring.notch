@@ -1301,6 +1301,9 @@
         }
       }
     },
+    "×" : {
+
+    },
     "About" : {
       "localizations" : {
         "ar" : {
@@ -1901,6 +1904,9 @@
           }
         }
       }
+    },
+    "Add new idle animation" : {
+
     },
     "Add new visualizer" : {
       "localizations" : {
@@ -2601,6 +2607,9 @@
           }
         }
       }
+    },
+    "Animation scale" : {
+
     },
     "App icon" : {
       "localizations" : {
@@ -6502,6 +6511,9 @@
         }
       }
     },
+    "Custom idle animations (Lottie)" : {
+
+    },
     "Custom music live activity animation" : {
       "localizations" : {
         "ar" : {
@@ -7101,6 +7113,9 @@
           }
         }
       }
+    },
+    "Default (Face)" : {
+
     },
     "Description" : {
       "extractionState" : "stale",
@@ -14609,6 +14624,9 @@
         }
       }
     },
+    "No custom idle animation" : {
+
+    },
     "No custom visualizer" : {
       "localizations" : {
         "ar" : {
@@ -18411,6 +18429,9 @@
           }
         }
       }
+    },
+    "Selected idle animation" : {
+
     },
     "Settings" : {
       "localizations" : {

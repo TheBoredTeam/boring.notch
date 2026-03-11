@@ -1164,6 +1164,10 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.customIdleAnimations) var customIdleAnimations
+    @Default(.selectedIdleAnimation) var selectedIdleAnimation
+    @Default(.idleAnimationScale) var idleAnimationScale
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1172,6 +1176,12 @@ struct Appearance: View {
     @State private var name: String = ""
     @State private var url: String = ""
     @State private var speed: CGFloat = 1.0
+    @State private var selectedListIdleAnimation: CustomVisualizer? = nil
+    @State private var isIdleAnimPresented: Bool = false
+    @State private var idleAnimName: String = ""
+    @State private var idleAnimUrl: String = ""
+    @State private var idleAnimSpeed: CGFloat = 1.0
+    @State private var idleAnimScaleText: String = ""
     var body: some View {
         Form {
             Section {
@@ -1202,7 +1212,20 @@ struct Appearance: View {
                 Text("Media")
             }
 
-            Section {
+            musicVisualizerSection
+            customVisualizersSection
+            additionalFeaturesSection
+            if showNotHumanFace {
+                idleAnimationsSection
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Appearance")
+    }
+
+    @ViewBuilder
+    private var musicVisualizerSection: some View {
+        Section {
                 Toggle(
                     "Use music visualizer spectrogram",
                     isOn: $useMusicVisualizer.animation()
@@ -1237,8 +1260,11 @@ struct Appearance: View {
                     customBadge(text: "Coming soon")
                 }
             }
+    }
 
-            Section {
+    @ViewBuilder
+    private var customVisualizersSection: some View {
+        Section {
                 List {
                     ForEach(customVisualizers, id: \.self) { visualizer in
                         HStack {
@@ -1375,8 +1401,11 @@ struct Appearance: View {
                     }
                 }
             }
+    }
 
-            Section {
+    @ViewBuilder
+    private var additionalFeaturesSection: some View {
+        Section {
                 Defaults.Toggle(key: .showMirror) {
                     Text("Enable boring mirror")
                 }
@@ -1390,14 +1419,191 @@ struct Appearance: View {
                 Defaults.Toggle(key: .showNotHumanFace) {
                     Text("Show cool face animation while inactive")
                 }
+                if showNotHumanFace {
+                    Picker("Selected idle animation", selection: $selectedIdleAnimation) {
+                        Text("Default (Face)").tag(nil as CustomVisualizer?)
+                        ForEach(customIdleAnimations, id: \.self) { animation in
+                            Text(animation.name).tag(animation as CustomVisualizer?)
+                        }
+                    }
+                    if selectedIdleAnimation != nil {
+                        HStack {
+                            Text("Animation scale")
+                            Spacer()
+                            TextField("", text: $idleAnimScaleText)
+                                .font(.system(.body, design: .monospaced))
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 72)
+                                .onAppear {
+                                    idleAnimScaleText = String(format: "%g", idleAnimationScale)
+                                }
+                                .onChange(of: idleAnimationScale) { _, newVal in
+                                    let formatted = String(format: "%g", newVal)
+                                    if idleAnimScaleText != formatted {
+                                        idleAnimScaleText = formatted
+                                    }
+                                }
+                                .onSubmit {
+                                    if let parsed = Double(idleAnimScaleText), parsed > 0 {
+                                        idleAnimationScale = CGFloat(parsed)
+                                    } else {
+                                        idleAnimScaleText = String(format: "%g", idleAnimationScale)
+                                    }
+                                }
+                            Text("×")
+                                .foregroundStyle(.secondary)
+                                .font(.footnote)
+                        }
+                    }
+                }
             } header: {
                 HStack {
                     Text("Additional features")
                 }
             }
-        }
-        .accentColor(.effectiveAccent)
-        .navigationTitle("Appearance")
+    }
+
+    @ViewBuilder
+    private var idleAnimationsSection: some View {
+        Section {
+                    List {
+                        ForEach(customIdleAnimations, id: \.self) { animation in
+                            HStack {
+                                LottieView(
+                                    url: animation.url, speed: animation.speed,
+                                    loopMode: .loop
+                                )
+                                .frame(width: 30, height: 30, alignment: .center)
+                                Text(animation.name)
+                                Spacer(minLength: 0)
+                                if selectedIdleAnimation == animation {
+                                    Text("selected")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.secondary)
+                                        .padding(.trailing, 8)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 2)
+                            .background(
+                                selectedListIdleAnimation != nil
+                                    ? selectedListIdleAnimation == animation
+                                        ? Color.effectiveAccent : Color.clear : Color.clear,
+                                in: RoundedRectangle(cornerRadius: 5)
+                            )
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if selectedListIdleAnimation == animation {
+                                    selectedListIdleAnimation = nil
+                                    return
+                                }
+                                selectedListIdleAnimation = animation
+                            }
+                        }
+                    }
+                    .safeAreaPadding(
+                        EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0)
+                    )
+                    .frame(minHeight: 120)
+                    .actionBar {
+                        HStack(spacing: 5) {
+                            Button {
+                                idleAnimName = ""
+                                idleAnimUrl = ""
+                                idleAnimSpeed = 1.0
+                                isIdleAnimPresented.toggle()
+                            } label: {
+                                Image(systemName: "plus")
+                                    .foregroundStyle(.secondary)
+                                    .contentShape(Rectangle())
+                            }
+                            Divider()
+                            Button {
+                                if selectedListIdleAnimation != nil {
+                                    let animation = selectedListIdleAnimation!
+                                    selectedListIdleAnimation = nil
+                                    customIdleAnimations.remove(
+                                        at: customIdleAnimations.firstIndex(of: animation)!)
+                                    if animation == selectedIdleAnimation {
+                                        selectedIdleAnimation = nil
+                                    }
+                                }
+                            } label: {
+                                Image(systemName: "minus")
+                                    .foregroundStyle(.secondary)
+                                    .contentShape(Rectangle())
+                            }
+                        }
+                    }
+                    .controlSize(.small)
+                    .buttonStyle(PlainButtonStyle())
+                    .overlay {
+                        if customIdleAnimations.isEmpty {
+                            Text("No custom idle animation")
+                                .foregroundStyle(Color(.secondaryLabelColor))
+                                .padding(.bottom, 22)
+                        }
+                    }
+                    .sheet(isPresented: $isIdleAnimPresented) {
+                        VStack(alignment: .leading) {
+                            Text("Add new idle animation")
+                                .font(.largeTitle.bold())
+                                .padding(.vertical)
+                            TextField("Name", text: $idleAnimName)
+                            TextField("Lottie JSON URL", text: $idleAnimUrl)
+                            HStack {
+                                Text("Speed")
+                                Spacer(minLength: 80)
+                                Text("\(idleAnimSpeed, specifier: "%.1f")s")
+                                    .multilineTextAlignment(.trailing)
+                                    .foregroundStyle(.secondary)
+                                Slider(value: $idleAnimSpeed, in: 0...2, step: 0.1)
+                            }
+                            .padding(.vertical)
+                            HStack {
+                                Button {
+                                    isIdleAnimPresented.toggle()
+                                } label: {
+                                    Text("Cancel")
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                }
+
+                                Button {
+                                    guard let parsedUrl = URL(string: idleAnimUrl) else { return }
+                                    let animation: CustomVisualizer = .init(
+                                        UUID: UUID(),
+                                        name: idleAnimName,
+                                        url: parsedUrl,
+                                        speed: idleAnimSpeed
+                                    )
+
+                                    if !customIdleAnimations.contains(animation) {
+                                        customIdleAnimations.append(animation)
+                                    }
+
+                                    isIdleAnimPresented.toggle()
+                                } label: {
+                                    Text("Add")
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                }
+                                .buttonStyle(BorderedProminentButtonStyle())
+                                .disabled(idleAnimName.isEmpty || URL(string: idleAnimUrl) == nil)
+                            }
+                        }
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .controlSize(.extraLarge)
+                        .padding()
+                    }
+            } header: {
+                HStack(spacing: 0) {
+                    Text("Custom idle animations (Lottie)")
+                    if !customIdleAnimations.isEmpty {
+                        Text(" – \(customIdleAnimations.count)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
     }
 
     func checkVideoInput() -> Bool {
