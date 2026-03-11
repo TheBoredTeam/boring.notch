@@ -38,6 +38,9 @@ struct ContentView: View {
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.selectedIdleAnimation) var selectedIdleAnimation
     @Default(.idleAnimationScale) var idleAnimationScale
+    @Default(.showLeftIdleAnimation) var showLeftIdleAnimation
+    @Default(.selectedLeftIdleAnimation) var selectedLeftIdleAnimation
+    @Default(.leftIdleAnimationScale) var leftIdleAnimationScale
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
@@ -368,12 +371,22 @@ struct ContentView: View {
     func BoringFaceAnimation() -> some View {
         HStack {
             HStack {
-                Rectangle()
-                    .fill(.clear)
-                    .frame(
-                        width: max(0, vm.effectiveClosedNotchHeight - 12),
-                        height: max(0, vm.effectiveClosedNotchHeight - 12)
-                    )
+                if showLeftIdleAnimation, let leftAnim = selectedLeftIdleAnimation {
+                    LottieView(url: leftAnim.url, speed: leftAnim.speed, loopMode: .loop)
+                        .scaleEffect(leftIdleAnimationScale)
+                        .frame(
+                            width: max(0, vm.effectiveClosedNotchHeight - 12),
+                            height: max(0, vm.effectiveClosedNotchHeight - 12)
+                        )
+                        .clipped()
+                } else {
+                    Rectangle()
+                        .fill(.clear)
+                        .frame(
+                            width: max(0, vm.effectiveClosedNotchHeight - 12),
+                            height: max(0, vm.effectiveClosedNotchHeight - 12)
+                        )
+                }
                 Rectangle()
                     .fill(.black)
                     .frame(width: vm.closedNotchSize.width - 20)

@@ -1168,6 +1168,9 @@ struct Appearance: View {
     @Default(.customIdleAnimations) var customIdleAnimations
     @Default(.selectedIdleAnimation) var selectedIdleAnimation
     @Default(.idleAnimationScale) var idleAnimationScale
+    @Default(.showLeftIdleAnimation) var showLeftIdleAnimation
+    @Default(.selectedLeftIdleAnimation) var selectedLeftIdleAnimation
+    @Default(.leftIdleAnimationScale) var leftIdleAnimationScale
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1182,6 +1185,7 @@ struct Appearance: View {
     @State private var idleAnimUrl: String = ""
     @State private var idleAnimSpeed: CGFloat = 1.0
     @State private var idleAnimScaleText: String = ""
+    @State private var leftIdleAnimScaleText: String = ""
     var body: some View {
         Form {
             Section {
@@ -1420,7 +1424,7 @@ struct Appearance: View {
                     Text("Show cool face animation while inactive")
                 }
                 if showNotHumanFace {
-                    Picker("Selected idle animation", selection: $selectedIdleAnimation) {
+                    Picker("Right side animation", selection: $selectedIdleAnimation) {
                         Text("Default (Face)").tag(nil as CustomVisualizer?)
                         ForEach(customIdleAnimations, id: \.self) { animation in
                             Text(animation.name).tag(animation as CustomVisualizer?)
@@ -1453,6 +1457,44 @@ struct Appearance: View {
                             Text("×")
                                 .foregroundStyle(.secondary)
                                 .font(.footnote)
+                        }
+                    }
+                    Toggle("Show left side animation", isOn: $showLeftIdleAnimation)
+                    if showLeftIdleAnimation {
+                        Picker("Left side animation", selection: $selectedLeftIdleAnimation) {
+                            Text("None").tag(nil as CustomVisualizer?)
+                            ForEach(customIdleAnimations, id: \.self) { animation in
+                                Text(animation.name).tag(animation as CustomVisualizer?)
+                            }
+                        }
+                        if selectedLeftIdleAnimation != nil {
+                            HStack {
+                                Text("Left animation scale")
+                                Spacer()
+                                TextField("", text: $leftIdleAnimScaleText)
+                                    .font(.system(.body, design: .monospaced))
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 72)
+                                    .onAppear {
+                                        leftIdleAnimScaleText = String(format: "%g", leftIdleAnimationScale)
+                                    }
+                                    .onChange(of: leftIdleAnimationScale) { _, newVal in
+                                        let formatted = String(format: "%g", newVal)
+                                        if leftIdleAnimScaleText != formatted {
+                                            leftIdleAnimScaleText = formatted
+                                        }
+                                    }
+                                    .onSubmit {
+                                        if let parsed = Double(leftIdleAnimScaleText), parsed > 0 {
+                                            leftIdleAnimationScale = CGFloat(parsed)
+                                        } else {
+                                            leftIdleAnimScaleText = String(format: "%g", leftIdleAnimationScale)
+                                        }
+                                    }
+                                Text("×")
+                                    .foregroundStyle(.secondary)
+                                    .font(.footnote)
+                            }
                         }
                     }
                 }

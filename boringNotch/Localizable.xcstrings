@@ -2611,52 +2611,100 @@
     "Animation scale" : {
       "localizations" : {
         "ar" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "مقياس الحركة" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "مقياس الحركة"
+          }
         },
         "cs" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Měřítko animace" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Měřítko animace"
+          }
         },
         "de" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Animationsskalierung" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animationsskalierung"
+          }
         },
         "en" : {
-          "stringUnit" : { "state" : "translated", "value" : "Animation scale" }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animation scale"
+          }
         },
         "en-GB" : {
-          "stringUnit" : { "state" : "translated", "value" : "Animation scale" }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animation scale"
+          }
         },
         "es" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Escala de animación" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Escala de animación"
+          }
         },
         "fr" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Échelle d'animation" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Échelle d'animation"
+          }
         },
         "hu" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Animáció méretezése" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animáció méretezése"
+          }
         },
         "it" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Scala dell'animazione" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Scala dell'animazione"
+          }
         },
         "ko" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "애니메이션 배율" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "애니메이션 배율"
+          }
         },
         "pl" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Skala animacji" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skala animacji"
+          }
         },
         "pt-BR" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Escala da animação" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Escala da animação"
+          }
         },
         "ru" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Масштаб анимации" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Масштаб анимации"
+          }
         },
         "tr" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Animasyon ölçeği" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animasyon ölçeği"
+          }
         },
         "uk" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "Масштаб анімації" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Масштаб анімації"
+          }
         },
         "zh-Hans" : {
-          "stringUnit" : { "state" : "needs_review", "value" : "动画缩放" }
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "动画缩放"
+          }
         }
       }
     },
@@ -12073,6 +12121,206 @@
         }
       }
     },
+    "Left animation scale" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "مقياس الحركة اليسرى"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Měřítko levé animace"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Linke Animationsskalierung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left animation scale"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left animation scale"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Escala de animación izquierda"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Échelle d'animation gauche"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bal animáció méretezése"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Scala animazione sinistra"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "왼쪽 애니메이션 배율"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skala lewej animacji"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Escala da animação esquerda"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Масштаб левой анимации"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sol animasyon ölçeği"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Масштаб лівої анімації"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "左侧动画缩放"
+          }
+        }
+      }
+    },
+    "Left side animation" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "حركة الجانب الأيسر"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animace levé strany"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Linke Seite Animation"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left side animation"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left side animation"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animación lado izquierdo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animation côté gauche"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bal oldali animáció"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animazione lato sinistro"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "왼쪽 애니메이션"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animacja lewej strony"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animação lado esquerdo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Анимация слева"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sol taraf animasyonu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Анімація ліворуч"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "左侧动画"
+          }
+        }
+      }
+    },
     "Lottie JSON URL" : {
       "localizations" : {
         "ar" : {
@@ -15077,6 +15325,9 @@
         }
       }
     },
+    "None" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -18078,6 +18329,106 @@
         }
       }
     },
+    "Right side animation" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "حركة الجانب الأيمن"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animace pravé strany"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Rechte Seite Animation"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right side animation"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right side animation"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animación lado derecho"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animation côté droit"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jobb oldali animáció"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animazione lato destro"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "오른쪽 애니메이션"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animacja prawej strony"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Animação lado direito"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Анимация справа"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sağ taraf animasyonu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Анімація праворуч"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "右侧动画"
+          }
+        }
+      }
+    },
     "Running" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -18478,9 +18829,6 @@
           }
         }
       }
-    },
-    "Selected idle animation" : {
-
     },
     "Settings" : {
       "localizations" : {
@@ -19278,6 +19626,106 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Show HUD in open notch"
+          }
+        }
+      }
+    },
+    "Show left side animation" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "إظهار حركة الجانب الأيسر"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Zobrazit animaci levé strany"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Linke Seite Animation anzeigen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show left side animation"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show left side animation"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Mostrar animación lado izquierdo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Afficher animation côté gauche"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bal oldali animáció megjelenítése"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Mostra animazione lato sinistro"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "왼쪽 애니메이션 표시"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pokaż animację lewej strony"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Mostrar animação lado esquerdo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Показать анимацию слева"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sol taraf animasyonu göster"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Показати анімацію ліворуч"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "显示左侧动画"
           }
         }
       }
