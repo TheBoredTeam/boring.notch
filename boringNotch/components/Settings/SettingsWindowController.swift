@@ -67,6 +67,9 @@ class SettingsWindowController: NSWindowController {
     }
     
     func showWindow() {
+        Task { @MainActor in
+            BoringViewCoordinator.shared.isSettingsWindowVisible = true
+        }
         // Set app to regular mode first
         NSApp.setActivationPolicy(.regular)
         
@@ -107,6 +110,9 @@ class SettingsWindowController: NSWindowController {
 
 extension SettingsWindowController: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
+        Task { @MainActor in
+            BoringViewCoordinator.shared.isSettingsWindowVisible = false
+        }
         relinquishFocus()
     }
     
@@ -115,11 +121,19 @@ extension SettingsWindowController: NSWindowDelegate {
     }
     
     func windowDidBecomeKey(_ notification: Notification) {
+        Task { @MainActor in
+            BoringViewCoordinator.shared.isSettingsWindowVisible = true
+        }
         // Ensure app is in regular mode when window becomes key
         NSApp.setActivationPolicy(.regular)
     }
     
     func windowDidResignKey(_ notification: Notification) {
+        // Only clear when window is actually closed/minimized, not just when losing key
+        if window?.isVisible == false {
+            Task { @MainActor in
+                BoringViewCoordinator.shared.isSettingsWindowVisible = false
+            }
+        }
     }
-    
 }

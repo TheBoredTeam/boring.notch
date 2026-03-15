@@ -60,6 +60,9 @@ struct Appearance: View {
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
+                Defaults.Toggle(key: .showBibleVerse) {
+                    Text("Show Bible verse of the day")
+                }
                 Defaults.Toggle(key: .showNotHumanFace) {
                     Text("Show cool face animation while inactive")
                 }

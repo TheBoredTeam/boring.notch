@@ -47,12 +47,28 @@ struct BoringHeader: View {
                         )
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
+                        if Defaults[.showBibleVerse] {
+                            Button(action: {
+                                coordinator.showBibleVerseInHome.toggle()
+                            }) {
+                                Capsule()
+                                    .fill(coordinator.showBibleVerseInHome ? Color(nsColor: .secondarySystemFill) : Color.clear)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: "book.closed.fill")
+                                            .foregroundColor(.white)
+                                            .padding()
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
                         if Defaults[.showMirror] {
                             Button(action: {
                                 vm.toggleCameraPreview()
                             }) {
                                 Capsule()
-                                    .fill(.black)
+                                    .fill(vm.isCameraExpanded ? Color(nsColor: .secondarySystemFill) : Color.clear)
                                     .frame(width: 30, height: 30)
                                     .overlay {
                                         Image(systemName: "web.camera")
@@ -68,7 +84,7 @@ struct BoringHeader: View {
                                 SettingsWindowController.shared.showWindow()
                             }) {
                                 Capsule()
-                                    .fill(.black)
+                                    .fill(coordinator.isSettingsWindowVisible ? Color(nsColor: .secondarySystemFill) : Color.clear)
                                     .frame(width: 30, height: 30)
                                     .overlay {
                                         Image(systemName: "gear")

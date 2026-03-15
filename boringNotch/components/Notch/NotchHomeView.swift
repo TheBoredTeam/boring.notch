@@ -430,18 +430,29 @@ struct NotchHomeView: View {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
+    /// Right-hand slot is visible when calendar is on, or when Bible verse is on and user has toggled to verse view.
+    private var showRightPanel: Bool {
+        Defaults[.showCalendar] || (Defaults[.showBibleVerse] && coordinator.showBibleVerseInHome)
+    }
+
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+        HStack(alignment: .top, spacing: (shouldShowCamera && showRightPanel) ? 10 : 15) {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
 
-            if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
+            if showRightPanel {
+                Group {
+                    if coordinator.showBibleVerseInHome {
+                        BibleVersePanelView()
+                    } else {
+                        CalendarView()
                     }
-                    .environmentObject(vm)
-                    .transition(.opacity)
+                }
+                .frame(width: shouldShowCamera ? 170 : 215)
+                .onHover { isHovering in
+                    vm.isHoveringCalendar = isHovering
+                }
+                .environmentObject(vm)
+                .transition(.opacity)
             }
 
             if shouldShowCamera {

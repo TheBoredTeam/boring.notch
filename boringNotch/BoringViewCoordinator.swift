@@ -53,6 +53,10 @@ class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
+    /// When true, the home view shows the Bible verse panel instead of the calendar. Default false so calendar is shown.
+    @Published var showBibleVerseInHome: Bool = false
+    /// True when the settings window is visible (key or on screen). Used for header pill highlight.
+    @Published var isSettingsWindowVisible: Bool = false
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
