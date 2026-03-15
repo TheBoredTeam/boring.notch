@@ -42,7 +42,6 @@
 		1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD992D98824300979FB0 /* SpotifyController.swift */; };
 		1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */; };
 		1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */; };
-		115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */; };
 		1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1160F8D72DD98230006FBB94 /* NotchShape.swift */; };
 		1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988C2DF5CAB40052E6AF /* EventModel.swift */; };
 		1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988E2DF5CC870052E6AF /* CalendarModel.swift */; };
@@ -63,6 +62,7 @@
 		11985BE22F37A3C800F81585 /* LunarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BDE2F37A3C800F81585 /* LunarManager.swift */; };
 		11985BE62F37A3FC00F81585 /* BetterDisplayNotificationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BE42F37A3FC00F81585 /* BetterDisplayNotificationModels.swift */; };
 		11985BEF2F37E48900F81585 /* OSDIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BEE2F37E48900F81585 /* OSDIconView.swift */; };
+		115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */; };
 		11985BF42F38520A00F81585 /* DraggableProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BF32F38520A00F81585 /* DraggableProgressBar.swift */; };
 		11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A45C782E34E63100CEB175 /* MediaChecker.swift */; };
 		11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3112DFE85970065821E /* SettingsWindowController.swift */; };
@@ -227,7 +227,6 @@
 		1153BD992D98824300979FB0 /* SpotifyController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyController.swift; sourceTree = "<group>"; };
 		1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingController.swift; sourceTree = "<group>"; };
 		1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicController.swift; sourceTree = "<group>"; };
-		115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenNotchOSD.swift; sourceTree = "<group>"; };
 		1160F8D72DD98230006FBB94 /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
 		1163988C2DF5CAB40052E6AF /* EventModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModel.swift; sourceTree = "<group>"; };
 		1163988E2DF5CC870052E6AF /* CalendarModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarModel.swift; sourceTree = "<group>"; };
@@ -246,6 +245,7 @@
 		11985BDE2F37A3C800F81585 /* LunarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LunarManager.swift; sourceTree = "<group>"; };
 		11985BE42F37A3FC00F81585 /* BetterDisplayNotificationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetterDisplayNotificationModels.swift; sourceTree = "<group>"; };
 		11985BEE2F37E48900F81585 /* OSDIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSDIconView.swift; sourceTree = "<group>"; };
+		115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenNotchOSD.swift; sourceTree = "<group>"; };
 		11985BF32F38520A00F81585 /* DraggableProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraggableProgressBar.swift; sourceTree = "<group>"; };
 		11A45C782E34E63100CEB175 /* MediaChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaChecker.swift; sourceTree = "<group>"; };
 		11C5E3112DFE85970065821E /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
@@ -826,7 +826,6 @@
 			children = (
 				11B1E0032EB1E00300035A57 /* BibleVerseLiveActivity.swift */,
 				11B1E0052EB1E00500035A57 /* BibleVersePanelView.swift */,
-				115C12EB2ED3D003009754CA /* OpenNotchHUD.swift */,
 				14D570CC2C5F4BB70011E668 /* BoringBattery.swift */,
 				B1C974332C642B6D0000E707 /* MarqueeTextView.swift */,
 				B1D365CD2C6A979C0047BDBC /* LiveActivityModifier.swift */,
@@ -991,7 +990,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
 				1100292A2E8691B400035A57 /* FileShareView.swift in Sources */,
@@ -1011,6 +1009,7 @@
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
 				9A0887322C7A693000C160EA /* TabButton.swift in Sources */,
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
+				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				11985BEF2F37E48900F81585 /* OSDIconView.swift in Sources */,
 				1194E9402EACC652009C82D6 /* Color+AccentColor.swift in Sources */,
 				B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */,

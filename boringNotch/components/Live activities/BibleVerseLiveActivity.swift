@@ -32,10 +32,10 @@ struct BibleVerseLiveActivity: View {
                                 .lineLimit(1)
                             
                             MarqueeText(
-                                .constant(verse.text),
+                                verse.text,
                                 font: .subheadline,
                                 nsFont: .subheadline,
-                                textColor: .white.opacity(0.9),
+                                color: .white.opacity(0.9),
                                 frameWidth: vm.closedNotchSize.width - 60
                             )
                             .lineLimit(2)
