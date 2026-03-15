@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		11B1E0022EB1E00200035A57 /* BibleVerseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B1E0012EB1E00100035A57 /* BibleVerseManager.swift */; };
-		11B1E0042EB1E00400035A57 /* BibleVerseLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B1E0032EB1E00300035A57 /* BibleVerseLiveActivity.swift */; };
 		11B1E0062EB1E00600035A57 /* BibleVersePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B1E0052EB1E00500035A57 /* BibleVersePanelView.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -198,7 +197,6 @@
 /* Begin PBXFileReference section */
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		11B1E0012EB1E00100035A57 /* BibleVerseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleVerseManager.swift; sourceTree = "<group>"; };
-		11B1E0032EB1E00300035A57 /* BibleVerseLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleVerseLiveActivity.swift; sourceTree = "<group>"; };
 		11B1E0052EB1E00500035A57 /* BibleVersePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleVersePanelView.swift; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -824,7 +822,6 @@
 		B18654312C6F45AE000B926A /* Live activities */ = {
 			isa = PBXGroup;
 			children = (
-				11B1E0032EB1E00300035A57 /* BibleVerseLiveActivity.swift */,
 				11B1E0052EB1E00500035A57 /* BibleVersePanelView.swift */,
 				14D570CC2C5F4BB70011E668 /* BoringBattery.swift */,
 				B1C974332C642B6D0000E707 /* MarqueeTextView.swift */,
@@ -1116,7 +1113,6 @@
 				B19016242CC15B5000E3F12E /* Constants.swift in Sources */,
 				1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */,
 				11B1E0022EB1E00200035A57 /* BibleVerseManager.swift in Sources */,
-				11B1E0042EB1E00400035A57 /* BibleVerseLiveActivity.swift in Sources */,
 				11B1E0062EB1E00600035A57 /* BibleVersePanelView.swift in Sources */,
 				11CFC6632E09918400748C80 /* MusicControllerSelectionView.swift in Sources */,
 				B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */,

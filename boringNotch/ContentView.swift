@@ -95,11 +95,6 @@ struct ContentView: View {
         {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showBibleVerse]
-            && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
         {
@@ -324,10 +319,7 @@ struct ContentView: View {
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showBibleVerse] && !vm.hideOnClosed {
-                          BibleVerseLiveActivity()
-                              .frame(alignment: .center)
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
+                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
                            BoringHeader()
