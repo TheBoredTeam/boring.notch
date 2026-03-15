@@ -103,7 +103,7 @@ final class BibleVerseManager: ObservableObject {
             lastFetchDate = Date()
             saveCachedVerse()
         } catch {
-            print("Error fetching Bible verse: \(error.localizedDescription)")
+            // Fail silently; UI shows "No verse available" when todaysVerse is nil
         }
     }
 
