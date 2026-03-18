@@ -20,6 +20,8 @@ struct LottieView: NSViewRepresentable {
         let animationView = LottieAnimationView()
         animationView.translatesAutoresizingMaskIntoConstraints = false
         let container = NSView()
+        container.wantsLayer = true
+        container.layer?.masksToBounds = true
         container.addSubview(animationView)
         NSLayoutConstraint.activate([
             animationView.leadingAnchor.constraint(equalTo: container.leadingAnchor),

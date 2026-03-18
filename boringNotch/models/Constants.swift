@@ -105,6 +105,12 @@ extension Defaults.Keys {
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
+    static let customIdleAnimations = Key<[CustomVisualizer]>("customIdleAnimations", default: [])
+    static let selectedIdleAnimation = Key<CustomVisualizer?>("selectedIdleAnimation", default: nil)
+    static let idleAnimationScale = Key<CGFloat>("idleAnimationScale", default: 1.0)
+    static let showLeftIdleAnimation = Key<Bool>("showLeftIdleAnimation", default: false)
+    static let selectedLeftIdleAnimation = Key<CustomVisualizer?>("selectedLeftIdleAnimation", default: nil)
+    static let leftIdleAnimationScale = Key<CGFloat>("leftIdleAnimationScale", default: 1.0)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     static let showCalendar = Key<Bool>("showCalendar", default: false)
     static let hideCompletedReminders = Key<Bool>("hideCompletedReminders", default: true)
