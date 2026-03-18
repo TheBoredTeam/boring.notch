@@ -10,11 +10,17 @@
 <p align="center">
   <a title="Crowdin" target="_blank" href="https://crowdin.com/project/boring-notch"><img src="https://badges.crowdin.net/boring-notch/localized.svg"></a>
   <img src="https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg" alt="TheBoringNotch Build & Test" style="margin-right: 10px;" />
+  <a href="https://discord.gg/c8JXA7qrPm">
+    <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat" alt="Discord Badge" />
+  </a>
+  <a href="https://www.ko-fi.com/alexander5015">
+    <img src="https://srv-cdn.himpfen.io/badges/kofi/kofi-flat.svg" alt="Ko-Fi" />
+  </a>
 </p>
 
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
 
-Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with AirDrop support, a complete MacOS HUD replacement and more!
+Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with AirDrop support, a complete MacOS OSD replacement and more!
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo GIF" />
@@ -35,25 +41,59 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 ## Installation
 
-**System Requirements:**  
-- macOS **14 Sonoma** or later  
+**System Requirements:**
+- macOS **14 Sonoma** or later
 - Apple Silicon or Intel Mac
 
 ---
+
+### Option 1: Download and Install Manually
+
+<a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+
+Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
+
 > [!IMPORTANT]
-> We don't have an Apple Developer account yet. The application will show a popup on first launch that the app is from an unidentified developer.
-> 1. Click **OK** to close the popup.
-> 2. Open **System Settings** > **Privacy & Security**.
-> 3. Scroll down and click **Open Anyway** next to the warning about the app.
-> 4. Confirm your choice if prompted.
+> We don't have an Apple Developer account (yet 👀), so macOS will warn you that Boring Notch is from an unidentified developer on first launch. This is expected behavior.
 >
-> You only need to do this once.
-
-
-### Download the realease
-just go to the github releases and download the latest
+> You'll need to bypass this before the app will open. You only need to do this once. Use one of the methods below.
 
 ---
+
+#### Recommended: Terminal (Always Works)
+
+This is the fastest and simplest method. It requires just one command and works reliably for all users, unlike System Settings, which occasionally doesn't.
+
+After moving Boring Notch to your Applications folder, run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/boringNotch.app
+```
+
+Then open the app normally.
+
+---
+
+#### Alternative: System Settings
+
+> [!NOTE]
+> This method doesn't work for all users. If this doesn't work, use the Terminal method above.
+
+1. Try to open the app — you'll see a security warning.
+2. Click **OK** to dismiss it.
+3. Open **System Settings** > **Privacy & Security**.
+4. Scroll to the bottom and click **Open Anyway** next to the Boring Notch warning.
+5. Confirm if prompted.
+
+---
+
+### Option 2: Install via Homebrew
+
+You can also install using [Homebrew](https://brew.sh). The `--no-quarantine` flag is included to automatically bypass the same macOS security warning described above.
+
+```bash
+brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
+```
 
 ## Usage
 
@@ -71,7 +111,7 @@ just go to the github releases and download the latest
 - [x] Customizable gesture control 👆🏻
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
-- [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
+- [x] System OSD replacements (volume, brightness, backlight) 🎚️💡⌨️
 - [x] Playback Gesture Control
 - [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
 - [ ] Weather integration ⛅️

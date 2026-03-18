@@ -65,12 +65,7 @@ class BoringNotchSkyLightWindow: NSPanel {
         // Force dark appearance regardless of system setting
         appearance = NSAppearance(named: .darkAqua)
         
-        collectionBehavior = [
-            .fullScreenAuxiliary,
-            .stationary,
-            .canJoinAllSpaces,
-            .ignoresCycle,
-        ]
+        updateCollectionBehavior()
         
         // Apply initial sharing type setting
         updateSharingType()
@@ -83,6 +78,41 @@ class BoringNotchSkyLightWindow: NSPanel {
                 self?.updateSharingType()
             }
             .store(in: &observers)
+            
+        Defaults.publisher(.hideNonNotchedFromMissionControl)
+            .sink { [weak self] _ in
+                self?.updateCollectionBehavior()
+            }
+            .store(in: &observers)
+            
+        NotificationCenter.default.publisher(for: NSWindow.didChangeScreenNotification, object: self)
+            .sink { [weak self] _ in
+                self?.updateCollectionBehavior()
+            }
+            .store(in: &observers)
+        
+        NotificationCenter.default.publisher(for: NSWindow.willCloseNotification, object: self)
+            .sink { [weak self] _ in
+                self?.cleanupObservers()
+            }
+            .store(in: &observers)
+    }
+    
+    private func updateCollectionBehavior() {
+        var newBehavior: NSWindow.CollectionBehavior = [
+            .fullScreenAuxiliary,
+            .stationary,
+            .canJoinAllSpaces,
+            .ignoresCycle,
+        ]
+        
+        let hasNotch = (self.screen?.safeAreaInsets.top ?? 0) > 0
+        
+        if Defaults[.hideNonNotchedFromMissionControl] && !hasNotch {
+            newBehavior.insert(.transient)
+        }
+        
+        collectionBehavior = newBehavior
     }
     
     private func updateSharingType() {
@@ -108,6 +138,13 @@ class BoringNotchSkyLightWindow: NSPanel {
     }
     
     private var observers: Set<AnyCancellable> = []
+    
+    private func cleanupObservers() {
+        Task { @MainActor in
+            self.observers.forEach { $0.cancel() }
+            self.observers.removeAll()
+        }
+    }
     
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
