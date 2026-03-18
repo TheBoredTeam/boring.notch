@@ -27,6 +27,7 @@ struct GeneralSettings: View {
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
+    @Default(.skipGestureEnabled) var enableSkipGesture
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.enableOpeningAnimation) var enableOpeningAnimation
     @Default(.animationSpeedMultiplier) var animationSpeedMultiplier
@@ -178,8 +179,10 @@ struct GeneralSettings: View {
             }
                 .disabled(!openNotchOnHover)
             if enableGestures {
-                Toggle("Change media with horizontal gestures", isOn: .constant(false))
-                    .disabled(true)
+                Defaults.Toggle(key: .skipGestureEnabled){
+                    Text("Change media with horizontal gestures")
+                }
+                    
                 Defaults.Toggle(key: .closeGestureEnabled) {
                     Text("Close gesture")
                 }
