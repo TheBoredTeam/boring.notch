@@ -89,10 +89,10 @@ Then open the app normally.
 
 ### Option 2: Install via Homebrew
 
-You can also install using [Homebrew](https://brew.sh). The `--no-quarantine` flag is included to automatically bypass the same macOS security warning described above.
+You can also install using [Homebrew](https://brew.sh).
 
 ```bash
-brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
+brew install --cask TheBoredTeam/boring-notch/boring-notch
 ```
 
 ## Usage
