@@ -134,6 +134,13 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     }
 }
 
+struct DockItem: Codable, Hashable, Equatable,Identifiable, Defaults.Serializable {
+    var id = UUID()
+    let name: String
+    let url: URL
+    let imageURL: URL?
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -267,6 +274,12 @@ extension Defaults.Keys {
             return .nowPlaying
         }
     }
+    
+    // MARK: Dock
+    static let dockItems = Key<[DockItem]>("dockItems", default: [])
+    static let showDock = Key<Bool>("showDock", default: true)
+    static let showDockLabels = Key<Bool>("showDockLabels", default: false)
+    static let maxItemsPerColumn = Key<Int>("maxItemsPerColumn", default: 4)
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
 }

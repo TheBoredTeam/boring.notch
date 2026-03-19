@@ -43,6 +43,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Dock") {
+                    Label("Dock", systemImage: "bookmark.fill")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -74,6 +77,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Dock":
+                    DockSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Advanced":
