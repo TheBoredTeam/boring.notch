@@ -27,7 +27,6 @@ struct GeneralSettings: View {
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
-    @Default(.skipGestureEnabled) var enableSkipGesture
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.enableOpeningAnimation) var enableOpeningAnimation
     @Default(.animationSpeedMultiplier) var animationSpeedMultiplier

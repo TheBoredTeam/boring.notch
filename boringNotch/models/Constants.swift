@@ -183,7 +183,7 @@ extension Defaults.Keys {
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
-    static let skipGestureEnabled = Key<Bool>("skipGestureEnabled", default: true)
+    static let skipGestureEnabled = Key<Bool>("skipGestureEnabled", default: false)
     static let closeGestureEnabled = Key<Bool>("closeGestureEnabled", default: true)
     static let gestureSensitivity = Key<CGFloat>("gestureSensitivity", default: 200.0)
     

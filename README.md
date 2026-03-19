@@ -112,7 +112,6 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
 - [x] System OSD replacements (volume, brightness, backlight) 🎚️💡⌨️
-- [x] Playback Gesture Control
 - [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
 - [ ] Weather integration ⛅️
 - [ ] Customizable Layout options 🛠️
@@ -124,8 +123,6 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 <!-- - [ ] Customizable function buttons 🎛️ -->
 <!-- - [ ] App switcher 🪄 -->
 
-Edits by me:
- I added a horizontal gesture feature, that enables track control without opening the notch.
 <!-- ## 🧩 Extensions
 > [!NOTE]
 > We’re hard at work on some awesome extensions! Stay tuned, and we’ll keep you updated as soon as they’re released. -->

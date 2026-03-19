@@ -11,8 +11,6 @@ import SwiftUI
 struct NotchShape: Shape {
     private var topCornerRadius: CGFloat
     private var bottomCornerRadius: CGFloat
-    // Signed horizontal stretch amount. Positive => stretch toward right, negative => toward left.
-    private var horizontalStretch: CGFloat
 
     init(
         topCornerRadius: CGFloat? = nil,
@@ -20,31 +18,18 @@ struct NotchShape: Shape {
     ) {
         self.topCornerRadius = topCornerRadius ?? 6
         self.bottomCornerRadius = bottomCornerRadius ?? 14
-        self.horizontalStretch = 0
     }
 
-    init(
-        topCornerRadius: CGFloat? = nil,
-        bottomCornerRadius: CGFloat? = nil,
-        horizontalStretch: CGFloat = 0
-    ) {
-        self.topCornerRadius = topCornerRadius ?? 6
-        self.bottomCornerRadius = bottomCornerRadius ?? 14
-        self.horizontalStretch = horizontalStretch
-    }
-
-    // Animatable pair now nests the two radii and the signed horizontal stretch
-    var animatableData: AnimatablePair<AnimatablePair<CGFloat, CGFloat>, CGFloat> {
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
         get {
             .init(
-                .init(topCornerRadius, bottomCornerRadius),
-                horizontalStretch
+                topCornerRadius,
+                bottomCornerRadius
             )
         }
         set {
-            topCornerRadius = newValue.first.first
-            bottomCornerRadius = newValue.first.second
-            horizontalStretch = newValue.second
+            topCornerRadius = newValue.first
+            bottomCornerRadius = newValue.second
         }
     }
 
@@ -130,18 +115,7 @@ struct NotchShape: Shape {
             )
         )
 
-        // Apply a horizontal scale centered at the appropriate anchor so the
-        // notch visually stretches toward the swipe direction without changing
-        // the top/bottom corner geometry calculation above.
-        let scaleX = 1 + horizontalStretch
-        // Anchor on left for positive stretch (push right), on right for negative (push left)
-        let anchorX: CGFloat = horizontalStretch >= 0 ? rect.minX : rect.maxX
-        // Build transform: translate anchor to origin, scale, translate back
-        var transform = CGAffineTransform(translationX: -anchorX, y: 0)
-        transform = transform.scaledBy(x: scaleX, y: 1)
-        transform = transform.translatedBy(x: anchorX, y: 0)
-
-        return path.applying(transform)
+        return path
     }
 }
 

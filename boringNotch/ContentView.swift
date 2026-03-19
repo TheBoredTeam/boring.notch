@@ -32,9 +32,6 @@ struct ContentView: View {
     @State private var haptics: Bool = false
 
     // Gesture state flags (used by left/right gesture handlers)
-    @State private var leftGestureActive: Bool = false
-    @State private var rightGestureActive: Bool = false
-    @State private var horizontalGestureActive: Bool = false
     @State private var skipLeftTriggered: Bool = false
     @State private var skipRightTriggered: Bool = false
 
@@ -261,8 +258,6 @@ struct ContentView: View {
                         .animation(nil, value: chinPulseWidth)
                 }
             }
-
-            // (global overlay removed) Using the background pulse so it renders beneath the notch
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
@@ -689,7 +684,7 @@ struct ContentView: View {
         }
     }
     private func handleLeftGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard !vm.isHoveringCalendar && (musicManager.isPlaying) else { return }
+        guard vm.notchState == .closed && (musicManager.isPlaying) else { return }
 
         if phase == .began {
             // start of a new horizontal gesture
@@ -735,7 +730,7 @@ struct ContentView: View {
          }
      }
     private func handleRightGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard !vm.isHoveringCalendar && (musicManager.isPlaying) else { return }
+        guard vm.notchState == .closed && (musicManager.isPlaying) else { return }
 
         if phase == .began {
             // start of a new horizontal gesture
