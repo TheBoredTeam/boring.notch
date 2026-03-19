@@ -11,6 +11,7 @@ import SwiftUI
 
 struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var webcamManager = WebcamManager.shared
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
 
@@ -54,6 +55,20 @@ struct Appearance: View {
                     Text("Enable boring mirror")
                 }
                     .disabled(!checkVideoInput())
+                Picker("Mirror camera", selection: Binding(
+                    get: { webcamManager.selectedCameraID },
+                    set: { newValue in
+                        webcamManager.setSelectedCamera(id: newValue)
+                    }
+                )) {
+                    Text("Automatic")
+                        .tag(nil as String?)
+                    ForEach(webcamManager.availableCameras, id: \.uniqueID) { camera in
+                        Text(camera.localizedName)
+                            .tag(Optional(camera.uniqueID))
+                    }
+                }
+                .disabled(!checkVideoInput())
                 Picker("Mirror shape", selection: $mirrorShape) {
                     Text("Circle")
                         .tag(MirrorShapeEnum.circle)
@@ -71,6 +86,9 @@ struct Appearance: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Appearance")
+        .onAppear {
+            webcamManager.checkCameraAvailability()
+        }
     }
 
     func checkVideoInput() -> Bool {
