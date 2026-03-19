@@ -122,6 +122,10 @@
 		14E9FEAA2C70BF610062E83F /* DownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEA92C70BF610062E83F /* DownloadView.swift */; };
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
+		380B10812F6CA2A100D669B2 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 380B10802F6CA2A100D669B2 /* Kingfisher */; };
+		380B10862F6CA2C700D669B2 /* DockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 380B10832F6CA2C700D669B2 /* DockView.swift */; };
+		380B10872F6CA2C700D669B2 /* DockItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 380B10822F6CA2C700D669B2 /* DockItemCell.swift */; };
+		380B10892F6CA33900D669B2 /* DockSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 380B10882F6CA33900D669B2 /* DockSettings.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
@@ -304,6 +308,9 @@
 		14E9FEA92C70BF610062E83F /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
+		380B10822F6CA2C700D669B2 /* DockItemCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockItemCell.swift; sourceTree = "<group>"; };
+		380B10832F6CA2C700D669B2 /* DockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockView.swift; sourceTree = "<group>"; };
+		380B10882F6CA33900D669B2 /* DockSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockSettings.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
@@ -364,6 +371,7 @@
 			files = (
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
+				380B10812F6CA2A100D669B2 /* Kingfisher in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
 				112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */,
 				14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */,
@@ -519,6 +527,7 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				380B10882F6CA33900D669B2 /* DockSettings.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
@@ -577,6 +586,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				380B10852F6CA2C700D669B2 /* Dock */,
 				11985BDF2F37A3C800F81585 /* OSD */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
@@ -723,6 +733,23 @@
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
 			);
 			path = models;
+			sourceTree = "<group>";
+		};
+		380B10842F6CA2C700D669B2 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				380B10822F6CA2C700D669B2 /* DockItemCell.swift */,
+				380B10832F6CA2C700D669B2 /* DockView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		380B10852F6CA2C700D669B2 /* Dock */ = {
+			isa = PBXGroup;
+			children = (
+				380B10842F6CA2C700D669B2 /* Views */,
+			);
+			path = Dock;
 			sourceTree = "<group>";
 		};
 		9A0887332C7AFF7E00C160EA /* Tabs */ = {
@@ -890,6 +917,7 @@
 				111BEA502ECFBF7F0079DD4E /* MacroVisionKit */,
 				111BEA5E2ED07A340079DD4E /* MacroVisionKit */,
 				111BEA6E2ED166E20079DD4E /* MacroVisionKit */,
+				380B10802F6CA2A100D669B2 /* Kingfisher */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -935,6 +963,7 @@
 				11F748712EC9DA9300F841DB /* XCRemoteSwiftPackageReference "lottie-spm" */,
 				111BE95B2ECD71E10079DD4E /* XCRemoteSwiftPackageReference "AsyncXPCConnection" */,
 				111BEA6D2ED166E20079DD4E /* XCRemoteSwiftPackageReference "MacroVisionKit" */,
+				380B107F2F6CA2A100D669B2 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -1006,6 +1035,8 @@
 				B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */,
 				116398962DF5D6C00052E6AF /* CalendarServiceProviding.swift in Sources */,
 				59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */,
+				380B10862F6CA2C700D669B2 /* DockView.swift in Sources */,
+				380B10872F6CA2C700D669B2 /* DockItemCell.swift in Sources */,
 				1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
 				11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */,
@@ -1085,6 +1116,7 @@
 				118D1FD12E98FF5F00A2FF63 /* SharingStateManager.swift in Sources */,
 				11985BE62F37A3FC00F81585 /* BetterDisplayNotificationModels.swift in Sources */,
 				118EBE252E92DCCB00D54B5A /* AssociatedObject.swift in Sources */,
+				380B10892F6CA33900D669B2 /* DockSettings.swift in Sources */,
 				11F748682EC9AC9600F841DB /* BoringNotchXPCHelperProtocol.swift in Sources */,
 				11F748692EC9AC9600F841DB /* XPCHelperClient.swift in Sources */,
 				118EBE2D2E97165600D54B5A /* Bookmark.swift in Sources */,
@@ -1137,7 +1169,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.8-beta.0;
+				MARKETING_VERSION = "2.8-beta.0";
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1162,7 +1194,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.8-beta.0;
+				MARKETING_VERSION = "2.8-beta.0";
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1336,7 +1368,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.8-beta.0;
+				MARKETING_VERSION = "2.8-beta.0";
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1389,7 +1421,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.8-beta.0;
+				MARKETING_VERSION = "2.8-beta.0";
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1484,6 +1516,14 @@
 				minimumVersion = 2.8.0;
 			};
 		};
+		380B107F2F6CA2A100D669B2 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.8.0;
+			};
+		};
 		9A987A0E2C73CA8D005CA465 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-collections.git";
@@ -1564,6 +1604,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 14D0321B2C68F3350096E6A1 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		380B10802F6CA2A100D669B2 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 380B107F2F6CA2A100D669B2 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 		9A987A0F2C73CA8D005CA465 /* Collections */ = {
 			isa = XCSwiftPackageProductDependency;
