@@ -89,7 +89,7 @@ Then open the app normally.
 
 ### Option 2: Install via Homebrew
 
-You can also install using [Homebrew](https://brew.sh).
+You can also install using [Homebrew](https://brew.sh). The Homebrew installation automatically bypasses the macOS security warning described above.
 
 ```bash
 brew install --cask TheBoredTeam/boring-notch/boring-notch
