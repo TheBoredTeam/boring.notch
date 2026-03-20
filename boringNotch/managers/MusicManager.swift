@@ -20,6 +20,7 @@ class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var controllerCancellables = Set<AnyCancellable>()
     private var debounceIdleTask: Task<Void, Never>?
+    private var lyricsFetchDebounceTask: Task<Void, Never>?
 
     // Helper to check if macOS has removed support for NowPlayingController
     public private(set) var isNowPlayingDeprecated: Bool = false
@@ -51,6 +52,32 @@ class MusicManager: ObservableObject {
     @Published var currentLyrics: String = ""
     @Published var isFetchingLyrics: Bool = false
     @Published var syncedLyrics: [(time: Double, text: String)] = []
+
+    // MARK: - Lyrics cache
+    private struct LyricsCacheEntry: Codable {
+        let plainLyrics: String
+        let syncedLyrics: String
+    }
+    private var lyricsCache: [String: LyricsCacheEntry] = [:]
+    private var lyricsCacheURL: URL {
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("boringNotch", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("lyrics_cache.json")
+    }
+    private func lyricsCacheKey(title: String, artist: String) -> String {
+        "\(normalizedQuery(title))|\(normalizedQuery(artist))"
+    }
+    private func loadLyricsCache() {
+        guard let data = try? Data(contentsOf: lyricsCacheURL),
+              let decoded = try? JSONDecoder().decode([String: LyricsCacheEntry].self, from: data)
+        else { return }
+        lyricsCache = decoded
+    }
+    private func saveLyricsCache() {
+        guard let data = try? JSONEncoder().encode(lyricsCache) else { return }
+        try? data.write(to: lyricsCacheURL, options: .atomic)
+    }
     @Published var canFavoriteTrack: Bool = false
     @Published var isFavoriteTrack: Bool = false
 
@@ -62,6 +89,11 @@ class MusicManager: ObservableObject {
     private var lastArtworkAlbum: String = "Self Love"
     private var lastArtworkBundleIdentifier: String? = nil
 
+    // Track the title/artist for which lyrics were last fetched to prevent redundant re-fetches
+    // (Chromium browsers send multiple metadata updates as artwork/info loads in stages)
+    private var lyricsLastTitle: String = ""
+    private var lyricsLastArtist: String = ""
+
     @Published var isFlipping: Bool = false
     private var flipWorkItem: DispatchWorkItem?
 
@@ -70,6 +102,8 @@ class MusicManager: ObservableObject {
 
     // MARK: - Initialization
     init() {
+        loadLyricsCache()
+
         // Listen for changes to the default controller preference
         NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
             .sink { [weak self] _ in
@@ -98,6 +132,7 @@ class MusicManager: ObservableObject {
     
     public func destroy() {
         debounceIdleTask?.cancel()
+        lyricsFetchDebounceTask?.cancel()
         cancellables.removeAll()
         controllerCancellables.removeAll()
         flipWorkItem?.cancel()
@@ -341,66 +376,122 @@ class MusicManager: ObservableObject {
     }
 
     // MARK: - Lyrics
+
+    /// Executes the actual lyrics fetch (Apple Music AppleScript path then LRCLib web fallback).
+    /// Must be called after the metadata has settled; use `fetchLyricsIfAvailable` for debounced entry.
+    @MainActor
+    private func performLyricsFetchNow(bundleIdentifier: String?, title: String, artist: String) async {
+        self.isFetchingLyrics = true
+        self.currentLyrics = ""
+
+        // Prefer native Apple Music lyrics when available
+        if let bundleIdentifier = bundleIdentifier, bundleIdentifier.contains("com.apple.Music") {
+            let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+            guard !runningApps.isEmpty else {
+                await fetchLyricsFromWeb(title: title, artist: artist)
+                return
+            }
+
+            do {
+                let script = """
+                tell application \"Music\"
+                    if it is running then
+                        if player state is playing or player state is paused then
+                            try
+                                set l to lyrics of current track
+                                if l is missing value then
+                                    return \"\"
+                                else
+                                    return l
+                                end if
+                            on error
+                                return \"\"
+                            end try
+                        else
+                            return \"\"
+                        end if
+                    else
+                        return \"\"
+                    end if
+                end tell
+                """
+                if let result = try await AppleScriptHelper.execute(script),
+                   let lyricsString = result.stringValue,
+                   !lyricsString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    self.currentLyrics = lyricsString.trimmingCharacters(in: .whitespacesAndNewlines)
+                    self.isFetchingLyrics = false
+                    self.syncedLyrics = []
+                    return
+                }
+            } catch {
+                // fall through to web lookup
+            }
+        }
+
+        await fetchLyricsFromWeb(title: title, artist: artist)
+    }
+
     private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String) {
-        guard Defaults[.enableLyrics], !title.isEmpty else {
+        guard Defaults[.enableLyrics] else {
             DispatchQueue.main.async {
                 self.isFetchingLyrics = false
                 self.currentLyrics = ""
+                self.syncedLyrics = []
             }
             return
         }
 
-        // Prefer native Apple Music lyrics when available
-        if let bundleIdentifier = bundleIdentifier, bundleIdentifier.contains("com.apple.Music") {
-            Task { @MainActor in
-                let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
-                guard !runningApps.isEmpty else {
-                    await self.fetchLyricsFromWeb(title: title, artist: artist)
-                    return
-                }
+        // Don't clear lyrics for transient empty-title updates (common with Chromium browsers
+        // sending non-diff refreshes where title/artist arrive as null)
+        guard !title.isEmpty else { return }
 
-                self.isFetchingLyrics = true
-                self.currentLyrics = ""
-                do {
-                    let script = """
-                    tell application \"Music\"
-                        if it is running then
-                            if player state is playing or player state is paused then
-                                try
-                                    set l to lyrics of current track
-                                    if l is missing value then
-                                        return \"\"
-                                    else
-                                        return l
-                                    end if
-                                on error
-                                    return \"\"
-                                end try
-                            else
-                                return \"\"
-                            end if
-                        else
-                            return \"\"
-                        end if
-                    end tell
-                    """
-                    if let result = try await AppleScriptHelper.execute(script), let lyricsString = result.stringValue, !lyricsString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        self.currentLyrics = lyricsString.trimmingCharacters(in: .whitespacesAndNewlines)
-                        self.isFetchingLyrics = false
-                        self.syncedLyrics = []
-                        return
-                    }
-                } catch {
-                    // fall through to web lookup
-                }
-                await self.fetchLyricsFromWeb(title: title, artist: artist)
+        // Debounce: cancel the previous pending fetch and restart the timer.
+        // After 800 ms of no further metadata updates, we read the CURRENT (settled)
+        // songTitle/artistName rather than the stale captured values from this event.
+        // This collapses Arc/Chromium's rapid multi-stage updates into a single fetch.
+        lyricsFetchDebounceTask?.cancel()
+        lyricsFetchDebounceTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(for: .milliseconds(800))
+            guard !Task.isCancelled else { return }
+
+            // Read the most up-to-date metadata after the settling period
+            let stableTitle = self.songTitle
+            let stableArtist = self.artistName
+            let stableBundleID = self.bundleIdentifier
+
+            guard !stableTitle.isEmpty else { return }
+
+            // Idempotency: skip if title+artist haven't changed since the last fetch.
+            // Compare cleaned values so "Artist - Topic" == "Artist" for the same song.
+            let cleanedTitle = self.cleanForLyricsSearch(stableTitle, isArtist: false)
+            let cleanedArtist = self.cleanForLyricsSearch(stableArtist, isArtist: true)
+            guard cleanedTitle != self.cleanForLyricsSearch(self.lyricsLastTitle, isArtist: false) ||
+                  cleanedArtist != self.cleanForLyricsSearch(self.lyricsLastArtist, isArtist: true) else {
+                return
             }
-        } else {
-            Task { @MainActor in
-                self.isFetchingLyrics = true
-                self.currentLyrics = ""
-                await self.fetchLyricsFromWeb(title: title, artist: artist)
-            }
+
+            self.lyricsLastTitle = stableTitle
+            self.lyricsLastArtist = stableArtist
+            await self.performLyricsFetchNow(bundleIdentifier: stableBundleID, title: stableTitle, artist: stableArtist)
+        }
+    }
+
+    func retryLyricsFetch() {
+        guard !isFetchingLyrics else { return }
+        // Cancel any pending debounced fetch and execute immediately with current stable values
+        lyricsFetchDebounceTask?.cancel()
+        lyricsLastTitle = ""
+        lyricsLastArtist = ""
+        let title = songTitle
+        let artist = artistName
+        let bundle = bundleIdentifier
+        guard !title.isEmpty else { return }
+        lyricsLastTitle = title
+        lyricsLastArtist = artist
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.performLyricsFetchNow(bundleIdentifier: bundle, title: title, artist: artist)
         }
     }
 
@@ -410,10 +501,64 @@ class MusicManager: ObservableObject {
             .replacingOccurrences(of: "\u{FFFD}", with: "")
     }
 
+    /// Strips YouTube / streaming-platform noise before sending to LRCLib.
+    /// e.g. "Artist - Topic" → "Artist", "Song (Official Video)" → "Song"
+    private func cleanForLyricsSearch(_ string: String, isArtist: Bool) -> String {
+        var s = string
+
+        // Artist-specific suffixes added by YouTube Music
+        if isArtist {
+            let artistSuffixes = [
+                " - Topic", " (Topic)", " - topic",
+                " VEVO", " Vevo",
+                " (Official Artist Channel)",
+                " (Official Channel)",
+            ]
+            for suffix in artistSuffixes {
+                if s.hasSuffix(suffix) {
+                    s = String(s.dropLast(suffix.count))
+                    break
+                }
+            }
+        }
+
+        // Title-specific suffixes
+        if !isArtist {
+            let titleSuffixes = [
+                " (Official Video)", " (Official Audio)", " (Official Music Video)",
+                " [Official Video]", " [Official Audio]", " [Official Music Video]",
+                " (Official Lyric Video)", " (Lyric Video)", " (Lyrics)",
+                " (Music Video)", " [Music Video]",
+                " (Visualizer)", " [Visualizer]",
+                " (Audio)", " [Audio]",
+                " (Live)", " [Live]",
+                " (Explicit)", " [Explicit]",
+            ]
+            for suffix in titleSuffixes {
+                if s.hasSuffix(suffix) {
+                    s = String(s.dropLast(suffix.count))
+                    break
+                }
+            }
+        }
+
+        return s.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     @MainActor
-    private func fetchLyricsFromWeb(title: String, artist: String) async {
-        let cleanTitle = normalizedQuery(title)
-        let cleanArtist = normalizedQuery(artist)
+    private func fetchLyricsFromWeb(title: String, artist: String, retries: Int = 1) async {
+        let cleanTitle = normalizedQuery(cleanForLyricsSearch(title, isArtist: false))
+        let cleanArtist = normalizedQuery(cleanForLyricsSearch(artist, isArtist: true))
+
+        // Check in-memory/disk cache first (use cleaned key so "Song (Official Video)" hits same entry as "Song")
+        let cacheKey = "\(cleanTitle)|\(cleanArtist)"
+        if let cached = lyricsCache[cacheKey] {
+            self.currentLyrics = cached.plainLyrics
+            self.isFetchingLyrics = false
+            self.syncedLyrics = cached.syncedLyrics.isEmpty ? [] : self.parseLRC(cached.syncedLyrics)
+            return
+        }
+
         guard let encodedTitle = cleanTitle.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let encodedArtist = cleanArtist.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             self.currentLyrics = ""
@@ -431,6 +576,11 @@ class MusicManager: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                if retries > 0 {
+                    try? await Task.sleep(for: .seconds(2))
+                    await fetchLyricsFromWeb(title: title, artist: artist, retries: retries - 1)
+                    return
+                }
                 self.currentLyrics = ""
                 self.isFetchingLyrics = false
                 return
@@ -448,12 +598,22 @@ class MusicManager: ObservableObject {
                 } else {
                     self.syncedLyrics = []
                 }
+                // Persist to cache only when we actually got lyrics
+                if !plain.isEmpty || !synced.isEmpty {
+                    lyricsCache[cacheKey] = LyricsCacheEntry(plainLyrics: plain, syncedLyrics: synced)
+                    saveLyricsCache()
+                }
             } else {
                 self.currentLyrics = ""
                 self.isFetchingLyrics = false
                 self.syncedLyrics = []
             }
         } catch {
+            if retries > 0 {
+                try? await Task.sleep(for: .seconds(2))
+                await fetchLyricsFromWeb(title: title, artist: artist, retries: retries - 1)
+                return
+            }
             self.currentLyrics = ""
             self.isFetchingLyrics = false
             self.syncedLyrics = []
@@ -504,6 +664,23 @@ class MusicManager: ObservableObject {
             }
         }
         return syncedLyrics[idx].text
+    }
+
+    func lyricContext(at elapsed: Double, offset: Int = 0) -> (prev: String?, current: String, next: String?) {
+        guard !syncedLyrics.isEmpty else { return (nil, currentLyrics, nil) }
+        var low = 0, high = syncedLyrics.count - 1, idx = 0
+        while low <= high {
+            let mid = (low + high) / 2
+            if syncedLyrics[mid].time <= elapsed {
+                idx = mid; low = mid + 1
+            } else { high = mid - 1 }
+        }
+        let target = max(0, min(syncedLyrics.count - 1, idx + offset))
+        return (
+            target > 0 ? syncedLyrics[target - 1].text : nil,
+            syncedLyrics[target].text,
+            target < syncedLyrics.count - 1 ? syncedLyrics[target + 1].text : nil
+        )
     }
 
     private func triggerFlipAnimation() {

@@ -12309,6 +12309,9 @@
         }
       }
     },
+    "Lyrics unavailable — tap to retry" : {
+
+    },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
         "ar" : {
@@ -19311,6 +19314,9 @@
           }
         }
       }
+    },
+    "Show lyrics column beside player" : {
+
     },
     "Show menu bar icon" : {
       "localizations" : {
