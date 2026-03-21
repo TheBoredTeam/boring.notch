@@ -15,13 +15,14 @@ struct CameraPreviewView: View {
     
     // Track if authorization request is in progress to avoid multiple requests
     @State private var isRequestingAuthorization: Bool = false
-
+    @Default(.isMirrored) private var isMirrored
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 if let previewLayer = webcamManager.previewLayer {
                     CameraPreviewLayerView(previewLayer: previewLayer)
-                        .scaleEffect(x: -1, y: 1)
+                        .scaleEffect(x: isMirrored ? -1 : 1, y: 1)
                         .clipShape(RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? MusicPlayerImageSizes.cornerRadiusInset.opened : 100))
                         .frame(width: geometry.size.width, height: geometry.size.width)
                         .opacity(webcamManager.isSessionRunning ? 1 : 0)
