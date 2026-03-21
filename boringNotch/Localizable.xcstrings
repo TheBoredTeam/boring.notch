@@ -501,6 +501,9 @@
         }
       }
     },
+    "%.1fx" : {
+
+    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -2006,6 +2009,9 @@
         }
       }
     },
+    "Animation speed" : {
+
+    },
     "App icon" : {
       "localizations" : {
         "ar" : {
@@ -2605,6 +2611,9 @@
           }
         }
       }
+    },
+    "Backlight" : {
+
     },
     "Battery" : {
       "localizations" : {
@@ -3206,6 +3215,12 @@
         }
       }
     },
+    "Brightness" : {
+
+    },
+    "Brightness Source" : {
+
+    },
     "Calendar" : {
       "localizations" : {
         "ar" : {
@@ -3806,6 +3821,9 @@
           }
         }
       }
+    },
+    "Charging battery" : {
+
     },
     "Charging on Hold: Desktop Mode" : {
       "localizations" : {
@@ -7416,6 +7434,9 @@
         }
       }
     },
+    "Enable gradient" : {
+
+    },
     "Enable haptic feedback" : {
       "localizations" : {
         "ar" : {
@@ -8320,6 +8341,9 @@
           }
         }
       }
+    },
+    "Full charge" : {
+
     },
     "Full screen behavior" : {
       "localizations" : {
@@ -10337,6 +10361,12 @@
     "Interaction" : {
 
     },
+    "Keyboard Source" : {
+
+    },
+    "Launch at login" : {
+
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -11937,6 +11967,9 @@
         }
       }
     },
+    "Mic" : {
+
+    },
     "Mic %@" : {
       "localizations" : {
         "ar" : {
@@ -13045,6 +13078,9 @@
     "Normalize gesture direction" : {
 
     },
+    "Not charging" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -13144,6 +13180,9 @@
           }
         }
       }
+    },
+    "Notch animation" : {
+
     },
     "Notch behavior" : {
       "localizations" : {
@@ -13544,6 +13583,9 @@
           }
         }
       }
+    },
+    "Now Playing" : {
+
     },
     "Open Calendar Settings" : {
       "localizations" : {
@@ -14046,6 +14088,9 @@
         }
       }
     },
+    "Option (⌥) Key Behavior" : {
+
+    },
     "Option key behaviour" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -14147,8 +14192,52 @@
         }
       }
     },
+    "option_key_no_action" : {
+      "comment" : "Option (⌥) key behavior: No action",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No action"
+          }
+        }
+      }
+    },
+    "option_key_open_system_settings" : {
+      "comment" : "Option (⌥) key behavior: Open System Settings",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        }
+      }
+    },
+    "option_key_show_osd" : {
+      "comment" : "Option (⌥) key behavior: Show OSD",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show OSD"
+          }
+        }
+      }
+    },
     "OSD" : {
 
+    },
+    "osd_sources_built_in" : {
+      "comment" : "OSD Sources: Built-in",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Built-in"
+          }
+        }
+      }
     },
     "OSD.ValueLabel" : {
       "comment" : "Label for OSD value slider"
@@ -14252,6 +14341,9 @@
           }
         }
       }
+    },
+    "Player tinting" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -15454,6 +15546,9 @@
         }
       }
     },
+    "Replace System OSD" : {
+
+    },
     "Request Accessibility" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16430,6 +16525,54 @@
           }
         }
       }
+    },
+    "Shelf.ContextMenu.Compress" : {
+      "comment" : "Context menu item: Compress"
+    },
+    "Shelf.ContextMenu.ConvertImage" : {
+      "comment" : "Context menu item: Convert Image…"
+    },
+    "Shelf.ContextMenu.Copy" : {
+      "comment" : "Context menu item: Copy"
+    },
+    "Shelf.ContextMenu.CopyPath" : {
+      "comment" : "Context menu item: Copy Path"
+    },
+    "Shelf.ContextMenu.CreatePDF" : {
+      "comment" : "Context menu item: Create PDF"
+    },
+    "Shelf.ContextMenu.ImageActions" : {
+      "comment" : "Context menu item: Image Actions"
+    },
+    "Shelf.ContextMenu.NoCompatibleAppsFound" : {
+      "comment" : "Context menu item: No Compatible Apps Found"
+    },
+    "Shelf.ContextMenu.Open" : {
+      "comment" : "Context menu item: Open"
+    },
+    "Shelf.ContextMenu.OpenWith" : {
+      "comment" : "Context menu item: Open With"
+    },
+    "Shelf.ContextMenu.Other" : {
+      "comment" : "Context menu item: Other…"
+    },
+    "Shelf.ContextMenu.QuickLook" : {
+      "comment" : "Context menu item: Quick Look"
+    },
+    "Shelf.ContextMenu.Remove" : {
+      "comment" : "Context menu item: Remove"
+    },
+    "Shelf.ContextMenu.RemoveBackground" : {
+      "comment" : "Context menu item: Remove Background"
+    },
+    "Shelf.ContextMenu.Rename" : {
+      "comment" : "Context menu item: Rename"
+    },
+    "Shelf.ContextMenu.Share" : {
+      "comment" : "Context menu item: Share…"
+    },
+    "Shelf.ContextMenu.ShowInFinder" : {
+      "comment" : "Context menu item: Show in Finder"
     },
     "Shortcuts" : {
       "localizations" : {
@@ -17431,6 +17574,9 @@
         }
       }
     },
+    "Show OSD in open notch" : {
+
+    },
     "Show percentage" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -17531,6 +17677,12 @@
           }
         }
       }
+    },
+    "Show percentage (closed notch)" : {
+
+    },
+    "Show percentage (open notch)" : {
+
     },
     "Show power status icons" : {
       "localizations" : {
@@ -17832,6 +17984,9 @@
         }
       }
     },
+    "Show shadow" : {
+
+    },
     "Show sneak peek on playback changes" : {
       "localizations" : {
         "ar" : {
@@ -18032,6 +18187,39 @@
         }
       }
     },
+    "slider_color_accent" : {
+      "comment" : "Slider color option: accent color",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accent color"
+          }
+        }
+      }
+    },
+    "slider_color_album_art" : {
+      "comment" : "Slider color option: match album art",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match album art"
+          }
+        }
+      }
+    },
+    "slider_color_white" : {
+      "comment" : "Slider color option: white",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "White"
+          }
+        }
+      }
+    },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {
         "ar" : {
@@ -18228,6 +18416,28 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Sneak Peek 样式"
+          }
+        }
+      }
+    },
+    "sneak_peek_inline" : {
+      "comment" : "Sneak Peek style: Inline",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inline"
+          }
+        }
+      }
+    },
+    "sneak_peek_standard" : {
+      "comment" : "Sneak Peek style: Default",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
           }
         }
       }
@@ -19736,6 +19946,12 @@
         }
       }
     },
+    "Use accent color" : {
+
+    },
+    "Use inline style" : {
+
+    },
     "Use your macOS system accent color" : {
       "localizations" : {
         "ar" : {
@@ -20239,9 +20455,11 @@
     "Visibility" : {
 
     },
-    "Webcam" : {
-      "comment" : "A label displayed above a button that allows the user to configure webcam settings.",
-      "isCommentAutoGenerated" : true
+    "Volume" : {
+
+    },
+    "Volume Source" : {
+
     },
     "Welcome" : {
       "localizations" : {

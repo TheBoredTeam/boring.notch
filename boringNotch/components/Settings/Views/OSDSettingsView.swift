@@ -12,13 +12,7 @@ import CoreGraphics
 struct OSDSettings: View {
     // Defaults-backed storage
     @Default(.osdReplacement) private var osdReplacementDefault
-    @Default(.inlineOSD) private var inlineOSDDefault
-    @Default(.enableGradient) private var enableGradientDefault
-    @Default(.systemEventIndicatorShadow) private var systemEventIndicatorShadowDefault
-    @Default(.systemEventIndicatorUseAccent) private var systemEventIndicatorUseAccentDefault
     @Default(.showOpenNotchOSD) private var showOpenNotchOSDDefault
-    @Default(.showOpenNotchOSDPercentage) private var showOpenNotchOSDPercentageDefault
-    @Default(.showClosedNotchOSDPercentage) private var showClosedNotchOSDPercentageDefault
     @Default(.optionKeyAction) private var optionKeyActionDefault
     @Default(.osdBrightnessSource) private var osdBrightnessSourceDefault
     @Default(.osdVolumeSource) private var osdVolumeSourceDefault
@@ -28,23 +22,24 @@ struct OSDSettings: View {
     var body: some View {
         Form {
             Section(header: Text("General")) {
-                SettingsRow("Replace System OSD") {
-                    Toggle(isOn: $osdReplacementDefault) { EmptyView() }
+                Defaults.Toggle(key: .osdReplacement) {
+                    Text("Replace System OSD")
                 }
                 if osdReplacementDefault {
-                    SettingsRow("Use inline style") {
-                        Toggle(isOn: $inlineOSDDefault) { EmptyView() }
+                    Defaults.Toggle(key: .inlineOSD) {
+                        Text("Use inline style")
                     }
-                    .padding(.leading, 12)
                 }
             }
 
             if osdReplacementDefault {
                 Section(header: Text("Control Sources"), footer: Text("Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running.")) {
-                    SettingsRow("Brightness Source") {
+                    HStack {
+                        Text("Brightness Source")
+                        Spacer()
                         Picker("", selection: $osdBrightnessSourceDefault) {
                             ForEach(OSDControlSource.allCases) { source in
-                                Text(source.rawValue).tag(source)
+                                Text(source.localizedString).tag(source)
                             }
                         }
                         .pickerStyle(.menu)
@@ -59,11 +54,13 @@ struct OSDSettings: View {
                         HelpText("Lunar is not installed or not reachable")
                     }
 
-                    SettingsRow("Volume Source") {
+                    HStack {
+                        Text("Volume Source")
+                        Spacer()
                         Picker("", selection: $osdVolumeSourceDefault) {
                             // Lunar does not support volume control so hide it from the picker
                             ForEach(OSDControlSource.allCases.filter { $0 != .lunar }) { source in
-                                Text(source.rawValue).tag(source)
+                                Text(source.localizedString).tag(source)
                             }
                         }
                         .pickerStyle(.menu)
@@ -72,9 +69,12 @@ struct OSDSettings: View {
                         HelpText("BetterDisplay is not installed or not running")
                     }
 
-                    SettingsRow("Keyboard Source", help: "Keyboard brightness currently supports the built-in source only.") {
-                        Text(OSDControlSource.builtin.rawValue)
+                    HStack {
+                        Text("Keyboard Source")
+                        Spacer()
+                        Text(OSDControlSource.builtin.localizedString)
                     }
+                    HelpText("Keyboard brightness currently supports the built-in source only.")
                     if !isAccessibilityAuthorized {
                         HStack(alignment: .center, spacing: 12) {
                             Image(systemName: "accessibility")
@@ -103,36 +103,38 @@ struct OSDSettings: View {
                 }
 
                 Section(header: Text("Appearance")) {
-                    SettingsRow("Enable gradient") {
-                        Toggle(isOn: $enableGradientDefault) { EmptyView() }
+                    Defaults.Toggle(key: .enableGradient) {
+                        Text("Enable gradient")
                     }
-                    SettingsRow("Show shadow") {
-                        Toggle(isOn: $systemEventIndicatorShadowDefault) { EmptyView() }
+                    Defaults.Toggle(key: .systemEventIndicatorShadow) {
+                        Text("Show shadow")
                     }
-                    SettingsRow("Use accent color") {
-                        Toggle(isOn: $systemEventIndicatorUseAccentDefault) { EmptyView() }
+                    Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
+                        Text("Use accent color")
                     }
                 }
 
                 Section(header: Text("Visibility")) {
-                    SettingsRow("Show in open notch") {
-                        Toggle(isOn: $showOpenNotchOSDDefault) { EmptyView() }
+                    Defaults.Toggle(key: .showOpenNotchOSD) {
+                        Text("Show OSD in open notch")
                     }
                     if showOpenNotchOSDDefault {
-                        SettingsRow("Show percentage (open)", help: "Show numeric percentage when notch is open") {
-                            Toggle(isOn: $showOpenNotchOSDPercentageDefault) { EmptyView() }
+                        Defaults.Toggle(key: .showOpenNotchOSDPercentage) {
+                            Text("Show percentage (open notch)")
                         }
                     }
-                    SettingsRow("Show percentage (closed)", help: "Show numeric percentage when notch is closed") {
-                        Toggle(isOn: $showClosedNotchOSDPercentageDefault) { EmptyView() }
+                    Defaults.Toggle(key: .showClosedNotchOSDPercentage) {
+                        Text("Show percentage (closed notch)")
                     }
                 }
 
                 Section(header: Text("Interaction")) {
-                    SettingsRow("Option (⌥) Key Behavior") {
+                    HStack {
+                        Text("Option (⌥) Key Behavior")
+                        Spacer()
                         Picker("", selection: $optionKeyActionDefault) {
                             ForEach(OptionKeyAction.allCases) { action in
-                                Text(action.rawValue).tag(action)
+                                Text(action.localizedString).tag(action)
                             }
                         }
                         .pickerStyle(.menu)

@@ -1,0 +1,80 @@
+name: Feature Request
+description: Suggest a new idea or enhancement for Boring Notch
+title: "[FEATURE] "
+labels: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+        
+        Thanks for helping make **Boring Notch** better! Please check [existing requests](https://github.com/TheBoredTeam/boring.notch/issues?q=is%3Aissue) before submitting to avoid duplicates.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: |
+        Please provide a clear description of the problem or pain point this feature would address.
+        
+        **Example:** "I often miss my next meeting because I work in full-screen mode and can't see the system clock or calendar notifications."
+      placeholder: "I'm frustrated when... or It would be great if..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: |
+        How should Boring Notch handle this? Describe the behavior, UI, or interaction you imagine in detail.
+        
+        **Example:** "When a meeting is starting in 5 minutes, the notch could expand slightly to show a countdown timer or the meeting title."
+      placeholder: "I would like the notch to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Use cases & user scenarios
+      description: |
+        Describe specific scenarios where this feature would be valuable. Who would benefit from this and how often would it be used?
+        
+        **Example:** "Remote workers who attend 5+ video meetings daily would use this constantly. Students could benefit during online classes."
+      placeholder: "This would help users who..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context & screenshots
+      description: |
+        Add any other context, mockups, wireframes, or screenshots about the feature request here. Visuals are incredibly helpful!
+        
+        You can drag and drop images directly into this field.
+      placeholder: "Here is a mockup of how the hover state should look..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Willingness to contribute
+      description: "We love community contributions! Would you be willing to help build this?"
+      options:
+        - label: "Yes, I can write the code for this feature"
+        - label: "Yes, I can help with design/mockups"
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission checklist
+      description: "Please confirm the following before submitting:"
+      options:
+        - label: "I have searched existing issues to ensure this isn't a duplicate"
+          required: true
+        - label: "I have provided sufficient detail for the team to understand the request"
+          required: true

@@ -235,7 +235,7 @@ struct Advanced: View {
             } header: {
                 HStack {
                     Text("App icon")
-                    customBadge(text: "Coming soon")
+                    comingSoonBadge()
                 }
             }
         }

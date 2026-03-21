@@ -28,6 +28,8 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    @Default(.enableOpeningAnimation) var enableOpeningAnimation
+    @Default(.animationSpeedMultiplier) var animationSpeedMultiplier
 
     var body: some View {
         Form {
@@ -39,7 +41,9 @@ struct GeneralSettings: View {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
-                LaunchAtLogin.Toggle("Launch at login")
+                LaunchAtLogin.Toggle() {
+                    Text("Launch at login")
+                }
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
                 }
@@ -228,6 +232,17 @@ struct GeneralSettings: View {
                 .onChange(of: minimumHoverDuration) {
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
+                }
+            }
+            Toggle("Notch animation", isOn: $enableOpeningAnimation)
+            if enableOpeningAnimation {
+                Slider(value: $animationSpeedMultiplier, in: 0.1...2.01, step: 0.1) {
+                    HStack {
+                        Text("Animation speed")
+                        Spacer()
+                        Text("\(animationSpeedMultiplier, specifier: "%.1f")x")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         } header: {

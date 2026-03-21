@@ -56,38 +56,82 @@ extension Notification.Name {
 
 // Media controller types for selection in settings
 enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case nowPlaying = "Now Playing"
-    case appleMusic = "Apple Music"
-    case spotify = "Spotify"
-    case youtubeMusic = "YouTube Music"
+    case nowPlaying
+    case appleMusic
+    case spotify
+    case youtubeMusic
     
     var id: String { self.rawValue }
+
+    var localizedString: String {
+        switch self {
+        case .nowPlaying:
+            return NSLocalizedString("Now Playing", comment: "")
+        case .appleMusic:
+            return "Apple Music"
+        case .spotify:
+            return "Spotify"
+        case .youtubeMusic:
+            return "YouTube Music"
+        }
+    }
 }
 
 // Sneak peek styles for selection in settings
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case standard = "Default"
-    case inline = "Inline"
+    case standard
+    case inline
     
     var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .standard:
+            return NSLocalizedString("sneak_peek_standard", comment: "Sneak Peek style: Default")
+        case .inline:
+            return NSLocalizedString("sneak_peek_inline", comment: "Sneak Peek style: Inline")
+        }
+    }
 }
 
 // Action to perform when Option (⌥) is held while pressing media keys
 enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case openSettings = "Open System Settings"
-    case showOSD = "Show OSD"
-    case none = "No Action"
+    case openSettings
+    case showOSD
+    case none
 
     var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .openSettings:
+            return NSLocalizedString("option_key_open_system_settings", comment: "Option (⌥) key behavior: Open System Settings")
+        case .showOSD:
+            return NSLocalizedString("option_key_show_osd", comment: "Option (⌥) key behavior: Show OSD")
+        case .none:
+            return NSLocalizedString("option_key_no_action", comment: "Option (⌥) key behavior: No action")
+        }
+    }
 }
 
 // Source/provider for OSD control (user-facing: "Source")
 enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case builtin = "Built-in"
+    case builtin
     case betterDisplay = "BetterDisplay"
     case lunar = "Lunar"
 
     var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .builtin:
+            return NSLocalizedString("osd_sources_built_in", comment: "OSD Sources: Built-in")
+        case .betterDisplay:
+            return "BetterDisplay"
+        case .lunar:
+            return "Lunar"
+        }
+    }
 }
 
 extension Defaults.Keys {
@@ -99,6 +143,8 @@ extension Defaults.Keys {
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
+    static let enableOpeningAnimation = Key<Bool>("enableOpeningAnimation", default: true)
+    static let animationSpeedMultiplier = Key<Double>("animationSpeedMultiplier", default: 1.0)
     static let enableHaptics = Key<Bool>("enableHaptics", default: true)
     static let openNotchOnHover = Key<Bool>("openNotchOnHover", default: true)
     static let extendHoverArea = Key<Bool>("extendHoverArea", default: false)
