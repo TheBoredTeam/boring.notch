@@ -43,8 +43,8 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
-                NavigationLink(value: "Webcam") {
-                    Label("Webcam", systemImage: "camera")
+                NavigationLink(value: "Mirror") {
+                    Label("Mirror", systemImage: "camera")
                 }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
@@ -77,8 +77,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
-                case "Webcam":
-                    WebcamSettings()
+                case "Mirror":
+                    MirrorSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Advanced":
