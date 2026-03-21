@@ -540,6 +540,7 @@
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
 				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
+				64FA50FA2F4D6F9E00008A28 /* WebcamSettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1092,6 +1093,7 @@
 				11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */,
 				110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */,
 				11CFC6652E09C7B300748C80 /* OnboardingFinishView.swift in Sources */,
+				64FA50FB2F4D6F9E00008A28 /* WebcamSettingsView.swift in Sources */,
 				507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */,
 				1471A8592C6281BD0058408D /* BoringNotchWindow.swift in Sources */,
 				14CEF4182C5CAED300855D72 /* ContentView.swift in Sources */,
