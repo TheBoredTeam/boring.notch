@@ -31,6 +31,20 @@ struct ContentView: View {
 
     @State private var haptics: Bool = false
 
+    // Gesture state flags (used by left/right gesture handlers)
+    @State private var skipLeftTriggered: Bool = false
+    @State private var skipRightTriggered: Bool = false
+
+    // Visual skip feedback offsets (keep separate so we don't touch notch shape)
+    @State private var leftSkipOffset: CGFloat = 0
+    @State private var rightSkipOffset: CGFloat = 0
+
+    // Notch pulse state: width expansion and side (-1 left, 0 none, 1 right)
+    private let skipNotchWidthPulse: CGFloat = 18
+    private let skipItemWidthPulse: CGFloat = 5
+    @State private var chinPulseWidth: CGFloat = 0
+    @State private var chinPulseSide: Int = 0
+
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
@@ -117,7 +131,9 @@ struct ContentView: View {
             let scaleFactor = 1.0 + gestureProgress * 0.01
             return max(0.6, scaleFactor)
         }()
-        
+        // Horizontal shift for the notch when pulsing: move half the extra width toward swipe side
+        let chinPulseShift: CGFloat = (chinPulseWidth / 2.0) * CGFloat(chinPulseSide)
+
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 let mainLayout = NotchLayout()
@@ -145,6 +161,8 @@ struct ContentView: View {
                 
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    // shift the notch horizontally by half the pulse expansion toward the swipe side
+                    .offset(x: chinPulseShift)
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
@@ -167,6 +185,18 @@ struct ContentView: View {
                         view
                             .panGesture(direction: .up) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
+                            }
+                    }
+                    .conditionalModifier(Defaults[.skipGestureEnabled] && Defaults[.enableGestures]) { view in
+                        view
+                            .panGesture(direction: .left) { translation, phase in
+                                handleLeftGesture(translation: translation, phase: phase)
+                            }
+                    }
+                    .conditionalModifier(Defaults[.skipGestureEnabled] && Defaults[.enableGestures]) { view in
+                        view
+                            .panGesture(direction: .right) { translation, phase in
+                                handleRightGesture(translation: translation, phase: phase)
                             }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
@@ -220,6 +250,12 @@ struct ContentView: View {
                     Rectangle()
                         .fill(Color.black.opacity(0.01))
                         .frame(width: computedChinWidth, height: vm.chinHeight)
+                        // expand briefly by chinPulseWidth when pulsing so the visual chin grows
+                        .frame(width: computedChinWidth + chinPulseWidth, height: vm.chinHeight)
+                        // align the chin rectangle horizontally with the notch pulse shift
+                        .offset(x: chinPulseShift)
+                        // avoid inheriting unrelated implicit animations; we animate chinPulseWidth explicitly when triggering
+                        .animation(nil, value: chinPulseWidth)
                 }
             }
         }
@@ -444,6 +480,8 @@ struct ContentView: View {
                     width: scaledArtSize,
                     height: scaledArtSize
                 )
+                // apply left-side skip offset when a left-swipe skip occurs
+                .offset(x: leftSkipOffset)
 
             Rectangle()
                 .fill(.black)
@@ -513,6 +551,8 @@ struct ContentView: View {
                 ),
                 alignment: .center
             )
+            // apply right-side skip offset when a right-swipe skip occurs
+            .offset(x: rightSkipOffset)
         }
         .frame(
             height: displayClosedNotchHeight,
@@ -547,24 +587,24 @@ struct ContentView: View {
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
         hoverTask?.cancel()
-        
+
         if hovering {
             withAnimation(animationSpring) {
                 isHovering = true
             }
-            
+
             if vm.notchState == .closed && Defaults[.enableHaptics] {
                 haptics.toggle()
             }
-            
+
             guard vm.notchState == .closed,
                   !coordinator.shouldShowSneakPeek(on: vm.screenUUID),
                   Defaults[.openNotchOnHover] else { return }
-            
+
             hoverTask = Task {
                 try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
                 guard !Task.isCancelled else { return }
-                
+
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
@@ -577,12 +617,12 @@ struct ContentView: View {
             hoverTask = Task {
                 try? await Task.sleep(for: .milliseconds(100))
                 guard !Task.isCancelled else { return }
-                
+
                 await MainActor.run {
                     withAnimation(animationSpring) {
                         self.isHovering = false
                     }
-                    
+
                     if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }
@@ -643,7 +683,100 @@ struct ContentView: View {
             }
         }
     }
+    private func handleLeftGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        guard vm.notchState == .closed && (musicManager.isPlaying) else { return }
+
+        if phase == .began {
+            // start of a new horizontal gesture
+            leftGestureActive = true
+            horizontalGestureActive = true
+            skipLeftTriggered = false
+            return
+        }
+
+        // If the gesture ended, stop tracking but do NOT trigger a skip here.
+        if phase == .ended {
+            leftGestureActive = false
+            horizontalGestureActive = false
+            return
+        }
+
+        // For any other phase (including .changed), check threshold once and
+        // trigger skip only once per gesture. We intentionally avoid branching
+        // explicitly on .changed to follow the request.
+        if !skipLeftTriggered && translation > Defaults[.gestureSensitivity] {
+            if Defaults[.enableHaptics] { haptics.toggle() }
+            MusicManager.shared.previousTrack()
+            skipLeftTriggered = true
+            print("skipping backwards")
+
+            // trigger a small left-pulse visual feedback on the album art
+            withAnimation(.easeOut(duration: 0.09)) { leftSkipOffset = -skipItemWidthPulse }
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(90))
+                withAnimation(animationSpring) { leftSkipOffset = 0 }
+            }
+
+            // pulse the chin by expanding width and shifting center toward the swipe side
+            if vm.notchState == .closed {
+                chinPulseSide = -1
+                withAnimation(.easeOut(duration: 0.09)) { chinPulseWidth = skipNotchWidthPulse }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(90))
+                    withAnimation(animationSpring) { chinPulseWidth = 0 }
+                    chinPulseSide = 0
+                }
+            }
+         }
+     }
+    private func handleRightGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        guard vm.notchState == .closed && (musicManager.isPlaying) else { return }
+
+        if phase == .began {
+            // start of a new horizontal gesture
+            rightGestureActive = true
+            horizontalGestureActive = true
+            skipRightTriggered = false
+            return
+        }
+
+        // If the gesture ended, stop tracking but do NOT trigger a skip here.
+        if phase == .ended {
+            rightGestureActive = false
+            horizontalGestureActive = false
+            return
+        }
+
+        // For any other phase (including .changed), check threshold once and
+        // trigger skip only once per gesture. Avoid explicit .changed branching.
+        if !skipRightTriggered && translation > Defaults[.gestureSensitivity] {
+            if Defaults[.enableHaptics] { haptics.toggle() }
+            MusicManager.shared.nextTrack()
+            skipRightTriggered = true
+            print("skipping forwards")
+
+            // trigger a small right-pulse visual feedback on the right-side item
+            withAnimation(.easeOut(duration: 0.09)) { rightSkipOffset = skipItemWidthPulse }
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(90))
+                withAnimation(animationSpring) { rightSkipOffset = 0 }
+            }
+
+            // pulse the chin by expanding width and shifting center toward the swipe side
+            if vm.notchState == .closed {
+                chinPulseSide = 1
+                withAnimation(.easeOut(duration: 0.09)) { chinPulseWidth = skipNotchWidthPulse }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(90))
+                    withAnimation(animationSpring) { chinPulseWidth = 0 }
+                    chinPulseSide = 0
+                }
+            }
+          }
+      }
 }
+
+// MARK: - Drop Delegates
 
 struct FullScreenDropDelegate: DropDelegate {
     @Binding var isTargeted: Bool
@@ -662,7 +795,6 @@ struct FullScreenDropDelegate: DropDelegate {
         onDrop()
         return true
     }
-
 }
 
 struct GeneralDropTargetDelegate: DropDelegate {
