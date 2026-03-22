@@ -114,6 +114,38 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     }
 }
 
+enum WeatherTemperatureUnit: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case celsius
+    case fahrenheit
+
+    var id: String { self.rawValue }
+
+    var symbol: String {
+        switch self {
+        case .celsius:
+            return "C"
+        case .fahrenheit:
+            return "F"
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .celsius:
+            return "Celsius"
+        case .fahrenheit:
+            return "Fahrenheit"
+        }
+    }
+}
+
+enum WeatherContentPreference: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case currentOnly
+    case currentAndForecast
+
+    var id: String { self.rawValue }
+}
+
 // Source/provider for OSD control (user-facing: "Source")
 enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable {
     case builtin
@@ -175,6 +207,11 @@ extension Defaults.Keys {
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     static let showCalendar = Key<Bool>("showCalendar", default: false)
+    static let showWeather = Key<Bool>("showWeather", default: false)
+    static let weatherCity = Key<String>("weatherCity", default: "Cupertino")
+    static let weatherUnit = Key<WeatherTemperatureUnit>("weatherUnit", default: .celsius)
+    static let weatherRefreshMinutes = Key<Int>("weatherRefreshMinutes", default: 30)
+    static let weatherContentPreference = Key<WeatherContentPreference>("weatherContentPreference", default: .currentAndForecast)
     static let hideCompletedReminders = Key<Bool>("hideCompletedReminders", default: true)
     static let sliderColor = Key<SliderColorEnum>(
         "sliderUseAlbumArtColor",
