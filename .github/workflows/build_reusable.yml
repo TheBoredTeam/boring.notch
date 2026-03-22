@@ -19,6 +19,13 @@ on:
         required: false
         type: string
         default: "Apple Development"
+    secrets:
+      BUILD_CERTIFICATE_BASE64:
+        required: true
+      P12_PASSWORD:
+        required: true
+      KEYCHAIN_PASSWORD:
+        required: true
 
 jobs:
   build:
@@ -34,7 +41,7 @@ jobs:
       CODE_SIGN_IDENTITY: ${{ inputs.code_sign_identity }}
       XCODE_VERSION: ${{ inputs.xcode_version }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.head_ref }}
 
