@@ -50,8 +50,6 @@ class WebcamManager: NSObject, ObservableObject {
 
     private let sessionQueue = DispatchQueue(label: "BoringNotch.WebcamManager.SessionQueue", qos: .userInitiated)
     
-    private var isCleaningUp: Bool = false
-    
     // MARK: - Constants
     
     enum WebcamError: Error, LocalizedError {
@@ -119,8 +117,8 @@ class WebcamManager: NSObject, ObservableObject {
         Defaults[.mirrorCameraID] = id
         selectedCameraID = id
 
-        // Restart the session on sessionQueue only if it's currently running,
-        // checked atomically on the same queue to avoid races.
+        // Snapshot the ID before dispatching to avoid a cross-thread read of selectedCameraID.
+        let snapshotID = id
         sessionQueue.async { [weak self] in
             guard let self = self,
                   let session = self.captureSession, session.isRunning else { return }
@@ -128,7 +126,7 @@ class WebcamManager: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self.isSessionRunning = false
             }
-            self.setupCaptureSession { success in
+            self.setupCaptureSession(preferredID: snapshotID) { success in
                 if success {
                     self.startRunningCaptureSession()
                 }
@@ -179,11 +177,11 @@ class WebcamManager: NSObject, ObservableObject {
         }
     }
     
-    /// Sets up the capture session with a completion handler
-    private func setupCaptureSession(completion: @escaping (Bool) -> Void) {
-        // Capture the current camera preference on the calling thread to avoid
-        // a data race when reading it later on sessionQueue.
-        let currentCameraID = self.selectedCameraID
+    /// Sets up the capture session with a completion handler.
+    /// - Parameter preferredID: The camera ID to use. Pass explicitly to avoid cross-thread reads of `selectedCameraID`.
+    ///   When `nil` is ambiguous (meaning "automatic"), callers on sessionQueue should snapshot `selectedCameraID` beforehand.
+    private func setupCaptureSession(preferredID: String? = nil, completion: @escaping (Bool) -> Void) {
+        let currentCameraID = preferredID ?? self.selectedCameraID
         sessionQueue.async { [weak self] in
             guard let self = self else {
                 completion(false)
@@ -289,14 +287,21 @@ class WebcamManager: NSObject, ObservableObject {
     }
 
     @objc private func deviceWasDisconnected(notification: Notification) {
-        NSLog("Camera device was disconnected")
+        guard let disconnectedDevice = notification.object as? AVCaptureDevice else { return }
+        NSLog("Camera device was disconnected: \(disconnectedDevice.localizedName)")
+
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
-            // Use inline cleanup since we're already on sessionQueue
-            DispatchQueue.main.async {
-                self.isSessionRunning = false
+
+            // Only tear down the session if the disconnected camera was the one in use
+            let activeDeviceID = (self.captureSession?.inputs.first as? AVCaptureDeviceInput)?.device.uniqueID
+            if activeDeviceID == disconnectedDevice.uniqueID {
+                DispatchQueue.main.async {
+                    self.isSessionRunning = false
+                }
+                self.cleanupExistingSession()
             }
-            self.cleanupExistingSession()
+
             self.checkCameraAvailability()
         }
     }
@@ -317,12 +322,14 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     func startSession() {
+        // Snapshot the camera preference before dispatching to sessionQueue to avoid a data race.
+        let snapshotID = self.selectedCameraID
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             
             // If no session exists, create new session
             if self.captureSession == nil {
-                self.setupCaptureSession { success in
+                self.setupCaptureSession(preferredID: snapshotID) { success in
                     if success {
                         // Only start the session if setup was successful
                         self.startRunningCaptureSession()
