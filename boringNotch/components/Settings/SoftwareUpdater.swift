@@ -65,7 +65,7 @@ struct UpdaterSettingsView: View {
             },
             footer: Text(
                 NSLocalizedString(
-                    "Stable and Beta come from official releases. Main and Dev use nightly builds from those branches.",
+                    "Stable and Beta come from official releases. Dev uses nightly builds from the dev branch.",
                     comment: "Software updates channel footer"
                 )
             )
