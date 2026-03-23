@@ -1,19 +1,11 @@
 name: Nightly Branch Builds
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-    paths:
-      - "boringNotch/**"
-      - "BoringNotchXPCHelper/**"
-      - "boringNotch.xcodeproj/**"
-      - "Configuration/**"
-      - "mediaremote-adapter/**"
+  schedule:
+    - cron: "0 3 * * *"
 
 concurrency:
-  group: nightly-${{ github.ref_name }}
+  group: nightly-dev
   cancel-in-progress: true
 
 permissions:
@@ -34,14 +26,21 @@ jobs:
       appcast_file: ${{ steps.meta.outputs.appcast_file }}
       build_number: ${{ steps.meta.outputs.build_number }}
       asset_name: ${{ steps.meta.outputs.asset_name }}
+      commit_message: ${{ steps.meta.outputs.commit_message }}
     steps:
+      - name: Checkout dev
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          ref: dev
+
       - name: Compute metadata
         id: meta
         run: |
           set -euo pipefail
-          BRANCH_NAME="${GITHUB_REF_NAME}"
-          COMMIT_SHA="${GITHUB_SHA}"
+          BRANCH_NAME="dev"
+          COMMIT_SHA="$(git rev-parse HEAD)"
           SHORT_SHA="${COMMIT_SHA::7}"
+          COMMIT_MESSAGE="$(git log -1 --pretty=%s)"
           TAG="nightly-${BRANCH_NAME}-${SHORT_SHA}"
           APPCAST_FILE="appcast-${BRANCH_NAME}.xml"
           BUILD_NUMBER="$(date -u +%Y%m%d%H%M%S)$(printf '%06d%02d' "${GITHUB_RUN_NUMBER:-0}" "${GITHUB_RUN_ATTEMPT:-0}")"
@@ -50,6 +49,7 @@ jobs:
             echo "branch_name=$BRANCH_NAME"
             echo "commit_sha=$COMMIT_SHA"
             echo "short_sha=$SHORT_SHA"
+            echo "commit_message=$COMMIT_MESSAGE"
             echo "tag=$TAG"
             echo "appcast_file=$APPCAST_FILE"
             echo "build_number=$BUILD_NUMBER"
@@ -87,7 +87,7 @@ jobs:
       TAG: ${{ needs.prepare.outputs.tag }}
       APPCAST_FILE: ${{ needs.prepare.outputs.appcast_file }}
       ASSET_NAME: ${{ needs.prepare.outputs.asset_name }}
-      COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+      COMMIT_MESSAGE: ${{ needs.prepare.outputs.commit_message }}
     steps:
       - name: Checkout branch
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1

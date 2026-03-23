@@ -92,12 +92,6 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
 
 4. **Be patient**: Reviews take time. Maintainers will get to your PR as soon as they can.
 
-### Release Channels (Maintainers)
-
-- **Stable/Beta** are produced by the release workflow.
-- **Nightly (Main/Dev)** builds are produced on code pushes to `main` and `dev` branches.
-- Nightly builds are not generated from the `pull_request` event itself.
-
 <!-- ## Code Style Guidelines
 
 - Follow the existing code style and conventions used in the project
