@@ -185,7 +185,8 @@ final class YouTubeMusicController: MediaControllerProtocol {
         
         Task { @MainActor in
             stopPeriodicUpdates()
-            appStateObserver?.cancel()
+            // NOTE: Do NOT cancel appStateObserver here.
+            // It must stay alive to detect when the app launches again.
         }
         
         Task {
@@ -193,6 +194,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             webSocketClient = nil
         }
         
+        reconnectDelay = configuration.reconnectDelay.lowerBound
         resetPlaybackState()
     }
     

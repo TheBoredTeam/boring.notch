@@ -150,6 +150,38 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 3. **Build and Run**:
     - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
 
+### 💡 Stable Local Build (Permissions & Reconnection Fix)
+
+If you are building Boring Notch to use it permanently on your Mac, follow these steps to ensure macOS remembers your permissions (Calendar, Camera) and keeps the connection to players like YouTube Music stable.
+
+1. **Clean and Build**:
+   ```bash
+   rm -rf build/
+   xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -configuration Release -derivedDataPath build ONLY_ACTIVE_ARCH=NO CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+   ```
+
+2. **Install to Applications**:
+   ```bash
+   rm -rf /Applications/boringNotch.app
+   cp -R build/Build/Products/Release/boringNotch.app /Applications/boringNotch.app
+   ```
+
+3. **Establish a Stable Identity (Fix Permissions)**:
+   This ensures macOS links your permissions to the final binary's layout.
+   ```bash
+   sudo codesign --force --deep --sign - /Applications/boringNotch.app
+   ```
+
+4. **Restart**:
+   ```bash
+   pkill -x boringNotch || true
+   open /Applications/boringNotch.app
+   ```
+
+> [!TIP]
+> **Improved YouTube Music Support**: I've modified the `YouTubeMusicController` to keep the application observer alive when the music player terminates. This ensures that Boring Notch automatically reconnects as soon as you reopen YouTube Music (Pear Desktop).
+
+
 ## 🤝 Contributing
 
 We’re all about good vibes and awesome contributions! Read [CONTRIBUTING.md](CONTRIBUTING.md) to learn how you can join the fun!
