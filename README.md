@@ -102,6 +102,18 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - Use the controls to manage your music like a rockstar.
 - Click the star in your menu bar to customize your notch to your heart's content.
 
+## Update Channels
+
+Boring Notch supports multiple update channels in **Settings → About → Software updates**:
+
+- **Stable**: Official public releases.
+- **Beta**: Prerelease builds from the release pipeline.
+- **Main (Nightly)**: Automated nightly builds from the `main` branch.
+- **Dev (Nightly)**: Automated nightly builds from the `dev` branch.
+
+> [!NOTE]
+> Nightly channels are generated from code pushes to their branch (not from pull request events).
+
 ## 📋 Roadmap
 - [x] Playback live activity 🎧
 - [x] Calendar integration 📆
@@ -187,5 +199,4 @@ For a full list of licenses and attributions, please see the [Third-Party Licens
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
 

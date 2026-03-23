@@ -1,0 +1,169 @@
+name: Nightly Branch Builds
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+
+concurrency:
+  group: nightly-dev
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  PROJECT_NAME: boringNotch
+
+jobs:
+  prepare:
+    name: Prepare nightly metadata
+    runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.meta.outputs.branch_name }}
+      commit_sha: ${{ steps.meta.outputs.commit_sha }}
+      short_sha: ${{ steps.meta.outputs.short_sha }}
+      tag: ${{ steps.meta.outputs.tag }}
+      appcast_file: ${{ steps.meta.outputs.appcast_file }}
+      build_number: ${{ steps.meta.outputs.build_number }}
+      asset_name: ${{ steps.meta.outputs.asset_name }}
+      commit_message: ${{ steps.meta.outputs.commit_message }}
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          ref: dev
+
+      - name: Compute metadata
+        id: meta
+        run: |
+          set -euo pipefail
+          BRANCH_NAME="dev"
+          COMMIT_SHA="$(git rev-parse HEAD)"
+          SHORT_SHA="${COMMIT_SHA::7}"
+          COMMIT_MESSAGE="$(git log -1 --pretty=%s)"
+          TAG="nightly-${BRANCH_NAME}-${SHORT_SHA}"
+          APPCAST_FILE="appcast-${BRANCH_NAME}.xml"
+          BUILD_NUMBER="$(date -u +%Y%m%d%H%M%S)$(printf '%06d%02d' "${GITHUB_RUN_NUMBER:-0}" "${GITHUB_RUN_ATTEMPT:-0}")"
+          ASSET_NAME="boringNotch-${BRANCH_NAME}-${SHORT_SHA}.dmg"
+          {
+            echo "branch_name=$BRANCH_NAME"
+            echo "commit_sha=$COMMIT_SHA"
+            echo "short_sha=$SHORT_SHA"
+            echo "commit_message=$COMMIT_MESSAGE"
+            echo "tag=$TAG"
+            echo "appcast_file=$APPCAST_FILE"
+            echo "build_number=$BUILD_NUMBER"
+            echo "asset_name=$ASSET_NAME"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build nightly DMG
+    needs: [prepare]
+    uses: ./.github/workflows/build_reusable.yml
+    with:
+      head_ref: ${{ needs.prepare.outputs.branch_name }}
+      version: ""
+      build_number: ${{ needs.prepare.outputs.build_number }}
+      xcode_version: "16.4"
+      code_sign_identity: "Apple Development"
+      commit_version_changes: false
+    secrets:
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+
+  publish:
+    name: Publish nightly channel
+    needs: [prepare, build]
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+      BRANCH_NAME: ${{ needs.prepare.outputs.branch_name }}
+      COMMIT_SHA: ${{ needs.prepare.outputs.commit_sha }}
+      SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      APPCAST_FILE: ${{ needs.prepare.outputs.appcast_file }}
+      ASSET_NAME: ${{ needs.prepare.outputs.asset_name }}
+      COMMIT_MESSAGE: ${{ needs.prepare.outputs.commit_message }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          ref: ${{ env.BRANCH_NAME }}
+
+      - name: Download DMG artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: ${{ env.PROJECT_NAME }}.dmg
+          path: Release
+
+      - name: Rename DMG to immutable name
+        run: |
+          set -euo pipefail
+          mv "Release/${PROJECT_NAME}.dmg" "Release/${ASSET_NAME}"
+
+      - name: Create embedded release notes
+        run: |
+          ESCAPED_COMMIT_MESSAGE="$(printf '%s' "$COMMIT_MESSAGE" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')"
+          cat > Release/boringNotch.html <<HTML
+          <h2>Nightly ${BRANCH_NAME}</h2>
+          <p>Commit: <code>${COMMIT_SHA}</code></p>
+          <p>Message: ${ESCAPED_COMMIT_MESSAGE}</p>
+          <p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/${COMMIT_SHA}">View commit</a></p>
+          HTML
+
+      - name: Generate signed nightly appcast
+        run: |
+          set -euo pipefail
+          test -x Configuration/sparkle/generate_appcast || {
+            echo "::error::Configuration/sparkle/generate_appcast missing or not executable"; exit 1;
+          }
+          DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/${TAG}/"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | ./Configuration/sparkle/generate_appcast \
+            --ed-key-file - \
+            --link "https://github.com/TheBoredTeam/boring.notch/commits/${BRANCH_NAME}" \
+            --download-url-prefix "${DOWNLOAD_PREFIX}" \
+            --embed-release-notes \
+            --channel "${BRANCH_NAME}" \
+            -o "updater/${APPCAST_FILE}" \
+            Release/
+
+      - name: Create immutable nightly release
+        run: |
+          set -euo pipefail
+          TITLE="Nightly ${BRANCH_NAME}"
+          NOTES="Automated nightly build for ${BRANCH_NAME}. Commit: ${SHORT_SHA}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; keeping immutable release."
+          else
+            gh release create "$TAG" \
+              --title "$TITLE" \
+              --notes "$NOTES" \
+              --prerelease \
+              --target "$COMMIT_SHA"
+          fi
+
+      - name: Upload immutable nightly DMG
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fxq "$ASSET_NAME"; then
+            echo "Asset $ASSET_NAME already exists in $TAG; skipping upload."
+          else
+            gh release upload "$TAG" "Release/${ASSET_NAME}"
+          fi
+
+      - name: Commit branch appcast pointer
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "updater/${APPCAST_FILE}"
+          if git diff --cached --quiet; then
+            echo "No changes detected in ${APPCAST_FILE}; skipping commit and push."
+            exit 0
+          fi
+          git commit -m "Update ${APPCAST_FILE} to ${SHORT_SHA}"
+          git push origin "HEAD:${BRANCH_NAME}"
