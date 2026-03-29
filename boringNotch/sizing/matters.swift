@@ -47,34 +47,79 @@ enum MusicPlayerImageSizes {
     return 38
 }
 
-@MainActor func getMenuBarHeight() -> CGFloat {
-    for screen in NSScreen.screens {
-        if screen.safeAreaInsets.top > 0 {
-            return screen.frame.maxY - screen.visibleFrame.maxY - 1
-        }
+@MainActor private func defaultMenuBarHeight(hasNotch: Bool) -> CGFloat {
+    if #available(macOS 26.0, *) {
+        return hasNotch ? 38 : 29
     }
 
-    return 43
+    return hasNotch ? 43 : 23
+}
+
+@MainActor private func resolvedMenuBarHeight(for screen: NSScreen?) -> CGFloat {
+    if let screen {
+        let measuredHeight = max(0, screen.frame.maxY - screen.visibleFrame.maxY - 1)
+        if measuredHeight > 0 {
+            return measuredHeight
+        }
+
+        return defaultMenuBarHeight(hasNotch: screen.safeAreaInsets.top > 0)
+    }
+
+    return defaultMenuBarHeight(hasNotch: false)
+}
+
+@MainActor func getMenuBarHeight(for screen: NSScreen?) -> CGFloat {
+    resolvedMenuBarHeight(for: screen ?? NSScreen.main ?? NSScreen.screens.first)
+}
+
+@MainActor func getMenuBarHeight(hasNotch: Bool) -> CGFloat {
+    if let matchingScreen = NSScreen.screens.first(where: { ($0.safeAreaInsets.top > 0) == hasNotch }) {
+        return resolvedMenuBarHeight(for: matchingScreen)
+    }
+
+    return defaultMenuBarHeight(hasNotch: hasNotch)
+}
+
+@MainActor func getMenuBarHeight() -> CGFloat {
+    getMenuBarHeight(hasNotch: true)
 }
 
 @MainActor func syncNotchHeightIfNeeded() {
+    var didChangeHeight = false
+
     switch Defaults[.notchHeightMode] {
     case .matchRealNotchSize:
         let realHeight = getRealNotchHeight()
         if Defaults[.notchHeight] != realHeight {
             Defaults[.notchHeight] = realHeight
-            NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+            didChangeHeight = true
         }
 
     case .matchMenuBar:
-        let menuHeight = getMenuBarHeight()
+        let menuHeight = getMenuBarHeight(hasNotch: true)
         if Defaults[.notchHeight] != menuHeight {
             Defaults[.notchHeight] = menuHeight
-            NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+            didChangeHeight = true
         }
 
     case .custom:
         break
+    }
+
+    switch Defaults[.nonNotchHeightMode] {
+    case .matchMenuBar:
+        let menuHeight = getMenuBarHeight(hasNotch: false)
+        if Defaults[.nonNotchHeight] != menuHeight {
+            Defaults[.nonNotchHeight] = menuHeight
+            didChangeHeight = true
+        }
+
+    case .matchRealNotchSize, .custom:
+        break
+    }
+
+    if didChangeHeight {
+        NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
     }
 }
 
