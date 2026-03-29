@@ -55,15 +55,6 @@ struct OpenNotchOSD: View {
         )
     }
     
-    func SpeakerSymbol(_ value: CGFloat) -> String {
-        switch(value) {
-            case 0: return "speaker.slash"
-            case 0...0.33: return "speaker.wave.1"
-            case 0.33...0.66: return "speaker.wave.2"
-            default: return "speaker.wave.3"
-        }
-    }
-    
     func updateSystemValue(_ newVal: CGFloat) {
         switch type {
         case .volume:
