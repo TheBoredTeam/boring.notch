@@ -95,7 +95,7 @@ struct GeneralSettings: View {
                         // Get the actual notch height from the built-in display
                         notchHeight = getRealNotchHeight()
                     case .matchMenuBar:
-                        notchHeight = 43
+                        notchHeight = getMenuBarHeight(hasNotch: true)
                     case .custom:
                         notchHeight = 38
                     }
@@ -112,7 +112,7 @@ struct GeneralSettings: View {
                     }
                 }
                 Picker("Notch height on non-notch displays", selection: $nonNotchHeightMode) {
-                    Text("Match menubar height")
+                    Text("Match menu bar height")
                         .tag(WindowHeightMode.matchMenuBar)
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
@@ -120,7 +120,7 @@ struct GeneralSettings: View {
                 .onChange(of: nonNotchHeightMode) {
                     switch nonNotchHeightMode {
                     case .matchMenuBar:
-                        nonNotchHeight = 23
+                        nonNotchHeight = getMenuBarHeight(hasNotch: false)
                     case .matchRealNotchSize, .custom:
                         nonNotchHeight = 23
                     }
