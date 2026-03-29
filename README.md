@@ -108,7 +108,6 @@ Boring Notch supports multiple update channels in **Settings → About → Softw
 
 - **Stable**: Official public releases.
 - **Beta**: Prerelease builds from the release pipeline.
-- **Main (Nightly)**: Automated nightly builds from the `main` branch.
 - **Dev (Nightly)**: Automated nightly builds from the `dev` branch.
 
 > [!NOTE]
