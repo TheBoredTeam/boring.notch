@@ -80,10 +80,6 @@ enum MusicPlayerImageSizes {
     return defaultMenuBarHeight(hasNotch: hasNotch)
 }
 
-@MainActor func getMenuBarHeight() -> CGFloat {
-    getMenuBarHeight(hasNotch: true)
-}
-
 @MainActor func syncNotchHeightIfNeeded() {
     var didChangeHeight = false
 
