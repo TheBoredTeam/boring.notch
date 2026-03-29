@@ -139,7 +139,7 @@ final class AudioOutputRouteResolver {
         case kAudioDeviceTransportTypeUSB:
             return .wiredHeadphones
         case kAudioDeviceTransportTypeHDMI, kAudioDeviceTransportTypeDisplayPort:
-            return isHeadphonesLike ? .wiredHeadphones : .externalSpeaker
+            return .externalSpeaker
         default:
             if isHeadphonesLike {
                 return .wiredHeadphones
