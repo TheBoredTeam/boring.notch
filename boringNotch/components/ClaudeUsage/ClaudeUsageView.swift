@@ -112,38 +112,33 @@ struct ClaudeUsageCompactView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left side: Claude icon + session % + reset
+            // Left: icon + session % (+ 7d if >= 75%)
             HStack(spacing: 4) {
                 claudeIconLarge
                 Text("\(usageVM.sessionPct)%")
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundColor(sessionColor)
-                if let reset = usageVM.meters.first?.resetsIn {
-                    Text(reset)
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundColor(.white.opacity(0.35))
+                if showWeekly {
+                    Text("7d:\(usageVM.weeklyPct)%")
+                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .foregroundColor(weeklyColor.opacity(0.8))
                 }
             }
             .frame(width: sideWidth, alignment: .center)
 
-            // Middle: black gap spanning the notch (+ 40 for corner radius insets)
+            // Middle: black gap spanning the notch
             Rectangle()
                 .fill(.black)
                 .frame(
                     width: vm.closedNotchSize.width + 60
                 )
 
-            // Right side: must match left width for centering
+            // Right: reset timer
             Group {
-                if showWeekly {
-                    HStack(spacing: 3) {
-                        Text("7d")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.white.opacity(0.4))
-                        Text("\(usageVM.weeklyPct)%")
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
-                            .foregroundColor(weeklyColor)
-                    }
+                if let reset = usageVM.meters.first?.resetsIn {
+                    Text(reset)
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.45))
                 }
             }
             .frame(width: sideWidth, alignment: .center)
