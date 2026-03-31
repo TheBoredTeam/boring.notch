@@ -75,6 +75,11 @@ struct ContentView: View {
             && !vm.hideOnClosed
         {
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+        } else if !coordinator.expandingView.show && vm.notchState == .closed
+            && Defaults[.showClaudeUsage] && Defaults[.showClaudeUsageLiveActivity]
+            && !vm.hideOnClosed
+        {
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         }
 
         return chinWidth
@@ -294,6 +299,9 @@ struct ContentView: View {
                            BoringHeader()
                                .frame(height: max(24, vm.effectiveClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                       } else if vm.notchState == .closed && Defaults[.showClaudeUsage] && Defaults[.showClaudeUsageLiveActivity] && !vm.hideOnClosed {
+                           ClaudeUsageCompactView()
+                               .frame(alignment: .center)
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                        }

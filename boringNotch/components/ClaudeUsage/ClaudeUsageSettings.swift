@@ -16,6 +16,10 @@ struct ClaudeUsageSettings: View {
             Defaults.Toggle(key: .showClaudeUsage) {
                 Text("Show Claude usage in notch")
             }
+            Defaults.Toggle(key: .showClaudeUsageLiveActivity) {
+                Text("Always show usage (closed notch)")
+            }
+            .disabled(!Defaults[.showClaudeUsage])
 
             Section(header: Text("Current Usage")) {
                 if vm.meters.isEmpty {

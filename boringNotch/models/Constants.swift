@@ -140,6 +140,7 @@ extension Defaults.Keys {
     
     // MARK: Claude Usage
     static let showClaudeUsage = Key<Bool>("showClaudeUsage", default: false)
+    static let showClaudeUsageLiveActivity = Key<Bool>("showClaudeUsageLiveActivity", default: false)
 
     // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
