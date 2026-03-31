@@ -131,7 +131,7 @@ struct ClaudeUsageCompactView: View {
             Rectangle()
                 .fill(.black)
                 .frame(
-                    width: vm.closedNotchSize.width + 60
+                    width: vm.closedNotchSize.width + 30
                 )
 
             // Right: reset timer
