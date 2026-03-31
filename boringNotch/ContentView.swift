@@ -79,7 +79,7 @@ struct ContentView: View {
             && Defaults[.showClaudeUsage] && Defaults[.showClaudeUsageLiveActivity]
             && !vm.hideOnClosed
         {
-            chinWidth += 220
+            chinWidth += 180
         }
 
         return chinWidth

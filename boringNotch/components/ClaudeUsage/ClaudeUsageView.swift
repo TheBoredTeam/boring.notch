@@ -108,8 +108,10 @@ struct ClaudeUsageCompactView: View {
     private var weeklyColor: Color { usageColor(usageVM.weeklyPct) }
     private var showWeekly: Bool { usageVM.weeklyPct >= 75 }
 
+    private let sideWidth: CGFloat = 70
+
     var body: some View {
-        HStack {
+        HStack(spacing: 0) {
             // Left side: Claude icon + session % + reset
             HStack(spacing: 4) {
                 claudeIconLarge
@@ -122,20 +124,29 @@ struct ClaudeUsageCompactView: View {
                         .foregroundColor(.white.opacity(0.35))
                 }
             }
+            .frame(width: sideWidth, alignment: .center)
 
-            Spacer(minLength: vm.closedNotchSize.width)
+            // Middle: black gap spanning the notch (+ 40 for corner radius insets)
+            Rectangle()
+                .fill(.black)
+                .frame(
+                    width: vm.closedNotchSize.width + 60
+                )
 
-            // Right side: weekly (only if >= 75%)
-            if showWeekly {
-                HStack(spacing: 3) {
-                    Text("7d")
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundColor(.white.opacity(0.4))
-                    Text("\(usageVM.weeklyPct)%")
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
-                        .foregroundColor(weeklyColor)
+            // Right side: must match left width for centering
+            Group {
+                if showWeekly {
+                    HStack(spacing: 3) {
+                        Text("7d")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundColor(.white.opacity(0.4))
+                        Text("\(usageVM.weeklyPct)%")
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .foregroundColor(weeklyColor)
+                    }
                 }
             }
+            .frame(width: sideWidth, alignment: .center)
         }
         .frame(
             height: vm.effectiveClosedNotchHeight,
