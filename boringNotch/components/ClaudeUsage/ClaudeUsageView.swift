@@ -97,23 +97,60 @@ struct UsageMeterRow: View {
 }
 
 // Compact view for the closed notch (live activity style)
+// Mirrors MusicLiveActivity layout: left pill | notch gap | right pill
 struct ClaudeUsageCompactView: View {
-    @ObservedObject var vm = ClaudeUsageViewModel.shared
+    @ObservedObject var usageVM = ClaudeUsageViewModel.shared
+    @EnvironmentObject var vm: BoringViewModel
 
-    private var color: Color {
-        if vm.sessionPct > 80 { return .red }
-        if vm.sessionPct > 50 { return .orange }
+    private func color(for pct: Int) -> Color {
+        if pct > 80 { return .red }
+        if pct > 50 { return .orange }
         return .green
     }
 
     var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "brain")
-                .font(.system(size: 9))
-                .foregroundColor(color)
-            Text("\(vm.sessionPct)%")
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                .foregroundColor(color)
+        HStack(spacing: 0) {
+            // Left side: session usage
+            HStack(spacing: 4) {
+                Image(systemName: "brain")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(color(for: usageVM.sessionPct))
+                Text("\(usageVM.sessionPct)%")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundColor(color(for: usageVM.sessionPct))
+            }
+            .frame(
+                width: max(0, vm.effectiveClosedNotchHeight - 12) + 30,
+                height: max(0, vm.effectiveClosedNotchHeight - 12),
+                alignment: .center
+            )
+
+            // Middle gap (black, spans the notch)
+            Rectangle()
+                .fill(.black)
+                .frame(
+                    width: vm.closedNotchSize.width + -10,
+                    height: vm.effectiveClosedNotchHeight
+                )
+
+            // Right side: weekly usage
+            HStack(spacing: 4) {
+                Text("7d")
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundColor(.white.opacity(0.4))
+                Text("\(usageVM.weeklyPct)%")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundColor(color(for: usageVM.weeklyPct))
+            }
+            .frame(
+                width: max(0, vm.effectiveClosedNotchHeight - 12) + 30,
+                height: max(0, vm.effectiveClosedNotchHeight - 12),
+                alignment: .center
+            )
         }
+        .frame(
+            height: vm.effectiveClosedNotchHeight,
+            alignment: .center
+        )
     }
 }
