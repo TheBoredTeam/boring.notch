@@ -306,6 +306,14 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                        }
 
+                      // Claude usage overlay - shows alongside music or on its own
+                      if vm.notchState == .closed && Defaults[.showClaudeUsage] && Defaults[.showClaudeUsageLiveActivity] && !vm.hideOnClosed
+                          && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled {
+                          ClaudeUsageClosedOverlay()
+                              .frame(height: vm.effectiveClosedNotchHeight)
+                              .transition(.opacity)
+                      }
+
                       if coordinator.sneakPeek.show {
                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(

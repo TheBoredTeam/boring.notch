@@ -14,9 +14,11 @@ struct ClaudeUsageView: View {
         VStack(alignment: .leading, spacing: 6) {
             // Header
             HStack(spacing: 4) {
-                Image(systemName: "brain")
-                    .font(.system(size: 10, weight: .semibold))
+                Image("claude-icon")
+                    .resizable()
+                    .renderingMode(.template)
                     .foregroundColor(.white.opacity(0.6))
+                    .frame(width: 12, height: 12)
                 Text("Claude")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.white.opacity(0.6))
@@ -96,31 +98,32 @@ struct UsageMeterRow: View {
     }
 }
 
-// Compact view for the closed notch (live activity style)
-// Mirrors MusicLiveActivity layout: left pill | notch gap | right pill
+// Compact view for the closed notch (standalone, no music playing)
+// Mirrors MusicLiveActivity layout: left content | notch gap | right content
 struct ClaudeUsageCompactView: View {
     @ObservedObject var usageVM = ClaudeUsageViewModel.shared
     @EnvironmentObject var vm: BoringViewModel
 
-    private func color(for pct: Int) -> Color {
-        if pct > 80 { return .red }
-        if pct > 50 { return .orange }
-        return .green
-    }
+    private var sessionColor: Color { usageColor(usageVM.sessionPct) }
+    private var weeklyColor: Color { usageColor(usageVM.weeklyPct) }
+    private var showWeekly: Bool { usageVM.weeklyPct >= 75 }
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left side: session usage
-            HStack(spacing: 4) {
-                Image(systemName: "brain")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(color(for: usageVM.sessionPct))
+            // Left side: Claude icon + session %
+            HStack(spacing: 3) {
+                claudeIcon
                 Text("\(usageVM.sessionPct)%")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundColor(color(for: usageVM.sessionPct))
+                    .foregroundColor(sessionColor)
+                if let reset = usageVM.meters.first?.resetsIn {
+                    Text(reset)
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundColor(.white.opacity(0.35))
+                }
             }
             .frame(
-                width: max(0, vm.effectiveClosedNotchHeight - 12) + 30,
+                width: max(0, vm.effectiveClosedNotchHeight - 12) + 60,
                 height: max(0, vm.effectiveClosedNotchHeight - 12),
                 alignment: .center
             )
@@ -129,28 +132,76 @@ struct ClaudeUsageCompactView: View {
             Rectangle()
                 .fill(.black)
                 .frame(
-                    width: vm.closedNotchSize.width + -10,
+                    width: vm.closedNotchSize.width - 10,
                     height: vm.effectiveClosedNotchHeight
                 )
 
-            // Right side: weekly usage
-            HStack(spacing: 4) {
-                Text("7d")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(.white.opacity(0.4))
-                Text("\(usageVM.weeklyPct)%")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundColor(color(for: usageVM.weeklyPct))
+            // Right side: weekly (only if >= 75%)
+            if showWeekly {
+                HStack(spacing: 3) {
+                    Text("7d")
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundColor(.white.opacity(0.4))
+                    Text("\(usageVM.weeklyPct)%")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .foregroundColor(weeklyColor)
+                }
+                .frame(
+                    width: max(0, vm.effectiveClosedNotchHeight - 12) + 30,
+                    height: max(0, vm.effectiveClosedNotchHeight - 12),
+                    alignment: .center
+                )
+            } else {
+                // Empty spacer to keep layout balanced
+                Rectangle().fill(.clear)
+                    .frame(
+                        width: max(0, vm.effectiveClosedNotchHeight - 12),
+                        height: max(0, vm.effectiveClosedNotchHeight - 12)
+                    )
             }
-            .frame(
-                width: max(0, vm.effectiveClosedNotchHeight - 12) + 30,
-                height: max(0, vm.effectiveClosedNotchHeight - 12),
-                alignment: .center
-            )
         }
         .frame(
             height: vm.effectiveClosedNotchHeight,
             alignment: .center
         )
     }
+}
+
+// Overlay that shows ALONGSIDE the music live activity
+// Positioned to the far right of the notch area
+struct ClaudeUsageClosedOverlay: View {
+    @ObservedObject var usageVM = ClaudeUsageViewModel.shared
+
+    private var sessionColor: Color { usageColor(usageVM.sessionPct) }
+
+    var body: some View {
+        HStack(spacing: 3) {
+            claudeIcon
+            Text("\(usageVM.sessionPct)%")
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundColor(sessionColor)
+            if let reset = usageVM.meters.first?.resetsIn {
+                Text(reset)
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundColor(.white.opacity(0.35))
+            }
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+    }
+}
+
+// Shared helpers
+private func usageColor(_ pct: Int) -> Color {
+    if pct > 80 { return .red }
+    if pct > 50 { return .orange }
+    return .green
+}
+
+private var claudeIcon: some View {
+    Image("claude-icon")
+        .resizable()
+        .renderingMode(.template)
+        .foregroundColor(.white.opacity(0.7))
+        .frame(width: 12, height: 12)
 }
