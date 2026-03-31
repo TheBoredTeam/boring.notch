@@ -108,8 +108,6 @@ struct ClaudeUsageCompactView: View {
     private var weeklyColor: Color { usageColor(usageVM.weeklyPct) }
     private var showWeekly: Bool { usageVM.weeklyPct >= 75 }
 
-    private let sideWidth: CGFloat = 70
-
     var body: some View {
         HStack(spacing: 0) {
             // Left: icon + session % (+ 7d if >= 75%)
@@ -118,13 +116,16 @@ struct ClaudeUsageCompactView: View {
                 Text("\(usageVM.sessionPct)%")
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundColor(sessionColor)
+                    .lineLimit(1)
+                    .fixedSize()
                 if showWeekly {
                     Text("7d:\(usageVM.weeklyPct)%")
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .foregroundColor(weeklyColor.opacity(0.8))
+                        .lineLimit(1)
+                        .fixedSize()
                 }
             }
-            .frame(width: sideWidth, alignment: .center)
 
             // Middle: black gap spanning the notch
             Rectangle()
@@ -134,14 +135,13 @@ struct ClaudeUsageCompactView: View {
                 )
 
             // Right: reset timer
-            Group {
-                if let reset = usageVM.meters.first?.resetsIn {
-                    Text(reset)
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.45))
-                }
+            if let reset = usageVM.meters.first?.resetsIn {
+                Text(reset)
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.45))
+                    .lineLimit(1)
+                    .fixedSize()
             }
-            .frame(width: sideWidth, alignment: .center)
         }
         .frame(
             height: vm.effectiveClosedNotchHeight,

@@ -21,6 +21,7 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+    @ObservedObject var claudeUsageVM = ClaudeUsageViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @State private var hoverTask: Task<Void, Never>?
@@ -79,10 +80,28 @@ struct ContentView: View {
             && Defaults[.showClaudeUsage] && Defaults[.showClaudeUsageLiveActivity]
             && !vm.hideOnClosed
         {
-            chinWidth += 180
+            chinWidth += claudeUsageChinExtra
         }
 
         return chinWidth
+    }
+
+    // Dynamic chin width for Claude usage based on content
+    private var claudeUsageChinExtra: CGFloat {
+        var width: CGFloat = 0
+        let pct = claudeUsageVM.sessionPct
+        // Left: icon(16) + spacing(4) + pct text + optional weekly
+        width += 16 + 4 // icon + gap
+        width += pct >= 100 ? 32 : (pct >= 10 ? 28 : 22) // "100%" vs "96%" vs "9%"
+        if claudeUsageVM.weeklyPct >= 75 {
+            width += 4 + 42 // gap + "7d:28%"
+        }
+        // Right: reset time
+        if let reset = claudeUsageVM.meters.first?.resetsIn {
+            width += reset.contains("h") ? 48 : 28 // "1h 22m" vs "22m"
+        }
+        width += 16 // padding
+        return width
     }
 
     var body: some View {
