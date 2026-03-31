@@ -109,7 +109,7 @@ struct ClaudeUsageCompactView: View {
     private var showWeekly: Bool { usageVM.weeklyPct >= 75 }
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack {
             // Left side: Claude icon + session % + reset
             HStack(spacing: 4) {
                 claudeIconLarge
@@ -122,16 +122,8 @@ struct ClaudeUsageCompactView: View {
                         .foregroundColor(.white.opacity(0.35))
                 }
             }
-            .frame(height: max(0, vm.effectiveClosedNotchHeight - 8))
-            .padding(.trailing, 4)
 
-            // Middle gap (black, spans the notch)
-            Rectangle()
-                .fill(.black)
-                .frame(
-                    width: vm.closedNotchSize.width + 10,
-                    height: vm.effectiveClosedNotchHeight
-                )
+            Spacer(minLength: vm.closedNotchSize.width)
 
             // Right side: weekly (only if >= 75%)
             if showWeekly {
@@ -143,8 +135,6 @@ struct ClaudeUsageCompactView: View {
                         .font(.system(size: 11, weight: .bold, design: .monospaced))
                         .foregroundColor(weeklyColor)
                 }
-                .frame(height: max(0, vm.effectiveClosedNotchHeight - 8))
-                .padding(.leading, 4)
             }
         }
         .frame(
