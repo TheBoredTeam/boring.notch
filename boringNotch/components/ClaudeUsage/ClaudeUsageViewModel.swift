@@ -8,48 +8,7 @@
 import Foundation
 import Combine
 
-struct UsageMeter: Codable {
-    let utilization: Int?
-    let resets_at: String?
-}
-
-struct ExtraUsage: Codable {
-    let is_enabled: Bool?
-    let monthly_limit: Int?
-    let used_credits: Int?
-    let utilization: Int?
-}
-
-struct UsageData: Codable {
-    let five_hour: UsageMeter?
-    let seven_day: UsageMeter?
-    let seven_day_oauth_apps: UsageMeter?
-    let seven_day_opus: UsageMeter?
-    let seven_day_sonnet: UsageMeter?
-    let seven_day_cowork: UsageMeter?
-    let extra_usage: ExtraUsage?
-}
-
-struct UsageAccount: Codable {
-    let name: String?
-    let email: String?
-}
-
-struct UsageOrganization: Codable {
-    let name: String?
-    let rate_limit_tier: String?
-}
-
-struct SettingsUsage: Codable {
-    let data: UsageData?
-}
-
-struct ClaudeUsageFile: Codable {
-    let timestamp: Double?
-    let account: UsageAccount?
-    let organization: UsageOrganization?
-    let settings_usage: SettingsUsage?
-}
+// Using manual JSON parsing instead of Codable to handle unknown keys gracefully
 
 struct UsageMeterDisplay: Identifiable {
     let id = UUID()
@@ -75,8 +34,26 @@ class ClaudeUsageViewModel: ObservableObject {
     private let filePath: URL
 
     private init() {
-        filePath = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".claude/usage-data.json")
+        // Try multiple paths - sandbox may remap home directory
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let realHome = URL(fileURLWithPath: NSHomeDirectory())
+        let possiblePaths = [
+            home.appendingPathComponent(".claude/usage-data.json"),
+            realHome.appendingPathComponent(".claude/usage-data.json"),
+            URL(fileURLWithPath: "/Users/\(NSUserName())/.claude/usage-data.json"),
+        ]
+
+        // Use the first path that exists, or default to the first
+        filePath = possiblePaths.first { FileManager.default.fileExists(atPath: $0.path) }
+            ?? possiblePaths[0]
+
+        NSLog("[ClaudeUsage] Using path: %@", filePath.path)
+        NSLog("[ClaudeUsage] File exists: %d", FileManager.default.fileExists(atPath: filePath.path))
+
+        // Write breadcrumb to prove we ran
+        let breadcrumb = "init at \(Date()) path=\(filePath.path) exists=\(FileManager.default.fileExists(atPath: filePath.path))\n"
+        try? breadcrumb.write(to: URL(fileURLWithPath: "/tmp/claude-usage-debug.txt"), atomically: true, encoding: .utf8)
+
         reload()
         timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in
@@ -86,67 +63,61 @@ class ClaudeUsageViewModel: ObservableObject {
     }
 
     func reload() {
-        guard let data = try? Data(contentsOf: filePath),
-              let file = try? JSONDecoder().decode(ClaudeUsageFile.self, from: data) else {
+        let exists = FileManager.default.fileExists(atPath: filePath.path)
+
+        guard exists,
+              let rawData = try? Data(contentsOf: filePath),
+              let json = try? JSONSerialization.jsonObject(with: rawData) as? [String: Any] else {
+            NSLog("[ClaudeUsage] Cannot read file (exists=%d, path=%@)", exists, filePath.path)
             isStale = true
             return
         }
 
         // Check freshness
-        if let ts = file.timestamp {
+        if let ts = json["timestamp"] as? Double {
             let age = Date().timeIntervalSince1970 - (ts / 1000)
-            isStale = age > 300 // 5 minutes
+            isStale = age > 300
             lastUpdated = Date(timeIntervalSince1970: ts / 1000)
         }
 
-        guard let usage = file.settings_usage?.data else { return }
+        // Navigate to settings_usage.data
+        guard let settingsUsage = json["settings_usage"] as? [String: Any],
+              let usageData = settingsUsage["data"] as? [String: Any] else {
+            NSLog("[ClaudeUsage] No settings_usage.data in JSON")
+            return
+        }
 
         var newMeters: [UsageMeterDisplay] = []
 
-        if let m = usage.five_hour, let pct = m.utilization {
-            sessionPct = pct
-            newMeters.append(UsageMeterDisplay(
-                label: "Session (5h)",
-                shortLabel: "5h",
-                utilization: pct,
-                resetsIn: formatResetTime(m.resets_at)
-            ))
-        }
+        let meterDefs: [(key: String, label: String, short: String)] = [
+            ("five_hour", "Session (5h)", "5h"),
+            ("seven_day", "Weekly", "7d"),
+            ("seven_day_sonnet", "Sonnet", "Son"),
+            ("seven_day_opus", "Opus", "Op"),
+        ]
 
-        if let m = usage.seven_day, let pct = m.utilization {
-            weeklyPct = pct
-            newMeters.append(UsageMeterDisplay(
-                label: "Weekly",
-                shortLabel: "7d",
-                utilization: pct,
-                resetsIn: formatResetTime(m.resets_at)
-            ))
-        }
-
-        if let m = usage.seven_day_sonnet, let pct = m.utilization {
-            newMeters.append(UsageMeterDisplay(
-                label: "Sonnet",
-                shortLabel: "Son",
-                utilization: pct,
-                resetsIn: formatResetTime(m.resets_at)
-            ))
-        }
-
-        if let m = usage.seven_day_opus, let pct = m.utilization {
-            newMeters.append(UsageMeterDisplay(
-                label: "Opus",
-                shortLabel: "Op",
-                utilization: pct,
-                resetsIn: formatResetTime(m.resets_at)
-            ))
+        for def in meterDefs {
+            if let m = usageData[def.key] as? [String: Any],
+               let pct = m["utilization"] as? Int {
+                if def.key == "five_hour" { sessionPct = pct }
+                if def.key == "seven_day" { weeklyPct = pct }
+                newMeters.append(UsageMeterDisplay(
+                    label: def.label,
+                    shortLabel: def.short,
+                    utilization: pct,
+                    resetsIn: formatResetTime(m["resets_at"] as? String)
+                ))
+            }
         }
 
         meters = newMeters
 
-        if let extra = usage.extra_usage {
-            extraUsageEnabled = extra.is_enabled ?? false
-            extraUsageCredits = Double(extra.used_credits ?? 0) / 100.0
+        if let extra = usageData["extra_usage"] as? [String: Any] {
+            extraUsageEnabled = extra["is_enabled"] as? Bool ?? false
+            extraUsageCredits = Double(extra["used_credits"] as? Int ?? 0) / 100.0
         }
+
+        NSLog("[ClaudeUsage] Loaded %d meters, session=%d%%", newMeters.count, sessionPct)
     }
 
     private func formatResetTime(_ isoString: String?) -> String? {

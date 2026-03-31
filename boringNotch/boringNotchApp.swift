@@ -279,6 +279,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
 
+        // Initialize Claude usage monitoring
+        Task { @MainActor in
+            _ = ClaudeUsageViewModel.shared
+        }
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(screenConfigurationDidChange),

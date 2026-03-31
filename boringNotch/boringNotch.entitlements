@@ -18,7 +18,11 @@
 	<true/>
 	<key>com.apple.security.temporary-exception.files.home-relative-path.read-only</key>
 	<array>
-		<string>/.claude/usage-data.json</string>
+		<string>/.claude/</string>
+	</array>
+	<key>com.apple.security.temporary-exception.files.absolute-path.read-only</key>
+	<array>
+		<string>/Users/</string>
 	</array>
 	<key>com.apple.security.network.client</key>
 	<true/>
