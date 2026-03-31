@@ -143,6 +143,9 @@
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		BD4072109DE2FB10CBE4B4BE /* ClaudeUsageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6027764AC7B7467D49700B /* ClaudeUsageViewModel.swift */; };
+		9B39663A08FAA4CC2BF12434 /* ClaudeUsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0768C00B1CE7A168D8BBC7BE /* ClaudeUsageView.swift */; };
+		D342D62E1E99FFD73CA5DB95 /* ClaudeUsageSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8872A83132B8D109969C9974 /* ClaudeUsageSettings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -309,6 +312,9 @@
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		9D6027764AC7B7467D49700B /* ClaudeUsageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageViewModel.swift; sourceTree = "<group>"; };
+		0768C00B1CE7A168D8BBC7BE /* ClaudeUsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageView.swift; sourceTree = "<group>"; };
+		8872A83132B8D109969C9974 /* ClaudeUsageSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -489,6 +495,7 @@
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				B1C448992C97375A001F0858 /* Tips */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
+				CLAUDE0001USAGEGRP00001 /* ClaudeUsage */,
 				9A987A042C73CA66005CA465 /* Shelf */,
 				149E0B982C737D26006418B1 /* Webcam */,
 				B18654312C6F45AE000B926A /* Live activities */,
@@ -757,6 +764,16 @@
 			path = Tips;
 			sourceTree = "<group>";
 		};
+		CLAUDE0001USAGEGRP00001 /* ClaudeUsage */ = {
+			isa = PBXGroup;
+			children = (
+				9D6027764AC7B7467D49700B /* ClaudeUsageViewModel.swift */,
+				0768C00B1CE7A168D8BBC7BE /* ClaudeUsageView.swift */,
+				8872A83132B8D109969C9974 /* ClaudeUsageSettings.swift */,
+			);
+			path = ClaudeUsage;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -907,6 +924,9 @@
 			files = (
 				115C12EC2ED3D003009754CA /* OpenNotchHUD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
+				BD4072109DE2FB10CBE4B4BE /* ClaudeUsageViewModel.swift in Sources */,
+				9B39663A08FAA4CC2BF12434 /* ClaudeUsageView.swift in Sources */,
+				D342D62E1E99FFD73CA5DB95 /* ClaudeUsageSettings.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
 				1100292A2E8691B400035A57 /* FileShareView.swift in Sources */,
 				147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */,

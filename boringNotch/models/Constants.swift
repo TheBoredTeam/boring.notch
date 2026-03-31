@@ -138,6 +138,9 @@ extension Defaults.Keys {
         default: MusicControlButton.defaultLayout.count
     )
     
+    // MARK: Claude Usage
+    static let showClaudeUsage = Key<Bool>("showClaudeUsage", default: false)
+
     // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
