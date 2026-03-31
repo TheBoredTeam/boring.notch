@@ -52,7 +52,14 @@ struct SettingsView: View {
                     Label("Shelf", systemImage: "books.vertical")
                 }
                 NavigationLink(value: "Claude") {
-                    Label("Claude Usage", systemImage: "brain")
+                    Label {
+                        Text("Claude Usage")
+                    } icon: {
+                        Image("claude-icon")
+                            .resizable()
+                            .renderingMode(.template)
+                            .frame(width: 16, height: 16)
+                    }
                 }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")

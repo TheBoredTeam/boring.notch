@@ -110,29 +110,26 @@ struct ClaudeUsageCompactView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left side: Claude icon + session %
-            HStack(spacing: 3) {
-                claudeIcon
+            // Left side: Claude icon + session % + reset
+            HStack(spacing: 4) {
+                claudeIconLarge
                 Text("\(usageVM.sessionPct)%")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundColor(sessionColor)
                 if let reset = usageVM.meters.first?.resetsIn {
                     Text(reset)
-                        .font(.system(size: 8, weight: .medium))
+                        .font(.system(size: 9, weight: .medium))
                         .foregroundColor(.white.opacity(0.35))
                 }
             }
-            .frame(
-                width: max(0, vm.effectiveClosedNotchHeight - 12) + 60,
-                height: max(0, vm.effectiveClosedNotchHeight - 12),
-                alignment: .center
-            )
+            .frame(height: max(0, vm.effectiveClosedNotchHeight - 8))
+            .padding(.trailing, 4)
 
             // Middle gap (black, spans the notch)
             Rectangle()
                 .fill(.black)
                 .frame(
-                    width: vm.closedNotchSize.width - 10,
+                    width: vm.closedNotchSize.width + 10,
                     height: vm.effectiveClosedNotchHeight
                 )
 
@@ -140,24 +137,14 @@ struct ClaudeUsageCompactView: View {
             if showWeekly {
                 HStack(spacing: 3) {
                     Text("7d")
-                        .font(.system(size: 8, weight: .medium))
+                        .font(.system(size: 9, weight: .medium))
                         .foregroundColor(.white.opacity(0.4))
                     Text("\(usageVM.weeklyPct)%")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
                         .foregroundColor(weeklyColor)
                 }
-                .frame(
-                    width: max(0, vm.effectiveClosedNotchHeight - 12) + 30,
-                    height: max(0, vm.effectiveClosedNotchHeight - 12),
-                    alignment: .center
-                )
-            } else {
-                // Empty spacer to keep layout balanced
-                Rectangle().fill(.clear)
-                    .frame(
-                        width: max(0, vm.effectiveClosedNotchHeight - 12),
-                        height: max(0, vm.effectiveClosedNotchHeight - 12)
-                    )
+                .frame(height: max(0, vm.effectiveClosedNotchHeight - 8))
+                .padding(.leading, 4)
             }
         }
         .frame(
@@ -203,5 +190,13 @@ private var claudeIcon: some View {
         .resizable()
         .renderingMode(.template)
         .foregroundColor(.white.opacity(0.7))
-        .frame(width: 12, height: 12)
+        .frame(width: 14, height: 14)
+}
+
+private var claudeIconLarge: some View {
+    Image("claude-icon")
+        .resizable()
+        .renderingMode(.template)
+        .foregroundColor(.white.opacity(0.8))
+        .frame(width: 16, height: 16)
 }
