@@ -167,6 +167,7 @@ extension Defaults.Keys {
     static let showMirror = Key<Bool>("showMirror", default: false)
     static let isMirrored = Key<Bool>("isMirrored", default: true)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
+    static let showScreenshotButton = Key<Bool>("showScreenshotButton", default: true)
     static let mirrorCameraID = Key<String?>("mirrorCameraID", default: nil)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
@@ -251,6 +252,12 @@ extension Defaults.Keys {
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
+    
+    // MARK: Clipboard
+    static let clipboardMaxItems = Key<Int>("clipboardMaxItems", default: 20)
+    static let clipboardSortNewestFirst = Key<Bool>("clipboardSortNewestFirst", default: true)
+    static let clipboardGroupByApp = Key<Bool>("clipboardGroupByApp", default: false)
+    static let clipboardPersistOnQuit = Key<Bool>("clipboardPersistOnQuit", default: false)
     
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)

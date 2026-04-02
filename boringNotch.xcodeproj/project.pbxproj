@@ -7,6 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		10B60EF22F6F362B008C9983 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60EF12F6F3625008C9983 /* ClipboardItem.swift */; };
+		10B60EF42F6F3638008C9983 /* ClipboardItemKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60EF32F6F3636008C9983 /* ClipboardItemKind.swift */; };
+		10B60EF62F6F3640008C9983 /* ClipboardSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60EF52F6F363F008C9983 /* ClipboardSettings.swift */; };
+		10B60EF82F6F3649008C9983 /* ClipboardStateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60EF72F6F3647008C9983 /* ClipboardStateViewModel.swift */; };
+		10B60EFC2F6F3656008C9983 /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60EFB2F6F3655008C9983 /* ClipboardMonitor.swift */; };
+		10B60F012F6F3671008C9983 /* ClipboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60F002F6F3670008C9983 /* ClipboardView.swift */; };
+		10B60F032F6F3678008C9983 /* ClipboardItemChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60F022F6F3678008C9983 /* ClipboardItemChip.swift */; };
+		10B60F072F6F3686008C9983 /* ClipboardEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60F062F6F3685008C9983 /* ClipboardEmptyState.swift */; };
+		10B60F092F6F368F008C9983 /* ClipboardGroupCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60F082F6F368D008C9983 /* ClipboardGroupCard.swift */; };
+		10B60F0B2F6F3697008C9983 /* ClipboardContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60F0A2F6F3695008C9983 /* ClipboardContextMenu.swift */; };
+		10B60F0D2F6F369F008C9983 /* ClipboardPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60F0C2F6F369E008C9983 /* ClipboardPersistenceService.swift */; };
+		10B60F0F2F6F36A6008C9983 /* ClipboardCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60F0E2F6F36A5008C9983 /* ClipboardCaptureService.swift */; };
+		10B60F132F6F36BC008C9983 /* ClipboardSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60F122F6F36BA008C9983 /* ClipboardSettingsView.swift */; };
+		10B60F152F6F39B9008C9983 /* AppIconHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B60F142F6F39AF008C9983 /* AppIconHelper.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -195,6 +209,20 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		10B60EF12F6F3625008C9983 /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
+		10B60EF32F6F3636008C9983 /* ClipboardItemKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItemKind.swift; sourceTree = "<group>"; };
+		10B60EF52F6F363F008C9983 /* ClipboardSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSettings.swift; sourceTree = "<group>"; };
+		10B60EF72F6F3647008C9983 /* ClipboardStateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStateViewModel.swift; sourceTree = "<group>"; };
+		10B60EFB2F6F3655008C9983 /* ClipboardMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitor.swift; sourceTree = "<group>"; };
+		10B60F002F6F3670008C9983 /* ClipboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardView.swift; sourceTree = "<group>"; };
+		10B60F022F6F3678008C9983 /* ClipboardItemChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItemChip.swift; sourceTree = "<group>"; };
+		10B60F062F6F3685008C9983 /* ClipboardEmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardEmptyState.swift; sourceTree = "<group>"; };
+		10B60F082F6F368D008C9983 /* ClipboardGroupCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardGroupCard.swift; sourceTree = "<group>"; };
+		10B60F0A2F6F3695008C9983 /* ClipboardContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContextMenu.swift; sourceTree = "<group>"; };
+		10B60F0C2F6F369E008C9983 /* ClipboardPersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPersistenceService.swift; sourceTree = "<group>"; };
+		10B60F0E2F6F36A5008C9983 /* ClipboardCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardCaptureService.swift; sourceTree = "<group>"; };
+		10B60F122F6F36BA008C9983 /* ClipboardSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSettingsView.swift; sourceTree = "<group>"; };
+		10B60F142F6F39AF008C9983 /* AppIconHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconHelper.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -385,6 +413,57 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		10B60EE82F6F35B1008C9983 /* Clipboard */ = {
+			isa = PBXGroup;
+			children = (
+				10B60EF02F6F3610008C9983 /* Services */,
+				10B60EEF2F6F3601008C9983 /* Views */,
+				10B60EEC2F6F35E4008C9983 /* ViewModels */,
+				10B60EEB2F6F35DB008C9983 /* Models */,
+			);
+			path = Clipboard;
+			sourceTree = "<group>";
+		};
+		10B60EEB2F6F35DB008C9983 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				10B60EF52F6F363F008C9983 /* ClipboardSettings.swift */,
+				10B60EF32F6F3636008C9983 /* ClipboardItemKind.swift */,
+				10B60EF12F6F3625008C9983 /* ClipboardItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		10B60EEC2F6F35E4008C9983 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				10B60EFB2F6F3655008C9983 /* ClipboardMonitor.swift */,
+				10B60EF72F6F3647008C9983 /* ClipboardStateViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		10B60EEF2F6F3601008C9983 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				10B60F0A2F6F3695008C9983 /* ClipboardContextMenu.swift */,
+				10B60F082F6F368D008C9983 /* ClipboardGroupCard.swift */,
+				10B60F062F6F3685008C9983 /* ClipboardEmptyState.swift */,
+				10B60F022F6F3678008C9983 /* ClipboardItemChip.swift */,
+				10B60F002F6F3670008C9983 /* ClipboardView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		10B60EF02F6F3610008C9983 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				10B60F0E2F6F36A5008C9983 /* ClipboardCaptureService.swift */,
+				10B60F0C2F6F369E008C9983 /* ClipboardPersistenceService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		1113ABB82E80E27000EC13B2 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -551,6 +630,7 @@
 		14288DD92C6E015000B9F80C /* helpers */ = {
 			isa = PBXGroup;
 			children = (
+				10B60F142F6F39AF008C9983 /* AppIconHelper.swift */,
 				118EBE242E92DCCB00D54B5A /* AssociatedObject.swift */,
 				11A45C782E34E63100CEB175 /* MediaChecker.swift */,
 				1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */,
@@ -583,6 +663,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				10B60EE82F6F35B1008C9983 /* Clipboard */,
 				11985BDF2F37A3C800F81585 /* OSD */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
@@ -810,6 +891,7 @@
 			isa = PBXGroup;
 			children = (
 				11DB26722EDD0CDF001EA0CF /* Views */,
+				10B60F122F6F36BA008C9983 /* ClipboardSettingsView.swift */,
 				11F748832ECB27DC00F841DB /* MusicSlotConfigurationView.swift */,
 				11C5E3152DFE88510065821E /* SettingsView.swift */,
 				11C5E3112DFE85970065821E /* SettingsWindowController.swift */,
@@ -997,7 +1079,9 @@
 				11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */,
 				B1D365CE2C6A979C0047BDBC /* LiveActivityModifier.swift in Sources */,
 				1113ABD02E80E6BB00EC13B2 /* ThumbnailService.swift in Sources */,
+				10B60F072F6F3686008C9983 /* ClipboardEmptyState.swift in Sources */,
 				11CFC65B2E097E9D00748C80 /* WelcomeView.swift in Sources */,
+				10B60EF62F6F3640008C9983 /* ClipboardSettings.swift in Sources */,
 				14D570C02C5EA5870011E668 /* AnimatedFace.swift in Sources */,
 				B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */,
 				111BE9952ECF2DF40079DD4E /* DragDetector.swift in Sources */,
@@ -1007,6 +1091,7 @@
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
 				9A0887322C7A693000C160EA /* TabButton.swift in Sources */,
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
+				10B60F092F6F368F008C9983 /* ClipboardGroupCard.swift in Sources */,
 				11985BEF2F37E48900F81585 /* OSDIconView.swift in Sources */,
 				1194E9402EACC652009C82D6 /* Color+AccentColor.swift in Sources */,
 				B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */,
@@ -1015,10 +1100,15 @@
 				1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
 				11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */,
+				10B60EF42F6F3638008C9983 /* ClipboardItemKind.swift in Sources */,
 				1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */,
 				1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */,
 				1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */,
 				118EBE292E946B3F00D54B5A /* ShareServiceFinder.swift in Sources */,
+				10B60F032F6F3678008C9983 /* ClipboardItemChip.swift in Sources */,
+				B19424092CD0FF01003E5DC2 /* LottieAnimationView.swift in Sources */,
+				B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */,
+				10B60F0D2F6F369F008C9983 /* ClipboardPersistenceService.swift in Sources */,
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
 				14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */,
 				1113ABC52E80E27000EC13B2 /* ShelfItemView.swift in Sources */,
@@ -1050,6 +1140,7 @@
 				1153BD912D986DB300979FB0 /* PlaybackState.swift in Sources */,
 				B1A78C822C8BA08100BD51B0 /* FullscreenMediaDetection.swift in Sources */,
 				14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */,
+				10B60F152F6F39B9008C9983 /* AppIconHelper.swift in Sources */,
 				14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */,
 				14D570BC2C5E98EB0011E668 /* generic.swift in Sources */,
 				118EBE272E92DE8400D54B5A /* NSMenu+AssociatedObject.swift in Sources */,
@@ -1074,18 +1165,22 @@
 				1153BD932D986E4300979FB0 /* AppleMusicController.swift in Sources */,
 				11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */,
 				110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */,
+				10B60F0F2F6F36A6008C9983 /* ClipboardCaptureService.swift in Sources */,
 				11CFC6652E09C7B300748C80 /* OnboardingFinishView.swift in Sources */,
 				64FA50FB2F4D6F9E00008A28 /* WebcamSettingsView.swift in Sources */,
 				507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */,
+				10B60EFC2F6F3656008C9983 /* ClipboardMonitor.swift in Sources */,
 				1471A8592C6281BD0058408D /* BoringNotchWindow.swift in Sources */,
 				14CEF4182C5CAED300855D72 /* ContentView.swift in Sources */,
 				9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */,
+				10B60EF82F6F3649008C9983 /* ClipboardStateViewModel.swift in Sources */,
 				1132E5142E777B920068732D /* YouTubeMusicNetworking.swift in Sources */,
 				1132E5122E777B6E0068732D /* YouTubeMusicModels.swift in Sources */,
 				11CFC65F2E097F2F00748C80 /* OnboardingView.swift in Sources */,
 				14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */,
 				B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */,
 				118EBE3B2E9720C500D54B5A /* ShelfStateViewModel.swift in Sources */,
+				10B60EF22F6F362B008C9983 /* ClipboardItem.swift in Sources */,
 				11F747CE2EC75CEA00F841DB /* DragPreviewView.swift in Sources */,
 				F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */,
 				B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */,
@@ -1107,14 +1202,17 @@
 				14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */,
 				11D58EA22E760AE100FA8377 /* ImageService.swift in Sources */,
 				11F748822ECB07A400F841DB /* MusicControlButton.swift in Sources */,
+				10B60F132F6F36BC008C9983 /* ClipboardSettingsView.swift in Sources */,
 				14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */,
 				201C3E071A104384B8629328 /* AudioOutputRouteResolver.swift in Sources */,
 				149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */,
 				14288E0C2C6F8EC000B9F80C /* AppIcons.swift in Sources */,
 				B1C448982C972CC4001F0858 /* ListItemPopover.swift in Sources */,
 				B19016242CC15B5000E3F12E /* Constants.swift in Sources */,
+				10B60F012F6F3671008C9983 /* ClipboardView.swift in Sources */,
 				1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */,
 				11CFC6632E09918400748C80 /* MusicControllerSelectionView.swift in Sources */,
+				10B60F0B2F6F3697008C9983 /* ClipboardContextMenu.swift in Sources */,
 				B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
