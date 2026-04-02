@@ -290,6 +290,7 @@ class BoringViewCoordinator: ObservableObject {
             BetterDisplayManager.shared.stopObserving()
             LunarManager.shared.stopListening()
             LunarManager.shared.configureLunarOSD(hide: false)
+            MediaKeyInterceptor.shared.stop()
             return
         }
 
