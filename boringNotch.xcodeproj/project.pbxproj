@@ -86,6 +86,7 @@
 		6A5F2C0C2F6A0001A1B2C3D4 /* WeatherSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F2C0B2F6A0001A1B2C3D4 /* WeatherSettingsView.swift */; };
 		6A5F2C0E2F6A0001A1B2C3D4 /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F2C0D2F6A0001A1B2C3D4 /* WeatherManager.swift */; };
 		6A5F2C102F6A0001A1B2C3D4 /* WeatherTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F2C0F2F6A0001A1B2C3D4 /* WeatherTabView.swift */; };
+		6B7D101B2F700001A1B2C3D4 /* StackedDragPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7D101A2F700001A1B2C3D4 /* StackedDragPreviewView.swift */; };
 		11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */; };
 		11F747CE2EC75CEA00F841DB /* DragPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */; };
 		11F7485B2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = 11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -269,6 +270,7 @@
 		6A5F2C0B2F6A0001A1B2C3D4 /* WeatherSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherSettingsView.swift; sourceTree = "<group>"; };
 		6A5F2C0D2F6A0001A1B2C3D4 /* WeatherManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherManager.swift; sourceTree = "<group>"; };
 		6A5F2C0F2F6A0001A1B2C3D4 /* WeatherTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherTabView.swift; sourceTree = "<group>"; };
+		6B7D101A2F700001A1B2C3D4 /* StackedDragPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackedDragPreviewView.swift; sourceTree = "<group>"; };
 		11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfItemViewModel.swift; sourceTree = "<group>"; };
 		11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragPreviewView.swift; sourceTree = "<group>"; };
 		11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = BoringNotchXPCHelper.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -429,6 +431,7 @@
 				110029292E8691B400035A57 /* FileShareView.swift */,
 				1113ABC32E80E27000EC13B2 /* ShelfItemView.swift */,
 				9A987A032C73CA66005CA465 /* ShelfView.swift */,
+				6B7D101A2F700001A1B2C3D4 /* StackedDragPreviewView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1025,6 +1028,7 @@
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
 				14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */,
 				1113ABC52E80E27000EC13B2 /* ShelfItemView.swift in Sources */,
+				6B7D101B2F700001A1B2C3D4 /* StackedDragPreviewView.swift in Sources */,
 				1113ABC62E80E27000EC13B2 /* ShelfPersistenceService.swift in Sources */,
 				11DB26662EDD0BE1001EA0CF /* LyricsService.swift in Sources */,
 				1113ABC82E80E27000EC13B2 /* ShelfItem.swift in Sources */,
