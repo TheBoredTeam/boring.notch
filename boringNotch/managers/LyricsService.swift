@@ -269,7 +269,7 @@ class LyricsService: ObservableObject {
     
     private func parseLRC(_ lrc: String) -> [(time: Double, text: String)] {
         var result: [(Double, String)] = []
-        let pattern = #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]"#
+        let pattern = #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?(?:-\d+)?\]"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
         
         for lineSub in lrc.split(separator: "\n") {
