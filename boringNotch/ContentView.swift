@@ -34,6 +34,8 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.selectedIdleAnimation) var selectedIdleAnimation
+    @Default(.idleAnimationScale) var idleAnimationScale
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -401,11 +403,25 @@ struct ContentView: View {
     @ViewBuilder
     func BoringFaceAnimation() -> some View {
         HStack {
+         
             Rectangle()
                 .fill(.black)
                 .frame(width: vm.closedNotchSize.width + 20)
-            let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
-            MinimalFaceFeatures(height: 24.0 * faceScale, width: 30.0 * faceScale)
+            
+
+            if let idleAnim = selectedIdleAnimation {
+                LottieView(url: idleAnim.url, speed: idleAnim.speed, loopMode: .loop)
+                    .scaleEffect(idleAnimationScale)
+                    .frame(
+                        width: max(0, displayClosedNotchHeight - 12),
+                        height: max(0, displayClosedNotchHeight - 12)
+                    )
+                    .clipped()
+            } else {
+
+                let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
+                MinimalFaceFeatures(height: 24.0 * faceScale, width: 30.0 * faceScale)
+            }
         }.frame(
             height: displayClosedNotchHeight,
             alignment: .center
