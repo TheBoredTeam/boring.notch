@@ -31,7 +31,9 @@ struct DynamicNotchApp: App {
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             Button("Settings") {
-                SettingsWindowController.shared.showWindow()
+                DispatchQueue.main.async {
+                    SettingsWindowController.shared.showWindow()
+                }
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)

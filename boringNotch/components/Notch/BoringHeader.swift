@@ -60,7 +60,10 @@ struct BoringHeader: View {
                         }
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
-                                SettingsWindowController.shared.showWindow()
+                                DispatchQueue.main.async {
+                                    SettingsWindowController.shared.showWindow()
+                                }
+                                
                             }) {
                                 Capsule()
                                     .fill(.black)
