@@ -32,9 +32,9 @@ jobs:
     steps:
     - name: Code Checkout
       # TODO: pin to immutable SHA
-      uses: actions/checkout@v6.0.2
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
     - # TODO: pin to immutable SHA
-      uses: mxcl/xcodebuild@v3
+      uses: mxcl/xcodebuild@d3ee9b419c1be9a988086c58fe0988f32d99cfc5
       with:
         xcode: ${{ matrix.xcode }}
         platform: ${{ matrix.platform }}
