@@ -88,6 +88,12 @@ struct AlbumArtView: View {
                     cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
             .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+            .rotation3DEffect(
+                .degrees(musicManager.isFlipping ? 90 : 0),
+                axis: (x: 0, y: 1, z: 0)
+            )
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: musicManager.isFlipping)
+            .modifier(ParallaxTiltModifier())
     }
 
     @ViewBuilder
@@ -458,7 +464,7 @@ struct MusicSliderView: View {
 
     var body: some View {
         VStack {
-            CustomSlider(
+            WavySlider(
                 value: $sliderValue,
                 range: 0...duration,
                 color: Defaults[.sliderColor] == SliderColorEnum.albumArt
@@ -468,7 +474,7 @@ struct MusicSliderView: View {
                 lastDragged: $lastDragged,
                 onValueChange: onValueChange
             )
-            .frame(height: 10, alignment: .center)
+            .frame(height: 12, alignment: .center)
 
             HStack {
                 Text(timeString(from: sliderValue))
