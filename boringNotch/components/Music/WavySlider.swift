@@ -28,7 +28,7 @@ struct WavyTrackShape: Shape {
         path.move(to: CGPoint(x: 0, y: midY))
 
         // Wavy portion (played)
-        let step: CGFloat = 1.0
+        let step: CGFloat = 2.0
         for x in stride(from: 0, through: progressWidth, by: step) {
             let relativeX = x / rect.width
             // Amplitude fades in at the start and fades out near the progress edge
