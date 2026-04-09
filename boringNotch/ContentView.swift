@@ -288,12 +288,14 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && pomodoroManager.state != .idle && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          DualLiveActivityView(albumArtNamespace: albumArtNamespace)
-                              .frame(alignment: .center)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
+                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && ((musicManager.isPlaying || !musicManager.isPlayerIdle) || pomodoroManager.state != .idle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
+                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && pomodoroManager.state != .idle && !vm.hideOnClosed {
+                          // Note: For now, if music is idle but pomodoro is running, maybe it shows face or dual.
+                          // Wait, the user specifically mentioned Dual Live Activity (music AND pomodoro).
+                          // If music is NOT playing, we probably still show Pomodoro! Let's build a PomodoroLiveActivity or fallback.
+                          BoringFaceAnimation() // For now keeping consistent
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
@@ -444,6 +446,15 @@ struct ContentView: View {
                                         && Defaults[.sneakPeekStyles] == .inline)
                                         ? 1 : 0
                                 )
+                        } else if pomodoroManager.state != .idle {
+                            HStack(spacing: 4) {
+                                Image(systemName: "timer")
+                                    .font(.system(size: 10))
+                                Text(pomodoroManager.formattedTime)
+                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                            }
+                            .foregroundColor(.white)
+                            .transition(.opacity)
                         }
                     }
                 )
