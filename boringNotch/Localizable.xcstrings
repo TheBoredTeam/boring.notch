@@ -201,6 +201,9 @@
         }
       }
     },
+    ":" : {
+
+    },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
       "localizations" : {
         "ar" : {
