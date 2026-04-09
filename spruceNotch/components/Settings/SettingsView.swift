@@ -1739,6 +1739,7 @@ struct Shortcuts: View {
             }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+                KeyboardShortcuts.Recorder("Minimize Notch:", name: .minimizeNotch)
             }
         }
         .accentColor(.effectiveAccent)

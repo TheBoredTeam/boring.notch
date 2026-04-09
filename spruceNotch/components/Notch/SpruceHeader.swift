@@ -89,6 +89,21 @@ struct SpruceHeader: View {
                                 isForNotification: false
                             )
                         }
+
+                        Button(action: {
+                            vm.close()
+                        }) {
+                            Capsule()
+                                .fill(.black)
+                                .frame(width: 30, height: 30)
+                                .overlay {
+                                    Image(systemName: "minus")
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .imageScale(.medium)
+                                }
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             }

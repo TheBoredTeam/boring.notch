@@ -410,6 +410,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .minimizeNotch) { [weak self] in
+            Task { [weak self] in
+                guard let self = self else { return }
+
+                let mouseLocation = NSEvent.mouseLocation
+                var viewModel = self.vm
+
+                if Defaults[.showOnAllDisplays] {
+                    for screen in NSScreen.screens where screen.frame.contains(mouseLocation) {
+                        if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
+                            viewModel = screenViewModel
+                            break
+                        }
+                    }
+                }
+
+                self.closeNotchTask?.cancel()
+                self.closeNotchTask = nil
+
+                await MainActor.run {
+                    viewModel.close()
+                }
+            }
+        }
+
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
             let window = createSpruceNotchWindow(
