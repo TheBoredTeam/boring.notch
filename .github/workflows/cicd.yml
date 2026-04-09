@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Boring Notch
+    name: Build Spruce Notch
     strategy:
       matrix:
         platform:
@@ -27,7 +27,7 @@ jobs:
         xcode:
           - ^16
         scheme:
-          - boringNotch
+          - spruceNotch
     runs-on: macos-latest
     steps:
     - name: Code Checkout

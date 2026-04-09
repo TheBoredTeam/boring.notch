@@ -30,7 +30,7 @@ body:
   - type: dropdown
     id: version
     attributes:
-      label: Boring Notch Version
+      label: Spruce Notch Version
       description: >-
         What version of our software are you running? (Go to ✦ in the menu bar >
         Settings > About)
@@ -56,7 +56,7 @@ body:
     attributes:
       label: Music Source? (If relevant)
       description: >-
-         If this issue is related to music, what music source did you select in Boring Notch settings?
+         If this issue is related to music, what music source did you select in Spruce Notch settings?
       options:
         - Now Playing
         - Apple Music

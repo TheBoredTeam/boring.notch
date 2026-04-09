@@ -1,5 +1,5 @@
 name: Feature Request
-description: Suggest a new idea or enhancement for Boring Notch
+description: Suggest a new idea or enhancement for Spruce Notch
 title: "[FEATURE] "
 labels: []
 
@@ -9,7 +9,7 @@ body:
       value: |
         ## Feature Request
         
-        Thanks for helping make **Boring Notch** better! Please check [existing requests](https://github.com/TheBoredTeam/boring.notch/issues?q=is%3Aissue) before submitting to avoid duplicates.
+        Thanks for helping make **Spruce Notch** better! Please check [existing requests](https://github.com/TheBoredTeam/spruce.notch/issues?q=is%3Aissue) before submitting to avoid duplicates.
 
   - type: textarea
     id: problem
@@ -28,7 +28,7 @@ body:
     attributes:
       label: Describe the solution you'd like
       description: |
-        How should Boring Notch handle this? Describe the behavior, UI, or interaction you imagine in detail.
+        How should Spruce Notch handle this? Describe the behavior, UI, or interaction you imagine in detail.
         
         **Example:** "When a meeting is starting in 5 minutes, the notch could expand slightly to show a countdown timer or the meeting title."
       placeholder: "I would like the notch to..."
