@@ -45,6 +45,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "Productivity") {
+                    Label("Productivity", systemImage: "square.and.pencil")
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -83,6 +86,8 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "Productivity":
+                    ProductivitySettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -830,6 +835,31 @@ func lighterColor(from nsColor: NSColor, amount: CGFloat = 0.14) -> Color {
     let nb = lighten(b)
 
     return Color(red: Double(nr), green: Double(ng), blue: Double(nb), opacity: Double(a))
+}
+
+struct ProductivitySettings: View {
+    var body: some View {
+        Form {
+            Section(header: Text("Quick Notes")) {
+                Defaults.Toggle(key: .enableQuickNotes) {
+                    Text("Enable Quick Notes")
+                }
+                Text("Allow jotting down quick text directly from the notch menu.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Section(header: Text("Pomodoro Timer")) {
+                Defaults.Toggle(key: .enableDualStatusPomodoro) {
+                    Text("Show Dual-Status Pomodoro and Music")
+                }
+                Text("Display the timer side-by-side with your playing music or dynamic visualizer in the closed notch.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(20)
+    }
 }
 
 struct About: View {
