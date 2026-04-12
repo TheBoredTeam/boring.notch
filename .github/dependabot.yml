@@ -9,3 +9,8 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/Configuration/dmg"
+    schedule:
+      interval: "weekly"
