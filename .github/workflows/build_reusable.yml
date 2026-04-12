@@ -162,13 +162,13 @@ jobs:
             "${{ env.PROJECT_NAME }} ${{ env.VERSION_INPUT }}"
 
       - name: Upload DMG
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: ${{ env.PROJECT_NAME }}.dmg
           path: Release/${{ env.PROJECT_NAME }}.dmg
 
       - name: Upload .app
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: ${{ env.PROJECT_NAME }}.app
           path: Release/${{ env.PROJECT_NAME }}.app
