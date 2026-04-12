@@ -14,3 +14,9 @@ updates:
     directory: "/Configuration/dmg"
     schedule:
       interval: "weekly"
+
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "dev"
