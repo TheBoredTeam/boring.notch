@@ -218,39 +218,85 @@ jobs:
         run: |
           set -euo pipefail
           SPARKLE_METADATA_PATH="boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
-          SPARKLE_VERSION=$(python3 - <<'PY'
-import json
-from pathlib import Path
-pins = json.loads(Path("boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved").read_text())["pins"]
-sparkle = next(pin for pin in pins if pin["identity"] == "sparkle")
-print(sparkle["state"]["version"])
-PY
-)
-          SPARKLE_REVISION=$(python3 - <<'PY'
-import json
-from pathlib import Path
-pins = json.loads(Path("boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved").read_text())["pins"]
-sparkle = next(pin for pin in pins if pin["identity"] == "sparkle")
-print(sparkle["state"]["revision"])
-PY
-)
           SPARKLE_SRC="$RUNNER_TEMP/Sparkle"
           SPARKLE_DERIVED="$RUNNER_TEMP/sparkle-derived"
+          SPARKLE_REPO_URL="https://github.com/sparkle-project/Sparkle"
+
+          IFS=$'\t' read -r SPARKLE_VERSION SPARKLE_REVISION <<< "$(python3 - "$SPARKLE_METADATA_PATH" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text())
+pins = data.get("pins", [])
+
+sparkle = next((pin for pin in pins if pin.get("identity") == "sparkle"), None)
+if sparkle is None:
+    print(f"::error::No 'sparkle' pin found in {path}", file=sys.stderr)
+    sys.exit(1)
+
+state = sparkle.get("state", {})
+version = state.get("version")
+revision = state.get("revision")
+
+if not version:
+    print(f"::error::Sparkle pin in {path} is not version-pinned", file=sys.stderr)
+    sys.exit(1)
+
+if not revision:
+    print(f"::error::Sparkle pin in {path} has no revision", file=sys.stderr)
+    sys.exit(1)
+
+print(f"{version}\t{revision}")
+PY
+          )"
+
           echo "Using Sparkle ${SPARKLE_VERSION} (${SPARKLE_REVISION}) from ${SPARKLE_METADATA_PATH}"
-          git clone https://github.com/sparkle-project/Sparkle "$SPARKLE_SRC"
-          git -C "$SPARKLE_SRC" checkout --detach "$SPARKLE_REVISION"
-          git -C "$SPARKLE_SRC" fetch --tags --force
-          git -C "$SPARKLE_SRC" tag --points-at "$SPARKLE_REVISION" | grep -Fx "$SPARKLE_VERSION" >/dev/null || {
-            echo "::error::Sparkle revision ${SPARKLE_REVISION} is not tagged as ${SPARKLE_VERSION}"; exit 1;
-          }
+
+          SPARKLE_TAG=""
+          for candidate in "$SPARKLE_VERSION" "v$SPARKLE_VERSION"; do
+            if git ls-remote --exit-code --tags "$SPARKLE_REPO_URL" "refs/tags/$candidate" >/dev/null; then
+              SPARKLE_TAG="$candidate"
+              break
+            else
+              ls_remote_exit=$?
+              if [[ "$ls_remote_exit" -ne 2 ]]; then
+                echo "::error::Failed to query Sparkle tags from $SPARKLE_REPO_URL while checking $candidate"
+                exit 1
+              fi
+            fi
+          done
+
+          if [[ -z "$SPARKLE_TAG" ]]; then
+            echo "::error::Could not find Sparkle tag $SPARKLE_VERSION or v$SPARKLE_VERSION"
+            exit 1
+          fi
+
+          git clone \
+            --depth 1 \
+            --branch "$SPARKLE_TAG" \
+            --single-branch \
+            "$SPARKLE_REPO_URL" \
+            "$SPARKLE_SRC"
+
+          ACTUAL_REVISION="$(git -C "$SPARKLE_SRC" rev-parse HEAD)"
+          if [[ "$ACTUAL_REVISION" != "$SPARKLE_REVISION" ]]; then
+            echo "::error::Sparkle tag ${SPARKLE_TAG} resolves to ${ACTUAL_REVISION}, expected ${SPARKLE_REVISION}"
+            exit 1
+          fi
+
           xcodebuild -project "$SPARKLE_SRC/Sparkle.xcodeproj" \
             -scheme generate_appcast \
             -configuration Release \
             -derivedDataPath "$SPARKLE_DERIVED" \
             CODE_SIGNING_ALLOWED=NO \
             build
-          install -m 0755 "$SPARKLE_DERIVED/Build/Products/Release/generate_appcast" \
-            "$RUNNER_TEMP/generate_appcast"
+
+          APPCAST_BIN="$SPARKLE_DERIVED/Build/Products/Release/generate_appcast"
+          [[ -x "$APPCAST_BIN" ]] || { echo "::error::generate_appcast was not built"; exit 1; }
+
+          install -m 0755 "$APPCAST_BIN" "$RUNNER_TEMP/generate_appcast"
 
       - name: Generate signed appcast
         env:
