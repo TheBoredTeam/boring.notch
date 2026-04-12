@@ -75,6 +75,10 @@ extension Defaults.Keys {
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     
+    // MARK: Productivity (Quick Notes & Pomodoro)
+    static let enableQuickNotes = Key<Bool>("enableQuickNotes", default: true)
+    static let enableDualStatusPomodoro = Key<Bool>("enableDualStatusPomodoro", default: true)
+    
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
     static let enableHaptics = Key<Bool>("enableHaptics", default: true)

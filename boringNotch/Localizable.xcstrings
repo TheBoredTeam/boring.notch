@@ -201,6 +201,9 @@
         }
       }
     },
+    ":" : {
+
+    },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
       "localizations" : {
         "ar" : {
@@ -2401,6 +2404,9 @@
           }
         }
       }
+    },
+    "Allow jotting down quick text directly from the notch menu." : {
+
     },
     "Always show full event titles" : {
       "localizations" : {
@@ -5202,6 +5208,9 @@
         }
       }
     },
+    "Clear Notes" : {
+
+    },
     "Clear slot" : {
       "localizations" : {
         "ar" : {
@@ -6101,6 +6110,9 @@
           }
         }
       }
+    },
+    "Copy to Clipboard" : {
+
     },
     "Corner radius scaling" : {
       "localizations" : {
@@ -7405,6 +7417,9 @@
         }
       }
     },
+    "Display the timer side-by-side with your playing music or dynamic visualizer in the closed notch." : {
+
+    },
     "Download" : {
       "localizations" : {
         "ar" : {
@@ -8706,6 +8721,9 @@
           }
         }
       }
+    },
+    "Enable Quick Notes" : {
+
     },
     "Enable shelf" : {
       "localizations" : {
@@ -11908,6 +11926,9 @@
           }
         }
       }
+    },
+    "Jot something down..." : {
+
     },
     "Layout Preview" : {
       "localizations" : {
@@ -16310,6 +16331,9 @@
         }
       }
     },
+    "Pomodoro Timer" : {
+
+    },
     "Preferred display" : {
       "localizations" : {
         "ar" : {
@@ -16410,6 +16434,9 @@
         }
       }
     },
+    "Productivity" : {
+
+    },
     "Progress bar style" : {
       "localizations" : {
         "ar" : {
@@ -16509,6 +16536,12 @@
           }
         }
       }
+    },
+    "Quick Notes" : {
+
+    },
+    "Quick Notes are disabled in Settings." : {
+
     },
     "Quick Share" : {
       "localizations" : {
@@ -19111,6 +19144,9 @@
           }
         }
       }
+    },
+    "Show Dual-Status Pomodoro and Music" : {
+
     },
     "Show HUD in open notch" : {
       "localizations" : {

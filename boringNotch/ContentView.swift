@@ -20,6 +20,7 @@ struct ContentView: View {
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var pomodoroManager = PomodoroManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
@@ -64,7 +65,7 @@ struct ContentView: View {
         if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
-            chinWidth = 640
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -92,6 +93,9 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 let mainLayout = NotchLayout()
                     .frame(alignment: .top)
+                    .onHover { isHovering in
+                        if isHovering { NSCursor.arrow.set() }
+                    }
                     .padding(
                         .horizontal,
                         vm.notchState == .open
@@ -260,20 +264,21 @@ struct ContentView: View {
                     if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {
-                        HStack(spacing: 0) {
+                        HStack(spacing: 4) {
                             HStack {
                                 Text(batteryModel.statusText)
-                                    .font(.subheadline)
+                                    .font(.system(size: 13, weight: .medium))
                                     .foregroundStyle(.white)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                                    .padding(.leading, 8)
                             }
-
-                            Rectangle()
-                                .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 10)
+                            
+                            Spacer(minLength: 0)
 
                             HStack {
                                 BoringBatteryView(
-                                    batteryWidth: 30,
+                                    batteryWidth: 26,
                                     isCharging: batteryModel.isCharging,
                                     isInLowPowerMode: batteryModel.isInLowPowerMode,
                                     isPluggedIn: batteryModel.isPluggedIn,
@@ -281,15 +286,22 @@ struct ContentView: View {
                                     isForNotification: true
                                 )
                             }
-                            .frame(width: 76, alignment: .trailing)
+                            .padding(.trailing, 8)
                         }
-                        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+                        .frame(width: computedChinWidth, height: vm.effectiveClosedNotchHeight, alignment: .center)
+                        .transition(.scale(scale: 0.8, anchor: .top).combined(with: .opacity))
+                        .animation(.smooth(duration: 0.35), value: coordinator.expandingView.show)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
+                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && ((musicManager.isPlaying || !musicManager.isPlayerIdle) || pomodoroManager.state != .idle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
+                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && pomodoroManager.state != .idle && !vm.hideOnClosed {
+                          // Note: For now, if music is idle but pomodoro is running, maybe it shows face or dual.
+                          // Wait, the user specifically mentioned Dual Live Activity (music AND pomodoro).
+                          // If music is NOT playing, we probably still show Pomodoro! Let's build a PomodoroLiveActivity or fallback.
+                          BoringFaceAnimation() // For now keeping consistent
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
@@ -349,6 +361,17 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .pomodoro:
+                        PomodoroView()
+                    case .quickNotes:
+                        if Defaults[.enableQuickNotes] {
+                            QuickNotesView()
+                        } else {
+                            Text("Quick Notes are disabled in Settings.")
+                                .foregroundColor(.white.opacity(0.5))
+                                .font(.system(.body, design: .rounded))
+                                .padding()
+                        }
                     }
                 }
                 .transition(
@@ -387,7 +410,7 @@ struct ContentView: View {
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
-        HStack {
+        HStack(spacing: 8) {
             Image(nsImage: musicManager.albumArt)
                 .resizable()
                 .clipped()
@@ -404,7 +427,7 @@ struct ContentView: View {
             Rectangle()
                 .fill(.black)
                 .overlay(
-                    HStack(alignment: .top) {
+                    HStack(alignment: .center, spacing: 4) {
                         if coordinator.expandingView.show
                             && coordinator.expandingView.type == .music
                         {
@@ -436,6 +459,19 @@ struct ContentView: View {
                                         && Defaults[.sneakPeekStyles] == .inline)
                                         ? 1 : 0
                                 )
+                        } else if pomodoroManager.state != .idle && Defaults[.enableDualStatusPomodoro] {
+                            HStack(spacing: 4) {
+                                Image(systemName: "timer")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text(pomodoroManager.formattedTime)
+                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    .foregroundColor(Defaults[.coloredSpectrogram] ? Color(nsColor: musicManager.avgColor) : Color.white)
+                            }
+                            .frame(maxHeight: .infinity, alignment: .center)
+                            .padding(.horizontal, 4)
+                            .transition(.opacity)
                         }
                     }
                 )

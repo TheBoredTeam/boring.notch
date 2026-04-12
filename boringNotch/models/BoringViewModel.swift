@@ -211,8 +211,11 @@ class BoringViewModel: NSObject, ObservableObject {
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+        if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
             coordinator.currentView = .shelf
+        } else if coordinator.currentView == .pomodoro {
+            // Preserve the Pomodoro view so the user doesn't lose their place 
+            // if they accidentally move their cursor away while setting up the timer.
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home
         }
