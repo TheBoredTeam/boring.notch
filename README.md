@@ -62,7 +62,7 @@ Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Application
 
 #### Recommended: Terminal (Always Works)
 
-This is the fastest and simplest method. It requires just one command and works reliably for all users, unlike System Settings, which occasionally doesn't.
+This is the quickest and easiest method. It only requires a single command and works consistently for all users. System Settings can sometimes fail and won't work for non-admin users.
 
 After moving Boring Notch to your Applications folder, run:
 
