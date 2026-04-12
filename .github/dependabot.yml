@@ -14,3 +14,8 @@ updates:
     directory: "/Configuration/dmg"
     schedule:
       interval: "weekly"
+
+  - package-ecosystem: "swift"
+    directory: "/boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
+    schedule:
+      interval: "weekly"
