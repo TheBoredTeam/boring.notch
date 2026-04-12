@@ -214,19 +214,57 @@ jobs:
           RELEASE_NOTES: ${{ needs.preparation.outputs.release_notes }}
         run: printf '%s' "$RELEASE_NOTES" > Release/boringNotch.html
 
+      - name: Build Sparkle generate_appcast from source
+        run: |
+          set -euo pipefail
+          SPARKLE_METADATA_PATH="boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          SPARKLE_VERSION=$(python3 - <<'PY'
+import json
+from pathlib import Path
+pins = json.loads(Path("boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved").read_text())["pins"]
+sparkle = next(pin for pin in pins if pin["identity"] == "sparkle")
+print(sparkle["state"]["version"])
+PY
+)
+          SPARKLE_REVISION=$(python3 - <<'PY'
+import json
+from pathlib import Path
+pins = json.loads(Path("boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved").read_text())["pins"]
+sparkle = next(pin for pin in pins if pin["identity"] == "sparkle")
+print(sparkle["state"]["revision"])
+PY
+)
+          SPARKLE_SRC="$RUNNER_TEMP/Sparkle"
+          SPARKLE_DERIVED="$RUNNER_TEMP/sparkle-derived"
+          echo "Using Sparkle ${SPARKLE_VERSION} (${SPARKLE_REVISION}) from ${SPARKLE_METADATA_PATH}"
+          git clone https://github.com/sparkle-project/Sparkle "$SPARKLE_SRC"
+          git -C "$SPARKLE_SRC" checkout --detach "$SPARKLE_REVISION"
+          git -C "$SPARKLE_SRC" fetch --tags --force
+          git -C "$SPARKLE_SRC" tag --points-at "$SPARKLE_REVISION" | grep -Fx "$SPARKLE_VERSION" >/dev/null || {
+            echo "::error::Sparkle revision ${SPARKLE_REVISION} is not tagged as ${SPARKLE_VERSION}"; exit 1;
+          }
+          xcodebuild -project "$SPARKLE_SRC/Sparkle.xcodeproj" \
+            -scheme generate_appcast \
+            -configuration Release \
+            -derivedDataPath "$SPARKLE_DERIVED" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+          install -m 0755 "$SPARKLE_DERIVED/Build/Products/Release/generate_appcast" \
+            "$RUNNER_TEMP/generate_appcast"
+
       - name: Generate signed appcast
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
         run: |
           set -euo pipefail
-          test -x Configuration/sparkle/generate_appcast || {
-            echo "::error::Configuration/sparkle/generate_appcast missing or not executable"; exit 1;
+          test -x "$RUNNER_TEMP/generate_appcast" || {
+            echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
           }
           CHANNEL_ARGS=()
           if [[ "${IS_BETA}" == "true" ]]; then
             CHANNEL_ARGS=(--channel "${{ env.BETA_CHANNEL_NAME }}")
           fi
-          printf '%s' "$SPARKLE_PRIVATE_KEY" | ./Configuration/sparkle/generate_appcast \
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
             --ed-key-file - \
             --link "https://github.com/TheBoredTeam/boring.notch/releases" \
             --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/" \
