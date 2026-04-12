@@ -154,7 +154,8 @@ jobs:
           VENV_DIR="$RUNNER_TEMP/venv"
           python3 -m venv "$VENV_DIR"
           source "$VENV_DIR/bin/activate"
-          pip install --upgrade pip setuptools wheel "dmgbuild[badge_icons]"
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --require-hashes -r Configuration/dmg/requirements.txt
           chmod +x Configuration/dmg/create_dmg.sh
           ./Configuration/dmg/create_dmg.sh \
             "Release/${{ env.PROJECT_NAME }}.app" \
