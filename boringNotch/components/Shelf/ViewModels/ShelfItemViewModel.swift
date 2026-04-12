@@ -11,6 +11,10 @@ import SwiftUI
 import UniformTypeIdentifiers
 import CoreServices
 import ObjectiveC
+import PDFKit
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
 
 @MainActor
 final class ShelfItemViewModel: ObservableObject {
@@ -207,6 +211,16 @@ final class ShelfItemViewModel: ObservableObject {
         if !selection.isSelected(item.id) { selection.selectSingle(item) }
     }
 
+    private func isPDF(_ url: URL) -> Bool {
+        if url.pathExtension.lowercased() == "pdf" {
+            return true
+        }
+        if let contentType = try? url.resourceValues(forKeys: [.contentTypeKey]).contentType {
+            return contentType.conforms(to: .pdf)
+        }
+        return false
+    }
+
     func presentContextMenu(event: NSEvent, in view: NSView) {
         ensureContextMenuSelection()
         let menu = NSMenu()
@@ -222,6 +236,7 @@ final class ShelfItemViewModel: ObservableObject {
             if case .link(let url) = itm.kind { return url }
             return nil
         }
+        let selectedPDFURLs = selectedFileURLs.filter { isPDF($0) }
         let selectedFolderURLs = selectedFileURLs.filter { isDirectory($0) }
         // URLs valid for Open/Open With (exclude folders)
         let selectedOpenableURLs = selectedItems.compactMap { itm -> URL? in
@@ -319,6 +334,10 @@ final class ShelfItemViewModel: ObservableObject {
 
         menu.addItem(NSMenuItem.separator())
         addMenuItem(title: "Share…")
+
+        if !selectedPDFURLs.isEmpty {
+            addMenuItem(title: "Summarize PDF with Apple Intelligence")
+        }
         
         // Add image processing options for image files grouped under "Image Actions"
         let imageURLs = selectedFileURLs.filter { ImageProcessingService.shared.isImageFile($0) }
@@ -477,6 +496,9 @@ final class ShelfItemViewModel: ObservableObject {
 
             case "Share…":
                 viewModel.shareItem(from: view)
+                
+            case "Summarize PDF with Apple Intelligence":
+                handleSummarizePDFWithAppleIntelligence()
 
             case "Rename":
                 let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
@@ -846,6 +868,42 @@ final class ShelfItemViewModel: ObservableObject {
                 }
             }
         }
+
+        @MainActor
+        private func handleSummarizePDFWithAppleIntelligence() {
+            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let pdfURLs = selected.compactMap { $0.fileURL }.filter { isPDF($0) }
+            guard !pdfURLs.isEmpty else { return }
+
+            Task {
+                do {
+                    let summary = try await pdfURLs.accessSecurityScopedResources { urls in
+                        try await PDFAppleIntelligenceSummaryService.shared.summarizePDFs(at: urls)
+                    }
+
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(summary, forType: .string)
+
+                    showInfoAlert(
+                        title: "PDF Summarized",
+                        message: "The summary was copied to your clipboard."
+                    )
+                } catch {
+                    print("❌ Failed to summarize PDF: \(error.localizedDescription)")
+                    showErrorAlert(title: "PDF Summary Failed", message: error.localizedDescription)
+                }
+            }
+        }
+
+        private func isPDF(_ url: URL) -> Bool {
+            if url.pathExtension.lowercased() == "pdf" {
+                return true
+            }
+            if let contentType = try? url.resourceValues(forKeys: [.contentTypeKey]).contentType {
+                return contentType.conforms(to: .pdf)
+            }
+            return false
+        }
         
         @MainActor
         private func showConvertImageDialog() {
@@ -1065,6 +1123,16 @@ final class ShelfItemViewModel: ObservableObject {
             alert.addButton(withTitle: "OK")
             alert.runModal()
         }
+
+        @MainActor
+        private func showInfoAlert(title: String, message: String) {
+            let alert = NSAlert()
+            alert.messageText = title
+            alert.informativeText = message
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
     }
 
     // MARK: - Private helpers
@@ -1096,6 +1164,144 @@ final class ShelfItemViewModel: ObservableObject {
             return NSWorkspace.shared.urlForApplication(toOpen: url)
         }
         return nil
+    }
+}
+
+enum PDFAppleIntelligenceSummaryServiceError: LocalizedError {
+    case noReadablePDFText
+    case unsupportedOS
+    case modelUnavailable
+    case emptyModelResponse
+
+    var errorDescription: String? {
+        switch self {
+        case .noReadablePDFText:
+            return "No readable text was found in the selected PDF."
+        case .unsupportedOS:
+            return "Apple Intelligence summaries require a newer macOS SDK/runtime."
+        case .modelUnavailable:
+            return "Apple Intelligence is not available on this Mac."
+        case .emptyModelResponse:
+            return "Apple Intelligence returned an empty summary."
+        }
+    }
+}
+
+actor PDFAppleIntelligenceSummaryService {
+    static let shared = PDFAppleIntelligenceSummaryService()
+
+    func summarizePDFs(at urls: [URL]) async throws -> String {
+        try await summarizePDFsWithContext(at: urls).summary
+    }
+
+    func summarizePDFsWithContext(at urls: [URL]) async throws -> (summary: String, documentText: String) {
+        let extractedText = extractText(from: urls)
+        guard !extractedText.isEmpty else {
+            throw PDFAppleIntelligenceSummaryServiceError.noReadablePDFText
+        }
+
+#if canImport(FoundationModels)
+        if #available(macOS 26.0, *) {
+            let model = SystemLanguageModel.default
+            guard model.isAvailable else {
+                throw PDFAppleIntelligenceSummaryServiceError.modelUnavailable
+            }
+
+            let prompt = """
+            Summarize the following PDF content.
+            Keep it concise and structured:
+            - 5 key points
+            - Important dates/numbers
+            - 1 short takeaway
+            Reply in French.
+
+            PDF content:
+            \(extractedText)
+            """
+
+            let session = LanguageModelSession(
+                instructions: "You are a precise assistant that summarizes documents faithfully."
+            )
+            let response = try await session.respond(to: prompt)
+            let summary = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !summary.isEmpty else {
+                throw PDFAppleIntelligenceSummaryServiceError.emptyModelResponse
+            }
+            return (summary, extractedText)
+        }
+#endif
+
+        throw PDFAppleIntelligenceSummaryServiceError.unsupportedOS
+    }
+
+    func answerQuestion(_ question: String, summary: String, documentText: String) async throws -> String {
+        let trimmedQuestion = question.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedQuestion.isEmpty else {
+            throw PDFAppleIntelligenceSummaryServiceError.emptyModelResponse
+        }
+
+#if canImport(FoundationModels)
+        if #available(macOS 26.0, *) {
+            let model = SystemLanguageModel.default
+            guard model.isAvailable else {
+                throw PDFAppleIntelligenceSummaryServiceError.modelUnavailable
+            }
+
+            let context = documentText.isEmpty ? summary : documentText
+            let prompt = """
+            Answer the user's question using only the PDF context below.
+            If the answer is not present in the PDF context, say that the document does not contain enough information.
+            Reply in French and keep the answer concise.
+
+            Summary:
+            \(summary)
+
+            PDF context:
+            \(context)
+
+            Question:
+            \(trimmedQuestion)
+            """
+
+            let session = LanguageModelSession(
+                instructions: "You are a precise assistant that answers questions about a PDF document faithfully."
+            )
+            let response = try await session.respond(to: prompt)
+            let answer = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !answer.isEmpty else {
+                throw PDFAppleIntelligenceSummaryServiceError.emptyModelResponse
+            }
+            return answer
+        }
+#endif
+
+        throw PDFAppleIntelligenceSummaryServiceError.unsupportedOS
+    }
+
+    private func extractText(from urls: [URL]) -> String {
+        let maxPerPDF = 8_000
+        let maxTotal = 24_000
+        var sections: [String] = []
+        var totalCount = 0
+
+        for url in urls {
+            guard totalCount < maxTotal else { break }
+            guard let document = PDFDocument(url: url),
+                  let rawText = document.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !rawText.isEmpty else {
+                continue
+            }
+
+            let truncated = String(rawText.prefix(maxPerPDF))
+            let remaining = maxTotal - totalCount
+            let toAppend = String(truncated.prefix(max(remaining, 0)))
+            guard !toAppend.isEmpty else { break }
+
+            sections.append("Document: \(url.lastPathComponent)\n\(toAppend)")
+            totalCount += toAppend.count
+        }
+
+        return sections.joined(separator: "\n\n---\n\n")
     }
 }
 
