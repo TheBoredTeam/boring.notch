@@ -1,4 +1,6 @@
+preserve_hierarchy: true
+
 files:
   - source: /boringNotch/Localizable.xcstrings
     translation: /boringNotch/Localizable.xcstrings
-    multilingual: 1
+    multilingual: true
