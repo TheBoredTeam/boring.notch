@@ -16,6 +16,6 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: "swift"
-    directory: "/boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
+    directory: "/"
     schedule:
       interval: "weekly"
