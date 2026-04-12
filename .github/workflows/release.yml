@@ -223,33 +223,33 @@ jobs:
           SPARKLE_REPO_URL="https://github.com/sparkle-project/Sparkle"
 
           IFS=$'\t' read -r SPARKLE_VERSION SPARKLE_REVISION <<< "$(python3 - "$SPARKLE_METADATA_PATH" <<'PY'
-import json
-import sys
-from pathlib import Path
+          import json
+          import sys
+          from pathlib import Path
 
-path = Path(sys.argv[1])
-data = json.loads(path.read_text())
-pins = data.get("pins", [])
+          path = Path(sys.argv[1])
+          data = json.loads(path.read_text())
+          pins = data.get("pins", [])
 
-sparkle = next((pin for pin in pins if pin.get("identity") == "sparkle"), None)
-if sparkle is None:
-    print(f"::error::No 'sparkle' pin found in {path}", file=sys.stderr)
-    sys.exit(1)
+          sparkle = next((pin for pin in pins if pin.get("identity") == "sparkle"), None)
+          if sparkle is None:
+              print(f"::error::No 'sparkle' pin found in {path}", file=sys.stderr)
+              sys.exit(1)
 
-state = sparkle.get("state", {})
-version = state.get("version")
-revision = state.get("revision")
+          state = sparkle.get("state", {})
+          version = state.get("version")
+          revision = state.get("revision")
 
-if not version:
-    print(f"::error::Sparkle pin in {path} is not version-pinned", file=sys.stderr)
-    sys.exit(1)
+          if not version:
+              print(f"::error::Sparkle pin in {path} is not version-pinned", file=sys.stderr)
+              sys.exit(1)
 
-if not revision:
-    print(f"::error::Sparkle pin in {path} has no revision", file=sys.stderr)
-    sys.exit(1)
+          if not revision:
+              print(f"::error::Sparkle pin in {path} has no revision", file=sys.stderr)
+              sys.exit(1)
 
-print(f"{version}\t{revision}")
-PY
+          print(f"{version}\t{revision}")
+          PY
           )"
 
           echo "Using Sparkle ${SPARKLE_VERSION} (${SPARKLE_REVISION}) from ${SPARKLE_METADATA_PATH}"
