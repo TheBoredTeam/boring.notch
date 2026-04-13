@@ -69,13 +69,10 @@ final class YouTubeMusicController: MediaControllerProtocol {
 
     deinit {
         artworkFetchTask?.cancel()
-        reconnectTask?.cancel()
+        cancelReconnect(resetDelay: false)
         appStateObserver?.cancel()
         stopPeriodicUpdates()
-
-        Task {
-            await webSocketClient?.disconnect()
-        }
+        disconnectClient(takeWebSocketClient())
     }
     
     // MARK: - MediaControllerProtocol Implementation
@@ -186,9 +183,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             return
         }
         
-        reconnectTask?.cancel()
-        reconnectTask = nil
-        reconnectDelay = configuration.reconnectDelay.lowerBound
+        cancelReconnect(resetDelay: true)
         await initializeIfAppActive()
     }
     
@@ -198,8 +193,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             return
         }
 
-        let disconnectedClient = webSocketClient
-        webSocketClient = nil
+        let disconnectedClient = takeWebSocketClient()
         
         Task { @MainActor in
             stopPeriodicUpdates()
@@ -207,21 +201,15 @@ final class YouTubeMusicController: MediaControllerProtocol {
             // It must stay alive to detect when the app launches again.
         }
 
-        reconnectTask?.cancel()
-        reconnectTask = nil
-        reconnectDelay = configuration.reconnectDelay.lowerBound
+        cancelReconnect(resetDelay: true)
         resetPlaybackState()
-
-        Task {
-            await disconnectedClient?.disconnect()
-        }
+        disconnectClient(disconnectedClient)
     }
     
     private func initializeIfAppActive() async {
         guard isActive() else { return }
         
-        reconnectTask?.cancel()
-        reconnectTask = nil
+        cancelReconnect(resetDelay: false)
         
         if await hasActiveWebSocketConnection() {
             await updatePlaybackInfo()
@@ -256,11 +244,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
         
         do {
             try await client.connect(to: wsURL, with: token)
-            webSocketClient = client
-            reconnectTask?.cancel()
-            reconnectTask = nil
-            stopPeriodicUpdates() // WebSocket will provide real-time updates
-            reconnectDelay = configuration.reconnectDelay.lowerBound
+            activateWebSocket(client)
         } catch {
             print("[YouTubeMusicController] WebSocket connection failed: \(error)")
             scheduleReconnect()
@@ -334,7 +318,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     }
     
     private func handleWebSocketDisconnect() async {
-        webSocketClient = nil
+        _ = takeWebSocketClient()
         await startPeriodicUpdates() // Fallback to polling
         scheduleReconnect()
     }
@@ -348,6 +332,33 @@ final class YouTubeMusicController: MediaControllerProtocol {
         }
 
         return isConnected
+    }
+
+    private func cancelReconnect(resetDelay: Bool) {
+        reconnectTask?.cancel()
+        reconnectTask = nil
+
+        if resetDelay {
+            reconnectDelay = configuration.reconnectDelay.lowerBound
+        }
+    }
+
+    private func takeWebSocketClient() -> YouTubeMusicWebSocketClient? {
+        let currentClient = webSocketClient
+        webSocketClient = nil
+        return currentClient
+    }
+
+    private func activateWebSocket(_ client: YouTubeMusicWebSocketClient) {
+        webSocketClient = client
+        cancelReconnect(resetDelay: true)
+        stopPeriodicUpdates() // WebSocket will provide real-time updates
+    }
+
+    private func disconnectClient(_ client: YouTubeMusicWebSocketClient?) {
+        Task {
+            await client?.disconnect()
+        }
     }
     
     private func scheduleReconnect() {
