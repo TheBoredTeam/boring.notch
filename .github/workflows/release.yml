@@ -22,21 +22,37 @@ jobs:
   # helper job to test for the release command in the comment; env is safe to use here
   check_release:
     name: Check for release command
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, env.RELEASE_COMMAND) }}
     runs-on: ubuntu-latest
     outputs:
       is_release: ${{ steps.check.outputs.is_release }}
+      is_eligible_pr: ${{ steps.check.outputs.is_eligible_pr }}
     steps:
       - id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
-          if [[ "${{ github.event.comment.body }}" == *"${{ env.RELEASE_COMMAND }}"* ]]; then
-            echo "is_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_release=false" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          IS_ELIGIBLE_PR=false
+          PR_NUMBER="${{ github.event.issue.number }}"
+          PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
+            --jq '{head_ref: .head.ref, base_ref: .base.ref, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name}')
+          HEAD_REF=$(echo "$PR_DATA" | jq -r '.head_ref')
+          BASE_REF=$(echo "$PR_DATA" | jq -r '.base_ref')
+          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.head_repo')
+          BASE_REPO=$(echo "$PR_DATA" | jq -r '.base_repo')
+
+          if [[ "$HEAD_REPO" == "$REPO" && "$BASE_REPO" == "$REPO" && "$HEAD_REF" == "dev" && "$BASE_REF" == "main" ]]; then
+            IS_ELIGIBLE_PR=true
           fi
+
+          echo "is_release=true" >> "$GITHUB_OUTPUT"
+          echo "is_eligible_pr=$IS_ELIGIBLE_PR" >> "$GITHUB_OUTPUT"
 
   preparation:
     name: Preparation
-    if: ${{ github.event.issue.pull_request && needs.check_release.outputs.is_release == 'true' }}
+    if: ${{ needs.check_release.outputs.is_release == 'true' && needs.check_release.outputs.is_eligible_pr == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
