@@ -133,6 +133,7 @@ final class YouTubeMusicHTTPClient: ObservableObject {
 // MARK: - WebSocket Client
 actor YouTubeMusicWebSocketClient {
     private var task: URLSessionWebSocketTask?
+    private var suppressedDisconnectTasks = Set<ObjectIdentifier>()
     private let session: URLSession
     private let onMessage: @Sendable (Data) async -> Void
     private let onDisconnect: @Sendable () async -> Void
@@ -159,18 +160,23 @@ actor YouTubeMusicWebSocketClient {
         task = newTask
         newTask.resume()
         
-        Task { await listenForMessages() }
+        Task { await listenForMessages(for: newTask) }
     }
     
     func disconnect() async {
-        task?.cancel(with: .goingAway, reason: nil)
-        task = nil
-    }
-    
-    private func listenForMessages() async {
         guard let currentTask = task else { return }
         
-        while !Task.isCancelled && task != nil {
+        suppressedDisconnectTasks.insert(ObjectIdentifier(currentTask))
+        currentTask.cancel(with: .goingAway, reason: nil)
+        if task === currentTask {
+            task = nil
+        }
+    }
+    
+    private func listenForMessages(for currentTask: URLSessionWebSocketTask) async {
+        guard task === currentTask else { return }
+        
+        while !Task.isCancelled && task === currentTask {
             do {
                 let message = try await currentTask.receive()
                 
@@ -189,8 +195,15 @@ actor YouTubeMusicWebSocketClient {
                 break
             }
         }
-        task = nil
-        await onDisconnect()
+        
+        if task === currentTask {
+            task = nil
+        }
+        
+        let shouldNotifyDisconnect = suppressedDisconnectTasks.remove(ObjectIdentifier(currentTask)) == nil
+        if shouldNotifyDisconnect {
+            await onDisconnect()
+        }
     }
 }
 
