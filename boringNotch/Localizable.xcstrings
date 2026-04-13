@@ -927,6 +927,23 @@
         }
       }
     },
+    "Alternative calendars" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alternative calendars"
+          }
+        }
+      }
+    },
+    "Always alternate" : {
+
+    },
+    "Always default" : {
+
+    },
     "Always show full event titles" : {
       "localizations" : {
         "de" : {
@@ -1998,6 +2015,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "日历访问被拒绝。请在系统设置中启用它。"
+          }
+        }
+      }
+    },
+    "Calendar subtitle display" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar subtitle display"
           }
         }
       }
@@ -5937,6 +5965,9 @@
           }
         }
       }
+    },
+    "Lunar" : {
+
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
@@ -10254,6 +10285,9 @@
           }
         }
       }
+    },
+    "Tap to switch" : {
+
     },
     "Time to Full Charge: %lld min" : {
       "localizations" : {

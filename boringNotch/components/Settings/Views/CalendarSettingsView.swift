@@ -15,6 +15,8 @@ struct CalendarSettings: View {
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
+    @Default(.calendarSubtitleDisplayMode) var calendarSubtitleDisplayMode
+    @Default(.alternativeCalendar) var alternativeCalendar
 
     var body: some View {
         Form {
@@ -33,6 +35,23 @@ struct CalendarSettings: View {
             Defaults.Toggle(key: .showFullEventTitles) {
                 Text("Always show full event titles")
             }
+            
+            Picker("Calendar subtitle display", selection: $calendarSubtitleDisplayMode) {
+                ForEach(CalendarSubtitleDisplayMode.allCases) { item in
+                    Text(item.localizedString).tag(item)
+                }
+            }
+            .pickerStyle(.menu)
+            
+            if calendarSubtitleDisplayMode != .alwaysDefault {
+                Picker("Alternative calendars", selection: $alternativeCalendar) {
+                    ForEach(AlternativeCalendarType.allCases) { item in
+                        Text(item.localizedString).tag(item)
+                    }
+                }
+                .pickerStyle(.menu)
+            }
+
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
                     Text("Calendar access is denied. Please enable it in System Settings.")
