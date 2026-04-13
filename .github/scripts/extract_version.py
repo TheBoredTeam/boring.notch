@@ -11,11 +11,14 @@ from argparse import ArgumentParser
 
 
 SEMVER_RE = re.compile(r"v?[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?")
-PRERELEASE_ID = r"(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)"
+NUMERIC_IDENTIFIER = r"(?:0|[1-9][0-9]*)"
+ALPHANUMERIC_IDENTIFIER = r"(?:[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)"
+PRERELEASE_IDENTIFIER = rf"(?:{NUMERIC_IDENTIFIER}|{ALPHANUMERIC_IDENTIFIER})"
+BUILD_IDENTIFIER = r"(?:[0-9A-Za-z-]+)"
 NORMALIZED_SEMVER_RE = re.compile(
-    r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)"
-    rf"(?:-({PRERELEASE_ID}(?:\.{PRERELEASE_ID})*))?"
-    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+    rf"^({NUMERIC_IDENTIFIER})\.({NUMERIC_IDENTIFIER})\.({NUMERIC_IDENTIFIER})"
+    rf"(?:-({PRERELEASE_IDENTIFIER}(?:\.{PRERELEASE_IDENTIFIER})*))?"
+    rf"(?:\+({BUILD_IDENTIFIER}(?:\.{BUILD_IDENTIFIER})*))?$"
 )
 
 
