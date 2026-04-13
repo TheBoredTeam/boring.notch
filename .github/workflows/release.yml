@@ -137,7 +137,6 @@ jobs:
           COMMENT: ${{ github.event.comment.body }}
         run: |
           set -euo pipefail
-          python3 -m pip install --upgrade --no-cache-dir semver
           export projname="${{ env.PROJECT_NAME }}"
           OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
           VERSION=$(awk -F= '/^version=/{print $2; exit}' <<<"$OUTPUT")
