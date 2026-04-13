@@ -22,7 +22,7 @@ jobs:
   # helper job to test for the release command in the comment; env is safe to use here
   check_release:
     name: Check for release command
-    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, env.RELEASE_COMMAND) }}
+    if: ${{ github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     outputs:
       is_release: ${{ steps.check.outputs.is_release }}
@@ -32,8 +32,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          RELEASE_COMMAND: ${{ env.RELEASE_COMMAND }}
         run: |
           set -euo pipefail
+          if [[ "$COMMENT_BODY" == *"$RELEASE_COMMAND"* ]]; then
+            IS_RELEASE=true
+          else
+            IS_RELEASE=false
+          fi
+
           IS_ELIGIBLE_PR=false
           PR_NUMBER="${{ github.event.issue.number }}"
           PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
@@ -47,11 +55,12 @@ jobs:
             IS_ELIGIBLE_PR=true
           fi
 
-          echo "is_release=true" >> "$GITHUB_OUTPUT"
+          echo "is_release=$IS_RELEASE" >> "$GITHUB_OUTPUT"
           echo "is_eligible_pr=$IS_ELIGIBLE_PR" >> "$GITHUB_OUTPUT"
 
   preparation:
     name: Preparation
+    needs: check_release
     if: ${{ needs.check_release.outputs.is_release == 'true' && needs.check_release.outputs.is_eligible_pr == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -61,6 +70,8 @@ jobs:
       is_beta: ${{ steps.extract_version.outputs.is_beta }}
       version: ${{ steps.extract_version.outputs.version }}
       build_number: ${{ steps.extract_version.outputs.build_number }}
+      xcode_version: ${{ steps.build_config.outputs.xcode_version }}
+      code_sign_identity: ${{ steps.build_config.outputs.code_sign_identity }}
       title: ${{ steps.release_notes.outputs.title }}
       release_notes: ${{ steps.release_notes.outputs.release_notes }}
       release_notes_github: ${{ steps.release_notes.outputs.release_notes_github }}
@@ -132,10 +143,20 @@ jobs:
           VERSION=$(awk -F= '/^version=/{print $2; exit}' <<<"$OUTPUT")
           IS_BETA=$(awk -F= '/^is_beta=/{print $2; exit}' <<<"$OUTPUT")
           BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "is_beta=$IS_BETA" >> "$GITHUB_OUTPUT"
-          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$VERSION"
+            echo "is_beta=$IS_BETA"
+            echo "build_number=$BUILD_NUMBER"
+          } >> "$GITHUB_OUTPUT"
           echo "Version: $VERSION | Beta: $IS_BETA | Build: $BUILD_NUMBER"
+
+      - name: Expose build configuration
+        id: build_config
+        run: |
+          {
+            echo "xcode_version=${{ env.XCODE_VERSION }}"
+            echo "code_sign_identity=${{ env.CODE_SIGN_IDENTITY }}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes from PR
         id: release_notes
@@ -182,7 +203,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config --global credential.https://github.com.helper \
-            '!f() { echo "username=x-access-token"; printf "password=%s\n" "${GITHUB_TOKEN}"; }; f'
+            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
           git fetch origin "$BASE_REF"
           git checkout "$HEAD_REF"
           git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
@@ -506,7 +527,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config --global credential.https://github.com.helper \
-            '!f() { echo "username=x-access-token"; printf "password=%s\n" "${GITHUB_TOKEN}"; }; f'
+            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
           git fetch origin "$BASE_REF"
           git checkout "$BASE_REF"
           git merge --no-ff "origin/$HEAD_REF" -m "Release version v${VERSION}"
@@ -524,10 +545,12 @@ jobs:
           else
             BUILD_TYPE="stable"
           fi
-          if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
-            echo "✅ Released boringNotch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})" >> "$GITHUB_STEP_SUMMARY"
-            echo "🍺 Homebrew cask updated" >> "$GITHUB_STEP_SUMMARY"
-            echo "📱 Sparkle appcast updated" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "❌ Release failed${VERSION:+ for boringNotch v${VERSION}}" >> "$GITHUB_STEP_SUMMARY"
-          fi
+          {
+            if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
+              echo "✅ Released boringNotch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
+              echo "🍺 Homebrew cask updated"
+              echo "📱 Sparkle appcast updated"
+            else
+              echo "❌ Release failed${VERSION:+ for boringNotch v${VERSION}}"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
