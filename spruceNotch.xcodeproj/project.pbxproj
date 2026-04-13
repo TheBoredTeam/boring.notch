@@ -143,6 +143,13 @@
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		D1E2F3A42B5C6D78901234511 /* SteadyCheckInModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A42B5C6D78901234501 /* SteadyCheckInModels.swift */; };
+		D1E2F3A42B5C6D78901234512 /* SteadyCheckInDraftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A42B5C6D78901234502 /* SteadyCheckInDraftStore.swift */; };
+		D1E2F3A42B5C6D78901234513 /* SteadyCheckInManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A42B5C6D78901234503 /* SteadyCheckInManager.swift */; };
+		D1E2F3A42B5C6D78901234514 /* SteadyAutomationRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A42B5C6D78901234504 /* SteadyAutomationRunner.swift */; };
+		D1E2F3A42B5C6D78901234515 /* SteadyCheckInScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A42B5C6D78901234505 /* SteadyCheckInScheduler.swift */; };
+		D1E2F3A42B5C6D78901234516 /* SteadyCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A42B5C6D78901234506 /* SteadyCheckInView.swift */; };
+		D1E2F3A42B5C6D78901234518 /* SteadyCheckInNSTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A42B5C6D78901234507 /* SteadyCheckInNSTextView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -309,6 +316,13 @@
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		D1E2F3A42B5C6D78901234501 /* SteadyCheckInModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyCheckInModels.swift; sourceTree = "<group>"; };
+		D1E2F3A42B5C6D78901234502 /* SteadyCheckInDraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyCheckInDraftStore.swift; sourceTree = "<group>"; };
+		D1E2F3A42B5C6D78901234503 /* SteadyCheckInManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyCheckInManager.swift; sourceTree = "<group>"; };
+		D1E2F3A42B5C6D78901234504 /* SteadyAutomationRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyAutomationRunner.swift; sourceTree = "<group>"; };
+		D1E2F3A42B5C6D78901234505 /* SteadyCheckInScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyCheckInScheduler.swift; sourceTree = "<group>"; };
+		D1E2F3A42B5C6D78901234506 /* SteadyCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyCheckInView.swift; sourceTree = "<group>"; };
+		D1E2F3A42B5C6D78901234507 /* SteadyCheckInNSTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyCheckInNSTextView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -538,6 +552,20 @@
 			path = Calendar;
 			sourceTree = "<group>";
 		};
+		D1E2F3A42B5C6D789012345F0 /* SteadyCheckIn */ = {
+			isa = PBXGroup;
+			children = (
+				D1E2F3A42B5C6D78901234501 /* SteadyCheckInModels.swift */,
+				D1E2F3A42B5C6D78901234502 /* SteadyCheckInDraftStore.swift */,
+				D1E2F3A42B5C6D78901234503 /* SteadyCheckInManager.swift */,
+				D1E2F3A42B5C6D78901234504 /* SteadyAutomationRunner.swift */,
+				D1E2F3A42B5C6D78901234505 /* SteadyCheckInScheduler.swift */,
+				D1E2F3A42B5C6D78901234506 /* SteadyCheckInView.swift */,
+				D1E2F3A42B5C6D78901234507 /* SteadyCheckInNSTextView.swift */,
+			);
+			path = SteadyCheckIn;
+			sourceTree = "<group>";
+		};
 		14CEF4092C5CAED200855D72 = {
 			isa = PBXGroup;
 			children = (
@@ -574,6 +602,7 @@
 				1153BD8E2D986B1F00979FB0 /* MediaControllers */,
 				B15063502C63D3F600EBB0E3 /* extensions */,
 				1471639B2C5D362F0068B555 /* components */,
+				D1E2F3A42B5C6D789012345F0 /* SteadyCheckIn */,
 				14CEF4152C5CAED300855D72 /* spruceNotchApp.swift */,
 				14CEF4172C5CAED300855D72 /* ContentView.swift */,
 				B17266E02C6532560031BA0D /* Localizable.xcstrings */,
@@ -1020,6 +1049,13 @@
 				1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */,
 				11CFC6632E09918400748C80 /* MusicControllerSelectionView.swift in Sources */,
 				B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */,
+				D1E2F3A42B5C6D78901234511 /* SteadyCheckInModels.swift in Sources */,
+				D1E2F3A42B5C6D78901234512 /* SteadyCheckInDraftStore.swift in Sources */,
+				D1E2F3A42B5C6D78901234513 /* SteadyCheckInManager.swift in Sources */,
+				D1E2F3A42B5C6D78901234514 /* SteadyAutomationRunner.swift in Sources */,
+				D1E2F3A42B5C6D78901234515 /* SteadyCheckInScheduler.swift in Sources */,
+				D1E2F3A42B5C6D78901234516 /* SteadyCheckInView.swift in Sources */,
+				D1E2F3A42B5C6D78901234518 /* SteadyCheckInNSTextView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

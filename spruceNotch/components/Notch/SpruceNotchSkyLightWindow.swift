@@ -6,9 +6,10 @@
 //
 
 import Cocoa
-import SkyLightWindow
-import Defaults
 import Combine
+import Defaults
+import SkyLightWindow
+import SwiftUI
 
 extension SkyLightOperator {
     func undelegateWindow(_ window: NSWindow) {
@@ -58,6 +59,7 @@ class SpruceNotchSkyLightWindow: NSPanel {
         titlebarAppearsTransparent = true
         backgroundColor = .clear
         isMovable = false
+        // Float above normal document windows; independent of `allowsKeyboardFocus` / key status.
         level = .mainMenu + 3
         hasShadow = false
         isReleasedWhenClosed = false
@@ -71,6 +73,12 @@ class SpruceNotchSkyLightWindow: NSPanel {
             .canJoinAllSpaces,
             .ignoresCycle,
         ]
+
+        // Keep this panel key-capable for interactive controls (text input, shortcuts).
+        // `.nonactivatingPanel` makes `makeKeyWindow` fail even when overriding canBecomeKey.
+        if styleMask.contains(.nonactivatingPanel) {
+            styleMask.remove(.nonactivatingPanel)
+        }
         
         // Apply initial sharing type setting
         updateSharingType()
@@ -108,7 +116,16 @@ class SpruceNotchSkyLightWindow: NSPanel {
     }
     
     private var observers: Set<AnyCancellable> = []
-    
-    override var canBecomeKey: Bool { false }
+
+    var allowsKeyboardFocus: Bool = true
+
+    override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+}
+
+/// First mouse-down goes to subviews (e.g. `TextEditor`) instead of only activating the panel.
+final class AcceptsFirstMouseHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+        true
+    }
 }

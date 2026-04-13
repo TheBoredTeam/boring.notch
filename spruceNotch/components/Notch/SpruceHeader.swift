@@ -16,7 +16,9 @@ struct SpruceHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.spruceShelf] {
+                if (!tvm.isEmpty || coordinator.alwaysShowTabs || Defaults[.steadyCheckInEnabled])
+                    && (Defaults[.spruceShelf] || Defaults[.steadyCheckInEnabled])
+                {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()

@@ -54,6 +54,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
+                NavigationLink(value: "Steady Check-in") {
+                    Label("Steady Check-in", systemImage: "checkmark.circle")
+                }
                 // NavigationLink(value: "Extensions") {
                 //     Label("Extensions", systemImage: "puzzlepiece.extension")
                 // }
@@ -87,6 +90,8 @@ struct SettingsView: View {
                     Shelf()
                 case "Shortcuts":
                     Shortcuts()
+                case "Steady Check-in":
+                    SteadyCheckInSettings()
                 case "Extensions":
                     GeneralSettings()
                 case "Advanced":
@@ -1791,6 +1796,61 @@ func warningBadge(_ text: String, _ description: String) -> some View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+        }
+    }
+}
+
+struct SteadyCheckInSettings: View {
+    @Default(.steadyCheckInEnabled) var steadyCheckInEnabled
+    @Default(.steadyCheckInURL) var steadyCheckInURL
+    @Default(.steadyCheckInDelaySeconds) var steadyCheckInDelaySeconds
+    @Default(.steadyAutomationMode) var steadyAutomationMode
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Enable Steady check-in", isOn: $steadyCheckInEnabled)
+                    .tint(.effectiveAccent)
+            } footer: {
+                Text("On weekdays, Spruce Notch can open the check-in flow after a delay when you wake your Mac or launch the app.")
+            }
+
+            Section {
+                Button {
+                    SteadyCheckInManager.shared.startManualFlow()
+                } label: {
+                    Label("Start check-in now", systemImage: "play.circle")
+                }
+            } footer: {
+                Text("Opens the notch and starts the check-in flow (same as the menu bar command). Works even if automatic reminders are off.")
+            }
+
+            Section {
+                TextField("Check-in URL", text: $steadyCheckInURL)
+                    .textFieldStyle(.roundedBorder)
+                Slider(value: $steadyCheckInDelaySeconds, in: 15...300, step: 15) {
+                    Text("Delay after wake or launch: \(Int(steadyCheckInDelaySeconds))s")
+                }
+            } header: {
+                Text("Steady")
+            } footer: {
+                Text("Include `{date}` where the path needs today’s date (yyyy-MM-dd), e.g. …/check-ins/{date}/edit. Omit `{date}` for a fixed URL.")
+            }
+
+            Section {
+                Picker("Automation", selection: $steadyAutomationMode) {
+                    ForEach(SteadyAutomationMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+            } footer: {
+                Text(steadyAutomationMode.detail)
+            }
+        }
+        .onChange(of: steadyCheckInEnabled) { _, new in
+            if !new, SpruceViewCoordinator.shared.currentView == .steadyCheckIn {
+                SpruceViewCoordinator.shared.currentView = .home
+            }
         }
     }
 }

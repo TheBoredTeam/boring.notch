@@ -6,6 +6,7 @@
 //  Modified by Richard Kunkli on 24/08/2024.
 //
 
+import AppKit
 import AVFoundation
 import Combine
 import Defaults
@@ -80,6 +81,14 @@ struct ContentView: View {
         return chinWidth
     }
 
+    /// Lets the tall Steady check-in panel grow past the default open notch height without clipping.
+    private var contentMaxHeight: CGFloat {
+        if vm.notchState == .open {
+            return vm.notchSize.height + shadowPadding + 8
+        }
+        return windowSize.height
+    }
+
     var body: some View {
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
@@ -131,16 +140,18 @@ struct ContentView: View {
                     .onHover { hovering in
                         handleHover(hovering)
                     }
-                    .onTapGesture {
-                        doOpen()
+                    .conditionalModifier(vm.notchState == .closed) { view in
+                        view.onTapGesture {
+                            doOpen()
+                        }
                     }
-                    .conditionalModifier(Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.enableGestures] && vm.notchState == .closed) { view in
                         view
                             .panGesture(direction: .down) { translation, phase in
                                 handleDownGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures] && vm.notchState == .closed) { view in
                         view
                             .panGesture(direction: .up) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
@@ -203,7 +214,7 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .frame(maxWidth: windowSize.width, maxHeight: contentMaxHeight, alignment: .top)
         .compositingGroup()
         .scaleEffect(
             x: gestureScale,
@@ -214,6 +225,12 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onChange(of: vm.notchState) { _, _ in
+            syncNotchPanelKeyability()
+        }
+        .onAppear {
+            syncNotchPanelKeyability()
+        }
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -349,6 +366,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .steadyCheckIn:
+                        SteadyCheckInView()
                     }
                 }
                 .transition(
@@ -356,7 +375,7 @@ struct ContentView: View {
                     .combined(with: .opacity)
                     .animation(.smooth(duration: 0.35))
                 )
-                .zIndex(1)
+                .zIndex(10)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
@@ -506,6 +525,10 @@ struct ContentView: View {
         withAnimation(animationSpring) {
             vm.open()
         }
+    }
+
+    private func syncNotchPanelKeyability() {
+        (NSApp.delegate as? AppDelegate)?.syncNotchPanelKeyability()
     }
 
     // MARK: - Hover Management

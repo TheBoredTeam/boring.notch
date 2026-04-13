@@ -3202,6 +3202,9 @@
         }
       }
     },
+    "Automation" : {
+
+    },
     "Battery" : {
       "localizations" : {
         "ar" : {
@@ -4501,6 +4504,9 @@
           }
         }
       }
+    },
+    "Check-in URL" : {
+
     },
     "Choose a Music Source" : {
       "localizations" : {
@@ -6902,6 +6908,9 @@
         }
       }
     },
+    "Delay after wake or launch: %llds" : {
+
+    },
     "Description" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8606,6 +8615,9 @@
           }
         }
       }
+    },
+    "Enable Steady check-in" : {
+
     },
     "Enable window shadow" : {
       "localizations" : {
@@ -11408,6 +11420,9 @@
         }
       }
     },
+    "Ignore today" : {
+
+    },
     "In progress" : {
       "localizations" : {
         "ar" : {
@@ -11507,6 +11522,9 @@
           }
         }
       }
+    },
+    "Include `{date}` where the path needs today’s date (yyyy-MM-dd), e.g. …/check-ins/{date}/edit. Omit `{date}` for a fixed URL." : {
+
     },
     "Inline" : {
       "localizations" : {
@@ -15313,6 +15331,9 @@
         }
       }
     },
+    "On weekdays, Spruce Notch can open the check-in flow after a delay when you wake your Mac or launch the app." : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -15812,6 +15833,12 @@
           }
         }
       }
+    },
+    "Open Steady" : {
+
+    },
+    "Opens the notch and starts the check-in flow (same as the menu bar command). Works even if automatic reminders are off." : {
+
     },
     "Option key behaviour" : {
       "localizations" : {
@@ -20815,6 +20842,21 @@
         }
       }
     },
+    "Start check-in now" : {
+
+    },
+    "Steady" : {
+
+    },
+    "Steady check-in" : {
+
+    },
+    "Steady Check-in" : {
+
+    },
+    "Steady check-in…" : {
+
+    },
     "Stopped" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -21216,6 +21258,9 @@
           }
         }
       }
+    },
+    "Time for your daily check-in." : {
+
     },
     "Time to Full Charge: %lld min" : {
       "localizations" : {

@@ -16,6 +16,7 @@ import SwiftUI
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Default(.menubarIcon) var showMenuBarIcon
+    @Default(.steadyCheckInEnabled) private var steadyCheckInEnabled
     @Environment(\.openWindow) var openWindow
 
     let updaterController: SPUStandardUpdaterController
@@ -36,6 +37,11 @@ struct DynamicNotchApp: App {
                 }
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+            if steadyCheckInEnabled {
+                Button("Steady check-in…") {
+                    SteadyCheckInManager.shared.startManualFlow()
+                }
+            }
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Restart Spruce Notch") {
@@ -67,6 +73,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
+    private var steadyCheckInOpenObserver: NSObjectProtocol?
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -81,6 +88,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let observer = screenUnlockedObserver {
             DistributedNotificationCenter.default().removeObserver(observer)
             screenUnlockedObserver = nil
+        }
+        if let o = steadyCheckInOpenObserver {
+            NotificationCenter.default.removeObserver(o)
+            steadyCheckInOpenObserver = nil
         }
         MusicManager.shared.destroy()
         cleanupDragDetectors()
@@ -244,7 +255,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.disableSkyLight()
         }
 
-        window.contentView = NSHostingView(
+        window.contentView = AcceptsFirstMouseHostingView(
             rootView: ContentView()
                 .environmentObject(viewModel)
         )
@@ -447,7 +458,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupDragDetectors()
 
-        if coordinator.firstLaunch {
+        steadyCheckInOpenObserver = NotificationCenter.default.addObserver(
+            forName: .steadyCheckInOpenNotch,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.openNotchForSteadyCheckIn()
+            }
+        }
+        SteadyCheckInScheduler.shared.register()
+        SteadyCheckInScheduler.shared.scheduleSessionStartPrompt()
+
+        if !coordinator.onboardingWindowDismissed {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
             }
@@ -526,6 +549,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
 
                 if let window = windows[uuid], let viewModel = viewModels[uuid] {
+                    syncNotchWindowFrameHeight(window: window, viewModel: viewModel)
                     positionWindow(window, on: screen, changeAlpha: changeAlpha)
 
                     if viewModel.notchState == .closed {
@@ -551,13 +575,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             vm.screenUUID = selectedScreen.displayUUID
-            vm.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
+            if vm.notchState == .closed {
+                vm.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
+            }
 
             if window == nil {
                 window = createSpruceNotchWindow(for: selectedScreen, with: vm)
             }
 
             if let window = window {
+                syncNotchWindowFrameHeight(window: window, viewModel: vm)
                 positionWindow(window, on: selectedScreen, changeAlpha: changeAlpha)
 
                 if vm.notchState == .closed {
@@ -565,6 +592,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+    }
+
+    /// Match panel window height to `notchSize` when open (e.g. tall Steady check-in), else default chrome height.
+    private func syncNotchWindowFrameHeight(window: NSWindow, viewModel: SpruceViewModel) {
+        let contentHeight: CGFloat
+        if viewModel.notchState == .open {
+            contentHeight = viewModel.notchSize.height + shadowPadding + 8
+        } else {
+            contentHeight = windowSize.height
+        }
+        var f = window.frame
+        guard abs(f.height - contentHeight) > 0.5 else { return }
+        f.size.height = contentHeight
+        window.setFrame(f, display: true, animate: false)
     }
 
     @objc func togglePopover(_ sender: Any?) {
@@ -581,6 +622,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func quitAction() {
         NSApplication.shared.terminate(self)
+    }
+
+    @MainActor
+    func openNotchForSteadyCheckIn() {
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        SpruceViewCoordinator.shared.currentView = .steadyCheckIn
+        if Defaults[.showOnAllDisplays] {
+            if let mainUUID = NSScreen.main?.displayUUID, let screenVM = viewModels[mainUUID] {
+                screenVM.open()
+            } else if let first = viewModels.values.first {
+                first.open()
+            }
+        } else {
+            vm.open()
+        }
+    }
+
+    /// While the notch is open, the panel may become key so any embedded controls (text, buttons with keyboard equivs) work.
+    /// While closed, stay a lightweight overlay (`allowsKeyboardFocus` off) so typing stays in other apps.
+    @MainActor
+    func syncNotchPanelKeyability() {
+        func apply(_ w: NSWindow?, viewModel: SpruceViewModel?) {
+            guard let panel = w as? SpruceNotchSkyLightWindow, let viewModel else { return }
+            let should = viewModel.notchState == .open
+            panel.allowsKeyboardFocus = should
+            if should {
+                NSApp.activate(ignoringOtherApps: true)
+                panel.makeKey()
+            }
+        }
+        apply(window, viewModel: vm)
+        for (id, w) in windows {
+            apply(w, viewModel: viewModels[id])
+        }
     }
 
     private func showOnboardingWindow(step: OnboardingStep = .welcome) {
@@ -611,6 +687,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 ))
             window.isRestorable = false
             window.identifier = NSUserInterfaceItemIdentifier("OnboardingWindow")
+            window.delegate = self
 
             onboardingWindowController = NSWindowController(window: window)
         }
@@ -619,6 +696,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
         onboardingWindowController?.window?.orderFrontRegardless()
+    }
+}
+
+extension AppDelegate: NSWindowDelegate {
+    func windowWillClose(_ notification: Notification) {
+        guard notification.object as AnyObject? === onboardingWindowController?.window else { return }
+        coordinator.onboardingWindowDismissed = true
+        if coordinator.firstLaunch {
+            coordinator.firstLaunch = false
+        }
+        onboardingWindowController = nil
     }
 }
 

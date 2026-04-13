@@ -67,6 +67,30 @@ class SpruceViewModel: NSObject, ObservableObject {
             .store(in: &cancellables)
         
         setupDetectorObserver()
+        setupOpenNotchSizeForCurrentViewObserver()
+    }
+
+    /// Home / Shelf use the default open height; Steady check-in needs room for text + buttons.
+    static func openContentSize(for view: NotchViews) -> CGSize {
+        switch view {
+        case .steadyCheckIn:
+            return steadyCheckInOpenNotchSize
+        case .home, .shelf:
+            return openNotchSize
+        }
+    }
+
+    private func setupOpenNotchSizeForCurrentViewObserver() {
+        coordinator.$currentView
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] view in
+                guard let self = self, self.notchState == .open else { return }
+                let newSize = Self.openContentSize(for: view)
+                guard self.notchSize != newSize else { return }
+                self.notchSize = newSize
+                NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+            }
+            .store(in: &cancellables)
     }
     
     private func setupDetectorObserver() {
@@ -190,9 +214,10 @@ class SpruceViewModel: NSObject, ObservableObject {
     }
 
     func open() {
-        self.notchSize = openNotchSize
+        self.notchSize = Self.openContentSize(for: coordinator.currentView)
         self.notchState = .open
-        
+        NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
     }
@@ -211,11 +236,15 @@ class SpruceViewModel: NSObject, ObservableObject {
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
-            coordinator.currentView = .shelf
-        } else if !coordinator.openLastTabByDefault {
-            coordinator.currentView = .home
+        if coordinator.currentView != .steadyCheckIn {
+            if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+                coordinator.currentView = .shelf
+            } else if !coordinator.openLastTabByDefault {
+                coordinator.currentView = .home
+            }
         }
+
+        NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
     }
 
     func closeHello() {

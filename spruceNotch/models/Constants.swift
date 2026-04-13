@@ -199,4 +199,20 @@ extension Defaults.Keys {
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
+
+    // MARK: Steady Check-in
+    static let steadyCheckInEnabled = Key<Bool>("steadyCheckInEnabled", default: false)
+    /// Use `{date}` for today’s local date as `yyyy-MM-dd` (e.g. `…/check-ins/{date}/edit`).
+    static let steadyCheckInURL = Key<String>(
+        "steadyCheckInURL",
+        default: "https://app.steady.space/check-ins/{date}/edit"
+    )
+    static let steadyCheckInDelaySeconds = Key<Double>("steadyCheckInDelaySeconds", default: 60)
+    static let steadyCheckInScheduledPromptDay = Key<String>("steadyCheckInScheduledPromptDay", default: "")
+    static let steadyCheckInLastCompletedDay = Key<String>("steadyCheckInLastCompletedDay", default: "")
+    static let steadyCheckInLastIgnoredDay = Key<String>("steadyCheckInLastIgnoredDay", default: "")
+    static let steadyAutomationMode = Key<SteadyAutomationMode>(
+        "steadyAutomationMode",
+        default: .pasteboardAssist
+    )
 }

@@ -57,6 +57,8 @@ class SpruceViewCoordinator: ObservableObject {
     private var hudEnableTask: Task<Void, Never>?
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
+    /// Separate from `firstLaunch`: the welcome/onboarding window stays suppressed after dismiss or full completion.
+    @AppStorage("onboardingWindowDismissed") var onboardingWindowDismissed: Bool = false
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
     @AppStorage("musicLiveActivityEnabled") var musicLiveActivityEnabled: Bool = true
     @AppStorage("currentMicStatus") var currentMicStatus: Bool = true
@@ -122,6 +124,12 @@ class SpruceViewCoordinator: ObservableObject {
         }
         
         selectedScreenUUID = preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
+
+        // Migration: older builds only used `firstLaunch`; treat existing non-first users as done with onboarding.
+        if UserDefaults.standard.object(forKey: "onboardingWindowDismissed") == nil, !firstLaunch {
+            onboardingWindowDismissed = true
+        }
+
         // Observe changes to accessibility authorization and react accordingly
         accessibilityObserver = NotificationCenter.default.addObserver(
             forName: Notification.Name.accessibilityAuthorizationChanged,
