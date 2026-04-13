@@ -1,0 +1,8 @@
+name: Crowdin Sync
+
+on:
+  workflow_dispatch:
+
+jobs:
+  crowdin:
+    runs-on: ubuntu-latest
