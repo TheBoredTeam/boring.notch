@@ -26,6 +26,16 @@ struct Shortcuts: View {
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
+            Section {
+                KeyboardShortcuts.Recorder("Clipboard History:", name: .clipboardHistoryPanel)
+            } header: {
+                Text("Clipboard")
+            } footer: {
+                Text("Opens the notch and switches to the Clipboard History tab.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shortcuts")
