@@ -348,8 +348,8 @@ jobs:
           fi
           printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
             --ed-key-file - \
-            --link "https://github.com/TheBoredTeam/boring.notch/releases" \
-            --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/" \
+            --link "https://github.com/Prunty2/boring.notch/releases" \
+            --download-url-prefix "https://github.com/Prunty2/boring.notch/releases/download/v${VERSION}/" \
             --embed-release-notes \
             "${CHANNEL_ARGS[@]}" \
             -o updater/appcast.xml \
@@ -394,6 +394,7 @@ jobs:
     name: Update Homebrew cask
     needs: [preparation, publish]
     runs-on: ubuntu-latest
+    continue-on-error: true  # Optional: remove once homebrew tap is set up at Prunty2/homebrew-boring-notch
     env:
       VERSION: ${{ needs.preparation.outputs.version }}
       IS_BETA: ${{ needs.preparation.outputs.is_beta }}
@@ -401,7 +402,7 @@ jobs:
       - name: Generate cask files
         run: |
           set -euo pipefail
-          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/boringNotch.dmg"
+          DMG_URL="https://github.com/Prunty2/boring.notch/releases/download/v${VERSION}/boringNotch.dmg"
 
           # Retry SHA calculation (release may need a moment to propagate)
           for attempt in 1 2 3; do
@@ -419,7 +420,7 @@ jobs:
             url "${DMG_URL}"
             name "${DISPLAY_NAME}"
             desc "${DESC}"
-            homepage "https://github.com/TheBoredTeam/boring.notch"
+            homepage "https://github.com/Prunty2/boring.notch"
             livecheck do
               url :url
               strategy :github_latest
@@ -459,7 +460,7 @@ jobs:
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          repository: TheBoredTeam/homebrew-boring-notch
+          repository: Prunty2/homebrew-boring-notch
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: homebrew-tap
 

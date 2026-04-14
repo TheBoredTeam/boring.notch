@@ -183,6 +183,11 @@ extension Defaults.Keys {
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     
+    // MARK: Currency
+    static let enabledCurrencies = Key<[String]>("enabledCurrencies", default: ["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "CNY", "INR", "MXN"])
+    static let defaultFromCurrency = Key<String>("defaultFromCurrency", default: "AUD")
+    static let defaultToCurrency = Key<String>("defaultToCurrency", default: "USD")
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)

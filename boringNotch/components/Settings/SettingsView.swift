@@ -51,6 +51,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Currency") {
+                    Label("Currency", systemImage: "dollarsign.circle")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +88,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Currency":
+                    CurrencySettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1791,6 +1796,93 @@ func warningBadge(_ text: String, _ description: String) -> some View {
             }
             Spacer()
         }
+    }
+}
+
+// MARK: - Currency Settings
+
+private let currencyFullNames: [String: String] = [
+    "USD": "US Dollar",       "EUR": "Euro",
+    "GBP": "British Pound",   "JPY": "Japanese Yen",
+    "CAD": "Canadian Dollar", "AUD": "Australian Dollar",
+    "CHF": "Swiss Franc",     "CNY": "Chinese Yuan",
+    "INR": "Indian Rupee",    "MXN": "Mexican Peso",
+    "BRL": "Brazilian Real",  "KRW": "South Korean Won",
+    "SGD": "Singapore Dollar","HKD": "Hong Kong Dollar",
+    "NOK": "Norwegian Krone", "SEK": "Swedish Krona",
+    "DKK": "Danish Krone",    "NZD": "New Zealand Dollar",
+    "ZAR": "South African Rand", "TRY": "Turkish Lira"
+]
+
+struct CurrencySettings: View {
+    @Default(.enabledCurrencies) var enabledCurrencies
+    @Default(.defaultFromCurrency) var defaultFromCurrency
+    @Default(.defaultToCurrency) var defaultToCurrency
+
+    var body: some View {
+        Form {
+            Section {
+                Text("The 10 most traded currencies are enabled by default. Toggle any currency below to show or hide it in the notch converter.")
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Picker("From", selection: $defaultFromCurrency) {
+                    ForEach(allAvailableCurrencies, id: \.self) { currency in
+                        Text("\(currency)  \(currencyFullNames[currency] ?? currency)").tag(currency)
+                    }
+                }
+                Picker("To", selection: $defaultToCurrency) {
+                    ForEach(allAvailableCurrencies, id: \.self) { currency in
+                        Text("\(currency)  \(currencyFullNames[currency] ?? currency)").tag(currency)
+                    }
+                }
+            } header: {
+                Text("Default Currencies")
+            } footer: {
+                Text("The currencies pre-selected when the converter opens.")
+            }
+
+            Section {
+                ForEach(allAvailableCurrencies, id: \.self) { (currency: String) in
+                    Toggle(isOn: Binding<Bool>(
+                        get: { enabledCurrencies.contains(currency) },
+                        set: { isOn in
+                            if isOn {
+                                if !enabledCurrencies.contains(currency) {
+                                    enabledCurrencies.append(currency)
+                                }
+                            } else {
+                                guard enabledCurrencies.count > 2 else { return }
+                                enabledCurrencies.removeAll { $0 == currency }
+                            }
+                        }
+                    )) {
+                        HStack(spacing: 10) {
+                            Text(currency)
+                                .font(.system(.body, design: .monospaced).weight(.semibold))
+                                .frame(width: 42, alignment: .leading)
+                            Text(currencyFullNames[currency] ?? currency)
+                                .foregroundStyle(.primary)
+                            if ["USD","EUR","GBP","JPY","CAD","AUD","CHF","CNY","INR","MXN"].contains(currency) {
+                                Text("popular")
+                                    .font(.caption2)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(Capsule().fill(Color.accentColor.opacity(0.18)))
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                    }
+                }
+            } header: {
+                Text("Available Currencies")
+            } footer: {
+                Text("At least 2 currencies must remain enabled.")
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Currency")
     }
 }
 

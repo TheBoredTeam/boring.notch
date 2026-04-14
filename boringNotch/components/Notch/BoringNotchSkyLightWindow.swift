@@ -109,6 +109,8 @@ class BoringNotchSkyLightWindow: NSPanel {
     
     private var observers: Set<AnyCancellable> = []
     
-    override var canBecomeKey: Bool { false }
+    override var canBecomeKey: Bool {
+        BoringViewCoordinator.shared.currentView == .currencyConverter
+    }
     override var canBecomeMain: Bool { false }
 }
