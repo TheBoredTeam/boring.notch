@@ -53,7 +53,7 @@ struct MusicControllerSelectionView: View {
                 .padding()
             }
             //Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
-            .scrollDisabled(availableMediaControllers.count <= 3)
+            .scrollDisabled(availableMediaControllers.count <= 4)
 
 //            Spacer()
 
