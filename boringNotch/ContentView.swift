@@ -93,7 +93,7 @@ struct ContentView: View {
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
+            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
@@ -490,8 +490,7 @@ struct ContentView: View {
                         && coordinator.expandingView.type == .music
                         && Defaults[.sneakPeekStyles] == .inline)
                         ? 380
-                        : vm.closedNotchSize.width
-                            + -cornerRadiusInsets.closed.top
+                        : vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
                 )
 
             HStack {
@@ -501,7 +500,7 @@ struct ContentView: View {
                     ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
                     : Color.gray
                 )
-                .frame(width: 16, height: 12)
+                .frame(width: 18, height: 12)
             }
             .frame(
                 width: max(
