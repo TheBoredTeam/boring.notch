@@ -13,6 +13,7 @@ struct MusicControllerSelectionView: View {
     let onContinue: () -> Void
 
     @Default(.mediaController) var mediaController
+    @ObservedObject private var spotifyAuthManager = SpotifyAuthManager.shared
     
     private var availableMediaControllers: [MediaControllerType] {
         if MusicManager.shared.isNowPlayingDeprecated {
@@ -52,7 +53,7 @@ struct MusicControllerSelectionView: View {
                 .padding()
             }
             //Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
-            .scrollDisabled(availableMediaControllers.count <= 4)
+            .scrollDisabled(availableMediaControllers.count <= 3)
 
 //            Spacer()
 
@@ -66,13 +67,46 @@ struct MusicControllerSelectionView: View {
             })
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .padding(.bottom, 24)
+            
+//            if selectedMediaController == .spotify {
+//                spotifyConnectionControls
+//            }
         }
+        .padding(.bottom, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 .ignoresSafeArea()
         )
+    }
+    
+    @ViewBuilder
+    private var spotifyConnectionControls: some View {
+        VStack(spacing: 8) {
+            Text(spotifyAuthManager.isAuthorized ? "Spotify Web API connected" : "Connect Spotify to enable Web API features")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            HStack(spacing: 12) {
+                Button(spotifyAuthManager.isAuthorized ? "Reconnect Spotify" : "Connect Spotify") {
+                    spotifyAuthManager.startAuthFlow()
+                }
+                .buttonStyle(.bordered)
+                
+                if spotifyAuthManager.isAuthorized {
+                    Button("Disconnect Spotify") {
+                        spotifyAuthManager.signOut()
+                        NotificationCenter.default.post(
+                            name: Notification.Name.mediaControllerChanged,
+                            object: nil
+                        )
+                    }
+                    .buttonStyle(.borderless)
+                }
+            }
+        }
+        .padding(.horizontal)
     }
 }
 

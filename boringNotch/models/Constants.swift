@@ -34,6 +34,7 @@ enum HideNotchOption: String, Defaults.Serializable {
 extension Notification.Name {
     // MARK: - Media
     static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
+    static let spotifyAuthorizationChanged = Notification.Name("spotifyAuthorizationChanged")
     
     // MARK: - Display
     static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
@@ -195,6 +196,7 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    static let spotifyClientID = Key<String>("spotifyClientID", default: "")
     static let musicControlSlots = Key<[MusicControlButton]>(
         "musicControlSlots",
         default: MusicControlButton.defaultLayout

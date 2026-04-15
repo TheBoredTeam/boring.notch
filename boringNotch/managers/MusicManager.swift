@@ -79,6 +79,16 @@ class MusicManager: ObservableObject {
                 self?.setActiveControllerBasedOnPreference()
             }
             .store(in: &cancellables)
+        
+        NotificationCenter.default.publisher(for: Notification.Name.spotifyAuthorizationChanged)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.refreshFavoriteAvailability()
+                Task { @MainActor in
+                    self.forceUpdate()
+                }
+            }
+            .store(in: &cancellables)
 
         // Initialize deprecation check asynchronously
         Task { @MainActor in
@@ -131,7 +141,14 @@ class MusicManager: ObservableObject {
         case .appleMusic:
             newController = AppleMusicController()
         case .spotify:
-            newController = SpotifyController()
+            let spotifyAuthManager = SpotifyAuthManager.shared
+            newController = SpotifyController(
+                appleScriptProvider: SpotifyAppleScriptProvider(),
+                webApiProvider: SpotifyWebApiProvider(auth: spotifyAuthManager),
+                hasNetworkAccess: {
+                    await spotifyAuthManager.validToken() != nil
+                }
+            )
         case .youtubeMusic:
             newController = YouTubeMusicController()
         }
@@ -174,8 +191,8 @@ class MusicManager: ObservableObject {
 
         // Set new active controller
         activeController = controller
-        
-        self.canFavoriteTrack = controller.supportsFavorite
+
+        refreshFavoriteAvailability()
 
         // Get current state from active controller
         forceUpdate()
@@ -279,6 +296,11 @@ class MusicManager: ObservableObject {
             // Update volume control support from active controller
             self.volumeControlSupported = activeController?.supportsVolumeControl ?? false
         }
+        
+        let favoriteSupportChanged = (activeController?.supportsFavorite ?? false) != self.canFavoriteTrack
+        if favoriteSupportChanged {
+            self.canFavoriteTrack = activeController?.supportsFavorite ?? false
+        }
 
         if repeatModeChanged {
             self.repeatMode = state.repeatMode
@@ -292,6 +314,10 @@ class MusicManager: ObservableObject {
         }
         
         self.timestampDate = state.lastUpdated
+    }
+
+    private func refreshFavoriteAvailability() {
+        self.canFavoriteTrack = activeController?.supportsFavorite ?? false
     }
 
     func toggleFavoriteTrack() {
