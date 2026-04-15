@@ -8141,6 +8141,9 @@
         }
       }
     },
+    "Real-time audio waveform" : {
+
+    },
     "Release name" : {
       "localizations" : {
         "cs" : {
@@ -10788,6 +10791,9 @@
           }
         }
       }
+    },
+    "Uses Accelerate FFT on the playing app's audio. Requires audio capture permission and macOS 14.2+. Uses slightly more CPU." : {
+
     },
     "Using System Accent" : {
       "localizations" : {
