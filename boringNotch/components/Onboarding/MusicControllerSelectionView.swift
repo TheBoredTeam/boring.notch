@@ -68,9 +68,6 @@ struct MusicControllerSelectionView: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
             
-//            if selectedMediaController == .spotify {
-//                spotifyConnectionControls
-//            }
         }
         .padding(.bottom, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -80,34 +77,6 @@ struct MusicControllerSelectionView: View {
         )
     }
     
-    @ViewBuilder
-    private var spotifyConnectionControls: some View {
-        VStack(spacing: 8) {
-            Text(spotifyAuthManager.isAuthorized ? "Spotify Web API connected" : "Connect Spotify to enable Web API features")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            
-            HStack(spacing: 12) {
-                Button(spotifyAuthManager.isAuthorized ? "Reconnect Spotify" : "Connect Spotify") {
-                    spotifyAuthManager.startAuthFlow()
-                }
-                .buttonStyle(.bordered)
-                
-                if spotifyAuthManager.isAuthorized {
-                    Button("Disconnect Spotify") {
-                        spotifyAuthManager.signOut()
-                        NotificationCenter.default.post(
-                            name: Notification.Name.mediaControllerChanged,
-                            object: nil
-                        )
-                    }
-                    .buttonStyle(.borderless)
-                }
-            }
-        }
-        .padding(.horizontal)
-    }
 }
 
 struct ControllerOptionView: View {
