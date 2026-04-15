@@ -20,7 +20,7 @@
 
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
 
-Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with AirDrop support, a complete MacOS OSD replacement and more!
+Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with sharing support, a complete MacOS OSD replacement and more!
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo GIF" />
@@ -62,7 +62,7 @@ Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Application
 
 #### Recommended: Terminal (Always Works)
 
-This is the fastest and simplest method. It requires just one command and works reliably for all users, unlike System Settings, which occasionally doesn't.
+This is the quickest and easiest method. It only requires a single command and works consistently for all users. System Settings can sometimes fail and won't work for non-admin users.
 
 After moving Boring Notch to your Applications folder, run:
 
@@ -89,10 +89,10 @@ Then open the app normally.
 
 ### Option 2: Install via Homebrew
 
-You can also install using [Homebrew](https://brew.sh). The `--no-quarantine` flag is included to automatically bypass the same macOS security warning described above.
+You can also install using [Homebrew](https://brew.sh). The Homebrew installation automatically bypasses the macOS security warning described above.
 
 ```bash
-brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
+brew install --cask TheBoredTeam/boring-notch/boring-notch
 ```
 
 ## Usage

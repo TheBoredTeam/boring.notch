@@ -9,13 +9,16 @@ on:
 jobs:
   crowdin:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
 
       - name: Crowdin action
-        uses: crowdin/github-action@8818ff65bfc4322384f983ea37e3926948c11745 #v2.15.0
+        uses: crowdin/github-action@7ca9c452bfe9197d3bb7fa83a4d7e2b0c9ae835d #v2.16.0
         with:
           upload_sources: true
           upload_translations: false
@@ -23,5 +26,6 @@ jobs:
           create_pull_request: true
           pull_request_base_branch_name: dev
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

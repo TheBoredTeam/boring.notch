@@ -54,7 +54,9 @@ struct BoringExtrasMenu : View {
     
     var settings: some View {
         Button(action: {
-            SettingsWindowController.shared.showWindow()
+            DispatchQueue.main.async {
+                SettingsWindowController.shared.showWindow()
+            }
         }) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)
