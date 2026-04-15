@@ -67,16 +67,14 @@ struct MusicControllerSelectionView: View {
             })
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-            
+                .padding(.bottom, 24)
         }
-        .padding(.bottom, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 .ignoresSafeArea()
         )
     }
-    
 }
 
 struct ControllerOptionView: View {
