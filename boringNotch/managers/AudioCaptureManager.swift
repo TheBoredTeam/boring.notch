@@ -27,7 +27,7 @@ final class AudioCaptureManager: ObservableObject {
     private static let ceilDB: Float = -25
     private static let referenceHz: Double = 1000
 
-    @Published private(set) var levels: [CGFloat] = Array(repeating: 0, count: AudioCaptureManager.barCount)
+    let levelsPublisher = PassthroughSubject<[Float], Never>()
     @Published private(set) var isCapturing: Bool = false
 
     private var cancellables = Set<AnyCancellable>()
@@ -51,6 +51,8 @@ final class AudioCaptureManager: ObservableObject {
     private var imagBuf: [Float]
     private var powBuf: [Float]
     private var smoothed: [Float]
+    private var barsBuf: [Float]
+    private var lastPublishedBuf: [Float]
     private var bandRanges: [Range<Int>] = []
     private var pinkCompensationDB: [Float] = []
 
@@ -82,6 +84,9 @@ final class AudioCaptureManager: ObservableObject {
         imagBuf = [Float](repeating: 0, count: Self.fftSize / 2)
         powBuf = [Float](repeating: 0, count: Self.fftSize / 2)
         smoothed = [Float](repeating: 0, count: Self.barCount)
+        barsBuf = [Float](repeating: 0, count: Self.barCount)
+        // Seed with a sentinel so the first real frame always publishes.
+        lastPublishedBuf = [Float](repeating: -1, count: Self.barCount)
 
         computeBandRanges(sampleRate: sampleRate)
         observeState()
@@ -240,11 +245,16 @@ final class AudioCaptureManager: ObservableObject {
         ringBuffer.update(repeating: 0, count: Self.ringCapacity)
         ringWrite = 0
         ringLock.unlock()
-        smoothed = [Float](repeating: 0, count: Self.barCount)
-        let zeros = Array<CGFloat>(repeating: 0, count: Self.barCount)
+        for i in 0..<Self.barCount {
+            smoothed[i] = 0
+            barsBuf[i] = 0
+            lastPublishedBuf[i] = -1
+        }
+        let zeros = [Float](repeating: 0, count: Self.barCount)
         DispatchQueue.main.async { [weak self] in
-            self?.levels = zeros
-            self?.isCapturing = false
+            guard let self else { return }
+            self.levelsPublisher.send(zeros)
+            self.isCapturing = false
         }
     }
 
@@ -363,24 +373,40 @@ final class AudioCaptureManager: ObservableObject {
         let floorDB = Self.floorDB
         let ceilDB = Self.ceilDB
         let dbRange = ceilDB - floorDB
-        var bars = [Float](repeating: 0, count: Self.barCount)
-        for (i, range) in bandRanges.enumerated() where !range.isEmpty {
-            let meanPow = vDSP.sum(powBuf[range]) / Float(range.count)
-            let db = 10 * log10f(max(meanPow, 1e-12)) + pinkCompensationDB[i]
-            let clamped = max(floorDB, min(ceilDB, db))
-            bars[i] = (clamped - floorDB) / dbRange
+        powBuf.withUnsafeBufferPointer { pPtr in
+            guard let base = pPtr.baseAddress else { return }
+            for i in 0..<Self.barCount {
+                let range = bandRanges[i]
+                guard !range.isEmpty else { barsBuf[i] = 0; continue }
+                var sum: Float = 0
+                vDSP_sve(base.advanced(by: range.lowerBound), 1, &sum, vDSP_Length(range.count))
+                let meanPow = sum / Float(range.count)
+                let db = 10 * log10f(max(meanPow, 1e-12)) + pinkCompensationDB[i]
+                let clamped = max(floorDB, min(ceilDB, db))
+                barsBuf[i] = (clamped - floorDB) / dbRange
+            }
         }
 
+        var maxDelta: Float = 0
         for i in 0..<Self.barCount {
-            let target = bars[i]
+            let target = barsBuf[i]
             let decayed = smoothed[i] * 0.82
-            smoothed[i] = target > decayed ? (decayed + (target - decayed) * 0.6) : decayed
+            let next = target > decayed ? (decayed + (target - decayed) * 0.6) : decayed
+            smoothed[i] = next
+            let clipped = max(0, min(1, next))
+            barsBuf[i] = clipped
+            let delta = abs(clipped - lastPublishedBuf[i])
+            if delta > maxDelta { maxDelta = delta }
         }
 
-        let cgLevels = smoothed.map { CGFloat(max(0, min(1, $0))) }
-        DispatchQueue.main.async { [weak self] in
-            self?.levels = cgLevels
+        // Skip the hop to main + Combine fan-out when nothing perceptible changed.
+        // Stacks with the view-side threshold to collapse idle cost toward zero.
+        guard maxDelta > 1e-4 else { return }
+        for i in 0..<Self.barCount {
+            lastPublishedBuf[i] = barsBuf[i]
         }
+        let snapshot = barsBuf
+        levelsPublisher.send(snapshot)
     }
 
     private func computeBandRanges(sampleRate: Double) {

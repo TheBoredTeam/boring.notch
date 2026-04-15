@@ -6,6 +6,7 @@
 //
 import AppKit
 import Cocoa
+import Combine
 import Defaults
 import SwiftUI
 
@@ -14,6 +15,12 @@ class AudioSpectrum: NSView {
     private var isPlaying = false
     private var useRealtime = false
     private var tintColor: NSColor = .systemBlue
+    private var lastTintColor: NSColor?
+
+    private var levelsCancellable: AnyCancellable?
+    private var lastAppliedLevels: [Float]
+    private static let levelChangeThreshold: Float = 0.005
+    private static let minBarScale: CGFloat = 0.12
 
     private let barWidth: CGFloat = 2
     private let barCount = AudioCaptureManager.barCount
@@ -21,12 +28,14 @@ class AudioSpectrum: NSView {
     private let totalHeight: CGFloat = 14
 
     override init(frame frameRect: NSRect) {
+        self.lastAppliedLevels = [Float](repeating: 0, count: AudioCaptureManager.barCount)
         super.init(frame: frameRect)
         wantsLayer = true
         setupBars()
     }
 
     required init?(coder: NSCoder) {
+        self.lastAppliedLevels = [Float](repeating: 0, count: AudioCaptureManager.barCount)
         super.init(coder: coder)
         wantsLayer = true
         setupBars()
@@ -145,6 +154,8 @@ class AudioSpectrum: NSView {
     func setUseRealtime(_ enabled: Bool) {
         guard useRealtime != enabled else { return }
         useRealtime = enabled
+        // Force the next incoming frame through the threshold guard.
+        for i in 0..<lastAppliedLevels.count { lastAppliedLevels[i] = -1 }
         guard isPlaying else { return }
         if enabled {
             stopRandomAnimating()
@@ -159,19 +170,38 @@ class AudioSpectrum: NSView {
         }
     }
 
-    func setLevels(_ values: [CGFloat]) {
+    func attach(to manager: AudioCaptureManager) {
+        guard levelsCancellable == nil else { return }
+        levelsCancellable = manager.levelsPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] values in
+                self?.applyLevels(values)
+            }
+    }
+
+    private func applyLevels(_ values: [Float]) {
         guard isPlaying, useRealtime, values.count == barCount else { return }
+        var maxDelta: Float = 0
+        for i in 0..<barCount {
+            let d = abs(values[i] - lastAppliedLevels[i])
+            if d > maxDelta { maxDelta = d }
+        }
+        guard maxDelta >= Self.levelChangeThreshold else { return }
         CATransaction.begin()
         CATransaction.setAnimationDuration(0.033)
         CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .linear))
-        for (i, barLayer) in barLayers.enumerated() {
-            let clamped = max(0.12, min(1.0, values[i]))
-            barLayer.transform = CATransform3DMakeScale(1.0, clamped, 1.0)
+        for i in 0..<barCount {
+            let v = values[i]
+            lastAppliedLevels[i] = v
+            let clamped = max(Self.minBarScale, min(1.0, CGFloat(v)))
+            barLayers[i].transform = CATransform3DMakeScale(1.0, clamped, 1.0)
         }
         CATransaction.commit()
     }
 
     func setTintColor(_ color: NSColor) {
+        if let last = lastTintColor, last.isEqual(color) { return }
+        lastTintColor = color
         tintColor = color
         let colors = [color.withAlphaComponent(0.6).cgColor, color.cgColor]
         barLayers.forEach { $0.colors = colors }
@@ -182,16 +212,14 @@ struct AudioSpectrumView: NSViewRepresentable {
     let isPlaying: Bool
     let tintColor: Color
     @Default(.realtimeAudioWaveform) var realtimeEnabled: Bool
-    @ObservedObject var audioCapture = AudioCaptureManager.shared
+    @ObservedObject private var audioCapture = AudioCaptureManager.shared
 
     func makeNSView(context: Context) -> AudioSpectrum {
         let spectrum = AudioSpectrum()
+        spectrum.attach(to: audioCapture)
         spectrum.setTintColor(NSColor(tintColor))
         spectrum.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         spectrum.setPlaying(isPlaying)
-        if realtimeEnabled && audioCapture.isCapturing {
-            spectrum.setLevels(audioCapture.levels)
-        }
         return spectrum
     }
 
@@ -199,9 +227,6 @@ struct AudioSpectrumView: NSViewRepresentable {
         nsView.setTintColor(NSColor(tintColor))
         nsView.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         nsView.setPlaying(isPlaying)
-        if realtimeEnabled && audioCapture.isCapturing {
-            nsView.setLevels(audioCapture.levels)
-        }
     }
 }
 
