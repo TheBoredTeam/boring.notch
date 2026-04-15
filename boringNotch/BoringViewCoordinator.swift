@@ -18,6 +18,8 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    /// Inline closed-notch banner for Pomodoro phase completion (same plumbing as music expanding notifications).
+    case pomodoro
 }
 
 struct sneakPeek {
@@ -46,6 +48,8 @@ struct ExpandedItem {
     var type: SneakContentType = .battery
     var value: CGFloat = 0
     var browser: BrowserType = .chromium
+    /// Set when `type == .pomodoro`; cleared when the expanding view hides.
+    var pomodoroMessage: String = ""
 }
 
 @MainActor
@@ -53,6 +57,7 @@ class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
+    @Published var showPomodoroInHome: Bool = false
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
@@ -370,14 +375,22 @@ class BoringViewCoordinator: ObservableObject {
         status: Bool,
         type: SneakContentType,
         value: CGFloat = 0,
-        browser: BrowserType = .chromium
+        browser: BrowserType = .chromium,
+        pomodoroMessage: String = ""
     ) {
         Task { @MainActor in
             withAnimation(.smooth) {
-                self.expandingView.show = status
-                self.expandingView.type = type
-                self.expandingView.value = value
-                self.expandingView.browser = browser
+                var item = self.expandingView
+                item.show = status
+                item.type = type
+                item.value = value
+                item.browser = browser
+                if status, type == .pomodoro {
+                    item.pomodoroMessage = pomodoroMessage
+                } else {
+                    item.pomodoroMessage = ""
+                }
+                self.expandingView = item
             }
         }
     }

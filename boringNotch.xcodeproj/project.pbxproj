@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04868AA17AAA5A30A0C20D9A /* PomodoroTimerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F8045EBDC0D645E2140584A /* PomodoroTimerViewModel.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -123,11 +124,15 @@
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		201C3E071A104384B8629328 /* AudioOutputRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */; };
+		2DABAFAAAD417A13871F3E71 /* PomodoroDomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FC8EE145763B076C774D25 /* PomodoroDomainTests.swift */; };
+		307B68F1E4CCB446A3822916 /* NotchTabBarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B18F66A261C8C5AC0465F5A7 /* NotchTabBarTests.swift */; };
+		3B7BC1C00E15E0DB642E8A4D /* PomodoroTimerViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5EB5DE364C94EF9AF811641 /* PomodoroTimerViewModelTests.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
 		59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D8C23B2E589FAA00147B33 /* VolumeManager.swift */; };
 		64FA50FB2F4D6F9E00008A28 /* WebcamSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FA50FA2F4D6F9E00008A28 /* WebcamSettingsView.swift */; };
+		8CED3C96D7259FAF79853B9B /* PomodoroSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F73001A131945EE701BBDF9 /* PomodoroSettingsView.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
@@ -156,6 +161,9 @@
 		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		D5C640B4022F41C2B6B7E8A6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 203CFAE5A0E460757D241BBD /* Cocoa.framework */; };
+		DB46C45DA00ED22CDDABF8E9 /* PomodoroCompactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2333207B337292AAC9D7A14 /* PomodoroCompactView.swift */; };
+		E8A1B0022F50000100F81585 /* PomodoroPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A1B0032F50000100F81585 /* PomodoroPanelView.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -166,6 +174,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 11F7484E2EC9AABA00F841DB;
 			remoteInfo = BoringNotchXPCHelper;
+		};
+		5275A3760FCEF9EFD15AF288 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 14CEF40A2C5CAED200855D72 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 14CEF4112C5CAED300855D72;
+			remoteInfo = boringNotch;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -195,6 +210,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		08FC8EE145763B076C774D25 /* PomodoroDomainTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PomodoroDomainTests.swift; path = boringNotchTests/PomodoroDomainTests.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -306,15 +322,19 @@
 		14E9FEA92C70BF610062E83F /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
+		203CFAE5A0E460757D241BBD /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		3F73001A131945EE701BBDF9 /* PomodoroSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroSettingsView.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
 		64FA50FA2F4D6F9E00008A28 /* WebcamSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamSettingsView.swift; sourceTree = "<group>"; };
+		8BB88A52BB7E5774AE209E0F /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* ShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
 		9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotchHomeView.swift; sourceTree = "<group>"; };
+		9F8045EBDC0D645E2140584A /* PomodoroTimerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroTimerViewModel.swift; sourceTree = "<group>"; };
 		AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioOutputRouteResolver.swift; sourceTree = "<group>"; };
 		B10348D82C74E56000475897 /* ConditionalModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalModifier.swift; sourceTree = "<group>"; };
 		B10F84A22C6C9596009F3026 /* TestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestView.swift; sourceTree = "<group>"; };
@@ -323,6 +343,7 @@
 		B17266E02C6532560031BA0D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B172AABF2C95DA0B001623F1 /* InlineOSD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineOSD.swift; sourceTree = "<group>"; };
 		B186543B2C6F49AE000B926A /* ShortcutConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutConstants.swift; sourceTree = "<group>"; };
+		B18F66A261C8C5AC0465F5A7 /* NotchTabBarTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotchTabBarTests.swift; path = boringNotchTests/NotchTabBarTests.swift; sourceTree = "<group>"; };
 		B19016232CC15B4D00E3F12E /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenMediaDetection.swift; sourceTree = "<group>"; };
 		B1B112902C6A572100093D8F /* EditPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPanelView.swift; sourceTree = "<group>"; };
@@ -336,11 +357,14 @@
 		B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareUpdater.swift; sourceTree = "<group>"; };
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		C2333207B337292AAC9D7A14 /* PomodoroCompactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroCompactView.swift; sourceTree = "<group>"; };
+		D5EB5DE364C94EF9AF811641 /* PomodoroTimerViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PomodoroTimerViewModelTests.swift; path = boringNotchTests/PomodoroTimerViewModelTests.swift; sourceTree = "<group>"; };
+		E8A1B0032F50000100F81585 /* PomodoroPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroPanelView.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		11F7485C2EC9AABA00F841DB /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		11F7485C2EC9AABA00F841DB /* Exceptions for "BoringNotchXPCHelper" folder in "BoringNotchXPCHelper" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -350,8 +374,29 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		112FB72F2CCF12CC0015238C /* private */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = private; sourceTree = "<group>"; };
-		11F748502EC9AABA00F841DB /* BoringNotchXPCHelper */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (11F7485C2EC9AABA00F841DB /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BoringNotchXPCHelper; sourceTree = "<group>"; };
+		112FB72F2CCF12CC0015238C /* private */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = private;
+			sourceTree = "<group>";
+		};
+		11F748502EC9AABA00F841DB /* BoringNotchXPCHelper */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				11F7485C2EC9AABA00F841DB /* Exceptions for "BoringNotchXPCHelper" folder in "BoringNotchXPCHelper" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = BoringNotchXPCHelper;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -379,6 +424,14 @@
 				B19016222CC15B3D00E3F12E /* Defaults in Frameworks */,
 				111BE95D2ECD71E10079DD4E /* AsyncXPCConnection in Frameworks */,
 				B1628B922CC260C0003D8DF3 /* SwiftUIIntrospect in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A8FDA48F64D79F428BF570E4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D5C640B4022F41C2B6B7E8A6 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -534,6 +587,7 @@
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
 				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
+				3F73001A131945EE701BBDF9 /* PomodoroSettingsView.swift */,
 				64FA50FA2F4D6F9E00008A28 /* WebcamSettingsView.swift */,
 			);
 			path = Views;
@@ -583,6 +637,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				B817603357C7F14BDF7857CC /* Pomodoro */,
 				11985BDF2F37A3C800F81585 /* OSD */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
@@ -639,6 +694,7 @@
 				11F748502EC9AABA00F841DB /* BoringNotchXPCHelper */,
 				14CEF4132C5CAED300855D72 /* Products */,
 				14D031EC2C689DB70096E6A1 /* Frameworks */,
+				E6A2189F05F9EC0817A766E0 /* boringNotchTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -647,6 +703,7 @@
 			children = (
 				14CEF4122C5CAED300855D72 /* boringNotch.app */,
 				11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */,
+				8BB88A52BB7E5774AE209E0F /* boringNotchTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -695,6 +752,7 @@
 				14D031EF2C689DC00096E6A1 /* ApplicationServices.framework */,
 				14D031ED2C689DB70096E6A1 /* IOKit.framework */,
 				112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */,
+				66357A9FE65A549BA1A978B2 /* OS X */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -726,9 +784,18 @@
 				B19016232CC15B4D00E3F12E /* Constants.swift */,
 				14D570C82C5F38890011E668 /* BoringViewModel.swift */,
 				14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */,
+				9F8045EBDC0D645E2140584A /* PomodoroTimerViewModel.swift */,
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
 			);
 			path = models;
+			sourceTree = "<group>";
+		};
+		66357A9FE65A549BA1A978B2 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				203CFAE5A0E460757D241BBD /* Cocoa.framework */,
+			);
+			name = "OS X";
 			sourceTree = "<group>";
 		};
 		9A0887332C7AFF7E00C160EA /* Tabs */ = {
@@ -839,6 +906,25 @@
 			path = Shortcuts;
 			sourceTree = "<group>";
 		};
+		B817603357C7F14BDF7857CC /* Pomodoro */ = {
+			isa = PBXGroup;
+			children = (
+				C2333207B337292AAC9D7A14 /* PomodoroCompactView.swift */,
+				E8A1B0032F50000100F81585 /* PomodoroPanelView.swift */,
+			);
+			path = Pomodoro;
+			sourceTree = "<group>";
+		};
+		E6A2189F05F9EC0817A766E0 /* boringNotchTests */ = {
+			isa = PBXGroup;
+			children = (
+				D5EB5DE364C94EF9AF811641 /* PomodoroTimerViewModelTests.swift */,
+				B18F66A261C8C5AC0465F5A7 /* NotchTabBarTests.swift */,
+				08FC8EE145763B076C774D25 /* PomodoroDomainTests.swift */,
+			);
+			name = boringNotchTests;
+			sourceTree = SOURCE_ROOT;
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -858,8 +944,6 @@
 				11F748502EC9AABA00F841DB /* BoringNotchXPCHelper */,
 			);
 			name = BoringNotchXPCHelper;
-			packageProductDependencies = (
-			);
 			productName = BoringNotchXPCHelper;
 			productReference = 11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */;
 			productType = "com.apple.product-type.xpc-service";
@@ -900,6 +984,24 @@
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
 			productType = "com.apple.product-type.application";
+		};
+		5422E7080BE17B01A681C555 /* boringNotchTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9D9184DEB8D824F3F0EB7B9B /* Build configuration list for PBXNativeTarget "boringNotchTests" */;
+			buildPhases = (
+				667B9CC42EA39E04438B8B49 /* Sources */,
+				A8FDA48F64D79F428BF570E4 /* Frameworks */,
+				4C0B9B3378DB770BBEABF37A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7EAF082C98750E30432F8EC5 /* PBXTargetDependency */,
+			);
+			name = boringNotchTests;
+			productName = boringNotchTests;
+			productReference = 8BB88A52BB7E5774AE209E0F /* boringNotchTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -948,6 +1050,7 @@
 			targets = (
 				14CEF4112C5CAED300855D72 /* boringNotch */,
 				11F7484E2EC9AABA00F841DB /* BoringNotchXPCHelper */,
+				5422E7080BE17B01A681C555 /* boringNotchTests */,
 			);
 		};
 /* End PBXProject section */
@@ -970,6 +1073,13 @@
 				112B0EB92E30DD0F00562D6C /* mediaremote-adapter.pl in Resources */,
 				B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */,
 				14A7E5972C65FD31008C1BE9 /* boring.m4a in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4C0B9B3378DB770BBEABF37A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1005,6 +1115,10 @@
 				1194E87C2EA19E09009C82D6 /* ImageProcessingService.swift in Sources */,
 				1194E8872EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift in Sources */,
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
+				04868AA17AAA5A30A0C20D9A /* PomodoroTimerViewModel.swift in Sources */,
+				DB46C45DA00ED22CDDABF8E9 /* PomodoroCompactView.swift in Sources */,
+				E8A1B0022F50000100F81585 /* PomodoroPanelView.swift in Sources */,
+				8CED3C96D7259FAF79853B9B /* PomodoroSettingsView.swift in Sources */,
 				9A0887322C7A693000C160EA /* TabButton.swift in Sources */,
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
 				11985BEF2F37E48900F81585 /* OSDIconView.swift in Sources */,
@@ -1119,6 +1233,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		667B9CC42EA39E04438B8B49 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B7BC1C00E15E0DB642E8A4D /* PomodoroTimerViewModelTests.swift in Sources */,
+				307B68F1E4CCB446A3822916 /* NotchTabBarTests.swift in Sources */,
+				2DABAFAAAD417A13871F3E71 /* PomodoroDomainTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1127,9 +1251,30 @@
 			target = 11F7484E2EC9AABA00F841DB /* BoringNotchXPCHelper */;
 			targetProxy = 11F748592EC9AABA00F841DB /* PBXContainerItemProxy */;
 		};
+		7EAF082C98750E30432F8EC5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = boringNotch;
+			target = 14CEF4112C5CAED300855D72 /* boringNotch */;
+			targetProxy = 5275A3760FCEF9EFD15AF288 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		0091C55848C2862BE45A95B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.boring.notch.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/boringNotch.app/Contents/MacOS/boringNotch";
+			};
+			name = Release;
+		};
 		11F7485E2EC9AABA00F841DB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1411,6 +1556,21 @@
 			};
 			name = Release;
 		};
+		A05595B6F3ABA53E796F8C25 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.boring.notch.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/boringNotch.app/Contents/MacOS/boringNotch";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1437,6 +1597,15 @@
 			buildConfigurations = (
 				14CEF4222C5CAED400855D72 /* Debug */,
 				14CEF4232C5CAED400855D72 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9D9184DEB8D824F3F0EB7B9B /* Build configuration list for PBXNativeTarget "boringNotchTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0091C55848C2862BE45A95B7 /* Release */,
+				A05595B6F3ABA53E796F8C25 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

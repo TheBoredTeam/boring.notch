@@ -37,6 +37,9 @@ struct SettingsView: View {
                 NavigationLink(value: "OSD") {
                     Label("OSD", systemImage: "dial.medium.fill")
                 }
+                NavigationLink(value: "Pomodoro") {
+                    Label("Pomodoro", systemImage: "timer")
+                }
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
@@ -73,6 +76,8 @@ struct SettingsView: View {
                     CalendarSettings()
                 case "OSD":
                     OSDSettings()
+                case "Pomodoro":
+                    PomodoroSettings()
                 case "Battery":
                     Charge()
                 case "Shelf":
