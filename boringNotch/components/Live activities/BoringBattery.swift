@@ -98,6 +98,14 @@ struct BatteryMenuView: View {
     @ObservedObject private var bluetoothManager = BluetoothDeviceManager.shared
     @Environment(\.openURL) private var openURL
 
+    private var formattedTimeToFullCharge: String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .abbreviated
+        formatter.zeroFormattingBehavior = .dropAll
+        return formatter.string(from: TimeInterval(timeToFullCharge * 60)) ?? ""
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
 
@@ -131,7 +139,7 @@ struct BatteryMenuView: View {
                         .fontWeight(.regular)
                 }
                 if timeToFullCharge > 0 {
-                    Label("Time to Full Charge: \(timeToFullCharge) min", systemImage: "clock")
+                    Label("Time to Full Charge: \(formattedTimeToFullCharge)", systemImage: "clock")
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
