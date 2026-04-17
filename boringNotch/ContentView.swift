@@ -130,27 +130,8 @@ struct ContentView: View {
                         vm.notchState == .open ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                    .background {
-                        ZStack {
-                            Color.black
-                            if vm.notchState == .open {
-                                VisualEffectBlur(material: .hudWindow, blendingMode: .behindWindow)
-                                    .opacity(0.3)
-                            }
-                        }
-                    }
+                    .background(.black)
                     .clipShape(currentNotchShape)
-                    .overlay {
-                        if musicManager.isPlaying && vm.notchState == .closed {
-                            currentNotchShape
-                                .stroke(
-                                    Color(nsColor: musicManager.avgColor).opacity(0.5),
-                                    lineWidth: 1.5
-                                )
-                                .blur(radius: 3)
-                                .animation(.easeInOut(duration: 0.8), value: musicManager.avgColor)
-                        }
-                    }
                     .overlay(alignment: .top) {
                         displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
                         : Rectangle()
@@ -236,7 +217,6 @@ struct ContentView: View {
                         }
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
-                    .sensoryFeedback(.impact(weight: .medium), trigger: musicManager.songTitle)
                     .contextMenu {
                         Button("Settings") {
                             DispatchQueue.main.async {
