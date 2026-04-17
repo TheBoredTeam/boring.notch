@@ -40,6 +40,9 @@ struct AlbumArtView: View {
     @ObservedObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
 
+    @Default(.enableParallaxTilt) private var enableParallaxTilt
+    @Default(.enableFlipAnimation) private var enableFlipAnimation
+
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             if Defaults[.lightingEffect] {
@@ -100,11 +103,11 @@ struct AlbumArtView: View {
             )
             .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
             .rotation3DEffect(
-                .degrees(musicManager.isFlipping ? 90 : 0),
+                .degrees(enableFlipAnimation && musicManager.isFlipping ? 90 : 0),
                 axis: (x: 0, y: 1, z: 0)
             )
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: musicManager.isFlipping)
-            .modifier(ParallaxTiltModifier())
+            .modifier(ParallaxTiltModifier(enabled: enableParallaxTilt))
     }
 
     @ViewBuilder
@@ -488,19 +491,43 @@ struct MusicSliderView: View {
     let isPlaying: Bool
     var onValueChange: (Double) -> Void
 
+    @Default(.enableWavySlider) private var enableWavySlider
+
+    private var resolvedColor: Color {
+        switch Defaults[.sliderColor] {
+        case .albumArt:
+            return Color(nsColor: color).ensureMinimumBrightness(factor: 0.8)
+        case .accent:
+            return .effectiveAccent
+        case .white:
+            return .white
+        }
+    }
 
     var body: some View {
         VStack {
-            WavySlider(
-                value: $sliderValue,
-                range: 0...duration,
-                color: Defaults[.sliderColor] == SliderColorEnum.albumArt
-                    ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.8)
-                    : Defaults[.sliderColor] == SliderColorEnum.accent ? .effectiveAccent : .white,
-                dragging: $dragging,
-                lastDragged: $lastDragged,
-                onValueChange: onValueChange
-            )
+            Group {
+                if enableWavySlider {
+                    WavySlider(
+                        value: $sliderValue,
+                        range: 0...duration,
+                        color: resolvedColor,
+                        dragging: $dragging,
+                        lastDragged: $lastDragged,
+                        isPlaying: isPlaying,
+                        onValueChange: onValueChange
+                    )
+                } else {
+                    CustomSlider(
+                        value: $sliderValue,
+                        range: 0...duration,
+                        color: resolvedColor,
+                        dragging: $dragging,
+                        lastDragged: $lastDragged,
+                        onValueChange: onValueChange
+                    )
+                }
+            }
             .frame(height: 12, alignment: .center)
 
             HStack {
