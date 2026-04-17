@@ -425,6 +425,41 @@ struct AmbientNowPlayingView: View {
 // MARK: - DOMINANT COLOR EXTRACTION
 // ═══════════════════════════════════════════
 
+// ═══════════════════════════════════════════
+// MARK: - FLOW LAYOUT (word-wrap)
+// ═══════════════════════════════════════════
+
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 4
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0
+        for sub in subviews {
+            let size = sub.sizeThatFits(.unspecified)
+            if x + size.width > maxWidth && x > 0 { x = 0; y += rowH + spacing; rowH = 0 }
+            x += size.width + spacing
+            rowH = max(rowH, size.height)
+        }
+        return CGSize(width: maxWidth, height: y + rowH)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x: CGFloat = bounds.minX, y: CGFloat = bounds.minY, rowH: CGFloat = 0
+        for sub in subviews {
+            let size = sub.sizeThatFits(.unspecified)
+            if x + size.width > bounds.maxX && x > bounds.minX { x = bounds.minX; y += rowH + spacing; rowH = 0 }
+            sub.place(at: CGPoint(x: x, y: y), proposal: .unspecified)
+            x += size.width + spacing
+            rowH = max(rowH, size.height)
+        }
+    }
+}
+
+// ═══════════════════════════════════════════
+// MARK: - DOMINANT COLOR EXTRACTION
+// ═══════════════════════════════════════════
+
 extension NSImage {
     func dominantColor() -> Color {
         guard let tiffData = self.tiffRepresentation,

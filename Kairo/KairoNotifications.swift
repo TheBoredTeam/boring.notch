@@ -336,55 +336,192 @@ struct KairoNotifDisplay: View {
 
 struct NotificationHistoryTab: View {
     @ObservedObject var engine = KairoNotificationEngine.shared
+    @State private var appeared = false
 
     var body: some View {
         VStack(spacing: 0) {
             if engine.history.isEmpty {
-                VStack(spacing: 12) {
-                    ZStack {
-                        Circle().fill(Color.secondary.opacity(0.08)).frame(width: 56, height: 56)
-                        Image(systemName: "bell.slash.fill").font(.system(size: 24, weight: .light)).foregroundColor(.secondary.opacity(0.5))
-                    }
-                    VStack(spacing: 4) {
-                        Text("No Notifications").font(.system(size: 13, weight: .medium, design: .rounded)).foregroundColor(.secondary)
-                        Text("App notifications will appear here").font(.system(size: 11)).foregroundColor(.secondary.opacity(0.6))
-                    }
-                }.frame(maxWidth: .infinity, maxHeight: .infinity).padding(20)
+                emptyState
             } else {
-                HStack {
-                    Text("\(engine.history.count) NOTIFICATIONS").font(.system(size: 8, weight: .medium, design: .monospaced)).foregroundColor(K.muted).tracking(2)
-                    Spacer()
-                    Button("CLEAR") { engine.history.removeAll(); engine.unreadCount = 0 }
-                        .font(.system(size: 8, weight: .medium, design: .monospaced)).foregroundColor(K.red)
-                        .buttonStyle(.plain)
-                }.padding(.horizontal, 14).padding(.vertical, 8)
+                header
+                notificationList
+            }
+        }
+        .onAppear {
+            engine.markRead()
+            withAnimation(.kairoSpring.delay(0.1)) { appeared = true }
+        }
+    }
 
-                ScrollView {
-                    LazyVStack(spacing: 6) {
-                        ForEach(engine.history) { notif in
-                            HStack(spacing: 10) {
-                                if let icon = notif.appIcon {
-                                    Image(nsImage: icon).resizable().frame(width: 28, height: 28).clipShape(RoundedRectangle(cornerRadius: 8))
-                                } else {
-                                    Circle().fill(notif.appColor.opacity(0.2)).frame(width: 28, height: 28)
-                                        .overlay(Text(String(notif.appName.prefix(1))).font(.system(size: 12, weight: .bold)).foregroundColor(notif.appColor))
-                                }
-                                VStack(alignment: .leading, spacing: 2) {
-                                    HStack {
-                                        Text(notif.appName).font(.system(size: 9, design: .monospaced)).foregroundColor(notif.appColor)
-                                        Spacer()
-                                        Text(notif.timeString).font(.system(size: 8, design: .monospaced)).foregroundColor(.secondary)
-                                    }
-                                    Text(notif.title).font(.system(size: 11, weight: .medium)).foregroundColor(.white).lineLimit(1)
-                                    if !notif.body.isEmpty { Text(notif.body).font(.system(size: 10)).foregroundColor(.secondary).lineLimit(1) }
-                                }
-                            }
-                            .padding(10)
-                            .background(RoundedRectangle(cornerRadius: 12).glassEffect(.regular))
-                        }
-                    }.padding(.horizontal, 14).padding(.bottom, 10)
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [K.cyan.opacity(0.06), .clear],
+                            center: .center, startRadius: 0, endRadius: 40
+                        )
+                    )
+                    .frame(width: 72, height: 72)
+                Circle()
+                    .fill(.ultraThinMaterial.opacity(0.3))
+                    .frame(width: 56, height: 56)
+                    .overlay(
+                        Circle().stroke(
+                            LinearGradient(colors: [.white.opacity(0.08), .white.opacity(0.02)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                            lineWidth: 0.5
+                        )
+                    )
+                Image(systemName: "bell.slash")
+                    .font(.system(size: 22, weight: .light))
+                    .foregroundStyle(
+                        LinearGradient(colors: [.white.opacity(0.4), .white.opacity(0.15)], startPoint: .top, endPoint: .bottom)
+                    )
+            }
+            VStack(spacing: 5) {
+                Text("All Clear")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white.opacity(0.7))
+                Text("Notifications will appear here")
+                    .font(.system(size: 11, weight: .regular, design: .rounded))
+                    .foregroundColor(.kTextTertiary)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(24)
+    }
+
+    private var header: some View {
+        HStack(alignment: .center) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(K.cyan)
+                    .frame(width: 5, height: 5)
+                    .shadow(color: K.cyan.opacity(0.5), radius: 3)
+                Text("\(engine.history.count)")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                Text("NOTIFICATIONS")
+                    .font(.system(size: 8, weight: .medium, design: .monospaced))
+                    .foregroundColor(.kTextTertiary)
+                    .tracking(1.5)
+            }
+            Spacer()
+            Button(action: {
+                withAnimation(.kairoFast) { engine.history.removeAll(); engine.unreadCount = 0 }
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "xmark.circle").font(.system(size: 9, weight: .medium))
+                    Text("Clear")
+                        .font(.system(size: 10, weight: .medium, design: .rounded))
+                }
+                .foregroundColor(.kTextTertiary)
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(
+                    Capsule().fill(.white.opacity(0.04))
+                        .overlay(Capsule().stroke(.white.opacity(0.06), lineWidth: 0.5))
+                )
+            }
+            .buttonStyle(KairoBounce())
+        }
+        .padding(.horizontal, 14).padding(.vertical, 8)
+    }
+
+    private var notificationList: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            LazyVStack(spacing: 6) {
+                ForEach(Array(engine.history.enumerated()), id: \.element.id) { i, notif in
+                    NotificationHistoryRow(notif: notif, index: i)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.95, anchor: .top)),
+                            removal: .opacity.combined(with: .scale(scale: 0.98))
+                        ))
+                }
+            }
+            .padding(.horizontal, 14).padding(.bottom, 10)
+        }
+    }
+}
+
+struct NotificationHistoryRow: View {
+    let notif: KairoNotif
+    let index: Int
+    @State private var appeared = false
+    @State private var isHovered = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                if let icon = notif.appIcon {
+                    Image(nsImage: icon).resizable().scaledToFit()
+                        .frame(width: 30, height: 30)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .shadow(color: notif.appColor.opacity(isHovered ? 0.4 : 0.15), radius: isHovered ? 8 : 4)
+                } else {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(colors: [notif.appColor.opacity(0.3), notif.appColor.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
+                        .frame(width: 30, height: 30)
+                        .overlay(
+                            Text(String(notif.appName.prefix(1)))
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundColor(notif.appColor)
+                        )
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack {
+                    Text(notif.appName.uppercased())
+                        .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .foregroundColor(notif.appColor)
+                        .tracking(0.8)
+                    Spacer()
+                    Text(notif.timeString)
+                        .font(.system(size: 9, weight: .medium, design: .rounded))
+                        .foregroundColor(.kTextMuted)
+                }
+                Text(notif.title)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                if !notif.body.isEmpty {
+                    Text(notif.body)
+                        .font(.system(size: 10, weight: .regular, design: .rounded))
+                        .foregroundColor(.kTextSecondary)
+                        .lineLimit(1)
                 }
             }
         }
+        .padding(11)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 13).fill(.ultraThinMaterial.opacity(0.3))
+                RoundedRectangle(cornerRadius: 13)
+                    .fill(
+                        LinearGradient(
+                            colors: [notif.appColor.opacity(isHovered ? 0.06 : 0.02), .clear],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                RoundedRectangle(cornerRadius: 13)
+                    .stroke(
+                        LinearGradient(
+                            colors: [notif.appColor.opacity(isHovered ? 0.2 : 0.08), .white.opacity(0.04)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 0.5
+                    )
+            }
+        )
+        .scaleEffect(appeared ? 1 : 0.92)
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 6)
+        .onAppear {
+            withAnimation(.kairoSpring.delay(Double(min(index, 8)) * 0.03)) { appeared = true }
+        }
+        .onHover { h in withAnimation(.kairoFast) { isHovered = h } }
     }
 }

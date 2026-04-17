@@ -30,6 +30,11 @@ struct KairoNotchView: View {
     @State private var voiceWaveHeights: [CGFloat] = Array(repeating: 3, count: 40)
     // Health check
     @State private var serverOnline = false
+    // Feedback pill
+    @ObservedObject var feedback = KairoFeedbackEngine.shared
+    @State private var feedbackVisible = false
+    // Morning briefing
+    @ObservedObject var briefing = KairoMorningBriefing.shared
 
     // Dynamic height per tab
     private func heightForTab(_ tab: KairoTab) -> CGFloat {
@@ -148,8 +153,21 @@ struct KairoNotchView: View {
     // MARK: - Now Playing (switches between idle, playing, notification)
     private var nowPlayingSection: some View {
         Group {
+            // MORNING BRIEFING — highest priority
+            if briefing.isBriefingActive {
+                briefingView
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.9, anchor: .top).combined(with: .opacity),
+                        removal: .scale(scale: 0.95, anchor: .top).combined(with: .opacity)
+                    ))
+            }
+            // FEEDBACK PILL — action confirmations
+            else if feedbackVisible {
+                feedbackPill
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
             // ACTIVE NOTIFICATION — highest priority in this tab
-            if let notif = notifEngine.activeNotification {
+            else if let notif = notifEngine.activeNotification {
                 notificationInPill(notif)
                     .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
             } else if music.isPlaying || !music.isPlayerIdle {
@@ -170,6 +188,127 @@ struct KairoNotchView: View {
         }
         .animation(.kairoSpring, value: music.isPlaying)
         .animation(.kairoSpring, value: music.isPlayerIdle)
+        .animation(.kairoSpring, value: feedbackVisible)
+        .animation(.kairoSpring, value: briefing.isBriefingActive)
+        .onReceive(NotificationCenter.default.publisher(for: .kairoFeedback)) { notif in
+            let text = notif.userInfo?["text"] as? String ?? ""
+            let duration = notif.userInfo?["duration"] as? Double ?? 3.0
+            guard !text.isEmpty else { return }
+            withAnimation(.kairoFast) { feedbackVisible = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                withAnimation(.kairoFast) { feedbackVisible = false }
+            }
+        }
+    }
+
+    // MARK: - Feedback Pill
+    private var feedbackPill: some View {
+        HStack(spacing: 10) {
+            KairoAvatar(size: 18)
+            Text(feedback.currentText)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundColor(.white)
+                .lineLimit(2)
+            Spacer()
+            if feedback.isSpeaking {
+                HStack(spacing: 2) {
+                    ForEach(0..<3, id: \.self) { i in
+                        Circle().fill(K.cyan.opacity(0.6)).frame(width: 4, height: 4)
+                            .offset(y: feedback.isSpeaking ? -3 : 0)
+                            .animation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true).delay(Double(i) * 0.12), value: feedback.isSpeaking)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial.opacity(0.5))
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            colors: [K.cyan.opacity(0.08), K.blue.opacity(0.03), .clear],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        )
+                    )
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        LinearGradient(colors: [K.cyan.opacity(0.2), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 0.5
+                    )
+            }
+        )
+        .padding(.horizontal, 14)
+    }
+
+    // MARK: - Morning Briefing
+    private var briefingView: some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 10) {
+                KairoAvatar(size: 28)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("MORNING BRIEFING")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundColor(K.gold)
+                        .tracking(1.5)
+                    Text(briefingGreeting)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+                }
+                Spacer()
+                Button(action: { briefing.dismiss() }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.kTextTertiary)
+                }.buttonStyle(.plain)
+            }
+
+            if !briefing.briefingWords.isEmpty {
+                HStack(spacing: 0) {
+                    FlowLayout(spacing: 4) {
+                        ForEach(Array(briefing.briefingWords.enumerated()), id: \.offset) { _, word in
+                            Text(word + " ")
+                                .font(.system(size: 13, weight: .regular, design: .rounded))
+                                .foregroundColor(.kTextSecondary)
+                                .transition(.scale(scale: 0.8).combined(with: .opacity))
+                        }
+                    }
+                    Spacer()
+                }
+            }
+
+            if feedback.isSpeaking {
+                KairoWaveform(color: K.gold, barCount: 20, maxHeight: 16, isPlaying: true)
+                    .padding(.horizontal, 8)
+                    .transition(.opacity)
+            }
+        }
+        .padding(16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 18).fill(.ultraThinMaterial.opacity(0.4))
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(
+                        LinearGradient(
+                            colors: [K.gold.opacity(0.06), K.orange.opacity(0.02), .clear],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        )
+                    )
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(
+                        LinearGradient(colors: [K.gold.opacity(0.2), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 0.5
+                    )
+            }
+        )
+        .padding(.horizontal, 14)
+    }
+
+    private var briefingGreeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour < 12 { return "Good morning" }
+        if hour < 17 { return "Good afternoon" }
+        return "Good evening"
     }
 
     // MARK: - Idle Ambient Screen
@@ -177,61 +316,79 @@ struct KairoNotchView: View {
     @ObservedObject private var home = KairoHomeService.shared
     @State private var currentTime = Date()
 
+    private var currentWeatherType: KairoWeatherType {
+        KairoWeatherType.from(condition: weather.condition)
+    }
+
     private var nowPlayingIdleView: some View {
-        VStack(spacing: 0) {
-            // Clock — large, elegant
-            VStack(spacing: 4) {
-                Text(timeString)
-                    .font(.system(size: 48, weight: .ultraLight, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(colors: [.white, .white.opacity(0.75)], startPoint: .top, endPoint: .bottom)
+        GeometryReader { geo in
+            ZStack {
+                // Live weather animation background
+                if weather.isLoaded {
+                    KairoWeatherAnimationView(
+                        weatherType: currentWeatherType,
+                        bounds: geo.size
                     )
-                    .monospacedDigit()
-                    .shadow(color: K.cyan.opacity(breathPhase ? 0.15 : 0), radius: 20)
-                Text(dateString)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundColor(.kTextSecondary)
-                    .tracking(1.5)
-                    .textCase(.uppercase)
-            }
-            .padding(.top, 14)
-            .padding(.bottom, 16)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 1.5), value: weather.condition)
+                }
 
-            // Info cards — 2x2 grid
-            LazyVGrid(columns: [.init(.flexible(), spacing: 10), .init(.flexible(), spacing: 10)], spacing: 10) {
-                ambientCard(icon: weather.sfSymbol, color: K.blue, title: "OUTSIDE",
-                    primary: weather.isLoaded ? "\(Int(weather.temp))°" : "--°",
-                    secondary: weather.condition.isEmpty ? "Loading..." : weather.condition.capitalized)
-                ambientCard(icon: home.roomTemp != nil ? "thermometer.medium" : "thermometer.variable.and.figure", color: tempColor,
-                    title: "ROOM",
-                    primary: home.roomTemp != nil ? "\(Int(home.roomTemp!))°" : "--°",
-                    secondary: home.humidity != nil ? "\(Int(home.humidity!))% humidity" : "Sensor offline")
-                ambientCard(icon: home.acOn ? "air.conditioner.horizontal.fill" : "snowflake",
-                    color: home.acOn ? K.cyan : .kTextTertiary,
-                    title: "CLIMATE",
-                    primary: home.acOn ? "Cooling" : "Off",
-                    secondary: home.acOn ? "Active" : "Tap to start")
-                ambientCard(icon: home.lightsOnCount > 0 ? "lightbulb.fill" : "lightbulb.slash.fill",
-                    color: home.lightsOnCount > 0 ? K.gold : .kTextTertiary,
-                    title: "LIGHTS",
-                    primary: home.lightsOnCount > 0 ? "\(home.lightsOnCount) On" : "All Off",
-                    secondary: "")
-            }
-            .padding(.horizontal, 14)
-            .padding(.bottom, 12)
+                VStack(spacing: 0) {
+                    // Clock — large, elegant
+                    VStack(spacing: 4) {
+                        Text(timeString)
+                            .font(.system(size: 48, weight: .ultraLight, design: .rounded))
+                            .foregroundStyle(
+                                LinearGradient(colors: [.white, .white.opacity(0.75)], startPoint: .top, endPoint: .bottom)
+                            )
+                            .monospacedDigit()
+                            .shadow(color: currentWeatherType.accentColor.opacity(breathPhase ? 0.2 : 0), radius: 20)
+                        Text(dateString)
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundColor(.kTextSecondary)
+                            .tracking(1.5)
+                            .textCase(.uppercase)
+                    }
+                    .padding(.top, 14)
+                    .padding(.bottom, 16)
 
-            // System status bar
-            HStack(spacing: 14) {
-                statusDot(color: serverOnline ? K.green : K.red, label: serverOnline ? "SERVER" : "OFFLINE")
-                statusDot(color: socket.isConnected ? K.cyan : K.red, label: socket.isConnected ? "WS LIVE" : "WS DOWN")
-                Spacer()
-                Text("KAIRO")
-                    .font(.system(size: 8, weight: .bold, design: .monospaced))
-                    .foregroundColor(.kTextMuted)
-                    .tracking(2)
+                    // Info cards — 2x2 grid
+                    LazyVGrid(columns: [.init(.flexible(), spacing: 10), .init(.flexible(), spacing: 10)], spacing: 10) {
+                        ambientCard(icon: weather.sfSymbol, color: currentWeatherType.accentColor, title: "OUTSIDE",
+                            primary: weather.isLoaded ? "\(Int(weather.temp))°" : "--°",
+                            secondary: weather.condition.isEmpty ? "Loading..." : weather.condition.capitalized)
+                        ambientCard(icon: home.roomTemp != nil ? "thermometer.medium" : "thermometer.variable.and.figure", color: tempColor,
+                            title: "ROOM",
+                            primary: home.roomTemp != nil ? "\(Int(home.roomTemp!))°" : "--°",
+                            secondary: home.humidity != nil ? "\(Int(home.humidity!))% humidity" : "Sensor offline")
+                        ambientCard(icon: home.acOn ? "air.conditioner.horizontal.fill" : "snowflake",
+                            color: home.acOn ? K.cyan : .kTextTertiary,
+                            title: "CLIMATE",
+                            primary: home.acOn ? "Cooling" : "Off",
+                            secondary: home.acOn ? "Active" : "Tap to start")
+                        ambientCard(icon: home.lightsOnCount > 0 ? "lightbulb.fill" : "lightbulb.slash.fill",
+                            color: home.lightsOnCount > 0 ? K.gold : .kTextTertiary,
+                            title: "LIGHTS",
+                            primary: home.lightsOnCount > 0 ? "\(home.lightsOnCount) On" : "All Off",
+                            secondary: "")
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 12)
+
+                    // System status bar
+                    HStack(spacing: 14) {
+                        statusDot(color: serverOnline ? K.green : K.red, label: serverOnline ? "SERVER" : "OFFLINE")
+                        statusDot(color: socket.isConnected ? K.cyan : K.red, label: socket.isConnected ? "WS LIVE" : "WS DOWN")
+                        Spacer()
+                        Text("KAIRO")
+                            .font(.system(size: 8, weight: .bold, design: .monospaced))
+                            .foregroundColor(.kTextMuted)
+                            .tracking(2)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 10)
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 10)
         }
         .onAppear { Task { await weather.fetch(); await home.fetchStatus() } }
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { currentTime = $0 }

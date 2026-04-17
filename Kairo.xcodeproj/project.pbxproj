@@ -148,6 +148,7 @@
 		D7131E7D012C4079838C0F8D /* KairoNotchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E2298F9DFA42DC9F1462A1 /* KairoNotchView.swift */; };
 		8920B8C60C1A44499726C5F9 /* KairoMusicBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477BB3EBDB5A453D884AA80B /* KairoMusicBridge.swift */; };
 		D7264255FF29413ABE90664B /* KairoDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41C94722723247008D1EC3B7 /* KairoDesign.swift */; };
+		3A647E24DEBE4DDE8C110DBB /* KairoWeatherAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6118B49646C4A05A5EFB8E3 /* KairoWeatherAnimation.swift */; };
 		3531372201884555AC342390 /* KairoNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = E369A8B87C0246CE9A308E12 /* KairoNotifications.swift */; };
 		6F39570B87454A0ABC6A5CF3 /* KairoVoiceButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F742301593242F38765A5A2 /* KairoVoiceButton.swift */; };
 		1ED00BFB93874D298301BE7F /* KairoVoiceTrigger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DD9017C0F047579F7F0220 /* KairoVoiceTrigger.swift */; };
@@ -330,6 +331,7 @@
 		76E2298F9DFA42DC9F1462A1 /* KairoNotchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoNotchView.swift; path = Kairo/KairoNotchView.swift; sourceTree = SOURCE_ROOT; };
 		477BB3EBDB5A453D884AA80B /* KairoMusicBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoMusicBridge.swift; path = Kairo/KairoMusicBridge.swift; sourceTree = SOURCE_ROOT; };
 		41C94722723247008D1EC3B7 /* KairoDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoDesign.swift; path = Kairo/KairoDesign.swift; sourceTree = SOURCE_ROOT; };
+		D6118B49646C4A05A5EFB8E3 /* KairoWeatherAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoWeatherAnimation.swift; path = Kairo/KairoWeatherAnimation.swift; sourceTree = SOURCE_ROOT; };
 		E369A8B87C0246CE9A308E12 /* KairoNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoNotifications.swift; path = Kairo/KairoNotifications.swift; sourceTree = SOURCE_ROOT; };
 		4F742301593242F38765A5A2 /* KairoVoiceButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoVoiceButton.swift; path = Kairo/KairoVoiceButton.swift; sourceTree = SOURCE_ROOT; };
 		F3DD9017C0F047579F7F0220 /* KairoVoiceTrigger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoVoiceTrigger.swift; path = Kairo/KairoVoiceTrigger.swift; sourceTree = SOURCE_ROOT; };
@@ -1060,6 +1062,7 @@
 				D7131E7D012C4079838C0F8D /* KairoNotchView.swift in Sources */,
 				8920B8C60C1A44499726C5F9 /* KairoMusicBridge.swift in Sources */,
 				D7264255FF29413ABE90664B /* KairoDesign.swift in Sources */,
+				3A647E24DEBE4DDE8C110DBB /* KairoWeatherAnimation.swift in Sources */,
 				3531372201884555AC342390 /* KairoNotifications.swift in Sources */,
 				6F39570B87454A0ABC6A5CF3 /* KairoVoiceButton.swift in Sources */,
 				1ED00BFB93874D298301BE7F /* KairoVoiceTrigger.swift in Sources */,

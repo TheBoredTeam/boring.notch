@@ -14,13 +14,27 @@ import SwiftUI
 
 struct MusicPlayerView: View {
     @EnvironmentObject var vm: KairoViewModel
+    @ObservedObject var musicManager = MusicManager.shared
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
-        HStack {
+        HStack(spacing: 0) {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
             MusicControlsView().drawingGroup().compositingGroup()
         }
+        .background(
+            Group {
+                if musicManager.isPlaying {
+                    Image(nsImage: musicManager.albumArt)
+                        .resizable()
+                        .blur(radius: 60)
+                        .opacity(0.08)
+                        .scaleEffect(1.5)
+                        .clipped()
+                }
+            }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 
@@ -541,45 +555,63 @@ struct CustomSlider: View {
     @Binding var lastDragged: Date
     var onValueChange: ((Double) -> Void)?
     var onDragChange: ((Double) -> Void)?
+    @State private var isHovered = false
 
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
-            let height = CGFloat(dragging ? 9 : 5)
+            let trackHeight = CGFloat(dragging ? 8 : (isHovered ? 6 : 4))
             let rangeSpan = range.upperBound - range.lowerBound
 
             let progress = rangeSpan == .zero ? 0 : (value - range.lowerBound) / rangeSpan
-            let filledTrackWidth = min(max(progress, 0), 1) * width
+            let clampedProgress = min(max(progress, 0), 1)
+            let filledTrackWidth = clampedProgress * width
 
             ZStack(alignment: .leading) {
-                Rectangle()
-                    .fill(.gray.opacity(0.3))
-                    .frame(height: height)
+                RoundedRectangle(cornerRadius: trackHeight / 2)
+                    .fill(.white.opacity(0.08))
+                    .frame(height: trackHeight)
 
-                Rectangle()
-                    .fill(color)
-                    .frame(width: filledTrackWidth, height: height)
+                RoundedRectangle(cornerRadius: trackHeight / 2)
+                    .fill(
+                        LinearGradient(
+                            colors: [color, color.opacity(0.7)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: filledTrackWidth, height: trackHeight)
+                    .shadow(color: color.opacity(dragging ? 0.5 : 0.2), radius: dragging ? 8 : 4)
+
+                if dragging || isHovered {
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 12, height: 12)
+                        .shadow(color: color.opacity(0.5), radius: 6)
+                        .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                        .offset(x: filledTrackWidth - 6)
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
-            .cornerRadius(height / 2)
-            .frame(height: 10)
+            .frame(height: 12)
             .contentShape(Rectangle())
+            .onHover { h in withAnimation(.kairoMicro) { isHovered = h } }
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { gesture in
-                        withAnimation {
-                            dragging = true
-                        }
+                        withAnimation(.kairoMicro) { dragging = true }
                         let newValue = range.lowerBound + Double(gesture.location.x / width) * rangeSpan
                         value = min(max(newValue, range.lowerBound), range.upperBound)
                         onDragChange?(value)
                     }
                     .onEnded { _ in
                         onValueChange?(value)
-                        dragging = false
+                        withAnimation(.kairoMicro) { dragging = false }
                         lastDragged = Date()
                     }
             )
-            .animation(.spring(response: 0.35, dampingFraction: 0.7), value: dragging)
+            .animation(.kairoFast, value: dragging)
+            .animation(.kairoMicro, value: isHovered)
         }
     }
 }
