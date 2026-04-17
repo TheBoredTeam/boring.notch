@@ -4,7 +4,7 @@ Please, go through these steps before you submit a PR.
 1. Make sure that your PR is not a duplicate.
 2. If not, then make sure that:
 
-    a. Your changes MUST NOT change translations. Please submit translations on [Crowdin](https://crowdin.com/project/boring-notch).
+    a. Your changes MUST NOT change translations. Please submit translations on [Crowdin](https://crowdin.com/project/kairo).
 
     b. You have tested the code yourself to ensure it builds correctly and functions as intended.
 

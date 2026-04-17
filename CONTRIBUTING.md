@@ -1,10 +1,10 @@
 # Contributing
 
-Thank you for taking the time to contribute! ❤️
+Thank you for taking the time to contribute!
 
 These guidelines help streamline the contribution process for everyone involved. By following them, you'll make it easier for maintainers to review your work and collaborate with you effectively.
 
-You can contribute in many ways: writing code, improving documentation, reporting bugs, requesting features, or creating tutorials and blog posts. Every contribution, large or small, helps make Boring Notch better.
+You can contribute in many ways: writing code, improving documentation, reporting bugs, requesting features, or creating tutorials and blog posts. Every contribution, large or small, helps make Kairo better.
 
 ## Table of Contents
 
@@ -21,7 +21,7 @@ You can contribute in many ways: writing code, improving documentation, reportin
 
 ## Localizations
 
-Please submit all translations to [Crowdin](https://crowdin.com/project/boring-notch). New strings added to the `dev` branch from code changes will sync automatically to Crowdin, and Crowdin will automatically open a new PR with translations to allow us to integrate them.
+Please submit all translations to [Crowdin](https://crowdin.com/project/kairo). New strings added to the `dev` branch from code changes will sync automatically to Crowdin, and Crowdin will automatically open a new PR with translations to allow us to integrate them.
 
 ## Contributing Code
 
@@ -40,8 +40,8 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
 
 2. **Clone your fork**:
    ```bash
-   git clone https://github.com/{your-username}/boring.notch.git
-   cd boring.notch
+   git clone https://github.com/{your-username}/kairo-notch.git
+   cd kairo-notch
    ```
    Replace `{your-username}` with your GitHub username.
 
@@ -126,8 +126,8 @@ If you need help or have questions:
 - Check the project documentation
 - Search existing issues for similar questions
 - Open a new issue with the "question" label
-- Join our [community Discord server](https://discord.com/servers/boring-notch-1269588937320566815)
+- Join our [community Discord server](https://discord.gg/GvYcYpAKTu)
 
 ---
 
-Thank you for contributing to Boring Notch! Your efforts help make this project better for everyone. 🎉
+Thank you for contributing to Kairo! Your efforts help make this project better for everyone.

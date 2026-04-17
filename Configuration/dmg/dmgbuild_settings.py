@@ -7,7 +7,7 @@ import os
 #  - DMG_BACKGROUND: absolute path to the background image to use
 
 APP_PATH = os.environ.get('DMG_APP_PATH')
-VOLUME_NAME = os.environ.get('DMG_VOLUME_NAME', 'boringNotch')
+VOLUME_NAME = os.environ.get('DMG_VOLUME_NAME', 'Kairo')
 BACKGROUND = os.environ.get('DMG_BACKGROUND', '')
 BADGE_ICON = os.environ.get('DMG_BADGE_ICON', '')
 
@@ -35,7 +35,7 @@ window_rect = ((0, 0), (660, 400))
 icon_size = 128
 
 # Icon locations: map filename (or bundle name) -> (x, y) in window coords
-app_basename = os.path.basename(APP_PATH) if APP_PATH else 'boringNotch.app'
+app_basename = os.path.basename(APP_PATH) if APP_PATH else 'Kairo.app'
 icon_locations = {
     app_basename: (150, 180),
     'Applications': (510, 180),

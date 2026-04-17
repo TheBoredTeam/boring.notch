@@ -98,7 +98,7 @@ echo "Creating DMG via dmgbuild: app=$DMG_APP_PATH output=$DMG_OUTPUT volume=$DM
 # Validate inputs early to give clearer errors for common typos
 if [ ! -e "$DMG_APP_PATH" ]; then
   echo "Error: App path not found: $DMG_APP_PATH" >&2
-  echo "Make sure you passed the correct .app path (e.g. Release/boringNotch.app)" >&2
+  echo "Make sure you passed the correct .app path (e.g. Release/Kairo.app)" >&2
   exit 2
 fi
 

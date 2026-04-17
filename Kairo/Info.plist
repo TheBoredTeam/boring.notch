@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Kairo uses AppleEvents to control apps on your Mac including browsers, Spotify, and Apple Music for hands-free playback</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Kairo uses the microphone for voice commands</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Kairo uses the camera for the mirror feature</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Kairo shows your upcoming events in the Dynamic Island</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Kairo shows your reminders alongside calendar events</string>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict/>
+	</array>
+</dict>
+</plist>

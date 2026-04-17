@@ -41,6 +41,7 @@ build/
 *.DS_Store
 *.vscode/
 *.idea/
+.claude/worktrees/
 
 # User-specific files
 *.xcuserdatad/

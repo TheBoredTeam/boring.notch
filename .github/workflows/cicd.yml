@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Boring Notch
+    name: Build Kairo
     strategy:
       matrix:
         platform:
@@ -27,7 +27,7 @@ jobs:
         xcode:
           - ^16
         scheme:
-          - boringNotch
+          - Kairo
     runs-on: macos-latest
     steps:
     - name: Code Checkout
