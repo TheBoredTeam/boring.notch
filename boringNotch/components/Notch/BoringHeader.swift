@@ -12,6 +12,7 @@ struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var btManager = BluetoothBatteryManager.shared
     @StateObject var tvm = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
@@ -36,7 +37,7 @@ struct BoringHeader: View {
                     }
             }
 
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 if vm.notchState == .open {
                     if isOSDType(coordinator.sneakPeekState(for: vm.screenUUID).type) && coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.showOpenNotchOSD] {
                         OpenNotchOSD(
@@ -68,7 +69,7 @@ struct BoringHeader: View {
                                 DispatchQueue.main.async {
                                     SettingsWindowController.shared.showWindow()
                                 }
-                                
+
                             }) {
                                 Capsule()
                                     .fill(.black)
@@ -81,6 +82,10 @@ struct BoringHeader: View {
                                     }
                             }
                             .buttonStyle(PlainButtonStyle())
+                        }
+                        if Defaults[.showBluetoothBattery] && !btManager.devices.isEmpty {
+                            BluetoothBatteryHeaderView()
+                                .transition(.scale(scale: 0.9).combined(with: .opacity))
                         }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(

@@ -240,6 +240,16 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     
+    // MARK: Clipboard
+    static let enableClipboardHistory = Key<Bool>("enableClipboardHistory", default: true)
+    static let clipboardHistorySize = Key<Int>("clipboardHistorySize", default: 50)
+
+    // MARK: Bluetooth Battery
+    static let showBluetoothBattery = Key<Bool>("showBluetoothBattery", default: true)
+
+    // MARK: System Stats
+    static let showSystemStats = Key<Bool>("showSystemStats", default: false)
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
