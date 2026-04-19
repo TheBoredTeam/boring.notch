@@ -2,7 +2,7 @@
 
 > [boring.notch](https://github.com/TheBoredTeam/boring.notch) is an open-source macOS app that transforms the MacBook notch into an interactive control center. These are my feature contributions.
 
-**PR:** [#1187 — Clipboard History, Bluetooth Battery, System Stats, Battery Time Formatting](https://github.com/TheBoredTeam/boring.notch/pull/1187)
+**PR:** [#1187 — Clipboard History, Bluetooth Battery, System Stats](https://github.com/TheBoredTeam/boring.notch/pull/1187)
 
 ---
 
@@ -53,11 +53,6 @@ Live CPU, RAM, and thermal monitoring as a dedicated notch tab with circular gau
 - `vm_statistics64` for RAM (active + wired + compressed = used)
 - `ProcessInfo.thermalStateDidChangeNotification` for thermal
 - Animated progress rings with color-coded thresholds
-
-### 4. Battery Time Formatting
-
-**Problem:** Battery popover showed raw minutes ("82 min").
-**Solution:** Human-readable formatting ("1h 22m").
 
 ---
 

@@ -166,19 +166,6 @@ struct BatteryMenuView: View {
         .foregroundColor(.white)
     }
 
-    private func formatChargeTime(_ minutes: Int) -> String {
-        if minutes <= 0 { return "Calculating..." }
-        let hours = minutes / 60
-        let mins = minutes % 60
-        if hours > 0 && mins > 0 {
-            return "\(hours)h \(mins)m"
-        } else if hours > 0 {
-            return "\(hours)h"
-        } else {
-            return "\(mins)m"
-        }
-    }
-
     private func openBatteryPreferences() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.battery") {
             openURL(url)
