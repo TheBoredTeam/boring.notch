@@ -125,6 +125,8 @@ extension Defaults.Keys {
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
+    static let hideLiveActivityAfterTimeout = Key<Bool>("hideLiveActivityAfterTimeout", default: true)
+    static let liveActivityTimeout = Key<Double>("liveActivityTimeout", default: 2.0)
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)

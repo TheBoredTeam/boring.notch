@@ -360,7 +360,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.coordinator.toggleSneakPeek(
                     status: !self.coordinator.sneakPeek.show,
                     type: .music,
-                    duration: 3.0
+                    duration: 2.0
                 )
             }
         }

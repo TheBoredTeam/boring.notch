@@ -598,6 +598,8 @@ struct Media: View {
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
+    @Default(.hideLiveActivityAfterTimeout) var hideLiveActivityAfterTimeout
+    @Default(.liveActivityTimeout) var liveActivityTimeout
 
     @Default(.enableLyrics) var enableLyrics
 
@@ -644,6 +646,24 @@ struct Media: View {
                     "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
+                Toggle("Hide live activity after a short timeout", isOn: $hideLiveActivityAfterTimeout.animation())
+                    .disabled(!coordinator.musicLiveActivityEnabled)
+                
+                if hideLiveActivityAfterTimeout {
+                    HStack {
+                        Stepper(value: $liveActivityTimeout, in: 1...15, step: 0.5) {
+                            HStack {
+                                Text("Hide timeout")
+                                Spacer()
+                                Text("\(liveActivityTimeout, specifier: "%.1f") seconds")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.leading, 16)
+                    .disabled(!coordinator.musicLiveActivityEnabled)
+                }
+
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in

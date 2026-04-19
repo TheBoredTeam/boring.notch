@@ -52,4 +52,6 @@ build/
 *.ipa
 *.xcarchive
 *.dSYM
-
+*MAP.md
+*JOURNAL.md
+*documentation.md

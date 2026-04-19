@@ -501,6 +501,9 @@
         }
       }
     },
+    "%.1f seconds" : {
+
+    },
     "%.1fs" : {
       "localizations" : {
         "ar" : {
@@ -10907,6 +10910,12 @@
           }
         }
       }
+    },
+    "Hide live activity after a short timeout" : {
+
+    },
+    "Hide timeout" : {
+
     },
     "Hide title bar" : {
       "localizations" : {
