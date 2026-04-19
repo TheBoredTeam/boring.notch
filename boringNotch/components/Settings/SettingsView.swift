@@ -144,6 +144,8 @@ struct GeneralSettings: View {
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.openNotchWidth) var openNotchWidth
     @Default(.openNotchHeight) var openNotchHeight
+    @Default(.liveActivityWidthMode) var liveActivityWidthMode
+    @Default(.liveActivityWidth) var liveActivityWidth
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
@@ -284,6 +286,34 @@ struct GeneralSettings: View {
                 .buttonStyle(.plain)
                 .foregroundColor(.accentColor)
                 .padding(.top, 4)
+                
+                Divider()
+                
+                Picker("Live Activity Width", selection: $liveActivityWidthMode) {
+                    Text("Auto (Match Content)").tag(Defaults.Keys.LiveActivityWidthMode.auto)
+                    Text("Custom").tag(Defaults.Keys.LiveActivityWidthMode.custom)
+                }
+                .onChange(of: liveActivityWidthMode) {
+                    NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                }
+                
+                if liveActivityWidthMode == .custom {
+                    Slider(value: $liveActivityWidth, in: 20...600, step: 5) {
+                        Text("Extra Width - \(liveActivityWidth, specifier: "%.0f")")
+                    }
+                    .onChange(of: liveActivityWidth) {
+                        NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                    }
+                    
+                    Button("Reset Width to Default") {
+                        liveActivityWidthMode = .auto
+                        liveActivityWidth = 80.0
+                        NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.accentColor)
+                    .padding(.top, 4)
+                }
             } header: {
                 Text("Notch sizing")
             }

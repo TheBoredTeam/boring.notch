@@ -133,6 +133,13 @@ extension Defaults.Keys {
     // MARK: Notch Sizing
     static let openNotchWidth = Key<Double>("openNotchWidth", default: 640.0)
     static let openNotchHeight = Key<Double>("openNotchHeight", default: 190.0)
+    
+    enum LiveActivityWidthMode: String, Codable, Defaults.Serializable {
+        case auto
+        case custom
+    }
+    static let liveActivityWidthMode = Key<LiveActivityWidthMode>("liveActivityWidthMode", default: .auto)
+    static let liveActivityWidth = Key<Double>("liveActivityWidth", default: 80.0)
 
     static let enableLyrics = Key<Bool>("enableLyrics", default: true)
     static let musicControlSlots = Key<[MusicControlButton]>(

@@ -2805,6 +2805,9 @@
         }
       }
     },
+    "Auto (Match Content)" : {
+
+    },
     "Auto-scroll to next event" : {
       "localizations" : {
         "ar" : {
@@ -9411,6 +9414,9 @@
         }
       }
     },
+    "Extra Width - %.0f" : {
+
+    },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
         "ar" : {
@@ -12017,6 +12023,9 @@
           }
         }
       }
+    },
+    "Live Activity Width" : {
+
     },
     "Lottie JSON URL" : {
       "localizations" : {
@@ -17824,6 +17833,9 @@
           }
         }
       }
+    },
+    "Reset Width to Default" : {
+
     },
     "Restart" : {
       "extractionState" : "stale",

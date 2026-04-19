@@ -40,6 +40,8 @@ struct ContentView: View {
 
     @Default(.openNotchWidth) var openNotchWidth
     @Default(.openNotchHeight) var openNotchHeight
+    @Default(.liveActivityWidthMode) var liveActivityWidthMode
+    @Default(.liveActivityWidth) var liveActivityWidth
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
@@ -64,6 +66,13 @@ struct ContentView: View {
 
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
+        
+        let extraWidth: CGFloat
+        if liveActivityWidthMode == .custom {
+            extraWidth = CGFloat(liveActivityWidth)
+        } else {
+            extraWidth = (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+        }
 
         if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
@@ -75,12 +84,12 @@ struct ContentView: View {
             && (hideLiveActivityAfterTimeout ? musicManager.showNotchLiveActivity : true)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            chinWidth += extraWidth
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            chinWidth += extraWidth
         }
 
         return chinWidth
@@ -295,7 +304,7 @@ struct ContentView: View {
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && musicManager.isPlaying && (hideLiveActivityAfterTimeout ? musicManager.showNotchLiveActivity : true) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
-                              .frame(alignment: .center)
+                              .frame(width: computedChinWidth, alignment: .center)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
@@ -446,12 +455,11 @@ struct ContentView: View {
                     }
                 )
                 .frame(
-                    width: (coordinator.expandingView.show
+                    maxWidth: (coordinator.expandingView.show
                         && coordinator.expandingView.type == .music
                         && Defaults[.sneakPeekStyles] == .inline)
                         ? 380
-                        : vm.closedNotchSize.width
-                            + -cornerRadiusInsets.closed.top
+                        : .infinity
                 )
 
             HStack {
