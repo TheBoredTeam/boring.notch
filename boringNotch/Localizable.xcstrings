@@ -16019,6 +16019,12 @@
         }
       }
     },
+    "Opened notch height - %.0f" : {
+
+    },
+    "Opened notch width - %.0f" : {
+
+    },
     "Option key behaviour" : {
       "localizations" : {
         "ar" : {

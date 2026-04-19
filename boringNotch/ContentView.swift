@@ -38,6 +38,9 @@ struct ContentView: View {
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.hideLiveActivityAfterTimeout) var hideLiveActivityAfterTimeout
 
+    @Default(.openNotchWidth) var openNotchWidth
+    @Default(.openNotchHeight) var openNotchHeight
+
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
 
@@ -206,7 +209,7 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .frame(maxWidth: getWindowSize().width, maxHeight: getWindowSize().height, alignment: .top)
         .compositingGroup()
         .scaleEffect(
             x: gestureScale,

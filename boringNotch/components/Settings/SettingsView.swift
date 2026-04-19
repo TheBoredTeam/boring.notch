@@ -132,7 +132,6 @@ struct GeneralSettings: View {
         guard let uuid = screen.displayUUID else { return nil }
         return (uuid, screen.localizedName)
     }
-    @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     @Default(.mirrorShape) var mirrorShape
@@ -143,6 +142,8 @@ struct GeneralSettings: View {
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
+    @Default(.openNotchWidth) var openNotchWidth
+    @Default(.openNotchHeight) var openNotchHeight
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
@@ -255,6 +256,34 @@ struct GeneralSettings: View {
                             name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
+
+                Divider()
+
+                Slider(value: $openNotchWidth, in: 300...1200, step: 10) {
+                    Text("Opened notch width - \(openNotchWidth, specifier: "%.0f")")
+                }
+                .onChange(of: openNotchWidth) {
+                    NotificationCenter.default.post(name: Notification.Name("ForceOpenNotch"), object: nil)
+                    NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                }
+
+                Slider(value: $openNotchHeight, in: 100...800, step: 10) {
+                    Text("Opened notch height - \(openNotchHeight, specifier: "%.0f")")
+                }
+                .onChange(of: openNotchHeight) {
+                    NotificationCenter.default.post(name: Notification.Name("ForceOpenNotch"), object: nil)
+                    NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                }
+
+                Button("Reset to Defaults") {
+                    openNotchWidth = 640.0
+                    openNotchHeight = 190.0
+                    NotificationCenter.default.post(name: Notification.Name("ForceOpenNotch"), object: nil)
+                    NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.accentColor)
+                .padding(.top, 4)
             } header: {
                 Text("Notch sizing")
             }

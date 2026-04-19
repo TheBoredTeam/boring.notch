@@ -65,6 +65,17 @@ class BoringViewModel: NSObject, ObservableObject {
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
+            
+        NotificationCenter.default.addObserver(
+            forName: .notchHeightChanged, object: nil, queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            if self.notchState == .open {
+                withAnimation(self.animationLibrary.animation) {
+                    self.notchSize = getOpenNotchSize()
+                }
+            }
+        }
         
         setupDetectorObserver()
     }
@@ -190,7 +201,7 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func open() {
-        self.notchSize = openNotchSize
+        self.notchSize = getOpenNotchSize()
         self.notchState = .open
         
         // Force music information update when notch is opened
