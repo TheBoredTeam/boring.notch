@@ -1,16 +1,15 @@
 name: Fork PR target guidance
 
 on:
-  workflow_run:
-    workflows: [Fork PR target policy]
-    types: [completed]
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
 
 permissions: {}
 
 jobs:
   comment:
     name: Sync PR target guidance comment
-    if: ${{ github.event.workflow_run.event == 'pull_request_target' }}
+    if: ${{ github.event.pull_request.head.repo.fork == true }}
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -20,13 +19,7 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           script: |
-            const workflowRun = context.payload.workflow_run;
-            const prNumber = workflowRun?.pull_requests?.[0]?.number;
-
-            if (!prNumber) {
-              core.info('Triggering workflow run is not associated with a pull request; skipping.');
-              return;
-            }
+            const prNumber = context.payload.pull_request.number;
 
             const marker = '<!-- fork-pr-target-policy -->';
 
