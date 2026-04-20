@@ -10595,66 +10595,66 @@
         }
       }
     },
-    "Time to Full Charge: %lld min" : {
+    "Time to Full Charge: %@" : {
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Čas do plného nabití: %lld min"
+            "value" : "Čas do plného nabití: %@"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zeit bis zur vollen Ladung: %lld min"
+            "value" : "Zeit bis zur vollen Ladung: %@"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Time to Full Charge: %lld min"
+            "value" : "Time to Full Charge: %@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tiempo para recarga completa: %lld min"
+            "value" : "Tiempo para recarga completa: %@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Temps avant la charge complète : %lld min"
+            "value" : "Temps avant la charge complète : %@"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tempo alla carica completa: %lld min"
+            "value" : "Tempo alla carica completa: %@"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "완충 까지 남은 시간: %lld 분"
+            "value" : "완충 까지 남은 시간: %@"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Czas do pełnego naładowania: %lld min"
+            "value" : "Czas do pełnego naładowania: %@"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tam Şarj Süresi: %lld dakika"
+            "value" : "Tam Şarj Süresi: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "充电时间：%lld 分钟"
+            "value" : "充电时间：%@"
           }
         }
       }
