@@ -17,6 +17,11 @@ struct Media: View {
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
     @Default(.enableLyrics) var enableLyrics
+    @Default(.musicPlayerVisibilityMode) private var musicPlayerVisibilityMode
+    
+    private var areMusicControlsDisabled: Bool {
+        musicPlayerVisibilityMode == .never
+    }
 
     var body: some View {
         Form {
@@ -95,17 +100,26 @@ struct Media: View {
             }
             
             Section {
+                Picker("Open-notch music player", selection: $musicPlayerVisibilityMode) {
+                    ForEach(MusicPlayerVisibilityMode.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
                 MusicSlotConfigurationView()
+                    .disabled(areMusicControlsDisabled)
+                    .opacity(areMusicControlsDisabled ? 0.5 : 1)
                 Defaults.Toggle(key: .enableLyrics) {
                     HStack {
                         Text("Show lyrics below artist name")
                         customBadge(text: "Beta")
                     }
                 }
+                .disabled(areMusicControlsDisabled)
+                .opacity(areMusicControlsDisabled ? 0.5 : 1)
             } header: {
                 Text("Media controls")
             }  footer: {
-                Text("Customize which controls appear in the music player. Volume expands when active.")
+                Text("Choose when the open-notch music player appears. Volume expands when active.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
