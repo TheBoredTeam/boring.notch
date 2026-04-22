@@ -36,7 +36,7 @@ class BoringNotchWindow: NSPanel {
         ]
         
         isReleasedWhenClosed = false
-        level = .mainMenu + 3
+        level = .statusBar
         hasShadow = false
     }
     

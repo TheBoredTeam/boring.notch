@@ -390,8 +390,6 @@ struct VolumeControlView: View {
             // volumeUpdateTask?.cancel() // No longer needed
         }
     }
-<<<<<<< Updated upstream
-=======
     
     
     private var volumeIcon: String {
@@ -407,7 +405,6 @@ struct VolumeControlView: View {
             return "speaker.wave.3"
         }
     }
->>>>>>> Stashed changes
 }
 
 // MARK: - Main View

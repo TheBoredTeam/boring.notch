@@ -233,6 +233,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         var newPlaybackState = PlaybackState(bundleIdentifier: playbackState.bundleIdentifier)
         
         newPlaybackState.title = payload.title ?? self.playbackState.title
+if newPlaybackState.title != self.playbackState.title || newPlaybackState.duration != self.playbackState.duration { newPlaybackState.currentTime = 0 }
         newPlaybackState.artist = payload.artist ?? self.playbackState.artist
         newPlaybackState.album = payload.album ?? self.playbackState.album
         newPlaybackState.duration = payload.duration ?? self.playbackState.duration
