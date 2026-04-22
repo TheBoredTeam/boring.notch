@@ -10,13 +10,25 @@ import Foundation
 // MARK: - Configuration
 struct YouTubeMusicConfiguration: Sendable {
     let baseURL: String
-    let bundleIdentifier: String
+    let bundleIdentifiers: [String]
     let reconnectDelay: ClosedRange<TimeInterval>
     let updateInterval: TimeInterval
+
+    var bundleIdentifier: String {
+        bundleIdentifiers.first ?? "com.github.th-ch.youtube-music"
+    }
+
+    func supports(bundleIdentifier: String?) -> Bool {
+        guard let bundleIdentifier else { return false }
+        return bundleIdentifiers.contains(bundleIdentifier)
+    }
     
     static let `default` = YouTubeMusicConfiguration(
         baseURL: "http://localhost:26538",
-        bundleIdentifier: "com.github.th-ch.youtube-music",
+        bundleIdentifiers: [
+            "com.github.th-ch.youtube-music",
+            "com.sertacozercan.Kaset"
+        ],
         reconnectDelay: 1...60,
         updateInterval: 2.0
     )
