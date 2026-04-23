@@ -21,6 +21,7 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+    @ObservedObject var pomodoroTimer = PomodoroTimerViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @State private var hoverTask: Task<Void, Never>?
@@ -30,6 +31,9 @@ struct ContentView: View {
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
+    @State private var pomodoroPhaseHapticTrigger: Int = 0
+    @State private var pomodoroCountdownHapticTrigger: Int = 0
+    @State private var pomodoroCountdownFinalSecondHapticTrigger: Int = 0
 
     @Namespace var albumArtNamespace
 
@@ -89,6 +93,10 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if shouldShowPomodoroBanner {
+            chinWidth = max(chinWidth, 420)
+        } else if shouldShowClosedPomodoroCompact {
+            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 50)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -109,6 +117,26 @@ struct ContentView: View {
     private var isNotchHeightZero: Bool { vm.effectiveClosedNotchHeight == 0 }
 
     private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
+
+    private var shouldShowPomodoroBanner: Bool {
+        coordinator.expandingView.show
+            && coordinator.expandingView.type == .pomodoro
+            && vm.notchState == .closed
+            && !vm.hideOnClosed
+    }
+
+    private var shouldShowClosedPomodoroCompact: Bool {
+        let shouldYieldToMusicWhenPaused =
+            !pomodoroTimer.isRunning
+            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && coordinator.musicLiveActivityEnabled
+
+        return vm.notchState == .closed
+            && Defaults[.showPomodoroInClosedNotch]
+            && (pomodoroTimer.shouldShowCompactDisplay || coordinator.showPomodoroInHome)
+            && !shouldYieldToMusicWhenPaused
+            && !vm.hideOnClosed
+    }
 
     var body: some View {
         // Calculate scale based on gesture progress only
@@ -205,6 +233,18 @@ struct ContentView: View {
                         }
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
+                    .sensoryFeedback(.alignment, trigger: pomodoroPhaseHapticTrigger)
+                    .sensoryFeedback(.levelChange, trigger: pomodoroCountdownHapticTrigger)
+                    .sensoryFeedback(.alignment, trigger: pomodoroCountdownFinalSecondHapticTrigger)
+                    .onChange(of: pomodoroTimer.phaseCompleteHapticTick) { _, _ in
+                        pomodoroPhaseHapticTrigger += 1
+                    }
+                    .onChange(of: pomodoroTimer.countdownHapticTick) { _, _ in
+                        pomodoroCountdownHapticTrigger += 1
+                    }
+                    .onChange(of: pomodoroTimer.countdownFinalSecondHapticTick) { _, _ in
+                        pomodoroCountdownFinalSecondHapticTrigger += 1
+                    }
                     .contextMenu {
                         Button("Settings") {
                             DispatchQueue.main.async {
@@ -318,10 +358,15 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
+                      } else if shouldShowClosedPomodoroCompact {
+                          PomodoroCompactView(
+                              closedNotchWidth: vm.closedNotchSize.width,
+                              height: displayClosedNotchHeight
+                          )
+                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music || coordinator.expandingView.type == .pomodoro) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
+                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .pomodoro) && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
                            BoringHeader()
@@ -335,7 +380,22 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
 
-                      if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
+                      if shouldShowPomodoroBanner {
+                          HStack(alignment: .center) {
+                              Image(systemName: "timer")
+                              GeometryReader { geo in
+                                  MarqueeText(
+                                      coordinator.expandingView.pomodoroMessage,
+                                      color: .gray,
+                                      delayDuration: 1.0,
+                                      frameWidth: geo.size.width
+                                  )
+                              }
+                          }
+                          .foregroundStyle(.gray)
+                          .padding(.bottom, 10)
+                          .transition(.move(edge: .bottom).combined(with: .opacity))
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
                           if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
@@ -373,20 +433,22 @@ struct ContentView: View {
                       }
                   }
               }
-              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
+              .conditionalModifier(shouldShowPomodoroBanner || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
                   view
                       .fixedSize()
               }
               .zIndex(1)
             if vm.notchState == .open {
-                VStack {
+                VStack(spacing: 0) {
                     switch coordinator.currentView {
-                    case .home:
+                    case .home, .pomodoro:
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
                 .transition(
                     .scale(scale: 0.8, anchor: .top)
                     .combined(with: .opacity)

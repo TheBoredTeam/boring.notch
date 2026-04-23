@@ -30,6 +30,63 @@ enum HideNotchOption: String, Defaults.Serializable {
     case never
 }
 
+enum PomodoroPhase: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case focus
+    case shortBreak
+    case longBreak
+
+    var id: String { self.rawValue }
+
+    var localizedString: String {
+        switch self {
+        case .focus:
+            return NSLocalizedString("Focus", comment: "Pomodoro phase: Focus")
+        case .shortBreak:
+            return NSLocalizedString("Short Break", comment: "Pomodoro phase: Short Break")
+        case .longBreak:
+            return NSLocalizedString("Long Break", comment: "Pomodoro phase: Long Break")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .focus: return "brain.head.profile"
+        case .shortBreak: return "cup.and.saucer"
+        case .longBreak: return "figure.walk"
+        }
+    }
+
+    var tintColor: Color {
+        switch self {
+        case .focus: return .red
+        case .shortBreak: return .green
+        case .longBreak: return .blue
+        }
+    }
+}
+
+enum PomodoroPhaseAlertMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case none
+    case inline
+    case system
+    case both
+
+    var id: String { rawValue }
+
+    var localizedTitle: String {
+        switch self {
+        case .none:
+            return NSLocalizedString("pomodoro_alert_none", comment: "Pomodoro alert: no notification")
+        case .inline:
+            return NSLocalizedString("pomodoro_alert_inline", comment: "Pomodoro alert: inline under notch")
+        case .system:
+            return NSLocalizedString("pomodoro_alert_system", comment: "Pomodoro alert: system notification")
+        case .both:
+            return NSLocalizedString("pomodoro_alert_both", comment: "Pomodoro alert: inline and system")
+        }
+    }
+}
+
 // Define notification names at file scope
 extension Notification.Name {
     // MARK: - Media
@@ -209,6 +266,24 @@ extension Defaults.Keys {
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
     static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
+    
+    // MARK: Pomodoro
+    /// Pomodoro as a notch tab/panel (Home / Shelf / Pomodoro). Default on for discoverability.
+    static let showPomodoroPanel = Key<Bool>("showPomodoroPanel", default: true)
+    static let showPomodoroInClosedNotch = Key<Bool>("showPomodoroInClosedNotch", default: false)
+    static let pomodoroFocusMinutes = Key<Int>("pomodoroFocusMinutes", default: 25)
+    static let pomodoroShortBreakMinutes = Key<Int>("pomodoroShortBreakMinutes", default: 5)
+    static let pomodoroLongBreakMinutes = Key<Int>("pomodoroLongBreakMinutes", default: 15)
+    static let pomodoroLongBreakEvery = Key<Int>("pomodoroLongBreakEvery", default: 4)
+    static let pomodoroAutoStartBreaks = Key<Bool>("pomodoroAutoStartBreaks", default: false)
+    static let pomodoroAutoStartFocus = Key<Bool>("pomodoroAutoStartFocus", default: false)
+    /// Legacy; migration copies into `pomodoroPhaseAlertMode` once.
+    static let pomodoroNotifyOnPhaseComplete = Key<Bool>("pomodoroNotifyOnPhaseComplete", default: true)
+    static let pomodoroPhaseAlertMode = Key<PomodoroPhaseAlertMode>("pomodoroPhaseAlertMode", default: .system)
+    static let pomodoroPhaseAlertLegacyMigrated = Key<Bool>("pomodoroPhaseAlertLegacyMigrated", default: false)
+    static let pomodoroSoundOnPhaseComplete = Key<Bool>("pomodoroSoundOnPhaseComplete", default: true)
+    static let pomodoroHapticPhaseComplete = Key<Bool>("pomodoroHapticPhaseComplete", default: true)
+    static let pomodoroHapticCountdown = Key<Bool>("pomodoroHapticCountdown", default: true)
     
     // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
