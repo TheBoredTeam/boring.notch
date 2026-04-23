@@ -87,6 +87,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        ClipboardHistoryManager.shared.stopMonitoring()
         cleanupDragDetectors()
         cleanupWindows()
         BetterDisplayManager.shared.stopObserving()
@@ -384,6 +385,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .clipboardHistoryPanel) { [weak self] in
+            guard let self = self, Defaults[.showClipboard] else { return }
+            let mouseLocation = NSEvent.mouseLocation
+
+            var viewModel = self.vm
+
+            if Defaults[.showOnAllDisplays] {
+                for screen in NSScreen.screens {
+                    if screen.frame.contains(mouseLocation) {
+                        if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
+                            viewModel = screenViewModel
+                            break
+                        }
+                    }
+                }
+            }
+
+            if viewModel.notchState == .closed {
+                viewModel.open()
+            }
+            self.coordinator.currentView = .clipboard
+        }
+
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
             Task { [weak self] in
                 guard let self = self else { return }
@@ -443,6 +467,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+
+        if Defaults[.showClipboard] {
+            ClipboardHistoryManager.shared.startMonitoring()
+        }
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
