@@ -87,14 +87,12 @@ class CalendarService: CalendarServiceProviding {
             let predicate = store.predicateForReminders(in: calendars)
             
             store.fetchReminders(matching: predicate) { reminders in
-                
                 let filteredReminders = (reminders ?? []).filter { reminder in
-                    // Check if reminder has a due date within our range
-                    guard let dueDate = reminder.dueDateComponents?.date else {
+                    guard let dueDate = reminder.displayedDueDate else {
                         return false
                     }
                     
-                    return dueDate >= start && dueDate <= end
+                    return dueDate >= start && dueDate < end
                 }
                 
                 // Convert to EventModel
@@ -158,7 +156,7 @@ extension EventModel {
     init?(from reminder: EKReminder) {
         guard let calendar = reminder.calendar,
               let dueDateComponents = reminder.dueDateComponents,
-              let date = Calendar.current.date(from: dueDateComponents)
+              let date = reminder.displayedDueDate
         else { return nil }
         
         self.init(
@@ -169,7 +167,7 @@ extension EventModel {
             location: reminder.location,
             notes: reminder.notes,
             url: reminder.url,
-            isAllDay: dueDateComponents.hour == nil,
+            isAllDay: dueDateComponents.isAllDayReminder,
             type: .reminder(completed: reminder.isCompleted),
             calendar: .init(from: calendar),
             participants: [],
@@ -273,6 +271,43 @@ private extension EKEvent {
         let startOfDay = calendar.startOfDay(for: startDate)
         let endOfDay = calendar.dateInterval(of: .day, for: endDate)?.end
         return startDate == startOfDay && endDate == endOfDay
+    }
+}
+
+private extension EKReminder {
+    var displayedDueDate: Date? {
+        dueDateComponents?.reminderDate(
+            in: .current,
+            fallbackTimeZone: timeZone
+        )
+    }
+}
+
+private extension DateComponents {
+    var isAllDayReminder: Bool {
+        hour == nil && minute == nil && second == nil
+    }
+
+    func reminderDate(in calendar: Calendar, fallbackTimeZone: TimeZone?) -> Date? {
+        var reminderCalendar = calendar
+        if isAllDayReminder {
+            reminderCalendar = Calendar(identifier: .gregorian)
+            reminderCalendar.timeZone = calendar.timeZone
+        }
+
+        var components = self
+        components.calendar = reminderCalendar
+
+        if isAllDayReminder {
+            components.timeZone = reminderCalendar.timeZone
+            components.hour = 0
+            components.minute = 0
+            components.second = 0
+        } else if components.timeZone == nil {
+            components.timeZone = fallbackTimeZone ?? reminderCalendar.timeZone
+        }
+
+        return reminderCalendar.date(from: components)
     }
 }
 
