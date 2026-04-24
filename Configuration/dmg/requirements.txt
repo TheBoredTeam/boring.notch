@@ -1,8 +1,9 @@
 dmgbuild==1.6.7 \
   --hash=sha256:37ee5771c377beb3203d9164aae8046ffed8531c06edf9227f5788b3c599b1bf
 
-ds-store==1.3.1 \
-  --hash=sha256:fbacbb0bd5193ab3e66e5a47fff63619f15e374ffbec8ae29744251a6c8f05b5
+ds-store==1.3.2 \
+  --hash=sha256:3b37332d9f8c18ff04c385d2933b66a1d84950071364f94bfc5f5a3ab1fb361e \
+  --hash=sha256:e4da49df901123481a85b9250945f2aac054a0f0c29352cd2cc858c536cdd364
 
 mac-alias==2.2.2 \
   --hash=sha256:504ab8ac546f35bbd75ad014d6ad977c426660aa721f2cd3acf3dc2f664141bd
