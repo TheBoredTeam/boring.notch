@@ -4,8 +4,9 @@ dmgbuild==1.6.7 \
 ds-store==1.3.1 \
   --hash=sha256:fbacbb0bd5193ab3e66e5a47fff63619f15e374ffbec8ae29744251a6c8f05b5
 
-mac-alias==2.2.2 \
-  --hash=sha256:504ab8ac546f35bbd75ad014d6ad977c426660aa721f2cd3acf3dc2f664141bd
+mac-alias==2.2.3 \
+  --hash=sha256:1c7fa367687d66979f2ce4d1a8b2716cf1c9fb811741cab3cf3ca356555c2beb \
+  --hash=sha256:7362b521d2132ef92f606a37abfed5fcd849ceb2f28b6f9743e014b02af92f0d
 
 pyobjc-core==12.1 \
   --hash=sha256:93418e79c1655f66b4352168f8c85c942707cb1d3ea13a1da3e6f6a143bacda7 \
