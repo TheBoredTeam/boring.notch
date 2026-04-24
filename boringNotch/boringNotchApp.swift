@@ -87,6 +87,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        
+        // Gestisci la clipboard prima di chiudere
+        Task { @MainActor in
+            ClipboardMonitor.shared.stopMonitoring()
+            
+            // Cancella gli elementi se la persistenza è disabilitata
+            if !Defaults[.clipboardPersistOnQuit] {
+                ClipboardStateViewModel.shared.clearAll()
+            }
+        }
+        
         cleanupDragDetectors()
         cleanupWindows()
         BetterDisplayManager.shared.stopObserving()
@@ -443,6 +454,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+
+        // Avvia il monitoring della clipboard
+        Task { @MainActor in
+            ClipboardMonitor.shared.startMonitoring()
+        }
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {

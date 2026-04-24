@@ -43,6 +43,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Clipboard") {
+                    Label("Clipboard", systemImage: "doc.on.clipboard")
+                }
                 NavigationLink(value: "Mirror") {
                     Label("Mirror", systemImage: "camera")
                 }
@@ -79,6 +82,8 @@ struct SettingsView: View {
                     Shelf()
                 case "Mirror":
                     MirrorSettings()
+                case "Clipboard":
+                    ClipboardSettingsView()
                 case "Shortcuts":
                     Shortcuts()
                 case "Advanced":
