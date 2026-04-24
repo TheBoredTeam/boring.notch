@@ -18,11 +18,13 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
 
+    let updaterDelegate: UpdateChannelUpdaterDelegate
     let updaterController: SPUStandardUpdaterController
 
     init() {
+        updaterDelegate = UpdateChannelUpdaterDelegate()
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            startingUpdater: true, updaterDelegate: updaterDelegate, userDriverDelegate: nil)
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
