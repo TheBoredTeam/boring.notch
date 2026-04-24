@@ -2,7 +2,7 @@
 //  ClaudeUsageSettings.swift
 //  boringNotch
 //
-//  Settings panel for Claude usage widget
+//  Settings panel for AI usage widget
 //
 
 import SwiftUI
@@ -14,49 +14,74 @@ struct ClaudeUsageSettings: View {
     var body: some View {
         Form {
             Defaults.Toggle(key: .showClaudeUsage) {
-                Text("Show Claude usage in notch")
+                Text("Show AI usage in notch")
             }
             Defaults.Toggle(key: .showClaudeUsageLiveActivity) {
-                Text("Always show usage (closed notch)")
+                Text("Always show AI usage in closed notch")
             }
             .disabled(!Defaults[.showClaudeUsage])
 
             Section(header: Text("Current Usage")) {
-                if vm.meters.isEmpty {
+                if vm.providers.isEmpty {
                     Text("No data available")
                         .foregroundColor(.secondary)
-                    Text("Install the Claude Usage Monitor Chrome extension to feed data.")
+                    Text("Install claude-usage CLI to feed Claude and Codex data: curl -fsSL https://raw.githubusercontent.com/Dede98/claude-usage/main/install.sh | bash")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 } else {
-                    ForEach(vm.meters) { meter in
-                        HStack {
-                            Text(meter.label)
-                            Spacer()
-                            Text("\(meter.utilization)%")
-                                .foregroundColor(meterColor(meter.utilization))
-                                .fontWeight(.semibold)
-                            if let reset = meter.resetsIn {
-                                Text("resets in \(reset)")
+                    ForEach(vm.providers) { provider in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text(provider.name)
+                                    .fontWeight(.semibold)
+                                Spacer()
+                                if let plan = provider.planLabel {
+                                    Text(plan)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+
+                            if let errorText = provider.errorText {
+                                Text(errorText)
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            } else {
+                                ForEach(provider.meters) { meter in
+                                    HStack {
+                                        Text(meter.label)
+                                        Spacer()
+                                        Text(meter.kind == .remaining ? "\(meter.utilization)% left" : "\(meter.utilization)%")
+                                            .foregroundColor(meterColor(meter))
+                                            .fontWeight(.semibold)
+                                        if let reset = meter.resetsIn {
+                                            Text("resets in \(reset)")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+                            }
+
+                            if let statusText = provider.statusText {
+                                Text(statusText)
+                                    .font(.caption)
+                                    .foregroundColor(provider.statusLevel == .critical ? .red : .orange)
+                            }
+
+                            if let credits = provider.creditsLabel {
+                                Text(credits)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                         }
-                    }
-
-                    if vm.extraUsageEnabled {
-                        HStack {
-                            Text("Extra usage credits")
-                            Spacer()
-                            Text(String(format: "$%.2f", vm.extraUsageCredits))
-                                .fontWeight(.semibold)
-                        }
+                        .padding(.vertical, 2)
                     }
                 }
             }
 
             Section(header: Text("Setup")) {
-                Text("This widget reads from ~/.claude/usage-data.json which is written by the Claude Usage Monitor Chrome extension.")
+                Text("This widget reads ~/.claude/usage-data.json from the claude-usage CLI. Current schema support includes multi-provider snapshots with Claude and Codex.")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
@@ -64,7 +89,7 @@ struct ClaudeUsageSettings: View {
                     HStack {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
-                        Text("Data is stale. Make sure Chrome is running with the extension.")
+                        Text("Data is stale. Make sure the claude-usage daemon is running.")
                             .font(.caption)
                     }
                 } else if let updated = vm.lastUpdated {
@@ -80,9 +105,15 @@ struct ClaudeUsageSettings: View {
         .formStyle(.grouped)
     }
 
-    private func meterColor(_ pct: Int) -> Color {
-        if pct > 80 { return .red }
-        if pct > 50 { return .orange }
+    private func meterColor(_ meter: UsageMeterDisplay) -> Color {
+        if meter.kind == .remaining {
+            if meter.utilization <= 10 { return .red }
+            if meter.utilization <= 25 { return .orange }
+            return .green
+        }
+
+        if meter.utilization >= 90 { return .red }
+        if meter.utilization >= 75 { return .orange }
         return .green
     }
 }

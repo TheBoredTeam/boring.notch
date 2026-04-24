@@ -2,7 +2,7 @@
 //  ClaudeUsageView.swift
 //  boringNotch
 //
-//  Claude usage widget for the expanded notch
+//  AI usage widget for the expanded and closed notch
 //
 
 import SwiftUI
@@ -11,45 +11,89 @@ struct ClaudeUsageView: View {
     @ObservedObject var vm = ClaudeUsageViewModel.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            // Header
-            HStack(spacing: 4) {
-                Image("claude-icon")
-                    .resizable()
-                    .renderingMode(.template)
-                    .foregroundColor(.white.opacity(0.6))
-                    .frame(width: 12, height: 12)
-                Text("Claude")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.6))
-                Spacer()
-                if vm.isStale {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 8))
-                        .foregroundColor(.orange)
-                }
-            }
+        Group {
+            if vm.providers.isEmpty {
+                emptyState
+            } else {
+                VStack(alignment: .leading, spacing: 7) {
+                    ForEach(Array(vm.providers.enumerated()), id: \.element.id) { index, provider in
+                        ProviderUsageSection(provider: provider)
 
-            // Usage meters
-            ForEach(vm.meters) { meter in
-                UsageMeterRow(meter: meter)
-            }
-
-            // Extra usage
-            if vm.extraUsageEnabled && vm.extraUsageCredits > 0 {
-                HStack {
-                    Text("Extra")
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundColor(.white.opacity(0.4))
-                    Spacer()
-                    Text(String(format: "$%.2f", vm.extraUsageCredits))
-                        .font(.system(size: 9, weight: .medium, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.5))
+                        if index < vm.providers.count - 1 {
+                            Divider()
+                                .overlay(.white.opacity(0.08))
+                        }
+                    }
                 }
+                .padding(8)
+                .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
             }
         }
         .padding(.vertical, 4)
-        .frame(width: 130)
+        .frame(width: 158)
+    }
+
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("No provider data")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.white.opacity(0.75))
+            Text("Run claude-usage install --daemon")
+                .font(.system(size: 9))
+                .foregroundColor(.white.opacity(0.35))
+        }
+        .padding(8)
+        .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+struct ProviderUsageSection: View {
+    let provider: UsageProviderDisplay
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 5) {
+                usageIcon(provider.iconName, size: 12, opacity: 0.75)
+
+                Text(provider.name)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.82))
+
+                if let planLabel = provider.planLabel {
+                    Text(planLabel)
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundColor(.white.opacity(0.45))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(.white.opacity(0.08), in: Capsule())
+                }
+
+                Spacer()
+
+                if let statusText = provider.statusText {
+                    Text(statusText)
+                        .font(.system(size: 8, weight: .semibold))
+                        .foregroundColor(statusColor(provider.statusLevel))
+                }
+            }
+
+            if let errorText = provider.errorText {
+                Text(errorText)
+                    .font(.system(size: 9))
+                    .foregroundColor(.red.opacity(0.8))
+                    .lineLimit(2)
+            } else {
+                ForEach(provider.meters) { meter in
+                    UsageMeterRow(meter: meter)
+                }
+            }
+
+            if let creditsLabel = provider.creditsLabel {
+                Text(creditsLabel)
+                    .font(.system(size: 8))
+                    .foregroundColor(.white.opacity(0.35))
+            }
+        }
     }
 }
 
@@ -57,24 +101,25 @@ struct UsageMeterRow: View {
     let meter: UsageMeterDisplay
 
     private var color: Color {
-        if meter.utilization > 80 { return .red }
-        if meter.utilization > 50 { return .orange }
-        return .green
+        usageColor(for: meter)
+    }
+
+    private var fillFraction: CGFloat {
+        meter.kind == .used ? CGFloat(meter.utilization) / 100 : CGFloat(100 - meter.utilization) / 100
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack {
                 Text(meter.label)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.white.opacity(0.8))
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.white.opacity(0.75))
                 Spacer()
-                Text("\(meter.utilization)%")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                Text(meter.kind == .remaining ? "\(meter.utilization)% left" : "\(meter.utilization)%")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
                     .foregroundColor(color)
             }
 
-            // Progress bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 2)
@@ -83,12 +128,11 @@ struct UsageMeterRow: View {
 
                     RoundedRectangle(cornerRadius: 2)
                         .fill(color)
-                        .frame(width: geo.size.width * CGFloat(meter.utilization) / 100, height: 4)
+                        .frame(width: geo.size.width * fillFraction, height: 4)
                 }
             }
             .frame(height: 4)
 
-            // Reset time
             if let resetsIn = meter.resetsIn {
                 Text("resets in \(resetsIn)")
                     .font(.system(size: 8))
@@ -98,101 +142,138 @@ struct UsageMeterRow: View {
     }
 }
 
-// Compact view for the closed notch (standalone, no music playing)
-// Mirrors MusicLiveActivity layout: left content | notch gap | right content
 struct ClaudeUsageCompactView: View {
+    static let notchSpacerExtra: CGFloat = 34
+
     @ObservedObject var usageVM = ClaudeUsageViewModel.shared
     @EnvironmentObject var vm: BoringViewModel
 
-    private var sessionColor: Color { usageColor(usageVM.sessionPct) }
-    private var weeklyColor: Color { usageColor(usageVM.weeklyPct) }
-    private var showWeekly: Bool { usageVM.weeklyPct >= 75 }
+    private var leftProviders: [UsageProviderDisplay] {
+        let claudeProviders = usageVM.providers.filter { $0.id == "claude" }
+        return claudeProviders.isEmpty ? Array(usageVM.providers.prefix(1)) : claudeProviders
+    }
+
+    private var rightProviders: [UsageProviderDisplay] {
+        usageVM.providers.filter { provider in
+            !leftProviders.contains { $0.id == provider.id }
+        }
+    }
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left: icon + session % (+ 7d if >= 75%)
-            HStack(spacing: 4) {
-                claudeIconLarge
-                Text("\(usageVM.sessionPct)%")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
-                    .foregroundColor(sessionColor)
-                    .lineLimit(1)
-                    .fixedSize()
-                if showWeekly {
-                    Text("7d:\(usageVM.weeklyPct)%")
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                        .foregroundColor(weeklyColor.opacity(0.8))
-                        .lineLimit(1)
-                        .fixedSize()
+            HStack(spacing: 8) {
+                ForEach(leftProviders) { provider in
+                    CompactProviderBadge(
+                        provider: provider,
+                        includeReset: true,
+                        isActive: false
+                    )
                 }
             }
+            .padding(.leading, 2)
 
-            // Middle: black gap spanning the notch
             Rectangle()
                 .fill(.black)
-                .frame(
-                    width: vm.closedNotchSize.width + 30
-                )
+                .frame(width: vm.closedNotchSize.width + Self.notchSpacerExtra)
 
-            // Right: reset timer
-            if let reset = usageVM.meters.first?.resetsIn {
-                Text(reset)
+            if usageVM.isStale {
+                Text("stale")
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.45))
-                    .lineLimit(1)
-                    .fixedSize()
+                    .foregroundColor(.orange.opacity(0.85))
+            } else {
+                HStack(spacing: 8) {
+                    ForEach(rightProviders) { provider in
+                        CompactProviderBadge(
+                            provider: provider,
+                            includeReset: true,
+                            isActive: provider.id == usageVM.activeCompactProviderID
+                        )
+                    }
+                }
             }
         }
-        .frame(
-            height: vm.effectiveClosedNotchHeight,
-            alignment: .center
-        )
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
     }
 }
 
-// Overlay that shows ALONGSIDE the music live activity
-// Positioned to the far right of the notch area
 struct ClaudeUsageClosedOverlay: View {
     @ObservedObject var usageVM = ClaudeUsageViewModel.shared
 
-    private var sessionColor: Color { usageColor(usageVM.sessionPct) }
+    var body: some View {
+        if let provider = usageVM.activeCompactProvider {
+            CompactProviderBadge(provider: provider, includeReset: true, isActive: true)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+        }
+    }
+}
+
+struct CompactProviderBadge: View {
+    let provider: UsageProviderDisplay
+    let includeReset: Bool
+    let isActive: Bool
 
     var body: some View {
-        HStack(spacing: 3) {
-            claudeIcon
-            Text("\(usageVM.sessionPct)%")
+        HStack(spacing: 4) {
+            usageIcon(provider.iconName, size: 14, opacity: isActive ? 1.0 : 0.45)
+
+            Text(provider.compactValueText)
                 .font(.system(size: 10, weight: .bold, design: .monospaced))
-                .foregroundColor(sessionColor)
-            if let reset = usageVM.meters.first?.resetsIn {
+                .foregroundColor(compactValueColor)
+
+            if includeReset, let reset = provider.compactResetText {
                 Text(reset)
                     .font(.system(size: 8, weight: .medium))
                     .foregroundColor(.white.opacity(0.35))
             }
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
+        .padding(.horizontal, isActive ? 5 : 0)
+        .padding(.vertical, isActive ? 3 : 0)
+        .background(
+            Capsule()
+                .fill(.white.opacity(isActive ? 0.08 : 0))
+        )
+        .overlay(
+            Capsule()
+                .stroke(.white.opacity(isActive ? 0.12 : 0), lineWidth: 1)
+        )
+    }
+
+    private var compactValueColor: Color {
+        let base = provider.primaryMeter.map(usageColor(for:)) ?? .white.opacity(0.7)
+        return isActive ? base : base.opacity(0.78)
     }
 }
 
-// Shared helpers
-private func usageColor(_ pct: Int) -> Color {
-    if pct > 80 { return .red }
-    if pct > 50 { return .orange }
+private func usageColor(for meter: UsageMeterDisplay) -> Color {
+    if meter.kind == .remaining {
+        if meter.utilization <= 10 { return .red }
+        if meter.utilization <= 25 { return .orange }
+        return .green
+    }
+
+    if meter.utilization >= 90 { return .red }
+    if meter.utilization >= 75 { return .orange }
     return .green
 }
 
-private var claudeIcon: some View {
-    Image("claude-icon")
-        .resizable()
-        .renderingMode(.template)
-        .foregroundColor(.white.opacity(0.7))
-        .frame(width: 14, height: 14)
+private func statusColor(_ level: UsageAlertLevel) -> Color {
+    switch level {
+    case .critical:
+        return .red
+    case .warning:
+        return .orange
+    case .normal:
+        return .white.opacity(0.45)
+    }
 }
 
-private var claudeIconLarge: some View {
-    Image("claude-icon")
+private func usageIcon(_ name: String, size: CGFloat, opacity: Double) -> some View {
+    let effectiveSize = name == "claude-icon" ? size + 3 : size
+
+    return Image(name)
         .resizable()
         .renderingMode(.template)
-        .foregroundColor(.white.opacity(0.8))
-        .frame(width: 16, height: 16)
+        .foregroundColor(.white.opacity(opacity))
+        .frame(width: effectiveSize, height: effectiveSize)
 }

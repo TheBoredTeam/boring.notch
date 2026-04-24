@@ -88,20 +88,30 @@ struct ContentView: View {
 
     // Dynamic chin width for Claude usage based on content
     private var claudeUsageChinExtra: CGFloat {
-        var width: CGFloat = 0
-        let pct = claudeUsageVM.sessionPct
-        // Left: icon(16) + spacing(4) + pct text + optional weekly
-        width += 16 + 4 // icon + gap
-        width += pct >= 100 ? 32 : (pct >= 10 ? 28 : 22) // "100%" vs "96%" vs "9%"
-        if claudeUsageVM.weeklyPct >= 75 {
-            width += 4 + 42 // gap + "7d:28%"
+        let providerWidth = claudeUsageVM.providers.reduce(CGFloat(0)) { partial, provider in
+            partial + compactWidth(for: provider, includeReset: true) + 8
         }
-        // Right: reset time
-        if let reset = claudeUsageVM.meters.first?.resetsIn {
-            width += reset.contains("h") ? 48 : 28 // "1h 22m" vs "22m"
-        }
-        width += 16 // padding
-        return width
+        let resetWidth: CGFloat = {
+            if claudeUsageVM.isStale {
+                return 40
+            }
+            return 0
+        }()
+
+        return providerWidth + resetWidth + ClaudeUsageCompactView.notchSpacerExtra + 44
+    }
+
+    private func compactWidth(for provider: UsageProviderDisplay, includeReset: Bool = false) -> CGFloat {
+        let valueLength = provider.compactValueText.count
+        let textWidth = CGFloat(valueLength * 7)
+        let highlightInset: CGFloat = provider.id != "claude" && provider.id == claudeUsageVM.activeCompactProviderID ? 12 : 0
+        let resetWidth: CGFloat = {
+            guard includeReset, let reset = provider.compactResetText else {
+                return 0
+            }
+            return reset.contains("h") ? 44 : 28
+        }()
+        return 18 + textWidth + resetWidth + highlightInset
     }
 
     var body: some View {
@@ -123,7 +133,7 @@ struct ContentView: View {
                         ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
                         : cornerRadiusInsets.closed.bottom
                     )
-                    .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
+                    .padding([.horizontal, .bottom], vm.notchState == .open ? 16 : 0)
                     .background(.black)
                     .clipShape(currentNotchShape)
                     .overlay(alignment: .top) {
@@ -312,12 +322,14 @@ struct ContentView: View {
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
+                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
                            BoringHeader()
-                               .frame(height: max(24, vm.effectiveClosedNotchHeight))
+                               .offset(y: 18)
+                               .frame(height: max(30, vm.effectiveClosedNotchHeight), alignment: .top)
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                               .frame(maxWidth: .infinity, alignment: .top)
                        } else if vm.notchState == .closed && Defaults[.showClaudeUsage] && Defaults[.showClaudeUsageLiveActivity] && !vm.hideOnClosed {
                            ClaudeUsageCompactView()
                                .frame(alignment: .center)
@@ -392,6 +404,8 @@ struct ContentView: View {
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                .frame(maxWidth: .infinity, alignment: .top)
+                .padding(.bottom, 8)
             }
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))

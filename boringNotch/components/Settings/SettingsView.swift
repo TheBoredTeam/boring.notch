@@ -53,12 +53,18 @@ struct SettingsView: View {
                 }
                 NavigationLink(value: "Claude") {
                     Label {
-                        Text("Claude Usage")
+                        Text("AI Usage")
                     } icon: {
-                        Image("claude-icon")
-                            .resizable()
-                            .renderingMode(.template)
-                            .frame(width: 16, height: 16)
+                        HStack(spacing: 3) {
+                            Image("claude-icon")
+                                .resizable()
+                                .renderingMode(.template)
+                                .frame(width: 12, height: 12)
+                            Image("openai-icon")
+                                .resizable()
+                                .renderingMode(.template)
+                                .frame(width: 12, height: 12)
+                        }
                     }
                 }
                 NavigationLink(value: "Shortcuts") {
