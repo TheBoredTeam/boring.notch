@@ -154,10 +154,6 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 
 We’re all about good vibes and awesome contributions! Read [CONTRIBUTING.md](CONTRIBUTING.md) to learn how you can join the fun!
 
-## Join our Discord Server
-
-<a href="https://discord.gg/GvYcYpAKTu" target="_blank"><img src="https://iili.io/28m3GHv.png" alt="Join The Boring Server!" style="height: 60px !important;width: 217px !important;" ></a>
-
 ## Star History
 
 <a href="https://www.star-history.com/#TheBoredTeam/boring.notch&Timeline">
