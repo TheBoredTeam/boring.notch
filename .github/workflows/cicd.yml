@@ -13,27 +13,33 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Least-privilege: only needs to read code for building.
+permissions:
+  contents: read
+
 jobs:
   build:
-    name: Build Boring Notch
+    name: Build Boring Notch (${{ matrix.xcode }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        platform:
-          - macOS
-        xcode:
-          - ^16
-        scheme:
-          - boringNotch
-    runs-on: macos-latest
+        include:
+          - os: macos-15
+            xcode: "^16"
+          - os: macos-26
+            xcode: "^26"
     steps:
-    - name: Code Checkout
-      uses: actions/checkout@v2
-    - uses: mxcl/xcodebuild@v3
-      with:
-        xcode: ${{ matrix.xcode }}
-        platform: ${{ matrix.platform }}
-        scheme: ${{ matrix.scheme }}
-        action: build
-        verbosity: xcpretty
-        upload-logs: always
-        configuration: release
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Build
+        uses: mxcl/xcodebuild@d3ee9b419c1be9a988086c58fe0988f32d99cfc5 # v3.6.0
+        with:
+          xcode: ${{ matrix.xcode }}
+          platform: macOS
+          scheme: boringNotch
+          action: build
+          verbosity: xcpretty
+          upload-logs: always
+          configuration: release

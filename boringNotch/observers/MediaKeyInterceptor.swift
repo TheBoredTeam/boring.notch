@@ -32,6 +32,10 @@ final class MediaKeyInterceptor {
     
     private init() {}
 
+    private var isTapActive: Bool {
+        eventTap != nil && runLoopSource != nil
+    }
+
     // MARK: - Accessibility (via XPC)
 
     func requestAccessibilityAuthorization() {
@@ -45,23 +49,33 @@ final class MediaKeyInterceptor {
     // MARK: - Event Tap
     
     func start(promptIfNeeded: Bool = false) async {
-        guard eventTap == nil else { return }
-
-        // Ensure HUD replacement is enabled
-        guard Defaults[.hudReplacement] else {
+        // Ensure OSD replacement is enabled
+        guard Defaults[.osdReplacement] else {
             stop()
             return
         }
 
-        // Check accessibility authorization
-        let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-        if !authorized {
-            if promptIfNeeded {
-                let granted = await ensureAccessibilityAuthorization(promptIfNeeded: true)
-                guard granted else { return }
-            } else {
-                return
+        // Only require Accessibility if any selected source uses the built-in controls
+        let needsAccessibility = Defaults[.osdBrightnessSource] == .builtin || Defaults[.osdVolumeSource] == .builtin
+        if needsAccessibility {
+            let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            if !authorized {
+                if promptIfNeeded {
+                    let granted = await ensureAccessibilityAuthorization(promptIfNeeded: true)
+                    guard granted else { return }
+                } else {
+                    return
+                }
             }
+        }
+
+        if let eventTap, isTapActive {
+            CGEvent.tapEnable(tap: eventTap, enable: true)
+            return
+        }
+
+        if eventTap != nil || runLoopSource != nil {
+            stop()
         }
 
         let mask = CGEventMask(1 << kSystemDefinedEventType.rawValue)
@@ -70,9 +84,15 @@ final class MediaKeyInterceptor {
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: mask,
-            callback: { _, _, cgEvent, userInfo in
+            callback: { _, type, cgEvent, userInfo in
                 guard let userInfo else { return Unmanaged.passRetained(cgEvent) }
                 let interceptor = Unmanaged<MediaKeyInterceptor>.fromOpaque(userInfo).takeUnretainedValue()
+
+                if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                    interceptor.reenableEventTap(after: type)
+                    return nil
+                }
+
                 return interceptor.handleEvent(cgEvent)
             },
             userInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
@@ -84,6 +104,8 @@ final class MediaKeyInterceptor {
                 CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
             }
             CGEvent.tapEnable(tap: eventTap, enable: true)
+        } else {
+            print("⚠️ [MediaKeyInterceptor] Failed to create media-key event tap")
         }
     }
 
@@ -98,6 +120,23 @@ final class MediaKeyInterceptor {
 
         runLoopSource = nil
         eventTap = nil
+    }
+
+    private func reenableEventTap(after type: CGEventType) {
+        guard let eventTap else { return }
+        CGEvent.tapEnable(tap: eventTap, enable: true)
+
+        let reason: String
+        switch type {
+        case .tapDisabledByTimeout:
+            reason = "timeout"
+        case .tapDisabledByUserInput:
+            reason = "user input"
+        default:
+            reason = "unknown reason"
+        }
+
+        print("ℹ️ [MediaKeyInterceptor] Re-enabled media-key event tap after \(reason)")
     }
 
     // MARK: - Event Handling
@@ -124,10 +163,42 @@ final class MediaKeyInterceptor {
             return Unmanaged.passUnretained(cgEvent)
         }
 
+        // Determine which source is selected for this control (brightness/volume/keyboard)
+        let selectedSource: OSDControlSource = {
+            switch keyType {
+            case .soundUp, .soundDown, .mute:
+                return Defaults[.osdVolumeSource]
+            case .brightnessUp, .brightnessDown:
+                return Defaults[.osdBrightnessSource]
+            case .keyboardBrightnessUp, .keyboardBrightnessDown:
+                return .builtin
+            }
+        }()
+
         let flags = nsEvent.modifierFlags
         let option = flags.contains(.option)
         let shift = flags.contains(.shift)
         let command = flags.contains(.command)
+
+        // If an external source is selected and available, allow the event to pass through (external app will emit OSD notifications)
+        switch selectedSource {
+        case .betterDisplay:
+            if BetterDisplayManager.shared.isBetterDisplayAvailable {
+                if (keyType == .brightnessUp || keyType == .brightnessDown) && command {
+                    break
+                }
+                return Unmanaged.passUnretained(cgEvent)
+            }
+        case .lunar:
+            if LunarManager.shared.isLunarAvailable {
+                if (keyType == .brightnessUp || keyType == .brightnessDown) && command {
+                    break
+                }
+                return Unmanaged.passUnretained(cgEvent)
+            }
+        case .builtin:
+            break
+        }
 
         // Handle option key action (without shift)
         if option && !shift {
@@ -148,8 +219,8 @@ final class MediaKeyInterceptor {
         case .openSettings:
             openSystemSettings(for: keyType, command: command)
             return true
-        case .showHUD:
-            showHUD(for: keyType, command: command)
+        case .showOSD:
+            showOSD(for: keyType, command: command)
             return true
         case .none:
             return true
@@ -236,7 +307,7 @@ final class MediaKeyInterceptor {
         }
     }
 
-    private func showHUD(for keyType: NXKeyType, command: Bool) {
+    private func showOSD(for keyType: NXKeyType, command: Bool) {
         Task { @MainActor in
             switch keyType {
             case .soundUp, .soundDown, .mute:
@@ -248,7 +319,10 @@ final class MediaKeyInterceptor {
                     BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
                 } else {
                     let v = BrightnessManager.shared.rawBrightness
-                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v))
+                    Task { @MainActor in
+                        let target = await BrightnessManager.shared.brightnessTargetUUID()
+                        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v), targetScreenUUID: target)
+                    }
                 }
             case .keyboardBrightnessUp, .keyboardBrightnessDown:
                 let v = KeyboardBacklightManager.shared.rawBrightness

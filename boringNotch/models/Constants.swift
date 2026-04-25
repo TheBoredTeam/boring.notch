@@ -56,29 +56,82 @@ extension Notification.Name {
 
 // Media controller types for selection in settings
 enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case nowPlaying = "Now Playing"
-    case appleMusic = "Apple Music"
-    case spotify = "Spotify"
-    case youtubeMusic = "YouTube Music"
+    case nowPlaying
+    case appleMusic
+    case spotify
+    case youtubeMusic
     
     var id: String { self.rawValue }
+
+    var localizedString: String {
+        switch self {
+        case .nowPlaying:
+            return NSLocalizedString("Now Playing", comment: "")
+        case .appleMusic:
+            return "Apple Music"
+        case .spotify:
+            return "Spotify"
+        case .youtubeMusic:
+            return "YouTube Music"
+        }
+    }
 }
 
 // Sneak peek styles for selection in settings
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case standard = "Default"
-    case inline = "Inline"
+    case standard
+    case inline
     
     var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .standard:
+            return NSLocalizedString("sneak_peek_standard", comment: "Sneak Peek style: Default")
+        case .inline:
+            return NSLocalizedString("sneak_peek_inline", comment: "Sneak Peek style: Inline")
+        }
+    }
 }
 
 // Action to perform when Option (⌥) is held while pressing media keys
 enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case openSettings = "Open System Settings"
-    case showHUD = "Show HUD"
-    case none = "No Action"
+    case openSettings
+    case showOSD
+    case none
 
     var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .openSettings:
+            return NSLocalizedString("option_key_open_system_settings", comment: "Option (⌥) key behavior: Open System Settings")
+        case .showOSD:
+            return NSLocalizedString("option_key_show_osd", comment: "Option (⌥) key behavior: Show OSD")
+        case .none:
+            return NSLocalizedString("option_key_no_action", comment: "Option (⌥) key behavior: No action")
+        }
+    }
+}
+
+// Source/provider for OSD control (user-facing: "Source")
+enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case builtin
+    case betterDisplay = "BetterDisplay"
+    case lunar = "Lunar"
+
+    var id: String { self.rawValue }
+    
+    var localizedString: String {
+        switch self {
+        case .builtin:
+            return NSLocalizedString("osd_sources_built_in", comment: "OSD Sources: Built-in")
+        case .betterDisplay:
+            return "BetterDisplay"
+        case .lunar:
+            return "Lunar"
+        }
+    }
 }
 
 extension Defaults.Keys {
@@ -90,6 +143,8 @@ extension Defaults.Keys {
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
+    static let enableOpeningAnimation = Key<Bool>("enableOpeningAnimation", default: true)
+    static let animationSpeedMultiplier = Key<Double>("animationSpeedMultiplier", default: 1.0)
     static let enableHaptics = Key<Bool>("enableHaptics", default: true)
     static let openNotchOnHover = Key<Bool>("openNotchOnHover", default: true)
     static let extendHoverArea = Key<Bool>("extendHoverArea", default: false)
@@ -110,7 +165,9 @@ extension Defaults.Keys {
     // MARK: Appearance
     //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)
+    static let isMirrored = Key<Bool>("isMirrored", default: true)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
+    static let mirrorCameraID = Key<String?>("mirrorCameraID", default: nil)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
     static let enableShadow = Key<Bool>("enableShadow", default: true)
@@ -128,6 +185,7 @@ extension Defaults.Keys {
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
+    static let enableHorizontalMediaGestures = Key<Bool>("enableHorizontalMediaGestures", default: false)
     static let closeGestureEnabled = Key<Bool>("closeGestureEnabled", default: true)
     static let gestureSensitivity = Key<CGFloat>("gestureSensitivity", default: 200.0)
     
@@ -159,17 +217,20 @@ extension Defaults.Keys {
     static let selectedDownloadIndicatorStyle = Key<DownloadIndicatorStyle>("selectedDownloadIndicatorStyle", default: DownloadIndicatorStyle.progress)
     static let selectedDownloadIconStyle = Key<DownloadIconStyle>("selectedDownloadIconStyle", default: DownloadIconStyle.onlyAppIcon)
     
-    // MARK: HUD
-    static let hudReplacement = Key<Bool>("hudReplacement", default: false)
-    static let inlineHUD = Key<Bool>("inlineHUD", default: false)
+    // MARK: OSD
+    static let osdReplacement = Key<Bool>("osdReplacement", default: false)
+    static let inlineOSD = Key<Bool>("inlineOSD", default: false)
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
-    static let showOpenNotchHUD = Key<Bool>("showOpenNotchHUD", default: true)
-    static let showOpenNotchHUDPercentage = Key<Bool>("showOpenNotchHUDPercentage", default: true)
-    static let showClosedNotchHUDPercentage = Key<Bool>("showClosedNotchHUDPercentage", default: false)
+    static let showOpenNotchOSD = Key<Bool>("showOpenNotchOSD", default: true)
+    static let showOpenNotchOSDPercentage = Key<Bool>("showOpenNotchOSDPercentage", default: true)
+    static let showClosedNotchOSDPercentage = Key<Bool>("showClosedNotchOSDPercentage", default: false)
     // Option key modifier behaviour for media keys
     static let optionKeyAction = Key<OptionKeyAction>("optionKeyAction", default: OptionKeyAction.openSettings)
+    // Brightness/volume/keyboard source selection
+    static let osdBrightnessSource = Key<OSDControlSource>("osdBrightnessSource", default: .builtin)
+    static let osdVolumeSource = Key<OSDControlSource>("osdVolumeSource", default: .builtin)
     
     // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)

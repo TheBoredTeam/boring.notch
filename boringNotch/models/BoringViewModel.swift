@@ -16,7 +16,6 @@ class BoringViewModel: NSObject, ObservableObject {
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
 
-    @Published var contentType: ContentType = .normal
     @Published private(set) var notchState: NotchState = .closed
 
     @Published var dragDetectorTargeting: Bool = false
@@ -195,12 +194,17 @@ class BoringViewModel: NSObject, ObservableObject {
         return false
     }
 
-    func open() {
+    @discardableResult
+    func open() -> Bool {
+        guard !coordinator.firstLaunch else { return false }
+
         self.notchSize = openNotchSize
         self.notchState = .open
         
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
+
+        return true
     }
 
     func close() {
@@ -212,12 +216,14 @@ class BoringViewModel: NSObject, ObservableObject {
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
         self.isBatteryPopoverActive = false
-        self.coordinator.sneakPeek.show = false
+        if self.coordinator.shouldShowSneakPeek(on: self.screenUUID) {
+            self.coordinator.toggleSneakPeek(status: false, type: .music, targetScreenUUID: self.screenUUID)
+        }
         self.edgeAutoOpenActive = false
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+        if Defaults[.boringShelf] && !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
             coordinator.currentView = .shelf
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home

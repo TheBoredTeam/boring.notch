@@ -9,8 +9,56 @@ import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
+private enum SettingsTab: String, CaseIterable, Identifiable {
+    case general
+    case appearance
+    case media
+    case calendar
+    case osd
+    case battery
+    case shelf
+    case mirror
+    case shortcuts
+    case advanced
+    case about
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .general: "General"
+        case .appearance: "Appearance"
+        case .media: "Media"
+        case .calendar: "Calendar"
+        case .osd: "OSD"
+        case .battery: "Battery"
+        case .shelf: "Shelf"
+        case .mirror: "Mirror"
+        case .shortcuts: "Shortcuts"
+        case .advanced: "Advanced"
+        case .about: "About"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .general: "gear"
+        case .appearance: "eye"
+        case .media: "play.laptopcomputer"
+        case .calendar: "calendar"
+        case .osd: "dial.medium.fill"
+        case .battery: "battery.100.bolt"
+        case .shelf: "books.vertical"
+        case .mirror: "camera"
+        case .shortcuts: "keyboard"
+        case .advanced: "gearshape.2"
+        case .about: "info.circle"
+        }
+    }
+}
+
 struct SettingsView: View {
-    @State private var selectedTab = "General"
+    @State private var selectedTab: SettingsTab = .general
     @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
@@ -22,35 +70,9 @@ struct SettingsView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
-                NavigationLink(value: "General") {
-                    Label("General", systemImage: "gear")
-                }
-                NavigationLink(value: "Appearance") {
-                    Label("Appearance", systemImage: "eye")
-                }
-                NavigationLink(value: "Media") {
-                    Label("Media", systemImage: "play.laptopcomputer")
-                }
-                NavigationLink(value: "Calendar") {
-                    Label("Calendar", systemImage: "calendar")
-                }
-                NavigationLink(value: "HUD") {
-                    Label("HUDs", systemImage: "dial.medium.fill")
-                }
-                NavigationLink(value: "Battery") {
-                    Label("Battery", systemImage: "battery.100.bolt")
-                }
-                NavigationLink(value: "Shelf") {
-                    Label("Shelf", systemImage: "books.vertical")
-                }
-                NavigationLink(value: "Shortcuts") {
-                    Label("Shortcuts", systemImage: "keyboard")
-                }
-                NavigationLink(value: "Advanced") {
-                    Label("Advanced", systemImage: "gearshape.2")
-                }
-                NavigationLink(value: "About") {
-                    Label("About", systemImage: "info.circle")
+                ForEach(SettingsTab.allCases) { tab in
+                    Label(tab.title, systemImage: tab.systemImage)
+                        .tag(tab)
                 }
             }
             .listStyle(SidebarListStyle())
@@ -60,25 +82,27 @@ struct SettingsView: View {
         } detail: {
             Group {
                 switch selectedTab {
-                case "General":
+                case .general:
                     GeneralSettings()
-                case "Appearance":
+                case .appearance:
                     Appearance()
-                case "Media":
+                case .media:
                     Media()
-                case "Calendar":
+                case .calendar:
                     CalendarSettings()
-                case "HUD":
-                    HUD()
-                case "Battery":
+                case .osd:
+                    OSDSettings()
+                case .battery:
                     Charge()
-                case "Shelf":
+                case .shelf:
                     Shelf()
-                case "Shortcuts":
+                case .mirror:
+                    MirrorSettings()
+                case .shortcuts:
                     Shortcuts()
-                case "Advanced":
+                case .advanced:
                     Advanced()
-                case "About":
+                case .about:
                     if let controller = updaterController {
                         About(updaterController: controller)
                     } else {
@@ -88,8 +112,6 @@ struct SettingsView: View {
                                 startingUpdater: false, updaterDelegate: nil,
                                 userDriverDelegate: nil))
                     }
-                default:
-                    GeneralSettings()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -90,12 +90,20 @@ struct BatteryMenuView: View {
     var isPluggedIn: Bool
     var isCharging: Bool
     var levelBattery: Float
-    var maxCapacity: Float
+    var maxCapacity: Float?
     var timeToFullCharge: Int
     var isInLowPowerMode: Bool
     var onDismiss: () -> Void
 
     @Environment(\.openURL) private var openURL
+
+    private var formattedTimeToFullCharge: String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .abbreviated
+        formatter.zeroFormattingBehavior = .dropAll
+        return formatter.string(from: TimeInterval(timeToFullCharge * 60)) ?? ""
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -111,9 +119,15 @@ struct BatteryMenuView: View {
             }
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("Max Capacity: \(Int(maxCapacity))%")
-                    .font(.subheadline)
-                    .fontWeight(.regular)
+                if let maxCapacity {
+                    Text("Max Capacity: \(Int(maxCapacity))%")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                } else {
+                    Text("Max Capacity: Not Available")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                }
                 if isInLowPowerMode {
                     Label("Low Power Mode", systemImage: "bolt.circle")
                         .font(.subheadline)
@@ -130,7 +144,7 @@ struct BatteryMenuView: View {
                         .fontWeight(.regular)
                 }
                 if timeToFullCharge > 0 {
-                    Label("Time to Full Charge: \(timeToFullCharge) min", systemImage: "clock")
+                    Label("Time to Full Charge: \(formattedTimeToFullCharge)", systemImage: "clock")
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
@@ -174,7 +188,7 @@ struct BoringBatteryView: View {
     var isInLowPowerMode: Bool = false
     var isPluggedIn: Bool = false
     var levelBattery: Float = 0
-    var maxCapacity: Float = 0
+    var maxCapacity: Float?
     var timeToFullCharge: Int = 0
     @State var isForNotification: Bool = false
     

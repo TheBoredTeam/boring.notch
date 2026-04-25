@@ -28,6 +28,9 @@ struct ContentView: View {
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
     @State private var gestureProgress: CGFloat = .zero
+    @State private var horizontalMediaGestureTriggered = false
+    @State private var horizontalMediaGestureFeedback: CGFloat = .zero
+    @State private var isHoveringMusicArea = false
 
     @State private var haptics: Bool = false
 
@@ -169,6 +172,15 @@ struct ContentView: View {
                                 handleUpGesture(translation: translation, phase: phase)
                             }
                     }
+                    .conditionalModifier(Defaults[.enableHorizontalMediaGestures] && Defaults[.enableGestures]) { view in
+                        view
+                            .panGesture(direction: .left) { translation, phase in
+                                handleNextTrackGesture(translation: translation, phase: phase)
+                            }
+                            .panGesture(direction: .right) { translation, phase in
+                                handlePreviousTrackGesture(translation: translation, phase: phase)
+                            }
+                    }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
                             hoverTask?.cancel()
@@ -207,7 +219,9 @@ struct ContentView: View {
                     .sensoryFeedback(.alignment, trigger: haptics)
                     .contextMenu {
                         Button("Settings") {
-                            SettingsWindowController.shared.showWindow()
+                            DispatchQueue.main.async {
+                                SettingsWindowController.shared.showWindow()
+                            }
                         }
                         .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
                         //                    Button("Edit") { // Doesnt work....
@@ -225,6 +239,7 @@ struct ContentView: View {
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .ignoresSafeArea(.all)
         .compositingGroup()
         .scaleEffect(
             x: gestureScale,
@@ -239,9 +254,10 @@ struct ContentView: View {
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
-                if vm.notchState == .closed {
-                    coordinator.currentView = .shelf
-                    doOpen()
+                if Defaults[.boringShelf] && vm.notchState == .closed {
+                    if doOpen() {
+                        coordinator.currentView = .shelf
+                    }
                 }
                 return
             }
@@ -305,8 +321,15 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
-                          InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
+                          InlineOSD(
+                              type: coordinator.binding(for: vm.screenUUID).type,
+                              value: coordinator.binding(for: vm.screenUUID).value,
+                              icon: coordinator.binding(for: vm.screenUUID).icon,
+                              accent: coordinator.binding(for: vm.screenUUID).accent,
+                              hoverAnimation: $isHovering,
+                              gestureProgress: $gestureProgress
+                          )
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
@@ -325,14 +348,15 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
 
-                      if coordinator.sneakPeek.show {
-                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
+                      if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
+                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
-                                  eventType: $coordinator.sneakPeek.type,
-                                  value: $coordinator.sneakPeek.value,
-                                  icon: $coordinator.sneakPeek.icon,
+                                  eventType: coordinator.binding(for: vm.screenUUID).type,
+                                  value: coordinator.binding(for: vm.screenUUID).value,
+                                  icon: coordinator.binding(for: vm.screenUUID).icon,
+                                  accent: coordinator.binding(for: vm.screenUUID).accent,
                                   sendEventBack: { newVal in
-                                      switch coordinator.sneakPeek.type {
+                                      switch coordinator.sneakPeekState(for: vm.screenUUID).type {
                                       case .volume:
                                           VolumeManager.shared.setAbsolute(Float32(newVal))
                                       case .brightness:
@@ -347,7 +371,7 @@ struct ContentView: View {
                               .padding(.trailing, 8)
                           }
                           // Old sneak peek music
-                          else if coordinator.sneakPeek.type == .music {
+                          else if coordinator.sneakPeekState(for: vm.screenUUID).type == .music {
                               if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
                                   HStack(alignment: .center) {
                                       Image(systemName: "music.note")
@@ -362,7 +386,7 @@ struct ContentView: View {
                       }
                   }
               }
-              .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (vm.notchState == .closed))) { view in
+              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
                   view
                       .fixedSize()
               }
@@ -371,7 +395,11 @@ struct ContentView: View {
                 VStack {
                     switch coordinator.currentView {
                     case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        NotchHomeView(
+                            albumArtNamespace: albumArtNamespace,
+                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                            isHoveringMusicArea: $isHoveringMusicArea
+                        )
                     case .shelf:
                         ShelfView()
                     }
@@ -527,10 +555,13 @@ struct ContentView: View {
         }
     }
 
-    private func doOpen() {
+    @discardableResult
+    private func doOpen() -> Bool {
+        var didOpen = false
         withAnimation(animationSpring) {
-            vm.open()
+            didOpen = vm.open()
         }
+        return didOpen
     }
 
     // MARK: - Hover Management
@@ -549,7 +580,7 @@ struct ContentView: View {
             }
             
             guard vm.notchState == .closed,
-                  !coordinator.sneakPeek.show,
+                  !coordinator.shouldShowSneakPeek(on: vm.screenUUID),
                   Defaults[.openNotchOnHover] else { return }
             
             hoverTask = Task {
@@ -559,7 +590,7 @@ struct ContentView: View {
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
-                          !self.coordinator.sneakPeek.show else { return }
+                          !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID) else { return }
                     
                     self.doOpen()
                 }
@@ -632,6 +663,87 @@ struct ContentView: View {
             if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
+        }
+    }
+
+    private func handleNextTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: -1) {
+            musicManager.nextTrack()
+        }
+    }
+
+    private func handlePreviousTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: 1) {
+            musicManager.previousTrack()
+        }
+    }
+
+    private func handleHorizontalMediaGesture(
+        translation: CGFloat,
+        phase: NSEvent.Phase,
+        feedback: CGFloat,
+        action: () -> Void
+    ) {
+        guard isHorizontalMediaGestureContext else {
+            resetHorizontalMediaGesture()
+            return
+        }
+        guard phase != .ended else {
+            resetHorizontalMediaGesture()
+            return
+        }
+        guard !horizontalMediaGestureTriggered else { return }
+        guard translation > Defaults[.gestureSensitivity] else { return }
+
+        horizontalMediaGestureTriggered = true
+        triggerHorizontalMediaFeedback(feedback)
+        action()
+
+        if Defaults[.enableHaptics] {
+            haptics.toggle()
+        }
+    }
+
+    private func resetHorizontalMediaGesture() {
+        horizontalMediaGestureTriggered = false
+    }
+
+    private func triggerHorizontalMediaFeedback(_ feedback: CGFloat) {
+        withAnimation(.interactiveSpring(response: 0.18, dampingFraction: 0.62)) {
+            horizontalMediaGestureFeedback = feedback
+            if vm.notchState == .closed {
+                gestureProgress = 2
+            }
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(140))
+            withAnimation(animationSpring) {
+                horizontalMediaGestureFeedback = .zero
+                if vm.notchState == .closed {
+                    gestureProgress = .zero
+                }
+            }
+        }
+    }
+
+    private var isHorizontalMediaGestureContext: Bool {
+        switch vm.notchState {
+        case .closed:
+            guard !vm.hideOnClosed else { return false }
+
+            if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
+                return coordinator.sneakPeekState(for: vm.screenUUID).type == .music
+            }
+
+            guard !coordinator.expandingView.show || coordinator.expandingView.type == .music else {
+                return false
+            }
+
+            return coordinator.musicLiveActivityEnabled && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+
+        case .open:
+            return coordinator.currentView == .home && !musicManager.isPlayerIdle && isHoveringMusicArea
         }
     }
 }

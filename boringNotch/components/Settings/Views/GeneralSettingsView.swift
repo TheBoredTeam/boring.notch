@@ -28,6 +28,8 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    @Default(.enableOpeningAnimation) var enableOpeningAnimation
+    @Default(.animationSpeedMultiplier) var animationSpeedMultiplier
 
     var body: some View {
         Form {
@@ -39,7 +41,9 @@ struct GeneralSettings: View {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
-                LaunchAtLogin.Toggle("Launch at login")
+                LaunchAtLogin.Toggle() {
+                    Text("Launch at login")
+                }
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
                 }
@@ -91,7 +95,7 @@ struct GeneralSettings: View {
                         // Get the actual notch height from the built-in display
                         notchHeight = getRealNotchHeight()
                     case .matchMenuBar:
-                        notchHeight = 43
+                        notchHeight = getMenuBarHeight(hasNotch: true)
                     case .custom:
                         notchHeight = 38
                     }
@@ -108,7 +112,7 @@ struct GeneralSettings: View {
                     }
                 }
                 Picker("Notch height on non-notch displays", selection: $nonNotchHeightMode) {
-                    Text("Match menubar height")
+                    Text("Match menu bar height")
                         .tag(WindowHeightMode.matchMenuBar)
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
@@ -116,7 +120,7 @@ struct GeneralSettings: View {
                 .onChange(of: nonNotchHeightMode) {
                     switch nonNotchHeightMode {
                     case .matchMenuBar:
-                        nonNotchHeight = 23
+                        nonNotchHeight = getMenuBarHeight(hasNotch: false)
                     case .matchRealNotchSize, .custom:
                         nonNotchHeight = 23
                     }
@@ -174,8 +178,9 @@ struct GeneralSettings: View {
             }
                 .disabled(!openNotchOnHover)
             if enableGestures {
-                Toggle("Change media with horizontal gestures", isOn: .constant(false))
-                    .disabled(true)
+                Defaults.Toggle(key: .enableHorizontalMediaGestures) {
+                    Text("Change media with horizontal gestures")
+                }
                 Defaults.Toggle(key: .closeGestureEnabled) {
                     Text("Close gesture")
                 }
@@ -228,6 +233,17 @@ struct GeneralSettings: View {
                 .onChange(of: minimumHoverDuration) {
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
+                }
+            }
+            Toggle("Notch animation", isOn: $enableOpeningAnimation)
+            if enableOpeningAnimation {
+                Slider(value: $animationSpeedMultiplier, in: 0.1...2.01, step: 0.1) {
+                    HStack {
+                        Text("Animation speed")
+                        Spacer()
+                        Text("\(animationSpeedMultiplier, specifier: "%.1f")x")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         } header: {

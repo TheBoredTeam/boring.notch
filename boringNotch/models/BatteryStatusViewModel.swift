@@ -14,13 +14,37 @@ class BatteryStatusViewModel: ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     @Published private(set) var levelBattery: Float = 0.0
-    @Published private(set) var maxCapacity: Float = 0.0
+    @Published private(set) var maxCapacity: Float?
     @Published private(set) var isPluggedIn: Bool = false
     @Published private(set) var isCharging: Bool = false
     @Published private(set) var isInLowPowerMode: Bool = false
     @Published private(set) var isInitial: Bool = false
     @Published private(set) var timeToFullCharge: Int = 0
-    @Published private(set) var statusText: String = ""
+    @Published private(set) var lastStatus: LastStatus = .plugged(false)
+
+    enum LastStatus: Equatable {
+        case plugged(Bool)
+        case lowPower(Bool)
+        case charging(isCharging: Bool, level: Float)
+    }
+
+    var statusText: LocalizedStringKey {
+        switch lastStatus {
+        case .plugged(let plugged):
+            return LocalizedStringKey(plugged ? "Plugged In" : "Unplugged")
+        case .lowPower(let enabled):
+            let key = enabled ? "Low Power: On" : "Low Power: Off"
+            return LocalizedStringKey(key)
+        case .charging(let isCharging, let level):
+            if isCharging {
+                return LocalizedStringKey("Charging battery")
+            }
+            if level < 100 {
+                return LocalizedStringKey("Not charging")
+            }
+            return LocalizedStringKey("Full charge")
+        }
+    }
 
     private let managerBattery = BatteryActivityManager.shared
     private var managerBatteryId: Int?
@@ -56,7 +80,9 @@ class BatteryStatusViewModel: ObservableObject {
             print("🔌 Power source: \(isPluggedIn ? "Connected" : "Disconnected")")
             withAnimation {
                 self.isPluggedIn = isPluggedIn
-                self.statusText = isPluggedIn ? "Plugged In" : "Unplugged"
+                // remember the last battery-related message so the computed
+                // property can translate it later
+                self.lastStatus = .plugged(isPluggedIn)
                 self.notifyImportanChangeStatus()
             }
 
@@ -71,20 +97,17 @@ class BatteryStatusViewModel: ObservableObject {
             self.notifyImportanChangeStatus()
             withAnimation {
                 self.isInLowPowerMode = isEnabled
-                self.statusText = "Low Power: \(self.isInLowPowerMode ? "On" : "Off")"
+                self.lastStatus = .lowPower(isEnabled)
             }
 
         case .isChargingChanged(let isCharging):
             print("🔌 Charging: \(isCharging ? "Yes" : "No")")
-            print("maxCapacity: \(self.maxCapacity)")
+            print("maxCapacity: \(self.maxCapacity.map { "\($0)" } ?? "Unavailable")")
             print("levelBattery: \(self.levelBattery)")
             self.notifyImportanChangeStatus()
             withAnimation {
                 self.isCharging = isCharging
-                self.statusText =
-                    isCharging
-                    ? "Charging battery"
-                    : (self.levelBattery < self.maxCapacity ? "Not charging" : "Full charge")
+                self.lastStatus = .charging(isCharging: isCharging, level: self.levelBattery)
             }
 
         case .timeToFullChargeChanged(let time):
@@ -94,7 +117,7 @@ class BatteryStatusViewModel: ObservableObject {
             }
 
         case .maxCapacityChanged(let capacity):
-            print("🔋 Max capacity: \(capacity)")
+            print("🔋 Max capacity: \(capacity.map { "\($0)" } ?? "Unavailable")")
             withAnimation {
                 self.maxCapacity = capacity
             }
@@ -114,7 +137,7 @@ class BatteryStatusViewModel: ObservableObject {
             self.isInLowPowerMode = batteryInfo.isInLowPowerMode
             self.timeToFullCharge = batteryInfo.timeToFullCharge
             self.maxCapacity = batteryInfo.maxCapacity
-            self.statusText = batteryInfo.isPluggedIn ? "Plugged In" : "Unplugged"
+            self.lastStatus = .plugged(batteryInfo.isPluggedIn)
         }
     }
 
