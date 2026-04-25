@@ -7395,6 +7395,9 @@
     "Normalize gesture direction" : {
 
     },
+    "No music app active" : {
+
+    },
     "Not charging" : {
       "localizations" : {
         "cs" : {
@@ -7690,6 +7693,9 @@
           }
         }
       }
+    },
+    "Open a music app to see playback controls" : {
+
     },
     "Open Calendar Settings" : {
       "localizations" : {
