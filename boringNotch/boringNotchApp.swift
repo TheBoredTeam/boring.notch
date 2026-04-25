@@ -236,11 +236,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let uuid = screen.displayUUID else { return }
         
         if Defaults[.showOnAllDisplays], let viewModel = viewModels[uuid] {
-            viewModel.open()
-            coordinator.currentView = .shelf
+            if viewModel.open() {
+                coordinator.currentView = .shelf
+            }
         } else if !Defaults[.showOnAllDisplays], let windowScreen = window?.screen, screen == windowScreen {
-            vm.open()
-            coordinator.currentView = .shelf
+            if vm.open() {
+                coordinator.currentView = .shelf
+            }
         }
     }
 
@@ -408,9 +410,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 switch viewModel.notchState {
                 case .closed:
+                    var didOpen = false
                     await MainActor.run {
-                        viewModel.open()
+                        didOpen = viewModel.open()
                     }
+                    guard didOpen else { return }
 
                     let task = Task { [weak viewModel] in
                         do {

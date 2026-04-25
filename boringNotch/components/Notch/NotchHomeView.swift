@@ -429,13 +429,9 @@ struct NotchHomeView: View {
     @Binding var isHoveringMusicArea: Bool
 
     var body: some View {
-        Group {
-            if !coordinator.firstLaunch {
-                mainContent
-            }
-        }
-        // simplified: use a straightforward opacity transition
-        .transition(.opacity)
+        mainContent
+            // simplified: use a straightforward opacity transition
+            .transition(.opacity)
     }
 
     private var shouldShowCamera: Bool {
