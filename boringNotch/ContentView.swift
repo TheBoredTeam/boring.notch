@@ -28,6 +28,9 @@ struct ContentView: View {
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
     @State private var gestureProgress: CGFloat = .zero
+    @State private var horizontalMediaGestureTriggered = false
+    @State private var horizontalMediaGestureFeedback: CGFloat = .zero
+    @State private var isHoveringMusicArea = false
 
     @State private var haptics: Bool = false
 
@@ -167,6 +170,15 @@ struct ContentView: View {
                         view
                             .panGesture(direction: .up) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
+                            }
+                    }
+                    .conditionalModifier(Defaults[.enableHorizontalMediaGestures] && Defaults[.enableGestures]) { view in
+                        view
+                            .panGesture(direction: .left) { translation, phase in
+                                handleNextTrackGesture(translation: translation, phase: phase)
+                            }
+                            .panGesture(direction: .right) { translation, phase in
+                                handlePreviousTrackGesture(translation: translation, phase: phase)
                             }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
@@ -382,7 +394,11 @@ struct ContentView: View {
                 VStack {
                     switch coordinator.currentView {
                     case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        NotchHomeView(
+                            albumArtNamespace: albumArtNamespace,
+                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                            isHoveringMusicArea: $isHoveringMusicArea
+                        )
                     case .shelf:
                         ShelfView()
                     }
@@ -643,6 +659,87 @@ struct ContentView: View {
             if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
+        }
+    }
+
+    private func handleNextTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: -1) {
+            musicManager.nextTrack()
+        }
+    }
+
+    private func handlePreviousTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: 1) {
+            musicManager.previousTrack()
+        }
+    }
+
+    private func handleHorizontalMediaGesture(
+        translation: CGFloat,
+        phase: NSEvent.Phase,
+        feedback: CGFloat,
+        action: () -> Void
+    ) {
+        guard isHorizontalMediaGestureContext else {
+            resetHorizontalMediaGesture()
+            return
+        }
+        guard phase != .ended else {
+            resetHorizontalMediaGesture()
+            return
+        }
+        guard !horizontalMediaGestureTriggered else { return }
+        guard translation > Defaults[.gestureSensitivity] else { return }
+
+        horizontalMediaGestureTriggered = true
+        triggerHorizontalMediaFeedback(feedback)
+        action()
+
+        if Defaults[.enableHaptics] {
+            haptics.toggle()
+        }
+    }
+
+    private func resetHorizontalMediaGesture() {
+        horizontalMediaGestureTriggered = false
+    }
+
+    private func triggerHorizontalMediaFeedback(_ feedback: CGFloat) {
+        withAnimation(.interactiveSpring(response: 0.18, dampingFraction: 0.62)) {
+            horizontalMediaGestureFeedback = feedback
+            if vm.notchState == .closed {
+                gestureProgress = 2
+            }
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(140))
+            withAnimation(animationSpring) {
+                horizontalMediaGestureFeedback = .zero
+                if vm.notchState == .closed {
+                    gestureProgress = .zero
+                }
+            }
+        }
+    }
+
+    private var isHorizontalMediaGestureContext: Bool {
+        switch vm.notchState {
+        case .closed:
+            guard !vm.hideOnClosed else { return false }
+
+            if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
+                return coordinator.sneakPeekState(for: vm.screenUUID).type == .music
+            }
+
+            guard !coordinator.expandingView.show || coordinator.expandingView.type == .music else {
+                return false
+            }
+
+            return coordinator.musicLiveActivityEnabled && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+
+        case .open:
+            return coordinator.currentView == .home && !musicManager.isPlayerIdle && isHoveringMusicArea
         }
     }
 }
