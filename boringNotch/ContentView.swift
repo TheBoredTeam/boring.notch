@@ -261,8 +261,9 @@ struct ContentView: View {
 
             if isTargeted {
                 if vm.notchState == .closed {
-                    coordinator.currentView = .shelf
-                    doOpen()
+                    if doOpen() {
+                        coordinator.currentView = .shelf
+                    }
                 }
                 return
             }
@@ -567,8 +568,9 @@ struct ContentView: View {
             coordinator.expandingView.persistent = true
         }
         withAnimation(animationSpring) {
-            vm.open()
+            didOpen = vm.open()
         }
+        return didOpen
     }
 
     // MARK: - Hover Management
