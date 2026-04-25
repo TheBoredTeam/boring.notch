@@ -14,6 +14,14 @@ struct Appearance: View {
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
+
+    private var realtimeAudioWaveformSupported: Bool {
+        if #available(macOS 14.2, *) {
+            return true
+        }
+        return false
+    }
+
     var body: some View {
         Form {
             Section {
@@ -33,11 +41,18 @@ struct Appearance: View {
                 Defaults.Toggle(key: .realtimeAudioWaveform) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Real-time audio waveform")
-                        Text("Uses Accelerate FFT on the playing app's audio. Requires audio capture permission and macOS 14.2+. Uses slightly more CPU.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        Group {
+                            if realtimeAudioWaveformSupported {
+                                Text("Uses Accelerate FFT on the playing app's audio. Requires audio capture permission and uses slightly more CPU.")
+                            } else {
+                                Text("Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform.")
+                            }
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     }
                 }
+                .disabled(!realtimeAudioWaveformSupported)
                 Defaults.Toggle(key: .playerColorTinting) {
                     Text("Player tinting")
                 }
