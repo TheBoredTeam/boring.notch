@@ -196,6 +196,9 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    static let enableParallaxTilt = Key<Bool>("enableParallaxTilt", default: false)
+    static let enableFlipAnimation = Key<Bool>("enableFlipAnimation", default: false)
+    static let enableWavySlider = Key<Bool>("enableWavySlider", default: false)
     static let musicControlSlots = Key<[MusicControlButton]>(
         "musicControlSlots",
         default: MusicControlButton.defaultLayout
