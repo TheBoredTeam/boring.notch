@@ -615,6 +615,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.title = "Onboarding"
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
+            window.level = .floating
             window.contentView = NSHostingView(
                 rootView: OnboardingView(
                     step: step,
@@ -637,6 +638,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 //        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+        onboardingWindowController?.window?.level = .floating
         onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
         onboardingWindowController?.window?.orderFrontRegardless()
     }
