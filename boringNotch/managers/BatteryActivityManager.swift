@@ -14,6 +14,7 @@ class BatteryActivityManager {
     var onPowerSourceChange: ((Bool) -> Void)?
     var onChargingChange: ((Bool) -> Void)?
     var onTimeToFullChargeChange: ((Int) -> Void)?
+    var onTimeToDischargeChange: ((Int) -> Void)?
 
     private var batterySource: CFRunLoopSource?
     private var observers: [(BatteryEvent) -> Void] = []
@@ -52,6 +53,7 @@ class BatteryActivityManager {
         case lowPowerModeChanged(isEnabled: Bool)
         case isChargingChanged(isCharging: Bool)
         case timeToFullChargeChanged(time: Int)
+        case timeToDischargeChanged(time: Int)
         case maxCapacityChanged(capacity: Float?)
         case error(description: String)
     }
@@ -68,7 +70,8 @@ class BatteryActivityManager {
         currentCapacity: 0,
         maxCapacity: nil,
         isInLowPowerMode: false,
-        timeToFullCharge: 0
+        timeToFullCharge: 0,
+        timeToDischarge: 0
     )
 
     private init() {
@@ -160,7 +163,13 @@ class BatteryActivityManager {
                 current: batteryInfo.timeToFullCharge,
                 eventGenerator: { .timeToFullChargeChanged(time: $0) }
             )
-            
+
+            checkAndNotify(
+                previous: previousInfo.timeToDischarge,
+                current: batteryInfo.timeToDischarge,
+                eventGenerator: { .timeToDischargeChanged(time: $0) }
+            )
+
             checkAndNotify(
                 previous: previousInfo.maxCapacity,
                 current: batteryInfo.maxCapacity,
@@ -173,6 +182,7 @@ class BatteryActivityManager {
             enqueueNotification(.isChargingChanged(isCharging: batteryInfo.isCharging))
             enqueueNotification(.lowPowerModeChanged(isEnabled: batteryInfo.isInLowPowerMode))
             enqueueNotification(.timeToFullChargeChanged(time: batteryInfo.timeToFullCharge))
+            enqueueNotification(.timeToDischargeChanged(time: batteryInfo.timeToDischarge))
             enqueueNotification(.maxCapacityChanged(capacity: batteryInfo.maxCapacity))
         }
 
@@ -187,6 +197,7 @@ class BatteryActivityManager {
             self.onChargingChange?(batteryInfo.isCharging)
             self.onPowerModeChange?(batteryInfo.isInLowPowerMode)
             self.onTimeToFullChargeChange?(batteryInfo.timeToFullCharge)
+            self.onTimeToDischargeChange?(batteryInfo.timeToDischarge)
             self.onMaxCapacityChange?(batteryInfo.maxCapacity)
         }
     }
@@ -211,7 +222,8 @@ class BatteryActivityManager {
                 currentCapacity: 0,
                 maxCapacity: nil,
                 isInLowPowerMode: false,
-                timeToFullCharge: 0
+                timeToFullCharge: 0,
+                timeToDischarge: 0
             )
         }
         return batteryInfo
@@ -257,14 +269,19 @@ class BatteryActivityManager {
                 currentCapacity: currentCapacity,
                 maxCapacity: getBatteryHealthCapacity(),
                 isInLowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled,
-                timeToFullCharge: 0
+                timeToFullCharge: 0,
+                timeToDischarge: 0
             )
-            
+
             // Optional parameters
             if let timeToFullCharge = description[kIOPSTimeToFullChargeKey] as? Int {
                 batteryInfo.timeToFullCharge = timeToFullCharge
             }
-            
+
+            if let timeToDischarge = description[kIOPSTimeToEmptyKey] as? Int {
+                batteryInfo.timeToDischarge = timeToDischarge
+            }
+
             return batteryInfo
             
         } catch BatteryError.powerSourceUnavailable {
@@ -360,4 +377,5 @@ struct BatteryInfo {
     var maxCapacity: Float?
     var isInLowPowerMode: Bool
     var timeToFullCharge: Int
+    var timeToDischarge: Int
 }
