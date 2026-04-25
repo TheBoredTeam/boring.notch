@@ -92,11 +92,20 @@ struct BatteryMenuView: View {
     var levelBattery: Float
     var maxCapacity: Float?
     var timeToFullCharge: Int
+    var timeToDischarge: Int
     var isInLowPowerMode: Bool
     var onDismiss: () -> Void
     
     @ObservedObject private var bluetoothManager = BluetoothDeviceManager.shared
     @Environment(\.openURL) private var openURL
+
+    private var formattedTimeToDischarge: String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .abbreviated
+        formatter.zeroFormattingBehavior = .dropAll
+        return formatter.string(from: TimeInterval(timeToDischarge * 60)) ?? ""
+    }
 
     private var formattedTimeToFullCharge: String {
         let formatter = DateComponentsFormatter()
@@ -139,13 +148,26 @@ struct BatteryMenuView: View {
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
-                if isPluggedIn {
+                if isPluggedIn && !isCharging {
                     Label("Plugged In", systemImage: "powerplug.fill")
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
-                if timeToFullCharge > 0 {
+                if isCharging && timeToFullCharge > 0 {
                     Label("Time to Full Charge: \(formattedTimeToFullCharge)", systemImage: "clock")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                } else if isCharging && timeToFullCharge == -1 {
+                    Label("Time to Full Charge: Calculating...", systemImage: "clock")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                }
+                if !isCharging && !isPluggedIn && timeToDischarge > 0 {
+                    Label("Time Until Empty: \(formattedTimeToDischarge)", systemImage: "clock")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                } else if !isCharging && !isPluggedIn && timeToDischarge == -1 {
+                    Label("Time Until Empty: Calculating...", systemImage: "clock")
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
@@ -225,6 +247,7 @@ struct BoringBatteryView: View {
     var levelBattery: Float = 0
     var maxCapacity: Float?
     var timeToFullCharge: Int = 0
+    var timeToDischarge: Int = 0
     @State var isForNotification: Bool = false
     
     @State private var showPopupMenu: Bool = false
@@ -267,6 +290,7 @@ struct BoringBatteryView: View {
                 levelBattery: levelBattery,
                 maxCapacity: maxCapacity,
                 timeToFullCharge: timeToFullCharge,
+                timeToDischarge: timeToDischarge,
                 isInLowPowerMode: isInLowPowerMode,
                 onDismiss: { 
                     showPopupMenu = false
@@ -311,6 +335,7 @@ struct BoringBatteryView: View {
         levelBattery: 80,
         maxCapacity: 100,
         timeToFullCharge: 10,
+        timeToDischarge: 10,
         isForNotification: false
     ).frame(width: 200, height: 200)
 }

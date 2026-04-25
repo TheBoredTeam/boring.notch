@@ -20,6 +20,7 @@ class BatteryStatusViewModel: ObservableObject {
     @Published private(set) var isInLowPowerMode: Bool = false
     @Published private(set) var isInitial: Bool = false
     @Published private(set) var timeToFullCharge: Int = 0
+    @Published private(set) var timeToDischarge: Int = 0
     @Published private(set) var lastStatus: LastStatus = .plugged(false)
 
     enum LastStatus: Equatable {
@@ -116,6 +117,12 @@ class BatteryStatusViewModel: ObservableObject {
                 self.timeToFullCharge = time
             }
 
+        case .timeToDischargeChanged(let time):
+            print("🕒 Time until empty: \(time) minutes")
+            withAnimation {
+                self.timeToDischarge = time
+            }
+
         case .maxCapacityChanged(let capacity):
             print("🔋 Max capacity: \(capacity.map { "\($0)" } ?? "Unavailable")")
             withAnimation {
@@ -136,6 +143,7 @@ class BatteryStatusViewModel: ObservableObject {
             self.isCharging = batteryInfo.isCharging
             self.isInLowPowerMode = batteryInfo.isInLowPowerMode
             self.timeToFullCharge = batteryInfo.timeToFullCharge
+            self.timeToDischarge = batteryInfo.timeToDischarge
             self.maxCapacity = batteryInfo.maxCapacity
             self.lastStatus = .plugged(batteryInfo.isPluggedIn)
         }
