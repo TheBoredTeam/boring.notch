@@ -24,7 +24,7 @@ class WebcamManager: NSObject, ObservableObject {
         }
     }
     
-    @Published var authorizationStatus: AVAuthorizationStatus = .notDetermined {
+    @Published var authorizationStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video) {
         didSet {
             objectWillChange.send()
         }
@@ -76,6 +76,7 @@ class WebcamManager: NSObject, ObservableObject {
         super.init()
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasDisconnected), name: .AVCaptureDeviceWasDisconnected, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasConnected), name: .AVCaptureDeviceWasConnected, object: nil)
+        refreshAuthorizationStatus()
         checkCameraAvailability()
     }
     
@@ -134,13 +135,25 @@ class WebcamManager: NSObject, ObservableObject {
         }
     }
 
+    /// Refreshes the cached camera permission status and returns the current system value.
+    @discardableResult
+    func refreshAuthorizationStatus() -> AVAuthorizationStatus {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        if Thread.isMainThread {
+            self.authorizationStatus = status
+        } else {
+            DispatchQueue.main.async {
+                self.authorizationStatus = status
+            }
+        }
+
+        return status
+    }
+
     /// Checks current authorization status and requests access if needed
     func checkAndRequestVideoAuthorization() {
-        let status = AVCaptureDevice.authorizationStatus(for: .video)
-        DispatchQueue.main.async {
-            self.authorizationStatus = status
-        }
-        
+        let status = refreshAuthorizationStatus()
+
         switch status {
         case .authorized:
             checkCameraAvailability() // Check availability if authorized

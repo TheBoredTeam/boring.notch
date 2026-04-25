@@ -138,7 +138,7 @@ class BoringViewModel: NSObject, ObservableObject {
             return
         }
 
-        switch webcamManager.authorizationStatus {
+        switch webcamManager.refreshAuthorizationStatus() {
         case .authorized:
             if webcamManager.isSessionRunning {
                 webcamManager.stopSession()
