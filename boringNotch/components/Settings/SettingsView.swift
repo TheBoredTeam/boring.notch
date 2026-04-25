@@ -132,7 +132,6 @@ struct GeneralSettings: View {
         guard let uuid = screen.displayUUID else { return nil }
         return (uuid, screen.localizedName)
     }
-    @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     @Default(.mirrorShape) var mirrorShape
@@ -143,6 +142,10 @@ struct GeneralSettings: View {
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
+    @Default(.openNotchWidth) var openNotchWidth
+    @Default(.openNotchHeight) var openNotchHeight
+    @Default(.liveActivityWidthMode) var liveActivityWidthMode
+    @Default(.liveActivityWidth) var liveActivityWidth
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
@@ -254,6 +257,62 @@ struct GeneralSettings: View {
                         NotificationCenter.default.post(
                             name: Notification.Name.notchHeightChanged, object: nil)
                     }
+                }
+
+                Divider()
+
+                Slider(value: $openNotchWidth, in: 300...1200, step: 10) {
+                    Text("Opened notch width - \(openNotchWidth, specifier: "%.0f")")
+                }
+                .onChange(of: openNotchWidth) {
+                    NotificationCenter.default.post(name: Notification.Name("ForceOpenNotch"), object: nil)
+                    NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                }
+
+                Slider(value: $openNotchHeight, in: 100...800, step: 10) {
+                    Text("Opened notch height - \(openNotchHeight, specifier: "%.0f")")
+                }
+                .onChange(of: openNotchHeight) {
+                    NotificationCenter.default.post(name: Notification.Name("ForceOpenNotch"), object: nil)
+                    NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                }
+
+                Button("Reset to Defaults") {
+                    openNotchWidth = 640.0
+                    openNotchHeight = 190.0
+                    NotificationCenter.default.post(name: Notification.Name("ForceOpenNotch"), object: nil)
+                    NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.accentColor)
+                .padding(.top, 4)
+                
+                Divider()
+                
+                Picker("Live Activity Width", selection: $liveActivityWidthMode) {
+                    Text("Auto (Match Content)").tag(Defaults.Keys.LiveActivityWidthMode.auto)
+                    Text("Custom").tag(Defaults.Keys.LiveActivityWidthMode.custom)
+                }
+                .onChange(of: liveActivityWidthMode) {
+                    NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                }
+                
+                if liveActivityWidthMode == .custom {
+                    Slider(value: $liveActivityWidth, in: 20...600, step: 5) {
+                        Text("Extra Width - \(liveActivityWidth, specifier: "%.0f")")
+                    }
+                    .onChange(of: liveActivityWidth) {
+                        NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                    }
+                    
+                    Button("Reset Width to Default") {
+                        liveActivityWidthMode = .auto
+                        liveActivityWidth = 80.0
+                        NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.accentColor)
+                    .padding(.top, 4)
                 }
             } header: {
                 Text("Notch sizing")
@@ -598,6 +657,8 @@ struct Media: View {
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
+    @Default(.hideLiveActivityAfterTimeout) var hideLiveActivityAfterTimeout
+    @Default(.liveActivityTimeout) var liveActivityTimeout
 
     @Default(.enableLyrics) var enableLyrics
 
@@ -644,6 +705,24 @@ struct Media: View {
                     "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
+                Toggle("Hide live activity after a short timeout", isOn: $hideLiveActivityAfterTimeout.animation())
+                    .disabled(!coordinator.musicLiveActivityEnabled)
+                
+                if hideLiveActivityAfterTimeout {
+                    HStack {
+                        Stepper(value: $liveActivityTimeout, in: 1...15, step: 0.5) {
+                            HStack {
+                                Text("Hide timeout")
+                                Spacer()
+                                Text("\(liveActivityTimeout, specifier: "%.1f") seconds")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.leading, 16)
+                    .disabled(!coordinator.musicLiveActivityEnabled)
+                }
+
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in

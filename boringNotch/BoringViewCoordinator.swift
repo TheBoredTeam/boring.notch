@@ -206,7 +206,7 @@ class BoringViewCoordinator: ObservableObject {
     }
 
     func toggleSneakPeek(
-        status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
+        status: Bool, type: SneakContentType, duration: TimeInterval = 2.0, value: CGFloat = 0,
         icon: String = ""
     ) {
         sneakPeekDuration = duration
@@ -230,7 +230,7 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
-    private var sneakPeekDuration: TimeInterval = 1.5
+    private var sneakPeekDuration: TimeInterval = 2.0
     private var sneakPeekTask: Task<Void, Never>?
 
     // Helper function to manage sneakPeek timer using Swift Concurrency
@@ -243,7 +243,7 @@ class BoringViewCoordinator: ObservableObject {
             await MainActor.run {
                 withAnimation {
                     self.toggleSneakPeek(status: false, type: .music)
-                    self.sneakPeekDuration = 1.5
+                    self.sneakPeekDuration = 2.0
                 }
             }
         }
@@ -281,7 +281,7 @@ class BoringViewCoordinator: ObservableObject {
         didSet {
             if expandingView.show {
                 expandingViewTask?.cancel()
-                let duration: TimeInterval = (expandingView.type == .download ? 2 : 3)
+                let duration: TimeInterval = 2.0
                 let currentType = expandingView.type
                 expandingViewTask = Task { [weak self] in
                     try? await Task.sleep(for: .seconds(duration))

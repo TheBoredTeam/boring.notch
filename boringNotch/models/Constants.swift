@@ -125,10 +125,23 @@ extension Defaults.Keys {
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
+    static let hideLiveActivityAfterTimeout = Key<Bool>("hideLiveActivityAfterTimeout", default: true)
+    static let liveActivityTimeout = Key<Double>("liveActivityTimeout", default: 2.0)
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
-    static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    // MARK: Notch Sizing
+    static let openNotchWidth = Key<Double>("openNotchWidth", default: 640.0)
+    static let openNotchHeight = Key<Double>("openNotchHeight", default: 190.0)
+    
+    enum LiveActivityWidthMode: String, Codable, Defaults.Serializable {
+        case auto
+        case custom
+    }
+    static let liveActivityWidthMode = Key<LiveActivityWidthMode>("liveActivityWidthMode", default: .auto)
+    static let liveActivityWidth = Key<Double>("liveActivityWidth", default: 80.0)
+
+    static let enableLyrics = Key<Bool>("enableLyrics", default: true)
     static let musicControlSlots = Key<[MusicControlButton]>(
         "musicControlSlots",
         default: MusicControlButton.defaultLayout

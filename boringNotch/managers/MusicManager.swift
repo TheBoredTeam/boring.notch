@@ -68,6 +68,9 @@ class MusicManager: ObservableObject {
     @Published var isTransitioning: Bool = false
     private var transitionWorkItem: DispatchWorkItem?
 
+    @Published var showNotchLiveActivity: Bool = false
+    private var liveActivityTask: Task<Void, Never>?
+
     // MARK: - Initialization
     init() {
         // Listen for changes to the default controller preference
@@ -191,6 +194,7 @@ class MusicManager: ObservableObject {
 
             if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
                 self.updateSneakPeek()
+                self.triggerNotchLiveActivity()
             }
         }
 
@@ -230,6 +234,7 @@ class MusicManager: ObservableObject {
             // Only update sneak peek if there's actual content and something changed
             if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
                 self.updateSneakPeek()
+                self.triggerNotchLiveActivity()
             }
 
             // Fetch lyrics on content change
@@ -588,6 +593,22 @@ class MusicManager: ObservableObject {
                 coordinator.toggleSneakPeek(status: true, type: .music)
             } else {
                 coordinator.toggleExpandingView(status: true, type: .music)
+            }
+        }
+    }
+
+    func triggerNotchLiveActivity() {
+        liveActivityTask?.cancel()
+        withAnimation(.smooth) {
+            self.showNotchLiveActivity = true
+        }
+        liveActivityTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Defaults[.liveActivityTimeout]))
+            guard let self = self, !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(.smooth) {
+                    self.showNotchLiveActivity = false
+                }
             }
         }
     }

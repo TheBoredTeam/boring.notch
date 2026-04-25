@@ -196,8 +196,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let uuid = screen.displayUUID else { return }
         
         let screenFrame = screen.frame
-        let notchHeight = openNotchSize.height
-        let notchWidth = openNotchSize.width
+        let notchHeight = getOpenNotchSize().height
+        let notchWidth = getOpenNotchSize().width
         
         // Create notch region at the top-center of the screen where an open notch would occupy
         let notchRegion = CGRect(
@@ -232,7 +232,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
-        let rect = NSRect(x: 0, y: 0, width: windowSize.width, height: windowSize.height)
+        let rect = NSRect(x: 0, y: 0, width: getWindowSize().width, height: getWindowSize().height)
         let styleMask: NSWindow.StyleMask = [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow]
         
         let window = BoringNotchSkyLightWindow(contentRect: rect, styleMask: styleMask, backing: .buffered, defer: false)
@@ -270,12 +270,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.alphaValue = 0
         }
 
+        let size = getWindowSize()
         let screenFrame = screen.frame
-        window.setFrameOrigin(
-            NSPoint(
-                x: screenFrame.origin.x + (screenFrame.width / 2) - window.frame.width / 2,
-                y: screenFrame.origin.y + screenFrame.height - window.frame.height
-            ))
+        let newFrame = NSRect(
+            x: screenFrame.origin.x + (screenFrame.width / 2) - size.width / 2,
+            y: screenFrame.origin.y + screenFrame.height - size.height,
+            width: size.width,
+            height: size.height
+        )
+        
+        window.setFrame(newFrame, display: true)
         window.alphaValue = 1
     }
 
@@ -294,6 +298,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 self?.adjustWindowPosition(changeAlpha: true)
                 self?.setupDragDetectors()
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name("ForceOpenNotch"), object: nil, queue: nil
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                for viewModel in self.viewModels.values {
+                    if viewModel.notchState != .open { viewModel.open() }
+                }
+                if self.vm.notchState != .open { self.vm.open() }
             }
         }
 
@@ -360,7 +376,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.coordinator.toggleSneakPeek(
                     status: !self.coordinator.sneakPeek.show,
                     type: .music,
-                    duration: 3.0
+                    duration: 2.0
                 )
             }
         }

@@ -501,6 +501,9 @@
         }
       }
     },
+    "%.1f seconds" : {
+
+    },
     "%.1fs" : {
       "localizations" : {
         "ar" : {
@@ -2801,6 +2804,9 @@
           }
         }
       }
+    },
+    "Auto (Match Content)" : {
+
     },
     "Auto-scroll to next event" : {
       "localizations" : {
@@ -9408,6 +9414,9 @@
         }
       }
     },
+    "Extra Width - %.0f" : {
+
+    },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
         "ar" : {
@@ -10908,6 +10917,12 @@
         }
       }
     },
+    "Hide live activity after a short timeout" : {
+
+    },
+    "Hide timeout" : {
+
+    },
     "Hide title bar" : {
       "localizations" : {
         "ar" : {
@@ -12008,6 +12023,9 @@
           }
         }
       }
+    },
+    "Live Activity Width" : {
+
     },
     "Lottie JSON URL" : {
       "localizations" : {
@@ -16010,6 +16028,12 @@
         }
       }
     },
+    "Opened notch height - %.0f" : {
+
+    },
+    "Opened notch width - %.0f" : {
+
+    },
     "Option key behaviour" : {
       "localizations" : {
         "ar" : {
@@ -17809,6 +17833,9 @@
           }
         }
       }
+    },
+    "Reset Width to Default" : {
+
     },
     "Restart" : {
       "extractionState" : "stale",
