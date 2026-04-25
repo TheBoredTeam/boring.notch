@@ -260,7 +260,7 @@ struct ContentView: View {
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
-                if vm.notchState == .closed {
+                if Defaults[.boringShelf] && vm.notchState == .closed {
                     if doOpen() {
                         coordinator.currentView = .shelf
                     }
