@@ -90,7 +90,7 @@ struct BatteryMenuView: View {
     var isPluggedIn: Bool
     var isCharging: Bool
     var levelBattery: Float
-    var maxCapacity: Float
+    var maxCapacity: Float?
     var timeToFullCharge: Int
     var isInLowPowerMode: Bool
     var onDismiss: () -> Void
@@ -119,9 +119,15 @@ struct BatteryMenuView: View {
             }
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("Max Capacity: \(Int(maxCapacity))%")
-                    .font(.subheadline)
-                    .fontWeight(.regular)
+                if let maxCapacity {
+                    Text("Max Capacity: \(Int(maxCapacity))%")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                } else {
+                    Text("Max Capacity: Not Available")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                }
                 if isInLowPowerMode {
                     Label("Low Power Mode", systemImage: "bolt.circle")
                         .font(.subheadline)
@@ -182,7 +188,7 @@ struct BoringBatteryView: View {
     var isInLowPowerMode: Bool = false
     var isPluggedIn: Bool = false
     var levelBattery: Float = 0
-    var maxCapacity: Float = 0
+    var maxCapacity: Float?
     var timeToFullCharge: Int = 0
     @State var isForNotification: Bool = false
     
