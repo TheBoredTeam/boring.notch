@@ -87,6 +87,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        ClipboardManager.shared.stopMonitoring()
+        BluetoothBatteryManager.shared.stopMonitoring()
+        SystemStatsManager.shared.stopMonitoring()
         cleanupDragDetectors()
         cleanupWindows()
         BetterDisplayManager.shared.stopObserving()
@@ -462,6 +465,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // make sure OSD subsystems are in the right state now that initial
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
+
+        // Start clipboard monitoring
+        if Defaults[.enableClipboardHistory] {
+            ClipboardManager.shared.startMonitoring()
+        }
+
+        // Touch singletons so their self-managing Defaults observers activate
+        _ = BluetoothBatteryManager.shared
+        _ = SystemStatsManager.shared
     }
 
     func playWelcomeSound() {

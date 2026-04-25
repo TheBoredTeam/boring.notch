@@ -401,6 +401,10 @@ struct ContentView: View {
                         )
                     case .shelf:
                         ShelfView()
+                    case .clipboard:
+                        ClipboardView()
+                    case .systemStats:
+                        SystemStatsTabView()
                     }
                 }
                 .transition(
