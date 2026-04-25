@@ -13,6 +13,7 @@ struct MusicControllerSelectionView: View {
     let onContinue: () -> Void
 
     @Default(.mediaController) var mediaController
+    @ObservedObject private var spotifyAuthManager = SpotifyAuthManager.shared
     
     private var availableMediaControllers: [MediaControllerType] {
         if MusicManager.shared.isNowPlayingDeprecated {

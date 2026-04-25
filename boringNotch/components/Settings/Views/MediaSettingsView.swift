@@ -11,12 +11,15 @@ import SwiftUI
 struct Media: View {
     @Default(.waitInterval) var waitInterval
     @Default(.mediaController) var mediaController
+    @Default(.spotifyClientID) private var spotifyClientID
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
     @Default(.enableLyrics) var enableLyrics
+    @ObservedObject private var spotifyAuthManager = SpotifyAuthManager.shared
+    @State private var spotifyClientSecret = ""
 
     var body: some View {
         Form {
@@ -53,6 +56,50 @@ struct Media: View {
                     )
                     .foregroundStyle(.secondary)
                     .font(.caption)
+                }
+            }
+            
+            if mediaController == .spotify {
+                Section {
+                    HStack {
+                        Text("Status")
+                        Spacer()
+                        Text(spotifyAuthManager.isAuthorized ? "Connected" : "Not connected")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    TextField("Client ID", text: $spotifyClientID)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: spotifyClientID) { _, _ in
+                            spotifyAuthManager.handleCredentialChange()
+                        }
+
+                    SecureField("Client Secret", text: $spotifyClientSecret)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: spotifyClientSecret) { _, _ in
+                            spotifyAuthManager.updateClientSecret(spotifyClientSecret)
+                        }
+                    
+                    Button(spotifyAuthManager.isAuthorized ? "Reconnect Spotify" : "Connect Spotify") {
+                        spotifyAuthManager.startAuthFlow()
+                    }
+                    .disabled(!spotifyAuthManager.hasConfiguredCredentials)
+                    
+                    if spotifyAuthManager.isAuthorized {
+                        Button("Disconnect Spotify", role: .destructive) {
+                            spotifyAuthManager.signOut()
+                            NotificationCenter.default.post(
+                                name: Notification.Name.mediaControllerChanged,
+                                object: nil
+                            )
+                        }
+                    }
+                } header: {
+                    Text("Spotify Web API")
+                } footer: {
+                    Text("Enter your own Spotify app Client ID and Client Secret from the Spotify developer dashboard, then connect to enable Web API playback features like saved-track syncing and direct Spotify device control. Changing either value signs you out so you can reconnect with the new app credentials.")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
                 }
             }
             
@@ -112,6 +159,9 @@ struct Media: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Media")
+        .onAppear {
+            spotifyClientSecret = spotifyAuthManager.storedClientSecret()
+        }
     }
 
     // Only show controller options that are available on this macOS version

@@ -463,6 +463,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
     }
+    
+    func application(_ app: NSApplication, open urls: [URL]) {
+        guard let url = urls.first, url.scheme == "theboringteam.boringnotch" else { return }
+        Task { await SpotifyAuthManager.shared.handleCallback(url: url) }
+    }
 
     func playWelcomeSound() {
         let audioPlayer = AudioPlayer()
