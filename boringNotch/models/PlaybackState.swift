@@ -32,10 +32,16 @@ struct PlaybackState {
 
     var effectiveAudioCaptureBundleIdentifiers: [String] {
         let raw = audioCaptureBundleIdentifiers.isEmpty ? [bundleIdentifier] : audioCaptureBundleIdentifiers
+        return raw.normalizedBundleIdentifiers
+    }
+}
+
+extension Sequence where Element == String {
+    var normalizedBundleIdentifiers: [String] {
         var seen = Set<String>()
-        return raw.filter { bundleID in
-            guard !bundleID.isEmpty, !seen.contains(bundleID) else { return false }
-            seen.insert(bundleID)
+        return filter { value in
+            guard !value.isEmpty, !seen.contains(value) else { return false }
+            seen.insert(value)
             return true
         }
     }

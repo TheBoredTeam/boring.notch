@@ -20,6 +20,8 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
     private var lastAppliedLevels: [Float]
     private static let levelChangeThreshold: Float = 0.005
     private static let minBarScale: CGFloat = 0.12
+    private static let idleBarScale: CGFloat = 0.3
+    private static let animationKey = "scaleAnimation"
 
     private let barWidth: CGFloat = 2
     private let barCount = AudioCaptureManager.barCount
@@ -51,11 +53,9 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
         }
         let scale = NSScreen.main?.backingScaleFactor ?? 2.0
         for i in 0..<barCount {
-            let xPosition = CGFloat(i) * (barWidth + spacing)
             let barLayer = CAGradientLayer()
             barLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-            barLayer.bounds = CGRect(x: 0, y: 0, width: barWidth, height: barWidth)
-            barLayer.position = CGPoint(x: xPosition + barWidth / 2, y: totalHeight / 2)
+            applyFrame(to: barLayer, at: i, height: barWidth)
             barLayer.cornerRadius = barWidth / 2
             barLayer.contentsScale = scale
             barLayer.shouldRasterize = false
@@ -76,10 +76,8 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
             CATransaction.setDisableActions(true)
         }
         for (index, barLayer) in barLayers.enumerated() {
-            let x = CGFloat(index) * (barWidth + spacing)
-            barLayer.bounds = CGRect(x: 0, y: 0, width: barWidth, height: totalHeight)
-            barLayer.position = CGPoint(x: x + barWidth / 2, y: totalHeight / 2)
-            barLayer.transform = CATransform3DMakeScale(1.0, 0.3, 1.0)
+            applyFrame(to: barLayer, at: index, height: totalHeight)
+            barLayer.transform = CATransform3DMakeScale(1.0, Self.idleBarScale, 1.0)
         }
         CATransaction.commit()
     }
@@ -89,11 +87,9 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
         CATransaction.setAnimationDuration(0.3)
         CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeOut))
         for (index, barLayer) in barLayers.enumerated() {
-            barLayer.removeAnimation(forKey: "scaleAnimation")
+            barLayer.removeAnimation(forKey: Self.animationKey)
             barLayer.transform = CATransform3DIdentity
-            let x = CGFloat(index) * (barWidth + spacing)
-            barLayer.bounds = CGRect(x: 0, y: 0, width: barWidth, height: barWidth)
-            barLayer.position = CGPoint(x: x + barWidth / 2, y: totalHeight / 2)
+            applyFrame(to: barLayer, at: index, height: barWidth)
         }
         CATransaction.commit()
     }
@@ -132,12 +128,12 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
         CATransaction.setDisableActions(true)
         barLayer.transform = CATransform3DMakeScale(1.0, startValue, 1.0)
         CATransaction.commit()
-        barLayer.add(animation, forKey: "scaleAnimation")
+        barLayer.add(animation, forKey: Self.animationKey)
     }
 
     private func stopRandomAnimating() {
         for barLayer in barLayers {
-            barLayer.removeAnimation(forKey: "scaleAnimation")
+            barLayer.removeAnimation(forKey: Self.animationKey)
         }
     }
 
@@ -166,7 +162,7 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             for barLayer in barLayers {
-                barLayer.transform = CATransform3DMakeScale(1.0, 0.3, 1.0)
+                barLayer.transform = CATransform3DMakeScale(1.0, Self.idleBarScale, 1.0)
             }
             CATransaction.commit()
             startRandomAnimating()
@@ -215,6 +211,12 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
         tintColor = color
         let colors = [color.withAlphaComponent(0.6).cgColor, color.cgColor]
         barLayers.forEach { $0.colors = colors }
+    }
+
+    private func applyFrame(to barLayer: CALayer, at index: Int, height: CGFloat) {
+        let x = CGFloat(index) * (barWidth + spacing)
+        barLayer.bounds = CGRect(x: 0, y: 0, width: barWidth, height: height)
+        barLayer.position = CGPoint(x: x + barWidth / 2, y: totalHeight / 2)
     }
 }
 

@@ -15,7 +15,6 @@ import CoreAudio
 import Darwin
 import Defaults
 import Foundation
-import os
 
 protocol AudioCaptureLevelsConsumer: AnyObject {
     func audioCaptureManager(_ manager: AudioCaptureManager, didProduceLevels values: [Float])
@@ -175,9 +174,7 @@ final class AudioCaptureManager: ObservableObject {
               enabled, isPlaying,
               let resolvedDisplayBundleID = displayBundleID,
               !resolvedDisplayBundleID.isEmpty else {
-            lifecycleQueue.async { [weak self] in
-                self?.stopCaptureOnLifecycleQueue()
-            }
+            stopCaptureAsync()
             return
         }
         let resolvedPIDs = resolvePIDs(
@@ -185,13 +182,17 @@ final class AudioCaptureManager: ObservableObject {
             captureBundleIDs: captureBundleIDs
         )
         guard !resolvedPIDs.isEmpty else {
-            lifecycleQueue.async { [weak self] in
-                self?.stopCaptureOnLifecycleQueue()
-            }
+            stopCaptureAsync()
             return
         }
         lifecycleQueue.async { [weak self] in
             self?.startCaptureOnLifecycleQueue(pids: resolvedPIDs)
+        }
+    }
+
+    private func stopCaptureAsync() {
+        lifecycleQueue.async { [weak self] in
+            self?.stopCaptureOnLifecycleQueue()
         }
     }
 
@@ -204,7 +205,7 @@ final class AudioCaptureManager: ObservableObject {
             Set(captureBundleIDs + [displayBundleID])
         ).sorted()
 
-        var pidsByBundleID: [(pid: pid_t, bundleID: String)] = []
+        var pids = Set<pid_t>()
         for bundleID in bundleIDs {
             let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
             let requireDisplayAppTie = bundleID != displayBundleID && runningApps.count > 1
@@ -215,19 +216,18 @@ final class AudioCaptureManager: ObservableObject {
                     displayNames: displayNames,
                     displayBundlePaths: displayBundlePaths
                 ) else { continue }
-                pidsByBundleID.append((pid: app.processIdentifier, bundleID: bundleID))
+                pids.insert(app.processIdentifier)
             }
         }
 
-        if pidsByBundleID.isEmpty {
+        if pids.isEmpty {
             return NSRunningApplication
                 .runningApplications(withBundleIdentifier: displayBundleID)
                 .map(\.processIdentifier)
                 .sorted()
         }
 
-        let deduped = Dictionary(uniqueKeysWithValues: pidsByBundleID.map { ($0.pid, $0.bundleID) })
-        return deduped.keys.sorted()
+        return pids.sorted()
     }
 
     private func shouldInclude(
@@ -440,19 +440,24 @@ final class AudioCaptureManager: ObservableObject {
         teardownCapture()
         currentPIDs.removeAll(keepingCapacity: true)
         syncOnFFTQueue {
-            ringLock.lock()
-            ringBuffer.update(repeating: 0, count: Self.ringCapacity)
-            ringWrite = 0
-            ringLock.unlock()
-            for i in 0..<Self.barCount {
-                smoothed[i] = 0
-                barsBuf[i] = 0
-                lastPublishedBuf[i] = -1
-            }
+            resetProcessingState()
         }
         let zeros = [Float](repeating: 0, count: Self.barCount)
         setCapturing(false)
         publishLevels(zeros)
+    }
+
+    private func resetProcessingState() {
+        ringLock.lock()
+        ringBuffer.update(repeating: 0, count: Self.ringCapacity)
+        ringWrite = 0
+        ringLock.unlock()
+
+        for i in 0..<Self.barCount {
+            smoothed[i] = 0
+            barsBuf[i] = 0
+            lastPublishedBuf[i] = -1
+        }
     }
 
     private func teardownCapture() {
@@ -522,12 +527,13 @@ final class AudioCaptureManager: ObservableObject {
         let src = rawData.assumingMemoryBound(to: Float.self)
 
         ringLock.lock()
+        defer { ringLock.unlock() }
+
         let cap = Self.ringCapacity
         if frameCount >= cap {
             let newestFrames = src.advanced(by: frameCount - cap)
             memcpy(ringBuffer, newestFrames, cap * MemoryLayout<Float>.size)
             ringWrite = 0
-            ringLock.unlock()
             return
         }
         let write = ringWrite
@@ -541,7 +547,6 @@ final class AudioCaptureManager: ObservableObject {
             )
         }
         ringWrite = (write + frameCount) % cap
-        ringLock.unlock()
     }
 
     // MARK: - FFT loop
@@ -573,26 +578,7 @@ final class AudioCaptureManager: ObservableObject {
 
     private func processFFT() {
         let n = Self.fftSize
-
-        ringLock.lock()
-        let cap = Self.ringCapacity
-        let end = ringWrite
-        let start = (end - n + cap) % cap
-        samplesBuf.withUnsafeMutableBufferPointer { dst in
-            guard let base = dst.baseAddress else { return }
-            if start + n <= cap {
-                memcpy(base, ringBuffer.advanced(by: start), n * MemoryLayout<Float>.size)
-            } else {
-                let firstCount = cap - start
-                memcpy(base, ringBuffer.advanced(by: start), firstCount * MemoryLayout<Float>.size)
-                memcpy(
-                    base.advanced(by: firstCount),
-                    ringBuffer,
-                    (n - firstCount) * MemoryLayout<Float>.size
-                )
-            }
-        }
-        ringLock.unlock()
+        copyLatestSamples(count: n)
 
         vDSP.multiply(samplesBuf, hannWindow, result: &windowedBuf)
 
@@ -650,6 +636,29 @@ final class AudioCaptureManager: ObservableObject {
             lastPublishedBuf[i] = barsBuf[i]
         }
         publishLevels(barsBuf.map { $0 })
+    }
+
+    private func copyLatestSamples(count: Int) {
+        ringLock.lock()
+        defer { ringLock.unlock() }
+
+        let cap = Self.ringCapacity
+        let end = ringWrite
+        let start = (end - count + cap) % cap
+        samplesBuf.withUnsafeMutableBufferPointer { dst in
+            guard let base = dst.baseAddress else { return }
+            if start + count <= cap {
+                memcpy(base, ringBuffer.advanced(by: start), count * MemoryLayout<Float>.size)
+            } else {
+                let firstCount = cap - start
+                memcpy(base, ringBuffer.advanced(by: start), firstCount * MemoryLayout<Float>.size)
+                memcpy(
+                    base.advanced(by: firstCount),
+                    ringBuffer,
+                    (count - firstCount) * MemoryLayout<Float>.size
+                )
+            }
+        }
     }
 
     private func publishLevels(_ values: [Float]) {
