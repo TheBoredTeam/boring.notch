@@ -30,49 +30,64 @@ enum HideNotchOption: String, Defaults.Serializable {
     case never
 }
 
-enum AppLanguage: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case system
-    case arabic = "ar"
-    case czech = "cs"
-    case german = "de"
-    case english = "en"
-    case britishEnglish = "en-GB"
-    case spanish = "es"
-    case french = "fr"
-    case italian = "it"
-    case korean = "ko"
-    case polish = "pl"
-    case brazilianPortuguese = "pt-BR"
-    case russian = "ru"
-    case turkish = "tr"
-    case ukrainian = "uk"
-    case simplifiedChinese = "zh-Hans"
+struct AppLanguage: RawRepresentable, Hashable, Identifiable, Defaults.Serializable {
+    static let system = AppLanguage(rawValue: "system")
 
     var id: String { rawValue }
+    let rawValue: String
+
+    init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    static var allCases: [AppLanguage] {
+        let languages = Bundle.main.localizations
+            .filter(isSelectableLocalization)
+            .map(AppLanguage.init(rawValue:))
+            .sorted { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
+
+        return [.system] + languages
+    }
 
     var displayName: String {
-        switch self {
-        case .system:
-            NSLocalizedString(
+        if self == .system {
+            return NSLocalizedString(
                 "System default",
                 comment: "Language picker option: follow the system app language"
             )
-        case .arabic: "Arabic"
-        case .czech: "Czech"
-        case .german: "German"
-        case .english: "English"
-        case .britishEnglish: "English (UK)"
-        case .spanish: "Spanish"
-        case .french: "French"
-        case .italian: "Italian"
-        case .korean: "Korean"
-        case .polish: "Polish"
-        case .brazilianPortuguese: "Portuguese (Brazil)"
-        case .russian: "Russian"
-        case .turkish: "Turkish"
-        case .ukrainian: "Ukrainian"
-        case .simplifiedChinese: "Chinese (Simplified)"
         }
+
+        let displayName = nativeLocale.localizedString(forIdentifier: rawValue) ?? rawValue
+        return displayName.capitalized(with: nativeLocale)
+    }
+
+    private var nativeLocale: Locale {
+        Locale(identifier: rawValue)
+    }
+
+    private static func isSelectableLocalization(_ identifier: String) -> Bool {
+        guard identifier != "Base" else { return false }
+        guard let url = Bundle.main.url(
+            forResource: "Localizable",
+            withExtension: "strings",
+            subdirectory: nil,
+            localization: identifier
+        ) else {
+            return false
+        }
+
+        guard
+            let data = try? Data(contentsOf: url),
+            let strings = try? PropertyListSerialization.propertyList(
+                from: data,
+                options: [],
+                format: nil
+            ) as? [String: String]
+        else {
+            return false
+        }
+
+        return strings.values.contains { !$0.isEmpty }
     }
 
     func applyAppleLanguagesOverride() {
