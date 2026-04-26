@@ -30,6 +30,61 @@ enum HideNotchOption: String, Defaults.Serializable {
     case never
 }
 
+enum AppLanguage: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case system
+    case arabic = "ar"
+    case czech = "cs"
+    case german = "de"
+    case english = "en"
+    case britishEnglish = "en-GB"
+    case spanish = "es"
+    case french = "fr"
+    case italian = "it"
+    case korean = "ko"
+    case polish = "pl"
+    case brazilianPortuguese = "pt-BR"
+    case russian = "ru"
+    case turkish = "tr"
+    case ukrainian = "uk"
+    case simplifiedChinese = "zh-Hans"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .system:
+            NSLocalizedString(
+                "System default",
+                comment: "Language picker option: follow the system app language"
+            )
+        case .arabic: "Arabic"
+        case .czech: "Czech"
+        case .german: "German"
+        case .english: "English"
+        case .britishEnglish: "English (UK)"
+        case .spanish: "Spanish"
+        case .french: "French"
+        case .italian: "Italian"
+        case .korean: "Korean"
+        case .polish: "Polish"
+        case .brazilianPortuguese: "Portuguese (Brazil)"
+        case .russian: "Russian"
+        case .turkish: "Turkish"
+        case .ukrainian: "Ukrainian"
+        case .simplifiedChinese: "Chinese (Simplified)"
+        }
+    }
+
+    func applyAppleLanguagesOverride() {
+        if self == .system {
+            UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+        } else {
+            UserDefaults.standard.set([rawValue], forKey: "AppleLanguages")
+        }
+        UserDefaults.standard.synchronize()
+    }
+}
+
 // Define notification names at file scope
 extension Notification.Name {
     // MARK: - Media
@@ -136,6 +191,7 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
 
 extension Defaults.Keys {
     // MARK: General
+    static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
