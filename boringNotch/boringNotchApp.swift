@@ -199,6 +199,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             detector.stopMonitoring()
         }
         dragDetectors.removeAll()
+        observers.forEach { NotificationCenter.default.removeObserver($0) }
+        observers.removeAll()
     }
 
     private func setupDragDetectors() {
@@ -580,6 +582,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             if window == nil {
                 window = createBoringNotchWindow(for: selectedScreen, with: vm)
+            }
+            if Defaults[.showOnAllDisplays] && windows.isEmpty {
+                setupDragDetectors()
             }
 
             if let window = window {

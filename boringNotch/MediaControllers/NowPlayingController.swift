@@ -250,10 +250,11 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             fallbackBundleIdentifiers: captureBundleFallbackIdentifiers
         )
         
-        newPlaybackState.title = payload.title ?? (diff ? self.playbackState.title : "")
-        newPlaybackState.artist = payload.artist ?? (diff ? self.playbackState.artist : "")
-        newPlaybackState.album = payload.album ?? (diff ? self.playbackState.album : "")
-        newPlaybackState.duration = payload.duration ?? (diff ? self.playbackState.duration : 0)
+        newPlaybackState.title = payload.title ?? self.playbackState.title
+if newPlaybackState.title != self.playbackState.title || newPlaybackState.duration != self.playbackState.duration { newPlaybackState.currentTime = 0 }
+        newPlaybackState.artist = payload.artist ?? self.playbackState.artist
+        newPlaybackState.album = payload.album ?? self.playbackState.album
+        newPlaybackState.duration = payload.duration ?? self.playbackState.duration
         
         if let elapsedTime = payload.elapsedTime {
             newPlaybackState.currentTime = elapsedTime
