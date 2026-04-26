@@ -2570,6 +2570,16 @@
         }
       }
     },
+    "Changing the app language requires restarting Boring Notch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changing the app language requires restarting Boring Notch."
+          }
+        }
+      }
+    },
     "Change media with horizontal gestures" : {
       "localizations" : {
         "de" : {
@@ -7002,6 +7012,16 @@
         }
       }
     },
+    "Language" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        }
+      }
+    },
     "Launch at login" : {
       "localizations" : {
         "fr" : {
@@ -7020,6 +7040,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oturum açıldığında başlat"
+          }
+        }
+      }
+    },
+    "Later" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
           }
         }
       }
@@ -10941,6 +10971,26 @@
         }
       }
     },
+    "Restart Now" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart Now"
+          }
+        }
+      }
+    },
+    "Restart to apply language" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart to apply language"
+          }
+        }
+      }
+    },
     "Running" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -13155,6 +13205,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sistem"
+          }
+        }
+      }
+    },
+    "System default" : {
+      "comment" : "Language picker option: follow the system app language",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System default"
           }
         }
       }
