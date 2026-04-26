@@ -30,6 +30,14 @@ struct Appearance: View {
                 Defaults.Toggle(key: .coloredSpectrogram) {
                     Text("Colored spectrogram")
                 }
+                Defaults.Toggle(key: .realtimeAudioWaveform) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Real-time audio waveform")
+                        Text("Uses Accelerate FFT on the playing app's audio. Requires audio capture permission and macOS 14.2+. Uses slightly more CPU.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 Defaults.Toggle(key: .playerColorTinting) {
                     Text("Player tinting")
                 }
