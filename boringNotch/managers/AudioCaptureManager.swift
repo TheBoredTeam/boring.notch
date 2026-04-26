@@ -26,6 +26,7 @@ final class AudioCaptureManager: ObservableObject {
     private static let floorDB: Float = -50
     private static let ceilDB: Float = -25
     private static let referenceHz: Double = 1000
+    private static let fftQueueKey = DispatchSpecificKey<Void>()
 
     let levelsPublisher = PassthroughSubject<[Float], Never>()
     @Published private(set) var isCapturing: Bool = false
@@ -88,6 +89,7 @@ final class AudioCaptureManager: ObservableObject {
         // Seed with a sentinel so the first real frame always publishes.
         lastPublishedBuf = [Float](repeating: -1, count: Self.barCount)
 
+        fftQueue.setSpecific(key: Self.fftQueueKey, value: ())
         computeBandRanges(sampleRate: sampleRate)
         observeState()
     }
@@ -241,14 +243,16 @@ final class AudioCaptureManager: ObservableObject {
         stopFFTTimer()
         teardownCapture()
         currentPID = 0
-        ringLock.lock()
-        ringBuffer.update(repeating: 0, count: Self.ringCapacity)
-        ringWrite = 0
-        ringLock.unlock()
-        for i in 0..<Self.barCount {
-            smoothed[i] = 0
-            barsBuf[i] = 0
-            lastPublishedBuf[i] = -1
+        syncOnFFTQueue {
+            ringLock.lock()
+            ringBuffer.update(repeating: 0, count: Self.ringCapacity)
+            ringWrite = 0
+            ringLock.unlock()
+            for i in 0..<Self.barCount {
+                smoothed[i] = 0
+                barsBuf[i] = 0
+                lastPublishedBuf[i] = -1
+            }
         }
         let zeros = [Float](repeating: 0, count: Self.barCount)
         DispatchQueue.main.async { [weak self] in
@@ -324,6 +328,14 @@ final class AudioCaptureManager: ObservableObject {
     private func stopFFTTimer() {
         fftTimer?.cancel()
         fftTimer = nil
+    }
+
+    private func syncOnFFTQueue(_ work: () -> Void) {
+        if DispatchQueue.getSpecific(key: Self.fftQueueKey) != nil {
+            work()
+        } else {
+            fftQueue.sync(execute: work)
+        }
     }
 
     private func processFFT() {
