@@ -137,6 +137,21 @@ final class AudioCaptureManager: ObservableObject {
         return latestLevels
     }
 
+    func requestAudioCapturePermission() async -> Bool {
+        guard #available(macOS 14.2, *) else { return false }
+
+        return await withCheckedContinuation { continuation in
+            lifecycleQueue.async { [weak self] in
+                guard let self else {
+                    continuation.resume(returning: false)
+                    return
+                }
+
+                continuation.resume(returning: self.performPermissionProbeOnLifecycleQueue())
+            }
+        }
+    }
+
     // MARK: - State observation
 
     private func observeState() {
@@ -423,6 +438,102 @@ final class AudioCaptureManager: ObservableObject {
 
     private var captureIsConfigured: Bool {
         ioProcID != nil || aggregateDeviceID != 0 || tapObjectID != kAudioObjectUnknown
+    }
+
+    @available(macOS 14.2, *)
+    private func performPermissionProbeOnLifecycleQueue() -> Bool {
+        dispatchPrecondition(condition: .onQueue(lifecycleQueue))
+
+        if captureIsConfigured {
+            stopCaptureOnLifecycleQueue()
+        }
+
+        let excludedProcessIDs = translatePIDToAudioObject(pid: getpid()).map { [$0] } ?? []
+        let tapDescription = CATapDescription(monoGlobalTapButExcludeProcesses: excludedProcessIDs)
+        tapDescription.name = "Boring Notch Audio Permission Probe"
+        tapDescription.muteBehavior = .unmuted
+        tapDescription.isPrivate = true
+
+        var probeTapID: AudioObjectID = kAudioObjectUnknown
+        let tapStatus = AudioHardwareCreateProcessTap(tapDescription, &probeTapID)
+        guard tapStatus == noErr, probeTapID != kAudioObjectUnknown else {
+            NSLog("[AudioCaptureManager] Permission probe tap creation failed: \(tapStatus)")
+            return false
+        }
+        defer {
+            let status = AudioHardwareDestroyProcessTap(probeTapID)
+            if status != noErr, !Self.allowedAlreadyDestroyedStatuses.contains(status) {
+                NSLog("[AudioCaptureManager] Permission probe tap cleanup failed: \(status)")
+            }
+        }
+
+        guard let tapUID = getAudioObjectStringProperty(objectID: probeTapID, selector: kAudioTapPropertyUID) else {
+            NSLog("[AudioCaptureManager] Permission probe failed to read tap UID")
+            return false
+        }
+
+        let aggregateUID = "com.boringnotch.permissionprobe.\(UUID().uuidString)"
+        let aggregateDescription: [String: Any] = [
+            kAudioAggregateDeviceNameKey: "Boring Notch Audio Permission Probe",
+            kAudioAggregateDeviceUIDKey: aggregateUID,
+            kAudioAggregateDeviceMainSubDeviceKey: "",
+            kAudioAggregateDeviceIsPrivateKey: 1,
+            kAudioAggregateDeviceIsStackedKey: 0,
+            kAudioAggregateDeviceTapListKey: [
+                [
+                    kAudioSubTapUIDKey: tapUID,
+                    kAudioSubTapDriftCompensationKey: 0
+                ]
+            ]
+        ]
+
+        var probeAggregateID: AudioDeviceID = 0
+        let aggregateStatus = AudioHardwareCreateAggregateDevice(
+            aggregateDescription as CFDictionary,
+            &probeAggregateID
+        )
+        guard aggregateStatus == noErr, probeAggregateID != 0 else {
+            NSLog("[AudioCaptureManager] Permission probe aggregate creation failed: \(aggregateStatus)")
+            return false
+        }
+        defer {
+            let status = AudioHardwareDestroyAggregateDevice(probeAggregateID)
+            if status != noErr, !Self.allowedAlreadyDestroyedStatuses.contains(status) {
+                NSLog("[AudioCaptureManager] Permission probe aggregate cleanup failed: \(status)")
+            }
+        }
+
+        var probeIOProc: AudioDeviceIOProcID?
+        let ioStatus = AudioDeviceCreateIOProcIDWithBlock(
+            &probeIOProc,
+            probeAggregateID,
+            ioQueue
+        ) { _, _, _, _, _ in }
+        guard ioStatus == noErr, let ioProc = probeIOProc else {
+            NSLog("[AudioCaptureManager] Permission probe IO proc creation failed: \(ioStatus)")
+            return false
+        }
+        defer {
+            let status = AudioDeviceDestroyIOProcID(probeAggregateID, ioProc)
+            if status != noErr {
+                NSLog("[AudioCaptureManager] Permission probe IO proc cleanup failed: \(status)")
+            }
+        }
+
+        let startStatus = AudioDeviceStart(probeAggregateID, ioProc)
+        guard startStatus == noErr else {
+            NSLog("[AudioCaptureManager] Permission probe start failed: \(startStatus)")
+            return false
+        }
+
+        Thread.sleep(forTimeInterval: 0.25)
+
+        let stopStatus = AudioDeviceStop(probeAggregateID, ioProc)
+        if stopStatus != noErr {
+            NSLog("[AudioCaptureManager] Permission probe stop failed: \(stopStatus)")
+        }
+
+        return true
     }
 
     private func syncOnLifecycleQueue(_ work: () -> Void) {
