@@ -35,6 +35,11 @@ final class AudioCaptureManager: ObservableObject {
     private static let referenceHz: Double = 1000
     private static let pinkCompensationSlopePerOctave: Double = 3.0
     private static let fftQueueKey = DispatchSpecificKey<Void>()
+    private static let lifecycleQueueKey = DispatchSpecificKey<Void>()
+    private static let allowedAlreadyDestroyedStatuses: Set<OSStatus> = [
+        kAudioHardwareBadObjectError,
+        kAudioHardwareUnknownPropertyError
+    ]
 
     @Published private(set) var isCapturing: Bool = false
 
@@ -68,6 +73,8 @@ final class AudioCaptureManager: ObservableObject {
     private var pinkCompensationDB: [Float] = []
 
     private let fftQueue = DispatchQueue(label: "com.boringnotch.audiocapture.fft", qos: .userInitiated)
+    private let ioQueue = DispatchQueue(label: "com.boringnotch.audiocapture.io", qos: .userInteractive)
+    private let lifecycleQueue = DispatchQueue(label: "com.boringnotch.audiocapture.lifecycle", qos: .userInitiated)
     private var fftTimer: DispatchSourceTimer?
 
     private init() {
@@ -100,12 +107,15 @@ final class AudioCaptureManager: ObservableObject {
         lastPublishedBuf = [Float](repeating: -1, count: Self.barCount)
 
         fftQueue.setSpecific(key: Self.fftQueueKey, value: ())
+        lifecycleQueue.setSpecific(key: Self.lifecycleQueueKey, value: ())
         computeBandRanges(sampleRate: sampleRate)
         observeState()
     }
 
     deinit {
-        teardownCapture()
+        syncOnLifecycleQueue {
+            stopCaptureOnLifecycleQueue()
+        }
         ringBuffer.deinitialize(count: Self.ringCapacity)
         ringBuffer.deallocate()
     }
@@ -165,7 +175,9 @@ final class AudioCaptureManager: ObservableObject {
               enabled, isPlaying,
               let resolvedDisplayBundleID = displayBundleID,
               !resolvedDisplayBundleID.isEmpty else {
-            if isCapturing { stopCapture() }
+            lifecycleQueue.async { [weak self] in
+                self?.stopCaptureOnLifecycleQueue()
+            }
             return
         }
         let resolvedPIDs = resolvePIDs(
@@ -173,12 +185,14 @@ final class AudioCaptureManager: ObservableObject {
             captureBundleIDs: captureBundleIDs
         )
         guard !resolvedPIDs.isEmpty else {
-            if isCapturing { stopCapture() }
+            lifecycleQueue.async { [weak self] in
+                self?.stopCaptureOnLifecycleQueue()
+            }
             return
         }
-        if isCapturing && resolvedPIDs == currentPIDs { return }
-        if isCapturing { stopCapture() }
-        startCapture(pids: resolvedPIDs)
+        lifecycleQueue.async { [weak self] in
+            self?.startCaptureOnLifecycleQueue(pids: resolvedPIDs)
+        }
     }
 
     private func resolvePIDs(displayBundleID: String, captureBundleIDs: [String]) -> [pid_t] {
@@ -277,7 +291,13 @@ final class AudioCaptureManager: ObservableObject {
     // MARK: - Capture lifecycle
 
     @available(macOS 14.2, *)
-    private func startCapture(pids: [pid_t]) {
+    private func startCaptureOnLifecycleQueue(pids: [pid_t]) {
+        dispatchPrecondition(condition: .onQueue(lifecycleQueue))
+        if ioProcID != nil, pids == currentPIDs { return }
+        if captureIsConfigured {
+            stopCaptureOnLifecycleQueue()
+        }
+
         let attachedProcesses = pids.compactMap { pid -> (pid: pid_t, objectID: AudioObjectID)? in
             guard let objectID = translatePIDToAudioObject(pid: pid) else {
                 NSLog("[AudioCaptureManager] Failed to translate PID \(pid) to AudioObjectID")
@@ -326,10 +346,22 @@ final class AudioCaptureManager: ObservableObject {
         let fmtStatus = AudioObjectGetPropertyData(
             tapObjectID, &formatAddr, 0, nil, &formatSize, &streamFormat
         )
-        if fmtStatus == noErr, streamFormat.mSampleRate > 0 {
-            sampleRate = streamFormat.mSampleRate
-            computeBandRanges(sampleRate: sampleRate)
+        guard fmtStatus == noErr else {
+            NSLog("[AudioCaptureManager] Failed to read tap format: \(fmtStatus)")
+            currentPIDs.removeAll(keepingCapacity: true)
+            cleanupTap()
+            return
         }
+        guard validateTapFormat(streamFormat) else {
+            NSLog("[AudioCaptureManager] Unsupported tap format: \(streamFormat)")
+            currentPIDs.removeAll(keepingCapacity: true)
+            cleanupTap()
+            return
+        }
+        if streamFormat.mSampleRate > 0 {
+            sampleRate = streamFormat.mSampleRate
+        }
+        computeBandRanges(sampleRate: sampleRate)
 
         let aggregateUID = "com.boringnotch.audiotap.\(UUID().uuidString)"
         let aggregateDescription: [String: Any] = [
@@ -361,7 +393,7 @@ final class AudioCaptureManager: ObservableObject {
 
         var newIOProc: AudioDeviceIOProcID?
         let ioStatus = AudioDeviceCreateIOProcIDWithBlock(
-            &newIOProc, aggregateDeviceID, fftQueue
+            &newIOProc, aggregateDeviceID, ioQueue
         ) { [weak self] _, inInputData, _, _, _ in
             self?.handleInputBuffer(inInputData)
         }
@@ -377,7 +409,7 @@ final class AudioCaptureManager: ObservableObject {
         let startStatus = AudioDeviceStart(aggregateDeviceID, ioProc)
         guard startStatus == noErr else {
             NSLog("[AudioCaptureManager] AudioDeviceStart failed: \(startStatus)")
-            AudioDeviceDestroyIOProcID(aggregateDeviceID, ioProc)
+            destroyIOProc(ioProc)
             ioProcID = nil
             currentPIDs.removeAll(keepingCapacity: true)
             cleanupAggregate()
@@ -386,10 +418,24 @@ final class AudioCaptureManager: ObservableObject {
         }
 
         startFFTTimer()
-        isCapturing = true
+        setCapturing(true)
     }
 
-    private func stopCapture() {
+    private var captureIsConfigured: Bool {
+        ioProcID != nil || aggregateDeviceID != 0 || tapObjectID != kAudioObjectUnknown
+    }
+
+    private func syncOnLifecycleQueue(_ work: () -> Void) {
+        if DispatchQueue.getSpecific(key: Self.lifecycleQueueKey) != nil {
+            work()
+        } else {
+            lifecycleQueue.sync(execute: work)
+        }
+    }
+
+    private func stopCaptureOnLifecycleQueue() {
+        dispatchPrecondition(condition: .onQueue(lifecycleQueue))
+        guard captureIsConfigured else { return }
         stopFFTTimer()
         teardownCapture()
         currentPIDs.removeAll(keepingCapacity: true)
@@ -405,41 +451,61 @@ final class AudioCaptureManager: ObservableObject {
             }
         }
         let zeros = [Float](repeating: 0, count: Self.barCount)
-        let publishStoppedState = { [weak self] in
-            guard let self else { return }
-            self.isCapturing = false
-            self.publishLevels(zeros)
-        }
-        if Thread.isMainThread {
-            publishStoppedState()
-        } else {
-            DispatchQueue.main.sync(execute: publishStoppedState)
-        }
+        setCapturing(false)
+        publishLevels(zeros)
     }
 
     private func teardownCapture() {
         if aggregateDeviceID != 0, let proc = ioProcID {
-            AudioDeviceStop(aggregateDeviceID, proc)
-            AudioDeviceDestroyIOProcID(aggregateDeviceID, proc)
+            let stopStatus = AudioDeviceStop(aggregateDeviceID, proc)
+            if stopStatus != noErr {
+                NSLog("[AudioCaptureManager] AudioDeviceStop failed during teardown: \(stopStatus)")
+            }
+            destroyIOProc(proc)
         }
         ioProcID = nil
         cleanupAggregate()
         cleanupTap()
     }
 
+    private func destroyIOProc(_ proc: AudioDeviceIOProcID) {
+        guard aggregateDeviceID != 0 else { return }
+        let status = AudioDeviceDestroyIOProcID(aggregateDeviceID, proc)
+        if status != noErr {
+            NSLog("[AudioCaptureManager] AudioDeviceDestroyIOProcID failed: \(status)")
+        }
+    }
+
     private func cleanupAggregate() {
         if aggregateDeviceID != 0 {
-            AudioHardwareDestroyAggregateDevice(aggregateDeviceID)
-            aggregateDeviceID = 0
+            let status = AudioHardwareDestroyAggregateDevice(aggregateDeviceID)
+            if status == noErr || Self.allowedAlreadyDestroyedStatuses.contains(status) {
+                aggregateDeviceID = 0
+            } else {
+                NSLog("[AudioCaptureManager] AudioHardwareDestroyAggregateDevice failed: \(status)")
+            }
         }
     }
 
     private func cleanupTap() {
         guard tapObjectID != kAudioObjectUnknown else { return }
         if #available(macOS 14.2, *) {
-            AudioHardwareDestroyProcessTap(tapObjectID)
+            let status = AudioHardwareDestroyProcessTap(tapObjectID)
+            if status == noErr || Self.allowedAlreadyDestroyedStatuses.contains(status) {
+                tapObjectID = kAudioObjectUnknown
+            } else {
+                NSLog("[AudioCaptureManager] AudioHardwareDestroyProcessTap failed: \(status)")
+            }
+        } else {
+            tapObjectID = kAudioObjectUnknown
         }
-        tapObjectID = kAudioObjectUnknown
+    }
+
+    private func setCapturing(_ capturing: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.isCapturing != capturing else { return }
+            self.isCapturing = capturing
+        }
     }
 
     // MARK: - IO proc
@@ -448,9 +514,10 @@ final class AudioCaptureManager: ObservableObject {
         let mutableBL = UnsafeMutablePointer(mutating: bufferList)
         let abl = UnsafeMutableAudioBufferListPointer(mutableBL)
         guard let first = abl.first, let rawData = first.mData else { return }
-        // Tap is configured with monoMixdownOfProcesses, so we always receive one channel.
-        assert(first.mNumberChannels == 1)
-        let frameCount = Int(first.mDataByteSize) / MemoryLayout<Float>.size
+        let expectedBytesPerFrame = UInt32(MemoryLayout<Float>.size)
+        guard first.mNumberChannels == 1,
+              first.mDataByteSize % expectedBytesPerFrame == 0 else { return }
+        let frameCount = Int(first.mDataByteSize / expectedBytesPerFrame)
         guard frameCount > 0 else { return }
         let src = rawData.assumingMemoryBound(to: Float.self)
 
@@ -582,7 +649,7 @@ final class AudioCaptureManager: ObservableObject {
         for i in 0..<Self.barCount {
             lastPublishedBuf[i] = barsBuf[i]
         }
-        publishLevels(barsBuf)
+        publishLevels(barsBuf.map { $0 })
     }
 
     private func publishLevels(_ values: [Float]) {
@@ -631,6 +698,16 @@ final class AudioCaptureManager: ObservableObject {
         }
         bandRanges = ranges
         pinkCompensationDB = pinks
+    }
+
+    private func validateTapFormat(_ format: AudioStreamBasicDescription) -> Bool {
+        let floatPCMFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked
+        return format.mFormatID == kAudioFormatLinearPCM
+            && (format.mFormatFlags & floatPCMFlags) == floatPCMFlags
+            && (format.mFormatFlags & kAudioFormatFlagIsNonInterleaved) == 0
+            && format.mChannelsPerFrame == 1
+            && format.mBytesPerFrame == UInt32(MemoryLayout<Float>.size)
+            && format.mBitsPerChannel == UInt32(MemoryLayout<Float>.size * 8)
     }
 
     // MARK: - Core Audio helpers
