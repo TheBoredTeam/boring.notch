@@ -9,6 +9,11 @@ import Cocoa
 import SkyLightWindow
 import Defaults
 import Combine
+import SwiftUI
+
+final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+}
 
 extension SkyLightOperator {
     func undelegateWindow(_ window: NSWindow) {

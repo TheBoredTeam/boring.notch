@@ -276,7 +276,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.disableSkyLight()
         }
 
-        window.contentView = NSHostingView(
+        window.contentView = FirstMouseHostingView(
             rootView: ContentView()
                 .environmentObject(viewModel)
         )
