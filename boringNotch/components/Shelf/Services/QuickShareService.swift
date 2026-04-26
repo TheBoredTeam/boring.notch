@@ -11,87 +11,52 @@ import UniformTypeIdentifiers
 
 /// Dynamic representation of a sharing provider discovered at runtime
 struct QuickShareProvider: Identifiable, Hashable, Sendable {
+    static let airDropId = "AirDrop"
+    static let systemShareMenuId = "System Share Menu"
+    static let systemShareMenu = QuickShareProvider(id: systemShareMenuId, supportsRawText: true)
+
     var id: String
     var supportsRawText: Bool
 }
 
-class QuickShareService: ObservableObject {
-    static let shared = QuickShareService()
-    
-    @Published var availableProviders: [QuickShareProvider] = []
-    @Published var isPickerOpen = false
-    private var cachedServices: [String: NSSharingService] = [:]
-    private var cachedIcons: [String: NSImage] = [:]
-    private var cachedApplicationURLsByName: [String: URL]?
-    // Hold security-scoped URLs during sharing
-    private var sharingAccessingURLs: [URL] = []
-    private var lifecycleDelegate: SharingLifecycleDelegate?
-   
-    init() {
-        Task {
-            await discoverAvailableProviders()
-        }
-    }
-    
-    // MARK: - Icon Retrieval
+private actor ApplicationIconIndex {
+    private var cachedURLsByName: [String: URL]?
 
-    @MainActor
-    func icon(for providerId: String, size: CGFloat) -> NSImage? {
-        if let cachedIcon = cachedIcons[providerId] {
-            return resizedIcon(cachedIcon, to: size)
-        }
-
-        if let providerIcon = applicationIcon(for: providerId) {
-            cachedIcons[providerId] = providerIcon
-            return resizedIcon(providerIcon, to: size)
-        }
-
-        // For system share menu, return a generic share icon
-        if providerId == "System Share Menu" {
-            return NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
-        }
-        
-        // Try to get icon from cached service
-        if let service = cachedServices[providerId] {
-            return resizedIcon(service.image, to: size)
-        }
-
-        return nil
-    }
-
-    private func applicationIcon(for providerId: String) -> NSImage? {
-        guard let applicationURL = applicationURLsByName()[normalizedApplicationName(providerId)] else {
-            return nil
-        }
-        return NSWorkspace.shared.icon(forFile: applicationURL.path)
-    }
-
-    private func applicationURLsByName() -> [String: URL] {
-        if let cachedApplicationURLsByName {
-            return cachedApplicationURLsByName
+    func urlsByName() -> [String: URL] {
+        if let cachedURLsByName {
+            return cachedURLsByName
         }
 
         var urlsByName: [String: URL] = [:]
-        for root in applicationSearchRoots {
-            indexApplications(in: root, into: &urlsByName)
+        for root in Self.applicationSearchRoots {
+            Self.indexApplications(in: root, into: &urlsByName)
         }
 
-        cachedApplicationURLsByName = urlsByName
+        cachedURLsByName = urlsByName
         return urlsByName
     }
 
-    private var applicationSearchRoots: [URL] {
-        [
+    static func normalizedApplicationName(_ name: String) -> String {
+        name
+            .replacingOccurrences(of: ".app", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+    }
+
+    private static var applicationSearchRoots: [URL] {
+        var roots = FileManager.default.urls(for: .applicationDirectory, in: .userDomainMask)
+        roots.append(contentsOf: [
             URL(fileURLWithPath: "/Applications", isDirectory: true),
             URL(fileURLWithPath: "/System/Applications", isDirectory: true),
             URL(fileURLWithPath: "/System/Applications/Utilities", isDirectory: true),
             URL(fileURLWithPath: "/System/Library/CoreServices/Applications", isDirectory: true),
             URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app/Contents/Applications", isDirectory: true),
             URL(fileURLWithPath: "/Applications/Xcode.app/Contents/Developer/Applications", isDirectory: true)
-        ]
+        ])
+        return roots
     }
 
-    private func indexApplications(in root: URL, into urlsByName: inout [String: URL]) {
+    private static func indexApplications(in root: URL, into urlsByName: inout [String: URL]) {
         guard FileManager.default.fileExists(atPath: root.path),
               let enumerator = FileManager.default.enumerator(
                 at: root,
@@ -106,7 +71,7 @@ class QuickShareService: ObservableObject {
         }
     }
 
-    private func indexApplication(_ applicationURL: URL, into urlsByName: inout [String: URL]) {
+    private static func indexApplication(_ applicationURL: URL, into urlsByName: inout [String: URL]) {
         cacheApplicationName(applicationURL.deletingPathExtension().lastPathComponent, for: applicationURL, in: &urlsByName)
 
         if let localizedName = try? applicationURL.resourceValues(forKeys: [.localizedNameKey]).localizedName {
@@ -124,17 +89,77 @@ class QuickShareService: ObservableObject {
         }
     }
 
-    private func cacheApplicationName(_ name: String, for applicationURL: URL, in urlsByName: inout [String: URL]) {
+    private static func cacheApplicationName(_ name: String, for applicationURL: URL, in urlsByName: inout [String: URL]) {
         let normalizedName = normalizedApplicationName(name)
         guard !normalizedName.isEmpty, urlsByName[normalizedName] == nil else { return }
         urlsByName[normalizedName] = applicationURL
     }
+}
 
-    private func normalizedApplicationName(_ name: String) -> String {
-        name
-            .replacingOccurrences(of: ".app", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+final class QuickShareService: ObservableObject {
+    static let shared = QuickShareService()
+
+    @Published var availableProviders: [QuickShareProvider] = []
+    @Published var isPickerOpen = false
+    private var cachedApplicationURLsByName: [String: URL]?
+    private var cachedServices: [String: NSSharingService] = [:]
+    private var cachedIcons: [String: NSImage] = [:]
+    private let applicationIconIndex = ApplicationIconIndex()
+    private var isApplicationIconCacheLoading = false
+    // Hold security-scoped URLs during sharing
+    private var sharingAccessingURLs: [URL] = []
+    private var lifecycleDelegate: SharingLifecycleDelegate?
+
+    init() {
+        Task {
+            await discoverAvailableProviders()
+        }
+    }
+
+    // MARK: - Icon Retrieval
+
+    @MainActor
+    func icon(for providerId: String, size: CGFloat) -> NSImage? {
+        if let cachedIcon = cachedIcons[providerId] {
+            return resizedIcon(cachedIcon, to: size)
+        }
+
+        if let providerIcon = applicationIcon(for: providerId) {
+            cachedIcons[providerId] = providerIcon
+            return resizedIcon(providerIcon, to: size)
+        }
+
+        warmApplicationIconCacheIfNeeded()
+
+        // For system share menu, return a generic share icon
+        if providerId == QuickShareProvider.systemShareMenuId {
+            return NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
+        }
+
+        // Try to get icon from cached service
+        if let service = cachedServices[providerId] {
+            return resizedIcon(service.image, to: size)
+        }
+
+        return nil
+    }
+
+    private func applicationIcon(for providerId: String) -> NSImage? {
+        guard let applicationURL = cachedApplicationURLsByName?[ApplicationIconIndex.normalizedApplicationName(providerId)] else {
+            return nil
+        }
+        return NSWorkspace.shared.icon(forFile: applicationURL.path)
+    }
+
+    @MainActor
+    private func warmApplicationIconCacheIfNeeded() {
+        guard cachedApplicationURLsByName == nil, !isApplicationIconCacheLoading else { return }
+        isApplicationIconCacheLoading = true
+
+        Task(priority: .utility) { @MainActor in
+            cachedApplicationURLsByName = await applicationIconIndex.urlsByName()
+            isApplicationIconCacheLoading = false
+        }
     }
     
     private func resizedIcon(_ image: NSImage, to size: CGFloat) -> NSImage {
@@ -172,16 +197,17 @@ class QuickShareService: ObservableObject {
             }
         }
         
-        if let idx = providers.firstIndex(where: { $0.id == "AirDrop" }) {
+        if let idx = providers.firstIndex(where: { $0.id == QuickShareProvider.airDropId }) {
             let ad = providers.remove(at: idx)
             providers.insert(ad, at: 0)
         }
 
-        if !providers.contains(where: { $0.id == "System Share Menu" }) {
-            providers.append(QuickShareProvider(id: "System Share Menu", supportsRawText: true))
+        if !providers.contains(where: { $0.id == QuickShareProvider.systemShareMenuId }) {
+            providers.append(.systemShareMenu)
         }
 
-        self.availableProviders = providers
+        availableProviders = providers
+        warmApplicationIconCacheIfNeeded()
 
     }
     
@@ -315,9 +341,9 @@ extension QuickShareProvider {
     static var defaultProvider: QuickShareProvider {
         let svc = QuickShareService.shared
 
-        if let airdrop = svc.availableProviders.first(where: { $0.id == "AirDrop" }) {
+        if let airdrop = svc.availableProviders.first(where: { $0.id == QuickShareProvider.airDropId }) {
             return airdrop
         }
-        return svc.availableProviders.first ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
+        return svc.availableProviders.first ?? .systemShareMenu
     }
 }
