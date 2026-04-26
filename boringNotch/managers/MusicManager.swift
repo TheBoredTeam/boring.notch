@@ -72,6 +72,16 @@ class MusicManager: ObservableObject {
     @Published var isTransitioning: Bool = false
     private var transitionWorkItem: DispatchWorkItem?
 
+    // MARK: - Third-party action URL registry
+    // Third-party apps (e.g. Pandora clients, custom players) can broadcast a
+    // distributed notification that includes "likeAction" and "dislikeAction"
+    // URL strings in their payload.  We cache them here keyed by bundleIdentifier
+    // so the favourite button can open those URLs rather than falling through to
+    // the Apple-Music-only AppleScript path.  This fixes the heart button for
+    // any app that follows the community notification-extension convention.
+    private var thirdPartyActionURLs: [String: (like: String?, dislike: String?)] = [:]
+    private var thirdPartyNotifObserver: NSObjectProtocol?
+
     // MARK: - Initialization
     init() {
         // Listen for changes to the default controller preference
@@ -90,9 +100,31 @@ class MusicManager: ObservableObject {
                 print("Failed to check deprecation status: \(error). Defaulting to false.")
                 self.isNowPlayingDeprecated = false
             }
-            
+
             // Initialize the active controller after deprecation check
             self.setActiveControllerBasedOnPreference()
+        }
+
+        // Watch for third-party apps that broadcast playback state with action URLs.
+        // Any app sending a distributed notification with "likeAction" / "dislikeAction"
+        // keys will get a working heart button — no code changes needed on their side
+        // beyond what they already send.
+        thirdPartyNotifObserver = DistributedNotificationCenter.default().addObserver(
+            forName: nil,
+            object: nil,
+            queue: .main
+        ) { [weak self] note in
+            guard let self,
+                  let info = note.userInfo as? [String: Any],
+                  let bundleID = info["bundleIdentifier"] as? String else { return }
+            let likeURL    = info["likeAction"]    as? String
+            let dislikeURL = info["dislikeAction"] as? String
+            guard likeURL != nil || dislikeURL != nil else { return }
+            self.thirdPartyActionURLs[bundleID] = (like: likeURL, dislike: dislikeURL)
+            // Re-enable the heart button immediately if this is the active source.
+            if bundleID == self.bundleIdentifier {
+                self.canFavoriteTrack = true
+            }
         }
     }
 
@@ -109,6 +141,12 @@ class MusicManager: ObservableObject {
 
         // Release active controller
         activeController = nil
+
+        // Remove distributed notification observer
+        if let observer = thirdPartyNotifObserver {
+            DistributedNotificationCenter.default().removeObserver(observer)
+            thirdPartyNotifObserver = nil
+        }
     }
 
     // MARK: - Setup Methods
@@ -177,6 +215,7 @@ class MusicManager: ObservableObject {
         activeController = controller
         
         self.canFavoriteTrack = controller.supportsFavorite
+            || (thirdPartyActionURLs[bundleIdentifier ?? ""]?.like != nil)
 
         // Get current state from active controller
         forceUpdate()
@@ -335,8 +374,24 @@ class MusicManager: ObservableObject {
 
     func setFavorite(_ favorite: Bool) {
         guard canFavoriteTrack else { return }
-        guard let controller = activeController else { return }
 
+        // If the current source registered third-party action URLs, use them.
+        // This allows apps like Pandora clients, custom players, etc. to handle
+        // their own rating logic via a URL scheme rather than requiring AppleScript.
+        if let bundleID = bundleIdentifier,
+           let actions = thirdPartyActionURLs[bundleID] {
+            let urlString = favorite ? actions.like : actions.dislike
+            if let urlString, let url = URL(string: urlString) {
+                NSWorkspace.shared.open(url)
+                // Optimistically update local state; the source app will confirm
+                // via its next distributed notification broadcast.
+                DispatchQueue.main.async { self.isFavoriteTrack = favorite }
+                return
+            }
+        }
+
+        // Fall through to the controller-based path (Apple Music, etc.)
+        guard let controller = activeController else { return }
         Task { @MainActor in
             await controller.setFavorite(favorite)
             try? await Task.sleep(for: .milliseconds(150))
