@@ -14,9 +14,11 @@ struct GeneralSettings: View {
         guard let uuid = screen.displayUUID else { return nil }
         return (uuid, screen.localizedName)
     }
+    @State private var showLanguageRestartAlert = false
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
+    @Default(.appLanguage) var appLanguage
     @Default(.mirrorShape) var mirrorShape
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
@@ -43,6 +45,15 @@ struct GeneralSettings: View {
                 .tint(.effectiveAccent)
                 LaunchAtLogin.Toggle() {
                     Text("Launch at login")
+                }
+                Picker("Language", selection: $appLanguage) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(language.displayName).tag(language)
+                    }
+                }
+                .onChange(of: appLanguage) {
+                    appLanguage.applyAppleLanguagesOverride()
+                    showLanguageRestartAlert = true
                 }
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
@@ -167,6 +178,14 @@ struct GeneralSettings: View {
             if !openNotchOnHover {
                 enableGestures = true
             }
+        }
+        .alert("Restart to apply language", isPresented: $showLanguageRestartAlert) {
+            Button("Later", role: .cancel) {}
+            Button("Restart Now") {
+                ApplicationRelauncher.restart()
+            }
+        } message: {
+            Text("Changing the app language requires restarting Boring Notch.")
         }
     }
 
