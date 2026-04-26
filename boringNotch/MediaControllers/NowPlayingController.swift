@@ -346,14 +346,7 @@ private extension NowPlayingController {
         fallbackBundleIdentifiers: [String]
     ) -> [String] {
         let preferred = sourceBundleIdentifier.map { [$0] } ?? fallbackBundleIdentifiers
-        let normalized = preferred.filter { !$0.isEmpty }
-
-        var seen = Set<String>()
-        return normalized.filter { bundleID in
-            guard !seen.contains(bundleID) else { return false }
-            seen.insert(bundleID)
-            return true
-        }
+        return preferred.normalizedBundleIdentifiers
     }
 }
 
