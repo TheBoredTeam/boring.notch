@@ -22,6 +22,7 @@ class QuickShareService: ObservableObject {
     @Published var isPickerOpen = false
     private var cachedServices: [String: NSSharingService] = [:]
     private var cachedIcons: [String: NSImage] = [:]
+    private var cachedApplicationURLsByName: [String: URL]?
     // Hold security-scoped URLs during sharing
     private var sharingAccessingURLs: [URL] = []
     private var lifecycleDelegate: SharingLifecycleDelegate?
@@ -36,23 +37,104 @@ class QuickShareService: ObservableObject {
 
     @MainActor
     func icon(for providerId: String, size: CGFloat) -> NSImage? {
-        // Return cached icon if available
         if let cachedIcon = cachedIcons[providerId] {
             return resizedIcon(cachedIcon, to: size)
         }
-        
-        // Try to get icon from cached service
-        if let service = cachedServices[providerId] {
-            cachedIcons[providerId] = service.image
-            return resizedIcon(service.image, to: size)
+
+        if let providerIcon = applicationIcon(for: providerId) {
+            cachedIcons[providerId] = providerIcon
+            return resizedIcon(providerIcon, to: size)
         }
-        
+
         // For system share menu, return a generic share icon
         if providerId == "System Share Menu" {
             return NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
         }
         
+        // Try to get icon from cached service
+        if let service = cachedServices[providerId] {
+            return resizedIcon(service.image, to: size)
+        }
+
         return nil
+    }
+
+    private func applicationIcon(for providerId: String) -> NSImage? {
+        guard let applicationURL = applicationURLsByName()[normalizedApplicationName(providerId)] else {
+            return nil
+        }
+        return NSWorkspace.shared.icon(forFile: applicationURL.path)
+    }
+
+    private func applicationURLsByName() -> [String: URL] {
+        if let cachedApplicationURLsByName {
+            return cachedApplicationURLsByName
+        }
+
+        var urlsByName: [String: URL] = [:]
+        for root in applicationSearchRoots {
+            indexApplications(in: root, into: &urlsByName)
+        }
+
+        cachedApplicationURLsByName = urlsByName
+        return urlsByName
+    }
+
+    private var applicationSearchRoots: [URL] {
+        [
+            URL(fileURLWithPath: "/Applications", isDirectory: true),
+            URL(fileURLWithPath: "/System/Applications", isDirectory: true),
+            URL(fileURLWithPath: "/System/Applications/Utilities", isDirectory: true),
+            URL(fileURLWithPath: "/System/Library/CoreServices/Applications", isDirectory: true),
+            URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app/Contents/Applications", isDirectory: true),
+            URL(fileURLWithPath: "/Applications/Xcode.app/Contents/Developer/Applications", isDirectory: true)
+        ]
+    }
+
+    private func indexApplications(in root: URL, into urlsByName: inout [String: URL]) {
+        guard FileManager.default.fileExists(atPath: root.path),
+              let enumerator = FileManager.default.enumerator(
+                at: root,
+                includingPropertiesForKeys: [.isApplicationKey, .localizedNameKey],
+                options: [.skipsHiddenFiles, .skipsPackageDescendants]
+              ) else {
+            return
+        }
+
+        for case let url as URL in enumerator where url.pathExtension == "app" {
+            indexApplication(url, into: &urlsByName)
+        }
+    }
+
+    private func indexApplication(_ applicationURL: URL, into urlsByName: inout [String: URL]) {
+        cacheApplicationName(applicationURL.deletingPathExtension().lastPathComponent, for: applicationURL, in: &urlsByName)
+
+        if let localizedName = try? applicationURL.resourceValues(forKeys: [.localizedNameKey]).localizedName {
+            cacheApplicationName(localizedName, for: applicationURL, in: &urlsByName)
+        }
+
+        guard let bundle = Bundle(url: applicationURL) else { return }
+
+        if let bundleName = bundle.object(forInfoDictionaryKey: "CFBundleName") as? String {
+            cacheApplicationName(bundleName, for: applicationURL, in: &urlsByName)
+        }
+
+        if let displayName = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String {
+            cacheApplicationName(displayName, for: applicationURL, in: &urlsByName)
+        }
+    }
+
+    private func cacheApplicationName(_ name: String, for applicationURL: URL, in urlsByName: inout [String: URL]) {
+        let normalizedName = normalizedApplicationName(name)
+        guard !normalizedName.isEmpty, urlsByName[normalizedName] == nil else { return }
+        urlsByName[normalizedName] = applicationURL
+    }
+
+    private func normalizedApplicationName(_ name: String) -> String {
+        name
+            .replacingOccurrences(of: ".app", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
     }
     
     private func resizedIcon(_ image: NSImage, to size: CGFloat) -> NSImage {
@@ -87,7 +169,6 @@ class QuickShareService: ObservableObject {
             if !providers.contains(provider) {
                 providers.append(provider)
                 cachedServices[title] = svc
-                cachedIcons[title] = svc.image
             }
         }
         
