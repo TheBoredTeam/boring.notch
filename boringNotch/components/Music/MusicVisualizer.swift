@@ -6,18 +6,17 @@
 //
 import AppKit
 import Cocoa
-import Combine
 import Defaults
 import SwiftUI
 
-class AudioSpectrum: NSView {
+class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
     private var barLayers: [CAGradientLayer] = []
     private var isPlaying = false
     private var useRealtime = false
     private var tintColor: NSColor = .systemBlue
     private var lastTintColor: NSColor?
 
-    private var levelsCancellable: AnyCancellable?
+    private weak var attachedManager: AudioCaptureManager?
     private var lastAppliedLevels: [Float]
     private static let levelChangeThreshold: Float = 0.005
     private static let minBarScale: CGFloat = 0.12
@@ -39,6 +38,10 @@ class AudioSpectrum: NSView {
         super.init(coder: coder)
         wantsLayer = true
         setupBars()
+    }
+
+    deinit {
+        attachedManager?.clearLevelsConsumer(self)
     }
 
     private func setupBars() {
@@ -171,12 +174,20 @@ class AudioSpectrum: NSView {
     }
 
     func attach(to manager: AudioCaptureManager) {
-        guard levelsCancellable == nil else { return }
-        levelsCancellable = manager.levelsPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] values in
-                self?.applyLevels(values)
-            }
+        guard attachedManager !== manager else { return }
+        attachedManager?.clearLevelsConsumer(self)
+        attachedManager = manager
+        manager.setLevelsConsumer(self)
+    }
+
+    func syncCurrentLevels(from manager: AudioCaptureManager) {
+        guard attachedManager === manager,
+              let values = manager.latestLevelsSnapshot() else { return }
+        applyLevels(values)
+    }
+
+    func audioCaptureManager(_ manager: AudioCaptureManager, didProduceLevels values: [Float]) {
+        applyLevels(values)
     }
 
     private func applyLevels(_ values: [Float]) {
@@ -188,8 +199,7 @@ class AudioSpectrum: NSView {
         }
         guard maxDelta >= Self.levelChangeThreshold else { return }
         CATransaction.begin()
-        CATransaction.setAnimationDuration(0.033)
-        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .linear))
+        CATransaction.setDisableActions(true)
         for i in 0..<barCount {
             let v = values[i]
             lastAppliedLevels[i] = v
@@ -216,10 +226,11 @@ struct AudioSpectrumView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> AudioSpectrum {
         let spectrum = AudioSpectrum()
-        spectrum.attach(to: audioCapture)
         spectrum.setTintColor(NSColor(tintColor))
         spectrum.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         spectrum.setPlaying(isPlaying)
+        spectrum.attach(to: audioCapture)
+        spectrum.syncCurrentLevels(from: audioCapture)
         return spectrum
     }
 
@@ -227,6 +238,7 @@ struct AudioSpectrumView: NSViewRepresentable {
         nsView.setTintColor(NSColor(tintColor))
         nsView.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         nsView.setPlaying(isPlaying)
+        nsView.syncCurrentLevels(from: audioCapture)
     }
 }
 

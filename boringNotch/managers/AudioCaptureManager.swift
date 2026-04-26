@@ -12,9 +12,14 @@ import AppKit
 import AudioToolbox
 import Combine
 import CoreAudio
+import Darwin
 import Defaults
 import Foundation
 import os
+
+protocol AudioCaptureLevelsConsumer: AnyObject {
+    func audioCaptureManager(_ manager: AudioCaptureManager, didProduceLevels values: [Float])
+}
 
 final class AudioCaptureManager: ObservableObject {
     static let shared = AudioCaptureManager()
@@ -23,12 +28,14 @@ final class AudioCaptureManager: ObservableObject {
     private static let fftSize = 1024
     private static let log2n: vDSP_Length = 10
     private static let ringCapacity = 4096
-    private static let floorDB: Float = -50
-    private static let ceilDB: Float = -25
+    private static let fftIntervalMilliseconds = 33
+    private static let fftLeewayMilliseconds = 0
+    private static let floorDB: Float = -58
+    private static let ceilDB: Float = -14
     private static let referenceHz: Double = 1000
+    private static let pinkCompensationSlopePerOctave: Double = 3.0
     private static let fftQueueKey = DispatchSpecificKey<Void>()
 
-    let levelsPublisher = PassthroughSubject<[Float], Never>()
     @Published private(set) var isCapturing: Bool = false
 
     private var cancellables = Set<AnyCancellable>()
@@ -36,12 +43,15 @@ final class AudioCaptureManager: ObservableObject {
     private var tapObjectID: AudioObjectID = kAudioObjectUnknown
     private var aggregateDeviceID: AudioDeviceID = 0
     private var ioProcID: AudioDeviceIOProcID?
-    private var currentPID: pid_t = 0
+    private var currentPIDs: [pid_t] = []
     private var sampleRate: Double = 48_000
 
     private let ringBuffer: UnsafeMutablePointer<Float>
     private var ringWrite: Int = 0
     private let ringLock = OSAllocatedUnfairLock()
+    private let levelsConsumerLock = OSAllocatedUnfairLock()
+    private let levelsConsumers = NSHashTable<AnyObject>.weakObjects()
+    private var latestLevels: [Float]?
 
     private let fft: vDSP.FFT<DSPSplitComplex>
     private let hannWindow: [Float]
@@ -100,6 +110,24 @@ final class AudioCaptureManager: ObservableObject {
         ringBuffer.deallocate()
     }
 
+    func setLevelsConsumer(_ consumer: AudioCaptureLevelsConsumer) {
+        levelsConsumerLock.lock()
+        defer { levelsConsumerLock.unlock() }
+        levelsConsumers.add(consumer)
+    }
+
+    func clearLevelsConsumer(_ consumer: AudioCaptureLevelsConsumer) {
+        levelsConsumerLock.lock()
+        defer { levelsConsumerLock.unlock() }
+        levelsConsumers.remove(consumer)
+    }
+
+    func latestLevelsSnapshot() -> [Float]? {
+        levelsConsumerLock.lock()
+        defer { levelsConsumerLock.unlock() }
+        return latestLevels
+    }
+
     // MARK: - State observation
 
     private func observeState() {
@@ -107,47 +135,164 @@ final class AudioCaptureManager: ObservableObject {
         let enabledPublisher = Defaults.publisher(.realtimeAudioWaveform)
             .map(\.newValue)
             .prepend(Defaults[.realtimeAudioWaveform])
+            .removeDuplicates()
 
-        Publishers.CombineLatest3(music.$isPlaying, music.$bundleIdentifier, enabledPublisher)
+        Publishers.CombineLatest4(
+            music.$isPlaying.removeDuplicates(),
+            music.$bundleIdentifier.removeDuplicates(),
+            music.$audioCaptureBundleIdentifiers.removeDuplicates(),
+            enabledPublisher
+        )
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] isPlaying, bundleID, enabled in
-                self?.evaluate(isPlaying: isPlaying, bundleID: bundleID, enabled: enabled)
+            .sink { [weak self] isPlaying, bundleID, captureBundleIDs, enabled in
+                self?.evaluate(
+                    isPlaying: isPlaying,
+                    displayBundleID: bundleID,
+                    captureBundleIDs: captureBundleIDs,
+                    enabled: enabled
+                )
             }
             .store(in: &cancellables)
     }
 
-    private func evaluate(isPlaying: Bool, bundleID: String?, enabled: Bool) {
+    private func evaluate(
+        isPlaying: Bool,
+        displayBundleID: String?,
+        captureBundleIDs: [String],
+        enabled: Bool
+    ) {
         guard #available(macOS 14.2, *),
               enabled, isPlaying,
-              let bundleID, !bundleID.isEmpty,
-              let pid = resolvePID(forBundleID: bundleID) else {
+              let resolvedDisplayBundleID = displayBundleID,
+              !resolvedDisplayBundleID.isEmpty else {
             if isCapturing { stopCapture() }
             return
         }
-        if isCapturing && pid == currentPID { return }
+        let resolvedPIDs = resolvePIDs(
+            displayBundleID: resolvedDisplayBundleID,
+            captureBundleIDs: captureBundleIDs
+        )
+        guard !resolvedPIDs.isEmpty else {
+            if isCapturing { stopCapture() }
+            return
+        }
+        if isCapturing && resolvedPIDs == currentPIDs { return }
         if isCapturing { stopCapture() }
-        startCapture(pid: pid)
+        startCapture(pids: resolvedPIDs)
     }
 
-    private func resolvePID(forBundleID bundleID: String) -> pid_t? {
-        NSRunningApplication
-            .runningApplications(withBundleIdentifier: bundleID)
-            .first?
-            .processIdentifier
+    private func resolvePIDs(displayBundleID: String, captureBundleIDs: [String]) -> [pid_t] {
+        let displayApps = NSRunningApplication.runningApplications(withBundleIdentifier: displayBundleID)
+        let displayNames = Set(displayApps.compactMap(\.localizedName))
+        let displayBundlePaths = Set(displayApps.compactMap(displayBundlePath(for:)))
+
+        let bundleIDs = Array(
+            Set(captureBundleIDs + [displayBundleID])
+        ).sorted()
+
+        var pidsByBundleID: [(pid: pid_t, bundleID: String)] = []
+        for bundleID in bundleIDs {
+            let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+            let requireDisplayAppTie = bundleID != displayBundleID && runningApps.count > 1
+            for app in runningApps {
+                guard shouldInclude(
+                    app: app,
+                    requireDisplayAppTie: requireDisplayAppTie,
+                    displayNames: displayNames,
+                    displayBundlePaths: displayBundlePaths
+                ) else { continue }
+                pidsByBundleID.append((pid: app.processIdentifier, bundleID: bundleID))
+            }
+        }
+
+        if pidsByBundleID.isEmpty {
+            return NSRunningApplication
+                .runningApplications(withBundleIdentifier: displayBundleID)
+                .map(\.processIdentifier)
+                .sorted()
+        }
+
+        let deduped = Dictionary(uniqueKeysWithValues: pidsByBundleID.map { ($0.pid, $0.bundleID) })
+        return deduped.keys.sorted()
+    }
+
+    private func shouldInclude(
+        app: NSRunningApplication,
+        requireDisplayAppTie: Bool,
+        displayNames: Set<String>,
+        displayBundlePaths: Set<String>
+    ) -> Bool {
+        guard requireDisplayAppTie else { return true }
+        if belongsToDisplayApplication(app, displayBundlePaths: displayBundlePaths) {
+            return true
+        }
+        guard let localizedName = app.localizedName, !displayNames.isEmpty else { return false }
+        return displayNames.contains { localizedName.localizedCaseInsensitiveContains($0) }
+    }
+
+    private func belongsToDisplayApplication(
+        _ app: NSRunningApplication,
+        displayBundlePaths: Set<String>
+    ) -> Bool {
+        guard !displayBundlePaths.isEmpty else { return false }
+
+        if let bundlePath = displayBundlePath(for: app),
+           displayBundlePaths.contains(where: { pathContainsApp($0, candidatePath: bundlePath) }) {
+            return true
+        }
+
+        guard let executablePath = executablePath(forPID: app.processIdentifier) else { return false }
+        return displayBundlePaths.contains { pathContainsApp($0, candidatePath: executablePath) }
+    }
+
+    private func displayBundlePath(for app: NSRunningApplication) -> String? {
+        if let bundlePath = app.bundleURL?.standardizedFileURL.path {
+            return bundlePath
+        }
+        guard let executablePath = executablePath(forPID: app.processIdentifier) else { return nil }
+        return outermostAppBundlePath(containing: executablePath)
+    }
+
+    private func executablePath(forPID pid: pid_t) -> String? {
+        var buffer = [CChar](repeating: 0, count: Int(MAXPATHLEN))
+        let length = proc_pidpath(pid, &buffer, UInt32(buffer.count))
+        guard length > 0 else { return nil }
+        return URL(fileURLWithPath: String(cString: buffer)).standardizedFileURL.path
+    }
+
+    private func outermostAppBundlePath(containing executablePath: String) -> String? {
+        let normalizedPath = URL(fileURLWithPath: executablePath).standardizedFileURL.path
+        let components = normalizedPath.split(separator: "/")
+        guard let appIndex = components.firstIndex(where: { $0.hasSuffix(".app") }) else { return nil }
+        return "/" + components[...appIndex].joined(separator: "/")
+    }
+
+    private func pathContainsApp(_ appPath: String, candidatePath: String) -> Bool {
+        let normalizedAppPath = URL(fileURLWithPath: appPath).standardizedFileURL.path
+        let normalizedCandidatePath = URL(fileURLWithPath: candidatePath).standardizedFileURL.path
+        return normalizedCandidatePath == normalizedAppPath
+            || normalizedCandidatePath.hasPrefix(normalizedAppPath + "/")
     }
 
     // MARK: - Capture lifecycle
 
     @available(macOS 14.2, *)
-    private func startCapture(pid: pid_t) {
-        currentPID = pid
-
-        guard let processObjectID = translatePIDToAudioObject(pid: pid) else {
-            NSLog("[AudioCaptureManager] Failed to translate PID \(pid) to AudioObjectID")
+    private func startCapture(pids: [pid_t]) {
+        let attachedProcesses = pids.compactMap { pid -> (pid: pid_t, objectID: AudioObjectID)? in
+            guard let objectID = translatePIDToAudioObject(pid: pid) else {
+                NSLog("[AudioCaptureManager] Failed to translate PID \(pid) to AudioObjectID")
+                return nil
+            }
+            return (pid: pid, objectID: objectID)
+        }
+        guard !attachedProcesses.isEmpty else {
+            currentPIDs.removeAll(keepingCapacity: true)
             return
         }
+        let resolvedProcessObjectIDs = attachedProcesses.map(\.objectID)
+        currentPIDs = attachedProcesses.map(\.pid)
 
-        let tapDescription = CATapDescription(monoMixdownOfProcesses: [processObjectID])
+        let tapDescription = CATapDescription(monoMixdownOfProcesses: resolvedProcessObjectIDs)
         tapDescription.muteBehavior = .unmuted
         tapDescription.isPrivate = true
         tapDescription.isExclusive = false
@@ -156,6 +301,7 @@ final class AudioCaptureManager: ObservableObject {
         let tapStatus = AudioHardwareCreateProcessTap(tapDescription, &newTapID)
         guard tapStatus == noErr, newTapID != kAudioObjectUnknown else {
             NSLog("[AudioCaptureManager] AudioHardwareCreateProcessTap failed: \(tapStatus)")
+            currentPIDs.removeAll(keepingCapacity: true)
             return
         }
         tapObjectID = newTapID
@@ -165,6 +311,7 @@ final class AudioCaptureManager: ObservableObject {
             selector: kAudioTapPropertyUID
         ) else {
             NSLog("[AudioCaptureManager] Failed to read tap UID")
+            currentPIDs.removeAll(keepingCapacity: true)
             cleanupTap()
             return
         }
@@ -206,6 +353,7 @@ final class AudioCaptureManager: ObservableObject {
         )
         guard aggStatus == noErr, newAggID != 0 else {
             NSLog("[AudioCaptureManager] AudioHardwareCreateAggregateDevice failed: \(aggStatus)")
+            currentPIDs.removeAll(keepingCapacity: true)
             cleanupTap()
             return
         }
@@ -219,6 +367,7 @@ final class AudioCaptureManager: ObservableObject {
         }
         guard ioStatus == noErr, let ioProc = newIOProc else {
             NSLog("[AudioCaptureManager] AudioDeviceCreateIOProcIDWithBlock failed: \(ioStatus)")
+            currentPIDs.removeAll(keepingCapacity: true)
             cleanupAggregate()
             cleanupTap()
             return
@@ -230,6 +379,7 @@ final class AudioCaptureManager: ObservableObject {
             NSLog("[AudioCaptureManager] AudioDeviceStart failed: \(startStatus)")
             AudioDeviceDestroyIOProcID(aggregateDeviceID, ioProc)
             ioProcID = nil
+            currentPIDs.removeAll(keepingCapacity: true)
             cleanupAggregate()
             cleanupTap()
             return
@@ -242,7 +392,7 @@ final class AudioCaptureManager: ObservableObject {
     private func stopCapture() {
         stopFFTTimer()
         teardownCapture()
-        currentPID = 0
+        currentPIDs.removeAll(keepingCapacity: true)
         syncOnFFTQueue {
             ringLock.lock()
             ringBuffer.update(repeating: 0, count: Self.ringCapacity)
@@ -255,10 +405,15 @@ final class AudioCaptureManager: ObservableObject {
             }
         }
         let zeros = [Float](repeating: 0, count: Self.barCount)
-        DispatchQueue.main.async { [weak self] in
+        let publishStoppedState = { [weak self] in
             guard let self else { return }
-            self.levelsPublisher.send(zeros)
             self.isCapturing = false
+            self.publishLevels(zeros)
+        }
+        if Thread.isMainThread {
+            publishStoppedState()
+        } else {
+            DispatchQueue.main.sync(execute: publishStoppedState)
         }
     }
 
@@ -301,6 +456,13 @@ final class AudioCaptureManager: ObservableObject {
 
         ringLock.lock()
         let cap = Self.ringCapacity
+        if frameCount >= cap {
+            let newestFrames = src.advanced(by: frameCount - cap)
+            memcpy(ringBuffer, newestFrames, cap * MemoryLayout<Float>.size)
+            ringWrite = 0
+            ringLock.unlock()
+            return
+        }
         let write = ringWrite
         let firstCount = min(frameCount, cap - write)
         memcpy(ringBuffer.advanced(by: write), src, firstCount * MemoryLayout<Float>.size)
@@ -319,7 +481,11 @@ final class AudioCaptureManager: ObservableObject {
 
     private func startFFTTimer() {
         let timer = DispatchSource.makeTimerSource(queue: fftQueue)
-        timer.schedule(deadline: .now(), repeating: .milliseconds(33))
+        timer.schedule(
+            deadline: .now(),
+            repeating: .milliseconds(Self.fftIntervalMilliseconds),
+            leeway: .milliseconds(Self.fftLeewayMilliseconds)
+        )
         timer.setEventHandler { [weak self] in self?.processFFT() }
         fftTimer = timer
         timer.resume()
@@ -402,8 +568,8 @@ final class AudioCaptureManager: ObservableObject {
         var maxDelta: Float = 0
         for i in 0..<Self.barCount {
             let target = barsBuf[i]
-            let decayed = smoothed[i] * 0.82
-            let next = target > decayed ? (decayed + (target - decayed) * 0.6) : decayed
+            let decayed = smoothed[i] * 0.86
+            let next = target > decayed ? (decayed + (target - decayed) * 0.58) : decayed
             smoothed[i] = next
             let clipped = max(0, min(1, next))
             barsBuf[i] = clipped
@@ -411,14 +577,33 @@ final class AudioCaptureManager: ObservableObject {
             if delta > maxDelta { maxDelta = delta }
         }
 
-        // Skip the hop to main + Combine fan-out when nothing perceptible changed.
-        // Stacks with the view-side threshold to collapse idle cost toward zero.
+        // Skip main-thread delivery when nothing perceptible changed.
         guard maxDelta > 1e-4 else { return }
         for i in 0..<Self.barCount {
             lastPublishedBuf[i] = barsBuf[i]
         }
-        let snapshot = barsBuf
-        levelsPublisher.send(snapshot)
+        publishLevels(barsBuf)
+    }
+
+    private func publishLevels(_ values: [Float]) {
+        levelsConsumerLock.lock()
+        latestLevels = values
+        let consumers = levelsConsumers.allObjects.compactMap { $0 as? AudioCaptureLevelsConsumer }
+        levelsConsumerLock.unlock()
+        guard !consumers.isEmpty else { return }
+
+        let deliverLevels = { [weak self] in
+            guard let self else { return }
+            for consumer in consumers {
+                consumer.audioCaptureManager(self, didProduceLevels: values)
+            }
+        }
+
+        if Thread.isMainThread {
+            deliverLevels()
+        } else {
+            DispatchQueue.main.async(execute: deliverLevels)
+        }
     }
 
     private func computeBandRanges(sampleRate: Double) {
@@ -442,7 +627,7 @@ final class AudioCaptureManager: ObservableObject {
             let endBin = max(startBin + 1, min(halfN, Int((endHz / nyquist) * Double(halfN))))
             ranges.append(startBin..<endBin)
             let centerHz = sqrt(startHz * endHz)
-            pinks.append(Float(3.0 * log2(centerHz / Self.referenceHz)))
+            pinks.append(Float(Self.pinkCompensationSlopePerOctave * log2(centerHz / Self.referenceHz)))
         }
         bandRanges = ranges
         pinkCompensationDB = pinks

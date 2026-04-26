@@ -15,6 +15,7 @@ enum RepeatMode: Int, Codable {
 
 struct PlaybackState {
     var bundleIdentifier: String
+    var audioCaptureBundleIdentifiers: [String] = []
     var isPlaying: Bool = false
     var title: String = "I'm Handsome"
     var artist: String = "Me"
@@ -28,11 +29,22 @@ struct PlaybackState {
     var artwork: Data?
     var volume: Double = 0.5
     var isFavorite: Bool = false
+
+    var effectiveAudioCaptureBundleIdentifiers: [String] {
+        let raw = audioCaptureBundleIdentifiers.isEmpty ? [bundleIdentifier] : audioCaptureBundleIdentifiers
+        var seen = Set<String>()
+        return raw.filter { bundleID in
+            guard !bundleID.isEmpty, !seen.contains(bundleID) else { return false }
+            seen.insert(bundleID)
+            return true
+        }
+    }
 }
 
 extension PlaybackState: Equatable {
     static func == (lhs: PlaybackState, rhs: PlaybackState) -> Bool {
         return lhs.bundleIdentifier == rhs.bundleIdentifier
+            && lhs.effectiveAudioCaptureBundleIdentifiers == rhs.effectiveAudioCaptureBundleIdentifiers
             && lhs.isPlaying == rhs.isPlaying
             && lhs.title == rhs.title
             && lhs.artist == rhs.artist
