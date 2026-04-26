@@ -10023,6 +10023,12 @@
         }
       }
     },
+    "Real-time audio waveform" : {
+
+    },
+    "Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform." : {
+
+    },
     "Release name" : {
       "localizations" : {
         "cs" : {
@@ -13382,6 +13388,9 @@
           }
         }
       }
+    },
+    "Uses Accelerate FFT on the playing app's audio. Requires audio capture permission and uses slightly more CPU." : {
+
     },
     "Using System Accent" : {
       "localizations" : {
