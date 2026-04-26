@@ -7,6 +7,12 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>SUBundleName</key>
+	<string>Boring Notch</string>
+	<key>SUEnableAutomaticChecks</key>
+	<false/>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>boring.notch analyzes audio from your music app to draw a real-time waveform in the notch. Audio is processed locally and never leaves your Mac.</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>
