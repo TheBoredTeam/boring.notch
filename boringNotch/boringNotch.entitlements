@@ -24,6 +24,7 @@
 	<array>
 		<string>com.spotify.client</string>
 		<string>com.apple.Music</string>
+		<string>ru.yandex.desktop.music</string>
 	</array>
 	<key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
 	<array>

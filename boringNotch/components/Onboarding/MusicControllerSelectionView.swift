@@ -130,6 +130,8 @@ extension MediaControllerType {
             return "Connects directly to the Apple Music app."
         case .youtubeMusic:
             return "Requires a third-party client with API plugin enabled."
+        case .yandexMusic:
+            return "Connects directly to the Yandex Music app."
         }
     }
 }
