@@ -349,6 +349,9 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .pomodoro:
+                        PomodoroView()
+                            .environmentObject(vm)
                     }
                 }
                 .transition(

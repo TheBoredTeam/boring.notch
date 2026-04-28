@@ -199,4 +199,11 @@ extension Defaults.Keys {
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
+
+    // MARK: Pomodoro
+    static let pomodoroEnabled = Key<Bool>("pomodoroEnabled", default: true)
+    static let pomodoroWorkDuration = Key<Int>("pomodoroWorkDuration", default: 25)
+    static let pomodoroShortBreakDuration = Key<Int>("pomodoroShortBreakDuration", default: 5)
+    static let pomodoroLongBreakDuration = Key<Int>("pomodoroLongBreakDuration", default: 15)
+    static let pomodoroSessionsBeforeLongBreak = Key<Int>("pomodoroSessionsBeforeLongBreak", default: 4)
 }

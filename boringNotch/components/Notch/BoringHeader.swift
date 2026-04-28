@@ -89,6 +89,26 @@ struct BoringHeader: View {
                                 isForNotification: false
                             )
                         }
+                        if Defaults[.pomodoroEnabled] {
+                            Button(action: {
+                                if coordinator.currentView == .pomodoro {
+                                    coordinator.currentView = .home
+                                } else {
+                                    coordinator.currentView = .pomodoro
+                                }
+                            }) {
+                                Capsule()
+                                    .fill(coordinator.currentView == .pomodoro ? Color.red : Color.black)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: "timer")
+                                            .foregroundColor(.white)
+                                            .padding()
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
                     }
                 }
             }
