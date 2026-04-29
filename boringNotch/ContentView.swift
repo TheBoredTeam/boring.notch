@@ -278,18 +278,28 @@ struct ContentView: View {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && !vm.hideOnClosed {
-                          // Show music indicator and face animation in a template layout
-                          HStack(spacing: 0) {
-                              // Music: icon + wave
+                          // Show music icon on left, face on right, both compact
+                          HStack(spacing: 8) {
+                              // Music icon only (album art) on left
                               if (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled {
-                                  MusicLiveActivity()
+                                  Image(nsImage: musicManager.albumArt)
+                                      .resizable()
+                                      .clipped()
+                                      .clipShape(RoundedRectangle(cornerRadius: 4))
+                                      .frame(width: max(0, vm.effectiveClosedNotchHeight - 16),
+                                             height: max(0, vm.effectiveClosedNotchHeight - 16))
                               }
                               
-                              // Face (if enabled)
+                              Spacer()
+                              
+                              // Face on right
                               if Defaults[.showNotHumanFace] {
-                                  BoringFaceAnimation()
+                                  MinimalFaceFeatures()
+                                      .frame(width: max(0, vm.effectiveClosedNotchHeight - 16),
+                                             height: max(0, vm.effectiveClosedNotchHeight - 16))
                               }
                           }
+                          .padding(.horizontal, 8)
                           .frame(width: vm.closedNotchSize.width, height: vm.effectiveClosedNotchHeight)
                        } else if vm.notchState == .open {
                            BoringHeader()
