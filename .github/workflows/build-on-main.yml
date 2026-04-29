@@ -60,7 +60,7 @@ jobs:
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>app</string>
+            <string>mac-application</string>
             <key>signingStyle</key>
             <string>automatic</string>
           </dict>
