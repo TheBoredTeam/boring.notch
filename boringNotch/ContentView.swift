@@ -352,6 +352,7 @@ struct ContentView: View {
                     case .pomodoro:
                         PomodoroView()
                             .environmentObject(vm)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
                 .transition(

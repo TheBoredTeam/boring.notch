@@ -13,8 +13,8 @@ struct PomodoroView: View {
     @EnvironmentObject var vm: BoringViewModel
 
     var body: some View {
-        HStack(alignment: .center, spacing: 0) {
-            // Left spacer - same size as album art in MusicPlayerView (60x60 with padding)
+        VStack(alignment: .center, spacing: 0) {
+            // Timer circle on the left (matching album art position)
             timerCircleView
                 .padding(.all, 5)
 
@@ -23,6 +23,8 @@ struct PomodoroView: View {
                 .drawingGroup()
                 .compositingGroup()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minHeight: 60)
     }
 
     // Timer circle on the left (matching album art position)
@@ -62,7 +64,7 @@ struct PomodoroView: View {
             HStack(spacing: 16) {
                 // Reset button
                 Button(action: {
-                    pomodoroManager.reset()
+                    pomodoroManager.resetAll()
                 }) {
                     Image(systemName: "arrow.counterclockwise")
                         .font(.system(size: 12, weight: .medium))
@@ -128,14 +130,14 @@ struct PomodoroView: View {
 
             // Reset all button
             Button(action: {
-                pomodoroManager.reset()
+                pomodoroManager.resetAll()
             }) {
                 Image(systemName: "arrow.counterclockwise")
                     .font(.system(size: 10))
                     .foregroundStyle(.gray)
             }
             .buttonStyle(PlainButtonStyle())
-            .help("Reset Timer")
+            .help("Reset Everything")
         }
     }
 
