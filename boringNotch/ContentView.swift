@@ -65,15 +65,11 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
-        } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-            && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
-            && !vm.hideOnClosed
+            && ((musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled
+                || Defaults[.showNotHumanFace]) && !vm.hideOnClosed
         {
+            // Expand only slightly when showing music or face (not both)
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         }
 
@@ -288,22 +284,17 @@ struct ContentView: View {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && !vm.hideOnClosed {
-                          // Show BOTH face animation AND music indicator side by side
+                          // Show BOTH music indicator AND face animation side by side
                           HStack(spacing: 0) {
-                              // Face on the left
-                              if Defaults[.showNotHumanFace] {
-                                  BoringFaceAnimation()
-                              }
-                              
-                              // Spacer in the middle
-                              Rectangle()
-                                  .fill(.black)
-                                  .frame(width: 20)
-                              
-                              // Music on the right (if playing)
+                              // Music on the left (if playing)
                               if (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled {
                                   MusicLiveActivity()
                                       .frame(alignment: .center)
+                              }
+                              
+                              // Face on the right (if enabled)
+                              if Defaults[.showNotHumanFace] {
+                                  BoringFaceAnimation()
                               }
                           }
                           .frame(height: vm.effectiveClosedNotchHeight)
