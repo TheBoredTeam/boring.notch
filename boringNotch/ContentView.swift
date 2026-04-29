@@ -17,9 +17,10 @@ import SwiftUIIntrospect
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager = WebcamManager.shared
-
+    
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var pomodoroManager = PomodoroManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
@@ -292,8 +293,13 @@ struct ContentView: View {
                               
                               Spacer()
                               
-                              // Face on right
-                              if Defaults[.showNotHumanFace] {
+                              // Pomodoro timer on right (if running)
+                              if pomodoroManager.isRunning {
+                                  PomodoroClosedView(pomodoroManager: pomodoroManager)
+                                      .frame(height: max(0, vm.effectiveClosedNotchHeight - 12))
+                              }
+                              // Face on right (if enabled and timer not running)
+                              else if Defaults[.showNotHumanFace] {
                                   AnimatedFaceView()
                                       .frame(width: max(0, vm.effectiveClosedNotchHeight - 16),
                                              height: max(0, vm.effectiveClosedNotchHeight - 16))
