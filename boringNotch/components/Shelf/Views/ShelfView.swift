@@ -96,7 +96,7 @@ struct ShelfView: View {
             } else {
                 ScrollView(.horizontal) {
                     HStack(spacing: spacing) {
-                        ForEach(Defaults[.reverseShelfItems] ? tvm.items.reversed() : tvm.items) { item in
+                        ForEach(Defaults[.reverseShelfOrdering] ? tvm.items.reversed() : tvm.items) { item in
                             ShelfItemView(item: item)
                                 .environmentObject(quickLookService)
                         }
