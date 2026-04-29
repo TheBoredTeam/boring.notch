@@ -77,6 +77,9 @@ struct TimerView: View {
             switch timerManager.state {
             case .idle:
                 startButton
+                if timerManager.totalDuration > 0 {
+                    resetButton
+                }
             case .running:
                 pauseButton
                 resetButton
@@ -142,7 +145,7 @@ struct TimerView: View {
                 timeLabel
             }
             .frame(width: size, height: size)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .position(x: geo.size.width / 2, y: geo.size.height / 2)
         }
     }
 
