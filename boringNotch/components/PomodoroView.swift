@@ -100,7 +100,7 @@ struct PomodoroView: View {
 
             // Controls
             HStack(spacing: 20) {
-                Button(action: { pomodoroManager.pause() }) {
+                Button(action: { pomodoroManager.reset() }) {
                     Image(systemName: "stop.fill")
                         .font(.system(size: 16))
                         .foregroundColor(.gray)
