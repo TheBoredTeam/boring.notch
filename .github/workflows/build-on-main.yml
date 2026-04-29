@@ -19,8 +19,8 @@ jobs:
     runs-on: macos-latest
     env:
       PROJECT_NAME: boringNotch
-      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
-      CODE_SIGN_IDENTITY: "Apple Development"
+      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID || '' }}
+      CODE_SIGN_IDENTITY: "-"
       XCODE_VERSION: "16.4"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
