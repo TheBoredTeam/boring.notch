@@ -143,6 +143,8 @@
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		POMOD0032C5EAFBF00000003 /* PomodoroManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = POMOD0012C5EAFBF00000001 /* PomodoroManager.swift */; };
+		POMOD0042C5EAFBF00000004 /* PomodoroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = POMOD0022C5EAFBF00000002 /* PomodoroView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -309,6 +311,8 @@
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		POMOD0012C5EAFBF00000001 /* PomodoroManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroManager.swift; sourceTree = "<group>"; };
+		POMOD0022C5EAFBF00000002 /* PomodoroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -502,6 +506,7 @@
 				B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */,
 				B10F84A22C6C9596009F3026 /* TestView.swift */,
 				507266DA2C908E2E00A2D00D /* HoverButton.swift */,
+				POMOD0022C5EAFBF00000002 /* PomodoroView.swift */,
 				B1F747F82EC7E94000F841DB /* LottieView.swift */,
 			);
 			path = components;
@@ -512,6 +517,7 @@
 			children = (
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
+				POMOD0012C5EAFBF00000001 /* PomodoroManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
@@ -995,6 +1001,8 @@
 				118EBE3B2E9720C500D54B5A /* ShelfStateViewModel.swift in Sources */,
 				11F747CE2EC75CEA00F841DB /* DragPreviewView.swift in Sources */,
 				F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */,
+				POMOD0032C5EAFBF00000003 /* PomodoroManager.swift in Sources */,
+				POMOD0042C5EAFBF00000004 /* PomodoroView.swift in Sources */,
 				B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */,
 				118D1FD12E98FF5F00A2FF63 /* SharingStateManager.swift in Sources */,
 				14D570C22C5EAFBF0011E668 /* EmptyState.swift in Sources */,
