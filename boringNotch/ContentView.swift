@@ -292,8 +292,6 @@ struct ContentView: View {
                               .frame(alignment: .center)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
-                       } else if !coordinator.expandingView.show && vm.notchState == .closed && coordinator.currentView == .pomodoro && !vm.hideOnClosed {
-                          PomodoroClosedView()
                        } else if vm.notchState == .open {
                            BoringHeader()
                                .frame(height: max(24, vm.effectiveClosedNotchHeight))
