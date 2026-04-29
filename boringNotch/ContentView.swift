@@ -293,16 +293,17 @@ struct ContentView: View {
                               
                               Spacer()
                               
-                              // Pomodoro timer on right (if running)
-                              if pomodoroManager.isRunning {
-                                  PomodoroClosedView(pomodoroManager: pomodoroManager)
-                                      .frame(height: max(0, vm.effectiveClosedNotchHeight - 12))
-                              }
-                              // Face on right (if enabled and timer not running)
-                              else if Defaults[.showNotHumanFace] {
+                              // Face on right side
+                              if Defaults[.showNotHumanFace] {
                                   AnimatedFaceView()
                                       .frame(width: max(0, vm.effectiveClosedNotchHeight - 16),
                                              height: max(0, vm.effectiveClosedNotchHeight - 16))
+                              }
+                              
+                              // Pomodoro timer next to face on right (if running)
+                              if pomodoroManager.isRunning {
+                                  PomodoroClosedView(pomodoroManager: pomodoroManager)
+                                      .frame(height: max(0, vm.effectiveClosedNotchHeight - 12))
                               }
                           }
                           .padding(.horizontal, 8)
