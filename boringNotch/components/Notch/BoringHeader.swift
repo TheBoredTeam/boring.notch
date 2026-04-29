@@ -16,7 +16,7 @@ struct BoringHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && (Defaults[.boringShelf] || Defaults[.pomodoroEnabled]) {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -88,26 +88,6 @@ struct BoringHeader: View {
                                 timeToFullCharge: batteryModel.timeToFullCharge,
                                 isForNotification: false
                             )
-                        }
-                        if Defaults[.pomodoroEnabled] {
-                            Button(action: {
-                                if coordinator.currentView == .pomodoro {
-                                    coordinator.currentView = .home
-                                } else {
-                                    coordinator.currentView = .pomodoro
-                                }
-                            }) {
-                                Capsule()
-                                    .fill(coordinator.currentView == .pomodoro ? Color.red : Color.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: "timer")
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
-                            }
-                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                 }

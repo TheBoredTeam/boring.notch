@@ -75,11 +75,6 @@ struct ContentView: View {
             && !vm.hideOnClosed
         {
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && coordinator.currentView == .pomodoro && !vm.hideOnClosed
-        {
-            // When pomodoro tab is selected in closed state, expand chin width like music/shelf
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         }
 
         return chinWidth

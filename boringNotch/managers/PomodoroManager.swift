@@ -163,6 +163,15 @@ class PomodoroManager: ObservableObject {
         remainingSeconds = workDuration * 60
     }
 
+    func skip() {
+        // Move to next phase without waiting for timer
+        timer?.invalidate()
+        timer = nil
+        isRunning = false
+        isPaused = false
+        transitionToNextPhase()
+    }
+
     private func tick() {
         guard remainingSeconds > 0 else {
             timer?.invalidate()
