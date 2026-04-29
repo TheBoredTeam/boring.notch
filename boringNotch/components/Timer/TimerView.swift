@@ -5,194 +5,199 @@
 
 import SwiftUI
 
+private let presets: [(label: String, seconds: TimeInterval)] = [
+    ("+1m",  60),
+    ("+5m",  300),
+    ("+10m", 600),
+    ("+25m", 1500),
+    ("+45m", 2700),
+]
+
 struct TimerView: View {
     @ObservedObject var timerManager = TimerManager.shared
-    @EnvironmentObject var vm: BoringViewModel
-
-    private let presets: [(label: String, seconds: TimeInterval)] = [
-        ("1m", 60),
-        ("5m", 300),
-        ("10m", 600),
-        ("15m", 900),
-        ("30m", 1800),
-    ]
 
     var body: some View {
-        HStack(spacing: 20) {
-            timeDisplay
-            controls
+        HStack(spacing: 0) {
+            leftPanel
+            Spacer(minLength: 16)
+            ringPanel
         }
-        .padding(.horizontal, 12)
-        .transition(.opacity)
+        .padding(.horizontal, 14)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
-    // MARK: - Left: Time Display
+    // MARK: - Left: presets + controls
 
-    private var timeDisplay: some View {
-        ZStack {
-            progressRing
-            VStack(spacing: 2) {
-                Text(formattedTime(timerManager.remainingTime))
-                    .font(.system(size: 38, weight: .semibold, design: .monospaced))
-                    .foregroundColor(timeColor)
-                    .contentTransition(.numericText(countsDown: true))
-                    .animation(.smooth(duration: 0.4), value: timerManager.remainingTime)
-
-                if timerManager.state == .finished {
-                    Text("Done")
-                        .font(.caption)
-                        .foregroundColor(.effectiveAccent)
-                        .transition(.opacity.combined(with: .scale))
-                }
-            }
-        }
-        .frame(width: 130, height: 130)
-    }
-
-    private var progressRing: some View {
-        ZStack {
-            Circle()
-                .stroke(Color.white.opacity(0.08), lineWidth: 4)
-            Circle()
-                .trim(from: 0, to: max(0, CGFloat(1.0 - timerManager.progress)))
-                .stroke(
-                    timerManager.state == .finished ? Color.effectiveAccent : ringColor,
-                    style: StrokeStyle(lineWidth: 4, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .animation(.linear(duration: 0.5), value: timerManager.progress)
-        }
-    }
-
-    // MARK: - Right: Controls
-
-    private var controls: some View {
+    private var leftPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if timerManager.state == .idle {
-                presetRow
-            }
-            actionButtons
+            presetGrid
+            Spacer(minLength: 0)
+            actionRow
         }
+        .frame(maxHeight: .infinity)
     }
 
-    private var presetRow: some View {
-        HStack(spacing: 6) {
-            ForEach(presets, id: \.label) { preset in
-                Button {
-                    withAnimation(.smooth) {
-                        timerManager.setDuration(preset.seconds)
-                    }
-                } label: {
-                    Text(preset.label)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(timerManager.totalDuration == preset.seconds ? .white : .gray)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule()
-                                .fill(timerManager.totalDuration == preset.seconds
-                                      ? Color(nsColor: .secondarySystemFill)
-                                      : Color.white.opacity(0.06))
-                        )
+    private var presetGrid: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                ForEach(presets.prefix(3), id: \.label) { preset in
+                    presetButton(preset)
                 }
-                .buttonStyle(PlainButtonStyle())
+            }
+            HStack(spacing: 6) {
+                ForEach(presets.suffix(2), id: \.label) { preset in
+                    presetButton(preset)
+                }
             }
         }
     }
 
-    private var actionButtons: some View {
+    private func presetButton(_ preset: (label: String, seconds: TimeInterval)) -> some View {
+        Button {
+            withAnimation(.smooth) {
+                timerManager.addPreset(preset.seconds)
+            }
+        } label: {
+            Text(preset.label)
+                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .fixedSize()
+                .foregroundColor(.white)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .background(Capsule().fill(Color(nsColor: .tertiarySystemFill)))
+        }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(timerManager.state == .running || timerManager.state == .finished)
+        .opacity((timerManager.state == .running || timerManager.state == .finished) ? 0.35 : 1)
+    }
+
+    private var actionRow: some View {
         HStack(spacing: 8) {
             switch timerManager.state {
             case .idle:
-                adjustButton(delta: -60, icon: "minus")
-                mainActionButton
-                adjustButton(delta: 60, icon: "plus")
-
+                startButton
             case .running:
-                mainActionButton
+                pauseButton
                 resetButton
-                adjustButton(delta: 60, icon: "plus.circle")
-
             case .paused:
-                mainActionButton
+                startButton
                 resetButton
-
             case .finished:
                 resetButton
             }
         }
     }
 
-    private var mainActionButton: some View {
-        Button {
-            withAnimation(.smooth) {
-                switch timerManager.state {
-                case .idle, .paused:
-                    timerManager.start()
-                case .running:
-                    timerManager.pause()
-                case .finished:
-                    break
-                }
-            }
-        } label: {
-            Capsule()
-                .fill(Color(nsColor: .secondarySystemFill))
-                .frame(width: 54, height: 30)
-                .overlay {
-                    Image(systemName: mainActionIcon)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                        .contentTransition(.symbolEffect(.replace))
-                }
+    private var startButton: some View {
+        actionCapsule(icon: "play.fill", label: timerManager.state == .paused ? "Resume" : "Start") {
+            timerManager.start()
         }
-        .buttonStyle(PlainButtonStyle())
+        .disabled(timerManager.remainingTime == 0)
+        .opacity(timerManager.remainingTime == 0 ? 0.35 : 1)
+    }
+
+    private var pauseButton: some View {
+        actionCapsule(icon: "pause.fill", label: "Pause") {
+            timerManager.pause()
+        }
     }
 
     private var resetButton: some View {
         HoverButton(icon: "arrow.counterclockwise", scale: .medium) {
-            withAnimation(.smooth) {
-                timerManager.reset()
-            }
+            withAnimation(.smooth) { timerManager.reset() }
         }
     }
 
-    private func adjustButton(delta: TimeInterval, icon: String) -> some View {
-        HoverButton(icon: icon, scale: .medium) {
-            withAnimation(.smooth) {
-                timerManager.adjustTime(by: delta)
+    private func actionCapsule(icon: String, label: String, action: @escaping () -> Void) -> some View {
+        Button {
+            withAnimation(.smooth) { action() }
+        } label: {
+            Capsule()
+                .fill(Color(nsColor: .secondarySystemFill))
+                .frame(height: 30)
+                .overlay {
+                    HStack(spacing: 5) {
+                        Image(systemName: icon)
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(label)
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10)
+                }
+                .fixedSize()
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    // MARK: - Right: ring + countdown
+
+    private var ringPanel: some View {
+        GeometryReader { geo in
+            let size = min(geo.size.width, geo.size.height)
+            ZStack {
+                ringTrack(size: size)
+                ringFill(size: size)
+                timeLabel
+            }
+            .frame(width: size, height: size)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private func ringTrack(size: CGFloat) -> some View {
+        Circle()
+            .stroke(Color.white.opacity(0.08), lineWidth: size * 0.05)
+    }
+
+    private func ringFill(size: CGFloat) -> some View {
+        Circle()
+            .trim(from: 0, to: CGFloat(max(0, 1.0 - timerManager.progress)))
+            .stroke(
+                ringColor,
+                style: StrokeStyle(lineWidth: size * 0.05, lineCap: .round)
+            )
+            .rotationEffect(.degrees(-90))
+            .animation(.linear(duration: 0.5), value: timerManager.progress)
+    }
+
+    private var timeLabel: some View {
+        VStack(spacing: 2) {
+            Text(formattedTime(timerManager.remainingTime))
+                .font(.system(size: 28, weight: .semibold, design: .monospaced))
+                .foregroundColor(timeColor)
+                .contentTransition(.numericText(countsDown: true))
+                .animation(.smooth(duration: 0.3), value: timerManager.remainingTime)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+
+            if timerManager.state == .finished {
+                Text("Done")
+                    .font(.caption2)
+                    .foregroundColor(.effectiveAccent)
+                    .transition(.opacity.combined(with: .scale))
             }
         }
     }
 
     // MARK: - Helpers
 
-    private var mainActionIcon: String {
-        switch timerManager.state {
-        case .idle, .paused: return "play.fill"
-        case .running: return "pause.fill"
-        case .finished: return "play.fill"
-        }
-    }
-
     private var timeColor: Color {
-        switch timerManager.state {
-        case .finished: return .effectiveAccent
-        case .running: return .white
-        default: return .white.opacity(0.9)
-        }
+        timerManager.state == .finished ? .effectiveAccent : .white
     }
 
     private var ringColor: Color {
         switch timerManager.state {
-        case .running: return .effectiveAccent
-        case .paused: return .gray
-        default: return Color.white.opacity(0.3)
+        case .running:  return .effectiveAccent
+        case .paused:   return .gray
+        case .finished: return .effectiveAccent
+        default:        return Color.white.opacity(0.25)
         }
     }
 
     private func formattedTime(_ seconds: TimeInterval) -> String {
-        let total = Int(ceil(seconds))
+        let total = Int(ceil(max(0, seconds)))
         let h = total / 3600
         let m = (total % 3600) / 60
         let s = total % 60
