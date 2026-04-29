@@ -1320,6 +1320,9 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.faceAnimationType) var faceAnimationType: FaceType
+    @Default(.faceSelectionMode) var faceSelectionMode: FaceSelectionMode
+    @Default(.faceRandomInterval) var faceRandomInterval: Int
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1544,7 +1547,31 @@ struct Appearance: View {
                         .tag(MirrorShapeEnum.rectangle)
                 }
                 Defaults.Toggle(key: .showNotHumanFace) {
-                    Text("Show cool face animation while inactive")
+                    Text("Show face animation while inactive")
+                }
+                
+                if Defaults[.showNotHumanFace] {
+                    Picker("Face mode", selection: $faceSelectionMode) {
+                        Text("Fixed").tag(FaceSelectionMode.fixed)
+                        Text("Random").tag(FaceSelectionMode.random)
+                    }
+                    
+                    if faceSelectionMode == .fixed {
+                        Picker("Face type", selection: $faceAnimationType) {
+                            ForEach(FaceType.allCases) { faceType in
+                                Text(faceType.rawValue).tag(faceType)
+                            }
+                        }
+                    } else {
+                        Stepper(value: $faceRandomInterval, in: 5...120) {
+                            HStack {
+                                Text("Interval")
+                                Spacer()
+                                Text("\(faceRandomInterval)s")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                 }
             } header: {
                 HStack {
