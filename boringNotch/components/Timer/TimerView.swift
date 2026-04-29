@@ -19,90 +19,93 @@ struct TimerView: View {
     var body: some View {
         HStack(spacing: 0) {
             leftPanel
-            Spacer(minLength: 16)
-            ringPanel
+                .frame(maxWidth: .infinity)
+            rightPanel
+                .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 14)
-        .padding(.bottom, 8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.vertical, 8)
     }
 
     // MARK: - Left: presets + controls
 
     private var leftPanel: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            presetGrid
-            Spacer(minLength: 0)
-            actionRow
+        VStack(alignment: .leading, spacing: 0) {
+            presetRow
+            Spacer(minLength: 6)
+            controlRow
         }
-        .frame(maxHeight: .infinity)
+        .padding(.trailing, 10)
     }
 
-    private var presetGrid: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                ForEach(presets.prefix(3), id: \.label) { preset in
-                    presetButton(preset)
-                }
-            }
-            HStack(spacing: 6) {
-                ForEach(presets.suffix(2), id: \.label) { preset in
-                    presetButton(preset)
-                }
+    private var presetRow: some View {
+        HStack(spacing: 5) {
+            ForEach(presets, id: \.label) { preset in
+                presetButton(preset)
             }
         }
+        .opacity(timerManager.state == .finished ? 0.2 : 1)
+        .allowsHitTesting(timerManager.state != .finished)
+        .animation(.smooth(duration: 0.2), value: timerManager.state == .finished)
     }
 
     private func presetButton(_ preset: (label: String, seconds: TimeInterval)) -> some View {
         Button {
-            withAnimation(.smooth) {
-                timerManager.addPreset(preset.seconds)
-            }
+            withAnimation(.smooth) { timerManager.addPreset(preset.seconds) }
         } label: {
             Text(preset.label)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                .fixedSize()
                 .foregroundColor(.white)
-                .padding(.horizontal, 9)
-                .padding(.vertical, 5)
+                .frame(maxWidth: .infinity)
+                .frame(height: 26)
                 .background(Capsule().fill(Color(nsColor: .tertiarySystemFill)))
         }
         .buttonStyle(PlainButtonStyle())
-        .disabled(timerManager.state == .running || timerManager.state == .finished)
-        .opacity((timerManager.state == .running || timerManager.state == .finished) ? 0.35 : 1)
     }
 
-    private var actionRow: some View {
+    private var controlRow: some View {
         HStack(spacing: 8) {
             switch timerManager.state {
-            case .idle:
-                startButton
+            case .idle, .running, .paused:
+                primaryButton
                 if timerManager.totalDuration > 0 {
                     resetButton
                 }
-            case .running:
-                pauseButton
-                resetButton
-            case .paused:
-                startButton
-                resetButton
             case .finished:
-                resetButton
+                newTimerButton
             }
         }
+        .animation(.smooth(duration: 0.2), value: timerManager.state)
     }
 
-    private var startButton: some View {
-        actionCapsule(icon: "play.fill", label: timerManager.state == .paused ? "Resume" : "Start") {
-            timerManager.start()
+    private var primaryButton: some View {
+        Button {
+            withAnimation(.smooth) {
+                timerManager.state == .running ? timerManager.pause() : timerManager.start()
+            }
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: timerManager.state == .running ? "pause.fill" : "play.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .contentTransition(.symbolEffect(.replace))
+                Text(primaryLabel)
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 14)
+            .frame(height: 28)
+            .background(Capsule().fill(Color(nsColor: .secondarySystemFill)))
         }
-        .disabled(timerManager.remainingTime == 0)
-        .opacity(timerManager.remainingTime == 0 ? 0.35 : 1)
+        .buttonStyle(PlainButtonStyle())
+        .disabled(timerManager.state == .idle && timerManager.remainingTime == 0)
+        .opacity(timerManager.state == .idle && timerManager.remainingTime == 0 ? 0.3 : 1)
     }
 
-    private var pauseButton: some View {
-        actionCapsule(icon: "pause.fill", label: "Pause") {
-            timerManager.pause()
+    private var primaryLabel: String {
+        switch timerManager.state {
+        case .running: return "Pause"
+        case .paused:  return "Resume"
+        default:       return "Start"
         }
     }
 
@@ -112,90 +115,77 @@ struct TimerView: View {
         }
     }
 
-    private func actionCapsule(icon: String, label: String, action: @escaping () -> Void) -> some View {
+    private var newTimerButton: some View {
         Button {
-            withAnimation(.smooth) { action() }
+            withAnimation(.smooth) { timerManager.reset() }
         } label: {
-            Capsule()
-                .fill(Color(nsColor: .secondarySystemFill))
-                .frame(height: 30)
-                .overlay {
-                    HStack(spacing: 5) {
-                        Image(systemName: icon)
-                            .font(.system(size: 11, weight: .semibold))
-                        Text(label)
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 10)
-                }
-                .fixedSize()
+            HStack(spacing: 5) {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("New Timer")
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 14)
+            .frame(height: 28)
+            .background(Capsule().fill(Color(nsColor: .secondarySystemFill)))
         }
         .buttonStyle(PlainButtonStyle())
     }
 
     // MARK: - Right: ring + countdown
 
-    private var ringPanel: some View {
+    private var rightPanel: some View {
         GeometryReader { geo in
-            let size = min(geo.size.width, geo.size.height)
+            let diameter = min(geo.size.width, geo.size.height) - 12
             ZStack {
-                ringTrack(size: size)
-                ringFill(size: size)
+                Circle()
+                    .stroke(Color.white.opacity(0.08), lineWidth: 5)
+                Circle()
+                    .trim(from: 0, to: ringFillAmount)
+                    .stroke(ringColor, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.linear(duration: 0.5), value: timerManager.progress)
                 timeLabel
             }
-            .frame(width: size, height: size)
+            .frame(width: diameter, height: diameter)
             .position(x: geo.size.width / 2, y: geo.size.height / 2)
         }
     }
 
-    private func ringTrack(size: CGFloat) -> some View {
-        Circle()
-            .stroke(Color.white.opacity(0.08), lineWidth: size * 0.05)
-    }
-
-    private func ringFill(size: CGFloat) -> some View {
-        Circle()
-            .trim(from: 0, to: CGFloat(max(0, 1.0 - timerManager.progress)))
-            .stroke(
-                ringColor,
-                style: StrokeStyle(lineWidth: size * 0.05, lineCap: .round)
-            )
-            .rotationEffect(.degrees(-90))
-            .animation(.linear(duration: 0.5), value: timerManager.progress)
+    private var ringFillAmount: CGFloat {
+        guard timerManager.totalDuration > 0 else { return 0 }
+        return CGFloat(max(0, 1.0 - timerManager.progress))
     }
 
     private var timeLabel: some View {
         VStack(spacing: 2) {
             Text(formattedTime(timerManager.remainingTime))
-                .font(.system(size: 28, weight: .semibold, design: .monospaced))
-                .foregroundColor(timeColor)
+                .font(.system(size: 26, weight: .semibold, design: .monospaced))
+                .foregroundColor(timerManager.state == .finished ? .effectiveAccent : .white)
                 .contentTransition(.numericText(countsDown: true))
                 .animation(.smooth(duration: 0.3), value: timerManager.remainingTime)
                 .lineLimit(1)
-                .minimumScaleFactor(0.6)
+                .minimumScaleFactor(0.5)
+                .padding(.horizontal, 6)
 
             if timerManager.state == .finished {
                 Text("Done")
-                    .font(.caption2)
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(.effectiveAccent)
-                    .transition(.opacity.combined(with: .scale))
+                    .transition(.opacity)
             }
         }
     }
 
     // MARK: - Helpers
 
-    private var timeColor: Color {
-        timerManager.state == .finished ? .effectiveAccent : .white
-    }
-
     private var ringColor: Color {
         switch timerManager.state {
         case .running:  return .effectiveAccent
-        case .paused:   return .gray
+        case .paused:   return Color.white.opacity(0.35)
         case .finished: return .effectiveAccent
-        default:        return Color.white.opacity(0.25)
+        default:        return Color.white.opacity(0.2)
         }
     }
 
@@ -204,9 +194,7 @@ struct TimerView: View {
         let h = total / 3600
         let m = (total % 3600) / 60
         let s = total % 60
-        if h > 0 {
-            return String(format: "%d:%02d:%02d", h, m, s)
-        }
+        if h > 0 { return String(format: "%d:%02d:%02d", h, m, s) }
         return String(format: "%02d:%02d", m, s)
     }
 }
