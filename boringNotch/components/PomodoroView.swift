@@ -13,26 +13,48 @@ struct PomodoroView: View {
     @EnvironmentObject var vm: BoringViewModel
 
     var body: some View {
-        VStack(alignment: .center, spacing: 0) {
-            // Timer circle on the left (matching album art position)
-            timerCircleView
-                .padding(.all, 5)
+        HStack {
+            // LEFT: Timer content
+            VStack(spacing: 4) {
+                // Phase indicators
+                phaseIndicators
+                
+                // Timer circle with progress ring
+                timerCircleView
+                
+                // Sessions counter
+                sessionsCounter
+            }
+            .frame(width: 110)
 
-            // Control buttons on the right side (same pattern as slotToolbar in MusicControlsView)
-            controlsView
-                .drawingGroup()
-                .compositingGroup()
+            Spacer()
+
+            // RIGHT: Controls
+            VStack(spacing: 8) {
+                // Play/Pause button (main action)
+                playPauseButton
+
+                // Skip button
+                skipButton
+
+                // Reset button
+                resetButton
+            }
+            .frame(width: 50)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .frame(minHeight: 60)
+        .padding(.horizontal, 12)
     }
 
-    // Timer circle on the left (matching album art position)
+    // MARK: - Timer Circle (Left side)
+
     private var timerCircleView: some View {
         ZStack {
+            // Background circle
             Circle()
                 .stroke(Color.gray.opacity(0.3), lineWidth: 4)
 
+            // Progress ring
             Circle()
                 .trim(from: 0, to: pomodoroManager.progress)
                 .stroke(
@@ -42,103 +64,53 @@ struct PomodoroView: View {
                 .rotationEffect(.degrees(-90))
                 .animation(.linear(duration: 1), value: pomodoroManager.progress)
 
-            Image(systemName: pomodoroManager.isRunning ? "pause.fill" : "play.fill")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white)
-        }
-        .frame(width: 50, height: 50)
-    }
-
-    // Controls on the right (same pattern as MusicControlsView)
-    private var controlsView: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Phase indicator + sessions info
-            phaseIndicatorView
-
-            // Time display
+            // Time display inside circle
             Text(pomodoroManager.formattedTime)
-                .font(.system(size: 20, weight: .bold, design: .monospaced))
+                .font(.system(size: 16, weight: .bold, design: .monospaced))
                 .foregroundColor(.white)
-
-            // Control buttons (same horizontal layout as slotToolbar)
-            HStack(spacing: 16) {
-                // Reset button
-                Button(action: {
-                    pomodoroManager.resetAll()
-                }) {
-                    Image(systemName: "arrow.counterclockwise")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.gray)
-                }
-                .buttonStyle(PlainButtonStyle())
-
-                // Play/Pause button (main action)
-                Button(action: {
-                    if pomodoroManager.isRunning {
-                        pomodoroManager.pause()
-                    } else {
-                        pomodoroManager.start()
-                    }
-                }) {
-                    Image(systemName: pomodoroManager.isRunning ? "pause.fill" : "play.fill")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(width: 32, height: 32)
-                        .background(
-                            Circle()
-                                .fill(pomodoroManager.phaseColor.opacity(0.8))
-                        )
-                }
-                .buttonStyle(PlainButtonStyle())
-
-                // Skip button
-                Button(action: {
-                    pomodoroManager.pause()
-                    pomodoroManager.skip()
-                }) {
-                    Image(systemName: "forward.fill")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.gray)
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
         }
-        .padding(.leading, 5)
+        .frame(width: 70, height: 70)
     }
 
-    private var phaseIndicatorView: some View {
-        HStack(spacing: 8) {
+    // MARK: - Phase Indicators
+
+    private var phaseIndicators: some View {
+        HStack(spacing: 4) {
             ForEach([PomodoroManager.PomodoroPhase.work, .shortBreak, .longBreak], id: \.self) { phase in
-                Text(phase.displayName)
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(pomodoroManager.currentPhase == phase ? .white : .gray.opacity(0.6))
+                Text(abbreviatedPhaseName(phase))
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundColor(pomodoroManager.currentPhase == phase ? .white : .gray.opacity(0.5))
             }
-
-            Spacer()
-
-            // Sessions counter (tap to reset)
-            Text("\(pomodoroManager.sessionsCompleted)")
-                .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(sessionsColor)
-                .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 0.8)
-                        .onEnded { _ in
-                            pomodoroManager.resetSessions()
-                        }
-                )
-                .help("Sessions completed. Long press to reset.")
-
-            // Reset all button
-            Button(action: {
-                pomodoroManager.resetAll()
-            }) {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.gray)
-            }
-            .buttonStyle(PlainButtonStyle())
-            .help("Reset Everything")
         }
+    }
+
+    private func abbreviatedPhaseName(_ phase: PomodoroManager.PomodoroPhase) -> String {
+        switch phase {
+        case .work: return "W"
+        case .shortBreak: return "SB"
+        case .longBreak: return "LB"
+        }
+    }
+
+    // MARK: - Sessions Counter
+
+    private var sessionsCounter: some View {
+        HStack(spacing: 2) {
+            Text("•")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(sessionsColor)
+
+            Text("\(pomodoroManager.sessionsCompleted)")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(sessionsColor)
+        }
+        .help("Sessions completed. Long press to reset.")
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: 0.8)
+                .onEnded { _ in
+                    pomodoroManager.resetSessions()
+                }
+        )
     }
 
     private var sessionsColor: Color {
@@ -149,6 +121,62 @@ struct PomodoroView: View {
         } else {
             return .green
         }
+    }
+
+    // MARK: - Control Buttons (Right side)
+
+    private var playPauseButton: some View {
+        Button(action: {
+            if pomodoroManager.isRunning {
+                pomodoroManager.pause()
+            } else {
+                pomodoroManager.start()
+            }
+        }) {
+            Image(systemName: pomodoroManager.isRunning ? "pause.fill" : "play.fill")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.white)
+                .frame(width: 40, height: 40)
+                .background(
+                    Circle()
+                        .fill(pomodoroManager.phaseColor.opacity(0.8))
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    private var skipButton: some View {
+        Button(action: {
+            pomodoroManager.pause()
+            pomodoroManager.skip()
+        }) {
+            Image(systemName: "forward.fill")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.gray)
+                .frame(width: 32, height: 32)
+                .background(
+                    Circle()
+                        .fill(Color.gray.opacity(0.2))
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    private var resetButton: some View {
+        Button(action: {
+            pomodoroManager.resetAll()
+        }) {
+            Image(systemName: "arrow.counterclockwise")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.gray)
+                .frame(width: 32, height: 32)
+                .background(
+                    Circle()
+                        .fill(Color.gray.opacity(0.2))
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .help("Reset timer")
     }
 }
 
