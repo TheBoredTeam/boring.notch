@@ -65,12 +65,6 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && ((musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled
-                || Defaults[.showNotHumanFace]) && !vm.hideOnClosed
-        {
-            // Expand only slightly when showing music or face (not both)
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         }
 
         return chinWidth
