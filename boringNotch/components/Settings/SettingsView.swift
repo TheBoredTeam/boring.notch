@@ -45,6 +45,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "Pomodoro") {
+                    Label("Pomodoro", systemImage: "timer")
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -83,6 +86,8 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "Pomodoro":
+                    PomodoroSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -344,6 +349,96 @@ struct GeneralSettings: View {
             }
         } header: {
             Text("Notch behavior")
+        }
+    }
+}
+
+struct PomodoroSettings: View {
+    @Default(.pomodoroEnabled) var pomodoroEnabled
+    @Default(.pomodoroWorkDuration) var pomodoroWorkDuration
+    @Default(.pomodoroShortBreakDuration) var pomodoroShortBreakDuration
+    @Default(.pomodoroLongBreakDuration) var pomodoroLongBreakDuration
+    @Default(.pomodoroSessionsBeforeLongBreak) var pomodoroSessionsBeforeLongBreak
+    
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Enable Pomodoro Timer", isOn: $pomodoroEnabled)
+            } header: {
+                Text("General")
+            } footer: {
+                Text("When enabled, a timer icon will appear in the notch header.")
+            }
+            
+            Section {
+                durationRow(
+                    title: "Work duration",
+                    value: $pomodoroWorkDuration,
+                    range: 1...90,
+                    unit: "minutes"
+                )
+                
+                durationRow(
+                    title: "Short break duration",
+                    value: $pomodoroShortBreakDuration,
+                    range: 1...30,
+                    unit: "minutes"
+                )
+                
+                durationRow(
+                    title: "Long break duration",
+                    value: $pomodoroLongBreakDuration,
+                    range: 1...60,
+                    unit: "minutes"
+                )
+                
+                durationRow(
+                    title: "Sessions before long break",
+                    value: $pomodoroSessionsBeforeLongBreak,
+                    range: 1...10,
+                    unit: "sessions"
+                )
+            } header: {
+                Text("Timer Durations")
+            } footer: {
+                Text("Work: Focus time. Short break: Quick rest. Long break: Extended rest after completing all sessions.")
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Pomodoro")
+        .disabled(!pomodoroEnabled)
+    }
+    
+    @ViewBuilder
+    private func durationRow(title: String, value: Binding<Int>, range: ClosedRange<Int>, unit: String) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Stepper(
+                value: value,
+                in: range,
+                step: 1
+            ) {
+                TextField(
+                    "",
+                    value: value,
+                    format: .number
+                )
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .frame(width: 50)
+                .multilineTextAlignment(.trailing)
+                .onSubmit {
+                    // Clamp value to valid range
+                    if value.wrappedValue < range.lowerBound {
+                        value.wrappedValue = range.lowerBound
+                    } else if value.wrappedValue > range.upperBound {
+                        value.wrappedValue = range.upperBound
+                    }
+                }
+            }
+            Text(unit)
+                .foregroundStyle(.secondary)
+                .frame(width: 60, alignment: .leading)
         }
     }
 }

@@ -2,7 +2,7 @@
 //  PomodoroManager.swift
 //  boringNotch
 //
-//  Created by Claw on 2026-04-28.
+//  Created by Christian Teo on 2026-04-29.
 //
 
 import Combine
@@ -14,66 +14,107 @@ import SwiftUI
 class PomodoroManager: ObservableObject {
     static let shared = PomodoroManager()
 
+    enum PomodoroPhase: String, CaseIterable {
+        case work = "Work"
+        case shortBreak = "Short Break"
+        case longBreak = "Long Break"
+        
+        var displayName: String {
+            return self.rawValue
+        }
+    }
+
+    // MARK: - Published Properties
     @Published var isRunning: Bool = false
     @Published var isPaused: Bool = false
     @Published var currentPhase: PomodoroPhase = .work
-    @Published var remainingSeconds: Int = 25 * 60
+    @Published var remainingSeconds: Int = Defaults[.pomodoroWorkDuration] * 60
     @Published var sessionsCompleted: Int = 0
-    @Published var showPanel: Bool = false
-
-    @Published var workDuration: Int = Defaults[.pomodoroWorkDuration]
-    @Published var shortBreakDuration: Int = Defaults[.pomodoroShortBreakDuration]
-    @Published var longBreakDuration: Int = Defaults[.pomodoroLongBreakDuration]
-    @Published var sessionsBeforeLongBreak: Int = Defaults[.pomodoroSessionsBeforeLongBreak]
+    
+    // Settings (synced with Defaults)
+    @Published var workDuration: Int {
+        didSet {
+            if currentPhase == .work && !isRunning && !isPaused {
+                remainingSeconds = workDuration * 60
+            }
+        }
+    }
+    @Published var shortBreakDuration: Int {
+        didSet {
+            if currentPhase == .shortBreak && !isRunning && !isPaused {
+                remainingSeconds = shortBreakDuration * 60
+            }
+        }
+    }
+    @Published var longBreakDuration: Int {
+        didSet {
+            if currentPhase == .longBreak && !isRunning && !isPaused {
+                remainingSeconds = longBreakDuration * 60
+            }
+        }
+    }
+    @Published var sessionsBeforeLongBreak: Int
 
     private var timer: Timer?
     private var cancellables = Set<AnyCancellable>()
 
-    enum PomodoroPhase: String {
-        case work = "Focus"
-        case shortBreak = "Short Break"
-        case longBreak = "Long Break"
+    // MARK: - Initialization
+    init() {
+        self.workDuration = Defaults[.pomodoroWorkDuration]
+        self.shortBreakDuration = Defaults[.pomodoroShortBreakDuration]
+        self.longBreakDuration = Defaults[.pomodoroLongBreakDuration]
+        self.sessionsBeforeLongBreak = Defaults[.pomodoroSessionsBeforeLongBreak]
+        self.remainingSeconds = workDuration * 60
+        
+        setupDefaultsObservers()
     }
 
-    init() {
+    private func setupDefaultsObservers() {
         Defaults.publisher(.pomodoroWorkDuration)
+            .receive(on: RunLoop.main)
             .sink { [weak self] change in
                 self?.workDuration = change.newValue
-                if self?.currentPhase == .work && !(self?.isRunning ?? false) {
+                if self?.currentPhase == .work && !(self?.isRunning ?? false) && !(self?.isPaused ?? false) {
                     self?.remainingSeconds = change.newValue * 60
                 }
             }
             .store(in: &cancellables)
 
         Defaults.publisher(.pomodoroShortBreakDuration)
+            .receive(on: RunLoop.main)
             .sink { [weak self] change in
                 self?.shortBreakDuration = change.newValue
-                if self?.currentPhase == .shortBreak && !(self?.isRunning ?? false) {
+                if self?.currentPhase == .shortBreak && !(self?.isRunning ?? false) && !(self?.isPaused ?? false) {
                     self?.remainingSeconds = change.newValue * 60
                 }
             }
             .store(in: &cancellables)
 
         Defaults.publisher(.pomodoroLongBreakDuration)
+            .receive(on: RunLoop.main)
             .sink { [weak self] change in
                 self?.longBreakDuration = change.newValue
-                if self?.currentPhase == .longBreak && !(self?.isRunning ?? false) {
+                if self?.currentPhase == .longBreak && !(self?.isRunning ?? false) && !(self?.isPaused ?? false) {
                     self?.remainingSeconds = change.newValue * 60
                 }
             }
             .store(in: &cancellables)
 
         Defaults.publisher(.pomodoroSessionsBeforeLongBreak)
+            .receive(on: RunLoop.main)
             .sink { [weak self] change in
                 self?.sessionsBeforeLongBreak = change.newValue
             }
             .store(in: &cancellables)
     }
 
+    // MARK: - Timer Controls
     func start() {
         guard !isRunning else { return }
         isRunning = true
         isPaused = false
+        
+        timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.tick()
@@ -92,15 +133,12 @@ class PomodoroManager: ObservableObject {
         start()
     }
 
-    func stop() {
+    func reset() {
         isRunning = false
         isPaused = false
         timer?.invalidate()
         timer = nil
-        reset()
-    }
-
-    func reset() {
+        
         switch currentPhase {
         case .work:
             remainingSeconds = workDuration * 60
@@ -110,13 +148,19 @@ class PomodoroManager: ObservableObject {
             remainingSeconds = longBreakDuration * 60
         }
     }
+    
+    func resetSessions() {
+        sessionsCompleted = 0
+    }
 
-    func skip() {
+    func resetAll() {
         timer?.invalidate()
         timer = nil
         isRunning = false
         isPaused = false
-        transitionToNextPhase()
+        currentPhase = .work
+        sessionsCompleted = 0
+        remainingSeconds = workDuration * 60
     }
 
     private func tick() {
@@ -147,10 +191,7 @@ class PomodoroManager: ObservableObject {
         }
     }
 
-    func togglePanel() {
-        showPanel.toggle()
-    }
-
+    // MARK: - Computed Properties
     var formattedTime: String {
         let minutes = remainingSeconds / 60
         let seconds = remainingSeconds % 60
@@ -166,5 +207,17 @@ class PomodoroManager: ObservableObject {
         }
         guard total > 0 else { return 0 }
         return Double(total - remainingSeconds) / Double(total)
+    }
+    
+    var phaseColor: Color {
+        switch currentPhase {
+        case .work: return .red
+        case .shortBreak: return .green
+        case .longBreak: return .blue
+        }
+    }
+    
+    var sessionDots: String {
+        String(repeating: "• ", count: min(sessionsCompleted, 10))
     }
 }
