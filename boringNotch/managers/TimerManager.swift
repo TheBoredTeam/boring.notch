@@ -67,6 +67,7 @@ class TimerManager: ObservableObject {
             timer?.invalidate()
             timer = nil
             state = .finished
+            BoringViewCoordinator.shared.showTimerFinishedNotification()
         }
     }
 }

@@ -18,6 +18,7 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case timer
 }
 
 struct sneakPeek {
@@ -296,5 +297,12 @@ class BoringViewCoordinator: ObservableObject {
     
     func showEmpty() {
         currentView = .home
+    }
+
+    func showTimerFinishedNotification() {
+        sneakPeekDuration = 3.0
+        withAnimation(.smooth) {
+            sneakPeek = .init(show: true, type: .timer, value: 0, icon: "timer")
+        }
     }
 }

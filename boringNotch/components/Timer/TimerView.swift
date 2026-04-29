@@ -5,6 +5,44 @@
 
 import SwiftUI
 
+// MARK: - Closed-notch pill shown when timer finishes
+
+struct TimerFinishedPillView: View {
+    let closedNotchWidth: CGFloat
+    let closedNotchHeight: CGFloat
+    @State private var flash = false
+
+    var body: some View {
+        HStack(spacing: 0) {
+            HStack {
+                Spacer()
+                Text("Time's up!")
+                    .font(.subheadline)
+                    .foregroundStyle(.white)
+            }
+            Rectangle()
+                .fill(.black)
+                .frame(width: closedNotchWidth + 10)
+            HStack {
+                Image(systemName: "timer")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.effectiveAccent)
+                    .opacity(flash ? 0.25 : 1.0)
+                Spacer()
+            }
+            .frame(width: 76)
+        }
+        .frame(height: closedNotchHeight, alignment: .center)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
+                flash = true
+            }
+        }
+    }
+}
+
+// MARK: - Presets
+
 private let presets: [(label: String, seconds: TimeInterval)] = [
     ("+1m",  60),
     ("+5m",  300),
@@ -12,6 +50,8 @@ private let presets: [(label: String, seconds: TimeInterval)] = [
     ("+25m", 1500),
     ("+45m", 2700),
 ]
+
+// MARK: - Main timer view
 
 struct TimerView: View {
     @ObservedObject var timerManager = TimerManager.shared
@@ -24,16 +64,17 @@ struct TimerView: View {
                 .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
     }
 
     // MARK: - Left: presets + controls
 
     private var leftPanel: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 10) {
+            Spacer(minLength: 0)
             presetRow
-            Spacer(minLength: 6)
             controlRow
+            Spacer(minLength: 0)
         }
         .padding(.trailing, 10)
     }
@@ -54,10 +95,10 @@ struct TimerView: View {
             withAnimation(.smooth) { timerManager.addPreset(preset.seconds) }
         } label: {
             Text(preset.label)
-                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 26)
+                .frame(height: 32)
                 .background(Capsule().fill(Color(nsColor: .tertiarySystemFill)))
         }
         .buttonStyle(PlainButtonStyle())
@@ -89,11 +130,11 @@ struct TimerView: View {
                     .font(.system(size: 11, weight: .semibold))
                     .contentTransition(.symbolEffect(.replace))
                 Text(primaryLabel)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 13, weight: .medium))
             }
             .foregroundColor(.white)
-            .padding(.horizontal, 14)
-            .frame(height: 28)
+            .padding(.horizontal, 16)
+            .frame(height: 32)
             .background(Capsule().fill(Color(nsColor: .secondarySystemFill)))
         }
         .buttonStyle(PlainButtonStyle())
@@ -123,11 +164,11 @@ struct TimerView: View {
                 Image(systemName: "arrow.counterclockwise")
                     .font(.system(size: 11, weight: .semibold))
                 Text("New Timer")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 13, weight: .medium))
             }
             .foregroundColor(.white)
-            .padding(.horizontal, 14)
-            .frame(height: 28)
+            .padding(.horizontal, 16)
+            .frame(height: 32)
             .background(Capsule().fill(Color(nsColor: .secondarySystemFill)))
         }
         .buttonStyle(PlainButtonStyle())
@@ -137,13 +178,13 @@ struct TimerView: View {
 
     private var rightPanel: some View {
         GeometryReader { geo in
-            let diameter = min(geo.size.width, geo.size.height) - 12
+            let diameter = min(geo.size.width, geo.size.height) - 4
             ZStack {
                 Circle()
-                    .stroke(Color.white.opacity(0.08), lineWidth: 5)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 6)
                 Circle()
                     .trim(from: 0, to: ringFillAmount)
-                    .stroke(ringColor, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                    .stroke(ringColor, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                     .animation(.linear(duration: 0.5), value: timerManager.progress)
                 timeLabel
@@ -161,8 +202,8 @@ struct TimerView: View {
     private var timeLabel: some View {
         VStack(spacing: 2) {
             Text(formattedTime(timerManager.remainingTime))
-                .font(.system(size: 26, weight: .semibold, design: .monospaced))
-                .foregroundColor(timerManager.state == .finished ? .effectiveAccent : .white)
+                .font(.system(size: 28, weight: .semibold, design: .monospaced))
+                .foregroundColor(timeTextColor)
                 .contentTransition(.numericText(countsDown: true))
                 .animation(.smooth(duration: 0.3), value: timerManager.remainingTime)
                 .lineLimit(1)
@@ -179,6 +220,12 @@ struct TimerView: View {
     }
 
     // MARK: - Helpers
+
+    private var timeTextColor: Color {
+        if timerManager.state == .finished { return .effectiveAccent }
+        if timerManager.totalDuration == 0  { return .white.opacity(0.3) }
+        return .white
+    }
 
     private var ringColor: Color {
         switch timerManager.state {
