@@ -60,11 +60,9 @@ jobs:
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>development</string>
+            <string>app</string>
             <key>signingStyle</key>
             <string>automatic</string>
-            <key>teamID</key>
-            <string>${DEVELOPMENT_TEAM}</string>
           </dict>
           </plist>
           PLIST
