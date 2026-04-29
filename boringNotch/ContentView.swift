@@ -278,20 +278,19 @@ struct ContentView: View {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && !vm.hideOnClosed {
-                          // Show BOTH music indicator AND face animation side by side
+                          // Show music indicator and face animation in a template layout
                           HStack(spacing: 0) {
-                              // Music on the left (if playing)
+                              // Music: icon + wave
                               if (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled {
                                   MusicLiveActivity()
-                                      .frame(alignment: .center)
                               }
                               
-                              // Face on the right (if enabled)
+                              // Face (if enabled)
                               if Defaults[.showNotHumanFace] {
                                   BoringFaceAnimation()
                               }
                           }
-                          .frame(height: vm.effectiveClosedNotchHeight)
+                          .frame(width: vm.closedNotchSize.width, height: vm.effectiveClosedNotchHeight)
                        } else if vm.notchState == .open {
                            BoringHeader()
                                .frame(height: max(24, vm.effectiveClosedNotchHeight))
@@ -370,23 +369,14 @@ struct ContentView: View {
 
     @ViewBuilder
     func BoringFaceAnimation() -> some View {
-        HStack {
-            HStack {
-                Rectangle()
-                    .fill(.clear)
-                    .frame(
-                        width: max(0, vm.effectiveClosedNotchHeight - 12),
-                        height: max(0, vm.effectiveClosedNotchHeight - 12)
-                    )
-                Rectangle()
-                    .fill(.black)
-                    .frame(width: vm.closedNotchSize.width - 20)
-                MinimalFaceFeatures()
-            }
-        }.frame(
-            height: vm.effectiveClosedNotchHeight,
-            alignment: .center
-        )
+        HStack(spacing: 0) {
+            MinimalFaceFeatures()
+                .frame(
+                    width: max(0, vm.effectiveClosedNotchHeight - 12),
+                    height: max(0, vm.effectiveClosedNotchHeight - 12)
+                )
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
     }
 
     @ViewBuilder
