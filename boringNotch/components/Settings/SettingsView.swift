@@ -1320,6 +1320,9 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.faceAnimationType) var faceAnimationType: FaceType
+    @Default(.faceSelectionMode) var faceSelectionMode: FaceSelectionMode
+    @Default(.faceRandomInterval) var faceRandomInterval: Int
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1548,32 +1551,23 @@ struct Appearance: View {
                 }
                 
                 if Defaults[.showNotHumanFace] {
-                    Picker("Face mode", selection: Binding(
-                        get: { Defaults[.faceSelectionMode] },
-                        set: { Defaults[.faceSelectionMode] = $0 }
-                    )) {
+                    Picker("Face mode", selection: $faceSelectionMode) {
                         Text("Fixed").tag(FaceSelectionMode.fixed)
                         Text("Random").tag(FaceSelectionMode.random)
                     }
                     
-                    if Defaults[.faceSelectionMode] == .fixed {
-                        Picker("Face type", selection: Binding(
-                            get: { Defaults[.faceAnimationType] },
-                            set: { Defaults[.faceAnimationType] = $0 }
-                        )) {
+                    if faceSelectionMode == .fixed {
+                        Picker("Face type", selection: $faceAnimationType) {
                             ForEach(FaceType.allCases) { faceType in
                                 Text(faceType.rawValue).tag(faceType)
                             }
                         }
                     } else {
-                        Stepper(value: Binding(
-                            get: { Defaults[.faceRandomInterval] },
-                            set: { Defaults[.faceRandomInterval] = $0 }
-                        ), in: 5...120) {
+                        Stepper(value: $faceRandomInterval, in: 5...120) {
                             HStack {
                                 Text("Interval")
                                 Spacer()
-                                Text("\(Defaults[.faceRandomInterval])s")
+                                Text("\(faceRandomInterval)s")
                                     .foregroundStyle(.secondary)
                             }
                         }
