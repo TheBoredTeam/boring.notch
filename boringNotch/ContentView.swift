@@ -281,14 +281,22 @@ struct ContentView: View {
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && !vm.hideOnClosed {
                           // Show music icon on left, face on right, both compact
                           HStack(spacing: 8) {
-                              // Music icon only (album art) on left
+                              // Music icon (album art) + visualizer on left when playing
                               if (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled {
-                                  Image(nsImage: musicManager.albumArt)
-                                      .resizable()
-                                      .clipped()
-                                      .clipShape(RoundedRectangle(cornerRadius: 4))
-                                      .frame(width: max(0, vm.effectiveClosedNotchHeight - 16),
-                                             height: max(0, vm.effectiveClosedNotchHeight - 16))
+                                  HStack(spacing: 4) {
+                                      Image(nsImage: musicManager.albumArt)
+                                          .resizable()
+                                          .clipped()
+                                          .clipShape(RoundedRectangle(cornerRadius: 4))
+                                          .frame(width: max(0, vm.effectiveClosedNotchHeight - 16),
+                                                 height: max(0, vm.effectiveClosedNotchHeight - 16))
+                                      
+                                      // Music wave visualizer
+                                      if Defaults[.useMusicVisualizer] {
+                                          AudioSpectrumView(isPlaying: .constant(musicManager.isPlaying))
+                                              .frame(width: 16, height: max(0, vm.effectiveClosedNotchHeight - 16))
+                                      }
+                                  }
                               }
                               
                               Spacer()
