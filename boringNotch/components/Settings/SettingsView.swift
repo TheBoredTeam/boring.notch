@@ -354,91 +354,152 @@ struct GeneralSettings: View {
 }
 
 struct PomodoroSettings: View {
-    @Default(.pomodoroEnabled) var pomodoroEnabled
-    @Default(.pomodoroWorkDuration) var pomodoroWorkDuration
-    @Default(.pomodoroShortBreakDuration) var pomodoroShortBreakDuration
-    @Default(.pomodoroLongBreakDuration) var pomodoroLongBreakDuration
-    @Default(.pomodoroSessionsBeforeLongBreak) var pomodoroSessionsBeforeLongBreak
-    
+    @Default(.pomodoroEnabled) var pomodoroEnabled: Bool
+    @Default(.pomodoroWorkDuration) var pomodoroWorkDuration: Int
+    @Default(.pomodoroShortBreakDuration) var pomodoroShortBreakDuration: Int
+    @Default(.pomodoroLongBreakDuration) var pomodoroLongBreakDuration: Int
+    @Default(.pomodoroSessionsBeforeLongBreak) var pomodoroSessionsBeforeLongBreak: Int
+
     var body: some View {
         Form {
             Section {
                 Toggle("Enable Pomodoro Timer", isOn: $pomodoroEnabled)
+                    .tint(.effectiveAccent)
             } header: {
                 Text("General")
-            } footer: {
-                Text("When enabled, a timer icon will appear in the notch header.")
             }
-            
+
             Section {
-                durationRow(
-                    title: "Work duration",
-                    value: $pomodoroWorkDuration,
-                    range: 1...90,
-                    unit: "minutes"
-                )
-                
-                durationRow(
-                    title: "Short break duration",
-                    value: $pomodoroShortBreakDuration,
-                    range: 1...30,
-                    unit: "minutes"
-                )
-                
-                durationRow(
-                    title: "Long break duration",
-                    value: $pomodoroLongBreakDuration,
-                    range: 1...60,
-                    unit: "minutes"
-                )
-                
-                durationRow(
-                    title: "Sessions before long break",
-                    value: $pomodoroSessionsBeforeLongBreak,
-                    range: 1...10,
-                    unit: "sessions"
-                )
+                DirectInputRow(label: "Work Duration", value: $pomodoroWorkDuration, range: 1...90, unit: "min")
+                DirectInputRow(label: "Short Break", value: $pomodoroShortBreakDuration, range: 1...30, unit: "min")
+                DirectInputRow(label: "Long Break", value: $pomodoroLongBreakDuration, range: 1...60, unit: "min")
+                DirectInputRow(label: "Sessions before Long Break", value: $pomodoroSessionsBeforeLongBreak, range: 1...10, unit: "")
             } header: {
                 Text("Timer Durations")
-            } footer: {
-                Text("Work: Focus time. Short break: Quick rest. Long break: Extended rest after completing all sessions.")
+            }
+
+            Section {
+                HStack {
+                    Text("Work")
+                    Spacer()
+                    Text("\(pomodoroWorkDuration) min")
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Text("Short Break")
+                    Spacer()
+                    Text("\(pomodoroShortBreakDuration) min")
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Text("Long Break")
+                    Spacer()
+                    Text("\(pomodoroLongBreakDuration) min")
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Text("Total Cycle")
+                    Spacer()
+                    Text("\(pomodoroWorkDuration + pomodoroShortBreakDuration) min × \(pomodoroSessionsBeforeLongBreak) + \(pomodoroLongBreakDuration) min")
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                Text("Current Settings Summary")
             }
         }
-        .accentColor(.effectiveAccent)
         .navigationTitle("Pomodoro")
-        .disabled(!pomodoroEnabled)
     }
-    
-    @ViewBuilder
-    private func durationRow(title: String, value: Binding<Int>, range: ClosedRange<Int>, unit: String) -> some View {
+}
+
+// MARK: - Direct Input Row Component
+struct DirectInputRow: View {
+    let label: String
+    @Binding var value: Int
+    let range: ClosedRange<Int>
+    let unit: String
+
+    var body: some View {
         HStack {
-            Text(title)
+            Text(label)
             Spacer()
-            Stepper(
-                value: value,
-                in: range,
-                step: 1
-            ) {
-                TextField(
-                    "",
-                    value: value,
-                    format: .number
-                )
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .frame(width: 50)
-                .multilineTextAlignment(.trailing)
-                .onSubmit {
-                    // Clamp value to valid range
-                    if value.wrappedValue < range.lowerBound {
-                        value.wrappedValue = range.lowerBound
-                    } else if value.wrappedValue > range.upperBound {
-                        value.wrappedValue = range.upperBound
-                    }
+            HStack(spacing: 4) {
+                Button(action: { value = max(range.lowerBound, value - 1) }) {
+                    Image(systemName: "minus")
+                        .font(.caption)
+                        .frame(width: 24, height: 24)
+                        .background(Color(nsColor: .secondarySystemFill))
+                        .clipShape(Circle())
                 }
+                .buttonStyle(.plain)
+
+                NumberTextField(placeholder: "", value: $value, range: range)
+                    .frame(width: 60)
+                    .multilineTextAlignment(.center)
+
+                if !unit.isEmpty {
+                    Text(unit)
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+
+                Button(action: { value = min(range.upperBound, value + 1) }) {
+                    Image(systemName: "plus")
+                        .font(.caption)
+                        .frame(width: 24, height: 24)
+                        .background(Color(nsColor: .secondarySystemFill))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
             }
-            Text(unit)
-                .foregroundStyle(.secondary)
-                .frame(width: 60, alignment: .leading)
+        }
+    }
+}
+
+// MARK: - Number TextField with keyboard input
+struct NumberTextField: NSViewRepresentable {
+    let placeholder: String
+    @Binding var value: Int
+    let range: ClosedRange<Int>
+
+    func makeNSView(context: Context) -> NSTextField {
+        let textField = NSTextField()
+        textField.placeholderString = placeholder
+        textField.alignment = .center
+        textField.formatter = NumberFormatter()
+        textField.target = context.coordinator
+        textField.action = #selector(Coordinator.textFieldAction(_:))
+        textField.bezelStyle = .roundedBezel
+        return textField
+    }
+
+    func updateNSView(_ nsView: NSTextField, context: Context) {
+        nsView.integerValue = value
+        context.coordinator.value = value
+        context.coordinator.range = range
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(value: value, range: range)
+    }
+
+    class Coordinator: NSObject {
+        var value: Int
+        var range: ClosedRange<Int>
+
+        init(value: Int, range: ClosedRange<Int>) {
+            self.value = value
+            self.range = range
+        }
+
+        @objc func textFieldAction(_ sender: NSTextField) {
+            var newValue = sender.integerValue
+            if newValue < range.lowerBound {
+                newValue = range.lowerBound
+            } else if newValue > range.upperBound {
+                newValue = range.upperBound
+            }
+            value = newValue
+            sender.integerValue = newValue
         }
     }
 }
