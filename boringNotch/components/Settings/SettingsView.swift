@@ -1544,7 +1544,40 @@ struct Appearance: View {
                         .tag(MirrorShapeEnum.rectangle)
                 }
                 Defaults.Toggle(key: .showNotHumanFace) {
-                    Text("Show cool face animation while inactive")
+                    Text("Show face animation while inactive")
+                }
+                
+                if Defaults[.showNotHumanFace] {
+                    Picker("Face mode", selection: Binding(
+                        get: { Defaults[.faceSelectionMode] },
+                        set: { Defaults[.faceSelectionMode] = $0 }
+                    )) {
+                        Text("Fixed").tag(FaceSelectionMode.fixed)
+                        Text("Random").tag(FaceSelectionMode.random)
+                    }
+                    
+                    if Defaults[.faceSelectionMode] == .fixed {
+                        Picker("Face type", selection: Binding(
+                            get: { Defaults[.faceAnimationType] },
+                            set: { Defaults[.faceAnimationType] = $0 }
+                        )) {
+                            ForEach(FaceType.allCases) { faceType in
+                                Text(faceType.rawValue).tag(faceType)
+                            }
+                        }
+                    } else {
+                        Stepper(value: Binding(
+                            get: { Defaults[.faceRandomInterval] },
+                            set: { Defaults[.faceRandomInterval] = $0 }
+                        ), in: 5...120) {
+                            HStack {
+                                Text("Interval")
+                                Spacer()
+                                Text("\(Defaults[.faceRandomInterval])s")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                 }
             } header: {
                 HStack {

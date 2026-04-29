@@ -68,6 +68,26 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     var id: String { self.rawValue }
 }
 
+// Face types for animated face feature
+enum FaceType: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case minimal = "Minimal"
+    case cool = "Cool"
+    case surprised = "Surprised"
+    case sleepy = "Sleepy"
+    case wink = "Wink"
+    case happy = "Happy"
+    
+    var id: String { rawValue }
+}
+
+// Face selection mode: fixed or random
+enum FaceSelectionMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case fixed = "Fixed"
+    case random = "Random"
+    
+    var id: String { self.rawValue }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -105,6 +125,9 @@ extension Defaults.Keys {
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
+    static let faceAnimationType = Key<FaceType>("faceAnimationType", default: .minimal)
+    static let faceSelectionMode = Key<FaceSelectionMode>("faceSelectionMode", default: .fixed)
+    static let faceRandomInterval = Key<Int>("faceRandomInterval", default: 10)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     static let showCalendar = Key<Bool>("showCalendar", default: false)
     static let hideCompletedReminders = Key<Bool>("hideCompletedReminders", default: true)

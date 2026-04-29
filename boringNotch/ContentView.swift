@@ -294,7 +294,7 @@ struct ContentView: View {
                               
                               // Face on right
                               if Defaults[.showNotHumanFace] {
-                                  MinimalFaceFeatures()
+                                  AnimatedFaceView()
                                       .frame(width: max(0, vm.effectiveClosedNotchHeight - 16),
                                              height: max(0, vm.effectiveClosedNotchHeight - 16))
                               }
@@ -380,7 +380,7 @@ struct ContentView: View {
     @ViewBuilder
     func BoringFaceAnimation() -> some View {
         HStack(spacing: 0) {
-            MinimalFaceFeatures()
+            AnimatedFaceView()
                 .frame(
                     width: max(0, vm.effectiveClosedNotchHeight - 12),
                     height: max(0, vm.effectiveClosedNotchHeight - 12)
