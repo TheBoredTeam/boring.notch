@@ -11,14 +11,11 @@ struct PomodoroView: View {
     @ObservedObject var pomodoroManager = PomodoroManager.shared
     @State private var isLongPressing: Bool = false
     
-    private let timerSize: CGFloat = 140
-    private let progressLineWidth: CGFloat = 6
+    private let timerSize: CGFloat = 90
+    private let progressLineWidth: CGFloat = 4
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Phase indicator dots
-            phaseIndicators
-            
+        HStack(spacing: 12) {
             // Circular progress timer
             ZStack {
                 // Background circle
@@ -36,41 +33,46 @@ struct PomodoroView: View {
                     .animation(.linear(duration: 1), value: pomodoroManager.progress)
                 
                 // Timer content
-                VStack(spacing: 2) {
+                VStack(spacing: 1) {
                     Text(pomodoroManager.currentPhase.displayName)
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 7, weight: .medium))
                         .foregroundStyle(.gray)
                     
                     Text(pomodoroManager.formattedTime)
-                        .font(.system(size: 24, weight: .bold, design: .monospaced))
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
                         .foregroundStyle(.white)
                 }
             }
             .frame(width: timerSize, height: timerSize)
             
-            // Sessions counter with long-press
-            sessionsCounter
-            
-            // Control buttons
-            controlButtons
+            // Right side: Phase indicators, sessions, and controls
+            VStack(spacing: 6) {
+                // Phase indicator dots
+                phaseIndicators
+                
+                // Sessions counter with long-press
+                sessionsCounter
+                
+                // Control buttons
+                controlButtons
+            }
         }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
     }
     
     // MARK: - Subviews
     
     private var phaseIndicators: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 10) {
             ForEach(PomodoroManager.PomodoroPhase.allCases, id: \.self) { phase in
-                VStack(spacing: 4) {
+                VStack(spacing: 2) {
                     Circle()
                         .fill(pomodoroManager.currentPhase == phase ? pomodoroManager.phaseColor : Color.gray.opacity(0.4))
-                        .frame(width: 8, height: 8)
+                        .frame(width: 6, height: 6)
                     
                     Text(phase.displayName)
-                        .font(.system(size: 9))
+                        .font(.system(size: 7))
                         .foregroundColor(pomodoroManager.currentPhase == phase ? .white : .gray)
                 }
             }
@@ -78,25 +80,25 @@ struct PomodoroView: View {
     }
     
     private var sessionsCounter: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Text("Sessions")
-                .font(.system(size: 11))
+                .font(.system(size: 8))
                 .foregroundStyle(.gray)
             
             Text("\(pomodoroManager.sessionsCompleted)")
-                .font(.system(size: 11, weight: .bold))
+                .font(.system(size: 8, weight: .bold))
                 .foregroundStyle(sessionsCompletedColor)
                 .scaleEffect(isLongPressing ? 1.2 : 1.0)
                 .animation(.easeInOut(duration: 0.15), value: isLongPressing)
             
             if pomodoroManager.sessionsCompleted > 0 {
                 Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 9))
+                    .font(.system(size: 7))
                     .foregroundStyle(.gray.opacity(0.5))
             }
         }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+        .padding(.horizontal, 8)
         .background(
             Capsule()
                 .fill(Color.white.opacity(0.05))
@@ -137,15 +139,15 @@ struct PomodoroView: View {
     }
     
     private var controlButtons: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: 16) {
             // Reset button
             Button(action: {
                 pomodoroManager.reset()
             }) {
                 Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.gray)
-                    .frame(width: 32, height: 32)
+                    .frame(width: 24, height: 24)
             }
             .buttonStyle(PlainButtonStyle())
             .help("Reset Timer")
@@ -159,9 +161,9 @@ struct PomodoroView: View {
                 }
             }) {
                 Image(systemName: pomodoroManager.isRunning ? "pause.fill" : "play.fill")
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.white)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 28, height: 28)
                     .background(
                         Circle()
                             .fill(pomodoroManager.phaseColor.opacity(0.8))
@@ -176,12 +178,70 @@ struct PomodoroView: View {
                 pomodoroManager.reset()
             }) {
                 Image(systemName: "forward.fill")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(.gray)
-                    .frame(width: 32, height: 32)
+                    .frame(width: 24, height: 24)
             }
             .buttonStyle(PlainButtonStyle())
             .help("Skip to Next")
+        }
+    }
+}
+
+// Compact view for closed notch state
+struct PomodoroClosedView: View {
+    @ObservedObject var pomodoroManager = PomodoroManager.shared
+    @EnvironmentObject var vm: BoringViewModel
+
+    var body: some View {
+        HStack(spacing: 8) {
+            // Mini progress circle
+            ZStack {
+                Circle()
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                
+                Circle()
+                    .trim(from: 0, to: pomodoroManager.progress)
+                    .stroke(
+                        pomodoroManager.phaseColor,
+                        style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                    
+                Image(systemName: pomodoroManager.isRunning ? "pause.fill" : "play.fill")
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundStyle(.white)
+            }
+            .frame(width: max(0, vm.effectiveClosedNotchHeight - 16), height: max(0, vm.effectiveClosedNotchHeight - 16))
+            
+            // Timer info
+            VStack(alignment: .leading, spacing: 2) {
+                Text(pomodoroManager.formattedTime)
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundStyle(.white)
+                
+                Text(pomodoroManager.currentPhase.displayName)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.gray)
+            }
+            
+            Spacer()
+            
+            // Session indicator
+            Text("\(pomodoroManager.sessionsCompleted)")
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(sessionsColor)
+        }
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+    }
+    
+    private var sessionsColor: Color {
+        if pomodoroManager.sessionsCompleted % pomodoroManager.sessionsBeforeLongBreak == 0 && pomodoroManager.sessionsCompleted > 0 {
+            return .blue
+        } else if pomodoroManager.currentPhase == .work {
+            return .red
+        } else {
+            return .green
         }
     }
 }
