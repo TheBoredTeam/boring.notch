@@ -11,6 +11,9 @@
         }
       }
     },
+    " – %lld" : {
+
+    },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
       "localizations" : {
         "cs" : {
@@ -580,7 +583,6 @@
       }
     },
     "Add" : {
-      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -2032,6 +2034,7 @@
 
     },
     "Boost your productivity with Clipboard Manager" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2482,7 +2485,6 @@
       }
     },
     "Cancel" : {
-      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -2564,16 +2566,6 @@
         }
       }
     },
-    "Changing the app language requires restarting Boring Notch." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Changing the app language requires restarting Boring Notch."
-          }
-        }
-      }
-    },
     "Change media with horizontal gestures" : {
       "localizations" : {
         "de" : {
@@ -2616,6 +2608,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Перемикання медіа горизонтальними жестами"
+          }
+        }
+      }
+    },
+    "Changing the app language requires restarting Boring Notch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changing the app language requires restarting Boring Notch."
           }
         }
       }
@@ -2759,7 +2761,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Charge en pause : mode bureau"
+            "value" : "Charge en pause : mode bureau"
           }
         },
         "it" : {
@@ -4815,6 +4817,7 @@
 
     },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7132,6 +7135,16 @@
         }
       }
     },
+    "Later" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        }
+      }
+    },
     "Launch at login" : {
       "localizations" : {
         "fr" : {
@@ -7150,16 +7163,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oturum açıldığında başlat"
-          }
-        }
-      }
-    },
-    "Later" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Later"
           }
         }
       }
@@ -7226,6 +7229,7 @@
 
     },
     "Lottie JSON URL" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7246,6 +7250,7 @@
           }
         },
         "en" : {
+          "stringUnit" : {
             "state" : "translated",
             "value" : "Превью раскладки"
           }
@@ -8804,6 +8809,7 @@
       }
     },
     "No custom animation available" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8907,6 +8913,7 @@
 
     },
     "No custom visualizer" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10052,6 +10059,7 @@
       }
     },
     "OSD" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -10549,9 +10557,6 @@
     "Real-time audio waveform" : {
 
     },
-    "Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform." : {
-
-    },
     "Release name" : {
       "localizations" : {
         "cs" : {
@@ -10935,6 +10940,9 @@
         }
       }
     },
+    "Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform." : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "de" : {
@@ -11216,9 +11224,6 @@
     "Save" : {
 
     },
-    "Select SF Symbol" : {
-        
-    },
     "Scale corner radius for closed notch" : {
       "localizations" : {
         "en" : {
@@ -11240,6 +11245,9 @@
           }
         }
       }
+    },
+    "Select SF Symbol" : {
+
     },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
@@ -12161,7 +12169,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pokaż aktywność muzyczną na żywo"
+            "value" : "Pokaż aktywność muzyczną na żywo"
           }
         },
         "ru" : {
@@ -12674,12 +12682,6 @@
         }
       }
     },
-    "Sneak peek" : {
-
-    },
-    "Sneak peek shows the Bluetooth device name under the notch for a few seconds when a device connects or disconnects." : {
-        
-    },
     "slider_color_accent" : {
       "comment" : "Slider color option: accent color",
       "localizations" : {
@@ -12760,7 +12762,12 @@
           }
         }
       }
->>>>>>> dev
+    },
+    "Sneak peek" : {
+
+    },
+    "Sneak peek shows the Bluetooth device name under the notch for a few seconds when a device connects or disconnects." : {
+
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {

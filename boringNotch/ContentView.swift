@@ -567,9 +567,9 @@ struct ContentView: View {
                                 && Defaults[.bluetoothSneakPeekStyle] == .inline
                             {
                                 MarqueeText(
-                                    .constant("\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")"),
-                                    textColor: .gray,
-                                    minDuration: 0.4,
+                                    "\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")",
+                                    color: .gray,
+                                    delayDuration: 0.4,
                                     frameWidth: 100
                                 )
                                 Spacer(minLength: vm.closedNotchSize.width)
@@ -634,9 +634,9 @@ struct ContentView: View {
                 HStack(alignment: .center) {
                     GeometryReader { geo in
                         MarqueeText(
-                            .constant("\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")"),
-                            textColor: .gray,
-                            minDuration: 1,
+                            "\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")",
+                            color: .gray,
+                            delayDuration: 1,
                             frameWidth: geo.size.width,
                             infiniteText: true
                         )

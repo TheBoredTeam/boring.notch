@@ -75,10 +75,12 @@ struct MarqueeText: View {
                 .modifier(MeasureSizeModifier())
                 .onPreferenceChange(SizePreferenceKey.self) { size in
                     self.textSize = CGSize(width: size.width / 2, height: NSFont.preferredFont(forTextStyle: nsFont).pointSize)
+                    /*
                     if infiniteText && !needsScrolling {
                         text = text + " " + _bindingText.wrappedValue
                         return
                     }
+                     */
                     self.animate = false
                     self.offset = 0
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.01){
