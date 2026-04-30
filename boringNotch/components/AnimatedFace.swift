@@ -126,6 +126,12 @@ struct FaceView: View {
                 WinkFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
             case .happy:
                 HappyFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
+            case .angry:
+                AngryFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
+            case .tongue:
+                TongueFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
+            case .love:
+                LoveFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
             }
         }
     }
@@ -345,6 +351,123 @@ struct HappyFaceFeatures: View {
         }
         .frame(width: 28, height: 24)
         .scaleEffect(animationPhase == 1 ? 1.05 : 1.0)
+    }
+}
+
+// MARK: - Angry Face
+struct AngryFaceFeatures: View {
+    let isBlinking: Bool
+    let animationPhase: Int
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 4) {
+                Path { path in
+                    let w: CGFloat = 8
+                    let h: CGFloat = 3
+                    path.move(to: CGPoint(x: 0, y: h))
+                    path.addLine(to: CGPoint(x: w, y: 0))
+                }
+                .stroke(Color.white, lineWidth: 2)
+                .frame(width: 8, height: 3)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 4, height: isBlinking ? 1 : 4)
+                    .frame(maxWidth: 12, maxHeight: 12)
+            }
+            
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 4, height: isBlinking ? 1 : 4)
+                    .frame(maxWidth: 12, maxHeight: 12)
+                
+                Path { path in
+                    let w: CGFloat = 8
+                    let h: CGFloat = 3
+                    path.move(to: CGPoint(x: 0, y: 0))
+                    path.addLine(to: CGPoint(x: w, y: h))
+                }
+                .stroke(Color.white, lineWidth: 2)
+                .frame(width: 8, height: 3)
+            }
+            
+            GeometryReader { geometry in
+                Path { path in
+                    let w = geometry.size.width
+                    let h = geometry.size.height
+                    path.move(to: CGPoint(x: 2, y: 0))
+                    path.addQuadCurve(to: CGPoint(x: w - 2, y: 0), control: CGPoint(x: w / 2, y: h * 0.3))
+                }
+                .stroke(Color.white, lineWidth: 2)
+            }
+            .frame(width: 14, height: 6)
+        }
+        .frame(width: 28, height: 26)
+        .rotationEffect(.degrees(animationPhase == 1 ? -3 : (animationPhase == 2 ? 3 : 0)))
+    }
+}
+
+// MARK: - Tongue Face
+struct TongueFaceFeatures: View {
+    let isBlinking: Bool
+    let animationPhase: Int
+    
+    var body: some View {
+        VStack(spacing: 3) {
+            HStack(spacing: 4) {
+                Eye(isBlinking: isBlinking)
+                Eye(isBlinking: isBlinking)
+            }
+            
+            HStack(spacing: 0) {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 10, height: 10)
+                
+                Circle()
+                    .fill(Color.pink)
+                    .frame(width: 6, height: 6)
+                    .offset(y: 2)
+            }
+        }
+        .frame(width: 26, height: 22)
+        .scaleEffect(animationPhase == 1 ? 1.03 : 1.0)
+    }
+}
+
+// MARK: - Love Face
+struct LoveFaceFeatures: View {
+    let isBlinking: Bool
+    let animationPhase: Int
+    
+    var body: some View {
+        VStack(spacing: 3) {
+            HStack(spacing: 4) {
+                Image(systemName: "heart.fill")
+                    .resizable()
+                    .foregroundColor(.white)
+                    .frame(width: 6, height: 5)
+                Image(systemName: "heart.fill")
+                    .resizable()
+                    .foregroundColor(.white)
+                    .frame(width: 6, height: 5)
+            }
+            
+            GeometryReader { geometry in
+                Path { path in
+                    let w = geometry.size.width
+                    let h = geometry.size.height
+                    path.move(to: CGPoint(x: 0, y: 2))
+                    path.addQuadCurve(to: CGPoint(x: w, y: 2), control: CGPoint(x: w / 2, y: h))
+                }
+                .stroke(Color.white, lineWidth: 1.5)
+            }
+            .frame(width: 12, height: 6)
+        }
+        .frame(width: 26, height: 20)
+        .scaleEffect(animationPhase == 1 ? 1.08 : 1.0)
     }
 }
 

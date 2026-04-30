@@ -76,6 +76,9 @@ enum FaceType: String, CaseIterable, Identifiable, Defaults.Serializable {
     case sleepy = "Sleepy"
     case wink = "Wink"
     case happy = "Happy"
+    case angry = "Angry"
+    case tongue = "Tongue"
+    case love = "Love"
     
     var id: String { rawValue }
 }
