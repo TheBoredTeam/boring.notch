@@ -128,8 +128,6 @@ struct FaceView: View {
                 HappyFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
             case .angry:
                 AngryFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
-            case .tongue:
-                TongueFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
             case .love:
                 LoveFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
             }
@@ -401,32 +399,6 @@ struct AngryFaceFeatures: View {
             .frame(width: 12, height: 6)
         }
         .frame(width: 28, height: 24)
-    }
-}
-
-// MARK: - Tongue Face
-struct TongueFaceFeatures: View {
-    let isBlinking: Bool
-    let animationPhase: Int
-    
-    var body: some View {
-        VStack(spacing: 3) {
-            HStack(spacing: 6) {
-                Eye(isBlinking: isBlinking)
-                Eye(isBlinking: isBlinking)
-            }
-            
-            // Open mouth circle
-            Circle()
-                .fill(Color.white)
-                .frame(width: 12, height: 12)
-            
-            // Pink tongue in middle of mouth
-            Circle()
-                .fill(Color.pink)
-                .frame(width: 6, height: 6)
-        }
-        .frame(width: 24, height: 24)
     }
 }
 
