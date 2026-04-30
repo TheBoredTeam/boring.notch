@@ -1,0 +1,108 @@
+name: "Release on Tag"
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Cancel any in-progress builds for the same tag
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: macos-latest
+    env:
+      PROJECT_NAME: boringNotch
+      XCODE_VERSION: "16.4"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project ${{ env.PROJECT_NAME }}.xcodeproj
+
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          XCODE_PATH="/Applications/Xcode_${XCODE_VERSION}.app"
+          if [[ ! -d "$XCODE_PATH" ]]; then
+            echo "Available Xcode versions:"
+            ls -d /Applications/Xcode*.app 2>/dev/null || echo "  (none found)"
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_PATH"
+          xcodebuild -version
+
+      - name: Set version
+        run: |
+          PBXPROJ="${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${VERSION}/g" "$PBXPROJ"
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${GITHUB_RUN_NUMBER}/g" "$PBXPROJ"
+
+      - name: Build and archive
+        run: |
+          xcodebuild clean archive \
+            -project ${{ env.PROJECT_NAME }}.xcodeproj \
+            -scheme ${{ env.PROJECT_NAME }} \
+            -archivePath ${{ env.PROJECT_NAME }} \
+            -destination "generic/platform=macOS" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO
+
+      - name: Export app
+        run: |
+          cat > "$RUNNER_TEMP/export_options.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>mac-application</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "${{ env.PROJECT_NAME }}.xcarchive" \
+            -exportPath Release \
+            -exportOptionsPlist "$RUNNER_TEMP/export_options.plist"
+
+      - name: Create DMG
+        run: |
+          VENV_DIR="$RUNNER_TEMP/venv"
+          python3 -m venv "$VENV_DIR"
+          source "$VENV_DIR/bin/activate"
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --require-hashes -r Configuration/dmg/requirements.txt
+          chmod +x Configuration/dmg/create_dmg.sh
+          ./Configuration/dmg/create_dmg.sh \
+            "Release/${{ env.PROJECT_NAME }}.app" \
+            "Release/${{ env.PROJECT_NAME }}.dmg" \
+            "${{ env.PROJECT_NAME }} ${{ steps.version.outputs.version }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@be5e2a8b1d0d4b1b1b1b1b1b1b1b1b1b1b1b1b
+        with:
+          draft: false
+          prerelease: false
+          files: Release/${{ env.PROJECT_NAME }}.dmg
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

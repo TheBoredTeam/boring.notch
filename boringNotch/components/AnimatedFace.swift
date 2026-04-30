@@ -242,6 +242,11 @@ struct SurprisedFaceFeatures: View {
 // MARK: - Sleepy Face
 struct SleepyFaceFeatures: View {
     let isBlinking: Bool
+    @State private var isYawning = false
+    @State private var yawnPhase: Int = 0 // 0: closed, 1: opening, 2: open, 3: closing
+    @State private var yawnTimer: Timer?
+    
+    private let yawnInterval: TimeInterval = 8.0 // yawn every 8 seconds
     
     var body: some View {
         VStack(spacing: 4) {
@@ -254,6 +259,27 @@ struct SleepyFaceFeatures: View {
                     .frame(width: 8, height: 2)
             }
             
+            yawnMouth
+        }
+        .frame(width: 28, height: 22)
+        .onAppear {
+            startYawnCycle()
+        }
+        .onDisappear {
+            yawnTimer?.invalidate()
+        }
+    }
+    
+    @ViewBuilder
+    private var yawnMouth: some View {
+        if isYawning {
+            // Yawning mouth - open oval
+            Ellipse()
+                .fill(Color.white)
+                .frame(width: yawnPhase == 2 ? 10 : 6, height: yawnPhase == 2 ? 8 : 5)
+                .animation(.easeInOut(duration: 0.3), value: yawnPhase)
+        } else {
+            // Normal sleepy mouth - small curve
             GeometryReader { geometry in
                 Path { path in
                     let w = geometry.size.width
@@ -265,7 +291,42 @@ struct SleepyFaceFeatures: View {
             }
             .frame(width: 12, height: 6)
         }
-        .frame(width: 28, height: 22)
+    }
+    
+    private func startYawnCycle() {
+        // Initial yawn after 3 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            triggerYawn()
+        }
+        
+        // Periodic yawns
+        yawnTimer = Timer.scheduledTimer(withTimeInterval: yawnInterval, repeats: true) { _ in
+            triggerYawn()
+        }
+    }
+    
+    private func triggerYawn() {
+        guard !isYawning else { return }
+        
+        isYawning = true
+        
+        // Opening
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            yawnPhase = 1
+        }
+        // Fully open
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            yawnPhase = 2
+        }
+        // Closing
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            yawnPhase = 3
+        }
+        // Done
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
+            isYawning = false
+            yawnPhase = 0
+        }
     }
 }
 
