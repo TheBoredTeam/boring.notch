@@ -1,0 +1,175 @@
+name: "Reusable Build"
+on:
+  workflow_call:
+    inputs:
+      head_ref:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+      build_number:
+        required: false
+        type: string
+      xcode_version:
+        required: false
+        type: string
+        default: "16.4"
+      code_sign_identity:
+        required: false
+        type: string
+        default: "Apple Development"
+    secrets:
+      BUILD_CERTIFICATE_BASE64:
+        required: true
+      P12_PASSWORD:
+        required: true
+      KEYCHAIN_PASSWORD:
+        required: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    env:
+      PROJECT_NAME: boringNotch
+      EXPORT_METHOD: development
+      VERSION_INPUT: ${{ inputs.version }}
+      BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
+      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
+      CODE_SIGN_IDENTITY: ${{ inputs.code_sign_identity }}
+      XCODE_VERSION: ${{ inputs.xcode_version }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.head_ref }}
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project ${{ env.PROJECT_NAME }}.xcodeproj
+
+      - name: Install Apple certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERT_PATH="$RUNNER_TEMP/build_certificate.p12"
+          KC="$RUNNER_TEMP/app-signing.keychain-db"
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security list-keychain -d user -s "$KC"
+
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          XCODE_PATH="/Applications/Xcode_${XCODE_VERSION}.app"
+          if [[ ! -d "$XCODE_PATH" ]]; then
+            echo "::error::Xcode ${XCODE_VERSION} not found at ${XCODE_PATH}"
+            echo "Available Xcode versions:"
+            ls -d /Applications/Xcode*.app 2>/dev/null || echo "  (none found)"
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_PATH"
+          xcodebuild -version
+
+      - name: Set version and build number
+        run: |
+          PBXPROJ="${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
+          VERSION="${{ env.VERSION_INPUT }}"
+          BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
+          if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
+            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          else
+            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+          fi
+          if [[ -n "$VERSION" ]]; then
+            sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${VERSION}/g" "$PBXPROJ"
+          fi
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${BUILD_NUMBER}/g" "$PBXPROJ"
+
+      - name: Commit version changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
+          VERSION="${{ env.VERSION_INPUT }}"
+          BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
+          if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
+            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          else
+            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+          fi
+          if [[ -n "$VERSION" ]]; then
+            COMMIT_MSG="Set version to v${VERSION} (build ${BUILD_NUMBER})"
+          else
+            COMMIT_MSG="Set build number to ${BUILD_NUMBER}"
+          fi
+          git commit -m "$COMMIT_MSG" || true
+          git push origin "HEAD:${{ inputs.head_ref }}" || true
+
+      - name: Build and archive
+        run: |
+          xcodebuild clean archive \
+            -project ${{ env.PROJECT_NAME }}.xcodeproj \
+            -scheme ${{ env.PROJECT_NAME }} \
+            -archivePath ${{ env.PROJECT_NAME }} \
+            -destination "generic/platform=macOS" \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            ONLY_ACTIVE_ARCH=NO \
+            -allowProvisioningUpdates
+
+      - name: Export app
+        run: |
+          cat > "$RUNNER_TEMP/export_options.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>${{ env.EXPORT_METHOD }}</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>${DEVELOPMENT_TEAM}</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "${{ env.PROJECT_NAME }}.xcarchive" \
+            -exportPath Release \
+            -exportOptionsPlist "$RUNNER_TEMP/export_options.plist"
+
+      - name: Verify generate_appcast exists
+        run: |
+          if [ ! -x Configuration/sparkle/generate_appcast ]; then
+            echo "::warning title=Missing generate_appcast::Configuration/sparkle/generate_appcast is not present or not executable; skipping appcast generation verification."
+          fi
+
+      - name: Create DMG
+        run: |
+          VENV_DIR="$RUNNER_TEMP/venv"
+          python3 -m venv "$VENV_DIR"
+          source "$VENV_DIR/bin/activate"
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --require-hashes -r Configuration/dmg/requirements.txt
+          chmod +x Configuration/dmg/create_dmg.sh
+          ./Configuration/dmg/create_dmg.sh \
+            "Release/${{ env.PROJECT_NAME }}.app" \
+            "Release/${{ env.PROJECT_NAME }}.dmg" \
+            "${{ env.PROJECT_NAME }} ${{ env.VERSION_INPUT }}"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.PROJECT_NAME }}.dmg
+          path: Release/${{ env.PROJECT_NAME }}.dmg
+
+      - name: Upload .app
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.PROJECT_NAME }}.app
+          path: Release/${{ env.PROJECT_NAME }}.app

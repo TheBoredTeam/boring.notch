@@ -1,3 +1,4 @@
+<!--- This issue template is being replaced with the updated issue form for new features -->
 ---
 name: Feature request
 about: Suggest an idea for this project
