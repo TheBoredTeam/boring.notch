@@ -157,6 +157,10 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		D90127532FA3514B00D9C496 /* BluetoothSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90127522FA3514500D9C496 /* BluetoothSettingsView.swift */; };
+		D901277C2FA3601C00D9C498 /* BluetoothDeviceSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90127782FA3601800D9C498 /* BluetoothDeviceSnapshot.swift */; };
+		D901277D2FA3601D00D9C498 /* BluetoothDeviceIconResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90127792FA3601900D9C498 /* BluetoothDeviceIconResolver.swift */; };
+		D901277E2FA3601E00D9C498 /* BluetoothPeripheralBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D901277A2FA3601A00D9C498 /* BluetoothPeripheralBatteryService.swift */; };
+		D901277F2FA3601F00D9C498 /* BluetoothConnectionMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D901277B2FA3601B00D9C498 /* BluetoothConnectionMonitor.swift */; };
 		D9958EED2ED3BA190021100C /* SymbolPicker in Frameworks */ = {isa = PBXBuildFile; productRef = D9958EEC2ED3BA190021100C /* SymbolPicker */; };
 		D9958EEE2ED468050021100C /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9B69FAF2ECFC09E009BDE40 /* IOBluetooth.framework */; };
 		D9958EF02ED4680A0021100C /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9958EEF2ED4680A0021100C /* CoreBluetooth.framework */; };
@@ -343,6 +347,10 @@
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		D90127522FA3514500D9C496 /* BluetoothSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothSettingsView.swift; sourceTree = "<group>"; };
+		D90127782FA3601800D9C498 /* BluetoothDeviceSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceSnapshot.swift; sourceTree = "<group>"; };
+		D90127792FA3601900D9C498 /* BluetoothDeviceIconResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceIconResolver.swift; sourceTree = "<group>"; };
+		D901277A2FA3601A00D9C498 /* BluetoothPeripheralBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothPeripheralBatteryService.swift; sourceTree = "<group>"; };
+		D901277B2FA3601B00D9C498 /* BluetoothConnectionMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothConnectionMonitor.swift; sourceTree = "<group>"; };
 		D9958EEF2ED4680A0021100C /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		D9B69FA22ECE8074009BDE40 /* BluetoothManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManager.swift; sourceTree = "<group>"; };
 		D9B69FAF2ECFC09E009BDE40 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
@@ -573,6 +581,9 @@
 				5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */,
 				14288E0B2C6F8EC000B9F80C /* AppIcons.swift */,
 				AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */,
+				D90127792FA3601900D9C498 /* BluetoothDeviceIconResolver.swift */,
+				D901277A2FA3601A00D9C498 /* BluetoothPeripheralBatteryService.swift */,
+				D901277B2FA3601B00D9C498 /* BluetoothConnectionMonitor.swift */,
 			);
 			path = helpers;
 			sourceTree = "<group>";
@@ -746,6 +757,7 @@
 				14D570C82C5F38890011E668 /* BoringViewModel.swift */,
 				14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */,
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
+				D90127782FA3601800D9C498 /* BluetoothDeviceSnapshot.swift */,
 			);
 			path = models;
 			sourceTree = "<group>";
@@ -1043,6 +1055,10 @@
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
 				14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */,
 				1113ABC52E80E27000EC13B2 /* ShelfItemView.swift in Sources */,
+				D901277C2FA3601C00D9C498 /* BluetoothDeviceSnapshot.swift in Sources */,
+				D901277D2FA3601D00D9C498 /* BluetoothDeviceIconResolver.swift in Sources */,
+				D901277E2FA3601E00D9C498 /* BluetoothPeripheralBatteryService.swift in Sources */,
+				D901277F2FA3601F00D9C498 /* BluetoothConnectionMonitor.swift in Sources */,
 				D9B69FA32ECE8074009BDE40 /* BluetoothManager.swift in Sources */,
 				1113ABC62E80E27000EC13B2 /* ShelfPersistenceService.swift in Sources */,
 				11DB26662EDD0BE1001EA0CF /* LyricsService.swift in Sources */,

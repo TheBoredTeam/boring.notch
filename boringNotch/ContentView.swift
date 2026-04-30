@@ -545,12 +545,12 @@ struct ContentView: View {
     func BluetoothLiveActivity() -> some View {
         VStack {
             HStack {
-                let iconName: String = bluetoothManager.getDeviceIcon(for: bluetoothManager.lastBluetoothDevice)
+                let iconName: String = bluetoothManager.deviceIconSymbolName
                 
                 Image(systemName: iconName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .foregroundStyle(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? Color.effectiveAccent : .gray)
+                    .foregroundStyle(bluetoothManager.deviceSnapshot?.isConnected == true ? Color.effectiveAccent : .gray)
                     .symbolRenderingMode(.monochrome)
                     .frame(
                         width: max(0, vm.effectiveClosedNotchHeight - 12),
@@ -567,7 +567,7 @@ struct ContentView: View {
                                 && Defaults[.bluetoothSneakPeekStyle] == .inline
                             {
                                 MarqueeText(
-                                    "\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")",
+                                    "\(bluetoothManager.deviceSnapshot?.name ?? "") - \(bluetoothManager.deviceSnapshot?.isConnected == true ? "Connected" : "Disconnected")",
                                     color: .gray,
                                     delayDuration: 0.4,
                                     frameWidth: 100
@@ -585,8 +585,8 @@ struct ContentView: View {
                         : vm.closedNotchSize.width
                         + (isHovering ? 8 : -cornerRadiusInsets.closed.top)
                     ) // RECTANGLE
-                if bluetoothManager.lastBluetoothDevice?.isConnected() == true {
-                    if let battery = bluetoothManager.batteryPercentage {
+                if bluetoothManager.deviceSnapshot?.isConnected == true {
+                    if let battery = bluetoothManager.deviceSnapshot?.batteryPercentage {
                         HStack {
                             BatteryRing(percentage: Double(battery))
                         }
@@ -634,7 +634,7 @@ struct ContentView: View {
                 HStack(alignment: .center) {
                     GeometryReader { geo in
                         MarqueeText(
-                            "\(bluetoothManager.lastBluetoothDevice?.name ?? "") - \(bluetoothManager.lastBluetoothDevice?.isConnected() == true ? "Connected" : "Disconnected")",
+                            "\(bluetoothManager.deviceSnapshot?.name ?? "") - \(bluetoothManager.deviceSnapshot?.isConnected == true ? "Connected" : "Disconnected")",
                             color: .gray,
                             delayDuration: 1,
                             frameWidth: geo.size.width,
