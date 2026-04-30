@@ -126,6 +126,10 @@ struct FaceView: View {
                 WinkFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
             case .happy:
                 HappyFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
+            case .angry:
+                AngryFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
+            case .love:
+                LoveFaceFeatures(isBlinking: isBlinking, animationPhase: animationPhase)
             }
         }
     }
@@ -345,6 +349,90 @@ struct HappyFaceFeatures: View {
         }
         .frame(width: 28, height: 24)
         .scaleEffect(animationPhase == 1 ? 1.05 : 1.0)
+    }
+}
+
+// MARK: - Angry Face
+struct AngryFaceFeatures: View {
+    let isBlinking: Bool
+    let animationPhase: Int
+    
+    var body: some View {
+        VStack(spacing: 3) {
+            // Angry eyebrows - left and right should slant toward center
+            HStack(spacing: 6) {
+                // Left eyebrow: \ (high on right, low on left)
+                Path { path in
+                    let w: CGFloat = 6
+                    let h: CGFloat = 3
+                    path.move(to: CGPoint(x: 0, y: 0))
+                    path.addLine(to: CGPoint(x: w, y: h))
+                }
+                .stroke(Color.white, lineWidth: 2)
+                
+                // Right eyebrow: / (high on left, low on right)
+                Path { path in
+                    let w: CGFloat = 6
+                    let h: CGFloat = 3
+                    path.move(to: CGPoint(x: 0, y: h))
+                    path.addLine(to: CGPoint(x: w, y: 0))
+                }
+                .stroke(Color.white, lineWidth: 2)
+            }
+            
+            // Eyes
+            HStack(spacing: 8) {
+                Eye(isBlinking: isBlinking)
+                Eye(isBlinking: isBlinking)
+            }
+            
+            // Frown mouth
+            GeometryReader { geometry in
+                Path { path in
+                    let w = geometry.size.width
+                    let h = geometry.size.height
+                    path.move(to: CGPoint(x: 0, y: 0))
+                    path.addQuadCurve(to: CGPoint(x: w, y: 0), control: CGPoint(x: w / 2, y: h))
+                }
+                .stroke(Color.white, lineWidth: 2)
+            }
+            .frame(width: 12, height: 6)
+        }
+        .frame(width: 28, height: 24)
+    }
+}
+
+// MARK: - Love Face
+struct LoveFaceFeatures: View {
+    let isBlinking: Bool
+    let animationPhase: Int
+    
+    var body: some View {
+        VStack(spacing: 3) {
+            HStack(spacing: 4) {
+                Image(systemName: "heart.fill")
+                    .resizable()
+                    .foregroundColor(.white)
+                    .frame(width: 6, height: 5)
+                Image(systemName: "heart.fill")
+                    .resizable()
+                    .foregroundColor(.white)
+                    .frame(width: 6, height: 5)
+            }
+            
+            GeometryReader { geometry in
+                Path { path in
+                    let w = geometry.size.width
+                    let h = geometry.size.height
+                    path.move(to: CGPoint(x: 0, y: 2))
+                    path.addQuadCurve(to: CGPoint(x: w, y: 2), control: CGPoint(x: w / 2, y: h))
+                }
+                .stroke(Color.white, lineWidth: 1.5)
+            }
+            .frame(width: 12, height: 6)
+        }
+        .frame(width: 26, height: 20)
+        .scaleEffect(animationPhase == 1 ? 1.08 : 1.0)
     }
 }
 
