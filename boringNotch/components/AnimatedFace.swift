@@ -361,21 +361,23 @@ struct AngryFaceFeatures: View {
     
     var body: some View {
         VStack(spacing: 3) {
-            // Angry eyebrows
+            // Angry eyebrows - left and right should slant toward center
             HStack(spacing: 6) {
+                // Left eyebrow: \ (high on right, low on left)
                 Path { path in
-                    let w: CGFloat = 8
-                    let h: CGFloat = 2
-                    path.move(to: CGPoint(x: 0, y: h))
-                    path.addLine(to: CGPoint(x: w, y: 0))
+                    let w: CGFloat = 6
+                    let h: CGFloat = 3
+                    path.move(to: CGPoint(x: 0, y: 0))
+                    path.addLine(to: CGPoint(x: w, y: h))
                 }
                 .stroke(Color.white, lineWidth: 2)
                 
+                // Right eyebrow: / (high on left, low on right)
                 Path { path in
-                    let w: CGFloat = 8
-                    let h: CGFloat = 2
-                    path.move(to: CGPoint(x: 0, y: 0))
-                    path.addLine(to: CGPoint(x: w, y: h))
+                    let w: CGFloat = 6
+                    let h: CGFloat = 3
+                    path.move(to: CGPoint(x: 0, y: h))
+                    path.addLine(to: CGPoint(x: w, y: 0))
                 }
                 .stroke(Color.white, lineWidth: 2)
             }
@@ -408,22 +410,21 @@ struct TongueFaceFeatures: View {
     let animationPhase: Int
     
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 3) {
             HStack(spacing: 6) {
                 Eye(isBlinking: isBlinking)
                 Eye(isBlinking: isBlinking)
             }
             
-            // Flat oval mouth
-            RoundedRectangle(cornerRadius: 4)
+            // Open mouth circle
+            Circle()
                 .fill(Color.white)
-                .frame(width: 10, height: 6)
+                .frame(width: 12, height: 12)
             
-            // Pink tongue sticking out
-            RoundedRectangle(cornerRadius: 2)
+            // Pink tongue in middle of mouth
+            Circle()
                 .fill(Color.pink)
-                .frame(width: 6, height: 5)
-                .offset(y: -2)
+                .frame(width: 6, height: 6)
         }
         .frame(width: 24, height: 24)
     }
