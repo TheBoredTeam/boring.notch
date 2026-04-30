@@ -9,6 +9,10 @@ import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
+private enum SettingsSidebarLayout {
+    static let assetTabIconLength: CGFloat = 16
+}
+
 private enum SettingsTab: String, CaseIterable, Identifiable {
     case general
     case appearance
@@ -50,7 +54,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .calendar: "calendar"
         case .osd: "dial.medium.fill"
         case .battery: "battery.100.bolt"
-        case .bluetooth: ""
+        case .bluetooth: "circle"
         case .shelf: "books.vertical"
         case .mirror: "camera"
         case .shortcuts: "keyboard"
@@ -61,7 +65,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     
     var resourceImage: String? {
         switch self {
-        case .bluetooth: return "bluetooth.settings"
+        case .bluetooth: return "bluetooth"
         default: return nil
         }
     }
@@ -81,8 +85,24 @@ struct SettingsView: View {
         NavigationSplitView {
             List(selection: $selectedTab) {
                 ForEach(SettingsTab.allCases) { tab in
-                    Label(tab.title, systemImage: tab.systemImage)
+                    if let assetImageName = tab.resourceImage {
+                        Label {
+                            Text(tab.title)
+                        } icon: {
+                            Image(assetImageName)
+                                .resizable()
+                                .renderingMode(.template)
+                                .aspectRatio(contentMode: .fit)
+                                .frame(
+                                    width: SettingsSidebarLayout.assetTabIconLength,
+                                    height: SettingsSidebarLayout.assetTabIconLength
+                                )
+                        }
                         .tag(tab)
+                    } else {
+                        Label(tab.title, systemImage: tab.systemImage)
+                            .tag(tab)
+                    }
                 }
             }
             .listStyle(SidebarListStyle())
