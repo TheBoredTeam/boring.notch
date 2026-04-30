@@ -14,14 +14,17 @@ struct TabModel: Identifiable {
     let view: NotchViews
 }
 
-let tabs = [
-    TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
-]
-
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Namespace var animation
+
+    private var tabs: [TabModel] {
+        [
+            TabModel(label: "Home", icon: "house.fill", view: .home),
+            TabModel(label: "Timer", icon: "timer", view: .timer),
+        ]
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             ForEach(tabs) { tab in
