@@ -51,7 +51,21 @@ struct ExpandedItem {
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
-    @Published var currentView: NotchViews = .home
+    @AppStorage("lastUsedTab") private var lastUsedTab: String = "home"
+
+    @Published var currentView: NotchViews = .home {
+        didSet {
+            if openLastTabByDefault {
+                lastUsedTab = currentView.rawValue
+            }
+        }
+    }
+
+    var restoredView: NotchViews {
+        let view = NotchViews(rawValue: lastUsedTab) ?? .home
+        // .shelf is no longer in the tab bar; fall back to home
+        return view == .shelf ? .home : view
+    }
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
