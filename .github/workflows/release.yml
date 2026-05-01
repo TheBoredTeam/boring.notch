@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release'
+        required: false
 
 permissions:
   contents: write
@@ -13,24 +18,53 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Get version
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "version=$TAG" >> $GITHUB_OUTPUT
 
       - name: Build
-        run: xcodebuild archive -project boringNotch.xcodeproj -scheme boringNotch -archivePath build/boringNotch -destination "generic/platform=macOS" CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
+        run: |
+          xcodebuild archive \
+            -project boringNotch.xcodeproj \
+            -scheme boringNotch \
+            -archivePath build/boringNotch \
+            -destination "generic/platform=macOS" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO
 
       - name: Export
-        run: mkdir -p Release && xcodebuild -exportArchive -archivePath build/boringNotch.xcarchive -exportPath Release -exportOptionsPlist - <<'PLIST'
+        run: |
+          mkdir -p Release
+          xcodebuild -exportArchive \
+            -archivePath build/boringNotch.xcarchive \
+            -exportPath Release \
+            -exportOptionsPlist - <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict><key>method</key><string>mac-application</string></dict>
+<dict>
+  <key>method</key>
+  <string>mac-application</string>
+</dict>
 </plist>
 PLIST
 
       - name: DMG
-        run: hdiutil create -volname boringNotch -srcfolder Release/boringNotch.app -ov -format UDZO Release/boringNotch.dmg
+        run: |
+          hdiutil create -volname boringNotch \
+            -srcfolder Release/boringNotch.app \
+            -ov -format UDZO \
+            Release/boringNotch.dmg
 
-      - uses: softprops/action-gh-release@v2
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
           files: Release/boringNotch.dmg
+          tag: ${{ github.event.inputs.tag || github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
