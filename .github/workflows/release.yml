@@ -59,21 +59,32 @@ jobs:
         run: |
           mkdir -p Release
           cat > "$RUNNER_TEMP/export_options.plist" <<'EOF'
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-            <key>method</key>
-            <string>mac-application</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-            </dict>
-            </plist>
-          EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>method</key>
+  <string>mac-application</string>
+  <key>signingStyle</key>
+  <string>automatic</string>
+</dict>
+</plist>
+EOF
           xcodebuild -exportArchive \
             -archivePath "${{ env.PROJECT_NAME }}.xcarchive" \
             -exportPath Release \
             -exportOptionsPlist "$RUNNER_TEMP/export_options.plist"
+
+      - name: Fix code signatures (ad-hoc sign all frameworks + app)
+        run: |
+          echo "Ad-hoc signing all embedded frameworks..."
+          for f in "Release/${{ env.PROJECT_NAME }}.app/Contents/Frameworks"/*.framework; do
+            echo "  Signing $(basename $f)..."
+            codesign --force --sign - "$f" 2>/dev/null || true
+          done
+          echo "Ad-hoc signing main app bundle..."
+          codesign --force --sign - "Release/${{ env.PROJECT_NAME }}.app" 2>/dev/null || true
+          echo "Done."
 
       - name: Create DMG
         run: |
