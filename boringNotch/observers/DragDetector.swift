@@ -5,119 +5,133 @@
 //  Created by Alexander on 2025-11-20.
 //
 
-import Cocoa
-import UniformTypeIdentifiers
+import AppKit
 
 final class DragDetector {
 
-    // MARK: - Callbacks
-
     typealias VoidCallback = () -> Void
-    typealias PositionCallback = (_ globalPoint: CGPoint) -> Void
 
     var onDragEntersNotchRegion: VoidCallback?
     var onDragExitsNotchRegion: VoidCallback?
-    var onDragMove: PositionCallback?
 
+    private let panel: HitPanel
+    private let hitView: HitView
 
-    private var mouseDownMonitor: Any?
-    private var mouseDraggedMonitor: Any?
-    private var mouseUpMonitor: Any?
+    init(screen: NSScreen) {
+        let view = HitView()
+        hitView = view
 
-    private var pasteboardChangeCount: Int = -1
-    private var isDragging: Bool = false
-    private var isContentDragging: Bool = false
-    private var hasEnteredNotchRegion: Bool = false
-
-    private let notchRegion: CGRect
-    private let dragPasteboard = NSPasteboard(name: .drag)
-
-    init(notchRegion: CGRect) {
-        self.notchRegion = notchRegion
-    }
-
-    // MARK: - Private Helpers
-    
-    /// Checks if the drag pasteboard contains valid content types that can be dropped on the shelf
-    private func hasValidDragContent() -> Bool {
-        let validTypes: [NSPasteboard.PasteboardType] = [
-            .fileURL,
-            NSPasteboard.PasteboardType(UTType.url.identifier),
-            .string
+        panel = HitPanel(
+            contentRect: .zero,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        panel.isFloatingPanel = true
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = false
+        panel.isMovable = false
+        panel.isReleasedWhenClosed = false
+        panel.level = .mainMenu + 4
+        panel.collectionBehavior = [
+            .canJoinAllSpaces,
+            .stationary,
+            .fullScreenAuxiliary,
+            .ignoresCycle,
         ]
-        let isValid = dragPasteboard.pasteboardItems?.allSatisfy { item in
-            item.types.allSatisfy { validTypes.contains($0) }
-        }
-        return isValid ?? false
+        panel.contentView = view
+
+        view.onDragEntered = { [weak self] in self?.onDragEntersNotchRegion?() }
+        view.onDragExited = { [weak self] in self?.onDragExitsNotchRegion?() }
+
+        updateFrame(for: screen)
     }
 
     func startMonitoring() {
-        stopMonitoring()
-
-        // Track pasteboard to detect content drag
-        mouseDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] _ in
-            guard let self = self else { return }
-            self.pasteboardChangeCount = self.dragPasteboard.changeCount
-            self.isDragging = true
-            self.isContentDragging = false
-            self.hasEnteredNotchRegion = false
-        }
-
-        // Track drag movement and notch region intersection
-        mouseDraggedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged]) { [weak self] event in
-            guard let self = self else { return }
-            guard self.isDragging else { return }
-
-            let newContent = self.dragPasteboard.changeCount != self.pasteboardChangeCount
-            
-            // Detect if actual content is being dragged AND it's valid content
-            if newContent && !self.isContentDragging && self.hasValidDragContent() {
-                self.isContentDragging = true
-            }
-
-            // Only process position when content is being dragged
-            if self.isContentDragging {
-                let mouseLocation = NSEvent.mouseLocation
-                self.onDragMove?(mouseLocation)
-                
-                // Track notch region entry/exit
-                let containsMouse = self.notchRegion.contains(mouseLocation)
-                if containsMouse && !self.hasEnteredNotchRegion {
-                    self.hasEnteredNotchRegion = true
-                    self.onDragEntersNotchRegion?()
-                } else if !containsMouse && self.hasEnteredNotchRegion {
-                    self.hasEnteredNotchRegion = false
-                    self.onDragExitsNotchRegion?()
-                }
-            }
-        }
-
-        mouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
-            guard let self = self else { return }
-            guard self.isDragging else { return }
-            
-            self.isDragging = false
-            self.isContentDragging = false
-            self.hasEnteredNotchRegion = false
-            self.pasteboardChangeCount = -1
-        }
+        // Join the notch CGSSpace so the dragging session enumerates this panel
+        // alongside BoringNotchSkyLightWindow rather than below it. Without this
+        // the notch panel (which sits in the max-level space but has no
+        // registered drag types) shadows the hit panel, so draggingEntered: is
+        // never delivered.
+        NotchSpaceManager.shared.notchSpace.windows.insert(panel)
+        panel.orderFrontRegardless()
     }
 
     func stopMonitoring() {
-        [mouseDownMonitor, mouseDraggedMonitor, mouseUpMonitor].forEach { monitor in
-            if let monitor = monitor {
-                NSEvent.removeMonitor(monitor)
-            }
-        }
-        mouseDownMonitor = nil
-        mouseDraggedMonitor = nil
-        mouseUpMonitor = nil
-        isDragging = false
-        isContentDragging = false
-        hasEnteredNotchRegion = false
+        NotchSpaceManager.shared.notchSpace.windows.remove(panel)
+        panel.orderOut(nil)
+        panel.close()
     }
 
     deinit {
         stopMonitoring()
+    }
+
+    private func updateFrame(for screen: NSScreen) {
+        let frame = screen.frame
+        let rect = NSRect(
+            x: frame.midX - openNotchSize.width / 2,
+            y: frame.maxY - openNotchSize.height,
+            width: openNotchSize.width,
+            height: openNotchSize.height
+        )
+        panel.setFrame(rect, display: false)
+        hitView.frame = NSRect(origin: .zero, size: rect.size)
+    }
+}
+
+private final class HitPanel: NSPanel {
+    override var canBecomeKey: Bool { false }
+    override var canBecomeMain: Bool { false }
+}
+
+private final class HitView: NSView {
+
+    var onDragEntered: (() -> Void)?
+    var onDragExited: (() -> Void)?
+
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        registerForDraggedTypes([
+            .fileURL,
+            .URL,
+            .string,
+            .tiff,
+            .png,
+            .pdf,
+            .rtf,
+            .html,
+            NSPasteboard.PasteboardType("public.file-url"),
+            NSPasteboard.PasteboardType("public.url"),
+            NSPasteboard.PasteboardType("com.apple.pasteboard.promised-file-url"),
+            NSPasteboard.PasteboardType("com.apple.pasteboard.promised-file-content-type"),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    // Pass clicks through when no drag is in progress so the menu bar / windows
+    // beneath this transparent overlay stay clickable. The dragging session
+    // populates the .drag pasteboard before evaluating destinations, so a
+    // non-empty type list is a reliable signal that a drag is active.
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        guard NSPasteboard(name: .drag).types?.isEmpty == false else { return nil }
+        return super.hitTest(point)
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        onDragEntered?()
+        return .copy
+    }
+
+    override func draggingExited(_ sender: NSDraggingInfo?) {
+        onDragExited?()
+    }
+
+    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        false
     }
 }
