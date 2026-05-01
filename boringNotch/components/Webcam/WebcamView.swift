@@ -19,15 +19,17 @@ struct CameraPreviewView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                if let previewLayer = webcamManager.previewLayer {
+                // Only show preview layer when session is actually running
+                if webcamManager.isSessionRunning, let previewLayer = webcamManager.previewLayer {
                     CameraPreviewLayerView(previewLayer: previewLayer)
                         .scaleEffect(x: -1, y: 1)
                         .clipShape(RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? !Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.closed : MusicPlayerImageSizes.cornerRadiusInset.opened : 100))
                         .frame(width: geometry.size.width, height: geometry.size.width)
-                        .opacity(webcamManager.isSessionRunning ? 1 : 0)
+                        .layoutPriority(1)
                 }
 
-                if !webcamManager.isSessionRunning {
+                // Only show placeholder when there's no active preview
+                if !webcamManager.isSessionRunning || webcamManager.previewLayer == nil {
                     ZStack {
                         RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? !Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.closed : 12 : 100)
                             .fill(Color(red: 20/255, green: 20/255, blue: 20/255))

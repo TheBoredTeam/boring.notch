@@ -263,12 +263,15 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     func startSession() {
+        NSLog("[WebcamManager] startSession called - current session: \(self.captureSession != nil ? "exists" : "nil"), isRunning: \(self.captureSession?.isRunning ?? false)")
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             
             // If no session exists, create new session
             if self.captureSession == nil {
+                NSLog("[WebcamManager] No session exists, creating new one...")
                 self.setupCaptureSession { success in
+                    NSLog("[WebcamManager] setupCaptureSession completed: \(success)")
                     if success {
                         // Only start the session if setup was successful
                         self.startRunningCaptureSession()
@@ -276,6 +279,7 @@ class WebcamManager: NSObject, ObservableObject {
                 }
             } else {
                 // Session already exists, just start it
+                NSLog("[WebcamManager] Session exists, starting...")
                 self.startRunningCaptureSession()
             }
         }
@@ -284,6 +288,7 @@ class WebcamManager: NSObject, ObservableObject {
     private func startRunningCaptureSession() {
         sessionQueue.async { [weak self] in
             guard let self = self, let session = self.captureSession, !session.isRunning else {
+                NSLog("[WebcamManager] startRunningCaptureSession: session nil or already running")
                 return
             }
             
@@ -292,7 +297,7 @@ class WebcamManager: NSObject, ObservableObject {
             // Update state on main thread
             self.updateSessionState()
             
-            NSLog("Capture session started successfully")
+            NSLog("[WebcamManager] Capture session started successfully - isRunning: \(session.isRunning)")
         }
     }
     
