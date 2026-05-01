@@ -1,4 +1,4 @@
-name: "Release on Tag"
+name: "Build Release"
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build-and-release:
-    name: Build and Release
+    name: Build Release
     runs-on: macos-latest
     env:
       PROJECT_NAME: boringNotch
@@ -34,33 +34,22 @@ jobs:
       - name: Resolve Swift packages
         run: xcodebuild -resolvePackageDependencies -project ${{ env.PROJECT_NAME }}.xcodeproj
 
-      - name: Select Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app || true
-          xcodebuild -version || echo "Xcode version set"
-
-      - name: Set version
-        run: |
-          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${{ steps.version.outputs.version }}/g" ${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj
-          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = $GITHUB_RUN_NUMBER/g" ${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj
-
       - name: Build
         run: |
           xcodebuild clean archive \
             -project ${{ env.PROJECT_NAME }}.xcodeproj \
             -scheme ${{ env.PROJECT_NAME }} \
-            -archivePath ${{ env.PROJECT_NAME }} \
+            -archivePath build/${{ env.PROJECT_NAME }} \
             -destination "generic/platform=macOS" \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            ONLY_ACTIVE_ARCH=NO
+            CODE_SIGNING_ALLOWED=NO
 
-      - name: Export
+      - name: Export app
         run: |
           mkdir -p Release
           xcodebuild -exportArchive \
-            -archivePath ${{ env.PROJECT_NAME }}.xcarchive \
+            -archivePath build/${{ env.PROJECT_NAME }}.xcarchive \
             -exportPath Release \
             -exportOptionsPlist - <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -75,13 +64,16 @@ EOF
 
       - name: Create DMG
         run: |
-          hdiutil create -volname "${{ env.PROJECT_NAME }}" -srcfolder Release/${{ env.PROJECT_NAME }}.app -ov -format UDZO Release/${{ env.PROJECT_NAME }}.dmg || \
-          echo "DMG creation via hdiutil failed, using app bundle"
+          hdiutil create -volname "${{ env.PROJECT_NAME }}" \
+            -srcfolder "Release/${{ env.PROJECT_NAME }}.app" \
+            -ov -format UDZO \
+            "Release/${{ env.PROJECT_NAME }}.dmg"
 
       - name: Upload Release
         uses: softprops/action-gh-release@v2
         with:
           draft: false
+          prerelease: false
           files: Release/${{ env.PROJECT_NAME }}.dmg
           generate_release_notes: true
         env:
