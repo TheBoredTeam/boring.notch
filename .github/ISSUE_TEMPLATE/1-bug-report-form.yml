@@ -36,7 +36,7 @@ body:
         Settings > About)
       options:
         - Select a version
-        - v1.0.3
+        - v1.0.4
     validations:
       required: true
   - type: input
