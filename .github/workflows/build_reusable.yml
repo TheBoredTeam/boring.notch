@@ -23,6 +23,13 @@ on:
         required: false
         type: boolean
         default: true
+    secrets:
+      BUILD_CERTIFICATE_BASE64:
+        required: true
+      P12_PASSWORD:
+        required: true
+      KEYCHAIN_PASSWORD:
+        required: true
 
 jobs:
   build:
@@ -38,7 +45,7 @@ jobs:
       CODE_SIGN_IDENTITY: ${{ inputs.code_sign_identity }}
       XCODE_VERSION: ${{ inputs.xcode_version }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.head_ref }}
 
@@ -152,7 +159,8 @@ jobs:
           VENV_DIR="$RUNNER_TEMP/venv"
           python3 -m venv "$VENV_DIR"
           source "$VENV_DIR/bin/activate"
-          pip install --upgrade pip setuptools wheel "dmgbuild[badge_icons]"
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --require-hashes -r Configuration/dmg/requirements.txt
           chmod +x Configuration/dmg/create_dmg.sh
           ./Configuration/dmg/create_dmg.sh \
             "Release/${{ env.PROJECT_NAME }}.app" \
@@ -160,13 +168,13 @@ jobs:
             "${{ env.PROJECT_NAME }} ${{ env.VERSION_INPUT }}"
 
       - name: Upload DMG
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.PROJECT_NAME }}.dmg
           path: Release/${{ env.PROJECT_NAME }}.dmg
 
       - name: Upload .app
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.PROJECT_NAME }}.app
           path: Release/${{ env.PROJECT_NAME }}.app

@@ -29,7 +29,7 @@ jobs:
       commit_message: ${{ steps.meta.outputs.commit_message }}
     steps:
       - name: Checkout dev
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: dev
 
@@ -41,10 +41,10 @@ jobs:
           COMMIT_SHA="$(git rev-parse HEAD)"
           SHORT_SHA="${COMMIT_SHA::7}"
           COMMIT_MESSAGE="$(git log -1 --pretty=%s)"
-          TAG="nightly-${BRANCH_NAME}-${SHORT_SHA}"
           APPCAST_FILE="appcast-${BRANCH_NAME}.xml"
           BUILD_NUMBER="$(date -u +%Y%m%d%H%M%S)$(printf '%06d%02d' "${GITHUB_RUN_NUMBER:-0}" "${GITHUB_RUN_ATTEMPT:-0}")"
-          ASSET_NAME="boringNotch-${BRANCH_NAME}-${SHORT_SHA}.dmg"
+          TAG="nightly-${BRANCH_NAME}-${SHORT_SHA}-${BUILD_NUMBER}"
+          ASSET_NAME="boringNotch-${BRANCH_NAME}-${SHORT_SHA}-${BUILD_NUMBER}.dmg"
           {
             echo "branch_name=$BRANCH_NAME"
             echo "commit_sha=$COMMIT_SHA"
@@ -61,7 +61,7 @@ jobs:
     needs: [prepare]
     uses: ./.github/workflows/build_reusable.yml
     with:
-      head_ref: ${{ needs.prepare.outputs.branch_name }}
+      head_ref: ${{ needs.prepare.outputs.commit_sha }}
       version: ""
       build_number: ${{ needs.prepare.outputs.build_number }}
       xcode_version: "16.4"
@@ -90,12 +90,12 @@ jobs:
       COMMIT_MESSAGE: ${{ needs.prepare.outputs.commit_message }}
     steps:
       - name: Checkout branch
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ env.BRANCH_NAME }}
+          ref: ${{ env.COMMIT_SHA }}
 
       - name: Download DMG artifact
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ env.PROJECT_NAME }}.dmg
           path: Release
@@ -115,14 +115,88 @@ jobs:
           <p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/${COMMIT_SHA}">View commit</a></p>
           HTML
 
+      - name: Build Sparkle generate_appcast from source
+        run: |
+          set -euo pipefail
+          SPARKLE_METADATA_PATH="boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          SPARKLE_SRC="$RUNNER_TEMP/Sparkle"
+          SPARKLE_DERIVED="$RUNNER_TEMP/sparkle-derived"
+          SPARKLE_REPO_URL="https://github.com/sparkle-project/Sparkle"
+
+          IFS=$'\t' read -r SPARKLE_VERSION SPARKLE_REVISION <<< "$(python3 - "$SPARKLE_METADATA_PATH" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          data = json.loads(path.read_text())
+          pins = data.get("pins", [])
+
+          sparkle = next((pin for pin in pins if pin.get("identity") == "sparkle"), None)
+          if sparkle is None:
+              print(f"::error::No 'sparkle' pin found in {path}", file=sys.stderr)
+              sys.exit(1)
+
+          state = sparkle.get("state", {})
+          version = state.get("version")
+          revision = state.get("revision")
+
+          if not version:
+              print(f"::error::Sparkle pin in {path} is not version-pinned", file=sys.stderr)
+              sys.exit(1)
+
+          if not revision:
+              print(f"::error::Sparkle pin in {path} has no revision", file=sys.stderr)
+              sys.exit(1)
+
+          print(f"{version}\t{revision}")
+          PY
+          )"
+
+          SPARKLE_TAG=""
+          for candidate in "$SPARKLE_VERSION" "v$SPARKLE_VERSION"; do
+            if git ls-remote --exit-code --tags "$SPARKLE_REPO_URL" "refs/tags/$candidate" >/dev/null; then
+              SPARKLE_TAG="$candidate"
+              break
+            else
+              ls_remote_exit=$?
+              if [[ "$ls_remote_exit" -ne 2 ]]; then
+                echo "::error::Failed to query Sparkle tags from $SPARKLE_REPO_URL while checking $candidate"
+                exit 1
+              fi
+            fi
+          done
+
+          [[ -n "$SPARKLE_TAG" ]] || { echo "::error::Could not find Sparkle tag $SPARKLE_VERSION or v$SPARKLE_VERSION"; exit 1; }
+
+          git clone --depth 1 --branch "$SPARKLE_TAG" --single-branch "$SPARKLE_REPO_URL" "$SPARKLE_SRC"
+
+          ACTUAL_REVISION="$(git -C "$SPARKLE_SRC" rev-parse HEAD)"
+          if [[ "$ACTUAL_REVISION" != "$SPARKLE_REVISION" ]]; then
+            echo "::error::Sparkle tag ${SPARKLE_TAG} resolves to ${ACTUAL_REVISION}, expected ${SPARKLE_REVISION}"
+            exit 1
+          fi
+
+          xcodebuild -project "$SPARKLE_SRC/Sparkle.xcodeproj" \
+            -scheme generate_appcast \
+            -configuration Release \
+            -derivedDataPath "$SPARKLE_DERIVED" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+          APPCAST_BIN="$SPARKLE_DERIVED/Build/Products/Release/generate_appcast"
+          [[ -x "$APPCAST_BIN" ]] || { echo "::error::generate_appcast was not built"; exit 1; }
+
+          install -m 0755 "$APPCAST_BIN" "$RUNNER_TEMP/generate_appcast"
+
       - name: Generate signed nightly appcast
         run: |
           set -euo pipefail
-          test -x Configuration/sparkle/generate_appcast || {
-            echo "::error::Configuration/sparkle/generate_appcast missing or not executable"; exit 1;
+          test -x "$RUNNER_TEMP/generate_appcast" || {
+            echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
           }
           DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/${TAG}/"
-          printf '%s' "$SPARKLE_PRIVATE_KEY" | ./Configuration/sparkle/generate_appcast \
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
             --ed-key-file - \
             --link "https://github.com/TheBoredTeam/boring.notch/commits/${BRANCH_NAME}" \
             --download-url-prefix "${DOWNLOAD_PREFIX}" \

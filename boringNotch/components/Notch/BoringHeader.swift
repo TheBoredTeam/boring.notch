@@ -65,7 +65,10 @@ struct BoringHeader: View {
                         }
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
-                                SettingsWindowController.shared.showWindow()
+                                DispatchQueue.main.async {
+                                    SettingsWindowController.shared.showWindow()
+                                }
+                                
                             }) {
                                 Capsule()
                                     .fill(.black)
@@ -88,6 +91,7 @@ struct BoringHeader: View {
                                 levelBattery: batteryModel.levelBattery,
                                 maxCapacity: batteryModel.maxCapacity,
                                 timeToFullCharge: batteryModel.timeToFullCharge,
+                                timeToDischarge: batteryModel.timeToDischarge,
                                 isForNotification: false
                             )
                         }

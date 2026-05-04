@@ -99,6 +99,7 @@ class BoringViewCoordinator: ObservableObject {
     @Published var optionKeyPressed: Bool = true
     private var accessibilityObserver: Any?
     private var osdReplacementCancellable: AnyCancellable?
+    private var boringShelfCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
 
     private init() {
@@ -162,6 +163,15 @@ class BoringViewCoordinator: ObservableObject {
             Defaults.publisher(.osdBrightnessSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } },
             Defaults.publisher(.osdVolumeSource).sink { [weak self] _ in Task { @MainActor in self?.applyOSDSources() } }
         ]
+        boringShelfCancellable = Defaults.publisher(.boringShelf)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    if !change.newValue && self.currentView == .shelf {
+                        self.currentView = .home
+                    }
+                }
+            }
 
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
@@ -288,6 +298,7 @@ class BoringViewCoordinator: ObservableObject {
             BetterDisplayManager.shared.stopObserving()
             LunarManager.shared.stopListening()
             LunarManager.shared.configureLunarOSD(hide: false)
+            MediaKeyInterceptor.shared.stop()
             return
         }
 

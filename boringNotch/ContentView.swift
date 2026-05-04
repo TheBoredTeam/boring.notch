@@ -28,6 +28,9 @@ struct ContentView: View {
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
     @State private var gestureProgress: CGFloat = .zero
+    @State private var horizontalMediaGestureTriggered = false
+    @State private var horizontalMediaGestureFeedback: CGFloat = .zero
+    @State private var isHoveringMusicArea = false
 
     @State private var haptics: Bool = false
 
@@ -93,7 +96,7 @@ struct ContentView: View {
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
+            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
@@ -169,6 +172,15 @@ struct ContentView: View {
                                 handleUpGesture(translation: translation, phase: phase)
                             }
                     }
+                    .conditionalModifier(Defaults[.enableHorizontalMediaGestures] && Defaults[.enableGestures]) { view in
+                        view
+                            .panGesture(direction: .left) { translation, phase in
+                                handleNextTrackGesture(translation: translation, phase: phase)
+                            }
+                            .panGesture(direction: .right) { translation, phase in
+                                handlePreviousTrackGesture(translation: translation, phase: phase)
+                            }
+                    }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
                             hoverTask?.cancel()
@@ -207,7 +219,9 @@ struct ContentView: View {
                     .sensoryFeedback(.alignment, trigger: haptics)
                     .contextMenu {
                         Button("Settings") {
-                            SettingsWindowController.shared.showWindow()
+                            DispatchQueue.main.async {
+                                SettingsWindowController.shared.showWindow()
+                            }
                         }
                         .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
                         //                    Button("Edit") { // Doesnt work....
@@ -240,9 +254,10 @@ struct ContentView: View {
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
-                if vm.notchState == .closed {
-                    coordinator.currentView = .shelf
-                    doOpen()
+                if Defaults[.boringShelf] && vm.notchState == .closed {
+                    if doOpen() {
+                        coordinator.currentView = .shelf
+                    }
                 }
                 return
             }
@@ -380,7 +395,11 @@ struct ContentView: View {
                 VStack {
                     switch coordinator.currentView {
                     case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        NotchHomeView(
+                            albumArtNamespace: albumArtNamespace,
+                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                            isHoveringMusicArea: $isHoveringMusicArea
+                        )
                     case .shelf:
                         ShelfView()
                     }
@@ -488,8 +507,7 @@ struct ContentView: View {
                         && coordinator.expandingView.type == .music
                         && Defaults[.sneakPeekStyles] == .inline)
                         ? 380
-                        : vm.closedNotchSize.width
-                            + -cornerRadiusInsets.closed.top
+                        : vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
                 )
 
             HStack {
@@ -499,7 +517,7 @@ struct ContentView: View {
                     ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
                     : Color.gray
                 )
-                .frame(width: 16, height: 12)
+                .frame(width: 18, height: 12)
             }
             .frame(
                 width: max(
@@ -536,10 +554,13 @@ struct ContentView: View {
         }
     }
 
-    private func doOpen() {
+    @discardableResult
+    private func doOpen() -> Bool {
+        var didOpen = false
         withAnimation(animationSpring) {
-            vm.open()
+            didOpen = vm.open()
         }
+        return didOpen
     }
 
     // MARK: - Hover Management
@@ -641,6 +662,87 @@ struct ContentView: View {
             if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
+        }
+    }
+
+    private func handleNextTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: -1) {
+            musicManager.nextTrack()
+        }
+    }
+
+    private func handlePreviousTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: 1) {
+            musicManager.previousTrack()
+        }
+    }
+
+    private func handleHorizontalMediaGesture(
+        translation: CGFloat,
+        phase: NSEvent.Phase,
+        feedback: CGFloat,
+        action: () -> Void
+    ) {
+        guard isHorizontalMediaGestureContext else {
+            resetHorizontalMediaGesture()
+            return
+        }
+        guard phase != .ended else {
+            resetHorizontalMediaGesture()
+            return
+        }
+        guard !horizontalMediaGestureTriggered else { return }
+        guard translation > Defaults[.gestureSensitivity] else { return }
+
+        horizontalMediaGestureTriggered = true
+        triggerHorizontalMediaFeedback(feedback)
+        action()
+
+        if Defaults[.enableHaptics] {
+            haptics.toggle()
+        }
+    }
+
+    private func resetHorizontalMediaGesture() {
+        horizontalMediaGestureTriggered = false
+    }
+
+    private func triggerHorizontalMediaFeedback(_ feedback: CGFloat) {
+        withAnimation(.interactiveSpring(response: 0.18, dampingFraction: 0.62)) {
+            horizontalMediaGestureFeedback = feedback
+            if vm.notchState == .closed {
+                gestureProgress = 2
+            }
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(140))
+            withAnimation(animationSpring) {
+                horizontalMediaGestureFeedback = .zero
+                if vm.notchState == .closed {
+                    gestureProgress = .zero
+                }
+            }
+        }
+    }
+
+    private var isHorizontalMediaGestureContext: Bool {
+        switch vm.notchState {
+        case .closed:
+            guard !vm.hideOnClosed else { return false }
+
+            if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
+                return coordinator.sneakPeekState(for: vm.screenUUID).type == .music
+            }
+
+            guard !coordinator.expandingView.show || coordinator.expandingView.type == .music else {
+                return false
+            }
+
+            return coordinator.musicLiveActivityEnabled && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+
+        case .open:
+            return coordinator.currentView == .home && !musicManager.isPlayerIdle && isHoveringMusicArea
         }
     }
 }

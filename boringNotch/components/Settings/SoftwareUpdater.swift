@@ -5,19 +5,9 @@
 //  Created by Richard Kunkli on 09/08/2024.
 //
 
-import SwiftUI
 import Defaults
 import Sparkle
-
-final class UpdateChannelUpdaterDelegate: NSObject, SPUUpdaterDelegate {
-    @objc func feedURLString(for updater: SPUUpdater) -> String? {
-        Defaults[.updateChannel].feedURLString
-    }
-
-    @objc func allowedChannels(for updater: SPUUpdater) -> Set<String> {
-        Defaults[.updateChannel].allowedSparkleChannels
-    }
-}
+import SwiftUI
 
 final class CheckForUpdatesViewModel: ObservableObject {
     @Published var canCheckForUpdates = false
@@ -77,6 +67,9 @@ struct UpdaterSettingsView: View {
                 ForEach(UpdateChannel.allCases) { channel in
                     Text(channel.title).tag(channel)
                 }
+            }
+            .onChange(of: updateChannel) { _, _ in
+                updater.resetUpdateCycle()
             }
 
             Toggle("Automatically check for updates", isOn: $automaticallyChecksForUpdates)

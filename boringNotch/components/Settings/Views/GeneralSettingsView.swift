@@ -14,9 +14,11 @@ struct GeneralSettings: View {
         guard let uuid = screen.displayUUID else { return nil }
         return (uuid, screen.localizedName)
     }
+    @State private var showLanguageRestartAlert = false
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
+    @Default(.appLanguage) var appLanguage
     @Default(.mirrorShape) var mirrorShape
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
@@ -43,6 +45,15 @@ struct GeneralSettings: View {
                 .tint(.effectiveAccent)
                 LaunchAtLogin.Toggle() {
                     Text("Launch at login")
+                }
+                Picker("Language", selection: $appLanguage) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(language.displayName).tag(language)
+                    }
+                }
+                .onChange(of: appLanguage) {
+                    appLanguage.applyAppleLanguagesOverride()
+                    showLanguageRestartAlert = true
                 }
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
@@ -95,7 +106,7 @@ struct GeneralSettings: View {
                         // Get the actual notch height from the built-in display
                         notchHeight = getRealNotchHeight()
                     case .matchMenuBar:
-                        notchHeight = 43
+                        notchHeight = getMenuBarHeight(hasNotch: true)
                     case .custom:
                         notchHeight = 38
                     }
@@ -112,7 +123,7 @@ struct GeneralSettings: View {
                     }
                 }
                 Picker("Notch height on non-notch displays", selection: $nonNotchHeightMode) {
-                    Text("Match menubar height")
+                    Text("Match menu bar height")
                         .tag(WindowHeightMode.matchMenuBar)
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
@@ -120,7 +131,7 @@ struct GeneralSettings: View {
                 .onChange(of: nonNotchHeightMode) {
                     switch nonNotchHeightMode {
                     case .matchMenuBar:
-                        nonNotchHeight = 23
+                        nonNotchHeight = getMenuBarHeight(hasNotch: false)
                     case .matchRealNotchSize, .custom:
                         nonNotchHeight = 23
                     }
@@ -168,6 +179,14 @@ struct GeneralSettings: View {
                 enableGestures = true
             }
         }
+        .alert("Restart to apply language", isPresented: $showLanguageRestartAlert) {
+            Button("Later", role: .cancel) {}
+            Button("Restart Now") {
+                ApplicationRelauncher.restart()
+            }
+        } message: {
+            Text("Changing the app language requires restarting Boring Notch.")
+        }
     }
 
     @ViewBuilder
@@ -178,8 +197,9 @@ struct GeneralSettings: View {
             }
                 .disabled(!openNotchOnHover)
             if enableGestures {
-                Toggle("Change media with horizontal gestures", isOn: .constant(false))
-                    .disabled(true)
+                Defaults.Toggle(key: .enableHorizontalMediaGestures) {
+                    Text("Change media with horizontal gestures")
+                }
                 Defaults.Toggle(key: .closeGestureEnabled) {
                     Text("Close gesture")
                 }
