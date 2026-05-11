@@ -18,12 +18,12 @@ struct CapsLockIndicatorView: View {
                     .foregroundStyle(.green)
                 Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(width: 88, alignment: .leading)
             .padding(.leading, 8)
 
             Rectangle()
                 .fill(.black)
-                .frame(width: vm.closedNotchSize.width)
+                .frame(width: vm.closedNotchSize.width - 20)
 
             HStack {
                 Spacer(minLength: 0)
@@ -33,7 +33,7 @@ struct CapsLockIndicatorView: View {
                     .foregroundStyle(.green)
                     .lineLimit(1)
             }
-            .frame(maxWidth: .infinity, alignment: .trailing)
+            .frame(width: 88, alignment: .trailing)
             .padding(.trailing, 10)
         }
         .frame(height: vm.closedNotchSize.height, alignment: .center)
