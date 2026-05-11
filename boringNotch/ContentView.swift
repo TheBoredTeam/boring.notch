@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var capsLockManager = CapsLockManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -330,6 +331,9 @@ struct ContentView: View {
                               hoverAnimation: $isHovering,
                               gestureProgress: $gestureProgress
                           )
+                              .transition(.opacity)
+                      } else if capsLockManager.isOn && Defaults[.showCapsLockIndicator] && vm.notchState == .closed && !coordinator.shouldShowSneakPeek(on: vm.screenUUID) && !vm.hideOnClosed {
+                          CapsLockIndicatorView()
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()

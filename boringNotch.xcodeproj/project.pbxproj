@@ -123,6 +123,7 @@
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		1A45B4A02FB21CAF0061EA48 /* CapsLockManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A45B49F2FB21CA20061EA48 /* CapsLockManager.swift */; };
+		1A45B4A22FB21CAF0061EA48 /* CapsLockIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A45B4A12FB21CA20061EA48 /* CapsLockIndicatorView.swift */; };
 		201C3E071A104384B8629328 /* AudioOutputRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
@@ -309,6 +310,7 @@
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
 		1A45B49F2FB21CA20061EA48 /* CapsLockManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsLockManager.swift; sourceTree = "<group>"; };
+		1A45B4A12FB21CA20061EA48 /* CapsLockIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsLockIndicatorView.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
@@ -808,6 +810,7 @@
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
 				1471A8582C6281BD0058408D /* BoringNotchWindow.swift */,
+				1A45B4A12FB21CA20061EA48 /* CapsLockIndicatorView.swift */,
 			);
 			path = Notch;
 			sourceTree = "<group>";
@@ -1065,6 +1068,7 @@
 				11DB26742EDD0CDF001EA0CF /* GeneralSettingsView.swift in Sources */,
 				11DB26752EDD0CDF001EA0CF /* ShelfSettingsView.swift in Sources */,
 				1A45B4A02FB21CAF0061EA48 /* CapsLockManager.swift in Sources */,
+				1A45B4A22FB21CAF0061EA48 /* CapsLockIndicatorView.swift in Sources */,
 				11DB26762EDD0CDF001EA0CF /* AppearanceSettingsView.swift in Sources */,
 				11DB26772EDD0CDF001EA0CF /* SettingsHelpers.swift in Sources */,
 				11DB26782EDD0CDF001EA0CF /* BatterySettingsView.swift in Sources */,
