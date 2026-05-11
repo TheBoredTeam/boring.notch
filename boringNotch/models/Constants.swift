@@ -240,6 +240,7 @@ extension Defaults.Keys {
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
     static let mirrorCameraID = Key<String?>("mirrorCameraID", default: nil)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
+    static let showCaffeinateButton = Key<Bool>("showCaffeinateButton", default: true)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
     static let enableShadow = Key<Bool>("enableShadow", default: true)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)

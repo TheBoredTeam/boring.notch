@@ -12,6 +12,7 @@ struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var caffeine = CaffeinateManager.shared
     @StateObject var tvm = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
@@ -81,6 +82,23 @@ struct BoringHeader: View {
                                     }
                             }
                             .buttonStyle(PlainButtonStyle())
+                        }
+                        if Defaults[.showCaffeinateButton] {
+                            Button(action: {
+                                caffeine.toggle()
+                            }) {
+                                Capsule()
+                                    .fill(.black)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: caffeine.isActive ? "cup.and.saucer.fill" : "cup.and.saucer")
+                                            .foregroundColor(caffeine.isActive ? .yellow : .white)
+                                            .padding()
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .help(caffeine.isActive ? "Caffeinate: on (system stays awake)" : "Caffeinate: off")
                         }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(
