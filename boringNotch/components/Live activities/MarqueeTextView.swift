@@ -30,17 +30,22 @@ struct MarqueeText: View {
     let delayDuration: Double
     let frameWidth: CGFloat
     
+    /// Used to repeat the text until it no longer fits the given *frameWidth*.
+    /// When *true* will **always** scroll the text
+    let infiniteText: Bool
+    
     @State private var animate = false
     @State private var textSize: CGSize = .zero
     @State private var offset: CGFloat = 0
     
-    init(_ text: String, font: Font = .body, nsFont: NSFont.TextStyle = .body, color: Color = .primary, delayDuration: Double = 3.0, frameWidth: CGFloat) {
+    init(_ text: String, font: Font = .body, nsFont: NSFont.TextStyle = .body, color: Color = .primary, delayDuration: Double = 3.0, frameWidth: CGFloat, infiniteText: Bool = false) {
         self.text = text
         self.font = font
         self.nsFont = nsFont
         self.color = color
         self.delayDuration = delayDuration
         self.frameWidth = frameWidth
+        self.infiniteText = infiniteText
     }
     
     private var needsScrolling: Bool {
@@ -70,6 +75,12 @@ struct MarqueeText: View {
                 .modifier(MeasureSizeModifier())
                 .onPreferenceChange(SizePreferenceKey.self) { size in
                     self.textSize = CGSize(width: size.width / 2, height: NSFont.preferredFont(forTextStyle: nsFont).pointSize)
+                    /*
+                    if infiniteText && !needsScrolling {
+                        text = text + " " + _bindingText.wrappedValue
+                        return
+                    }
+                     */
                     self.animate = false
                     self.offset = 0
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.01){

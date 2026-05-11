@@ -11,6 +11,9 @@
         }
       }
     },
+    " – %lld" : {
+
+    },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
       "localizations" : {
         "cs" : {
@@ -580,7 +583,6 @@
       }
     },
     "Add" : {
-      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -661,6 +663,9 @@
           }
         }
       }
+    },
+    "Add Device Icon" : {
+
     },
     "Add manually" : {
       "extractionState" : "stale",
@@ -2016,6 +2021,119 @@
         }
       }
     },
+    "Bluetooth" : {
+
+    },
+    "Bluetooth Access" : {
+
+    },
+    "Bluetooth access is required to detect connected devices and display their battery status." : {
+
+    },
+    "Bluetooth is currently turned off." : {
+
+    },
+    "Boost your productivity with Clipboard Manager" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Boost your productivity with Clipboard Manager"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Zvyšte svou produktivitu pomocí správce schránky"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Steigere deine Produktivität mit dem Zwischenablage-Manager"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boost your productivity with Clipboard Manager"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boost your productivity with Clipboard Manager"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aumenta tu productividad con Clipboard Manager"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Boostez votre productivité avec le gestionnaire de presse-papiers"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Boost your productivity with Clipboard Manager"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Incrementa la tua produttività con il gestore appunti"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "클립보드 매니저로 업무 효율을 높이세요"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Zwiększ swoją produktywność dzięki menedżerowi schowka"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aumente sua produtividade com o Clipboard Manager"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Boost your productivity with Clipboard Manager"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pano Yöneticisiyle üretkenliğinizi arttırın"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Підвищіть продуктивність за допомогою менеджера буфера обміну"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "使用剪贴板管理器提升你的效率"
+          }
+        }
+      }
+    },
     "Boring Notch" : {
       "localizations" : {
         "en" : {
@@ -2367,7 +2485,6 @@
       }
     },
     "Cancel" : {
-      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -2449,16 +2566,6 @@
         }
       }
     },
-    "Changing the app language requires restarting Boring Notch." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Changing the app language requires restarting Boring Notch."
-          }
-        }
-      }
-    },
     "Change media with horizontal gestures" : {
       "localizations" : {
         "de" : {
@@ -2501,6 +2608,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Перемикання медіа горизонтальними жестами"
+          }
+        }
+      }
+    },
+    "Changing the app language requires restarting Boring Notch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changing the app language requires restarting Boring Notch."
           }
         }
       }
@@ -2644,7 +2761,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Charge en pause : mode bureau"
+            "value" : "Charge en pause : mode bureau"
           }
         },
         "it" : {
@@ -2863,6 +2980,9 @@
           }
         }
       }
+    },
+    "Choose an SF Symbol to represent this device." : {
+
     },
     "Choose any color" : {
       "localizations" : {
@@ -3671,6 +3791,9 @@
         }
       }
     },
+    "Create custom icon mappings for Bluetooth devices. When a device name contains your keyword, the specified SF Symbol will be used." : {
+
+    },
     "Currently selected: %@" : {
       "localizations" : {
         "de" : {
@@ -3762,6 +3885,9 @@
           }
         }
       }
+    },
+    "Custom Device Icons" : {
+
     },
     "Custom height" : {
       "localizations" : {
@@ -4220,6 +4346,9 @@
         }
       }
     },
+    "Device Name" : {
+
+    },
     "Disable" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4373,6 +4502,9 @@
           }
         }
       }
+    },
+    "Displays connected Bluetooth devices and their battery status inside the notch." : {
+
     },
     "Download" : {
       "localizations" : {
@@ -4680,6 +4812,113 @@
           }
         }
       }
+    },
+    "e.g., AirPods Pro, Magic Mouse" : {
+
+    },
+    "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Snadno kopírujte, ukládejte a spravujte svůj nejpoužívanejší obsah. Upgradujte nyní pro pokročilé funkce, jako je vícenásobné úložiště a rychlý přístup!"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kopieren, speichern und verwalten Sie ganz einfach Ihre am häufigsten verwendeten Inhalte. Aktualisieren Sie jetzt, um erweiterte Funktionen wie die Speicherung mehrerer Elemente und schnellen Zugriff zu erhalten!"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Copie, almacene y gestione fácilmente su contenido más usado. ¡Actualice ahora para obtener características avanzadas como almacenamiento de múltiples elementos y acceso rápido!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Copiez, stockez et gérez facilement votre contenu le plus utilisé. Mettez à niveau maintenant pour des fonctionnalités avancées telles que le stockage de multiples items et un accès rapide !"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Copia facilmente, memorizza e gestisci i tuoi contenuti più usati. Aggiorna ora per funzioni avanzate come storage multi-item e accesso rapido!"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "자주 사용하는 파일들을 쉽게 복사, 저장, 관리하세요. 업그레이드 해서 다중 저장 기능과 빠른 접근 기능을 활성화하세요!"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Łatwo kopiuj, przechowuj i zarządzaj najczęściej używaną treścią. Uaktualnij teraz, aby uzyskać zaawansowane funkcje, takie jak przechowywanie wielu produktów i szybki dostęp!"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "En sık kullandığınız içerikleri kolayca kopyalayın, saklayın ve yönetin. Çoklu öğe depolama ve hızlı erişim gibi gelişmiş özellikler için şimdi yükseltin!"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "轻松复制、存储和管理您最常用的内容。升级后可解锁高级功能，如多项目存储和快速访问！"
+          }
+        }
+      }
+    },
+    "Edit Device Icon" : {
+
     },
     "Edit layout" : {
       "localizations" : {
@@ -5315,6 +5554,9 @@
           }
         }
       }
+    },
+    "Enter a keyword or part of the device name. Matching is case-insensitive." : {
+
     },
     "Expanded drag detection area" : {
       "localizations" : {
@@ -6893,6 +7135,16 @@
         }
       }
     },
+    "Later" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        }
+      }
+    },
     "Launch at login" : {
       "localizations" : {
         "fr" : {
@@ -6911,16 +7163,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oturum açıldığında başlat"
-          }
-        }
-      }
-    },
-    "Later" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Later"
           }
         }
       }
@@ -6958,6 +7200,56 @@
           }
         },
         "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Layout Preview"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Layout Preview"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Layout Preview"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Layout Preview"
+          }
+        }
+      }
+    },
+    "Live activity" : {
+
+    },
+    "Lottie JSON URL" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Lottie JSON URL"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Lottie JSON URL"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Lottie JSON URL"
+          }
+        },
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Превью раскладки"
@@ -8516,6 +8808,211 @@
         }
       }
     },
+    "No custom animation available" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom animation available"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Žádná vlastní animace není k dispozici"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Keine benutzerdefinierte Animation verfügbar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No custom animation available"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No custom animation available"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sin animación personalizada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aucune animation personnalisée disponible"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom animation available"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nessuna animazione personalizzata disponibile"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "사용자 정의 애니메이션 없음"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Brak dostępnych niestandardowych animacji"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom animation available"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom animation available"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Özel animasyon mevcut değil"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom animation available"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "没有可用的自定义动画"
+          }
+        }
+      }
+    },
+    "No custom device icons" : {
+
+    },
+    "No custom visualizer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom visualizer"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Žádný vlastní vizualizér není k dispozici"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Keine benutzerdefinierte Audiovisualisierung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No custom visualizer"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No custom visualiser"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sin visualizador personalizado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aucun visualiseur personnalisé"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom visualizer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nessun visualizzatore personalizzato"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "사용자 지정 시각화 도구 없음"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Brak niestandardowych wizualizerów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom visualizer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom visualizer"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Özel görselleştirici bulunmuyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "No custom visualizer"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "没有自定义可视化器"
+          }
+        }
+      }
+    },
     "No events" : {
       "localizations" : {
         "cs" : {
@@ -9105,6 +9602,9 @@
         }
       }
     },
+    "Open Bluetooth Settings" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "cs" : {
@@ -9559,6 +10059,7 @@
       }
     },
     "OSD" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -10056,9 +10557,6 @@
     "Real-time audio waveform" : {
 
     },
-    "Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform." : {
-
-    },
     "Release name" : {
       "localizations" : {
         "cs" : {
@@ -10442,6 +10940,9 @@
         }
       }
     },
+    "Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform." : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "de" : {
@@ -10720,6 +11221,9 @@
         }
       }
     },
+    "Save" : {
+
+    },
     "Scale corner radius for closed notch" : {
       "localizations" : {
         "en" : {
@@ -10741,6 +11245,9 @@
           }
         }
       }
+    },
+    "Select SF Symbol" : {
+
     },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
@@ -10974,6 +11481,9 @@
           }
         }
       }
+    },
+    "SF Symbol" : {
+
     },
     "Shelf" : {
       "localizations" : {
@@ -11431,6 +11941,9 @@
         }
       }
     },
+    "Show Bluetooth live activity" : {
+
+    },
     "Show calendar" : {
       "localizations" : {
         "cs" : {
@@ -11656,7 +12169,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pokaż aktywność muzyczną na żywo"
+            "value" : "Pokaż aktywność muzyczną na żywo"
           }
         },
         "ru" : {
@@ -12050,6 +12563,9 @@
         }
       }
     },
+    "Show sneak peek on device changes" : {
+
+    },
     "Show sneak peek on playback changes" : {
       "localizations" : {
         "de" : {
@@ -12246,6 +12762,12 @@
           }
         }
       }
+    },
+    "Sneak peek" : {
+
+    },
+    "Sneak peek shows the Bluetooth device name under the notch for a few seconds when a device connects or disconnects." : {
+
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {

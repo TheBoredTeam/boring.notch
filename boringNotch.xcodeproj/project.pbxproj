@@ -156,6 +156,15 @@
 		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		D90127532FA3514B00D9C496 /* BluetoothSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90127522FA3514500D9C496 /* BluetoothSettingsView.swift */; };
+		D901277C2FA3601C00D9C498 /* BluetoothDeviceSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90127782FA3601800D9C498 /* BluetoothDeviceSnapshot.swift */; };
+		D901277D2FA3601D00D9C498 /* BluetoothDeviceIconResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90127792FA3601900D9C498 /* BluetoothDeviceIconResolver.swift */; };
+		D901277E2FA3601E00D9C498 /* BluetoothPeripheralBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D901277A2FA3601A00D9C498 /* BluetoothPeripheralBatteryService.swift */; };
+		D901277F2FA3601F00D9C498 /* BluetoothConnectionMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D901277B2FA3601B00D9C498 /* BluetoothConnectionMonitor.swift */; };
+		D9958EED2ED3BA190021100C /* SymbolPicker in Frameworks */ = {isa = PBXBuildFile; productRef = D9958EEC2ED3BA190021100C /* SymbolPicker */; };
+		D9958EEE2ED468050021100C /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9B69FAF2ECFC09E009BDE40 /* IOBluetooth.framework */; };
+		D9958EF02ED4680A0021100C /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9958EEF2ED4680A0021100C /* CoreBluetooth.framework */; };
+		D9B69FA32ECE8074009BDE40 /* BluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B69FA22ECE8074009BDE40 /* BluetoothManager.swift */; };
 		F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
@@ -337,6 +346,14 @@
 		B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareUpdater.swift; sourceTree = "<group>"; };
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		D90127522FA3514500D9C496 /* BluetoothSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothSettingsView.swift; sourceTree = "<group>"; };
+		D90127782FA3601800D9C498 /* BluetoothDeviceSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceSnapshot.swift; sourceTree = "<group>"; };
+		D90127792FA3601900D9C498 /* BluetoothDeviceIconResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceIconResolver.swift; sourceTree = "<group>"; };
+		D901277A2FA3601A00D9C498 /* BluetoothPeripheralBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothPeripheralBatteryService.swift; sourceTree = "<group>"; };
+		D901277B2FA3601B00D9C498 /* BluetoothConnectionMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothConnectionMonitor.swift; sourceTree = "<group>"; };
+		D9958EEF2ED4680A0021100C /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		D9B69FA22ECE8074009BDE40 /* BluetoothManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManager.swift; sourceTree = "<group>"; };
+		D9B69FAF2ECFC09E009BDE40 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
 		F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -370,8 +387,10 @@
 			files = (
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
+				D9958EF02ED4680A0021100C /* CoreBluetooth.framework in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
 				112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */,
+				D9958EEE2ED468050021100C /* IOBluetooth.framework in Frameworks */,
 				14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */,
 				111BEA6F2ED166E20079DD4E /* MacroVisionKit in Frameworks */,
 				11F748732EC9DA9300F841DB /* Lottie in Frameworks */,
@@ -381,6 +400,7 @@
 				B19016222CC15B3D00E3F12E /* Defaults in Frameworks */,
 				111BE95D2ECD71E10079DD4E /* AsyncXPCConnection in Frameworks */,
 				B1628B922CC260C0003D8DF3 /* SwiftUIIntrospect in Frameworks */,
+				D9958EED2ED3BA190021100C /* SymbolPicker in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -525,6 +545,7 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D90127522FA3514500D9C496 /* BluetoothSettingsView.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
@@ -560,6 +581,9 @@
 				5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */,
 				14288E0B2C6F8EC000B9F80C /* AppIcons.swift */,
 				AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */,
+				D90127792FA3601900D9C498 /* BluetoothDeviceIconResolver.swift */,
+				D901277A2FA3601A00D9C498 /* BluetoothPeripheralBatteryService.swift */,
+				D901277B2FA3601B00D9C498 /* BluetoothConnectionMonitor.swift */,
 			);
 			path = helpers;
 			sourceTree = "<group>";
@@ -614,6 +638,7 @@
 				F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
+				D9B69FA22ECE8074009BDE40 /* BluetoothManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -695,6 +720,8 @@
 		14D031EC2C689DB70096E6A1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D9958EEF2ED4680A0021100C /* CoreBluetooth.framework */,
+				D9B69FAF2ECFC09E009BDE40 /* IOBluetooth.framework */,
 				14D031EF2C689DC00096E6A1 /* ApplicationServices.framework */,
 				14D031ED2C689DB70096E6A1 /* IOKit.framework */,
 				112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */,
@@ -730,6 +757,7 @@
 				14D570C82C5F38890011E668 /* BoringViewModel.swift */,
 				14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */,
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
+				D90127782FA3601800D9C498 /* BluetoothDeviceSnapshot.swift */,
 			);
 			path = models;
 			sourceTree = "<group>";
@@ -899,6 +927,7 @@
 				111BEA502ECFBF7F0079DD4E /* MacroVisionKit */,
 				111BEA5E2ED07A340079DD4E /* MacroVisionKit */,
 				111BEA6E2ED166E20079DD4E /* MacroVisionKit */,
+				D9958EEC2ED3BA190021100C /* SymbolPicker */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -944,6 +973,7 @@
 				11F748712EC9DA9300F841DB /* XCRemoteSwiftPackageReference "lottie-spm" */,
 				111BE95B2ECD71E10079DD4E /* XCRemoteSwiftPackageReference "AsyncXPCConnection" */,
 				111BEA6D2ED166E20079DD4E /* XCRemoteSwiftPackageReference "MacroVisionKit" */,
+				D9958EEB2ED3BA190021100C /* XCRemoteSwiftPackageReference "SymbolPicker" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -1025,8 +1055,14 @@
 				B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */,
 				14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */,
 				1113ABC52E80E27000EC13B2 /* ShelfItemView.swift in Sources */,
+				D901277C2FA3601C00D9C498 /* BluetoothDeviceSnapshot.swift in Sources */,
+				D901277D2FA3601D00D9C498 /* BluetoothDeviceIconResolver.swift in Sources */,
+				D901277E2FA3601E00D9C498 /* BluetoothPeripheralBatteryService.swift in Sources */,
+				D901277F2FA3601F00D9C498 /* BluetoothConnectionMonitor.swift in Sources */,
+				D9B69FA32ECE8074009BDE40 /* BluetoothManager.swift in Sources */,
 				1113ABC62E80E27000EC13B2 /* ShelfPersistenceService.swift in Sources */,
 				11DB26662EDD0BE1001EA0CF /* LyricsService.swift in Sources */,
+				D90127532FA3514B00D9C496 /* BluetoothSettingsView.swift in Sources */,
 				1113ABC82E80E27000EC13B2 /* ShelfItem.swift in Sources */,
 				1113ABCA2E80E27000EC13B2 /* ShelfSelectionModel.swift in Sources */,
 				1113ABCB2E80E27000EC13B2 /* QuickLookService.swift in Sources */,
@@ -1346,6 +1382,8 @@
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This app monitors Bluetooth device connections";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "This app monitors Bluetooth device connections";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1412,6 +1450,8 @@
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This app monitors Bluetooth device connections";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "This app monitors Bluetooth device connections";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1563,6 +1603,14 @@
 				version = 9.0.6;
 			};
 		};
+		D9958EEB2ED3BA190021100C /* XCRemoteSwiftPackageReference "SymbolPicker" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/xnth97/SymbolPicker.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.6.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1623,6 +1671,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B19016202CC15B3D00E3F12E /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
+		};
+		D9958EEC2ED3BA190021100C /* SymbolPicker */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D9958EEB2ED3BA190021100C /* XCRemoteSwiftPackageReference "SymbolPicker" */;
+			productName = SymbolPicker;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
