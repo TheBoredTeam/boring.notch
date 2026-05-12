@@ -403,6 +403,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .switchTab) { [weak self] in
+            guard let self = self else {return}
+            withAnimation(.smooth) {
+                if self.coordinator.currentView == .home {
+                    self.coordinator.currentView = .shelf
+                } else {
+                    self.coordinator.currentView = .home
+                }
+                }
+            }
+
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
             Task { [weak self] in
                 guard let self = self else { return }
