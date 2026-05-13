@@ -84,21 +84,31 @@ struct BoringHeader: View {
                             .buttonStyle(PlainButtonStyle())
                         }
                         if Defaults[.showCaffeinateButton] {
-                            Button(action: {
-                                caffeine.toggle()
-                            }) {
-                                Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: caffeine.isActive ? "cup.and.saucer.fill" : "cup.and.saucer")
-                                            .foregroundColor(caffeine.isActive ? .yellow : .white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
+                            if caffeine.isActive {
+                                Button(action: {
+                                    caffeine.disable()
+                                }) {
+                                    caffeineCapsule
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .help(caffeineHelpText)
+                            } else {
+                                Menu {
+                                    Button("5 minutes") { caffeine.enable(duration: 5 * 60) }
+                                    Button("15 minutes") { caffeine.enable(duration: 15 * 60) }
+                                    Button("30 minutes") { caffeine.enable(duration: 30 * 60) }
+                                    Button("1 hour") { caffeine.enable(duration: 60 * 60) }
+                                    Button("2 hours") { caffeine.enable(duration: 2 * 60 * 60) }
+                                    Divider()
+                                    Button("Indefinite") { caffeine.enable(duration: nil) }
+                                } label: {
+                                    caffeineCapsule
+                                }
+                                .menuStyle(.borderlessButton)
+                                .menuIndicator(.hidden)
+                                .frame(width: 30, height: 30)
+                                .help("Caffeinate: off")
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            .help(caffeine.isActive ? "Caffeinate: on (system stays awake)" : "Caffeinate: off")
                         }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(
@@ -124,6 +134,27 @@ struct BoringHeader: View {
         }
         .foregroundColor(.gray)
         .environmentObject(vm)
+    }
+
+    private var caffeineCapsule: some View {
+        Capsule()
+            .fill(.black)
+            .frame(width: 30, height: 30)
+            .overlay {
+                Image(systemName: caffeine.isActive ? "cup.and.saucer.fill" : "cup.and.saucer")
+                    .foregroundColor(caffeine.isActive ? .yellow : .white)
+                    .padding()
+                    .imageScale(.medium)
+            }
+    }
+
+    private var caffeineHelpText: String {
+        if let endDate = caffeine.endDate {
+            let formatter = DateFormatter()
+            formatter.timeStyle = .short
+            return "Caffeinate: on until \(formatter.string(from: endDate))"
+        }
+        return "Caffeinate: on (system stays awake)"
     }
 
     func isOSDType(_ type: SneakContentType) -> Bool {
