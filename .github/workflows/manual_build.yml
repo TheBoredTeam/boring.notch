@@ -16,15 +16,50 @@ on:
         description: 'Xcode version (optional)'
         required: false
         default: '16.4'
+      update_channel:
+        description: 'Update channel stamped into the app'
+        required: false
+        default: stable
+        type: choice
+        options:
+          - stable
+          - beta
+          - dev
 
-# Least-privilege: workflow_dispatch build only; no token access needed beyond artifacts.
+# Least-privilege: workflow_dispatch build only; no token write access needed.
 permissions:
-  contents: write
+  contents: read
 
 
 jobs:
+  authorize:
+    name: Authorize manual build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      is_admin: ${{ steps.permission.outputs.is_admin }}
+    steps:
+      - name: Require admin permission
+        id: permission
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          PERM=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          if [[ "$PERM" != "admin" ]]; then
+            echo "::error::${ACTOR} is not an admin (permission: ${PERM})"
+            echo "is_admin=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          echo "is_admin=true" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build and sign app
+    needs: authorize
+    if: ${{ needs.authorize.outputs.is_admin == 'true' }}
     uses: ./.github/workflows/build_reusable.yml
     with:
       head_ref: ${{ github.event.inputs.head_ref || github.ref_name || 'main' }}
@@ -32,6 +67,7 @@ jobs:
       build_number: ${{ github.event.inputs.build_number || '' }}
       xcode_version: ${{ github.event.inputs.xcode_version || '16.4' }}
       code_sign_identity: "Apple Development"
+      update_channel: ${{ github.event.inputs.update_channel || 'stable' }}
     secrets:
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
       P12_PASSWORD:              ${{ secrets.P12_PASSWORD }}

@@ -65,7 +65,7 @@ struct UpdaterSettingsView: View {
             },
             footer: Text(
                 NSLocalizedString(
-                    "Stable and Beta come from official releases. Dev uses nightly builds from the dev branch.",
+                    "Stable and Beta come from official releases.",
                     comment: "Software updates channel footer"
                 )
             )
@@ -74,7 +74,7 @@ struct UpdaterSettingsView: View {
                 NSLocalizedString("Update channel", comment: "Software updates channel picker label"),
                 selection: $updateChannel
             ) {
-                ForEach(UpdateChannel.allCases) { channel in
+                ForEach(UpdateChannel.visibleCases) { channel in
                     Text(channel.title).tag(channel)
                 }
             }
