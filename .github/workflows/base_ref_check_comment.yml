@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write
-      pull-requests: read
+      pull-requests: write
     steps:
       - name: Create, update, delete, or skip policy comment
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3

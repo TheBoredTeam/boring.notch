@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import Defaults
 import Sparkle
 
 enum OnboardingStep {
@@ -14,6 +15,7 @@ enum OnboardingStep {
     case cameraPermission
     case calendarPermission
     case remindersPermission
+    case audioCapturePermission
     case accessibilityPermission
     case musicPermission
     case softwareUpdatePermission
@@ -93,17 +95,42 @@ struct OnboardingView: View {
                             Task {
                                 await requestRemindersPermission()
                                 withAnimation(.easeInOut(duration: 0.6)) {
-                                    step = .accessibilityPermission
+                                    step = nextStepAfterReminders()
                                 }
                             }
                         },
                         onSkip: {
                             withAnimation(.easeInOut(duration: 0.6)) {
-                                step = .accessibilityPermission
+                                step = nextStepAfterReminders()
                             }
                         }
                     )
                     .transition(.opacity)
+
+            case .audioCapturePermission:
+                PermissionRequestView(
+                    icon: Image(systemName: "waveform"),
+                    title: "Enable Real-Time Audio",
+                    description: "Boring Notch can analyze the audio playing from your music app to draw a live FFT waveform in the notch, with only a minimal impact on CPU usage.",
+                    privacyNote: "Audio is processed locally for the visualizer and never recorded, stored, or shared.",
+                    onAllow: {
+                        Task {
+                            let granted = await requestAudioCapturePermission()
+                            if granted {
+                                Defaults[.realtimeAudioWaveform] = true
+                            }
+                            withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .accessibilityPermission
+                            }
+                        }
+                    },
+                    onSkip: {
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .accessibilityPermission
+                        }
+                    }
+                )
+                .transition(.opacity)
                 
             case .accessibilityPermission:
                 PermissionRequestView(
@@ -169,6 +196,17 @@ struct OnboardingView: View {
 
     func requestRemindersPermission() async {
         _ = try? await calendarService.requestAccess(to: .reminder)
+    }
+
+    func requestAudioCapturePermission() async -> Bool {
+        await AudioCaptureManager.shared.requestAudioCapturePermission()
+    }
+
+    func nextStepAfterReminders() -> OnboardingStep {
+        if #available(macOS 14.2, *) {
+            return .audioCapturePermission
+        }
+        return .accessibilityPermission
     }
     
 }
