@@ -404,15 +404,52 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         KeyboardShortcuts.onKeyDown(for: .switchTab) { [weak self] in
-            guard let self = self else {return}
-            withAnimation(.smooth) {
-                if self.coordinator.currentView == .home {
-                    self.coordinator.currentView = .shelf
-                } else {
-                    self.coordinator.currentView = .home
+            Task { [weak self] in
+                guard let self = self else { return }
+
+                let mouseLocation = NSEvent.mouseLocation
+                var viewModel = self.vm
+
+                if Defaults[.showOnAllDisplays] {
+                    for screen in NSScreen.screens {
+                        if screen.frame.contains(mouseLocation) {
+                            if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
+                                viewModel = screenViewModel
+                                break
+                            }
+                        }
+                    }
                 }
+
+                await MainActor.run {
+                    withAnimation(.smooth) {
+                        if self.coordinator.currentView == .home {
+                            self.coordinator.currentView = .shelf
+                        } else {
+                            self.coordinator.currentView = .home
+                        }
+                    }
+                }
+
+                if viewModel.notchState == .closed {
+                    var didOpen = false
+                    await MainActor.run {
+                        didOpen = viewModel.open()
+                    }
+                    guard didOpen else { return }
+
+                    self.closeNotchTask?.cancel()
+                    self.closeNotchTask = Task { [weak viewModel] in
+                        do {
+                            try await Task.sleep(for: .seconds(3))
+                            await MainActor.run {
+                                viewModel?.close()
+                            }
+                        } catch { }
+                    }
                 }
             }
+        }
 
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
             Task { [weak self] in
