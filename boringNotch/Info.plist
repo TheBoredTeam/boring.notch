@@ -4,13 +4,15 @@
 <dict>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<true/>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	<key>SUBundleName</key>
-	<string>Boring Notch</string>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+		</dict>
+		<key>BNUpdateChannel</key>
+		<string>stable</string>
+		<key>SUBundleName</key>
+		<string>Boring Notch</string>
 	<key>SUEnableAutomaticChecks</key>
 	<false/>
 	<key>NSAudioCaptureUsageDescription</key>

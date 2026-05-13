@@ -211,6 +211,29 @@ enum UpdateChannel: String, CaseIterable, Identifiable, Defaults.Serializable {
 
     var id: String { rawValue }
 
+    static var bundled: UpdateChannel {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "BNUpdateChannel") as? String,
+              let channel = UpdateChannel(rawValue: value)
+        else {
+            return .stable
+        }
+        return channel
+    }
+
+    static var visibleCases: [UpdateChannel] {
+        if bundled == .dev || Defaults[.updateChannel] == .dev {
+            return allCases
+        }
+        return [.stable, .beta]
+    }
+
+    static func seedDefaultFromBundleIfNeeded() {
+        guard UserDefaults.standard.object(forKey: "updateChannel") == nil else {
+            return
+        }
+        Defaults[.updateChannel] = bundled
+    }
+
     var title: String {
         switch self {
         case .stable:
@@ -218,7 +241,7 @@ enum UpdateChannel: String, CaseIterable, Identifiable, Defaults.Serializable {
         case .beta:
             return NSLocalizedString("Beta", comment: "Update channel: beta")
         case .dev:
-            return NSLocalizedString("Dev (Nightly)", comment: "Update channel: dev nightly")
+            return NSLocalizedString("Nightly", comment: "Update channel: nightly")
         }
     }
 

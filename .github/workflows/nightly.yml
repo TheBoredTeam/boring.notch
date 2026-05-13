@@ -1,26 +1,35 @@
 name: Nightly Branch Builds
 
 on:
+  # Scheduled runs only start once this workflow exists on the default branch.
   schedule:
     - cron: "0 3 * * *"
+  workflow_dispatch:
 
 concurrency:
   group: nightly-dev
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   PROJECT_NAME: boringNotch
+  NIGHTLY_BRANCH: dev
 
 jobs:
   prepare:
     name: Prepare nightly metadata
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: release-build-number
+      cancel-in-progress: false
     outputs:
       branch_name: ${{ steps.meta.outputs.branch_name }}
       commit_sha: ${{ steps.meta.outputs.commit_sha }}
+      source_sha: ${{ steps.meta.outputs.source_sha }}
       short_sha: ${{ steps.meta.outputs.short_sha }}
       tag: ${{ steps.meta.outputs.tag }}
       appcast_file: ${{ steps.meta.outputs.appcast_file }}
@@ -28,26 +37,58 @@ jobs:
       asset_name: ${{ steps.meta.outputs.asset_name }}
       commit_message: ${{ steps.meta.outputs.commit_message }}
     steps:
-      - name: Checkout dev
+      - name: Require admin for manual nightly runs
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          PERM=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          if [[ "$PERM" != "admin" ]]; then
+            echo "::error::${ACTOR} is not an admin (permission: ${PERM})"
+            exit 1
+          fi
+
+      - name: Checkout nightly branch
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: dev
+          ref: ${{ env.NIGHTLY_BRANCH }}
+          fetch-depth: 0
 
-      - name: Compute metadata
+      - name: Compute metadata and reserve build number
         id: meta
         run: |
           set -euo pipefail
-          BRANCH_NAME="dev"
+          BRANCH_NAME="${NIGHTLY_BRANCH}"
           COMMIT_SHA="$(git rev-parse HEAD)"
           SHORT_SHA="${COMMIT_SHA::7}"
           COMMIT_MESSAGE="$(git log -1 --pretty=%s)"
+          COUNTER_FILE=".github/build-number"
+
+          BUILD_NUMBER="$(tr -d '[:space:]' < "$COUNTER_FILE")"
+          if [[ ! "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid build number in ${COUNTER_FILE}: ${BUILD_NUMBER}"
+            exit 1
+          fi
+
+          NEXT_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          printf '%s\n' "$NEXT_BUILD_NUMBER" > "$COUNTER_FILE"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$COUNTER_FILE"
+          git commit -m "Reserve build number ${BUILD_NUMBER}"
+          git push origin "HEAD:${BRANCH_NAME}"
+
+          SOURCE_SHA="$(git rev-parse HEAD)"
           APPCAST_FILE="appcast-${BRANCH_NAME}.xml"
-          BUILD_NUMBER="$(date -u +%Y%m%d%H%M%S)$(printf '%06d%02d' "${GITHUB_RUN_NUMBER:-0}" "${GITHUB_RUN_ATTEMPT:-0}")"
           TAG="nightly-${BRANCH_NAME}-${SHORT_SHA}-${BUILD_NUMBER}"
           ASSET_NAME="boringNotch-${BRANCH_NAME}-${SHORT_SHA}-${BUILD_NUMBER}.dmg"
           {
             echo "branch_name=$BRANCH_NAME"
             echo "commit_sha=$COMMIT_SHA"
+            echo "source_sha=$SOURCE_SHA"
             echo "short_sha=$SHORT_SHA"
             echo "commit_message=$COMMIT_MESSAGE"
             echo "tag=$TAG"
@@ -58,15 +99,17 @@ jobs:
 
   build:
     name: Build nightly DMG
-    needs: [prepare]
+    needs: prepare
+    permissions:
+      contents: read
     uses: ./.github/workflows/build_reusable.yml
     with:
-      head_ref: ${{ needs.prepare.outputs.commit_sha }}
+      head_ref: ${{ needs.prepare.outputs.source_sha }}
       version: ""
       build_number: ${{ needs.prepare.outputs.build_number }}
       xcode_version: "16.4"
       code_sign_identity: "Apple Development"
-      commit_version_changes: false
+      update_channel: dev
     secrets:
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
       P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
@@ -80,19 +123,19 @@ jobs:
       contents: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
       BRANCH_NAME: ${{ needs.prepare.outputs.branch_name }}
       COMMIT_SHA: ${{ needs.prepare.outputs.commit_sha }}
+      SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
       SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
       TAG: ${{ needs.prepare.outputs.tag }}
       APPCAST_FILE: ${{ needs.prepare.outputs.appcast_file }}
       ASSET_NAME: ${{ needs.prepare.outputs.asset_name }}
       COMMIT_MESSAGE: ${{ needs.prepare.outputs.commit_message }}
     steps:
-      - name: Checkout branch
+      - name: Checkout reserved nightly source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ env.COMMIT_SHA }}
+          ref: ${{ env.SOURCE_SHA }}
 
       - name: Download DMG artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -190,6 +233,8 @@ jobs:
           install -m 0755 "$APPCAST_BIN" "$RUNNER_TEMP/generate_appcast"
 
       - name: Generate signed nightly appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
         run: |
           set -euo pipefail
           test -x "$RUNNER_TEMP/generate_appcast" || {
