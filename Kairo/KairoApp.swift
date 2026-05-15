@@ -648,8 +648,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.speechRecognizer = recognizer
             self.wakeWord = wake
             self.conversationLoop = loop
-            wake.start()
-            print("[Kairo] Voice pipeline online — wake word active")
+            // Wake word NOT started automatically. Continuous audio access at
+            // app launch can trigger a TCC kill in sandboxed macOS apps. Users
+            // can enable it from K menubar → "Enable Hey Kairo". F5 still
+            // works (routes to ConversationLoop), and ConversationLoop's own
+            // permission request happens at the user's explicit invocation.
+            print("[Kairo] Voice pipeline online — wake word disabled (enable in menu)")
 
             let debug = DebugMenu(executor: executor, brain: brain)
             debug.install()

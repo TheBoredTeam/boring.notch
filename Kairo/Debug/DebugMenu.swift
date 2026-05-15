@@ -35,6 +35,7 @@ final class DebugMenu: NSObject {
         menu.addItem(header("KAIRO"))
         menu.addItem(action("Ask Kairo…",       key: "k", mods: [.command],          sel: #selector(askKairo)))
         menu.addItem(action("Talk to Kairo",    key: "k", mods: [.command, .shift],  sel: #selector(talkToKairo)))
+        menu.addItem(action("Enable \"Hey Kairo\"", sel: #selector(enableWakeWord)))
 
         // ── NOW ──────────────────────────────────
         menu.addItem(.separator())
@@ -133,6 +134,21 @@ final class DebugMenu: NSObject {
 
     @objc private func talkToKairo() {
         NotificationCenter.default.post(name: .kairoVoiceActivated, object: nil)
+    }
+
+    @objc private func enableWakeWord() {
+        guard let appDelegate = NSApp.delegate as? AppDelegate,
+              let wake = appDelegate.wakeWord else {
+            feedbackSay("Wake word not available — voice pipeline not initialized.", pill: "Kairo")
+            return
+        }
+        if wake.isRunning {
+            wake.stop()
+            feedbackSay("\"Hey Kairo\" disabled.", pill: "Kairo")
+        } else {
+            wake.start()
+            feedbackSay("Listening for \"Hey Kairo\".", pill: "Kairo")
+        }
     }
 
     // MARK: - NOW (music) actions

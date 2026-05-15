@@ -1,6 +1,7 @@
 import Foundation
 import Speech
 import AVFoundation
+import AppKit
 
 /// Pragmatic "Hey Kairo" wake-word detector. No Porcupine — uses Apple's
 /// `SFSpeechRecognizer` in continuous mode and scans partial transcripts
@@ -45,13 +46,39 @@ final class KairoWakeWord: NSObject {
 
     // MARK: - Lifecycle
 
+    /// Starts the wake-word listener — but only AFTER both speech-recognition
+    /// AND microphone authorization are granted. Without this gating, calling
+    /// `AVAudioEngine.inputNode` before the user has been prompted can trigger
+    /// a TCC kill on macOS Sandbox-enabled apps.
     func start() {
         guard !isRunning else { return }
-        SFSpeechRecognizer.requestAuthorization { _ in }
-        listen()
-        scheduleRecycle()
-        isRunning = true
-        print("[Kairo] WakeWord: listening for \"hey kairo\"")
+        authorize { [weak self] granted in
+            guard let self else { return }
+            guard granted else {
+                print("[Kairo] WakeWord: permission denied — not starting")
+                return
+            }
+            Task { @MainActor in
+                self.listen()
+                self.scheduleRecycle()
+                self.isRunning = true
+                print("[Kairo] WakeWord: listening for \"hey kairo\"")
+            }
+        }
+    }
+
+    /// Sequenced permission request: speech recognition → microphone.
+    /// Both must be `authorized` before we start listening.
+    private func authorize(_ done: @escaping (Bool) -> Void) {
+        SFSpeechRecognizer.requestAuthorization { speechStatus in
+            guard speechStatus == .authorized else {
+                done(false)
+                return
+            }
+            AVCaptureDevice.requestAccess(for: .audio) { micGranted in
+                done(micGranted)
+            }
+        }
     }
 
     func stop() {
