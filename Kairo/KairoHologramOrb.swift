@@ -312,59 +312,63 @@ struct KairoHologramDisplay: View {
 
     private func panel(t: Double) -> some View {
         let hue = (t * 0.08).truncatingRemainder(dividingBy: 1.0)
+        let shape = RoundedRectangle(cornerRadius: Kairo.Radius.md, style: .continuous)
 
         return ZStack {
-            // Glass base
-            RoundedRectangle(cornerRadius: 14)
-                .fill(.black.opacity(0.5))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(.ultraThinMaterial)
-                        .opacity(0.35)
-                )
+            // Glass base — proper Phase 1 glass treatment with a darker
+            // scrim so the holographic colours pop off it.
+            shape
+                .fill(.regularMaterial)
+                .overlay { shape.fill(Color.black.opacity(0.35)) }
+                .overlay { shape.fill(Kairo.Palette.glassTint) }
 
-            // Animated holographic border
-            RoundedRectangle(cornerRadius: 14)
-                .strokeBorder(LinearGradient(colors: [
+            // Animated holographic border (kept — this is the hologram's
+            // signature visual language)
+            shape.strokeBorder(
+                LinearGradient(colors: [
                     Color(hue: hue, saturation: 0.5, brightness: 0.85).opacity(0.45),
                     .cyan.opacity(0.25),
                     Color(hue: (hue + 0.3).truncatingRemainder(dividingBy: 1.0),
                           saturation: 0.6, brightness: 0.8).opacity(0.35),
                     .purple.opacity(0.25),
                     Color(hue: hue, saturation: 0.5, brightness: 0.85).opacity(0.45),
-                ], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                ], startPoint: .topLeading, endPoint: .bottomTrailing),
+                lineWidth: 1
+            )
 
             // Scan lines
             holoScanLines(t: t)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .clipShape(shape)
 
             // Content
-            VStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: Kairo.Space.sm) {
                 if let text = manager.displayText {
                     Text(text)
-                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        .font(Kairo.Typography.mono)
                         .foregroundStyle(LinearGradient(
                             colors: [.cyan, .white.opacity(0.9)],
                             startPoint: .leading, endPoint: .trailing
                         ))
                         .shadow(color: .cyan.opacity(0.4), radius: 5)
                         .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 if let image = manager.displayImage {
                     Image(nsImage: image)
                         .resizable()
                         .scaledToFit()
-                        .cornerRadius(8)
-                        .overlay(
-                            holoScanLines(t: t).opacity(0.3)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        )
+                        .clipShape(RoundedRectangle(cornerRadius: Kairo.Radius.sm, style: .continuous))
+                        .overlay {
+                            holoScanLines(t: t)
+                                .opacity(0.3)
+                                .clipShape(RoundedRectangle(cornerRadius: Kairo.Radius.sm, style: .continuous))
+                        }
                 }
             }
-            .padding(14)
+            .padding(Kairo.Space.lg)
         }
         .frame(maxWidth: maxWidth)
-        .shadow(color: .cyan.opacity(0.12), radius: 12)
+        .shadow(color: .cyan.opacity(0.18), radius: 16, x: 0, y: 4)
     }
 
     // MARK: - Scan Lines
@@ -418,25 +422,25 @@ struct KairoHologramView: View {
     }
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: Kairo.Space.sm) {
             KairoHologramOrb(size: orbSize, mode: activeMode)
 
             if !feedback.currentText.isEmpty {
                 Text(feedback.currentText)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.75))
+                    .font(Kairo.Typography.bodySmall)
+                    .foregroundStyle(Color.white.opacity(0.78))
                     .shadow(color: .cyan.opacity(0.3), radius: 4)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
-                    .padding(.horizontal, 20)
-                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                    .padding(.horizontal, Kairo.Space.xl)
+                    .transition(.opacity.combined(with: .scale(scale: 0.92)))
             }
 
             if hologram.isShowingDisplay {
                 KairoHologramDisplay(manager: hologram)
-                    .padding(.horizontal, 14)
+                    .padding(.horizontal, Kairo.Space.md)
             }
         }
-        .animation(.spring(response: 0.5, dampingFraction: 0.78), value: activeMode)
+        .animation(Kairo.Motion.spring, value: activeMode)
     }
 }

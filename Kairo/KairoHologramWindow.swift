@@ -417,14 +417,22 @@ struct HologramOrbWindowContent: View {
                 .scaleEffect(animator.isPaused ? 1.0 : 0.95)
                 .animation(.easeInOut(duration: 2.0), value: animator.isPaused)
 
-            // Notification badge
+            // Notification badge — sits at the upper-right of the orb
             if notifications.unreadCount > 0 {
                 Text("\(notifications.unreadCount)")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 2)
-                    .background(Capsule().fill(.red))
+                    .font(Kairo.Typography.captionStrong)
+                    .foregroundStyle(Color.white)
+                    .padding(.horizontal, Kairo.Space.xs + 1)
+                    .padding(.vertical, Kairo.Space.xxs)
+                    .background(
+                        Capsule(style: .continuous)
+                            .fill(Kairo.Palette.danger)
+                    )
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.4), lineWidth: 0.5)
+                    )
+                    .shadow(color: Kairo.Palette.danger.opacity(0.6), radius: 6, x: 0, y: 0)
                     .offset(x: 32, y: -32)
                     .transition(.scale.combined(with: .opacity))
             }
@@ -458,21 +466,34 @@ struct HologramOrbWindowContent: View {
     }
 
     private var nowPlayingBadge: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Kairo.Space.xs) {
             ForEach(0..<3, id: \.self) { i in
                 MusicBar(index: i)
             }
             if !music.songTitle.isEmpty {
                 Text(music.songTitle)
-                    .font(.system(size: 9, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.7))
+                    .font(Kairo.Typography.caption)
+                    .foregroundStyle(Color.white.opacity(0.78))
                     .lineLimit(1)
                     .frame(maxWidth: 80)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Capsule().fill(.black.opacity(0.5)).overlay(Capsule().fill(.ultraThinMaterial).opacity(0.3)))
+        .padding(.horizontal, Kairo.Space.sm)
+        .padding(.vertical, Kairo.Space.xs)
+        .background {
+            Capsule(style: .continuous)
+                .fill(.regularMaterial)
+                .overlay {
+                    Capsule(style: .continuous).fill(Color.black.opacity(0.35))
+                }
+                .overlay {
+                    Capsule(style: .continuous).fill(Kairo.Palette.glassTint)
+                }
+        }
+        .overlay {
+            Capsule(style: .continuous)
+                .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
+        }
     }
 }
 
