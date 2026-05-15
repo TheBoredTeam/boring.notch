@@ -7,14 +7,18 @@
 
 import SwiftUI
 import AVFoundation
+import Defaults
+import Sparkle
 
 enum OnboardingStep {
     case welcome
     case cameraPermission
     case calendarPermission
     case remindersPermission
+    case audioCapturePermission
     case accessibilityPermission
     case musicPermission
+    case softwareUpdatePermission
     case finished
 }
 
@@ -22,6 +26,7 @@ private let calendarService = CalendarService()
 
 struct OnboardingView: View {
     @State var step: OnboardingStep = .welcome
+    let updater: SPUUpdater?
     let onFinish: () -> Void
     let onOpenSettings: () -> Void
 
@@ -90,17 +95,42 @@ struct OnboardingView: View {
                             Task {
                                 await requestRemindersPermission()
                                 withAnimation(.easeInOut(duration: 0.6)) {
-                                    step = .accessibilityPermission
+                                    step = nextStepAfterReminders()
                                 }
                             }
                         },
                         onSkip: {
                             withAnimation(.easeInOut(duration: 0.6)) {
-                                step = .accessibilityPermission
+                                step = nextStepAfterReminders()
                             }
                         }
                     )
                     .transition(.opacity)
+
+            case .audioCapturePermission:
+                PermissionRequestView(
+                    icon: Image(systemName: "waveform"),
+                    title: "Enable Real-Time Audio",
+                    description: "Boring Notch can analyze the audio playing from your music app to draw a live FFT waveform in the notch, with only a minimal impact on CPU usage.",
+                    privacyNote: "Audio is processed locally for the visualizer and never recorded, stored, or shared.",
+                    onAllow: {
+                        Task {
+                            let granted = await requestAudioCapturePermission()
+                            if granted {
+                                Defaults[.realtimeAudioWaveform] = true
+                            }
+                            withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .accessibilityPermission
+                            }
+                        }
+                    },
+                    onSkip: {
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .accessibilityPermission
+                        }
+                    }
+                )
+                .transition(.opacity)
                 
             case .accessibilityPermission:
                 PermissionRequestView(
@@ -109,11 +139,8 @@ struct OnboardingView: View {
                     description: "Accessibility access is required to replace system notifications with the Kairo HUD. This allows the app to intercept media and brightness events to display custom HUD overlays.",
                     privacyNote: "Accessibility access is used only to improve media and brightness notifications. No data is collected or shared.",
                     onAllow: {
-                        Task {
-                            await requestAccessibilityPermission()
-                            withAnimation(.easeInOut(duration: 0.6)) {
-                                step = .musicPermission
-                            }
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .musicPermission
                         }
                     },
                     onSkip: {
@@ -155,8 +182,90 @@ struct OnboardingView: View {
     func requestRemindersPermission() async {
         _ = try? await calendarService.requestAccess(to: .reminder)
     }
+
+    func requestAudioCapturePermission() async -> Bool {
+        await AudioCaptureManager.shared.requestAudioCapturePermission()
+    }
+
+    func nextStepAfterReminders() -> OnboardingStep {
+        if #available(macOS 14.2, *) {
+            return .audioCapturePermission
+        }
+        return .accessibilityPermission
+    }
     
-    func requestAccessibilityPermission() async {
-        await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+}
+
+struct SoftwareUpdatePermissionView: View {
+    let updater: SPUUpdater?
+    let onContinue: () -> Void
+
+    @State private var automaticallyChecksForUpdates = true
+    @State private var automaticallyDownloadsUpdates = false
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+                .font(.system(size: 64))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundColor(.effectiveAccent)
+
+            Text("Keep Boring Notch Updated")
+                .font(.title)
+                .fontWeight(.semibold)
+
+            Text("Boring Notch can check for updates in the background. You can still check manually from the menu bar at any time.")
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 34)
+
+            VStack(alignment: .leading, spacing: 12) {
+                Toggle("Check for updates automatically", isOn: $automaticallyChecksForUpdates)
+
+                Toggle("Download and install updates automatically", isOn: $automaticallyDownloadsUpdates)
+                    .disabled(!automaticallyChecksForUpdates)
+                    .opacity(automaticallyChecksForUpdates ? 1 : 0.45)
+            }
+            .toggleStyle(.checkbox)
+            .padding(.horizontal, 44)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer()
+
+            Button("Continue") {
+                applyUpdatePreference(
+                    checksAutomatically: automaticallyChecksForUpdates,
+                    downloadsAutomatically: automaticallyChecksForUpdates && automaticallyDownloadsUpdates
+                )
+                onContinue()
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .keyboardShortcut(.defaultAction)
+            .padding(.bottom, 24)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
+                .ignoresSafeArea()
+        )
+        .onChange(of: automaticallyChecksForUpdates) { _, enabled in
+            if !enabled {
+                automaticallyDownloadsUpdates = false
+            }
+        }
+    }
+
+    private func applyUpdatePreference(checksAutomatically: Bool, downloadsAutomatically: Bool) {
+        guard let updater else {
+            UserDefaults.standard.set(checksAutomatically, forKey: "SUEnableAutomaticChecks")
+            UserDefaults.standard.set(downloadsAutomatically, forKey: "SUAutomaticallyUpdate")
+            return
+        }
+
+        updater.automaticallyChecksForUpdates = checksAutomatically
+        updater.automaticallyDownloadsUpdates = downloadsAutomatically
     }
 }

@@ -5,6 +5,7 @@
 //  Created by Harsh Vardhan  Goswami  on 19/08/24.
 //
 import AVFoundation
+import Defaults
 import SwiftUI
 
 class WebcamManager: NSObject, ObservableObject {
@@ -23,7 +24,7 @@ class WebcamManager: NSObject, ObservableObject {
         }
     }
     
-    @Published var authorizationStatus: AVAuthorizationStatus = .notDetermined {
+    @Published var authorizationStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video) {
         didSet {
             objectWillChange.send()
         }
@@ -36,8 +37,6 @@ class WebcamManager: NSObject, ObservableObject {
     }
 
     private let sessionQueue = DispatchQueue(label: "Kairo.WebcamManager.SessionQueue", qos: .userInitiated)
-    
-    private var isCleaningUp: Bool = false
     
     // MARK: - Constants
     
@@ -61,9 +60,11 @@ class WebcamManager: NSObject, ObservableObject {
     // MARK: - Properties
     
     private override init() {
+        self.selectedCameraID = Defaults[.mirrorCameraID]
         super.init()
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasDisconnected), name: .AVCaptureDeviceWasDisconnected, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasConnected), name: .AVCaptureDeviceWasConnected, object: nil)
+        refreshAuthorizationStatus()
         checkCameraAvailability()
     }
     
@@ -81,14 +82,66 @@ class WebcamManager: NSObject, ObservableObject {
     }
 
     // MARK: - Camera Management
-    
+
+    private func discoverVideoDevices() -> [AVCaptureDevice] {
+        AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.external, .builtInWideAngleCamera],
+            mediaType: .video,
+            position: .unspecified
+        ).devices
+    }
+
+    private func preferredDevice(from devices: [AVCaptureDevice], preferredID: String?) -> AVCaptureDevice? {
+        guard !devices.isEmpty else { return nil }
+
+        if let preferredID, let selectedDevice = devices.first(where: { $0.uniqueID == preferredID }) {
+            return selectedDevice
+        }
+
+        // In automatic mode, prefer built-in camera over external devices (e.g. OBS virtual camera)
+        return devices.first(where: { $0.deviceType == .builtInWideAngleCamera }) ?? devices.first
+    }
+
+    func setSelectedCamera(id: String?) {
+        Defaults[.mirrorCameraID] = id
+        selectedCameraID = id
+
+        // Snapshot the ID before dispatching to avoid a cross-thread read of selectedCameraID.
+        let snapshotID = id
+        sessionQueue.async { [weak self] in
+            guard let self = self,
+                  let session = self.captureSession, session.isRunning else { return }
+            self.cleanupExistingSession()
+            DispatchQueue.main.async {
+                self.isSessionRunning = false
+            }
+            self.setupCaptureSession(preferredID: snapshotID) { success in
+                if success {
+                    self.startRunningCaptureSession()
+                }
+            }
+        }
+    }
+
+    /// Refreshes the cached camera permission status and returns the current system value.
+    @discardableResult
+    func refreshAuthorizationStatus() -> AVAuthorizationStatus {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        if Thread.isMainThread {
+            self.authorizationStatus = status
+        } else {
+            DispatchQueue.main.async {
+                self.authorizationStatus = status
+            }
+        }
+
+        return status
+    }
+
     /// Checks current authorization status and requests access if needed
     func checkAndRequestVideoAuthorization() {
-        let status = AVCaptureDevice.authorizationStatus(for: .video)
-        DispatchQueue.main.async {
-            self.authorizationStatus = status
-        }
-        
+        let status = refreshAuthorizationStatus()
+
         switch status {
         case .authorized:
             checkCameraAvailability() // Check availability if authorized
@@ -115,41 +168,39 @@ class WebcamManager: NSObject, ObservableObject {
     
     /// Checks if any camera devices are available and sets up capture session if needed
     func checkCameraAvailability() {
-        let availableDevices = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.external, .builtInWideAngleCamera],
-            mediaType: .video,
-            position: .unspecified
-        ).devices
-        
+        let availableDevices = discoverVideoDevices()
+
         let hasAvailableDevices = !availableDevices.isEmpty
-        
+
         DispatchQueue.main.async {
+            self.availableCameras = availableDevices
             self.cameraAvailable = hasAvailableDevices
         }
     }
     
-    /// Sets up the capture session with a completion handler
-    private func setupCaptureSession(completion: @escaping (Bool) -> Void) {
+    /// Sets up the capture session with a completion handler.
+    /// - Parameter preferredID: The camera ID to use. Pass explicitly to avoid cross-thread reads of `selectedCameraID`.
+    ///   When `nil` is ambiguous (meaning "automatic"), callers on sessionQueue should snapshot `selectedCameraID` beforehand.
+    private func setupCaptureSession(preferredID: String? = nil, completion: @escaping (Bool) -> Void) {
+        let currentCameraID = preferredID ?? self.selectedCameraID
         sessionQueue.async { [weak self] in
-            guard let self = self else { 
+            guard let self = self else {
                 completion(false)
-                return 
+                return
             }
-            
+
             // Clean up any existing session before creating a new one
             self.cleanupExistingSession()
-            
+
             let session = AVCaptureSession()
-            
+
             do {
-                // Get available devices and prefer external camera if available
-                let discoverySession = AVCaptureDevice.DiscoverySession(
-                    deviceTypes: [.external, .builtInWideAngleCamera],
-                    mediaType: .video,
-                    position: .unspecified
-                )
-                
-                guard let videoDevice = discoverySession.devices.first else {
+                let availableDevices = self.discoverVideoDevices()
+                DispatchQueue.main.async {
+                    self.availableCameras = availableDevices
+                }
+
+                guard let videoDevice = self.preferredDevice(from: availableDevices, preferredID: currentCameraID) else {
                     NSLog("No video devices available")
                     DispatchQueue.main.async {
                         self.isSessionRunning = false
@@ -237,13 +288,22 @@ class WebcamManager: NSObject, ObservableObject {
     }
 
     @objc private func deviceWasDisconnected(notification: Notification) {
-        NSLog("Camera device was disconnected")
+        guard let disconnectedDevice = notification.object as? AVCaptureDevice else { return }
+        NSLog("Camera device was disconnected: \(disconnectedDevice.localizedName)")
+
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
-            self.stopSession()
-            DispatchQueue.main.async {
-                self.cameraAvailable = false
+
+            // Only tear down the session if the disconnected camera was the one in use
+            let activeDeviceID = (self.captureSession?.inputs.first as? AVCaptureDeviceInput)?.device.uniqueID
+            if activeDeviceID == disconnectedDevice.uniqueID {
+                DispatchQueue.main.async {
+                    self.isSessionRunning = false
+                }
+                self.cleanupExistingSession()
             }
+
+            self.checkCameraAvailability()
         }
     }
 
@@ -263,12 +323,14 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     func startSession() {
+        // Snapshot the camera preference before dispatching to sessionQueue to avoid a data race.
+        let snapshotID = self.selectedCameraID
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             
             // If no session exists, create new session
             if self.captureSession == nil {
-                self.setupCaptureSession { success in
+                self.setupCaptureSession(preferredID: snapshotID) { success in
                     if success {
                         // Only start the session if setup was successful
                         self.startRunningCaptureSession()

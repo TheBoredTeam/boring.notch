@@ -16,6 +16,8 @@ struct MusicPlayerView: View {
     @EnvironmentObject var vm: KairoViewModel
     @ObservedObject var musicManager = MusicManager.shared
     let albumArtNamespace: Namespace.ID
+    let horizontalMediaGestureFeedback: CGFloat
+    @Binding var isHoveringMusicArea: Bool
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -113,14 +115,11 @@ struct AlbumArtView: View {
     private var albumArtBackground: some View {
         Image(nsImage: musicManager.albumArt)
             .resizable()
-            .clipped()
+            .aspectRatio(contentMode: .fit)
             .clipShape(
                 RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
-            .aspectRatio(1, contentMode: .fit)
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 40)
@@ -146,25 +145,23 @@ struct AlbumArtView: View {
 
     private var albumArtDarkOverlay: some View {
         Rectangle()
-            .aspectRatio(1, contentMode: .fit)
             .foregroundColor(Color.black)
             .opacity(musicManager.isPlaying ? 0 : 0.8)
             .blur(radius: 50)
+            .allowsHitTesting(false)
     }
                 
 
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
+            .interpolation(.high)
             .resizable()
-            .aspectRatio(1, contentMode: .fit)
-            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-            .clipped()
+            .aspectRatio(contentMode: .fit)
             .clipShape(
                 RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
+            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
     }
 
     @ViewBuilder
@@ -172,7 +169,7 @@ struct AlbumArtView: View {
         if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
             AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
                 .resizable()
-                .aspectRatio(contentMode: .fill)
+                .aspectRatio(contentMode: .fit)
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
                 .transition(.scale.combined(with: .opacity))
@@ -212,14 +209,11 @@ struct MusicControlsView: View {
 
     private func songInfo(width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
+            MarqueeText(musicManager.songTitle, font: .headline, color: .white, frameWidth: width)
             MarqueeText(
-                $musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white,
-                frameWidth: width)
-            MarqueeText(
-                $musicManager.artistName,
+                musicManager.artistName,
                 font: .headline,
-                nsFont: .headline,
-                textColor: Defaults[.playerColorTinting]
+                color: Defaults[.playerColorTinting]
                     ? Color(nsColor: musicManager.avgColor)
                         .ensureMinimumBrightness(factor: 0.6) : .gray,
                 frameWidth: width
@@ -233,26 +227,34 @@ struct MusicControlsView: View {
                         let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
                         return min(max(progressed, 0), musicManager.songDuration)
                     }()
-                    let line: String = {
-                        if musicManager.isFetchingLyrics { return "Loading lyrics…" }
-                        if !musicManager.syncedLyrics.isEmpty {
-                            return musicManager.lyricLine(at: currentElapsed)
+                    let lyricDisplay: (line: String, displayDuration: Double?, animationID: Double?) = {
+                        if LyricsService.shared.isFetchingLyrics { return ("Loading lyrics…", nil, nil) }
+                        if !LyricsService.shared.syncedLyrics.isEmpty {
+                            let context = LyricsService.shared.lyricLineContext(at: currentElapsed)
+                            let displayDuration = context.endTime.map { max($0 - currentElapsed, 0) }
+                            return (context.text, displayDuration, context.startTime)
                         }
                         let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-                        return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+                        let line = trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+                        return (line, nil, nil)
                     }()
+                    let line = lyricDisplay.line
                     let isPersian = line.unicodeScalars.contains { scalar in
                         let v = scalar.value
                         return v >= 0x0600 && v <= 0x06FF
                     }
-                    MarqueeText(
-                        .constant(line),
-                        font: .subheadline,
+                    let lyricFont: Font = isPersian
+                        ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize)
+                        : .subheadline
+                    TimedLyricText(
+                        line,
+                        font: lyricFont,
                         nsFont: .subheadline,
-                        textColor: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                        color: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                        displayDuration: lyricDisplay.displayDuration,
+                        animationID: lyricDisplay.animationID,
                         frameWidth: width
                     )
-                    .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
                     .lineLimit(1)
                     .opacity(musicManager.isPlaying ? 1 : 0)
                     .transition(.opacity.combined(with: .move(edge: .top)))
@@ -320,6 +322,8 @@ struct MusicControlsView: View {
             HoverButton(icon: "backward.fill", scale: .medium) {
                 MusicManager.shared.previousTrack()
             }
+            .scaleEffect(horizontalMediaGestureFeedback > 0 ? 1.12 : 1)
+            .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
         case .playPause:
             HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
                 MusicManager.shared.togglePlay()
@@ -328,6 +332,8 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
+            .scaleEffect(horizontalMediaGestureFeedback < 0 ? 1.12 : 1)
+            .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
         case .repeatMode:
             HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
                 MusicManager.shared.toggleRepeat()
@@ -416,7 +422,7 @@ struct VolumeControlView: View {
                     }
                 }
             }) {
-                Image(systemName: volumeIcon)
+                Image(systemName: musicManager.volumeControlSupported ? AudioOutputRouteResolver.shared.volumeSymbol(for: CGFloat(volumeSliderValue)) : "speaker.slash")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
             }
@@ -471,21 +477,6 @@ struct VolumeControlView: View {
             // volumeUpdateTask?.cancel() // No longer needed
         }
     }
-    
-    
-    private var volumeIcon: String {
-        if !musicManager.volumeControlSupported {
-            return "speaker.slash"
-        } else if volumeSliderValue == 0 {
-            return "speaker.slash.fill"
-        } else if volumeSliderValue < 0.33 {
-            return "speaker.1.fill"
-        } else if volumeSliderValue < 0.66 {
-            return "speaker.2.fill"
-        } else {
-            return "speaker.3.fill"
-        }
-    }
 }
 
 // MARK: - Main View
@@ -496,15 +487,13 @@ struct NotchHomeView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = KairoViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
+    let horizontalMediaGestureFeedback: CGFloat
+    @Binding var isHoveringMusicArea: Bool
 
     var body: some View {
-        Group {
-            if !coordinator.firstLaunch {
-                mainContent
-            }
-        }
-        // simplified: use a straightforward opacity transition
-        .transition(.opacity)
+        mainContent
+            // simplified: use a straightforward opacity transition
+            .transition(.opacity)
     }
 
     private var shouldShowCamera: Bool {
@@ -592,6 +581,7 @@ struct MusicSliderView: View {
     }
 
     func timeString(from seconds: Double) -> String {
+        guard seconds.isFinite else { return "--:--" }
         let totalMinutes = Int(seconds) / 60
         let remainingSeconds = Int(seconds) % 60
         let hours = totalMinutes / 60

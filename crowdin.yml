@@ -1,3 +1,5 @@
+preserve_hierarchy: true
+
 files:
   - source: /Kairo/Localizable.xcstrings
     translation: /Kairo/Localizable.xcstrings

@@ -18,7 +18,15 @@ import Foundation
     func setKeyboardBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
     // Screen brightness access (performed by the helper)
     func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void)
+    // returns the displayID that will be used for built-in brightness operations (main or internal fallback)
+    func displayIDForBrightness(with reply: @escaping (NSNumber?) -> Void)
     func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void)
     func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
+    func adjustScreenBrightness(by value: Float, with reply: @escaping (Bool) -> Void)
+    // Lunar brightness events (performed by the helper)
+    func isLunarAvailable(with reply: @escaping (Bool) -> Void)
+    func startLunarEventStream(with reply: @escaping (Bool) -> Void)
+    func stopLunarEventStream()
+    /// Write Lunar's hideOSD preference (disable/enable Lunar's OSD when we replace it).
+    func setLunarOSDHidden(_ hide: Bool, with reply: @escaping (Bool) -> Void)
 }
-
