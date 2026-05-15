@@ -8,6 +8,7 @@
 //  Auto-reconnects on disconnect.
 //
 
+import AppKit
 import AVFoundation
 import Combine
 import Foundation
@@ -317,7 +318,19 @@ class KairoSocket: NSObject, ObservableObject, URLSessionWebSocketDelegate {
 extension KairoSocket {
 
     func sendTextCommand(_ text: String, completion: @escaping (String) -> Void) {
-        guard let url = URL(string: "\(httpBaseURL)/text") else { return }
+        // If the legacy backend is disabled (KAIRO_BACKEND=off) or
+        // unreachable, route this call through the new in-process Brain.
+        // That way the notch's input bar + Commands tab + handleLocally
+        // fallbacks all "just work" without the Python backend.
+        if isDisabled {
+            routeThroughBrain(text: text, completion: completion)
+            return
+        }
+
+        guard let url = URL(string: "\(httpBaseURL)/text") else {
+            routeThroughBrain(text: text, completion: completion)
+            return
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -327,19 +340,52 @@ extension KairoSocket {
         let body: [String: Any] = ["text": text, "tts": false]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let data = data,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let responseText = json["response"] as? String else {
-                DispatchQueue.main.async { completion("Server error") }
+                // Backend failed — fall back to the in-process Brain instead
+                // of returning the bare "Server error" string.
+                self?.routeThroughBrain(text: text, completion: completion)
                 return
             }
             DispatchQueue.main.async { completion(responseText) }
         }.resume()
     }
 
+    /// Hands the text off to the new Brain pipeline (KairoBrain.handle).
+    /// Used when the legacy backend is off or unreachable so the user
+    /// still gets a real answer from Ollama / Anthropic / OpenAI.
+    private func routeThroughBrain(text: String, completion: @escaping (String) -> Void) {
+        Task { @MainActor in
+            guard
+                let appDelegate = NSApp.delegate as? AppDelegate,
+                let brain = appDelegate.brain
+            else {
+                completion("Backend off and Brain not ready yet. Try K menu → Ask Kairo… (⌘K).")
+                return
+            }
+            do {
+                let reply = try await brain.handle(input: text, ambient: KairoAmbientContext.current())
+                completion(reply)
+            } catch {
+                completion("Brain failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
     func sendVoiceCommand(_ text: String, completion: @escaping (String, Data?) -> Void) {
-        guard let url = URL(string: "\(httpBaseURL)/text") else { return }
+        // Backend-off / Brain-route variant of sendTextCommand. Returns text
+        // only (no server-generated TTS) — local TTS will speak via the
+        // KairoTTSEngine if the caller wants audio.
+        if isDisabled {
+            sendTextCommand(text) { reply in completion(reply, nil) }
+            return
+        }
+        guard let url = URL(string: "\(httpBaseURL)/text") else {
+            sendTextCommand(text) { reply in completion(reply, nil) }
+            return
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -357,8 +403,14 @@ extension KairoSocket {
     }
 
     func sendAudioToServer(_ audioData: Data, completion: @escaping (String, String, Data?) -> Void) {
+        if isDisabled {
+            DispatchQueue.main.async {
+                completion("", "Audio backend off — use F5 (routes to new Brain) or K → Ask Kairo… instead.", nil)
+            }
+            return
+        }
         guard let url = URL(string: "\(httpBaseURL)/voice") else {
-            DispatchQueue.main.async { completion("", "Server not configured", nil) }
+            DispatchQueue.main.async { completion("", "Audio backend not configured", nil) }
             return
         }
 
