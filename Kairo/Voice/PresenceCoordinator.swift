@@ -43,19 +43,13 @@ final class PresenceCoordinator {
         Earcons.shared.play(.respond)
         try? await Task.sleep(for: .milliseconds(120))
 
-        // 1. Guaranteed-visible caption HUD — sits below the notch, full
-        //    width, typewriter-revealed. Doesn't depend on Orbie window
-        //    positioning to be on-screen.
+        // Single visible transcript surface: the CaptionHUD strip below the
+        // notch (HUD-styled with brackets / glow / typewriter). Reads as a
+        // notch extension. We deliberately do NOT also present Orbie's
+        // textResponse panel here — that produced a second floating window
+        // showing the same text. The orb itself still pulses with the
+        // speaking voice state below.
         KairoCaptionHUD.shared.show(text: response, query: query)
-
-        // 2. Also present Orbie's textResponse panel for users with bigger
-        //    displays (provides more context + actions).
-        kairoDebug("beginSpeaking: calling presentAndWait")
-        await KairoRuntime.shared.presentAndWait(
-            .textResponse,
-            payload: TextResponseData(query: query, response: response, icon: nil)
-        )
-        kairoDebug("beginSpeaking: presentAndWait returned")
 
         KairoRuntime.shared.orbieController?.setVoiceState(.speaking(amplitude: 0))
         startSpeakingAmplitude(duration: estimatedSpeechDuration(for: response))
