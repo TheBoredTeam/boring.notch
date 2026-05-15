@@ -22,21 +22,46 @@ jobs:
   # helper job to test for the release command in the comment; env is safe to use here
   check_release:
     name: Check for release command
+    if: ${{ github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     outputs:
       is_release: ${{ steps.check.outputs.is_release }}
+      is_eligible_pr: ${{ steps.check.outputs.is_eligible_pr }}
     steps:
       - id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          RELEASE_COMMAND: ${{ env.RELEASE_COMMAND }}
         run: |
-          if [[ "${{ github.event.comment.body }}" == *"${{ env.RELEASE_COMMAND }}"* ]]; then
-            echo "is_release=true" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          if [[ "$COMMENT_BODY" == *"$RELEASE_COMMAND"* ]]; then
+            IS_RELEASE=true
           else
-            echo "is_release=false" >> $GITHUB_OUTPUT
+            IS_RELEASE=false
           fi
+
+          IS_ELIGIBLE_PR=false
+          PR_NUMBER="${{ github.event.issue.number }}"
+          PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
+            --jq '{head_ref: .head.ref, base_ref: .base.ref, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name}')
+          HEAD_REF=$(echo "$PR_DATA" | jq -r '.head_ref')
+          BASE_REF=$(echo "$PR_DATA" | jq -r '.base_ref')
+          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.head_repo')
+          BASE_REPO=$(echo "$PR_DATA" | jq -r '.base_repo')
+
+          if [[ "$HEAD_REPO" == "$REPO" && "$BASE_REPO" == "$REPO" && "$HEAD_REF" == "dev" && "$BASE_REF" == "main" ]]; then
+            IS_ELIGIBLE_PR=true
+          fi
+
+          echo "is_release=$IS_RELEASE" >> "$GITHUB_OUTPUT"
+          echo "is_eligible_pr=$IS_ELIGIBLE_PR" >> "$GITHUB_OUTPUT"
 
   preparation:
     name: Preparation
-    if: ${{ github.event.issue.pull_request && needs.check_release.outputs.is_release == 'true' }}
+    needs: check_release
+    if: ${{ needs.check_release.outputs.is_release == 'true' && needs.check_release.outputs.is_eligible_pr == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -45,6 +70,8 @@ jobs:
       is_beta: ${{ steps.extract_version.outputs.is_beta }}
       version: ${{ steps.extract_version.outputs.version }}
       build_number: ${{ steps.extract_version.outputs.build_number }}
+      xcode_version: ${{ steps.build_config.outputs.xcode_version }}
+      code_sign_identity: ${{ steps.build_config.outputs.code_sign_identity }}
       title: ${{ steps.release_notes.outputs.title }}
       release_notes: ${{ steps.release_notes.outputs.release_notes }}
       release_notes_github: ${{ steps.release_notes.outputs.release_notes_github }}
@@ -110,16 +137,25 @@ jobs:
           COMMENT: ${{ github.event.comment.body }}
         run: |
           set -euo pipefail
-          python3 -m pip install --upgrade --no-cache-dir semver
           export projname="${{ env.PROJECT_NAME }}"
           OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
           VERSION=$(awk -F= '/^version=/{print $2; exit}' <<<"$OUTPUT")
           IS_BETA=$(awk -F= '/^is_beta=/{print $2; exit}' <<<"$OUTPUT")
           BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "is_beta=$IS_BETA" >> "$GITHUB_OUTPUT"
-          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$VERSION"
+            echo "is_beta=$IS_BETA"
+            echo "build_number=$BUILD_NUMBER"
+          } >> "$GITHUB_OUTPUT"
           echo "Version: $VERSION | Beta: $IS_BETA | Build: $BUILD_NUMBER"
+
+      - name: Expose build configuration
+        id: build_config
+        run: |
+          {
+            echo "xcode_version=${{ env.XCODE_VERSION }}"
+            echo "code_sign_identity=${{ env.CODE_SIGN_IDENTITY }}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes from PR
         id: release_notes
@@ -166,7 +202,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config --global credential.https://github.com.helper \
-            '!f() { echo "username=x-access-token"; printf "password=%s\n" "${GITHUB_TOKEN}"; }; f'
+            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
           git fetch origin "$BASE_REF"
           git checkout "$HEAD_REF"
           git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
@@ -214,19 +250,103 @@ jobs:
           RELEASE_NOTES: ${{ needs.preparation.outputs.release_notes }}
         run: printf '%s' "$RELEASE_NOTES" > Release/Kairo.html
 
+      - name: Build Sparkle generate_appcast from source
+        run: |
+          set -euo pipefail
+          SPARKLE_METADATA_PATH="Kairo.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          SPARKLE_SRC="$RUNNER_TEMP/Sparkle"
+          SPARKLE_DERIVED="$RUNNER_TEMP/sparkle-derived"
+          SPARKLE_REPO_URL="https://github.com/sparkle-project/Sparkle"
+
+          IFS=$'\t' read -r SPARKLE_VERSION SPARKLE_REVISION <<< "$(python3 - "$SPARKLE_METADATA_PATH" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          data = json.loads(path.read_text())
+          pins = data.get("pins", [])
+
+          sparkle = next((pin for pin in pins if pin.get("identity") == "sparkle"), None)
+          if sparkle is None:
+              print(f"::error::No 'sparkle' pin found in {path}", file=sys.stderr)
+              sys.exit(1)
+
+          state = sparkle.get("state", {})
+          version = state.get("version")
+          revision = state.get("revision")
+
+          if not version:
+              print(f"::error::Sparkle pin in {path} is not version-pinned", file=sys.stderr)
+              sys.exit(1)
+
+          if not revision:
+              print(f"::error::Sparkle pin in {path} has no revision", file=sys.stderr)
+              sys.exit(1)
+
+          print(f"{version}\t{revision}")
+          PY
+          )"
+
+          echo "Using Sparkle ${SPARKLE_VERSION} (${SPARKLE_REVISION}) from ${SPARKLE_METADATA_PATH}"
+
+          SPARKLE_TAG=""
+          for candidate in "$SPARKLE_VERSION" "v$SPARKLE_VERSION"; do
+            if git ls-remote --exit-code --tags "$SPARKLE_REPO_URL" "refs/tags/$candidate" >/dev/null; then
+              SPARKLE_TAG="$candidate"
+              break
+            else
+              ls_remote_exit=$?
+              if [[ "$ls_remote_exit" -ne 2 ]]; then
+                echo "::error::Failed to query Sparkle tags from $SPARKLE_REPO_URL while checking $candidate"
+                exit 1
+              fi
+            fi
+          done
+
+          if [[ -z "$SPARKLE_TAG" ]]; then
+            echo "::error::Could not find Sparkle tag $SPARKLE_VERSION or v$SPARKLE_VERSION"
+            exit 1
+          fi
+
+          git clone \
+            --depth 1 \
+            --branch "$SPARKLE_TAG" \
+            --single-branch \
+            "$SPARKLE_REPO_URL" \
+            "$SPARKLE_SRC"
+
+          ACTUAL_REVISION="$(git -C "$SPARKLE_SRC" rev-parse HEAD)"
+          if [[ "$ACTUAL_REVISION" != "$SPARKLE_REVISION" ]]; then
+            echo "::error::Sparkle tag ${SPARKLE_TAG} resolves to ${ACTUAL_REVISION}, expected ${SPARKLE_REVISION}"
+            exit 1
+          fi
+
+          xcodebuild -project "$SPARKLE_SRC/Sparkle.xcodeproj" \
+            -scheme generate_appcast \
+            -configuration Release \
+            -derivedDataPath "$SPARKLE_DERIVED" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+          APPCAST_BIN="$SPARKLE_DERIVED/Build/Products/Release/generate_appcast"
+          [[ -x "$APPCAST_BIN" ]] || { echo "::error::generate_appcast was not built"; exit 1; }
+
+          install -m 0755 "$APPCAST_BIN" "$RUNNER_TEMP/generate_appcast"
+
       - name: Generate signed appcast
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
         run: |
           set -euo pipefail
-          test -x Configuration/sparkle/generate_appcast || {
-            echo "::error::Configuration/sparkle/generate_appcast missing or not executable"; exit 1;
+          test -x "$RUNNER_TEMP/generate_appcast" || {
+            echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
           }
           CHANNEL_ARGS=()
           if [[ "${IS_BETA}" == "true" ]]; then
             CHANNEL_ARGS=(--channel "${{ env.BETA_CHANNEL_NAME }}")
           fi
-          printf '%s' "$SPARKLE_PRIVATE_KEY" | ./Configuration/sparkle/generate_appcast \
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
             --ed-key-file - \
             --link "https://github.com/wizlox/kairo-notch/releases" \
             --download-url-prefix "https://github.com/wizlox/kairo-notch/releases/download/v${VERSION}/" \
@@ -332,7 +452,7 @@ jobs:
           fi
 
       - name: Upload cask artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: homebrew-cask-${{ env.VERSION }}
           path: kairo*.rb
@@ -406,7 +526,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config --global credential.https://github.com.helper \
-            '!f() { echo "username=x-access-token"; printf "password=%s\n" "${GITHUB_TOKEN}"; }; f'
+            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
           git fetch origin "$BASE_REF"
           git checkout "$BASE_REF"
           git merge --no-ff "origin/$HEAD_REF" -m "Release version v${VERSION}"
@@ -424,10 +544,12 @@ jobs:
           else
             BUILD_TYPE="stable"
           fi
-          if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
-            echo "Released Kairo v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})" >> "$GITHUB_STEP_SUMMARY"
-            echo "Homebrew cask updated" >> "$GITHUB_STEP_SUMMARY"
-            echo "Sparkle appcast updated" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Release failed${VERSION:+ for Kairo v${VERSION}}" >> "$GITHUB_STEP_SUMMARY"
-          fi
+          {
+            if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
+              echo "✅ Released Kairo v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
+              echo "🍺 Homebrew cask updated"
+              echo "📱 Sparkle appcast updated"
+            else
+              echo "❌ Release failed${VERSION:+ for Kairo v${VERSION}}"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

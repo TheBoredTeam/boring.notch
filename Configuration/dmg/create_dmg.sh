@@ -27,14 +27,12 @@ ensure_dmgbuild_and_badge_support() {
     return 0
   fi
 
-  if ! command -v pip3 >/dev/null 2>&1; then
-    die "dmgbuild is not installed and pip3 is not available. Please install dmgbuild."
+  local req_file="$SCRIPT_DIR/requirements.txt"
+  if [ ! -f "$req_file" ]; then
+    die "Dependency lock file not found: $req_file"
   fi
 
-  echo "dmgbuild not found — installing via pip3 (user scope)..."
-  python3 -m pip install --user "dmgbuild[badge_icons]" || python3 -m pip install "dmgbuild[badge_icons]"
-  USER_BIN="$(python3 -c 'import site,sys; print(site.getuserbase() + "/bin")')"
-  export PATH="$USER_BIN:$PATH"
+  die "dmgbuild is not installed. Install hash-pinned dependencies first: python3 -m pip install --require-hashes -r $req_file"
 }
 
 find_app_icns() {
