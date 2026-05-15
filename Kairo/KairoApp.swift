@@ -50,6 +50,22 @@ struct DynamicNotchApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    /// Direct singleton handle. `NSApp.delegate as? AppDelegate` can fail
+    /// under SwiftUI's @NSApplicationDelegateAdaptor because SwiftUI
+    /// sometimes returns a wrapping proxy. This static is set in init()
+    /// so any non-SwiftUI call site (KairoSocket, KairoVoiceTrigger, etc.)
+    /// can reach the AppDelegate instance reliably.
+    static private(set) weak var shared: AppDelegate?
+
+    override init() {
+        super.init()
+        Self.shared = self
+        // Line-buffer stdout so `print()` output appears in tail -f
+        // immediately (default for non-TTY is full block buffering).
+        setvbuf(stdout, nil, _IOLBF, 0)
+        setvbuf(stderr, nil, _IOLBF, 0)
+    }
+
     var statusItem: NSStatusItem?
     var windows: [String: NSWindow] = [:] // UUID -> NSWindow
     var viewModels: [String: KairoViewModel] = [:] // UUID -> KairoViewModel

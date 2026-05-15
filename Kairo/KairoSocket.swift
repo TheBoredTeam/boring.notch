@@ -356,13 +356,18 @@ extension KairoSocket {
     /// Hands the text off to the new Brain pipeline (KairoBrain.handle).
     /// Used when the legacy backend is off or unreachable so the user
     /// still gets a real answer from Ollama / Anthropic / OpenAI.
+    ///
+    /// The brain is constructed inside AppDelegate's asyncAfter(+2s) so
+    /// for the first ~2 seconds after app launch it's nil. Rather than
+    /// failing immediately, this waits up to ~6 seconds for the brain
+    /// to come up (polling every 250ms). If it still isn't ready after
+    /// that, the original "not ready yet" message lands.
     private func routeThroughBrain(text: String, completion: @escaping (String) -> Void) {
         Task { @MainActor in
-            guard
-                let appDelegate = NSApp.delegate as? AppDelegate,
-                let brain = appDelegate.brain
-            else {
-                completion("Backend off and Brain not ready yet. Try K menu → Ask Kairo… (⌘K).")
+            let brain = await Self.waitForBrain(timeout: 6.0)
+            guard let brain else {
+                print("[KairoSocket] routeThroughBrain: brain still nil after 6s wait")
+                completion("Brain not ready yet — try again in a moment.")
                 return
             }
             do {
@@ -372,6 +377,24 @@ extension KairoSocket {
                 completion("Brain failed: \(error.localizedDescription)")
             }
         }
+    }
+
+    /// Polls AppDelegate.shared.brain for up to `timeout` seconds.
+    /// Returns the brain as soon as it's available, or nil on timeout.
+    @MainActor
+    static func waitForBrain(timeout: TimeInterval) async -> KairoBrain? {
+        let pollInterval: TimeInterval = 0.25
+        let start = Date()
+        while Date().timeIntervalSince(start) < timeout {
+            // Prefer the static singleton — SwiftUI's @NSApplicationDelegateAdaptor
+            // sometimes returns a proxy from NSApp.delegate.
+            let appDelegate = AppDelegate.shared ?? (NSApp.delegate as? AppDelegate)
+            if let brain = appDelegate?.brain {
+                return brain
+            }
+            try? await Task.sleep(for: .seconds(pollInterval))
+        }
+        return nil
     }
 
     func sendVoiceCommand(_ text: String, completion: @escaping (String, Data?) -> Void) {

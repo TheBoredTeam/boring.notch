@@ -156,7 +156,8 @@ final class DebugMenu: NSObject {
     }
 
     @objc private func enableWakeWord() {
-        guard let appDelegate = NSApp.delegate as? AppDelegate,
+        let appDelegate = AppDelegate.shared ?? (NSApp.delegate as? AppDelegate)
+        guard let appDelegate,
               let wake = appDelegate.wakeWord else {
             feedbackSay("Wake word not available — voice pipeline not initialized.", pill: "Kairo")
             return

@@ -68,8 +68,10 @@ class KairoVoiceTrigger: ObservableObject {
         // Prefer the NEW Brain pipeline (ConversationLoop) if it's been
         // wired by AppDelegate. Falls back to the legacy KairoVoiceEngine
         // (Python backend on localhost:8420) when the new loop isn't ready.
-        if let appDelegate = NSApp.delegate as? AppDelegate,
-           let loop = appDelegate.conversationLoop {
+        // Prefer the static singleton — SwiftUI's NSApplicationDelegateAdaptor
+        // sometimes returns a proxy from NSApp.delegate.
+        let appDelegate = AppDelegate.shared ?? (NSApp.delegate as? AppDelegate)
+        if let appDelegate, let loop = appDelegate.conversationLoop {
             Task { @MainActor in loop.startTurn() }
             // Auto-clear active flag — ConversationLoop drives its own
             // presence lifecycle and will end on silence / max-listen.
