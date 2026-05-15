@@ -37,6 +37,25 @@ final class OrbieWindow: NSWindow {
         frame.origin.x -= dw / 2
         frame.origin.y -= dh / 2
 
+        // Clamp into the active screen's visible frame with a small margin
+        // so the panel/canvas sizes never land partly off-screen and
+        // disappear visually.
+        if let visible = (screen ?? NSScreen.main)?.visibleFrame {
+            let margin: CGFloat = 16
+            if frame.maxX > visible.maxX - margin {
+                frame.origin.x = visible.maxX - margin - frame.width
+            }
+            if frame.minX < visible.minX + margin {
+                frame.origin.x = visible.minX + margin
+            }
+            if frame.maxY > visible.maxY - margin {
+                frame.origin.y = visible.maxY - margin - frame.height
+            }
+            if frame.minY < visible.minY + margin {
+                frame.origin.y = visible.minY + margin
+            }
+        }
+
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.55
             ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.34, 1.56, 0.64, 1.0)

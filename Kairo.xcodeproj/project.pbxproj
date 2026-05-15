@@ -221,6 +221,7 @@
 		EE00030002000000000001 /* AudioDucker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00030001000000000001 /* AudioDucker.swift */; };
 		EE00040002000000000001 /* Earcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00040001000000000001 /* Earcons.swift */; };
 		EE00050002000000000001 /* PresenceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00050001000000000001 /* PresenceCoordinator.swift */; };
+		EE00050022000000000001 /* CaptionHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00050021000000000001 /* CaptionHUD.swift */; };
 		EE00060002000000000001 /* TextResponseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00060001000000000001 /* TextResponseView.swift */; };
 /* End PBXBuildFile section */
 
@@ -466,6 +467,7 @@
 		EE00030001000000000001 /* AudioDucker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDucker.swift; sourceTree = "<group>"; };
 		EE00040001000000000001 /* Earcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Earcons.swift; sourceTree = "<group>"; };
 		EE00050001000000000001 /* PresenceCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceCoordinator.swift; sourceTree = "<group>"; };
+		EE00050021000000000001 /* CaptionHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptionHUD.swift; sourceTree = "<group>"; };
 		EE00060001000000000001 /* TextResponseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextResponseView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1050,6 +1052,7 @@
 				18FE70182581E269D2BCB2A4 /* ConversationLoop.swift */,
 				EE00040001000000000001 /* Earcons.swift */,
 				EE00050001000000000001 /* PresenceCoordinator.swift */,
+				EE00050021000000000001 /* CaptionHUD.swift */,
 				F64C57D5F6542F299856325A /* SpeechRecognizer.swift */,
 				69DBA426DB4D2F66E55C9EDE /* TTSEngine.swift */,
 				64BB21ADC1768E2DB3837B46 /* WakeWord.swift */,
@@ -1440,6 +1443,7 @@
 				EE00030002000000000001 /* AudioDucker.swift in Sources */,
 				EE00040002000000000001 /* Earcons.swift in Sources */,
 				EE00050002000000000001 /* PresenceCoordinator.swift in Sources */,
+				EE00050022000000000001 /* CaptionHUD.swift in Sources */,
 				EE00060002000000000001 /* TextResponseView.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;

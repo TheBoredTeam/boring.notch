@@ -43,6 +43,13 @@ final class PresenceCoordinator {
         Earcons.shared.play(.respond)
         try? await Task.sleep(for: .milliseconds(120))
 
+        // 1. Guaranteed-visible caption HUD — sits below the notch, full
+        //    width, typewriter-revealed. Doesn't depend on Orbie window
+        //    positioning to be on-screen.
+        KairoCaptionHUD.shared.show(text: response, query: query)
+
+        // 2. Also present Orbie's textResponse panel for users with bigger
+        //    displays (provides more context + actions).
         kairoDebug("beginSpeaking: calling presentAndWait")
         await KairoRuntime.shared.presentAndWait(
             .textResponse,
@@ -63,6 +70,10 @@ final class PresenceCoordinator {
         try? await Task.sleep(for: .seconds(2))
         KairoRuntime.shared.dismiss()
         kairoDebug("endSpeaking: dismissed")
+
+        // Hide the caption HUD when speech ends. The HUD's own auto-hide
+        // covers the case where endSpeaking is never called (errors).
+        KairoCaptionHUD.shared.hide()
 
         await AudioDucker.shared.restore()
         NowPlayingWatcher.shared.start()
@@ -134,9 +145,11 @@ final class PresenceCoordinator {
             let amp: Float = Float(
                 0.4 + 0.3 * sin(t * 6.0) + 0.2 * sin(t * 13.0) + 0.1 * sin(t * 23.0)
             )
+            let clamped = max(0.1, min(1.0, amp))
             Task { @MainActor in
                 guard self != nil else { return }
-                KairoRuntime.shared.orbieController?.updateAmplitude(max(0.1, min(1.0, amp)))
+                KairoRuntime.shared.orbieController?.updateAmplitude(clamped)
+                KairoCaptionHUD.shared.updateAmplitude(clamped)
             }
         }
     }
