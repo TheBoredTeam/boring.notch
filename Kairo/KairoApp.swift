@@ -59,6 +59,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @ObservedObject var coordinator = KairoViewCoordinator.shared
     var quickShareService = QuickShareService.shared
     var whatsNewWindow: NSWindow?
+
+    // v3 Orbie + Note handoff
+    var orbieWindow: OrbieWindow?
+    var orbieController: OrbieController?
+    var orbCoordinator: OrbCoordinator?
+    var noteWindow: NoteWindow?
+    var debugMenu: DebugMenu?
+    var tieredExecutor: TieredExecutor?
+    private var orbieCancellables = Set<AnyCancellable>()
     var timer: Timer?
     var closeNotchTask: Task<Void, Never>?
     private var previousScreens: [NSScreen]?
@@ -157,6 +166,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func triggerJarvisWelcome() {
         guard KairoSocket.shared.isConnected else { return }
+
+        KairoMorningBriefing.shared.hasGreetedToday = true
 
         Task {
             do {
@@ -547,6 +558,77 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousScreens = NSScreen.screens
+
+        // 1. Hologram orb — keep existing init, just grab reference
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            KairoHologramWindow.shared.show()
+        }
+
+        // 2. Orbie — hidden initially, coordinator owns visibility
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            let controller = OrbieController()
+            self.orbieController = controller
+
+            let shell = OrbieShell().environmentObject(controller)
+            let orbWin = OrbieWindow()
+            orbWin.contentView = NSHostingView(rootView: shell)
+            orbWin.alphaValue = 0
+            orbWin.orderOut(nil)
+            self.orbieWindow = orbWin
+
+            // Resize when mode changes
+            controller.$mode
+                .map { _ in controller.currentSize }
+                .removeDuplicates()
+                .sink { [weak orbWin] size in orbWin?.resize(to: size) }
+                .store(in: &self.orbieCancellables)
+
+            // 3. Coordinator owns the handoff
+            let coord = OrbCoordinator(
+                hologram: KairoHologramWindow.shared,
+                orbieWindow: orbWin,
+                orbieController: controller
+            )
+            self.orbCoordinator = coord
+            KairoRuntime.shared.coordinator = coord
+
+            // 2b. Register tools and install debug menu
+            let gate = PermissionGate()
+            let executor = TieredExecutor(permissionGate: gate)
+            executor.register(WeatherTool())
+            executor.register(AppleMusicTool())
+            executor.register(YouTubeTool())
+            executor.register(ScreenTool())
+            executor.register(ClipboardTool())
+            executor.register(SystemTool())
+            executor.register(SmartHomeTool())
+            executor.register(SearchTool())
+            self.tieredExecutor = executor
+
+            let debug = DebugMenu(executor: executor)
+            debug.install()
+            self.debugMenu = debug
+
+            // Demo: real weather fetch after 5s
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                Task { _ = try? await executor.run(toolName: "weather", args: [:]) }
+            }
+        }
+
+        // 4. Note — persistent side panel
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            let noteWin = NoteWindow()
+            noteWin.contentView = NSHostingView(rootView: NoteShell())
+            noteWin.orderFrontRegardless()
+            self.noteWindow = noteWin
+        }
+
+        // 5. Now-playing watcher + notification monitor + WebSocket server
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            NowPlayingWatcher.shared.start()
+            NotificationMonitor.shared.start()
+            KairoWebSocketServer.shared.start()
+        }
 
         // === KAIRO SYSTEMS ===
         // Step 1: Start LOCAL systems immediately (no backend needed)

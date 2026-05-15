@@ -199,7 +199,7 @@ class KairoViewModel: NSObject, ObservableObject {
 
     /// Smoothly update the open notch height based on active tab content
     func updateOpenHeight(_ height: CGFloat) {
-        let clamped = min(max(height, 280), maxOpenNotchHeight)
+        let clamped = max(height, 280)
         let newSize = CGSize(width: openNotchWidth, height: clamped)
         guard notchState == .open, abs(notchSize.height - clamped) > 2 else { return }
         withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {

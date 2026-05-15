@@ -429,18 +429,16 @@ struct NotificationHistoryTab: View {
     }
 
     private var notificationList: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            LazyVStack(spacing: 6) {
-                ForEach(Array(engine.history.enumerated()), id: \.element.id) { i, notif in
-                    NotificationHistoryRow(notif: notif, index: i)
-                        .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .scale(scale: 0.95, anchor: .top)),
-                            removal: .opacity.combined(with: .scale(scale: 0.98))
-                        ))
-                }
+        VStack(spacing: 6) {
+            ForEach(Array(engine.history.enumerated()), id: \.element.id) { i, notif in
+                NotificationHistoryRow(notif: notif, index: i)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .scale(scale: 0.95, anchor: .top)),
+                        removal: .opacity.combined(with: .scale(scale: 0.98))
+                    ))
             }
-            .padding(.horizontal, 14).padding(.bottom, 10)
         }
+        .padding(.horizontal, 14).padding(.bottom, 10)
     }
 }
 

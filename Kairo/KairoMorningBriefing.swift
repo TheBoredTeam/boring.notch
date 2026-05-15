@@ -19,7 +19,7 @@ class KairoMorningBriefing: ObservableObject {
     @Published var briefingText = ""
     @Published var briefingWords: [String] = []
 
-    private var hasGreetedToday = false
+    var hasGreetedToday = false
     private var greetedDate: Date?
     private var audioPlayer: AVAudioPlayer?
 
@@ -29,8 +29,7 @@ class KairoMorningBriefing: ObservableObject {
         // Wake from sleep
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(systemDidWake), name: NSWorkspace.didWakeNotification, object: nil)
 
-        // Screen unlock
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenDidUnlock), name: NSNotification.Name("com.apple.screenIsUnlocked"), object: nil)
+        // Screen unlock is handled by KairoApp.triggerJarvisWelcome() — no observer here to avoid duplicate voices
 
         // Fresh boot check
         var tv = timeval()
@@ -50,13 +49,6 @@ class KairoMorningBriefing: ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { self.triggerBriefing() }
         } else if hour >= 12 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.triggerQuickUpdate() }
-        }
-    }
-
-    @objc private func screenDidUnlock(_ n: Notification) {
-        let hour = Calendar.current.component(.hour, from: Date())
-        if hour >= 5 && hour < 12 && !hasGreetedToday {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.triggerBriefing() }
         }
     }
 
@@ -161,7 +153,7 @@ class KairoMorningBriefing: ObservableObject {
 
     private func speakWithElevenLabs(_ text: String) {
         let apiKey = ProcessInfo.processInfo.environment["ELEVENLABS_API_KEY"] ?? ""
-        let voiceID = ProcessInfo.processInfo.environment["ELEVENLABS_VOICE_ID"] ?? "jCGPoiryOOKcOL7Xh42m"
+        let voiceID = ProcessInfo.processInfo.environment["ELEVENLABS_VOICE_ID"] ?? "QR57ghQmWinyEbqmRLVI"
 
         guard !apiKey.isEmpty, let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceID)") else {
             speakWithSystem(text); return

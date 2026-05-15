@@ -1,14 +1,13 @@
 //
 //  KairoVoiceTrigger.swift
-//  Kairo — Caps Lock voice trigger (like Claude app)
+//  Kairo — Voice trigger
 //
-//  Double-tap Fn key to activate Kairo voice.
-//  The notch breathes cyan, all audio pauses,
-//  Kairo listens. Tap Fn again or press Esc to stop.
+//  Double-tap Fn to activate. Escape to stop.
 //
 
 import AppKit
 import AVFoundation
+import Carbon
 import Combine
 import SwiftUI
 
@@ -17,47 +16,42 @@ class KairoVoiceTrigger: ObservableObject {
 
     @Published var isActive = false
 
-    private var flagsMonitor: Any?
-    private var lastFnTime: Date = .distantPast
-    private let doubleTapWindow: TimeInterval = 0.4
-
+    private var escapeMonitorGlobal: Any?
+    private var escapeMonitorLocal: Any?
     func start() {
-        // Monitor all key flag changes globally (catches Fn, Caps Lock, etc.)
-        flagsMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-            self?.handleFlags(event)
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
+        let trusted = AXIsProcessTrustedWithOptions(options)
+        print("[KairoVoice] Accessibility: \(trusted ? "granted" : "requesting...")")
+
+        // F5 to activate, Escape to stop (global)
+        escapeMonitorGlobal = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handleKeyDown(event)
         }
 
-        // Also monitor locally (when Kairo is focused)
-        NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-            self?.handleFlags(event)
+        // F5 / Escape (local, when Kairo is focused)
+        escapeMonitorLocal = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handleKeyDown(event)
             return event
         }
 
-        // Escape key to cancel
-        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 53 && self?.isActive == true { // Esc
-                DispatchQueue.main.async { self?.deactivate() }
+        print("[KairoVoice] Trigger ready — F5 to activate, Escape to stop")
+    }
+
+    private func handleKeyDown(_ event: NSEvent) {
+        // F5 (keyCode 96) → toggle voice
+        if event.keyCode == 96 {
+            DispatchQueue.main.async {
+                if self.isActive {
+                    self.deactivate()
+                } else {
+                    self.activate()
+                }
             }
         }
 
-        print("[KairoVoice] Trigger ready — double-tap Fn to activate")
-    }
-
-    private func handleFlags(_ event: NSEvent) {
-        // Detect Fn key (keyCode 63) press
-        if event.keyCode == 63 {
-            let now = Date()
-            let elapsed = now.timeIntervalSince(lastFnTime)
-
-            if elapsed < doubleTapWindow && !isActive {
-                // Double-tap detected → activate
-                DispatchQueue.main.async { self.activate() }
-            } else if isActive {
-                // Already active, Fn pressed again → deactivate
-                DispatchQueue.main.async { self.deactivate() }
-            }
-
-            lastFnTime = now
+        // Escape → stop
+        if event.keyCode == 53 && isActive {
+            DispatchQueue.main.async { self.deactivate() }
         }
     }
 
@@ -65,16 +59,12 @@ class KairoVoiceTrigger: ObservableObject {
         guard !isActive else { return }
         isActive = true
 
-        // Pause all system audio
         pauseAllAudio()
 
-        // Haptic
         NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .default)
 
-        // Tell the notch
         NotificationCenter.default.post(name: .kairoVoiceActivated, object: nil)
 
-        // Start listening
         KairoVoiceEngine.shared.startListening()
 
         print("[KairoVoice] Activated — listening")
@@ -84,13 +74,10 @@ class KairoVoiceTrigger: ObservableObject {
         guard isActive else { return }
         isActive = false
 
-        // Stop listening
         KairoVoiceEngine.shared.stopListening()
 
-        // Tell the notch
         NotificationCenter.default.post(name: .kairoVoiceDismissed, object: nil)
 
-        // Resume audio after response
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             self.resumeAllAudio()
         }
@@ -101,29 +88,26 @@ class KairoVoiceTrigger: ObservableObject {
     // MARK: - Audio Control
 
     private func pauseAllAudio() {
-        // Send media pause command via MediaRemote
         if let bundle = CFBundleCreate(kCFAllocatorDefault,
             NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")),
            let ptr = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteSendCommand" as CFString) {
             let sendCommand = unsafeBitCast(ptr, to: (@convention(c) (Int, AnyObject?) -> Void).self)
-            sendCommand(1, nil) // 1 = Pause
+            sendCommand(1, nil)
         }
     }
 
     private func resumeAllAudio() {
-        // Only resume if music was playing before
         guard MusicManager.shared.isPlaying == false else { return }
         if let bundle = CFBundleCreate(kCFAllocatorDefault,
             NSURL(fileURLWithPath: "/System/Library/PrivateFrameworks/MediaRemote.framework")),
            let ptr = CFBundleGetFunctionPointerForName(bundle, "MRMediaRemoteSendCommand" as CFString) {
             let sendCommand = unsafeBitCast(ptr, to: (@convention(c) (Int, AnyObject?) -> Void).self)
-            sendCommand(0, nil) // 0 = Play
+            sendCommand(0, nil)
         }
     }
 
     deinit {
-        if let monitor = flagsMonitor {
-            NSEvent.removeMonitor(monitor)
-        }
+        [escapeMonitorGlobal, escapeMonitorLocal]
+            .compactMap { $0 }.forEach { NSEvent.removeMonitor($0) }
     }
 }

@@ -17,6 +17,10 @@
 	<string>Kairo shows your upcoming events in the Dynamic Island</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>Kairo shows your reminders alongside calendar events</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Kairo uses speech recognition for voice commands</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>Kairo captures the screen for visual context and OCR</string>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict/>

@@ -14,8 +14,8 @@ let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let shadowPadding: CGFloat = 20
 let openNotchWidth: CGFloat = 640
-let openNotchSize: CGSize = .init(width: openNotchWidth, height: 620)  // Default open height
-let maxOpenNotchHeight: CGFloat = 680  // Max possible height for any tab
+let openNotchSize: CGSize = .init(width: openNotchWidth, height: 700)  // Default open height
+let maxOpenNotchHeight: CGFloat = 1200  // Generous max — notch expands freely to fit content
 let windowSize: CGSize = .init(width: openNotchWidth, height: maxOpenNotchHeight + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 

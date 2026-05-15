@@ -210,7 +210,7 @@ extension KairoVoice {
     private func speakWithElevenLabs(_ text: String) async {
         let apiKey = ProcessInfo.processInfo.environment["ELEVENLABS_API_KEY"] ?? ""
         let voiceID = ProcessInfo.processInfo.environment["ELEVENLABS_VOICE_ID"]
-            ?? "pNInz6obpgDQGcFmaJgB"
+            ?? "QR57ghQmWinyEbqmRLVI"
 
         guard !apiKey.isEmpty,
               let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceID)/stream")

@@ -31,16 +31,14 @@ class KairoFeedbackEngine: ObservableObject {
 
     // MARK: - Speak + Show in Pill
 
-    /// Main feedback method — speaks text and shows in notch pill
-    func say(_ text: String, pillText: String? = nil, priority: FeedbackPriority = .normal) {
+    /// Main feedback method — shows in pill, only speaks when speak=true
+    func say(_ text: String, pillText: String? = nil, priority: FeedbackPriority = .normal, speak: Bool = false) {
         let display = pillText ?? text
 
-        // Show in pill / notch
         DispatchQueue.main.async {
             self.currentText = display
-            self.isSpeaking = true
+            self.isSpeaking = speak
 
-            // Post notification so the notch view can pick it up
             NotificationCenter.default.post(
                 name: .kairoFeedback,
                 object: nil,
@@ -48,10 +46,9 @@ class KairoFeedbackEngine: ObservableObject {
             )
         }
 
-        // Speak via ElevenLabs (or system fallback)
-        speak(text)
-
-        print("KAIRO SAYS: \(text)")
+        if speak {
+            self.speak(text)
+        }
     }
 
     /// Quick pill-only flash — no voice
@@ -87,7 +84,7 @@ class KairoFeedbackEngine: ObservableObject {
     private func speakWithElevenLabs(_ text: String) async {
         let apiKey = ProcessInfo.processInfo.environment["ELEVENLABS_API_KEY"] ?? ""
         let voiceID = ProcessInfo.processInfo.environment["ELEVENLABS_VOICE_ID"]
-            ?? "pNInz6obpgDQGcFmaJgB"  // Adam — deep male
+            ?? "QR57ghQmWinyEbqmRLVI"  // Adam — deep male
 
         guard !apiKey.isEmpty,
               let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceID)/stream")

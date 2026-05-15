@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC00010002000000000001 /* OrbCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00010001000000000001 /* OrbCoordinator.swift */; };
+		CC00020002000000000001 /* KairoRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00020001000000000001 /* KairoRuntime.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -149,6 +151,8 @@
 		8920B8C60C1A44499726C5F9 /* KairoMusicBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477BB3EBDB5A453D884AA80B /* KairoMusicBridge.swift */; };
 		D7264255FF29413ABE90664B /* KairoDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41C94722723247008D1EC3B7 /* KairoDesign.swift */; };
 		3A647E24DEBE4DDE8C110DBB /* KairoWeatherAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6118B49646C4A05A5EFB8E3 /* KairoWeatherAnimation.swift */; };
+		A1B2C3D4E5F6478890123456 /* KairoHologramOrb.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6E5D4C3B2A1098776543210 /* KairoHologramOrb.swift */; };
+		B2C3D4E5F6A7589901234567 /* KairoHologramWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8690012345678 /* KairoHologramWindow.swift */; };
 		3531372201884555AC342390 /* KairoNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = E369A8B87C0246CE9A308E12 /* KairoNotifications.swift */; };
 		6F39570B87454A0ABC6A5CF3 /* KairoVoiceButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F742301593242F38765A5A2 /* KairoVoiceButton.swift */; };
 		1ED00BFB93874D298301BE7F /* KairoVoiceTrigger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DD9017C0F047579F7F0220 /* KairoVoiceTrigger.swift */; };
@@ -160,6 +164,62 @@
 		BB2222220001000000000001 /* KairoFeedbackEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1111110001000000000001 /* KairoFeedbackEngine.swift */; };
 		BB2222220002000000000002 /* KairoWebSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1111110002000000000002 /* KairoWebSearch.swift */; };
 		BB2222220003000000000003 /* KairoCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1111110003000000000003 /* KairoCommandExecutor.swift */; };
+		086955CF651FA75884078C5A /* NoteShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51799FE7695EA846A865475 /* NoteShell.swift */; };
+		125DDDA5463EE622300FA808 /* AmbientContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0654C2000CD424D22A992923 /* AmbientContext.swift */; };
+		24984A2C332F977ECA1E41DA /* SearchResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96ED66928AC3AC635167CF16 /* SearchResultsView.swift */; };
+		2AC1ABE3B0D293E96D62FB72 /* HomeControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D71211F1A849459430F44F /* HomeControlView.swift */; };
+		308A0CFB2670720DF8BF31E1 /* OrbieShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DAAE39262CD27DDED9BB7E6 /* OrbieShell.swift */; };
+		342DCBB041C61C0158CD853D /* ViewRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41825D7B718B22F86EEB113C /* ViewRegistry.swift */; };
+		37DC6BB1E75363B73BB18191 /* WakeWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64BB21ADC1768E2DB3837B46 /* WakeWord.swift */; };
+		3A05099B58F4373C45C1FF41 /* OrbieController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFE61D2A21B87DAA85B32A4 /* OrbieController.swift */; };
+		3C3394906EDF60E0B84ED0AC /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99C245794EF4A522E3B1811 /* PermissionGate.swift */; };
+		3C3515B9128D74E69C67A669 /* CameraFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9ED62878AD5AE59521ADC47 /* CameraFeedView.swift */; };
+		43343D0A71136ABB02B2BAC1 /* SceneButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67FAFA8DCA999DB12D8FC77E /* SceneButton.swift */; };
+		44FC3AF7C6BDA11707ACC68C /* NotificationCenterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD07E577E90A96E64A0C1B30 /* NotificationCenterView.swift */; };
+		51A47B86945DF7E7A6BD8D08 /* OllamaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 084B5E6EF59AE490F3AE821E /* OllamaClient.swift */; };
+		59565F92FFBA797CDFEED352 /* SystemPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5AFE0246FABC1ED66A3328 /* SystemPrompt.swift */; };
+		59C179937DA6FAB8A9AD1613 /* DeviceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0E1F00D3D0CA62119E7490 /* DeviceCard.swift */; };
+		63E34C263CC1CC96726E9011 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F214D293A68FE77D12B2D70 /* DesignSystem.swift */; };
+		66001E8120B6B6BDAB33F433 /* SmartHomeTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */; };
+		6DF41D3B9A2486AAC0C950F4 /* ExecutionTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38B6CF1E00B8502108DD570 /* ExecutionTier.swift */; };
+		6FAF58CEA698D5C2F3C3BBDB /* AppleMusicTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623EDECF890AE12D3C6215A9 /* AppleMusicTool.swift */; };
+		705653723A1044C3A847DDC8 /* TieredExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782E3E7FBBCA3493C800868C /* TieredExecutor.swift */; };
+		7696E1F4AD2AD00B9CC43247 /* TTSEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DBA426DB4D2F66E55C9EDE /* TTSEngine.swift */; };
+		797A8AF7A4314D74F058CBFD /* OrbieSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6394D60DDB4D8E07B5795C25 /* OrbieSize.swift */; };
+		7FC645128FF9AEAAA0B9AF35 /* OrbPulse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691748A2751D37C0339EEF97 /* OrbPulse.swift */; };
+		8C4AF30C1C9ECD31B1FBA721 /* ConversationLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18FE70182581E269D2BCB2A4 /* ConversationLoop.swift */; };
+		A0AF8706C9D33F7E6D790259 /* CameraWallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FD4190CEEFE750203DB433F /* CameraWallView.swift */; };
+		A2735FE11B0D3F307713D4F8 /* SystemTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DEB340A57ABFD7877FC7AF /* SystemTool.swift */; };
+		AA11BB1C8E2FFF422D2167A1 /* YouTubeTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9167BACD37BAA1B485D69A67 /* YouTubeTool.swift */; };
+		AC4C0B745A862471585750E1 /* ContextBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F05EF9B9102A98F223B69ADB /* ContextBuilder.swift */; };
+		AEA15EA018AC49B8D2997261 /* ShortTermMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCFF2BF3E3B6862ECB63067D /* ShortTermMemory.swift */; };
+		B33164EF4328A44BB1447D43 /* ScreenTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573485DB6F06A95D84478050 /* ScreenTool.swift */; };
+		BC91F2937DC963C856D818DD /* SearchTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A9404A26C309490B646AE5 /* SearchTool.swift */; };
+		BEFE0AB2D00FB00D27C0DF64 /* LongTermMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5187FC8139A6638036367CC /* LongTermMemory.swift */; };
+		C046307413D56C6F656040DF /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0025BEAF1942366CD893BDF5 /* NotificationView.swift */; };
+		C7E5FBF53619F0148D09C66E /* ClipboardTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F02782CD6CD82F5BD2D6AE /* ClipboardTool.swift */; };
+		D14E4EA08EF89A15A1B4FFEF /* Tool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46D532E40C088AA1E9C9CA08 /* Tool.swift */; };
+		D6909E6B601B3DF0A25B8E40 /* OrbieWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB277972FE6D30FB6A72356 /* OrbieWindow.swift */; };
+		E1C18701C1D41A746298B381 /* QuickAnswerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D18EC5E16C5A89E119B6973 /* QuickAnswerView.swift */; };
+		E2F69E9999DDF6AC05FEAE87 /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80177F432D198CBDBAC057B2 /* NowPlayingView.swift */; };
+		E82D3B24DDD1A20DA9B8CE65 /* NoteWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E74A3FD1CC2F60544388C52 /* NoteWindow.swift */; };
+		E9F814AD3DE4C24FB339BAA0 /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92FBD73D816A1D69CAA6CFC6 /* WeatherView.swift */; };
+		EAECC04DEC5AE2BA8F3FCA25 /* NotificationBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4EC6BEC22ECD4B9687F29DF /* NotificationBridge.swift */; };
+		F129723C53E618368D44D11D /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F64C57D5F6542F299856325A /* SpeechRecognizer.swift */; };
+		FBC1E8FD17C16A78F4524DF2 /* WeatherTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74E674544FF2DFD96D842F4 /* WeatherTool.swift */; };
+		FFC5756CECBA1A58A118BD0D /* Brain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B57A6D8C454B6A82D52D7B /* Brain.swift */; };
+		DD00010002000000000001 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00010001000000000001 /* WeatherService.swift */; };
+		DD00020002000000000001 /* AppleMusicService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00020001000000000001 /* AppleMusicService.swift */; };
+		DD00030002000000000001 /* NowPlayingWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00030001000000000001 /* NowPlayingWatcher.swift */; };
+		DD00040002000000000001 /* NotificationMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00040001000000000001 /* NotificationMonitor.swift */; };
+		DD00050002000000000001 /* WebSocketServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00050001000000000001 /* WebSocketServer.swift */; };
+		DD00060002000000000001 /* DebugMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00060001000000000001 /* DebugMenu.swift */; };
+		EE00010002000000000001 /* VoiceState.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00010001000000000001 /* VoiceState.swift */; };
+		EE00020002000000000001 /* OrbPresence.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00020001000000000001 /* OrbPresence.swift */; };
+		EE00030002000000000001 /* AudioDucker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00030001000000000001 /* AudioDucker.swift */; };
+		EE00040002000000000001 /* Earcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00040001000000000001 /* Earcons.swift */; };
+		EE00050002000000000001 /* PresenceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00050001000000000001 /* PresenceCoordinator.swift */; };
+		EE00060002000000000001 /* TextResponseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00060001000000000001 /* TextResponseView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -332,6 +392,8 @@
 		477BB3EBDB5A453D884AA80B /* KairoMusicBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoMusicBridge.swift; path = Kairo/KairoMusicBridge.swift; sourceTree = SOURCE_ROOT; };
 		41C94722723247008D1EC3B7 /* KairoDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoDesign.swift; path = Kairo/KairoDesign.swift; sourceTree = SOURCE_ROOT; };
 		D6118B49646C4A05A5EFB8E3 /* KairoWeatherAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoWeatherAnimation.swift; path = Kairo/KairoWeatherAnimation.swift; sourceTree = SOURCE_ROOT; };
+		F6E5D4C3B2A1098776543210 /* KairoHologramOrb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoHologramOrb.swift; path = Kairo/KairoHologramOrb.swift; sourceTree = SOURCE_ROOT; };
+		C3D4E5F6A7B8690012345678 /* KairoHologramWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoHologramWindow.swift; path = Kairo/KairoHologramWindow.swift; sourceTree = SOURCE_ROOT; };
 		E369A8B87C0246CE9A308E12 /* KairoNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoNotifications.swift; path = Kairo/KairoNotifications.swift; sourceTree = SOURCE_ROOT; };
 		4F742301593242F38765A5A2 /* KairoVoiceButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoVoiceButton.swift; path = Kairo/KairoVoiceButton.swift; sourceTree = SOURCE_ROOT; };
 		F3DD9017C0F047579F7F0220 /* KairoVoiceTrigger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoVoiceTrigger.swift; path = Kairo/KairoVoiceTrigger.swift; sourceTree = SOURCE_ROOT; };
@@ -343,6 +405,64 @@
 		AA1111110001000000000001 /* KairoFeedbackEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoFeedbackEngine.swift; path = Kairo/KairoFeedbackEngine.swift; sourceTree = SOURCE_ROOT; };
 		AA1111110002000000000002 /* KairoWebSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoWebSearch.swift; path = Kairo/KairoWebSearch.swift; sourceTree = SOURCE_ROOT; };
 		AA1111110003000000000003 /* KairoCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KairoCommandExecutor.swift; path = Kairo/KairoCommandExecutor.swift; sourceTree = SOURCE_ROOT; };
+		0025BEAF1942366CD893BDF5 /* NotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationView.swift; sourceTree = "<group>"; };
+		04DEB340A57ABFD7877FC7AF /* SystemTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemTool.swift; sourceTree = "<group>"; };
+		0654C2000CD424D22A992923 /* AmbientContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmbientContext.swift; sourceTree = "<group>"; };
+		084B5E6EF59AE490F3AE821E /* OllamaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaClient.swift; sourceTree = "<group>"; };
+		0DAAE39262CD27DDED9BB7E6 /* OrbieShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbieShell.swift; sourceTree = "<group>"; };
+		18FE70182581E269D2BCB2A4 /* ConversationLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationLoop.swift; sourceTree = "<group>"; };
+		2A5AFE0246FABC1ED66A3328 /* SystemPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPrompt.swift; sourceTree = "<group>"; };
+		2D18EC5E16C5A89E119B6973 /* QuickAnswerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAnswerView.swift; sourceTree = "<group>"; };
+		2EB277972FE6D30FB6A72356 /* OrbieWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbieWindow.swift; sourceTree = "<group>"; };
+		2F214D293A68FE77D12B2D70 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		41825D7B718B22F86EEB113C /* ViewRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewRegistry.swift; sourceTree = "<group>"; };
+		43B57A6D8C454B6A82D52D7B /* Brain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brain.swift; sourceTree = "<group>"; };
+		46D532E40C088AA1E9C9CA08 /* Tool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tool.swift; sourceTree = "<group>"; };
+		573485DB6F06A95D84478050 /* ScreenTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTool.swift; sourceTree = "<group>"; };
+		57F02782CD6CD82F5BD2D6AE /* ClipboardTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardTool.swift; sourceTree = "<group>"; };
+		623EDECF890AE12D3C6215A9 /* AppleMusicTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicTool.swift; sourceTree = "<group>"; };
+		6394D60DDB4D8E07B5795C25 /* OrbieSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbieSize.swift; sourceTree = "<group>"; };
+		64BB21ADC1768E2DB3837B46 /* WakeWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeWord.swift; sourceTree = "<group>"; };
+		67FAFA8DCA999DB12D8FC77E /* SceneButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneButton.swift; sourceTree = "<group>"; };
+		691748A2751D37C0339EEF97 /* OrbPulse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbPulse.swift; sourceTree = "<group>"; };
+		69DBA426DB4D2F66E55C9EDE /* TTSEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSEngine.swift; sourceTree = "<group>"; };
+		782E3E7FBBCA3493C800868C /* TieredExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TieredExecutor.swift; sourceTree = "<group>"; };
+		7E74A3FD1CC2F60544388C52 /* NoteWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteWindow.swift; sourceTree = "<group>"; };
+		80177F432D198CBDBAC057B2 /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
+		8FD4190CEEFE750203DB433F /* CameraWallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraWallView.swift; sourceTree = "<group>"; };
+		9167BACD37BAA1B485D69A67 /* YouTubeTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeTool.swift; sourceTree = "<group>"; };
+		92FBD73D816A1D69CAA6CFC6 /* WeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherView.swift; sourceTree = "<group>"; };
+		96ED66928AC3AC635167CF16 /* SearchResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultsView.swift; sourceTree = "<group>"; };
+		A51799FE7695EA846A865475 /* NoteShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteShell.swift; sourceTree = "<group>"; };
+		A99C245794EF4A522E3B1811 /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
+		A9ED62878AD5AE59521ADC47 /* CameraFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraFeedView.swift; sourceTree = "<group>"; };
+		AD07E577E90A96E64A0C1B30 /* NotificationCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCenterView.swift; sourceTree = "<group>"; };
+		B2A9404A26C309490B646AE5 /* SearchTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTool.swift; sourceTree = "<group>"; };
+		B5187FC8139A6638036367CC /* LongTermMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongTermMemory.swift; sourceTree = "<group>"; };
+		CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartHomeTool.swift; sourceTree = "<group>"; };
+		CDFE61D2A21B87DAA85B32A4 /* OrbieController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbieController.swift; sourceTree = "<group>"; };
+		D38B6CF1E00B8502108DD570 /* ExecutionTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExecutionTier.swift; sourceTree = "<group>"; };
+		D4EC6BEC22ECD4B9687F29DF /* NotificationBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBridge.swift; sourceTree = "<group>"; };
+		E4D71211F1A849459430F44F /* HomeControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeControlView.swift; sourceTree = "<group>"; };
+		F05EF9B9102A98F223B69ADB /* ContextBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextBuilder.swift; sourceTree = "<group>"; };
+		F64C57D5F6542F299856325A /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
+		F74E674544FF2DFD96D842F4 /* WeatherTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherTool.swift; sourceTree = "<group>"; };
+		FC0E1F00D3D0CA62119E7490 /* DeviceCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCard.swift; sourceTree = "<group>"; };
+		FCFF2BF3E3B6862ECB63067D /* ShortTermMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortTermMemory.swift; sourceTree = "<group>"; };
+		CC00010001000000000001 /* OrbCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbCoordinator.swift; sourceTree = "<group>"; };
+		CC00020001000000000001 /* KairoRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KairoRuntime.swift; sourceTree = "<group>"; };
+		DD00010001000000000001 /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
+		DD00020001000000000001 /* AppleMusicService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicService.swift; sourceTree = "<group>"; };
+		DD00030001000000000001 /* NowPlayingWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingWatcher.swift; sourceTree = "<group>"; };
+		DD00040001000000000001 /* NotificationMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationMonitor.swift; sourceTree = "<group>"; };
+		DD00050001000000000001 /* WebSocketServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketServer.swift; sourceTree = "<group>"; };
+		DD00060001000000000001 /* DebugMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMenu.swift; sourceTree = "<group>"; };
+		EE00010001000000000001 /* VoiceState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceState.swift; sourceTree = "<group>"; };
+		EE00020001000000000001 /* OrbPresence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbPresence.swift; sourceTree = "<group>"; };
+		EE00030001000000000001 /* AudioDucker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDucker.swift; sourceTree = "<group>"; };
+		EE00040001000000000001 /* Earcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Earcons.swift; sourceTree = "<group>"; };
+		EE00050001000000000001 /* PresenceCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceCoordinator.swift; sourceTree = "<group>"; };
+		EE00060001000000000001 /* TextResponseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextResponseView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -595,6 +715,16 @@
 		14CEF4142C5CAED300855D72 /* Kairo */ = {
 			isa = PBXGroup;
 			children = (
+				2ED5583AC64E03D88B4BDD53 /* Brain */,
+				CC00010003000000000001 /* Coordinator */,
+				DD00060003000000000001 /* Debug */,
+				0A5BF6AD5C0C1B4EE5382403 /* Executor */,
+				639C999455BB7A7A63DBCC03 /* Memory */,
+				511F69BAAF8F05B42F1BE262 /* Note */,
+				1F8667FC35CA2B9727DFA654 /* Orbie */,
+				369366657F0CC118760331FE /* Resources */,
+				DD00050003000000000001 /* Services */,
+				3E55C64DEACBFACB0F41632F /* Voice */,
 				11F748672EC9AC9600F841DB /* XPCHelperClient */,
 				116398942DF5D6B40052E6AF /* Providers */,
 				14288DE22C6E016F00B9F80C /* observers */,
@@ -619,6 +749,7 @@
 				112FB72F2CCF12CC0015238C /* private */,
 				11CC44A12CEE614100C7244B /* KairoViewCoordinator.swift */,
 				AA1111110001000000000001 /* KairoFeedbackEngine.swift */,
+				C3D4E5F6A7B8690012345678 /* KairoHologramWindow.swift */,
 				AA1111110002000000000002 /* KairoWebSearch.swift */,
 				AA1111110003000000000003 /* KairoCommandExecutor.swift */,
 			);
@@ -794,6 +925,174 @@
 			path = Tips;
 			sourceTree = "<group>";
 		};
+		2ED5583AC64E03D88B4BDD53 /* Brain */ = {
+			isa = PBXGroup;
+			children = (
+				43B57A6D8C454B6A82D52D7B /* Brain.swift */,
+				F05EF9B9102A98F223B69ADB /* ContextBuilder.swift */,
+				084B5E6EF59AE490F3AE821E /* OllamaClient.swift */,
+				2A5AFE0246FABC1ED66A3328 /* SystemPrompt.swift */,
+			);
+			path = Brain;
+			sourceTree = "<group>";
+		};
+		0A5BF6AD5C0C1B4EE5382403 /* Executor */ = {
+			isa = PBXGroup;
+			children = (
+				F0B5E7979CFABE445D7049F3 /* Tools */,
+				D38B6CF1E00B8502108DD570 /* ExecutionTier.swift */,
+				A99C245794EF4A522E3B1811 /* PermissionGate.swift */,
+				782E3E7FBBCA3493C800868C /* TieredExecutor.swift */,
+			);
+			path = Executor;
+			sourceTree = "<group>";
+		};
+		F0B5E7979CFABE445D7049F3 /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				DD00020003000000000001 /* AppleMusic */,
+				DD00010003000000000001 /* Weather */,
+				623EDECF890AE12D3C6215A9 /* AppleMusicTool.swift */,
+				57F02782CD6CD82F5BD2D6AE /* ClipboardTool.swift */,
+				573485DB6F06A95D84478050 /* ScreenTool.swift */,
+				B2A9404A26C309490B646AE5 /* SearchTool.swift */,
+				CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */,
+				04DEB340A57ABFD7877FC7AF /* SystemTool.swift */,
+				46D532E40C088AA1E9C9CA08 /* Tool.swift */,
+				F74E674544FF2DFD96D842F4 /* WeatherTool.swift */,
+				9167BACD37BAA1B485D69A67 /* YouTubeTool.swift */,
+			);
+			path = Tools;
+			sourceTree = "<group>";
+		};
+		639C999455BB7A7A63DBCC03 /* Memory */ = {
+			isa = PBXGroup;
+			children = (
+				0654C2000CD424D22A992923 /* AmbientContext.swift */,
+				B5187FC8139A6638036367CC /* LongTermMemory.swift */,
+				FCFF2BF3E3B6862ECB63067D /* ShortTermMemory.swift */,
+			);
+			path = Memory;
+			sourceTree = "<group>";
+		};
+		511F69BAAF8F05B42F1BE262 /* Note */ = {
+			isa = PBXGroup;
+			children = (
+				AAD155730152A28D4AAEFD1E /* Components */,
+				E4D71211F1A849459430F44F /* HomeControlView.swift */,
+				A51799FE7695EA846A865475 /* NoteShell.swift */,
+				7E74A3FD1CC2F60544388C52 /* NoteWindow.swift */,
+				D4EC6BEC22ECD4B9687F29DF /* NotificationBridge.swift */,
+				AD07E577E90A96E64A0C1B30 /* NotificationCenterView.swift */,
+				DD00040001000000000001 /* NotificationMonitor.swift */,
+			);
+			path = Note;
+			sourceTree = "<group>";
+		};
+		AAD155730152A28D4AAEFD1E /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				8FD4190CEEFE750203DB433F /* CameraWallView.swift */,
+				FC0E1F00D3D0CA62119E7490 /* DeviceCard.swift */,
+				67FAFA8DCA999DB12D8FC77E /* SceneButton.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		1F8667FC35CA2B9727DFA654 /* Orbie */ = {
+			isa = PBXGroup;
+			children = (
+				3657B0DCF619FDC6271DB392 /* Views */,
+				691748A2751D37C0339EEF97 /* OrbPulse.swift */,
+				EE00020001000000000001 /* OrbPresence.swift */,
+				CDFE61D2A21B87DAA85B32A4 /* OrbieController.swift */,
+				0DAAE39262CD27DDED9BB7E6 /* OrbieShell.swift */,
+				2EB277972FE6D30FB6A72356 /* OrbieWindow.swift */,
+				EE00010001000000000001 /* VoiceState.swift */,
+			);
+			path = Orbie;
+			sourceTree = "<group>";
+		};
+		3657B0DCF619FDC6271DB392 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A9ED62878AD5AE59521ADC47 /* CameraFeedView.swift */,
+				0025BEAF1942366CD893BDF5 /* NotificationView.swift */,
+				80177F432D198CBDBAC057B2 /* NowPlayingView.swift */,
+				6394D60DDB4D8E07B5795C25 /* OrbieSize.swift */,
+				2D18EC5E16C5A89E119B6973 /* QuickAnswerView.swift */,
+				96ED66928AC3AC635167CF16 /* SearchResultsView.swift */,
+				EE00060001000000000001 /* TextResponseView.swift */,
+				41825D7B718B22F86EEB113C /* ViewRegistry.swift */,
+				92FBD73D816A1D69CAA6CFC6 /* WeatherView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		369366657F0CC118760331FE /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				2F214D293A68FE77D12B2D70 /* DesignSystem.swift */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		3E55C64DEACBFACB0F41632F /* Voice */ = {
+			isa = PBXGroup;
+			children = (
+				EE00030001000000000001 /* AudioDucker.swift */,
+				18FE70182581E269D2BCB2A4 /* ConversationLoop.swift */,
+				EE00040001000000000001 /* Earcons.swift */,
+				EE00050001000000000001 /* PresenceCoordinator.swift */,
+				F64C57D5F6542F299856325A /* SpeechRecognizer.swift */,
+				69DBA426DB4D2F66E55C9EDE /* TTSEngine.swift */,
+				64BB21ADC1768E2DB3837B46 /* WakeWord.swift */,
+			);
+			path = Voice;
+			sourceTree = "<group>";
+		};
+		CC00010003000000000001 /* Coordinator */ = {
+			isa = PBXGroup;
+			children = (
+				CC00020001000000000001 /* KairoRuntime.swift */,
+				CC00010001000000000001 /* OrbCoordinator.swift */,
+			);
+			path = Coordinator;
+			sourceTree = "<group>";
+		};
+		DD00010003000000000001 /* Weather */ = {
+			isa = PBXGroup;
+			children = (
+				DD00010001000000000001 /* WeatherService.swift */,
+			);
+			path = Weather;
+			sourceTree = "<group>";
+		};
+		DD00020003000000000001 /* AppleMusic */ = {
+			isa = PBXGroup;
+			children = (
+				DD00020001000000000001 /* AppleMusicService.swift */,
+				DD00030001000000000001 /* NowPlayingWatcher.swift */,
+			);
+			path = AppleMusic;
+			sourceTree = "<group>";
+		};
+		DD00050003000000000001 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				DD00050001000000000001 /* WebSocketServer.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		DD00060003000000000001 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				DD00060001000000000001 /* DebugMenu.swift */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -942,6 +1241,50 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+					086955CF651FA75884078C5A /* NoteShell.swift in Sources */,
+					125DDDA5463EE622300FA808 /* AmbientContext.swift in Sources */,
+					24984A2C332F977ECA1E41DA /* SearchResultsView.swift in Sources */,
+					2AC1ABE3B0D293E96D62FB72 /* HomeControlView.swift in Sources */,
+					308A0CFB2670720DF8BF31E1 /* OrbieShell.swift in Sources */,
+					342DCBB041C61C0158CD853D /* ViewRegistry.swift in Sources */,
+					37DC6BB1E75363B73BB18191 /* WakeWord.swift in Sources */,
+					3A05099B58F4373C45C1FF41 /* OrbieController.swift in Sources */,
+					3C3394906EDF60E0B84ED0AC /* PermissionGate.swift in Sources */,
+					3C3515B9128D74E69C67A669 /* CameraFeedView.swift in Sources */,
+					43343D0A71136ABB02B2BAC1 /* SceneButton.swift in Sources */,
+					44FC3AF7C6BDA11707ACC68C /* NotificationCenterView.swift in Sources */,
+					51A47B86945DF7E7A6BD8D08 /* OllamaClient.swift in Sources */,
+					59565F92FFBA797CDFEED352 /* SystemPrompt.swift in Sources */,
+					59C179937DA6FAB8A9AD1613 /* DeviceCard.swift in Sources */,
+					63E34C263CC1CC96726E9011 /* DesignSystem.swift in Sources */,
+					66001E8120B6B6BDAB33F433 /* SmartHomeTool.swift in Sources */,
+					6DF41D3B9A2486AAC0C950F4 /* ExecutionTier.swift in Sources */,
+					6FAF58CEA698D5C2F3C3BBDB /* AppleMusicTool.swift in Sources */,
+					705653723A1044C3A847DDC8 /* TieredExecutor.swift in Sources */,
+					7696E1F4AD2AD00B9CC43247 /* TTSEngine.swift in Sources */,
+					797A8AF7A4314D74F058CBFD /* OrbieSize.swift in Sources */,
+					7FC645128FF9AEAAA0B9AF35 /* OrbPulse.swift in Sources */,
+					8C4AF30C1C9ECD31B1FBA721 /* ConversationLoop.swift in Sources */,
+					A0AF8706C9D33F7E6D790259 /* CameraWallView.swift in Sources */,
+					A2735FE11B0D3F307713D4F8 /* SystemTool.swift in Sources */,
+					AA11BB1C8E2FFF422D2167A1 /* YouTubeTool.swift in Sources */,
+					AC4C0B745A862471585750E1 /* ContextBuilder.swift in Sources */,
+					AEA15EA018AC49B8D2997261 /* ShortTermMemory.swift in Sources */,
+					B33164EF4328A44BB1447D43 /* ScreenTool.swift in Sources */,
+					BC91F2937DC963C856D818DD /* SearchTool.swift in Sources */,
+					BEFE0AB2D00FB00D27C0DF64 /* LongTermMemory.swift in Sources */,
+					C046307413D56C6F656040DF /* NotificationView.swift in Sources */,
+					C7E5FBF53619F0148D09C66E /* ClipboardTool.swift in Sources */,
+					D14E4EA08EF89A15A1B4FFEF /* Tool.swift in Sources */,
+					D6909E6B601B3DF0A25B8E40 /* OrbieWindow.swift in Sources */,
+					E1C18701C1D41A746298B381 /* QuickAnswerView.swift in Sources */,
+					E2F69E9999DDF6AC05FEAE87 /* NowPlayingView.swift in Sources */,
+					E82D3B24DDD1A20DA9B8CE65 /* NoteWindow.swift in Sources */,
+					E9F814AD3DE4C24FB339BAA0 /* WeatherView.swift in Sources */,
+					EAECC04DEC5AE2BA8F3FCA25 /* NotificationBridge.swift in Sources */,
+					F129723C53E618368D44D11D /* SpeechRecognizer.swift in Sources */,
+					FBC1E8FD17C16A78F4524DF2 /* WeatherTool.swift in Sources */,
+					FFC5756CECBA1A58A118BD0D /* Brain.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchHUD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* KairoCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
@@ -1063,6 +1406,8 @@
 				8920B8C60C1A44499726C5F9 /* KairoMusicBridge.swift in Sources */,
 				D7264255FF29413ABE90664B /* KairoDesign.swift in Sources */,
 				3A647E24DEBE4DDE8C110DBB /* KairoWeatherAnimation.swift in Sources */,
+				A1B2C3D4E5F6478890123456 /* KairoHologramOrb.swift in Sources */,
+				B2C3D4E5F6A7589901234567 /* KairoHologramWindow.swift in Sources */,
 				3531372201884555AC342390 /* KairoNotifications.swift in Sources */,
 				6F39570B87454A0ABC6A5CF3 /* KairoVoiceButton.swift in Sources */,
 				1ED00BFB93874D298301BE7F /* KairoVoiceTrigger.swift in Sources */,
@@ -1074,6 +1419,20 @@
 				BB2222220001000000000001 /* KairoFeedbackEngine.swift in Sources */,
 				BB2222220002000000000002 /* KairoWebSearch.swift in Sources */,
 				BB2222220003000000000003 /* KairoCommandExecutor.swift in Sources */,
+				CC00010002000000000001 /* OrbCoordinator.swift in Sources */,
+				CC00020002000000000001 /* KairoRuntime.swift in Sources */,
+				DD00010002000000000001 /* WeatherService.swift in Sources */,
+				DD00020002000000000001 /* AppleMusicService.swift in Sources */,
+				DD00030002000000000001 /* NowPlayingWatcher.swift in Sources */,
+				DD00040002000000000001 /* NotificationMonitor.swift in Sources */,
+				DD00050002000000000001 /* WebSocketServer.swift in Sources */,
+				DD00060002000000000001 /* DebugMenu.swift in Sources */,
+				EE00010002000000000001 /* VoiceState.swift in Sources */,
+				EE00020002000000000001 /* OrbPresence.swift in Sources */,
+				EE00030002000000000001 /* AudioDucker.swift in Sources */,
+				EE00040002000000000001 /* Earcons.swift in Sources */,
+				EE00050002000000000001 /* PresenceCoordinator.swift in Sources */,
+				EE00060002000000000001 /* TextResponseView.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};

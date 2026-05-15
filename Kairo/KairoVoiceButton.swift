@@ -65,12 +65,20 @@ class KairoVoiceEngine: ObservableObject {
         guard let engine = audioEngine, let url = recordingURL else { return }
 
         let inputNode = engine.inputNode
+        inputNode.removeTap(onBus: 0)
         let hardwareFormat = inputNode.outputFormat(forBus: 0)
 
-        // Create WAV file at 16kHz mono (what Whisper expects)
+        // Record mono at the hardware sample rate — Whisper accepts any rate
+        let recordFormat = AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: hardwareFormat.sampleRate,
+            channels: 1,
+            interleaved: false
+        )!
+
         let wavSettings: [String: Any] = [
             AVFormatIDKey: kAudioFormatLinearPCM,
-            AVSampleRateKey: 16000.0,
+            AVSampleRateKey: hardwareFormat.sampleRate,
             AVNumberOfChannelsKey: 1,
             AVLinearPCMBitDepthKey: 16,
             AVLinearPCMIsFloatKey: false,
@@ -82,14 +90,7 @@ class KairoVoiceEngine: ObservableObject {
             return
         }
         audioFile = file
-
-        // Record in float32 mono from the mic
-        let recordFormat = AVAudioFormat(
-            commonFormat: .pcmFormatFloat32,
-            sampleRate: hardwareFormat.sampleRate,
-            channels: 1,
-            interleaved: false
-        )!
+        print("[KairoVoice] Recording at \(hardwareFormat.sampleRate)Hz mono")
 
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordFormat) { [weak self] buffer, _ in
             guard let self else { return }
@@ -171,11 +172,11 @@ class KairoVoiceEngine: ObservableObject {
 
             if let audio = ttsAudio, !audio.isEmpty, audio.count > 1000 {
                 self.playResponse(audio)
+            } else if !responseText.isEmpty && !responseText.lowercased().contains("server error") {
+                KairoFeedbackEngine.shared.speakSystem(responseText)
+                self.isSpeaking = false
             } else {
-                // No TTS audio — use local speech as fallback
-                if !responseText.isEmpty {
-                    KairoFeedbackEngine.shared.speakSystem(responseText)
-                }
+                KairoFeedbackEngine.shared.say("Couldn't process that.", pillText: "Try again")
                 self.isSpeaking = false
             }
         }

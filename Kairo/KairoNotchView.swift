@@ -35,22 +35,30 @@ struct KairoNotchView: View {
     @State private var feedbackVisible = false
     // Morning briefing
     @ObservedObject var briefing = KairoMorningBriefing.shared
+    // Hologram
+    @ObservedObject var hologram = KairoHologramManager.shared
+
+    private var currentHologramMode: HologramMode {
+        if hologram.isShowingDisplay { return .displaying }
+        if feedback.isSpeaking { return .speaking }
+        return .idle
+    }
 
     // Dynamic height per tab
     private func heightForTab(_ tab: KairoTab) -> CGFloat {
+        let orbHeight: CGFloat = 85
         switch tab {
         case .nowPlaying:
-            if music.isPlaying || !music.isPlayerIdle { return 440 }
-            return 520  // idle ambient cards
-        case .commands:  return 420
-        case .devices:   return 400
-        case .chat:      return 500
+            if music.isPlaying || !music.isPlayerIdle { return 620 + orbHeight }
+            return 720 + orbHeight
+        case .commands:  return 900 + orbHeight
+        case .devices:   return 700 + orbHeight
+        case .chat:      return 700 + orbHeight
         case .notifs:
-            let hasProposal = socket.pendingProposal != nil
-            let hasMotion = socket.latestMotionImage != nil
             let count = notifEngine.history.count
-            if hasProposal || hasMotion || count > 3 { return 520 }
-            return 400
+            let base: CGFloat = 520
+            let perNotif: CGFloat = 70
+            return max(base, base + CGFloat(count) * perNotif) + orbHeight
         }
     }
 
@@ -73,23 +81,29 @@ struct KairoNotchView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 6)
 
-            ScrollView(.vertical, showsIndicators: false) {
-                Group {
-                    switch activeTab {
-                    case .nowPlaying: nowPlayingSection
-                    case .commands:   commandsSection
-                    case .devices:    devicesSection
-                    case .chat:       chatSection
-                    case .notifs:     notifsSection
-                    }
+            Group {
+                switch activeTab {
+                case .nowPlaying: nowPlayingSection
+                case .commands:   commandsSection
+                case .devices:    devicesSection
+                case .chat:       chatSection
+                case .notifs:     notifsSection
                 }
-                .padding(.bottom, 4)
             }
+            .padding(.bottom, 4)
             .transition(.asymmetric(
                 insertion: .opacity.combined(with: .scale(scale: 0.97, anchor: .top)).combined(with: .offset(y: 6)),
                 removal: .opacity.combined(with: .scale(scale: 1.01, anchor: .top))
             ))
             .animation(.kairoSpring, value: activeTab)
+
+            // Hologram display — expands to show CCTV, images, text
+            if hologram.isShowingDisplay {
+                KairoHologramDisplay(manager: hologram)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 6)
+                    .transition(.scale(scale: 0.6, anchor: .top).combined(with: .opacity))
+            }
 
             inputBar.padding(.horizontal, 14).padding(.bottom, 10).padding(.top, 6)
         }
@@ -647,13 +661,13 @@ struct KairoNotchView: View {
 
     // MARK: - Commands (staggered appear, unique colors)
     private var commandsSection: some View {
-        LazyVGrid(columns: [.init(.flexible(), spacing: 8), .init(.flexible(), spacing: 8), .init(.flexible(), spacing: 8)], spacing: 8) {
+        LazyVGrid(columns: [.init(.flexible(), spacing: 10), .init(.flexible(), spacing: 10), .init(.flexible(), spacing: 10)], spacing: 10) {
             ForEach(Array(commands.enumerated()), id: \.offset) { i, cmd in
                 cmdCard(cmd.icon, cmd.label, cmd.sub, cmd.command, color: cmd.color, index: i)
             }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
     }
 
     private var commands: [(icon: String, label: String, sub: String, command: String, color: Color)] {
@@ -1307,42 +1321,43 @@ struct CmdCardView: View {
     @State private var isPressed = false
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             ZStack {
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 18)
                     .fill(
                         LinearGradient(
-                            colors: [color.opacity(0.15), color.opacity(0.05)],
+                            colors: [color.opacity(0.18), color.opacity(0.06)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 48, height: 48)
+                    .frame(width: 56, height: 56)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: 18)
                             .stroke(color.opacity(isPressed ? 0.4 : 0.15), lineWidth: 0.5)
                     )
+                    .shadow(color: color.opacity(isPressed ? 0.3 : 0.1), radius: isPressed ? 12 : 6)
                     .scaleEffect(isPressed ? 0.88 : 1.0)
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .medium, design: .rounded))
+                    .font(.system(size: 24, weight: .medium, design: .rounded))
                     .foregroundStyle(
                         LinearGradient(colors: [color, color.opacity(0.7)], startPoint: .top, endPoint: .bottom)
                     )
                     .scaleEffect(isPressed ? 0.9 : 1.0)
-                    .shadow(color: color.opacity(0.4), radius: 6)
+                    .shadow(color: color.opacity(0.4), radius: 8)
             }
-            VStack(spacing: 3) {
+            VStack(spacing: 4) {
                 Text(label)
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundColor(.white)
                 Text(sub)
-                    .font(.system(size: 9, weight: .regular, design: .rounded))
+                    .font(.system(size: 10, weight: .regular, design: .rounded))
                     .foregroundColor(.kTextTertiary)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .padding(.horizontal, 6)
+        .padding(.vertical, 18)
+        .padding(.horizontal, 8)
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial.opacity(0.3))
