@@ -292,42 +292,66 @@ struct KairoTabBar: View {
     var body: some View {
         HStack(spacing: 4) {
             ForEach(KairoTab.allCases, id: \.self) { tab in
-                let isSelected = selected == tab
-                Button(action: {
-                    withAnimation(.kairoFast) { selected = tab }
-                    NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .default)
-                }) {
-                    HStack(spacing: 5) {
-                        Image(systemName: tab.icon)
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(isSelected ? .white : .kTextTertiary)
-                        if isSelected {
-                            Text(tab.rawValue)
-                                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                                .foregroundColor(.white)
-                                .transition(.opacity.combined(with: .scale(scale: 0.8)))
-                        }
-                    }
-                    .padding(.horizontal, isSelected ? 12 : 10)
-                    .padding(.vertical, 7)
-                    .background(
-                        ZStack {
-                            if isSelected {
-                                Capsule().fill(.white.opacity(0.14))
-                                    .matchedGeometryEffect(id: "TAB_BG", in: ns)
-                                Capsule().stroke(.white.opacity(0.12), lineWidth: 1)
-                                    .matchedGeometryEffect(id: "TAB_BORDER", in: ns)
-                            }
-                        }
-                    )
-                }.buttonStyle(.plain)
+                tabButton(tab)
             }
         }
-        .padding(4)
-        .background(
-            Capsule().fill(.white.opacity(0.04))
-                .overlay(Capsule().stroke(.white.opacity(0.06), lineWidth: 0.5))
-        )
+        .padding(.horizontal, 4)
+        .padding(.vertical, 3)
+        .background {
+            // HUD frame: dark glass + subtle hairline rule
+            Capsule(style: .continuous)
+                .fill(Color.black.opacity(0.55))
+                .overlay(Capsule(style: .continuous).fill(.ultraThinMaterial))
+        }
+        .overlay {
+            Capsule(style: .continuous)
+                .strokeBorder(K.cyan.opacity(0.18), lineWidth: 0.5)
+        }
+    }
+
+    @ViewBuilder
+    private func tabButton(_ tab: KairoTab) -> some View {
+        let isSelected = selected == tab
+        Button(action: {
+            withAnimation(.kairoFast) { selected = tab }
+            NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .default)
+        }) {
+            HStack(spacing: 5) {
+                // Active indicator — small diamond glyph
+                if isSelected {
+                    Text("◆")
+                        .font(.system(size: 7, weight: .bold, design: .monospaced))
+                        .foregroundStyle(K.cyan)
+                        .transition(.opacity.combined(with: .scale(scale: 0.5)))
+                }
+                Image(systemName: tab.icon)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(isSelected ? K.cyan : Color.kTextTertiary)
+                if isSelected {
+                    Text(tab.rawValue.uppercased())
+                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .tracking(1.2)
+                        .foregroundStyle(K.cyan)
+                        .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                }
+            }
+            .padding(.horizontal, isSelected ? 10 : 8)
+            .padding(.vertical, 6)
+            .background {
+                if isSelected {
+                    ZStack {
+                        Capsule(style: .continuous)
+                            .fill(K.cyan.opacity(0.12))
+                            .matchedGeometryEffect(id: "TAB_BG", in: ns)
+                        Capsule(style: .continuous)
+                            .strokeBorder(K.cyan.opacity(0.45), lineWidth: 0.5)
+                            .matchedGeometryEffect(id: "TAB_BORDER", in: ns)
+                    }
+                    .shadow(color: K.cyan.opacity(0.40), radius: 6, x: 0, y: 0)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 

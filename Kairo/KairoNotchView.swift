@@ -1242,45 +1242,61 @@ struct KairoNotchView: View {
 
     private func devCard(_ icon: String, _ name: String, _ val: String, _ color: Color, _ on: Bool) -> some View {
         Button(action: { sendCommand("Toggle \(name)") }) {
-            HStack(spacing: 10) {
+            let panelShape = RoundedRectangle(cornerRadius: Kairo.Radius.sm, style: .continuous)
+            HStack(spacing: Kairo.Space.md) {
+                // Glyph in a HUD square (not circle) — feels more "data point" than "app icon"
                 ZStack {
-                    Circle()
-                        .fill(
-                            on ? LinearGradient(colors: [color.opacity(0.2), color.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                                : LinearGradient(colors: [Color.white.opacity(0.06), Color.white.opacity(0.03)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(on ? color.opacity(0.18) : Color.white.opacity(0.04))
+                        .frame(width: 34, height: 34)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .strokeBorder(on ? color.opacity(0.5) : Color.white.opacity(0.1), lineWidth: 0.5)
                         )
-                        .frame(width: 38, height: 38)
-                        .overlay(Circle().stroke(on ? color.opacity(0.25) : .white.opacity(0.06), lineWidth: 0.5))
-                        .shadow(color: color.opacity(on ? 0.3 : 0), radius: 8)
+                        .shadow(color: on ? color.opacity(0.5) : .clear, radius: on ? 6 : 0)
                     Image(systemName: icon)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(on ? color : .secondary)
-                        .opacity(on ? 1 : 0.4)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(on ? color : Color.kTextTertiary)
                 }
                 .animation(.kairoFast, value: on)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(name)
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundColor(on ? .white : .secondary)
-                    Text(val)
-                        .font(.system(size: 10, weight: .regular, design: .rounded))
-                        .foregroundColor(on ? color.opacity(0.8) : .kTextTertiary)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(name.uppercased())
+                        .font(Kairo.Typography.captionStrong.monospaced())
+                        .tracking(1.2)
+                        .foregroundStyle(on ? Color.kTextPrimary : Color.kTextSecondary)
+                        .lineLimit(1)
+                    Text(val.uppercased())
+                        .font(Kairo.Typography.monoSmall)
+                        .tracking(0.8)
+                        .foregroundStyle(on ? color.opacity(0.85) : Color.kTextTertiary)
+                        .lineLimit(1)
                 }
-                Spacer()
-                Circle()
-                    .fill(on ? color : K.muted.opacity(0.3))
-                    .frame(width: 7, height: 7)
-                    .shadow(color: on ? color.opacity(0.6) : .clear, radius: 4)
+                Spacer(minLength: 0)
+                // Pulsing status dot — uses HUDStatusDot's animation
+                HUDStatusDot(label: "", color: on ? color : Color.kTextMuted, active: on)
             }
-            .padding(12)
-            .background(
+            .padding(.horizontal, Kairo.Space.md)
+            .padding(.vertical, Kairo.Space.md - 2)
+            .background {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial.opacity(0.3))
-                    RoundedRectangle(cornerRadius: 14).fill(on ? color.opacity(0.03) : .clear)
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(on ? color.opacity(0.15) : .white.opacity(0.05), lineWidth: 0.5)
+                    panelShape.fill(Color.black.opacity(on ? 0.55 : 0.40))
+                    panelShape.fill(.ultraThinMaterial)
+                    HUDGrid(spacing: 12, opacity: 0.04).clipShape(panelShape)
+                    HUDScanLines(spacing: 3, opacity: 0.02, sweepOpacity: 0.04).clipShape(panelShape)
+                    panelShape.fill(on ? color.opacity(0.05) : Color.clear)
                 }
-            )
+            }
+            .overlay {
+                if on {
+                    Color.clear.modifier(HUDRimGlow(color: color, thickness: 0.7, radius: Kairo.Radius.sm, period: 6.0))
+                } else {
+                    panelShape.strokeBorder(Color.white.opacity(0.06), lineWidth: 0.5)
+                }
+            }
+            .overlay {
+                HUDBrackets(color: on ? color : Color.kTextMuted, thickness: 1, length: 8, inset: 3)
+            }
         }
         .buttonStyle(KairoBounce())
     }
@@ -1437,58 +1453,71 @@ struct CmdCardView: View {
     let action: () -> Void
     @State private var appeared = false
     @State private var isPressed = false
+    @State private var isHovered = false
+
+    // 2-letter tag derived from the label, e.g. "Cinema" → "CI"
+    private var tag: String {
+        let trimmed = label.replacingOccurrences(of: " ", with: "")
+        return String(trimmed.prefix(2)).uppercased()
+    }
 
     var body: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.18), color.opacity(0.06)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 56, height: 56)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(color.opacity(isPressed ? 0.4 : 0.15), lineWidth: 0.5)
-                    )
-                    .shadow(color: color.opacity(isPressed ? 0.3 : 0.1), radius: isPressed ? 12 : 6)
-                    .scaleEffect(isPressed ? 0.88 : 1.0)
-                Image(systemName: icon)
-                    .font(.system(size: 24, weight: .medium, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(colors: [color, color.opacity(0.7)], startPoint: .top, endPoint: .bottom)
-                    )
-                    .scaleEffect(isPressed ? 0.9 : 1.0)
-                    .shadow(color: color.opacity(0.4), radius: 8)
+        let panelShape = RoundedRectangle(cornerRadius: Kairo.Radius.sm, style: .continuous)
+        VStack(alignment: .leading, spacing: Kairo.Space.sm) {
+            // Header row: tag + status diamond
+            HStack {
+                HUDLabel(text: tag, trailing: String(format: "%02d", index), color: color)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 8, weight: .bold, design: .monospaced))
+                    .foregroundStyle(color.opacity(isHovered ? 0.85 : 0.35))
             }
-            VStack(spacing: 4) {
-                Text(label)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
-                Text(sub)
-                    .font(.system(size: 10, weight: .regular, design: .rounded))
-                    .foregroundColor(.kTextTertiary)
+            Spacer(minLength: 0)
+            // Glyph
+            Image(systemName: icon)
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(color)
+                .shadow(color: color.opacity(0.7), radius: isHovered ? 10 : 6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Spacer(minLength: 0)
+            // Footer: label + sub in mono
+            VStack(alignment: .leading, spacing: 1) {
+                Text(label.uppercased())
+                    .font(Kairo.Typography.captionStrong.monospaced())
+                    .tracking(1.2)
+                    .foregroundStyle(Color.kTextPrimary)
+                Text(sub.uppercased())
+                    .font(Kairo.Typography.monoSmall)
+                    .tracking(0.8)
+                    .foregroundStyle(Color.kTextTertiary)
+                    .lineLimit(1)
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
-        .padding(.horizontal, 8)
-        .background(
+        .padding(.horizontal, Kairo.Space.md - 2)
+        .padding(.vertical, Kairo.Space.md - 2)
+        .frame(maxWidth: .infinity, minHeight: 110, alignment: .topLeading)
+        .background {
             ZStack {
-                RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial.opacity(0.3))
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(color.opacity(isPressed ? 0.06 : 0.02))
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(color.opacity(isPressed ? 0.2 : 0.06), lineWidth: 0.5)
+                panelShape.fill(Color.black.opacity(0.55))
+                panelShape.fill(.ultraThinMaterial)
+                HUDGrid(spacing: 14, opacity: isHovered ? 0.07 : 0.04).clipShape(panelShape)
+                HUDScanLines(spacing: 3, opacity: 0.025, sweepOpacity: isHovered ? 0.10 : 0.04)
+                    .clipShape(panelShape)
+                panelShape.fill(color.opacity(isPressed ? 0.18 : (isHovered ? 0.08 : 0.0)))
             }
-        )
-        .scaleEffect(isPressed ? 0.94 : (appeared ? 1 : 0.85))
+        }
+        .overlay {
+            Color.clear.modifier(HUDRimGlow(color: color, thickness: isHovered ? 1.1 : 0.7, radius: Kairo.Radius.sm, period: isHovered ? 3.0 : 6.0))
+        }
+        .overlay {
+            HUDBrackets(color: color, thickness: 1, length: 9, inset: 3)
+        }
+        .scaleEffect(isPressed ? 0.96 : (appeared ? 1 : 0.92))
         .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 10)
+        .offset(y: appeared ? 0 : 8)
         .animation(.kairoFast, value: isPressed)
+        .animation(.kairoFast, value: isHovered)
+        .onHover { isHovered = $0 }
         .onAppear { withAnimation(.kairoSpring.delay(Double(index) * 0.04)) { appeared = true } }
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
