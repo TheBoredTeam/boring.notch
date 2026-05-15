@@ -18,23 +18,81 @@ struct MusicPlayerView: View {
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
-        HStack(spacing: 0) {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
-            MusicControlsView().drawingGroup().compositingGroup()
-        }
-        .background(
-            Group {
-                if musicManager.isPlaying {
-                    Image(nsImage: musicManager.albumArt)
-                        .resizable()
-                        .blur(radius: 60)
-                        .opacity(0.08)
-                        .scaleEffect(1.5)
-                        .clipped()
+        let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+
+        VStack(alignment: .leading, spacing: 4) {
+            // HUD header strip — shows "NOW PLAYING · SOURCE · ELAPSED/DURATION"
+            hudHeader
+
+            HStack(spacing: 0) {
+                AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
+                MusicControlsView().drawingGroup().compositingGroup()
+            }
+            .background {
+                ZStack {
+                    if musicManager.isPlaying {
+                        Image(nsImage: musicManager.albumArt)
+                            .resizable()
+                            .blur(radius: 60)
+                            .opacity(0.08)
+                            .scaleEffect(1.5)
+                            .clipped()
+                    }
+                    HUDScanLines(spacing: 3, opacity: 0.02, sweepOpacity: 0.04, sweepPeriod: 5.0)
+                        .clipShape(shape)
                 }
             }
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .padding(.horizontal, 2)
+        .padding(.vertical, 2)
+        .clipShape(shape)
+        .overlay {
+            // Animated cyan rim only when playing — keeps idle state calm.
+            if musicManager.isPlaying {
+                Color.clear.modifier(HUDRimGlow(color: K.cyan, thickness: 0.7, radius: 16, period: 8.0))
+            } else {
+                shape.strokeBorder(Color.white.opacity(0.06), lineWidth: 0.5)
+            }
+        }
+        .overlay {
+            if musicManager.isPlaying {
+                HUDBrackets(color: K.cyan, thickness: 1, length: 11, inset: 3)
+            }
+        }
+    }
+
+    private var hudHeader: some View {
+        HStack(spacing: 8) {
+            // Diamond glyph + label
+            Text(musicManager.isPlaying ? "◆ PLAYING" : "◇ IDLE")
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .tracking(1.6)
+                .foregroundStyle(musicManager.isPlaying ? K.cyan : Color.kTextTertiary)
+            // Hair-line rule
+            Rectangle()
+                .fill(LinearGradient(
+                    colors: [(musicManager.isPlaying ? K.cyan : .white).opacity(0.3), .clear],
+                    startPoint: .leading, endPoint: .trailing
+                ))
+                .frame(height: 0.5)
+            // Source tag (Spotify / Apple Music / etc.) — derived from bundleId
+            Text(sourceTag.uppercased())
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .tracking(1.2)
+                .foregroundStyle(Color.kTextSecondary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.top, 6)
+    }
+
+    private var sourceTag: String {
+        let bid = musicManager.bundleIdentifier ?? ""
+        if bid.contains("spotify") { return "Spotify · S" }
+        if bid.contains("Music")   { return "Apple · M" }
+        if bid.contains("youtube") || bid.contains("Chrome") || bid.contains("Safari") {
+            return "Web · Y"
+        }
+        return "Audio"
     }
 }
 

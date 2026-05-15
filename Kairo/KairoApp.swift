@@ -69,11 +69,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var tieredExecutor: TieredExecutor?
 
     // Brain pipeline — instantiated in applicationDidFinishLaunching.
-    // The pipeline can run end-to-end through DebugMenu's "Test Brain"
-    // entry. Voice trigger wiring still pending (WakeWord is a stub).
     var brain: KairoBrain?
     var shortTermMemory: KairoShortTermMemory?
     var longTermMemory: KairoLongTermMemory?
+
+    // Voice pipeline — recognizer, TTS, wake word, conversation loop.
+    // All driven by KairoWakeWord ("hey kairo") and F5 (KairoVoiceTrigger).
+    var speechRecognizer: KairoSpeechRecognizer?
+    var ttsEngine: KairoTTSEngine?
+    var wakeWord: KairoWakeWord?
+    var conversationLoop: KairoConversationLoop?
     private var orbieCancellables = Set<AnyCancellable>()
     var timer: Timer?
     var closeNotchTask: Task<Void, Never>?
@@ -629,6 +634,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.longTermMemory  = longTerm
             self.brain = brain
             print("[Kairo] Brain pipeline online — \(longTerm.all().count) facts in long-term memory")
+
+            // 2d. Voice pipeline — TTS, speech recognizer, wake word, conversation loop.
+            //     ConversationLoop binds onWake → startTurn. WakeWord
+            //     starts listening for "hey kairo" continuously.
+            let tts = KairoTTSEngine()
+            let recognizer = KairoSpeechRecognizer()
+            let wake = KairoWakeWord()
+            let loop = KairoConversationLoop(
+                wake: wake, recognizer: recognizer, brain: brain, tts: tts
+            )
+            self.ttsEngine = tts
+            self.speechRecognizer = recognizer
+            self.wakeWord = wake
+            self.conversationLoop = loop
+            wake.start()
+            print("[Kairo] Voice pipeline online — wake word active")
 
             let debug = DebugMenu(executor: executor, brain: brain)
             debug.install()

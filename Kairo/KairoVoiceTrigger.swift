@@ -65,9 +65,22 @@ class KairoVoiceTrigger: ObservableObject {
 
         NotificationCenter.default.post(name: .kairoVoiceActivated, object: nil)
 
-        KairoVoiceEngine.shared.startListening()
-
-        print("[KairoVoice] Activated — listening")
+        // Prefer the NEW Brain pipeline (ConversationLoop) if it's been
+        // wired by AppDelegate. Falls back to the legacy KairoVoiceEngine
+        // (Python backend on localhost:8420) when the new loop isn't ready.
+        if let appDelegate = NSApp.delegate as? AppDelegate,
+           let loop = appDelegate.conversationLoop {
+            Task { @MainActor in loop.startTurn() }
+            // Auto-clear active flag — ConversationLoop drives its own
+            // presence lifecycle and will end on silence / max-listen.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+                self?.isActive = false
+            }
+            print("[KairoVoice] Activated — routed to new Brain pipeline")
+        } else {
+            KairoVoiceEngine.shared.startListening()
+            print("[KairoVoice] Activated — legacy backend (new loop not ready)")
+        }
     }
 
     func deactivate() {
