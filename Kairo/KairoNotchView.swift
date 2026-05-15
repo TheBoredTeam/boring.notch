@@ -342,28 +342,17 @@ struct KairoNotchView: View {
                 }
 
                 VStack(spacing: 0) {
-                    // Clock — large, elegant
-                    VStack(spacing: Kairo.Space.xs) {
-                        Text(timeString)
-                            .font(.system(size: 48, weight: .ultraLight, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [Color.kTextPrimary, Color.kTextPrimary.opacity(0.75)],
-                                    startPoint: .top, endPoint: .bottom
-                                )
-                            )
-                            .monospacedDigit()
-                            .shadow(color: currentWeatherType.accentColor.opacity(breathPhase ? 0.2 : 0), radius: 20)
-                        Text(dateString)
-                            .font(Kairo.Typography.caption)
-                            .tracking(1.5)
-                            .textCase(.uppercase)
-                            .foregroundStyle(Color.kTextSecondary)
-                    }
-                    .padding(.top, Kairo.Space.md + 2)
-                    .padding(.bottom, Kairo.Space.lg)
+                    // HUD title bar
+                    hudTitleBar
+                        .padding(.horizontal, Kairo.Space.lg)
+                        .padding(.top, Kairo.Space.sm)
+                        .padding(.bottom, Kairo.Space.md)
 
-                    // Info cards — 2x2 grid
+                    // Clock — huge mono digits, HUD-bracketed
+                    hudClock
+                        .padding(.bottom, Kairo.Space.lg)
+
+                    // Info cards — 2x2 grid, HUD panels
                     LazyVGrid(
                         columns: [
                             .init(.flexible(), spacing: Kairo.Space.sm + 2),
@@ -371,50 +360,50 @@ struct KairoNotchView: View {
                         ],
                         spacing: Kairo.Space.sm + 2
                     ) {
-                        ambientCard(
+                        hudAmbientCard(
                             icon: weather.sfSymbol,
-                            color: currentWeatherType.accentColor,
+                            tint: currentWeatherType.accentColor,
                             title: "OUTSIDE",
-                            primary: weather.isLoaded ? "\(Int(weather.temp))°" : "—°",
-                            secondary: weather.condition.isEmpty ? "Loading…" : weather.condition.capitalized
+                            tag: "T-0",
+                            value: weather.isLoaded ? "\(Int(weather.temp))" : "--",
+                            unit: "°C",
+                            caption: weather.condition.isEmpty ? "Loading…" : weather.condition.capitalized
                         )
-                        ambientCard(
+                        hudAmbientCard(
                             icon: home.roomTemp != nil ? "thermometer.medium" : "thermometer.variable.and.figure",
-                            color: tempColor,
+                            tint: tempColor,
                             title: "ROOM",
-                            primary: home.roomTemp != nil ? "\(Int(home.roomTemp!))°" : "—°",
-                            secondary: home.humidity != nil ? "\(Int(home.humidity!))% humidity" : "Sensor offline"
+                            tag: "T-1",
+                            value: home.roomTemp != nil ? "\(Int(home.roomTemp!))" : "--",
+                            unit: "°C",
+                            caption: home.humidity != nil ? "\(Int(home.humidity!))% humidity" : "Sensor offline"
                         )
-                        ambientCard(
+                        hudAmbientCard(
                             icon: home.acOn ? "air.conditioner.horizontal.fill" : "snowflake",
-                            color: home.acOn ? K.cyan : .kTextTertiary,
+                            tint: home.acOn ? HUDPalette.primary : HUDPalette.dim,
                             title: "CLIMATE",
-                            primary: home.acOn ? "Cooling" : "Off",
-                            secondary: home.acOn ? "Active" : "Tap to start"
+                            tag: "C-0",
+                            value: home.acOn ? "ACTIVE" : "OFF",
+                            unit: nil,
+                            caption: home.acOn ? "Cooling cycle" : "Tap to engage"
                         )
-                        ambientCard(
+                        hudAmbientCard(
                             icon: home.lightsOnCount > 0 ? "lightbulb.fill" : "lightbulb.slash.fill",
-                            color: home.lightsOnCount > 0 ? K.gold : .kTextTertiary,
+                            tint: home.lightsOnCount > 0 ? K.gold : HUDPalette.dim,
                             title: "LIGHTS",
-                            primary: home.lightsOnCount > 0 ? "\(home.lightsOnCount) On" : "All Off",
-                            secondary: ""
+                            tag: "L-\(home.lightsOnCount)",
+                            value: home.lightsOnCount > 0 ? "\(home.lightsOnCount)" : "0",
+                            unit: "ON",
+                            caption: home.lightsOnCount > 0 ? "Zones lit" : "All zones dark"
                         )
                     }
                     .padding(.horizontal, Kairo.Space.lg)
                     .padding(.bottom, Kairo.Space.md)
 
-                    // System status bar
-                    HStack(spacing: Kairo.Space.lg) {
-                        statusDot(color: serverOnline ? K.green : K.red,         label: serverOnline ? "SERVER" : "OFFLINE")
-                        statusDot(color: socket.isConnected ? K.cyan : K.red,    label: socket.isConnected ? "WS LIVE" : "WS DOWN")
-                        Spacer()
-                        Text("KAIRO")
-                            .font(Kairo.Typography.monoSmall)
-                            .tracking(2)
-                            .foregroundStyle(Color.kTextMuted)
-                    }
-                    .padding(.horizontal, Kairo.Space.lg)
-                    .padding(.bottom, Kairo.Space.md)
+                    // HUD system bar
+                    hudSystemBar
+                        .padding(.horizontal, Kairo.Space.lg)
+                        .padding(.bottom, Kairo.Space.md)
                 }
             }
         }
@@ -423,46 +412,147 @@ struct KairoNotchView: View {
     }
 
     private func statusDot(color: Color, label: String) -> some View {
-        HStack(spacing: Kairo.Space.xs + 1) {
-            Circle()
-                .fill(color)
-                .frame(width: 5, height: 5)
-                .shadow(color: color.opacity(0.6), radius: 4)
-            Text(label)
+        HUDStatusDot(label: label, color: color, active: true)
+    }
+
+    // MARK: - HUD title bar (top of idle screen)
+    // [ KAIRO HUD · NOMINAL · 00:42:17 ]
+
+    private var hudTitleBar: some View {
+        HStack(spacing: Kairo.Space.sm) {
+            Text("◆").font(.system(size: 9, weight: .bold, design: .monospaced)).foregroundStyle(HUDPalette.primary)
+            Text("KAIRO · HUD")
+                .font(Kairo.Typography.monoSmall)
+                .tracking(2.5)
+                .foregroundStyle(HUDPalette.primary.opacity(0.85))
+            Rectangle()
+                .fill(LinearGradient(
+                    colors: [HUDPalette.primary.opacity(0.35), HUDPalette.primary.opacity(0.0)],
+                    startPoint: .leading, endPoint: .trailing
+                ))
+                .frame(height: 0.5)
+            Text(systemUptime)
                 .font(Kairo.Typography.monoSmall)
                 .tracking(1)
-                .foregroundStyle(color.opacity(0.7))
+                .foregroundStyle(HUDPalette.primary.opacity(0.55))
+            Text("·").foregroundStyle(HUDPalette.primary.opacity(0.3))
+            Text("NOMINAL")
+                .font(Kairo.Typography.monoSmall)
+                .tracking(1.5)
+                .foregroundStyle(K.green.opacity(0.85))
         }
     }
 
-    private func ambientCard(icon: String, color: Color, title: String, primary: String, secondary: String) -> some View {
-        VStack(alignment: .leading, spacing: Kairo.Space.xs + 2) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(colors: [color, color.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    )
-                    .shadow(color: color.opacity(0.4), radius: 5)
-                Spacer()
-                Text(title)
+    // MARK: - HUD clock
+
+    private var hudClock: some View {
+        VStack(spacing: Kairo.Space.xs) {
+            HStack(spacing: 0) {
+                Text(hudHours)
+                    .foregroundStyle(Color.kTextPrimary)
+                Text(":")
+                    .foregroundStyle(HUDPalette.alert.opacity(breathPhase ? 1.0 : 0.4))
+                Text(hudMinutes)
+                    .foregroundStyle(Color.kTextPrimary)
+            }
+            .font(.system(size: 56, weight: .bold, design: .monospaced))
+            .monospacedDigit()
+            .tracking(-1.5)
+            .shadow(color: HUDPalette.primary.opacity(breathPhase ? 0.55 : 0.30), radius: 18)
+
+            // Date + tagged seconds line
+            HStack(spacing: Kairo.Space.sm) {
+                Text(dateString.uppercased())
+                    .font(Kairo.Typography.monoSmall)
+                    .tracking(2)
+                    .foregroundStyle(Color.kTextSecondary)
+                Text("·").foregroundStyle(HUDPalette.dim)
+                Text(hudSeconds)
                     .font(Kairo.Typography.monoSmall)
                     .tracking(1)
-                    .foregroundStyle(color.opacity(0.6))
-            }
-            Text(primary)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.kTextPrimary)
-            if !secondary.isEmpty {
-                Text(secondary)
-                    .font(Kairo.Typography.bodySmall)
-                    .foregroundStyle(Color.kTextSecondary)
-                    .lineLimit(1)
+                    .foregroundStyle(HUDPalette.primary.opacity(0.7))
+                    .monospacedDigit()
             }
         }
-        .padding(Kairo.Space.md)
+        .padding(.horizontal, Kairo.Space.xl)
+        .padding(.vertical, Kairo.Space.md)
+        .overlay {
+            HUDBrackets(color: HUDPalette.primary, thickness: 1, length: 14, inset: 0)
+        }
+    }
+
+    // MARK: - HUD ambient card (replaces ambientCard)
+
+    private func hudAmbientCard(
+        icon: String,
+        tint: Color,
+        title: String,
+        tag: String,
+        value: String,
+        unit: String?,
+        caption: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Kairo.Space.sm) {
+            // Header row: glyph + label + tag
+            HStack(spacing: Kairo.Space.sm) {
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(tint)
+                    .shadow(color: tint.opacity(0.6), radius: 4)
+                HUDLabel(text: title, trailing: tag, color: tint)
+                Spacer(minLength: 0)
+            }
+            // Big readout
+            HUDReadout(value: value, unit: unit, caption: caption.isEmpty ? nil : caption, tint: tint)
+        }
+        .padding(.horizontal, Kairo.Space.md)
+        .padding(.vertical, Kairo.Space.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(legacyPillBackground(tint: color, ring: color, radius: Kairo.Radius.md - 2))
+        .hudPanel(radius: Kairo.Radius.sm, rim: true, scanLines: true, grid: true, brackets: true, tint: tint)
+    }
+
+    // MARK: - HUD system bar (bottom of idle screen)
+
+    private var hudSystemBar: some View {
+        HStack(spacing: Kairo.Space.lg) {
+            HUDStatusDot(label: serverOnline ? "SRV" : "OFFLINE", color: serverOnline ? K.green : K.red, active: serverOnline)
+            HUDStatusDot(label: socket.isConnected ? "WS LIVE" : "WS DOWN", color: socket.isConnected ? HUDPalette.primary : K.red, active: socket.isConnected)
+            HUDStatusDot(label: "BRAIN", color: HUDPalette.accent2, active: true)
+            Spacer()
+            HStack(spacing: 4) {
+                Text("FRAME")
+                    .font(Kairo.Typography.monoSmall)
+                    .tracking(1.4)
+                    .foregroundStyle(HUDPalette.primary.opacity(0.4))
+                Text(hudFrame)
+                    .font(Kairo.Typography.monoSmall)
+                    .tracking(0.5)
+                    .foregroundStyle(HUDPalette.primary.opacity(0.7))
+                    .monospacedDigit()
+            }
+        }
+    }
+
+    // MARK: - HUD-specific derived strings
+
+    private var hudHours: String {
+        let f = DateFormatter(); f.dateFormat = "HH"; return f.string(from: currentTime)
+    }
+    private var hudMinutes: String {
+        let f = DateFormatter(); f.dateFormat = "mm"; return f.string(from: currentTime)
+    }
+    private var hudSeconds: String {
+        let f = DateFormatter(); f.dateFormat = "'T+'ss"; return f.string(from: currentTime)
+    }
+    private var systemUptime: String {
+        // Fakes a session uptime tag. Real uptime would need a launch-date
+        // reference somewhere; placeholder is fine for the HUD vibe.
+        let f = DateFormatter(); f.dateFormat = "HH'h'mm"; return f.string(from: currentTime)
+    }
+    private var hudFrame: String {
+        // Deterministic-looking 4-hex frame counter ticking with seconds.
+        let s = Int(currentTime.timeIntervalSinceReferenceDate) & 0xFFFF
+        return String(format: "0x%04X", s)
     }
 
     private var tempColor: Color {
