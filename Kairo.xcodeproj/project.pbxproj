@@ -206,6 +206,8 @@
 		BB02000013000000000001 /* PerceptionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000004000000000001 /* PerceptionContext.swift */; };
 		BB02000014000000000001 /* PerceptionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000005000000000001 /* PerceptionEngine.swift */; };
 		BB02000015000000000001 /* PerceiveTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000016000000000001 /* PerceiveTool.swift */; };
+		BB02000020000000000001 /* AgentBrowserWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000021000000000001 /* AgentBrowserWindow.swift */; };
+		BB02000022000000000001 /* BrowseTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000023000000000001 /* BrowseTool.swift */; };
 		BEFE0AB2D00FB00D27C0DF64 /* LongTermMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5187FC8139A6638036367CC /* LongTermMemory.swift */; };
 		C046307413D56C6F656040DF /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0025BEAF1942366CD893BDF5 /* NotificationView.swift */; };
 		C7E5FBF53619F0148D09C66E /* ClipboardTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F02782CD6CD82F5BD2D6AE /* ClipboardTool.swift */; };
@@ -461,6 +463,8 @@
 		BB02000004000000000001 /* PerceptionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerceptionContext.swift; sourceTree = "<group>"; };
 		BB02000005000000000001 /* PerceptionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerceptionEngine.swift; sourceTree = "<group>"; };
 		BB02000016000000000001 /* PerceiveTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerceiveTool.swift; sourceTree = "<group>"; };
+		BB02000021000000000001 /* AgentBrowserWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentBrowserWindow.swift; sourceTree = "<group>"; };
+		BB02000023000000000001 /* BrowseTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseTool.swift; sourceTree = "<group>"; };
 		B5187FC8139A6638036367CC /* LongTermMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongTermMemory.swift; sourceTree = "<group>"; };
 		CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartHomeTool.swift; sourceTree = "<group>"; };
 		CDFE61D2A21B87DAA85B32A4 /* OrbieController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbieController.swift; sourceTree = "<group>"; };
@@ -987,6 +991,7 @@
 				AA01100004000000000001 /* CalendarEventTool.swift */,
 				AA01100006000000000001 /* VisionTool.swift */,
 				BB02000016000000000001 /* PerceiveTool.swift */,
+				BB02000023000000000001 /* BrowseTool.swift */,
 				CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */,
 				04DEB340A57ABFD7877FC7AF /* SystemTool.swift */,
 				46D532E40C088AA1E9C9CA08 /* Tool.swift */,
@@ -1012,6 +1017,7 @@
 			children = (
 				BB02000004000000000001 /* PerceptionContext.swift */,
 				BB02000005000000000001 /* PerceptionEngine.swift */,
+				BB02000021000000000001 /* AgentBrowserWindow.swift */,
 			);
 			path = Perception;
 			sourceTree = "<group>";
@@ -1327,6 +1333,8 @@
 					BB02000013000000000001 /* PerceptionContext.swift in Sources */,
 					BB02000014000000000001 /* PerceptionEngine.swift in Sources */,
 					BB02000015000000000001 /* PerceiveTool.swift in Sources */,
+					BB02000020000000000001 /* AgentBrowserWindow.swift in Sources */,
+					BB02000022000000000001 /* BrowseTool.swift in Sources */,
 					BEFE0AB2D00FB00D27C0DF64 /* LongTermMemory.swift in Sources */,
 					C046307413D56C6F656040DF /* NotificationView.swift in Sources */,
 					C7E5FBF53619F0148D09C66E /* ClipboardTool.swift in Sources */,

@@ -636,6 +636,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             executor.register(CalendarEventTool())
             executor.register(VisionTool())
             executor.register(PerceiveTool())
+            executor.register(BrowseTool())
             self.tieredExecutor = executor
 
             // 2c. Brain pipeline — provider-agnostic LLM client + memory.
