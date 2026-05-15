@@ -72,6 +72,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var brain: KairoBrain?
     var shortTermMemory: KairoShortTermMemory?
     var longTermMemory: KairoLongTermMemory?
+    var conversationHistory: KairoConversationHistory?
 
     // Voice pipeline — recognizer, TTS, wake word, conversation loop.
     // All driven by KairoWakeWord ("hey kairo") and F5 (KairoVoiceTrigger).
@@ -618,24 +619,38 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             executor.register(WebReadTool())
             executor.register(CalendarEventTool())
             executor.register(VisionTool())
+            executor.register(PerceiveTool())
             self.tieredExecutor = executor
 
-            // 2c. Brain pipeline — Ollama + context + memory.
-            //     Runs end-to-end through DebugMenu's "Test Brain" item.
+            // 2c. Brain pipeline — provider-agnostic LLM client + memory.
+            //     LLM order: Ollama (local) → Anthropic → OpenAI. Any of
+            //     the three that's configured will be tried; failures
+            //     fall through silently to the next. So Kairo works
+            //     offline-first but stays alive when Ollama is down,
+            //     provided a cloud key is set in ~/.kairo.env.
             let shortTerm = KairoShortTermMemory()
             let longTerm  = KairoLongTermMemory()
-            let ollama    = OllamaClient()
+            let history   = KairoConversationHistory()
             let contextBuilder = ContextBuilder()
+            let llm: LLMClient = LLMFallbackClient([
+                OllamaClient(),
+                AnthropicLLMClient(),
+                OpenAILLMClient()
+            ])
             let brain = KairoBrain(
-                ollama: ollama,
+                llm: llm,
                 contextBuilder: contextBuilder,
                 executor: executor,
                 shortTerm: shortTerm,
-                longTerm: longTerm
+                longTerm: longTerm,
+                history: history
             )
             self.shortTermMemory = shortTerm
             self.longTermMemory  = longTerm
+            self.conversationHistory = history
             self.brain = brain
+            print("[Kairo] LLM chain: \(llm.label)")
+            print("[Kairo] Conversation history: \(history.turns.count) past turns loaded")
             // Surface agent state in the CaptionHUD so the user sees
             // Thinking / Searching / Reading / Acting / Speaking as the
             // ReAct loop iterates.

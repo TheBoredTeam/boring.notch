@@ -201,6 +201,11 @@
 		AA01100003000000000001 /* CalendarEventTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01100004000000000001 /* CalendarEventTool.swift */; };
 		AA01100005000000000001 /* VisionTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01100006000000000001 /* VisionTool.swift */; };
 		AA01100007000000000001 /* VisionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01100008000000000001 /* VisionClient.swift */; };
+		BB02000010000000000001 /* LLMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000011000000000001 /* LLMClient.swift */; };
+		BB02000012000000000001 /* ConversationHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000003000000000001 /* ConversationHistory.swift */; };
+		BB02000013000000000001 /* PerceptionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000004000000000001 /* PerceptionContext.swift */; };
+		BB02000014000000000001 /* PerceptionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000005000000000001 /* PerceptionEngine.swift */; };
+		BB02000015000000000001 /* PerceiveTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB02000016000000000001 /* PerceiveTool.swift */; };
 		BEFE0AB2D00FB00D27C0DF64 /* LongTermMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5187FC8139A6638036367CC /* LongTermMemory.swift */; };
 		C046307413D56C6F656040DF /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0025BEAF1942366CD893BDF5 /* NotificationView.swift */; };
 		C7E5FBF53619F0148D09C66E /* ClipboardTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F02782CD6CD82F5BD2D6AE /* ClipboardTool.swift */; };
@@ -451,6 +456,11 @@
 		AA01100004000000000001 /* CalendarEventTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventTool.swift; sourceTree = "<group>"; };
 		AA01100006000000000001 /* VisionTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionTool.swift; sourceTree = "<group>"; };
 		AA01100008000000000001 /* VisionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionClient.swift; sourceTree = "<group>"; };
+		BB02000011000000000001 /* LLMClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMClient.swift; sourceTree = "<group>"; };
+		BB02000003000000000001 /* ConversationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistory.swift; sourceTree = "<group>"; };
+		BB02000004000000000001 /* PerceptionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerceptionContext.swift; sourceTree = "<group>"; };
+		BB02000005000000000001 /* PerceptionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerceptionEngine.swift; sourceTree = "<group>"; };
+		BB02000016000000000001 /* PerceiveTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerceiveTool.swift; sourceTree = "<group>"; };
 		B5187FC8139A6638036367CC /* LongTermMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongTermMemory.swift; sourceTree = "<group>"; };
 		CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartHomeTool.swift; sourceTree = "<group>"; };
 		CDFE61D2A21B87DAA85B32A4 /* OrbieController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbieController.swift; sourceTree = "<group>"; };
@@ -734,6 +744,7 @@
 				DD00060003000000000001 /* Debug */,
 				0A5BF6AD5C0C1B4EE5382403 /* Executor */,
 				639C999455BB7A7A63DBCC03 /* Memory */,
+				BB02000001000000000001 /* Perception */,
 				511F69BAAF8F05B42F1BE262 /* Note */,
 				1F8667FC35CA2B9727DFA654 /* Orbie */,
 				369366657F0CC118760331FE /* Resources */,
@@ -947,6 +958,7 @@
 				084B5E6EF59AE490F3AE821E /* OllamaClient.swift */,
 				2A5AFE0246FABC1ED66A3328 /* SystemPrompt.swift */,
 				AA01100008000000000001 /* VisionClient.swift */,
+				BB02000011000000000001 /* LLMClient.swift */,
 			);
 			path = Brain;
 			sourceTree = "<group>";
@@ -974,6 +986,7 @@
 				AA01100002000000000001 /* WebReadTool.swift */,
 				AA01100004000000000001 /* CalendarEventTool.swift */,
 				AA01100006000000000001 /* VisionTool.swift */,
+				BB02000016000000000001 /* PerceiveTool.swift */,
 				CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */,
 				04DEB340A57ABFD7877FC7AF /* SystemTool.swift */,
 				46D532E40C088AA1E9C9CA08 /* Tool.swift */,
@@ -989,8 +1002,18 @@
 				0654C2000CD424D22A992923 /* AmbientContext.swift */,
 				B5187FC8139A6638036367CC /* LongTermMemory.swift */,
 				FCFF2BF3E3B6862ECB63067D /* ShortTermMemory.swift */,
+				BB02000003000000000001 /* ConversationHistory.swift */,
 			);
 			path = Memory;
+			sourceTree = "<group>";
+		};
+		BB02000001000000000001 /* Perception */ = {
+			isa = PBXGroup;
+			children = (
+				BB02000004000000000001 /* PerceptionContext.swift */,
+				BB02000005000000000001 /* PerceptionEngine.swift */,
+			);
+			path = Perception;
 			sourceTree = "<group>";
 		};
 		511F69BAAF8F05B42F1BE262 /* Note */ = {
@@ -1299,6 +1322,11 @@
 					AA01100003000000000001 /* CalendarEventTool.swift in Sources */,
 					AA01100005000000000001 /* VisionTool.swift in Sources */,
 					AA01100007000000000001 /* VisionClient.swift in Sources */,
+					BB02000010000000000001 /* LLMClient.swift in Sources */,
+					BB02000012000000000001 /* ConversationHistory.swift in Sources */,
+					BB02000013000000000001 /* PerceptionContext.swift in Sources */,
+					BB02000014000000000001 /* PerceptionEngine.swift in Sources */,
+					BB02000015000000000001 /* PerceiveTool.swift in Sources */,
 					BEFE0AB2D00FB00D27C0DF64 /* LongTermMemory.swift in Sources */,
 					C046307413D56C6F656040DF /* NotificationView.swift in Sources */,
 					C7E5FBF53619F0148D09C66E /* ClipboardTool.swift in Sources */,

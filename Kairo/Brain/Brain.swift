@@ -39,11 +39,16 @@ public enum KairoAgentState: Equatable {
 /// UI can show "Searching · ...", "Reading · ...", etc.
 @MainActor
 final class KairoBrain {
-    let ollama: OllamaClient
+    /// Provider-agnostic LLM. AppDelegate wires this as either a single
+    /// OllamaClient or an LLMFallbackClient(Ollama → Anthropic → OpenAI).
+    let llm: LLMClient
     let contextBuilder: ContextBuilder
     let executor: TieredExecutor
     let shortTerm: KairoShortTermMemory
     let longTerm: KairoLongTermMemory?
+    /// Persistent across-session conversation log. Optional — if missing,
+    /// Brain falls back to short-term-only.
+    let history: KairoConversationHistory?
 
     /// UI hook — set by AppDelegate to drive the CaptionHUD header.
     var stateObserver: ((KairoAgentState) -> Void)?
@@ -55,17 +60,38 @@ final class KairoBrain {
     private let maxToolHops = 6
 
     init(
+        llm: LLMClient,
+        contextBuilder: ContextBuilder,
+        executor: TieredExecutor,
+        shortTerm: KairoShortTermMemory,
+        longTerm: KairoLongTermMemory? = nil,
+        history: KairoConversationHistory? = nil
+    ) {
+        self.llm = llm
+        self.contextBuilder = contextBuilder
+        self.executor = executor
+        self.shortTerm = shortTerm
+        self.longTerm = longTerm
+        self.history = history
+    }
+
+    /// Legacy initializer for callers that still pass an `OllamaClient`
+    /// directly. Marks the new history param as nil.
+    convenience init(
         ollama: OllamaClient,
         contextBuilder: ContextBuilder,
         executor: TieredExecutor,
         shortTerm: KairoShortTermMemory,
         longTerm: KairoLongTermMemory? = nil
     ) {
-        self.ollama = ollama
-        self.contextBuilder = contextBuilder
-        self.executor = executor
-        self.shortTerm = shortTerm
-        self.longTerm = longTerm
+        self.init(
+            llm: ollama,
+            contextBuilder: contextBuilder,
+            executor: executor,
+            shortTerm: shortTerm,
+            longTerm: longTerm,
+            history: nil
+        )
     }
 
     func handle(input: String, ambient: KairoAmbientContext) async throws -> String {
@@ -81,14 +107,13 @@ final class KairoBrain {
 
         for hop in 0..<maxToolHops {
             emitState(.thinking)
-            let raw = try await ollama.chat(messages: messages)
+            let raw = try await llm.chat(messages: messages)
             traceModelOutput(raw)
 
             // 1. Did the model give us a final answer?
             if let answer = Self.extractAnswer(raw) {
                 let cleaned = answer.trimmingCharacters(in: .whitespacesAndNewlines)
-                shortTerm.append("user: \(input)")
-                shortTerm.append("kairo: \(cleaned)")
+                recordTurn(input: input, reply: cleaned)
                 emitState(.speaking)
                 return cleaned
             }
@@ -112,8 +137,7 @@ final class KairoBrain {
             // (model went off-script; fall back gracefully)
             let fallback = Self.stripStrayTags(raw).trimmingCharacters(in: .whitespacesAndNewlines)
             if !fallback.isEmpty {
-                shortTerm.append("user: \(input)")
-                shortTerm.append("kairo: \(fallback)")
+                recordTurn(input: input, reply: fallback)
                 emitState(.speaking)
                 return fallback
             }
@@ -122,9 +146,15 @@ final class KairoBrain {
         // Exceeded hop limit
         emitState(.speaking)
         let fallback = "Hit my tool-loop limit before finishing. Try a simpler question or break it into steps."
-        shortTerm.append("user: \(input)")
-        shortTerm.append("kairo: \(fallback)")
+        recordTurn(input: input, reply: fallback)
         return fallback
+    }
+
+    /// Centralized: short-term memory + persistent history both get the turn.
+    private func recordTurn(input: String, reply: String) {
+        shortTerm.append("user: \(input)")
+        shortTerm.append("kairo: \(reply)")
+        history?.record(userInput: input, kairoReply: reply, toolTrace: lastTrace)
     }
 
     // MARK: - Tool execution
