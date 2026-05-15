@@ -217,11 +217,11 @@ struct KairoNotchView: View {
 
     // MARK: - Feedback Pill
     private var feedbackPill: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Kairo.Space.md) {
             KairoAvatar(size: 18)
             Text(feedback.currentText)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundColor(.white)
+                .font(Kairo.Typography.bodyEmphasis)
+                .foregroundStyle(Color.kTextPrimary)
                 .lineLimit(2)
             Spacer()
             if feedback.isSpeaking {
@@ -234,46 +234,31 @@ struct KairoNotchView: View {
                 }
             }
         }
-        .padding(.horizontal, 14).padding(.vertical, 12)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial.opacity(0.5))
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(
-                        LinearGradient(
-                            colors: [K.cyan.opacity(0.08), K.blue.opacity(0.03), .clear],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        )
-                    )
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(
-                        LinearGradient(colors: [K.cyan.opacity(0.2), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        lineWidth: 0.5
-                    )
-            }
-        )
-        .padding(.horizontal, 14)
+        .padding(.horizontal, Kairo.Space.lg)
+        .padding(.vertical, Kairo.Space.md)
+        .background(legacyPillBackground(tint: K.cyan, ring: K.blue, radius: Kairo.Radius.md))
+        .padding(.horizontal, Kairo.Space.lg)
     }
 
     // MARK: - Morning Briefing
     private var briefingView: some View {
-        VStack(spacing: 14) {
-            HStack(spacing: 10) {
+        VStack(spacing: Kairo.Space.md + 2) {
+            HStack(spacing: Kairo.Space.md) {
                 KairoAvatar(size: 28)
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: Kairo.Space.xxs) {
                     Text("MORNING BRIEFING")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundColor(K.gold)
+                        .font(Kairo.Typography.captionStrong)
                         .tracking(1.5)
+                        .foregroundStyle(K.gold)
                     Text(briefingGreeting)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
+                        .font(Kairo.Typography.bodyEmphasis)
+                        .foregroundStyle(Color.kTextPrimary)
                 }
                 Spacer()
                 Button(action: { briefing.dismiss() }) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16))
-                        .foregroundColor(.kTextTertiary)
+                        .foregroundStyle(Color.kTextTertiary)
                 }.buttonStyle(.plain)
             }
 
@@ -282,8 +267,8 @@ struct KairoNotchView: View {
                     FlowLayout(spacing: 4) {
                         ForEach(Array(briefing.briefingWords.enumerated()), id: \.offset) { _, word in
                             Text(word + " ")
-                                .font(.system(size: 13, weight: .regular, design: .rounded))
-                                .foregroundColor(.kTextSecondary)
+                                .font(Kairo.Typography.body)
+                                .foregroundStyle(Color.kTextSecondary)
                                 .transition(.scale(scale: 0.8).combined(with: .opacity))
                         }
                     }
@@ -293,29 +278,38 @@ struct KairoNotchView: View {
 
             if feedback.isSpeaking {
                 KairoWaveform(color: K.gold, barCount: 20, maxHeight: 16, isPlaying: true)
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, Kairo.Space.sm)
                     .transition(.opacity)
             }
         }
-        .padding(16)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 18).fill(.ultraThinMaterial.opacity(0.4))
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(
-                        LinearGradient(
-                            colors: [K.gold.opacity(0.06), K.orange.opacity(0.02), .clear],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        )
-                    )
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(
-                        LinearGradient(colors: [K.gold.opacity(0.2), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        lineWidth: 0.5
-                    )
-            }
-        )
-        .padding(.horizontal, 14)
+        .padding(Kairo.Space.lg)
+        .background(legacyPillBackground(tint: K.gold, ring: K.orange, radius: Kairo.Radius.md + 2))
+        .padding(.horizontal, Kairo.Space.lg)
+    }
+
+    /// Shared glass background used by feedbackPill and briefingView. A
+    /// thin material base with a soft accent-tinted gradient and a subtle
+    /// hairline ring. Tint colors are the surface's character (cyan for
+    /// feedback, gold for briefing).
+    @ViewBuilder
+    private func legacyPillBackground(tint: Color, ring: Color, radius: CGFloat) -> some View {
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        ZStack {
+            shape.fill(.ultraThinMaterial)
+            shape.fill(
+                LinearGradient(
+                    colors: [tint.opacity(0.08), ring.opacity(0.03), .clear],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+            )
+            shape.strokeBorder(
+                LinearGradient(
+                    colors: [tint.opacity(0.20), .white.opacity(0.05)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ),
+                lineWidth: 0.5
+            )
+        }
     }
 
     private var briefingGreeting: String {
