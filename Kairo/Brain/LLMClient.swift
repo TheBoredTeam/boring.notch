@@ -174,6 +174,25 @@ struct LLMFallbackClient: LLMClient {
         self.label = "fallback(\(clients.map { $0.label }.joined(separator: "→")))"
     }
 
+    /// Builds a chain from local + only the cloud backends whose API keys
+    /// are present in the environment. Avoids polluting fallback errors with
+    /// "Anthropic not configured" / "OpenAI not configured" when the user
+    /// is running Ollama-only.
+    ///
+    /// Order: local first (cheapest, most private), then any configured
+    /// cloud backends so the agent stays alive when Ollama is down.
+    static func configuredChain() -> LLMFallbackClient {
+        let env = ProcessInfo.processInfo.environment
+        var chain: [LLMClient] = [OllamaClient()]
+        if let key = env["ANTHROPIC_API_KEY"], !key.isEmpty {
+            chain.append(AnthropicLLMClient())
+        }
+        if let key = env["OPENAI_API_KEY"], !key.isEmpty {
+            chain.append(OpenAILLMClient())
+        }
+        return LLMFallbackClient(chain)
+    }
+
     func chat(messages: [KairoChatMessage]) async throws -> String {
         var errors: [Error] = []
         for client in clients {

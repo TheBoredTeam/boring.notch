@@ -632,11 +632,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let longTerm  = KairoLongTermMemory()
             let history   = KairoConversationHistory()
             let contextBuilder = ContextBuilder()
-            let llm: LLMClient = LLMFallbackClient([
-                OllamaClient(),
-                AnthropicLLMClient(),
-                OpenAILLMClient()
-            ])
+            // Only include cloud backends if their keys are actually in env.
+            // Most users (you included) are Ollama-only — this keeps the
+            // fallback errors clean and the chain log honest.
+            let llm: LLMClient = LLMFallbackClient.configuredChain()
             let brain = KairoBrain(
                 llm: llm,
                 contextBuilder: contextBuilder,

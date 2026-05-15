@@ -36,6 +36,7 @@ final class DebugMenu: NSObject {
         menu.addItem(action("Ask Kairo…",       key: "k", mods: [.command],          sel: #selector(askKairo)))
         menu.addItem(action("Talk to Kairo",    key: "k", mods: [.command, .shift],  sel: #selector(talkToKairo)))
         menu.addItem(action("Enable \"Hey Kairo\"", sel: #selector(enableWakeWord)))
+        menu.addItem(action("Test Ollama",      sel: #selector(testOllama)))
 
         // ── NOW ──────────────────────────────────
         menu.addItem(.separator())
@@ -134,6 +135,24 @@ final class DebugMenu: NSObject {
 
     @objc private func talkToKairo() {
         NotificationCenter.default.post(name: .kairoVoiceActivated, object: nil)
+    }
+
+    @objc private func testOllama() {
+        Task {
+            let probe = OllamaClient()
+            let result = await probe.diagnose()
+            kairoDebug("Ollama diagnose:\n\(result)")
+            await MainActor.run {
+                // Show as an NSAlert so the user can read the full result
+                let alert = NSAlert()
+                alert.messageText = "Ollama Status"
+                alert.informativeText = result
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "OK")
+                NSApp.activate(ignoringOtherApps: true)
+                alert.runModal()
+            }
+        }
     }
 
     @objc private func enableWakeWord() {
@@ -383,10 +402,19 @@ final class DebugMenu: NSObject {
                 await PresenceCoordinator.shared.endSpeaking()
             } catch {
                 kairoDebug("Brain failed: \(error.localizedDescription)")
+                let friendly = self.friendlyLLMError(error)
                 await PresenceCoordinator.shared.endListening()
+                // Show the error to the user via the caption HUD so they
+                // see WHY nothing came back — not just dead air.
+                await PresenceCoordinator.shared.beginSpeaking(
+                    query: prompt,
+                    response: friendly
+                )
                 await MainActor.run {
-                    self.feedbackSay("Brain failed: \(error.localizedDescription)", pill: pillText)
+                    self.feedbackSay(friendly, pill: pillText)
                 }
+                try? await Task.sleep(for: .seconds(4))
+                await PresenceCoordinator.shared.endSpeaking()
             }
         }
     }
@@ -395,6 +423,24 @@ final class DebugMenu: NSObject {
     /// optional TTS, the same surface they already see for system events.
     private func feedbackSay(_ text: String, pill: String, speak: Bool = false) {
         KairoFeedbackEngine.shared.say(text, pillText: pill, speak: speak)
+    }
+
+    /// Turns raw LLM/network errors into one-sentence guidance for the user.
+    /// Especially important on Ollama-only setups: the most common failure
+    /// mode is "server not running" or "model not pulled", and the user
+    /// should know exactly how to fix it.
+    private func friendlyLLMError(_ error: Error) -> String {
+        if let ollama = error as? OllamaClient.Error {
+            return ollama.localizedDescription
+        }
+        if let llm = error as? LLMError {
+            return llm.localizedDescription
+        }
+        let msg = error.localizedDescription
+        if msg.contains("Could not connect") || msg.contains("not running") {
+            return "Ollama isn't running. Try `ollama serve` in a terminal."
+        }
+        return "Brain failed: \(msg)"
     }
 
     /// Modal text-prompt input. Cancel returns nil. Empty trim returns nil.
