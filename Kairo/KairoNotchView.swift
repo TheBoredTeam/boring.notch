@@ -715,10 +715,13 @@ struct KairoNotchView: View {
 
     // MARK: - Voice Mode (full notch takeover)
     private var voiceModeView: some View {
+        // Voice mode's green/cyan is preserved as its own character —
+        // recording (green) vs returning (cyan). Typography, spacing,
+        // and radii migrate to design system tokens.
         let activeColor = voice.isListening ? K.green : K.cyan
 
-        return VStack(spacing: 18) {
-            Spacer().frame(height: 12)
+        return VStack(spacing: Kairo.Space.lg) {
+            Spacer().frame(height: Kairo.Space.md)
 
             // Pulsing K orb with rings
             ZStack {
@@ -739,14 +742,18 @@ struct KairoNotchView: View {
                     .frame(width: 48, height: 48)
                     .shadow(color: activeColor.opacity(0.6), radius: voice.isListening ? 20 : 8)
                 Text("K")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .font(Kairo.Typography.title)
+                    .foregroundStyle(.white)
             }
 
             // Status text
             KairoText(
-                text: voice.isListening ? "Listening..." : (voice.isSpeaking && voice.kairoResponse.isEmpty ? "Processing..." : (voice.isSpeaking ? "Speaking..." : "Complete")),
-                font: .system(size: 15, weight: .semibold, design: .rounded),
+                text: voice.isListening
+                    ? "Listening…"
+                    : (voice.isSpeaking && voice.kairoResponse.isEmpty
+                        ? "Processing…"
+                        : (voice.isSpeaking ? "Speaking…" : "Complete")),
+                font: Kairo.Typography.titleSmall,
                 color: activeColor,
                 delay: 0.1
             )
@@ -757,13 +764,16 @@ struct KairoNotchView: View {
                     ForEach(0..<40, id: \.self) { i in
                         RoundedRectangle(cornerRadius: 2)
                             .fill(
-                                LinearGradient(colors: [K.green, K.cyan.opacity(0.4)], startPoint: .top, endPoint: .bottom)
+                                LinearGradient(
+                                    colors: [K.green, K.cyan.opacity(0.4)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
                             )
                             .frame(width: 2.5, height: voiceWaveHeights[i])
                     }
                 }
                 .frame(height: 40)
-                .padding(.horizontal, 24)
+                .padding(.horizontal, Kairo.Space.xl)
                 .onReceive(Timer.publish(every: 0.06, on: .main, in: .common).autoconnect()) { _ in
                     if voice.isListening {
                         let level = voice.currentMicLevel
@@ -780,59 +790,37 @@ struct KairoNotchView: View {
 
             // User transcript
             if !voice.userTranscript.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("YOU")
-                        .font(.system(size: 9, weight: .bold, design: .rounded))
-                        .foregroundColor(.kTextTertiary)
-                        .tracking(1.5)
+                transcriptBlock(label: "YOU", labelColor: .kTextTertiary, accent: nil) {
                     Text(voice.userTranscript)
-                        .font(.system(size: 13, weight: .regular, design: .rounded))
-                        .foregroundColor(.white.opacity(0.75))
-                        .padding(12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14).fill(.white.opacity(0.04))
-                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.06), lineWidth: 0.5))
-                        )
+                        .font(Kairo.Typography.body)
+                        .foregroundStyle(Color.kTextSecondary)
                 }
-                .padding(.horizontal, 18)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
             // Kairo response
             if !voice.kairoResponse.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("KAIRO")
-                        .font(.system(size: 9, weight: .bold, design: .rounded))
-                        .foregroundColor(K.cyan)
-                        .tracking(1.5)
+                transcriptBlock(label: "KAIRO", labelColor: K.cyan, accent: K.cyan) {
                     KairoText(
                         text: voice.kairoResponse,
-                        font: .system(size: 14, weight: .medium, design: .rounded),
-                        color: .white,
+                        font: Kairo.Typography.bodyEmphasis,
+                        color: .kTextPrimary,
                         delay: 0.04
                     )
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14).fill(K.cyan.opacity(0.06))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(K.cyan.opacity(0.1), lineWidth: 0.5))
-                    )
                 }
-                .padding(.horizontal, 18)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
             // Dismiss button
             if !voice.isListening && !voice.isSpeaking && !voice.kairoResponse.isEmpty {
                 Button(action: { withAnimation(.kairoSpring) { voiceActive = false }; voice.dismiss() }) {
-                    HStack(spacing: 7) {
-                        Image(systemName: "checkmark.circle.fill").font(.system(size: 14))
-                        Text("Done").font(.system(size: 12, weight: .semibold, design: .rounded))
+                    HStack(spacing: Kairo.Space.sm) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 14))
+                        Text("Done")
+                            .font(Kairo.Typography.bodyEmphasis)
                     }
-                    .foregroundColor(K.green)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 9)
+                    .foregroundStyle(K.green)
+                    .padding(.horizontal, Kairo.Space.xl - Kairo.Space.xs)
+                    .padding(.vertical, Kairo.Space.sm + 1)
                     .background(
                         Capsule().fill(K.green.opacity(0.1))
                             .overlay(Capsule().stroke(K.green.opacity(0.2), lineWidth: 0.5))
@@ -842,18 +830,48 @@ struct KairoNotchView: View {
                 .transition(.scale.combined(with: .opacity))
             }
 
-            Spacer().frame(height: 10)
+            Spacer().frame(height: Kairo.Space.md)
         }
         .frame(maxWidth: .infinity)
         .background(
             RadialGradient(
-                colors: [activeColor.opacity(0.1), activeColor.opacity(0.03), .clear],
+                colors: [activeColor.opacity(0.10), activeColor.opacity(0.03), .clear],
                 center: .center, startRadius: 0, endRadius: 220
             )
         )
         .animation(.kairoFast, value: voice.isListening)
         .animation(.kairoFast, value: voice.isSpeaking)
         .animation(.kairoFast, value: voice.kairoResponse)
+    }
+
+    /// Section block used inside voice mode for YOU / KAIRO transcripts.
+    /// Accent color (when provided) tints the background and stroke.
+    @ViewBuilder
+    private func transcriptBlock<Content: View>(
+        label: String,
+        labelColor: Color,
+        accent: Color?,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Kairo.Space.xs + 2) {
+            Text(label)
+                .font(Kairo.Typography.captionStrong)
+                .tracking(1.5)
+                .foregroundStyle(labelColor)
+            content()
+                .padding(Kairo.Space.md + 2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: Kairo.Radius.md, style: .continuous)
+                        .fill((accent ?? .white).opacity(accent == nil ? 0.04 : 0.06))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: Kairo.Radius.md, style: .continuous)
+                        .strokeBorder((accent ?? .white).opacity(accent == nil ? 0.06 : 0.10), lineWidth: 0.5)
+                )
+        }
+        .padding(.horizontal, Kairo.Space.lg + 2)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
     // MARK: - Notification In Pill
