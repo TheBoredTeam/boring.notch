@@ -11,8 +11,16 @@ import SwiftUI
 // MARK: - COLOR PALETTE
 // ═══════════════════════════════════════════
 
+/// Legacy palette used by `KairoNotchView` and the older voice flow.
+///
+/// Now bridged to the new design system in `DesignSystem.swift`:
+/// - Backgrounds / text tokens are light/dark adaptive
+/// - Accent identity (cyan/blue/violet) is preserved as the notch's own
+///   visual character — same idea as the Hologram's plasma, this is the
+///   notch's signature and isn't flattened to the global Kairo accent.
+/// - Brand colors (spotify/apple/youtube) are fixed by definition.
 enum K {
-    // Primary palette
+    // Primary palette — preserved brand identity for the notch surface
     static let cyan    = Color(hex: 0x00D4FF)
     static let blue    = Color(hex: 0x0055FF)
     static let violet  = Color(hex: 0x6600FF)
@@ -22,32 +30,62 @@ enum K {
     static let orange  = Color(hex: 0xFF9F0A)
     static let pink    = Color(hex: 0xFF375F)
 
-    // Brand colors
+    // Brand colors — exact platform colors, never adaptive
     static let spotify = Color(hex: 0x1DB954)
     static let apple   = Color(hex: 0xFC3C44)
     static let youtube = Color(hex: 0xFF0000)
 
-    // Backgrounds
-    static let pill    = Color(hex: 0x080A12)
-    static let bg      = Color(hex: 0x04050E)
-    static let panelBg = Color(hex: 0x05070F)
+    // Backgrounds — now adaptive so the notch supports light mode.
+    // Dark values are unchanged from the legacy palette; light values
+    // match Kairo.Palette equivalents.
+    static let pill = Color.adaptive(
+        light: Color(red: 0.95, green: 0.95, blue: 0.96),
+        dark:  Color(hex: 0x080A12)
+    )
+    static let bg = Color.adaptive(
+        light: Color(red: 0.97, green: 0.97, blue: 0.97),
+        dark:  Color(hex: 0x04050E)
+    )
+    static let panelBg = Color.adaptive(
+        light: Color(red: 1.0, green: 1.0, blue: 1.0),
+        dark:  Color(hex: 0x05070F)
+    )
 
-    // Text hierarchy
-    static let text    = Color(hex: 0xDDE8F0)
-    static let muted   = Color(hex: 0x304050)
+    // Text — adaptive so it stays legible against either appearance
+    static let text = Color.adaptive(
+        light: Color(red: 0.08, green: 0.08, blue: 0.10),
+        dark:  Color(hex: 0xDDE8F0)
+    )
+    static let muted = Color.adaptive(
+        light: Color.black.opacity(0.45),
+        dark:  Color(hex: 0x304050)
+    )
 
-    // Gradients
+    // Gradients — fixed (these are character gradients, not surface fills)
     static let gradient = LinearGradient(colors: [cyan, blue, violet], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let cyanBlue = LinearGradient(colors: [cyan, blue], startPoint: .leading, endPoint: .trailing)
     static let warmGlow = LinearGradient(colors: [gold, orange], startPoint: .topLeading, endPoint: .bottomTrailing)
 }
 
-// Text color convenience extensions (used across views)
+// Text color convenience extensions (used across views).
+// Now adaptive — same dark values as before, sensible light values added.
 extension Color {
-    static let kTextPrimary   = Color.white
-    static let kTextSecondary = Color.white.opacity(0.6)
-    static let kTextTertiary  = Color.white.opacity(0.35)
-    static let kTextMuted     = Color.white.opacity(0.2)
+    static let kTextPrimary = Color.adaptive(
+        light: Color(red: 0.08, green: 0.08, blue: 0.10),
+        dark:  Color.white
+    )
+    static let kTextSecondary = Color.adaptive(
+        light: Color.black.opacity(0.60),
+        dark:  Color.white.opacity(0.60)
+    )
+    static let kTextTertiary = Color.adaptive(
+        light: Color.black.opacity(0.40),
+        dark:  Color.white.opacity(0.35)
+    )
+    static let kTextMuted = Color.adaptive(
+        light: Color.black.opacity(0.22),
+        dark:  Color.white.opacity(0.20)
+    )
 }
 
 extension Color {

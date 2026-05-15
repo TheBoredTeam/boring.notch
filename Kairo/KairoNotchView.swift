@@ -1006,10 +1006,10 @@ struct KairoNotchView: View {
             }
             .buttonStyle(KairoBounce())
 
-            TextField("Ask Kairo anything...", text: $kairoInput)
+            TextField("Ask Kairo anything…", text: $kairoInput)
                 .textFieldStyle(.plain)
                 .font(.system(size: 12, weight: .regular, design: .rounded))
-                .foregroundColor(.white)
+                .foregroundColor(.kTextPrimary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 9)
                 .background(
