@@ -197,6 +197,10 @@
 		AEA15EA018AC49B8D2997261 /* ShortTermMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCFF2BF3E3B6862ECB63067D /* ShortTermMemory.swift */; };
 		B33164EF4328A44BB1447D43 /* ScreenTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573485DB6F06A95D84478050 /* ScreenTool.swift */; };
 		BC91F2937DC963C856D818DD /* SearchTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A9404A26C309490B646AE5 /* SearchTool.swift */; };
+		AA01100001000000000001 /* WebReadTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01100002000000000001 /* WebReadTool.swift */; };
+		AA01100003000000000001 /* CalendarEventTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01100004000000000001 /* CalendarEventTool.swift */; };
+		AA01100005000000000001 /* VisionTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01100006000000000001 /* VisionTool.swift */; };
+		AA01100007000000000001 /* VisionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01100008000000000001 /* VisionClient.swift */; };
 		BEFE0AB2D00FB00D27C0DF64 /* LongTermMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5187FC8139A6638036367CC /* LongTermMemory.swift */; };
 		C046307413D56C6F656040DF /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0025BEAF1942366CD893BDF5 /* NotificationView.swift */; };
 		C7E5FBF53619F0148D09C66E /* ClipboardTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F02782CD6CD82F5BD2D6AE /* ClipboardTool.swift */; };
@@ -443,6 +447,10 @@
 		A9ED62878AD5AE59521ADC47 /* CameraFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraFeedView.swift; sourceTree = "<group>"; };
 		AD07E577E90A96E64A0C1B30 /* NotificationCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCenterView.swift; sourceTree = "<group>"; };
 		B2A9404A26C309490B646AE5 /* SearchTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTool.swift; sourceTree = "<group>"; };
+		AA01100002000000000001 /* WebReadTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebReadTool.swift; sourceTree = "<group>"; };
+		AA01100004000000000001 /* CalendarEventTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventTool.swift; sourceTree = "<group>"; };
+		AA01100006000000000001 /* VisionTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionTool.swift; sourceTree = "<group>"; };
+		AA01100008000000000001 /* VisionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionClient.swift; sourceTree = "<group>"; };
 		B5187FC8139A6638036367CC /* LongTermMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongTermMemory.swift; sourceTree = "<group>"; };
 		CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartHomeTool.swift; sourceTree = "<group>"; };
 		CDFE61D2A21B87DAA85B32A4 /* OrbieController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbieController.swift; sourceTree = "<group>"; };
@@ -938,6 +946,7 @@
 				F05EF9B9102A98F223B69ADB /* ContextBuilder.swift */,
 				084B5E6EF59AE490F3AE821E /* OllamaClient.swift */,
 				2A5AFE0246FABC1ED66A3328 /* SystemPrompt.swift */,
+				AA01100008000000000001 /* VisionClient.swift */,
 			);
 			path = Brain;
 			sourceTree = "<group>";
@@ -962,6 +971,9 @@
 				57F02782CD6CD82F5BD2D6AE /* ClipboardTool.swift */,
 				573485DB6F06A95D84478050 /* ScreenTool.swift */,
 				B2A9404A26C309490B646AE5 /* SearchTool.swift */,
+				AA01100002000000000001 /* WebReadTool.swift */,
+				AA01100004000000000001 /* CalendarEventTool.swift */,
+				AA01100006000000000001 /* VisionTool.swift */,
 				CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */,
 				04DEB340A57ABFD7877FC7AF /* SystemTool.swift */,
 				46D532E40C088AA1E9C9CA08 /* Tool.swift */,
@@ -1283,6 +1295,10 @@
 					AEA15EA018AC49B8D2997261 /* ShortTermMemory.swift in Sources */,
 					B33164EF4328A44BB1447D43 /* ScreenTool.swift in Sources */,
 					BC91F2937DC963C856D818DD /* SearchTool.swift in Sources */,
+					AA01100001000000000001 /* WebReadTool.swift in Sources */,
+					AA01100003000000000001 /* CalendarEventTool.swift in Sources */,
+					AA01100005000000000001 /* VisionTool.swift in Sources */,
+					AA01100007000000000001 /* VisionClient.swift in Sources */,
 					BEFE0AB2D00FB00D27C0DF64 /* LongTermMemory.swift in Sources */,
 					C046307413D56C6F656040DF /* NotificationView.swift in Sources */,
 					C7E5FBF53619F0148D09C66E /* ClipboardTool.swift in Sources */,

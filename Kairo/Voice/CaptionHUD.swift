@@ -60,6 +60,41 @@ final class KairoCaptionHUD {
         state.amplitude = Double(amp)
     }
 
+    /// Show or update the live agent state badge — used while the ReAct
+    /// loop is iterating (Searching, Reading, Thinking, etc).
+    /// If the HUD isn't visible, this still surfaces a minimal status row
+    /// so the user knows the agent is working.
+    func updateAgentState(_ agentState: KairoAgentState) {
+        state.agentState = agentState
+        // Auto-show a minimal status row if HUD isn't already visible
+        if state.fullText.isEmpty {
+            ensureWindow()
+            fadeTask?.cancel()
+            state.isActive = agentState != .idle
+            guard let panel = window else { return }
+            if agentState == .idle {
+                hide()
+                return
+            }
+            if panel.alphaValue < 0.95 {
+                panel.alphaValue = 0
+                panel.orderFrontRegardless()
+                NSAnimationContext.runAnimationGroup { ctx in
+                    ctx.duration = 0.2
+                    panel.animator().alphaValue = 1
+                }
+            }
+            // Auto-hide if state stays idle / lingers — refreshed by next state push
+            fadeTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(15))
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    if self?.state.fullText.isEmpty == true { self?.hide() }
+                }
+            }
+        }
+    }
+
     func hide() {
         fadeTask?.cancel()
         fadeTask = nil
@@ -131,6 +166,7 @@ final class CaptionState: ObservableObject {
     @Published var fullText: String = ""
     @Published var isActive: Bool = false
     @Published var amplitude: Double = 0
+    @Published var agentState: KairoAgentState = .idle
 
     private var revealTimer: Timer?
 
@@ -225,7 +261,17 @@ struct CaptionHUDView: View {
                 .font(Kairo.Typography.captionStrong.monospaced())
                 .tracking(2)
                 .foregroundStyle(HUDPalette.primary.opacity(0.9))
-            if let q = state.query, !q.isEmpty {
+
+            // Agent state (Thinking / Searching / Reading / etc) takes
+            // precedence over the original query subtitle when active.
+            if state.agentState != .idle && state.agentState != .speaking {
+                Text("·").foregroundStyle(HUDPalette.primary.opacity(0.4))
+                Text(state.agentState.label.uppercased())
+                    .font(Kairo.Typography.monoSmall)
+                    .tracking(1)
+                    .foregroundStyle(HUDPalette.primary.opacity(0.85))
+                    .lineLimit(1)
+            } else if let q = state.query, !q.isEmpty {
                 Text("·").foregroundStyle(HUDPalette.primary.opacity(0.4))
                 Text(q.uppercased())
                     .font(Kairo.Typography.monoSmall)

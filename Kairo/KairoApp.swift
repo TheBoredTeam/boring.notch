@@ -615,6 +615,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             executor.register(SystemTool())
             executor.register(SmartHomeTool())
             executor.register(SearchTool())
+            executor.register(WebReadTool())
+            executor.register(CalendarEventTool())
+            executor.register(VisionTool())
             self.tieredExecutor = executor
 
             // 2c. Brain pipeline — Ollama + context + memory.
@@ -633,6 +636,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.shortTermMemory = shortTerm
             self.longTermMemory  = longTerm
             self.brain = brain
+            // Surface agent state in the CaptionHUD so the user sees
+            // Thinking / Searching / Reading / Acting / Speaking as the
+            // ReAct loop iterates.
+            brain.stateObserver = { state in
+                Task { @MainActor in KairoCaptionHUD.shared.updateAgentState(state) }
+            }
             print("[Kairo] Brain pipeline online — \(longTerm.all().count) facts in long-term memory")
 
             // 2d. Voice pipeline — TTS, speech recognizer, wake word, conversation loop.
