@@ -81,10 +81,28 @@ class KairoSocket: NSObject, ObservableObject, URLSessionWebSocketDelegate {
     private var webSocket: URLSessionWebSocketTask?
     private var session: URLSession?
     private var reconnectTimer: Timer?
-    private let reconnectInterval: TimeInterval = 5.0
+
+    // Exponential backoff for the legacy Python backend. Most users never
+    // set up that backend (the new in-process Brain replaces it) — so
+    // hammering localhost:8420 every 5s spams the log endlessly. After
+    // `maxNoisyAttempts` failures, we keep trying but stop logging, and
+    // back off to up to `maxReconnectInterval`.
+    private var reconnectInterval: TimeInterval = 5.0
+    private let maxReconnectInterval: TimeInterval = 120.0
+    private var consecutiveFailures: Int = 0
+    private let maxNoisyAttempts: Int = 3
+    /// Set to true via env `KAIRO_BACKEND=off` to skip the legacy WebSocket
+    /// entirely. Use this if you only need the in-process Brain.
+    private let isDisabled: Bool = {
+        let v = ProcessInfo.processInfo.environment["KAIRO_BACKEND"]?.lowercased() ?? ""
+        return v == "off" || v == "false" || v == "0" || v == "no"
+    }()
 
     var serverURL: String {
-        UserDefaults.standard.string(forKey: "kairoServerURL")
+        if let env = ProcessInfo.processInfo.environment["KAIRO_BACKEND_URL"], !env.isEmpty {
+            return env
+        }
+        return UserDefaults.standard.string(forKey: "kairoServerURL")
             ?? "ws://localhost:8420/ws"
     }
 
@@ -97,12 +115,17 @@ class KairoSocket: NSObject, ObservableObject, URLSessionWebSocketDelegate {
 
     override init() {
         super.init()
-        connect()
+        if isDisabled {
+            print("[KairoSocket] disabled via KAIRO_BACKEND=off")
+        } else {
+            connect()
+        }
     }
 
     // MARK: - Connection
 
     func connect() {
+        guard !isDisabled else { return }
         disconnect()
 
         guard let url = URL(string: serverURL) else {
@@ -119,7 +142,9 @@ class KairoSocket: NSObject, ObservableObject, URLSessionWebSocketDelegate {
         webSocket = session?.webSocketTask(with: url)
         webSocket?.resume()
 
-        print("[KairoSocket] Connecting to \(serverURL)")
+        if consecutiveFailures < maxNoisyAttempts {
+            print("[KairoSocket] Connecting to \(serverURL)")
+        }
         listenForMessages()
     }
 
@@ -133,11 +158,34 @@ class KairoSocket: NSObject, ObservableObject, URLSessionWebSocketDelegate {
     }
 
     private func scheduleReconnect() {
-        guard reconnectTimer == nil else { return }
+        guard !isDisabled, reconnectTimer == nil else { return }
+        consecutiveFailures += 1
+
+        // Exponential backoff: 5s → 10s → 30s → 60s → 120s (cap)
+        switch consecutiveFailures {
+        case 1: reconnectInterval = 5
+        case 2: reconnectInterval = 10
+        case 3: reconnectInterval = 30
+        case 4: reconnectInterval = 60
+        default: reconnectInterval = maxReconnectInterval
+        }
+
+        if consecutiveFailures == maxNoisyAttempts + 1 {
+            print("[KairoSocket] suppressing further reconnect logs (backend unavailable)")
+        }
+
         reconnectTimer = Timer.scheduledTimer(withTimeInterval: reconnectInterval, repeats: false) { [weak self] _ in
             self?.reconnectTimer = nil
             self?.connect()
         }
+    }
+
+    /// Call from urlSession(_:webSocketTask:didOpenWithProtocol:) — resets the
+    /// backoff once we get a real handshake. Already-implemented delegate
+    /// methods are unaffected.
+    fileprivate func didOpenSuccessfully() {
+        consecutiveFailures = 0
+        reconnectInterval = 5
     }
 
     // MARK: - Messaging
@@ -160,7 +208,9 @@ class KairoSocket: NSObject, ObservableObject, URLSessionWebSocketDelegate {
                 self?.listenForMessages()
 
             case .failure(let error):
-                print("[KairoSocket] Receive error: \(error.localizedDescription)")
+                if let self, self.consecutiveFailures < self.maxNoisyAttempts {
+                    print("[KairoSocket] Receive error: \(error.localizedDescription)")
+                }
                 DispatchQueue.main.async { self?.isConnected = false }
                 self?.scheduleReconnect()
             }
@@ -245,13 +295,18 @@ class KairoSocket: NSObject, ObservableObject, URLSessionWebSocketDelegate {
 
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask,
                     didOpenWithProtocol proto: String?) {
-        print("[KairoSocket] Connected")
+        didOpenSuccessfully()
+        if consecutiveFailures == 0 {
+            print("[KairoSocket] Connected")
+        }
         DispatchQueue.main.async { self.isConnected = true }
     }
 
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask,
                     didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        print("[KairoSocket] Disconnected (code: \(closeCode.rawValue))")
+        if consecutiveFailures < maxNoisyAttempts {
+            print("[KairoSocket] Disconnected (code: \(closeCode.rawValue))")
+        }
         DispatchQueue.main.async { self.isConnected = false }
         scheduleReconnect()
     }
