@@ -19,16 +19,17 @@ permissions:
 
 jobs:
   build:
-    name: Build Boring Notch (${{ matrix.xcode }} on ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Build Kairo
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: macos-15
-            xcode: "^16"
-          - os: macos-26
-            xcode: "^26"
+        platform:
+          - macOS
+        xcode:
+          - ^16
+        scheme:
+          - Kairo
+    runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

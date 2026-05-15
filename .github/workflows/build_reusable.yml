@@ -33,7 +33,7 @@ jobs:
     permissions:
       contents: write
     env:
-      PROJECT_NAME: boringNotch
+      PROJECT_NAME: Kairo
       EXPORT_METHOD: development
       VERSION_INPUT: ${{ inputs.version }}
       BUILD_NUMBER_INPUT: ${{ inputs.build_number }}

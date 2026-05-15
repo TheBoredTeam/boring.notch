@@ -1,0 +1,104 @@
+//
+//  InlineHUDs.swift
+//  Kairo
+//
+//  Created by Richard Kunkli on 14/09/2024.
+//
+
+import SwiftUI
+import Defaults
+
+struct InlineHUD: View {
+    @EnvironmentObject var vm: KairoViewModel
+    @Binding var type: SneakContentType
+    @Binding var value: CGFloat
+    @Binding var icon: String
+    @Binding var accent: Color?
+    @Binding var hoverAnimation: Bool
+    @Binding var gestureProgress: CGFloat
+    var body: some View {
+        HStack {
+            HStack(spacing: 5) {
+                OSDIconView(eventType: type, icon: icon, value: value, accent: accent)
+                
+                Text(Type2Name(type))
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                    .allowsTightening(true)
+                    .contentTransition(.numericText())
+            }
+            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.notchSize.height - (hoverAnimation ? 0 : 12), alignment: .leading)
+            
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width - 20)
+            
+            HStack {
+                if (type == .mic) {
+                    Text(value.isZero ? "muted" : "unmuted")
+                        .foregroundStyle(.gray)
+                        .lineLimit(1)
+                        .allowsTightening(true)
+                        .multilineTextAlignment(.trailing)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .contentTransition(.interpolate)
+                } else {
+                        HStack {
+                        DraggableProgressBar(value: $value, onChange: { v in
+                            if type == .volume {
+                                VolumeManager.shared.setAbsolute(Float32(v))
+                            } else if type == .brightness {
+                                BrightnessManager.shared.setAbsolute(value: Float32(v))
+                            }
+                        }, accentColor: accent, compact: true)
+                        .frame(maxWidth: .infinity)
+                        if (type == .volume && value.isZero) {
+                            Text("muted")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.gray)
+                                .lineLimit(1)
+                                .allowsTightening(true)
+                                .multilineTextAlignment(.trailing)
+                        } else if Defaults[.showClosedNotchOSDPercentage] {
+                            Text("\(Int(value * 100))%")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.gray)
+                                .lineLimit(1)
+                                .allowsTightening(true)
+                                .multilineTextAlignment(.trailing)
+                        }
+                    }
+                }
+            }
+            .padding(.trailing, 4)
+            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.closedNotchSize.height - (hoverAnimation ? 0 : 12), alignment: .center)
+        }
+        .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
+    }
+    
+    func Type2Name(_ type: SneakContentType) -> String {
+        switch(type) {
+            case .volume:
+                return NSLocalizedString("Volume", comment: "")
+            case .brightness:
+                return NSLocalizedString("Brightness", comment: "")
+            case .backlight:
+                return NSLocalizedString("Backlight", comment: "")
+            case .mic:
+                return NSLocalizedString("Mic", comment: "")
+            default:
+                return ""
+        }
+    }
+}
+
+#Preview {
+    InlineOSD(type: .constant(.brightness), value: .constant(0.4), icon: .constant(""), accent: .constant(nil), hoverAnimation: .constant(false), gestureProgress: .constant(0))
+        .padding(.horizontal, 8)
+        .background(Color.black)
+        .padding()
+        .environmentObject(KairoViewModel())
+}
