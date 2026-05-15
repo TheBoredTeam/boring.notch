@@ -180,6 +180,7 @@
 		59565F92FFBA797CDFEED352 /* SystemPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5AFE0246FABC1ED66A3328 /* SystemPrompt.swift */; };
 		59C179937DA6FAB8A9AD1613 /* DeviceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0E1F00D3D0CA62119E7490 /* DeviceCard.swift */; };
 		63E34C263CC1CC96726E9011 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F214D293A68FE77D12B2D70 /* DesignSystem.swift */; };
+		A1B2C3D4E5F6788890A1B2C3 /* Showcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F67889A0B1C2D3E4F5A6 /* Showcase.swift */; };
 		66001E8120B6B6BDAB33F433 /* SmartHomeTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAED7D40A8AC6A464A6E02CA /* SmartHomeTool.swift */; };
 		6DF41D3B9A2486AAC0C950F4 /* ExecutionTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38B6CF1E00B8502108DD570 /* ExecutionTier.swift */; };
 		6FAF58CEA698D5C2F3C3BBDB /* AppleMusicTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623EDECF890AE12D3C6215A9 /* AppleMusicTool.swift */; };
@@ -415,6 +416,7 @@
 		2D18EC5E16C5A89E119B6973 /* QuickAnswerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAnswerView.swift; sourceTree = "<group>"; };
 		2EB277972FE6D30FB6A72356 /* OrbieWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbieWindow.swift; sourceTree = "<group>"; };
 		2F214D293A68FE77D12B2D70 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		D4E5F67889A0B1C2D3E4F5A6 /* Showcase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Showcase.swift; sourceTree = "<group>"; };
 		41825D7B718B22F86EEB113C /* ViewRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewRegistry.swift; sourceTree = "<group>"; };
 		43B57A6D8C454B6A82D52D7B /* Brain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brain.swift; sourceTree = "<group>"; };
 		46D532E40C088AA1E9C9CA08 /* Tool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tool.swift; sourceTree = "<group>"; };
@@ -1033,6 +1035,7 @@
 			isa = PBXGroup;
 			children = (
 				2F214D293A68FE77D12B2D70 /* DesignSystem.swift */,
+				D4E5F67889A0B1C2D3E4F5A6 /* Showcase.swift */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -1257,6 +1260,7 @@
 					59565F92FFBA797CDFEED352 /* SystemPrompt.swift in Sources */,
 					59C179937DA6FAB8A9AD1613 /* DeviceCard.swift in Sources */,
 					63E34C263CC1CC96726E9011 /* DesignSystem.swift in Sources */,
+					A1B2C3D4E5F6788890A1B2C3 /* Showcase.swift in Sources */,
 					66001E8120B6B6BDAB33F433 /* SmartHomeTool.swift in Sources */,
 					6DF41D3B9A2486AAC0C950F4 /* ExecutionTier.swift in Sources */,
 					6FAF58CEA698D5C2F3C3BBDB /* AppleMusicTool.swift in Sources */,
