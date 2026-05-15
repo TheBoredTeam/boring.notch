@@ -201,6 +201,9 @@
         }
       }
     },
+    "·" : {
+
+    },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
       "localizations" : {
         "ar" : {
@@ -901,6 +904,9 @@
         }
       }
     },
+    "%lld results" : {
+
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -1000,6 +1006,15 @@
           }
         }
       }
+    },
+    "%lld°" : {
+
+    },
+    "%lld°C" : {
+
+    },
+    "%lldpt" : {
+
     },
     "• Bug fixes" : {
       "localizations" : {
@@ -1300,6 +1315,12 @@
           }
         }
       }
+    },
+    "01:42 / 02:57" : {
+
+    },
+    "24°C" : {
+
     },
     "About" : {
       "localizations" : {
@@ -2202,6 +2223,12 @@
         }
       }
     },
+    "All caught up" : {
+
+    },
+    "All Clear" : {
+
+    },
     "All-day" : {
       "localizations" : {
         "ar" : {
@@ -2801,6 +2828,15 @@
           }
         }
       }
+    },
+    "APPROVAL REQUIRED" : {
+
+    },
+    "Approve" : {
+
+    },
+    "Ask Kairo anything…" : {
+
     },
     "Auto-scroll to next event" : {
       "localizations" : {
@@ -3698,206 +3734,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "使用剪贴板管理器提升你的效率"
-          }
-        }
-      }
-    },
-    "Kairo" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kairo"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kairo"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo"
-          }
-        }
-      }
-    },
-    "kairo" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kairo"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kairo"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kairo"
           }
         }
       }
@@ -5201,6 +5037,9 @@
           }
         }
       }
+    },
+    "Clear" : {
+
     },
     "Clear slot" : {
       "localizations" : {
@@ -7002,6 +6841,9 @@
         }
       }
     },
+    "DAMN." : {
+
+    },
     "Default" : {
       "localizations" : {
         "ar" : {
@@ -7404,6 +7246,12 @@
           }
         }
       }
+    },
+    "Dismiss" : {
+
+    },
+    "Done" : {
+
     },
     "Download" : {
       "localizations" : {
@@ -8206,106 +8054,6 @@
         }
       }
     },
-    "Enable Kairo mirror" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Kairo mirror"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Povolit Kairo zrcadlo"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Spiegelfunktion aktivieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable Kairo mirror"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable Kairo mirror"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Habilitar espejo Kairo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Activer le miroir ennuyeux"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Kairo mirror"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Abilita specchio"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kairo 거울 켜기"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Włącz Kairo mirror"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Kairo mirror"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Kairo mirror"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sıkıcı aynayı aktifleştir"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable Kairo mirror"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "启用虚拟镜像"
-          }
-        }
-      }
-    },
     "Enable colored spectrograms" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8703,6 +8451,106 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Enable haptic feedback"
+          }
+        }
+      }
+    },
+    "Enable Kairo mirror" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable Kairo mirror"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Povolit Kairo zrcadlo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Spiegelfunktion aktivieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Kairo mirror"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Kairo mirror"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Habilitar espejo Kairo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Activer le miroir ennuyeux"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable Kairo mirror"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Abilita specchio"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo 거울 켜기"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Włącz Kairo mirror"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable Kairo mirror"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable Kairo mirror"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sıkıcı aynayı aktifleştir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable Kairo mirror"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "启用虚拟镜像"
           }
         }
       }
@@ -10208,6 +10056,9 @@
         }
       }
     },
+    "glass surface" : {
+
+    },
     "Got it!" : {
       "localizations" : {
         "ar" : {
@@ -11208,6 +11059,9 @@
         }
       }
     },
+    "Hold to speak" : {
+
+    },
     "Hover delay" : {
       "localizations" : {
         "ar" : {
@@ -11909,6 +11763,219 @@
         }
       }
     },
+    "K" : {
+
+    },
+    "kairo" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kairo"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kairo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kairo"
+          }
+        }
+      }
+    },
+    "Kairo" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kairo"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kairo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kairo"
+          }
+        }
+      }
+    },
+    "KAIRO" : {
+
+    },
+    "Kairo Design System" : {
+
+    },
+    "KairoGlassPanel" : {
+
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -12309,7 +12376,11 @@
         }
       }
     },
+    "Made with 🫶🏻 by Kairo" : {
+
+    },
     "Made with 🫶🏻 by the Kairo team" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14009,6 +14080,12 @@
         }
       }
     },
+    "MORNING BRIEFING" : {
+
+    },
+    "MOTION DETECTED" : {
+
+    },
     "Music Source" : {
       "localizations" : {
         "ar" : {
@@ -15510,6 +15587,15 @@
         }
       }
     },
+    "NOTIFICATIONS" : {
+
+    },
+    "Notifications will appear here" : {
+
+    },
+    "Open" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -16109,6 +16195,12 @@
           }
         }
       }
+    },
+    "Partly cloudy" : {
+
+    },
+    "Phase 1 foundation · tokens, glass, anchor components" : {
+
     },
     "Pick a Color" : {
       "localizations" : {
@@ -16909,6 +17001,9 @@
           }
         }
       }
+    },
+    "Reject" : {
+
     },
     "Release name" : {
       "localizations" : {
@@ -22816,6 +22911,7 @@
       }
     },
     "Welcome" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -23414,6 +23510,9 @@
           }
         }
       }
+    },
+    "Your AI Assistant" : {
+
     },
     "Your macOS system accent color" : {
       "localizations" : {
