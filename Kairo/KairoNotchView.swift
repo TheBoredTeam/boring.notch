@@ -343,58 +343,78 @@ struct KairoNotchView: View {
 
                 VStack(spacing: 0) {
                     // Clock — large, elegant
-                    VStack(spacing: 4) {
+                    VStack(spacing: Kairo.Space.xs) {
                         Text(timeString)
                             .font(.system(size: 48, weight: .ultraLight, design: .rounded))
                             .foregroundStyle(
-                                LinearGradient(colors: [.white, .white.opacity(0.75)], startPoint: .top, endPoint: .bottom)
+                                LinearGradient(
+                                    colors: [Color.kTextPrimary, Color.kTextPrimary.opacity(0.75)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
                             )
                             .monospacedDigit()
                             .shadow(color: currentWeatherType.accentColor.opacity(breathPhase ? 0.2 : 0), radius: 20)
                         Text(dateString)
-                            .font(.system(size: 11, weight: .medium, design: .rounded))
-                            .foregroundColor(.kTextSecondary)
+                            .font(Kairo.Typography.caption)
                             .tracking(1.5)
                             .textCase(.uppercase)
+                            .foregroundStyle(Color.kTextSecondary)
                     }
-                    .padding(.top, 14)
-                    .padding(.bottom, 16)
+                    .padding(.top, Kairo.Space.md + 2)
+                    .padding(.bottom, Kairo.Space.lg)
 
                     // Info cards — 2x2 grid
-                    LazyVGrid(columns: [.init(.flexible(), spacing: 10), .init(.flexible(), spacing: 10)], spacing: 10) {
-                        ambientCard(icon: weather.sfSymbol, color: currentWeatherType.accentColor, title: "OUTSIDE",
-                            primary: weather.isLoaded ? "\(Int(weather.temp))°" : "--°",
-                            secondary: weather.condition.isEmpty ? "Loading..." : weather.condition.capitalized)
-                        ambientCard(icon: home.roomTemp != nil ? "thermometer.medium" : "thermometer.variable.and.figure", color: tempColor,
+                    LazyVGrid(
+                        columns: [
+                            .init(.flexible(), spacing: Kairo.Space.sm + 2),
+                            .init(.flexible(), spacing: Kairo.Space.sm + 2)
+                        ],
+                        spacing: Kairo.Space.sm + 2
+                    ) {
+                        ambientCard(
+                            icon: weather.sfSymbol,
+                            color: currentWeatherType.accentColor,
+                            title: "OUTSIDE",
+                            primary: weather.isLoaded ? "\(Int(weather.temp))°" : "—°",
+                            secondary: weather.condition.isEmpty ? "Loading…" : weather.condition.capitalized
+                        )
+                        ambientCard(
+                            icon: home.roomTemp != nil ? "thermometer.medium" : "thermometer.variable.and.figure",
+                            color: tempColor,
                             title: "ROOM",
-                            primary: home.roomTemp != nil ? "\(Int(home.roomTemp!))°" : "--°",
-                            secondary: home.humidity != nil ? "\(Int(home.humidity!))% humidity" : "Sensor offline")
-                        ambientCard(icon: home.acOn ? "air.conditioner.horizontal.fill" : "snowflake",
+                            primary: home.roomTemp != nil ? "\(Int(home.roomTemp!))°" : "—°",
+                            secondary: home.humidity != nil ? "\(Int(home.humidity!))% humidity" : "Sensor offline"
+                        )
+                        ambientCard(
+                            icon: home.acOn ? "air.conditioner.horizontal.fill" : "snowflake",
                             color: home.acOn ? K.cyan : .kTextTertiary,
                             title: "CLIMATE",
                             primary: home.acOn ? "Cooling" : "Off",
-                            secondary: home.acOn ? "Active" : "Tap to start")
-                        ambientCard(icon: home.lightsOnCount > 0 ? "lightbulb.fill" : "lightbulb.slash.fill",
+                            secondary: home.acOn ? "Active" : "Tap to start"
+                        )
+                        ambientCard(
+                            icon: home.lightsOnCount > 0 ? "lightbulb.fill" : "lightbulb.slash.fill",
                             color: home.lightsOnCount > 0 ? K.gold : .kTextTertiary,
                             title: "LIGHTS",
                             primary: home.lightsOnCount > 0 ? "\(home.lightsOnCount) On" : "All Off",
-                            secondary: "")
+                            secondary: ""
+                        )
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 12)
+                    .padding(.horizontal, Kairo.Space.lg)
+                    .padding(.bottom, Kairo.Space.md)
 
                     // System status bar
-                    HStack(spacing: 14) {
-                        statusDot(color: serverOnline ? K.green : K.red, label: serverOnline ? "SERVER" : "OFFLINE")
-                        statusDot(color: socket.isConnected ? K.cyan : K.red, label: socket.isConnected ? "WS LIVE" : "WS DOWN")
+                    HStack(spacing: Kairo.Space.lg) {
+                        statusDot(color: serverOnline ? K.green : K.red,         label: serverOnline ? "SERVER" : "OFFLINE")
+                        statusDot(color: socket.isConnected ? K.cyan : K.red,    label: socket.isConnected ? "WS LIVE" : "WS DOWN")
                         Spacer()
                         Text("KAIRO")
-                            .font(.system(size: 8, weight: .bold, design: .monospaced))
-                            .foregroundColor(.kTextMuted)
+                            .font(Kairo.Typography.monoSmall)
                             .tracking(2)
+                            .foregroundStyle(Color.kTextMuted)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 10)
+                    .padding(.horizontal, Kairo.Space.lg)
+                    .padding(.bottom, Kairo.Space.md)
                 }
             }
         }
@@ -403,20 +423,20 @@ struct KairoNotchView: View {
     }
 
     private func statusDot(color: Color, label: String) -> some View {
-        HStack(spacing: 5) {
+        HStack(spacing: Kairo.Space.xs + 1) {
             Circle()
                 .fill(color)
                 .frame(width: 5, height: 5)
                 .shadow(color: color.opacity(0.6), radius: 4)
             Text(label)
-                .font(.system(size: 8, weight: .medium, design: .monospaced))
-                .foregroundColor(color.opacity(0.7))
+                .font(Kairo.Typography.monoSmall)
                 .tracking(1)
+                .foregroundStyle(color.opacity(0.7))
         }
     }
 
     private func ambientCard(icon: String, color: Color, title: String, primary: String, secondary: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Kairo.Space.xs + 2) {
             HStack {
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .medium))
@@ -426,45 +446,23 @@ struct KairoNotchView: View {
                     .shadow(color: color.opacity(0.4), radius: 5)
                 Spacer()
                 Text(title)
-                    .font(.system(size: 8, weight: .bold, design: .monospaced))
-                    .foregroundColor(color.opacity(0.6))
+                    .font(Kairo.Typography.monoSmall)
                     .tracking(1)
+                    .foregroundStyle(color.opacity(0.6))
             }
             Text(primary)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .foregroundStyle(Color.kTextPrimary)
             if !secondary.isEmpty {
                 Text(secondary)
-                    .font(.system(size: 11, weight: .regular, design: .rounded))
-                    .foregroundColor(.white.opacity(0.55))
+                    .font(Kairo.Typography.bodySmall)
+                    .foregroundStyle(Color.kTextSecondary)
                     .lineLimit(1)
             }
         }
-        .padding(12)
+        .padding(Kairo.Space.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(.ultraThinMaterial.opacity(0.5))
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.08), color.opacity(0.02), .clear],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(
-                        LinearGradient(
-                            colors: [color.opacity(0.15), .white.opacity(0.06)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 0.5
-                    )
-            }
-        )
+        .background(legacyPillBackground(tint: color, ring: color, radius: Kairo.Radius.md - 2))
     }
 
     private var tempColor: Color {
@@ -870,100 +868,99 @@ struct KairoNotchView: View {
 
     // MARK: - Notification In Pill
     private func notificationInPill(_ notif: KairoNotif) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: Kairo.Space.md) {
+            HStack(spacing: Kairo.Space.md) {
                 if let icon = notif.appIcon {
-                    Image(nsImage: icon).resizable().scaledToFit()
+                    Image(nsImage: icon)
+                        .resizable()
+                        .scaledToFit()
                         .frame(width: 36, height: 36)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .clipShape(RoundedRectangle(cornerRadius: Kairo.Radius.sm - 2, style: .continuous))
                         .shadow(color: notif.appColor.opacity(0.4), radius: 8)
                 } else {
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: Kairo.Radius.sm - 2, style: .continuous)
                         .fill(
-                            LinearGradient(colors: [notif.appColor, notif.appColor.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                            LinearGradient(
+                                colors: [notif.appColor, notif.appColor.opacity(0.7)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
                         )
                         .frame(width: 36, height: 36)
-                        .overlay(Text(String(notif.appName.prefix(1))).font(.system(size: 15, weight: .bold, design: .rounded)).foregroundColor(.white))
+                        .overlay(
+                            Text(String(notif.appName.prefix(1)))
+                                .font(Kairo.Typography.titleSmall)
+                                .foregroundStyle(Color.white)
+                        )
                 }
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: Kairo.Space.xxs + 1) {
                     Text(notif.appName.uppercased())
-                        .font(.system(size: 9, weight: .bold, design: .rounded))
-                        .foregroundColor(notif.appColor)
+                        .font(Kairo.Typography.captionStrong)
                         .tracking(1)
+                        .foregroundStyle(notif.appColor)
                     Text(notif.title)
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .font(Kairo.Typography.bodyEmphasis)
+                        .foregroundStyle(Color.kTextPrimary)
                         .lineLimit(1)
                 }
                 Spacer()
                 Text(notif.timeString)
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundColor(.kTextTertiary)
+                    .font(Kairo.Typography.monoSmall)
+                    .foregroundStyle(Color.kTextTertiary)
             }
             if !notif.body.isEmpty {
                 Text(notif.body)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundColor(.kTextSecondary)
+                    .font(Kairo.Typography.body)
+                    .foregroundStyle(Color.kTextSecondary)
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            HStack(spacing: 10) {
+            HStack(spacing: Kairo.Space.md) {
                 Button(action: {
-                    if !notif.bundleID.isEmpty, let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: notif.bundleID) { NSWorkspace.shared.open(url) }
+                    if !notif.bundleID.isEmpty,
+                       let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: notif.bundleID) {
+                        NSWorkspace.shared.open(url)
+                    }
                     notifEngine.dismissCurrent()
                 }) {
                     Text("Open")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .foregroundColor(notif.appColor)
-                        .padding(.horizontal, 16).padding(.vertical, 7)
+                        .font(Kairo.Typography.captionStrong)
+                        .foregroundStyle(notif.appColor)
+                        .padding(.horizontal, Kairo.Space.lg)
+                        .padding(.vertical, Kairo.Space.sm - 1)
                         .background(
-                            Capsule().fill(notif.appColor.opacity(0.12))
-                                .overlay(Capsule().stroke(notif.appColor.opacity(0.25), lineWidth: 0.5))
+                            Capsule(style: .continuous)
+                                .fill(notif.appColor.opacity(0.12))
+                                .overlay(Capsule(style: .continuous).stroke(notif.appColor.opacity(0.25), lineWidth: 0.5))
                         )
                 }.buttonStyle(KairoBounce())
                 Button(action: { notifEngine.dismissCurrent() }) {
                     Text("Dismiss")
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundColor(.kTextTertiary)
-                        .padding(.horizontal, 16).padding(.vertical, 7)
+                        .font(Kairo.Typography.caption)
+                        .foregroundStyle(Color.kTextTertiary)
+                        .padding(.horizontal, Kairo.Space.lg)
+                        .padding(.vertical, Kairo.Space.sm - 1)
                         .background(
-                            Capsule().fill(Color.white.opacity(0.05))
-                                .overlay(Capsule().stroke(.white.opacity(0.06), lineWidth: 0.5))
+                            Capsule(style: .continuous)
+                                .fill(Color.kTextMuted.opacity(0.5))
+                                .overlay(Capsule(style: .continuous).stroke(Color.kTextMuted, lineWidth: 0.5))
                         )
                 }.buttonStyle(KairoBounce())
                 Spacer()
             }
         }
-        .padding(16)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 18).fill(.ultraThinMaterial.opacity(0.4))
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(
-                        LinearGradient(
-                            colors: [notif.appColor.opacity(0.08), notif.appColor.opacity(0.02), .clear],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        )
-                    )
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(
-                        LinearGradient(
-                            colors: [notif.appColor.opacity(0.2), .white.opacity(0.05)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 0.5
-                    )
-            }
-        )
-        .gesture(DragGesture(minimumDistance: 10).onEnded { v in if v.translation.height < -30 { notifEngine.dismissCurrent() } })
+        .padding(Kairo.Space.lg)
+        .background(legacyPillBackground(tint: notif.appColor, ring: notif.appColor, radius: Kairo.Radius.md + 2))
+        .gesture(DragGesture(minimumDistance: 10).onEnded { v in
+            if v.translation.height < -30 { notifEngine.dismissCurrent() }
+        })
     }
 
     // MARK: - Quick Actions
     private var quickActionsRow: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Kairo.Space.md) {
             ForEach(quickActions) { action in
                 Button(action: action.handler) {
-                    VStack(spacing: 6) {
+                    VStack(spacing: Kairo.Space.xs + 2) {
                         ZStack {
                             Circle()
                                 .fill(
@@ -974,19 +971,24 @@ struct KairoNotchView: View {
                                 )
                                 .frame(width: 40, height: 40)
                                 .shadow(color: action.color.opacity(0.4), radius: 10, y: 2)
+                            // Inner specular highlight — keeps the 3D glassy
+                            // dome character of the original
                             Circle()
                                 .fill(
-                                    LinearGradient(colors: [.white.opacity(0.3), .clear], startPoint: .top, endPoint: .center)
+                                    LinearGradient(
+                                        colors: [Color.white.opacity(0.3), .clear],
+                                        startPoint: .top, endPoint: .center
+                                    )
                                 )
                                 .frame(width: 40, height: 40)
                             Image(systemName: action.icon)
                                 .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
+                                .foregroundStyle(Color.white)
                                 .shadow(color: .black.opacity(0.15), radius: 1, y: 1)
                         }
                         Text(action.label)
-                            .font(.system(size: 9, weight: .medium, design: .rounded))
-                            .foregroundColor(.kTextTertiary)
+                            .font(Kairo.Typography.caption)
+                            .foregroundStyle(Color.kTextTertiary)
                     }
                 }
                 .buttonStyle(KairoBounce())
@@ -1065,51 +1067,65 @@ struct KairoNotchView: View {
 
     // MARK: - Response
     private var responseView: some View {
-        HStack(spacing: 8) {
+        let shape = RoundedRectangle(cornerRadius: Kairo.Radius.sm, style: .continuous)
+        return HStack(spacing: Kairo.Space.sm) {
             KairoAvatar(size: 20)
-            KairoText(text: kairoResponse, font: .system(size: 12, weight: .regular, design: .rounded), color: K.cyan, delay: 0.04)
-                .lineLimit(2)
+            KairoText(
+                text: kairoResponse,
+                font: Kairo.Typography.body,
+                color: K.cyan,
+                delay: 0.04
+            )
+            .lineLimit(2)
             Spacer()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 12).fill(K.cyan.opacity(0.04))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(K.cyan.opacity(0.08), lineWidth: 0.5))
-        )
+        .padding(.horizontal, Kairo.Space.md)
+        .padding(.vertical, Kairo.Space.sm)
+        .background(shape.fill(K.cyan.opacity(0.04)))
+        .overlay(shape.strokeBorder(K.cyan.opacity(0.10), lineWidth: 0.5))
         .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
     }
 
     // MARK: - Chat Bubble (animated)
     private func chatBubble(role: String, text: String, index: Int) -> some View {
         let isKairo = role == "k"
-        return HStack(alignment: .top, spacing: 8) {
+        let bubbleShape = RoundedRectangle(cornerRadius: Kairo.Radius.md, style: .continuous)
+
+        return HStack(alignment: .top, spacing: Kairo.Space.sm) {
             if isKairo { KairoAvatar(size: 22) }
             KairoText(
                 text: text,
-                font: .system(size: 12, weight: isKairo ? .regular : .regular, design: .rounded),
-                color: isKairo ? .white.opacity(0.9) : .white.opacity(0.7),
+                font: Kairo.Typography.body,
+                color: isKairo ? .kTextPrimary : .kTextSecondary,
                 delay: 0.03
             )
             .lineSpacing(3)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, Kairo.Space.md)
+            .padding(.vertical, Kairo.Space.md - 2)
             .lineLimit(6)
             .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(isKairo ? K.cyan.opacity(0.06) : Color.white.opacity(0.04))
+                bubbleShape.fill(isKairo ? K.cyan.opacity(0.06) : Color.kTextMuted.opacity(0.20))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(isKairo ? K.cyan.opacity(0.1) : .white.opacity(0.05), lineWidth: 0.5)
+                bubbleShape.strokeBorder(
+                    isKairo ? K.cyan.opacity(0.10) : Color.kTextMuted.opacity(0.30),
+                    lineWidth: 0.5
+                )
             )
             if !isKairo {
                 Circle()
                     .fill(
-                        LinearGradient(colors: [.white.opacity(0.1), .white.opacity(0.04)], startPoint: .top, endPoint: .bottom)
+                        LinearGradient(
+                            colors: [Color.kTextMuted.opacity(0.5), Color.kTextMuted.opacity(0.2)],
+                            startPoint: .top, endPoint: .bottom
+                        )
                     )
                     .frame(width: 22, height: 22)
-                    .overlay(Image(systemName: "person.fill").font(.system(size: 10)).foregroundColor(.kTextSecondary))
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(Color.kTextSecondary)
+                    )
             }
         }
         .frame(maxWidth: .infinity, alignment: isKairo ? .leading : .trailing)
