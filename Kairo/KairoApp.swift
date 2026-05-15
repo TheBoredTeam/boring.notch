@@ -694,7 +694,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func playWelcomeSound() {
         let audioPlayer = AudioPlayer()
-        audioPlayer.play(fileName: "kairo_welcome", fileExtension: "m4a")
+        // Bundle ships `kairo.m4a` (renamed from boringNotch on rebrand);
+        // the previous filename `kairo_welcome.m4a` doesn't exist and
+        // would crash here when force-unwrapped on first launch.
+        audioPlayer.play(fileName: "kairo", fileExtension: "m4a")
     }
 
     func deviceHasNotch() -> Bool {

@@ -10,6 +10,10 @@ import AppKit
 
 class AudioPlayer {
     func play(fileName: String, fileExtension: String) {
-        NSSound(contentsOf:Bundle.main.url(forResource: fileName, withExtension: fileExtension)!, byReference: false)?.play()
+        guard let url = Bundle.main.url(forResource: fileName, withExtension: fileExtension) else {
+            print("[Kairo] AudioPlayer: missing resource \(fileName).\(fileExtension) — skipping")
+            return
+        }
+        NSSound(contentsOf: url, byReference: false)?.play()
     }
 }
