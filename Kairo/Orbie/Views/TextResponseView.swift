@@ -6,36 +6,44 @@ struct TextResponseData: Hashable {
     let icon: String?
 }
 
+/// Panel-sized text answer. Optional query echoed at the top with a
+/// waveform glyph (representing what Kairo heard). Response reveals
+/// character-by-character for a deliberate, conversational pacing.
 struct TextResponseView: View {
     let data: TextResponseData
     @State private var revealedChars: Int = 0
     @State private var revealTimer: Timer?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Kairo.Space.lg) {
             if !data.query.isEmpty {
-                HStack(spacing: 10) {
-                    Image(systemName: "waveform")
-                        .foregroundColor(Kairo.Palette.textDim)
-                    Text(data.query)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Kairo.Palette.textDim)
-                        .lineLimit(1)
-                }
+                queryRow
             }
 
             Text(String(data.response.prefix(revealedChars)))
-                .font(.system(size: 20, weight: .regular, design: .rounded))
-                .foregroundColor(Kairo.Palette.text)
+                .font(.system(size: 22, weight: .regular, design: .rounded))
+                .foregroundStyle(Kairo.Palette.text)
                 .fixedSize(horizontal: false, vertical: true)
-                .animation(.none, value: revealedChars)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .animation(.none, value: revealedChars)
 
-            Spacer()
+            Spacer(minLength: 0)
         }
-        .padding(28)
+        .padding(Kairo.Space.xxl - Kairo.Space.xs)  // 28pt feels right here
         .onAppear { startReveal() }
         .onDisappear { revealTimer?.invalidate() }
+    }
+
+    private var queryRow: some View {
+        HStack(spacing: Kairo.Space.sm) {
+            Image(systemName: "waveform")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Kairo.Palette.textDim)
+            Text(data.query)
+                .font(Kairo.Typography.bodyEmphasis)
+                .foregroundStyle(Kairo.Palette.textDim)
+                .lineLimit(1)
+        }
     }
 
     private func startReveal() {

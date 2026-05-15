@@ -1,5 +1,12 @@
 import SwiftUI
 
+/// Glass-backed shell that hosts every Orbie state. When idle/listening,
+/// shows the orb presence with a radial gradient. When expanded, shows
+/// the registered view for the current OrbieViewID with a thin-material
+/// glass surface underneath.
+///
+/// Reuses Phase 1 tokens (Kairo.Palette / .Motion / .Elevation /
+/// .Radius) and the .kairoElevation modifier.
 struct OrbieShell: View {
     @EnvironmentObject var controller: OrbieController
 
@@ -10,41 +17,59 @@ struct OrbieShell: View {
 
     var body: some View {
         ZStack {
-            // Solid background (always present, visible in expanded mode)
-            RoundedRectangle(cornerRadius: controller.currentSize.cornerRadius, style: .continuous)
-                .fill(Kairo.Palette.background)
-
-            // Orb gradient (fades out when expanded)
-            RoundedRectangle(cornerRadius: controller.currentSize.cornerRadius, style: .continuous)
-                .fill(RadialGradient(
-                    colors: [Kairo.Palette.orbCore, Kairo.Palette.orbDeep, .black],
-                    center: UnitPoint(x: 0.3, y: 0.3), startRadius: 4, endRadius: 80
-                ))
-                .opacity(isExpanded ? 0 : 1)
-
-            // Border
-            RoundedRectangle(cornerRadius: controller.currentSize.cornerRadius, style: .continuous)
-                .stroke(Kairo.Palette.hairline, lineWidth: 1)
-
-            // Content
+            background
+            border
             contentOverlay
         }
-        .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
-        .animation(Kairo.Motion.spring, value: controller.currentSize)
-        .animation(Kairo.Motion.spring, value: isExpanded)
+        .kairoElevation(isExpanded ? Kairo.Elevation.modal : Kairo.Elevation.popover)
+        .animation(Kairo.Motion.morph, value: controller.currentSize)
+        .animation(Kairo.Motion.morph, value: isExpanded)
     }
 
-    private var shadowColor: Color {
-        isExpanded ? .black.opacity(0.5) : Kairo.Palette.orbCore.opacity(0.4)
+    // MARK: - Background
+
+    @ViewBuilder
+    private var background: some View {
+        let shape = RoundedRectangle(
+            cornerRadius: controller.currentSize.cornerRadius,
+            style: .continuous
+        )
+
+        ZStack {
+            // 1. Glass material — visible whenever expanded
+            shape
+                .fill(.regularMaterial)
+                .opacity(isExpanded ? 1 : 0)
+
+            // 2. Glass tint layer — barely-there warmth on top of the material
+            shape
+                .fill(Kairo.Palette.glassTint)
+                .opacity(isExpanded ? 1 : 0)
+
+            // 3. Orb radial gradient — the dominant fill in compact states
+            shape
+                .fill(RadialGradient(
+                    colors: [Kairo.Palette.orbCore, Kairo.Palette.orbDeep, .black],
+                    center: UnitPoint(x: 0.3, y: 0.3),
+                    startRadius: 4,
+                    endRadius: 80
+                ))
+                .opacity(isExpanded ? 0 : 1)
+        }
     }
 
-    private var shadowRadius: CGFloat {
-        controller.currentSize == .orb ? 30 : 40
+    private var border: some View {
+        RoundedRectangle(
+            cornerRadius: controller.currentSize.cornerRadius,
+            style: .continuous
+        )
+        .strokeBorder(
+            isExpanded ? Kairo.Palette.glassStroke : Kairo.Palette.hairline,
+            lineWidth: 0.5
+        )
     }
 
-    private var shadowY: CGFloat {
-        controller.currentSize == .orb ? 0 : 20
-    }
+    // MARK: - Content
 
     @ViewBuilder
     private var contentOverlay: some View {
@@ -65,6 +90,7 @@ struct OrbieShell: View {
                     .id(id)
             }
         }
+        .foregroundStyle(Kairo.Palette.text)
     }
 
     @ViewBuilder
