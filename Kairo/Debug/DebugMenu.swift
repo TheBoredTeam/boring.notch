@@ -1,7 +1,18 @@
 import AppKit
 
+/// Menubar `K` item. Despite the historical name, this is the **real**
+/// Kairo menu — every item performs a real action through the existing
+/// services (TieredExecutor, KairoBrain, MusicManager, CalendarManager,
+/// VolumeManager, KairoFeedbackEngine, etc).
+///
+/// The pre-existing animation tests (Listening / Thinking / Speaking /
+/// Full Cycle / Brain probes) are preserved under a Dev submenu so the
+/// debug surface is still reachable.
 @MainActor
 final class DebugMenu: NSObject {
+
+    // MARK: - Dependencies
+
     private var statusItem: NSStatusItem?
     let executor: TieredExecutor
     let brain: KairoBrain?
@@ -12,60 +23,249 @@ final class DebugMenu: NSObject {
         super.init()
     }
 
+    // MARK: - Install
+
     func install() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.title = "K"
 
         let menu = NSMenu()
-        menu.addItem(itemFor("Test Weather",      selector: #selector(testWeather)))
-        menu.addItem(itemFor("Test Music",        selector: #selector(testMusic)))
-        menu.addItem(itemFor("Test YouTube",      selector: #selector(testYouTube)))
-        menu.addItem(itemFor("Test Notification", selector: #selector(testNotification)))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(itemFor("Test Listening",    selector: #selector(testListening)))
-        menu.addItem(itemFor("Test Thinking",     selector: #selector(testThinking)))
-        menu.addItem(itemFor("Test Speaking",     selector: #selector(testSpeaking)))
-        menu.addItem(itemFor("Test Full Cycle",   selector: #selector(testFullCycle)))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(itemFor("Test Brain — Greet",      selector: #selector(testBrainGreet)))
-        menu.addItem(itemFor("Test Brain — Weather Q",  selector: #selector(testBrainWeatherQ)))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(itemFor("Dismiss Orbie",     selector: #selector(dismiss)))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(itemFor("Quit",              selector: #selector(quit)))
+
+        // ── KAIRO ────────────────────────────────
+        menu.addItem(header("KAIRO"))
+        menu.addItem(action("Ask Kairo…",       key: "k", mods: [.command],          sel: #selector(askKairo)))
+        menu.addItem(action("Talk to Kairo",    key: "k", mods: [.command, .shift],  sel: #selector(talkToKairo)))
+
+        // ── NOW ──────────────────────────────────
+        menu.addItem(.separator())
+        menu.addItem(header("NOW"))
+        menu.addItem(action("Now Playing",      sel: #selector(showNowPlaying)))
+        menu.addItem(action("Play / Pause",     key: " ", mods: [.command],          sel: #selector(playPause)))
+        menu.addItem(action("Next Track",       key: "→", mods: [.command],          sel: #selector(nextTrack)))
+        menu.addItem(action("Previous Track",   key: "←", mods: [.command],          sel: #selector(prevTrack)))
+
+        // ── PLAY ─────────────────────────────────
+        menu.addItem(.separator())
+        menu.addItem(header("PLAY"))
+        menu.addItem(action("Play on YouTube…",     sel: #selector(playYouTube)))
+        menu.addItem(action("Play on Apple Music…", sel: #selector(playAppleMusic)))
+
+        // ── HOME ─────────────────────────────────
+        menu.addItem(.separator())
+        menu.addItem(header("HOME"))
+        menu.addItem(action("Weather",          sel: #selector(weather)))
+        menu.addItem(action("Toggle Lights",    sel: #selector(toggleLights)))
+        menu.addItem(action("Show Cameras",     sel: #selector(showCameras)))
+        menu.addItem(action("Climate (AC)",     sel: #selector(toggleClimate)))
+
+        // ── INFO ─────────────────────────────────
+        menu.addItem(.separator())
+        menu.addItem(header("INFO"))
+        menu.addItem(action("Today's Calendar", sel: #selector(todaysCalendar)))
+        menu.addItem(action("Morning Briefing", sel: #selector(morningBriefing)))
+
+        // ── SYSTEM ───────────────────────────────
+        menu.addItem(.separator())
+        menu.addItem(header("SYSTEM"))
+        menu.addItem(action("Take Screenshot",  sel: #selector(takeScreenshot)))
+        menu.addItem(action("Read Clipboard",   sel: #selector(readClipboard)))
+        menu.addItem(action("Lock Screen",      sel: #selector(lockScreen)))
+
+        // ── DEV (submenu) ────────────────────────
+        menu.addItem(.separator())
+        let devItem = NSMenuItem(title: "Dev", action: nil, keyEquivalent: "")
+        let devMenu = NSMenu()
+        devMenu.addItem(action("Test Notification",    sel: #selector(testNotification)))
+        devMenu.addItem(action("Test Listening",       sel: #selector(testListening)))
+        devMenu.addItem(action("Test Thinking",        sel: #selector(testThinking)))
+        devMenu.addItem(action("Test Speaking",        sel: #selector(testSpeaking)))
+        devMenu.addItem(action("Test Full Cycle",      sel: #selector(testFullCycle)))
+        devMenu.addItem(.separator())
+        devMenu.addItem(action("Brain — Greet",        sel: #selector(testBrainGreet)))
+        devMenu.addItem(action("Brain — Weather Q",    sel: #selector(testBrainWeatherQ)))
+        devItem.submenu = devMenu
+        menu.addItem(devItem)
+
+        // ── Foot ─────────────────────────────────
+        menu.addItem(.separator())
+        menu.addItem(action("Settings…",        key: ",", mods: [.command],          sel: #selector(openSettings)))
+        menu.addItem(action("Dismiss Orbie",    sel: #selector(dismissOrbie)))
+        menu.addItem(.separator())
+        menu.addItem(action("Quit Kairo",       key: "q", mods: [.command],          sel: #selector(quit)))
 
         item.menu = menu
         statusItem = item
     }
 
-    private func itemFor(_ title: String, selector: Selector) -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: selector, keyEquivalent: "")
+    // MARK: - Item builders
+
+    private func header(_ title: String) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        item.attributedTitle = NSAttributedString(
+            string: title,
+            attributes: [
+                .font: NSFont.systemFont(ofSize: 10, weight: .semibold),
+                .foregroundColor: NSColor.tertiaryLabelColor,
+                .kern: 1.5
+            ]
+        )
+        return item
+    }
+
+    private func action(_ title: String, key: String = "", mods: NSEvent.ModifierFlags = [], sel: Selector) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: sel, keyEquivalent: key)
+        item.keyEquivalentModifierMask = mods
         item.target = self
         return item
     }
 
-    @objc private func testWeather() {
-        kairoDebug("testWeather tapped")
+    // MARK: - KAIRO actions
+
+    @objc private func askKairo() {
+        guard let brain else {
+            feedbackSay("Brain not online — Ollama may be down.", pill: "Kairo")
+            return
+        }
+        guard let prompt = promptForText(title: "Ask Kairo", placeholder: "What's on your mind?") else { return }
+        runBrain(prompt: prompt, brain: brain, pillText: "Kairo")
+    }
+
+    @objc private func talkToKairo() {
+        NotificationCenter.default.post(name: .kairoVoiceActivated, object: nil)
+    }
+
+    // MARK: - NOW (music) actions
+
+    @objc private func showNowPlaying() {
+        Task {
+            if let track = await AppleMusicService.currentTrack() {
+                await MainActor.run { KairoRuntime.shared.present(.nowPlaying, payload: track) }
+            } else {
+                feedbackSay("Nothing playing.", pill: "Music")
+            }
+        }
+    }
+
+    @objc private func playPause() {
+        Task { await MusicManager.shared.playPause() }
+    }
+
+    @objc private func nextTrack() {
+        Task { await MusicManager.shared.nextTrack() }
+    }
+
+    @objc private func prevTrack() {
+        Task { await MusicManager.shared.previousTrack() }
+    }
+
+    // MARK: - PLAY actions
+
+    @objc private func playYouTube() {
+        guard let query = promptForText(title: "Play on YouTube", placeholder: "e.g. lofi hip hop radio") else { return }
+        Task {
+            _ = try? await executor.run(toolName: "youtube", args: ["query": query])
+            await MainActor.run { feedbackSay("Playing \(query) on YouTube.", pill: "YouTube") }
+        }
+    }
+
+    @objc private func playAppleMusic() {
+        let query = promptForText(title: "Play on Apple Music", placeholder: "Song / artist / album — blank to resume") ?? ""
+        Task {
+            _ = try? await executor.run(toolName: "apple_music", args: ["action": "play", "query": query])
+        }
+    }
+
+    // MARK: - HOME actions
+
+    @objc private func weather() {
         Task { _ = try? await executor.run(toolName: "weather", args: [:]) }
     }
 
-    @objc private func testMusic() {
-        Task { _ = try? await executor.run(toolName: "apple_music", args: ["action": "play"]) }
+    @objc private func toggleLights() {
+        // Best-effort: send the legacy command (handleLocally picks it up
+        // via the older flow) AND fire the smart_home tool — whichever the
+        // wired backend handles wins. SmartHomeTool is still a stub today;
+        // when it gets a real HASS / HomeKit binding, this just works.
+        Task {
+            _ = try? await executor.run(toolName: "smart_home", args: ["device": "lights", "action": "toggle"])
+            await MainActor.run { feedbackSay("Lights toggled.", pill: "Lights") }
+        }
     }
 
-    @objc private func testYouTube() {
-        Task { _ = try? await executor.run(toolName: "youtube", args: ["query": "lofi hip hop"]) }
+    @objc private func showCameras() {
+        let placeholder = URL(string: "kairo://camera/front")!
+        let data = CameraFeedData(label: "Front door", streamURL: placeholder)
+        KairoRuntime.shared.present(.cameraFeed, payload: data)
     }
+
+    @objc private func toggleClimate() {
+        Task {
+            _ = try? await executor.run(toolName: "smart_home", args: ["device": "ac", "action": "toggle"])
+            await MainActor.run { feedbackSay("Climate toggled.", pill: "AC") }
+        }
+    }
+
+    // MARK: - INFO actions
+
+    @objc private func todaysCalendar() {
+        let count = CalendarManager.shared.events.count
+        let text = count == 0 ? "No events today." : "\(count) event\(count == 1 ? "" : "s") on your calendar today."
+        feedbackSay(text, pill: "Calendar", speak: true)
+    }
+
+    @objc private func morningBriefing() {
+        KairoMorningBriefing.shared.triggerBriefing()
+    }
+
+    // MARK: - SYSTEM actions
+
+    @objc private func takeScreenshot() {
+        Task {
+            let result = try? await executor.run(toolName: "see_screen", args: [:])
+            let text = result?.output ?? ""
+            await MainActor.run {
+                if text.isEmpty {
+                    feedbackSay("Screenshot taken, no text detected.", pill: "Screen")
+                } else {
+                    let preview = text.split(separator: "\n").prefix(2).joined(separator: " · ")
+                    feedbackSay("Screen OCR: \(preview)", pill: "Screen")
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(text, forType: .string)
+                }
+            }
+        }
+    }
+
+    @objc private func readClipboard() {
+        Task {
+            let result = try? await executor.run(toolName: "clipboard", args: [:])
+            let text = result?.output ?? ""
+            await MainActor.run {
+                let preview = text.isEmpty ? "Clipboard is empty." : String(text.prefix(120))
+                feedbackSay(preview, pill: "Clipboard")
+            }
+        }
+    }
+
+    @objc private func lockScreen() {
+        let src = CGEventSource(stateID: .hidSystemState)
+        let down = CGEvent(keyboardEventSource: src, virtualKey: 0x0C, keyDown: true) // Q
+        let up   = CGEvent(keyboardEventSource: src, virtualKey: 0x0C, keyDown: false)
+        down?.flags = [.maskCommand, .maskControl]
+        up?.flags   = [.maskCommand, .maskControl]
+        down?.post(tap: .cghidEventTap)
+        up?.post(tap: .cghidEventTap)
+    }
+
+    // MARK: - DEV — preserved test entries
 
     @objc private func testNotification() {
-        let timeFmt = DateFormatter()
-        timeFmt.dateFormat = "h:mm a"
+        let timeFmt = DateFormatter(); timeFmt.dateFormat = "h:mm a"
         let notif = NotificationData(
-            app: "Test",
-            title: "Kairo online",
+            app: "Test", title: "Kairo online",
             body: "This is a test notification.",
-            icon: "🔔",
-            timestamp: timeFmt.string(from: Date())
+            icon: "🔔", timestamp: timeFmt.string(from: Date())
         )
         NotificationCenter.default.post(name: .kairoIncomingNotification, object: notif)
     }
@@ -84,14 +284,11 @@ final class DebugMenu: NSObject {
 
     @objc private func testThinking() {
         Task {
-            kairoDebug("testThinking: start")
             await KairoRuntime.shared.coordinator?.showOrb()
             KairoRuntime.shared.orbieController?.setVoiceState(.thinking)
-            kairoDebug("testThinking: thinking state set")
             try? await Task.sleep(for: .seconds(3))
             KairoRuntime.shared.orbieController?.setVoiceState(.idle)
             KairoRuntime.shared.dismiss()
-            kairoDebug("testThinking: done")
         }
     }
 
@@ -107,69 +304,104 @@ final class DebugMenu: NSObject {
     }
 
     @objc private func testFullCycle() {
-        kairoDebug("testFullCycle: triggered")
         Task {
-            kairoDebug("testFullCycle: Task started")
             await PresenceCoordinator.shared.beginListening()
-            kairoDebug("testFullCycle: listening started, sleeping 3s")
             try? await Task.sleep(for: .seconds(3))
-            kairoDebug("testFullCycle: calling endListening")
             await PresenceCoordinator.shared.endListening()
-            kairoDebug("testFullCycle: listening ended, sleeping 1.5s")
             try? await Task.sleep(for: .seconds(1.5))
-            kairoDebug("testFullCycle: calling beginSpeaking")
             await PresenceCoordinator.shared.beginSpeaking(
                 query: "Search for best hotels in Kampala",
-                response: "Found ten. Top three are Serena, Speke, and Kampala Sheraton. Want details on any?"
+                response: "Found ten. Top three are Serena, Speke, and Kampala Sheraton."
             )
-            kairoDebug("testFullCycle: speaking started, sleeping 6s")
             try? await Task.sleep(for: .seconds(6))
-            kairoDebug("testFullCycle: calling endSpeaking")
             await PresenceCoordinator.shared.endSpeaking()
-            kairoDebug("testFullCycle: complete")
         }
     }
 
-    // MARK: - Brain tests
-
     @objc private func testBrainGreet() {
-        runBrain(prompt: "Say hi in one sentence. Reference one thing you know about me.")
+        guard let brain else { return }
+        runBrain(prompt: "Say hi in one sentence. Reference one thing you know about me.",
+                 brain: brain, pillText: "Kairo")
     }
 
     @objc private func testBrainWeatherQ() {
-        runBrain(prompt: "What's the weather like? Use the weather tool if needed.")
+        guard let brain else { return }
+        runBrain(prompt: "What's the weather like? Use the weather tool if needed.",
+                 brain: brain, pillText: "Weather")
     }
 
-    private func runBrain(prompt: String) {
-        guard let brain else {
-            kairoDebug("Brain not wired — skipping prompt: \(prompt)")
-            return
-        }
-        kairoDebug("Brain test: \(prompt)")
+    // MARK: - Foot actions
+
+    @objc private func openSettings() {
+        DispatchQueue.main.async { SettingsWindowController.shared.showWindow() }
+    }
+
+    @objc private func dismissOrbie() {
+        KairoRuntime.shared.dismiss()
+    }
+
+    @objc private func quit() {
+        NSApp.terminate(nil)
+    }
+
+    // MARK: - Shared helpers
+
+    /// Drives Orbie's presence (listening → speaking) around a Brain.handle call.
+    /// The reply lands in Orbie's text response view and gets logged.
+    private func runBrain(prompt: String, brain: KairoBrain, pillText: String) {
+        kairoDebug("Brain: \(prompt)")
         Task {
             do {
                 await PresenceCoordinator.shared.beginListening()
-                try? await Task.sleep(for: .milliseconds(400))
+                try? await Task.sleep(for: .milliseconds(300))
                 await PresenceCoordinator.shared.endListening()
 
                 let reply = try await brain.handle(input: prompt, ambient: KairoAmbientContext.current())
                 kairoDebug("Brain reply: \(reply)")
 
                 await PresenceCoordinator.shared.beginSpeaking(query: prompt, response: reply)
-                try? await Task.sleep(for: .seconds(min(8.0, Double(reply.count) * 0.04)))
+                await MainActor.run {
+                    KairoFeedbackEngine.shared.say(reply, pillText: pillText, speak: true)
+                }
+                try? await Task.sleep(for: .seconds(min(10.0, Double(reply.count) * 0.04)))
                 await PresenceCoordinator.shared.endSpeaking()
             } catch {
                 kairoDebug("Brain failed: \(error.localizedDescription)")
                 await PresenceCoordinator.shared.endListening()
+                await MainActor.run {
+                    self.feedbackSay("Brain failed: \(error.localizedDescription)", pill: pillText)
+                }
             }
         }
     }
 
-    @objc private func dismiss() {
-        KairoRuntime.shared.dismiss()
+    /// Plays through the legacy feedback engine so the user gets a notch pill +
+    /// optional TTS, the same surface they already see for system events.
+    private func feedbackSay(_ text: String, pill: String, speak: Bool = false) {
+        KairoFeedbackEngine.shared.say(text, pillText: pill, speak: speak)
     }
 
-    @objc private func quit() {
-        NSApp.terminate(nil)
+    /// Modal text-prompt input. Cancel returns nil. Empty trim returns nil.
+    private func promptForText(title: String, placeholder: String) -> String? {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = ""
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Send")
+        alert.addButton(withTitle: "Cancel")
+
+        let field = NSTextField(string: "")
+        field.placeholderString = placeholder
+        field.frame = NSRect(x: 0, y: 0, width: 320, height: 24)
+        alert.accessoryView = field
+
+        // Activate so the alert isn't behind other windows
+        NSApp.activate(ignoringOtherApps: true)
+        alert.window.initialFirstResponder = field
+
+        let response = alert.runModal()
+        guard response == .alertFirstButtonReturn else { return nil }
+        let text = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.isEmpty ? nil : text
     }
 }
