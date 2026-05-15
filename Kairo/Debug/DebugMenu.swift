@@ -4,9 +4,11 @@ import AppKit
 final class DebugMenu: NSObject {
     private var statusItem: NSStatusItem?
     let executor: TieredExecutor
+    let brain: KairoBrain?
 
-    init(executor: TieredExecutor) {
+    init(executor: TieredExecutor, brain: KairoBrain? = nil) {
         self.executor = executor
+        self.brain = brain
         super.init()
     }
 
@@ -24,6 +26,9 @@ final class DebugMenu: NSObject {
         menu.addItem(itemFor("Test Thinking",     selector: #selector(testThinking)))
         menu.addItem(itemFor("Test Speaking",     selector: #selector(testSpeaking)))
         menu.addItem(itemFor("Test Full Cycle",   selector: #selector(testFullCycle)))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(itemFor("Test Brain — Greet",      selector: #selector(testBrainGreet)))
+        menu.addItem(itemFor("Test Brain — Weather Q",  selector: #selector(testBrainWeatherQ)))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(itemFor("Dismiss Orbie",     selector: #selector(dismiss)))
         menu.addItem(NSMenuItem.separator())
@@ -122,6 +127,41 @@ final class DebugMenu: NSObject {
             kairoDebug("testFullCycle: calling endSpeaking")
             await PresenceCoordinator.shared.endSpeaking()
             kairoDebug("testFullCycle: complete")
+        }
+    }
+
+    // MARK: - Brain tests
+
+    @objc private func testBrainGreet() {
+        runBrain(prompt: "Say hi in one sentence. Reference one thing you know about me.")
+    }
+
+    @objc private func testBrainWeatherQ() {
+        runBrain(prompt: "What's the weather like? Use the weather tool if needed.")
+    }
+
+    private func runBrain(prompt: String) {
+        guard let brain else {
+            kairoDebug("Brain not wired — skipping prompt: \(prompt)")
+            return
+        }
+        kairoDebug("Brain test: \(prompt)")
+        Task {
+            do {
+                await PresenceCoordinator.shared.beginListening()
+                try? await Task.sleep(for: .milliseconds(400))
+                await PresenceCoordinator.shared.endListening()
+
+                let reply = try await brain.handle(input: prompt, ambient: KairoAmbientContext.current())
+                kairoDebug("Brain reply: \(reply)")
+
+                await PresenceCoordinator.shared.beginSpeaking(query: prompt, response: reply)
+                try? await Task.sleep(for: .seconds(min(8.0, Double(reply.count) * 0.04)))
+                await PresenceCoordinator.shared.endSpeaking()
+            } catch {
+                kairoDebug("Brain failed: \(error.localizedDescription)")
+                await PresenceCoordinator.shared.endListening()
+            }
         }
     }
 

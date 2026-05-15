@@ -67,6 +67,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var noteWindow: NoteWindow?
     var debugMenu: DebugMenu?
     var tieredExecutor: TieredExecutor?
+
+    // Brain pipeline — instantiated in applicationDidFinishLaunching.
+    // The pipeline can run end-to-end through DebugMenu's "Test Brain"
+    // entry. Voice trigger wiring still pending (WakeWord is a stub).
+    var brain: KairoBrain?
+    var shortTermMemory: KairoShortTermMemory?
+    var longTermMemory: KairoLongTermMemory?
     private var orbieCancellables = Set<AnyCancellable>()
     var timer: Timer?
     var closeNotchTask: Task<Void, Never>?
@@ -605,7 +612,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             executor.register(SearchTool())
             self.tieredExecutor = executor
 
-            let debug = DebugMenu(executor: executor)
+            // 2c. Brain pipeline — Ollama + context + memory.
+            //     Runs end-to-end through DebugMenu's "Test Brain" item.
+            let shortTerm = KairoShortTermMemory()
+            let longTerm  = KairoLongTermMemory()
+            let ollama    = OllamaClient()
+            let contextBuilder = ContextBuilder()
+            let brain = KairoBrain(
+                ollama: ollama,
+                contextBuilder: contextBuilder,
+                executor: executor,
+                shortTerm: shortTerm,
+                longTerm: longTerm
+            )
+            self.shortTermMemory = shortTerm
+            self.longTermMemory  = longTerm
+            self.brain = brain
+            print("[Kairo] Brain pipeline online — \(longTerm.all().count) facts in long-term memory")
+
+            let debug = DebugMenu(executor: executor, brain: brain)
             debug.install()
             self.debugMenu = debug
 
