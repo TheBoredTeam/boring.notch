@@ -78,6 +78,15 @@ jobs:
       head_ref: ${{ steps.pr_info.outputs.head_ref }}
       base_ref: ${{ steps.pr_info.outputs.base_ref }}
     steps:
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
       - name: Validate permissions and PR state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -120,6 +129,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ steps.pr_info.outputs.base_ref }}
+          token: ${{ steps.release_app_token.outputs.token }}
 
       - name: Extract version from comment
         id: extract_version
@@ -191,15 +201,12 @@ jobs:
       - name: Sync branch (stable releases only)
         if: steps.extract_version.outputs.is_beta == 'false'
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
           HEAD_REF: ${{ steps.pr_info.outputs.head_ref }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global credential.https://github.com.helper \
-            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
           git fetch origin "$BASE_REF" "$HEAD_REF"
           git checkout -B "$HEAD_REF" "origin/$HEAD_REF"
           git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
@@ -210,7 +217,7 @@ jobs:
     needs: preparation
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     concurrency:
       group: release-build-number
       cancel-in-progress: false
@@ -218,10 +225,20 @@ jobs:
       build_number: ${{ steps.reserve.outputs.build_number }}
       source_sha: ${{ steps.reserve.outputs.source_sha }}
     steps:
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ needs.preparation.outputs.head_ref }}
           fetch-depth: 0
+          token: ${{ steps.release_app_token.outputs.token }}
 
       - name: Reserve next build number
         id: reserve
@@ -280,7 +297,7 @@ jobs:
     needs: [preparation, reserve_build_number, build]
     runs-on: macos-latest
     permissions:
-      contents: write
+      contents: read
     env:
       HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
       VERSION: ${{ needs.preparation.outputs.version }}
@@ -288,9 +305,19 @@ jobs:
       SOURCE_SHA: ${{ needs.reserve_build_number.outputs.source_sha }}
       IS_BETA: ${{ needs.preparation.outputs.is_beta }}
     steps:
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ needs.reserve_build_number.outputs.source_sha }}
+          token: ${{ steps.release_app_token.outputs.token }}
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -411,7 +438,7 @@ jobs:
 
       - name: Create GitHub release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           TITLE: ${{ needs.preparation.outputs.title }}
           NOTES: ${{ needs.preparation.outputs.release_notes_github }}
         run: |
@@ -524,10 +551,19 @@ jobs:
           name: homebrew-cask-${{ env.VERSION }}
           path: boring-notch*.rb
 
+      - name: Create Homebrew tap app token
+        id: tap_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: homebrew-boring-notch
+          permission-contents: write
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: TheBoredTeam/homebrew-boring-notch
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          token: ${{ steps.tap_app_token.outputs.token }}
           path: homebrew-tap
 
       - name: Update casks in tap
@@ -576,16 +612,26 @@ jobs:
           gh api "repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
             -f content="$REACTION" --silent
 
+      - name: Create release app token
+        id: release_app_token
+        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
         with:
           ref: ${{ needs.preparation.outputs.head_ref }}
           fetch-depth: 0
+          token: ${{ steps.release_app_token.outputs.token }}
 
       - name: Merge PR (stable releases only)
         if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
           BASE_REF: ${{ needs.preparation.outputs.base_ref }}
           VERSION: ${{ needs.preparation.outputs.version }}
@@ -593,8 +639,6 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global credential.https://github.com.helper \
-            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
           git fetch origin "$BASE_REF"
           git checkout "$BASE_REF"
           git merge --no-ff "origin/$HEAD_REF" -m "Release version v${VERSION}"
