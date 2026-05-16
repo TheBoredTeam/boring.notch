@@ -22,7 +22,7 @@ struct DynamicNotchApp: App {
     let updaterController: SPUStandardUpdaterController
 
     init() {
-        UpdateChannel.seedDefaultFromBundleIfNeeded()
+        UpdateChannel.applyBundledDefaultIfNeeded()
 
         let updaterDelegate = UpdateChannelUpdaterDelegate()
         self.updaterDelegate = updaterDelegate

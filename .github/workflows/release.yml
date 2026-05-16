@@ -394,8 +394,10 @@ jobs:
             echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
           }
           CHANNEL_ARGS=()
+          APPCAST_OUTPUT="updater/appcast.xml"
           if [[ "${IS_BETA}" == "true" ]]; then
             CHANNEL_ARGS=(--channel "${{ env.BETA_CHANNEL_NAME }}")
+            APPCAST_OUTPUT="$RUNNER_TEMP/appcast-${{ env.BETA_CHANNEL_NAME }}.xml"
           fi
           printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
             --ed-key-file - \
@@ -403,7 +405,7 @@ jobs:
             --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/" \
             --embed-release-notes \
             "${CHANNEL_ARGS[@]}" \
-            -o updater/appcast.xml \
+            -o "$APPCAST_OUTPUT" \
             Release/
 
       - name: Commit appcast
@@ -421,7 +423,7 @@ jobs:
               git push origin "HEAD:${HEAD_REF}"
             fi
           else
-            cp updater/appcast.xml "$RUNNER_TEMP/appcast.xml"
+            cp .github/scripts/merge_appcast_channel.py "$RUNNER_TEMP/merge_appcast_channel.py"
             git add "$PBXPROJ"
             if git diff --cached --quiet; then
               echo "No version changes to commit."
@@ -433,7 +435,10 @@ jobs:
             # Save generated appcast, switch to main, apply and push
             git fetch origin main
             git checkout -B main origin/main
-            cp "$RUNNER_TEMP/appcast.xml" updater/appcast.xml
+            python3 "$RUNNER_TEMP/merge_appcast_channel.py" \
+              updater/appcast.xml \
+              "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
+              "$BETA_CHANNEL_NAME"
             git add updater/appcast.xml
             if git diff --cached --quiet; then
               echo "No beta appcast changes to commit."

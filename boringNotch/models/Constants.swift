@@ -85,14 +85,21 @@ enum UpdateChannel: String, CaseIterable, Identifiable, Defaults.Serializable {
     }
 
     static var visibleCases: [UpdateChannel] {
+        // Dev nightlies are intentionally gated away from public stable/beta builds.
         if bundled == .dev || Defaults[.updateChannel] == .dev {
             return allCases
         }
         return [.stable, .beta]
     }
 
-    static func seedDefaultFromBundleIfNeeded() {
-        guard UserDefaults.standard.object(forKey: "updateChannel") == nil else {
+    static func applyBundledDefaultIfNeeded() {
+        guard !Defaults[.updateChannelUserSelected] else {
+            return
+        }
+        if let storedValue = UserDefaults.standard.object(forKey: "updateChannel") as? String,
+           let storedChannel = UpdateChannel(rawValue: storedValue),
+           storedChannel != .stable {
+            Defaults[.updateChannelUserSelected] = true
             return
         }
         Defaults[.updateChannel] = bundled
@@ -139,6 +146,7 @@ extension Defaults.Keys {
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     static let updateChannel = Key<UpdateChannel>("updateChannel", default: .stable)
+    static let updateChannelUserSelected = Key<Bool>("updateChannelUserSelected", default: false)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)

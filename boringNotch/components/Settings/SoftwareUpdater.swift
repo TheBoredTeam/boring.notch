@@ -49,6 +49,7 @@ struct UpdaterSettingsView: View {
     private let updater: SPUUpdater
     
     @Default(.updateChannel) private var updateChannel
+    @Default(.updateChannelUserSelected) private var updateChannelUserSelected
     @State private var automaticallyChecksForUpdates: Bool
     @State private var automaticallyDownloadsUpdates: Bool
     
@@ -77,6 +78,10 @@ struct UpdaterSettingsView: View {
                 ForEach(UpdateChannel.visibleCases) { channel in
                     Text(channel.title).tag(channel)
                 }
+            }
+            .onChange(of: updateChannel) { _, _ in
+                updateChannelUserSelected = true
+                updater.resetUpdateCycle()
             }
 
             Toggle("Automatically check for updates", isOn: $automaticallyChecksForUpdates)
