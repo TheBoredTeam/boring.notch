@@ -22,7 +22,7 @@ struct DynamicNotchApp: App {
     let updaterController: SPUStandardUpdaterController
 
     init() {
-        UpdateChannel.seedDefaultFromBundleIfNeeded()
+        UpdateChannel.applyBundledDefaultIfNeeded()
 
         let sparkleUpdaterDelegate = BoringSparkleUpdaterDelegate()
         self.sparkleUpdaterDelegate = sparkleUpdaterDelegate

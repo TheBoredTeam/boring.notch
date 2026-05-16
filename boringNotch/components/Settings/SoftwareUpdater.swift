@@ -39,6 +39,7 @@ struct UpdaterSettingsView: View {
     private let updater: SPUUpdater
     
     @Default(.updateChannel) private var updateChannel
+    @Default(.updateChannelUserSelected) private var updateChannelUserSelected
     @State private var automaticallyChecksForUpdates: Bool
     @State private var automaticallyDownloadsUpdates: Bool
     
@@ -69,6 +70,7 @@ struct UpdaterSettingsView: View {
                 }
             }
             .onChange(of: updateChannel) { _, _ in
+                updateChannelUserSelected = true
                 updater.resetUpdateCycle()
             }
 
