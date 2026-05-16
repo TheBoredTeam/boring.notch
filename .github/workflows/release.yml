@@ -278,6 +278,7 @@ jobs:
       HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
       VERSION: ${{ needs.preparation.outputs.version }}
       BUILD_NUMBER: ${{ needs.reserve_build_number.outputs.build_number }}
+      SOURCE_SHA: ${{ needs.reserve_build_number.outputs.source_sha }}
       IS_BETA: ${{ needs.preparation.outputs.is_beta }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -456,7 +457,7 @@ jobs:
         run: |
           RELEASE_FLAGS=()
           if [[ "${IS_BETA}" == "true" ]]; then
-            RELEASE_FLAGS=(--prerelease)
+            RELEASE_FLAGS=(--prerelease --target "$SOURCE_SHA")
           fi
           gh release create "v${VERSION}" Release/boringNotch.dmg \
             --title "v${VERSION} - ${TITLE}" \
