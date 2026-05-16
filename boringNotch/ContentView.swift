@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var focusManager = FocusEnforcerManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -321,6 +322,10 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
+                      } else if Defaults[.focusEnforcerEnabled] && focusManager.session != nil && vm.notchState == .closed && !vm.hideOnClosed {
+                          FocusInlineView()
+                              .frame(height: displayClosedNotchHeight, alignment: .center)
+                              .transition(.opacity)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
@@ -402,6 +407,8 @@ struct ContentView: View {
                         )
                     case .shelf:
                         ShelfView()
+                    case .focusEnforcer:
+                        FocusEnforcerView()
                     }
                 }
                 .transition(

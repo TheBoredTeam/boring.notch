@@ -61,6 +61,9 @@ class BoringNotchSkyLightWindow: NSPanel {
         level = .mainMenu + 3
         hasShadow = false
         isReleasedWhenClosed = false
+        // Allow the panel to become key only when a control inside it
+        // (e.g. the Focus TextField) needs keyboard input.
+        becomesKeyOnlyIfNeeded = true
         
         // Force dark appearance regardless of system setting
         appearance = NSAppearance(named: .darkAqua)
@@ -146,6 +149,9 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
     
-    override var canBecomeKey: Bool { false }
+    // With `becomesKeyOnlyIfNeeded = true`, the window only becomes key when
+    // the user clicks a control that needs keyboard input (text field, etc.).
+    // Hover/idle interactions still won't steal focus from the active app.
+    override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 }

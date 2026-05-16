@@ -403,6 +403,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .startFocusSession) { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                guard Defaults[.focusEnforcerEnabled] else { return }
+
+                var targetVM = self.vm
+                if Defaults[.showOnAllDisplays] {
+                    let mouseLocation = NSEvent.mouseLocation
+                    for screen in NSScreen.screens {
+                        if screen.frame.contains(mouseLocation),
+                           let uuid = screen.displayUUID,
+                           let screenVM = self.viewModels[uuid] {
+                            targetVM = screenVM
+                            break
+                        }
+                    }
+                }
+
+                self.coordinator.currentView = .focusEnforcer
+                _ = targetVM.open()
+            }
+        }
+
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
             Task { [weak self] in
                 guard let self = self else { return }

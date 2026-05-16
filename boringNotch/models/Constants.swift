@@ -313,6 +313,10 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     
+    // MARK: Focus
+    static let focusEnforcerEnabled = Key<Bool>("focusEnforcerEnabled", default: true)
+    static let focusDefaultDuration = Key<Int>("focusDefaultDuration", default: 25)
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
