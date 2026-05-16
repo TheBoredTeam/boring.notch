@@ -10,8 +10,8 @@ on:
         description: 'Marketing version (optional)'
         required: false
       build_number:
-        description: 'Build number (optional)'
-        required: false
+        description: 'Reserved build number'
+        required: true
       xcode_version:
         description: 'Xcode version (optional)'
         required: false
@@ -64,7 +64,7 @@ jobs:
     with:
       head_ref: ${{ github.event.inputs.head_ref || github.ref_name || 'main' }}
       version: ${{ github.event.inputs.version || '' }}
-      build_number: ${{ github.event.inputs.build_number || '' }}
+      build_number: ${{ github.event.inputs.build_number }}
       xcode_version: ${{ github.event.inputs.xcode_version || '16.4' }}
       code_sign_identity: "Apple Development"
       update_channel: ${{ github.event.inputs.update_channel || 'stable' }}

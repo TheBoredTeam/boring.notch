@@ -262,7 +262,7 @@ jobs:
               --title "$TITLE" \
               --notes "$NOTES" \
               --prerelease \
-              --target "$COMMIT_SHA"
+              --target "$SOURCE_SHA"
           fi
 
       - name: Upload immutable nightly DMG

@@ -9,7 +9,7 @@ on:
         required: false
         type: string
       build_number:
-        required: false
+        required: true
         type: string
       xcode_version:
         required: false
@@ -87,32 +87,18 @@ jobs:
           PBXPROJ="${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
           VERSION="${{ env.VERSION_INPUT }}"
           BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
-          UPDATE_CHANNEL="${{ env.UPDATE_CHANNEL }}"
-          if [[ -n "$VERSION" && ! "$VERSION" =~ ^[0-9]+[.][0-9]+([.][0-9]+)?(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::Invalid marketing version: ${VERSION}"
-            exit 1
-          fi
           if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
-            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
-          else
-            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
-          fi
-          if [[ ! "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "::error::Invalid build number: ${BUILD_NUMBER}"
+            echo "::error::A reserved build number must be provided by the caller"
             exit 1
           fi
-          case "$UPDATE_CHANNEL" in
-            stable|beta|dev) ;;
-            *)
-              echo "::error::Invalid update channel: ${UPDATE_CHANNEL}"
-              exit 1
-              ;;
-          esac
-          if [[ -n "$VERSION" ]]; then
-            sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${VERSION}/g" "$PBXPROJ"
-          fi
-          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${BUILD_NUMBER}/g" "$PBXPROJ"
-          /usr/libexec/PlistBuddy -c "Set :BNUpdateChannel ${UPDATE_CHANNEL}" "${PROJECT_NAME}/Info.plist"
+          BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+          UPDATE_CHANNEL="${{ env.UPDATE_CHANNEL }}"
+          python3 .github/scripts/stamp_version.py \
+            --pbxproj "$PBXPROJ" \
+            --version "$VERSION" \
+            --build-number "$BUILD_NUMBER" \
+            --info-plist "${PROJECT_NAME}/Info.plist" \
+            --update-channel "$UPDATE_CHANNEL"
 
       - name: Build and archive
         run: |
@@ -146,12 +132,6 @@ jobs:
             -archivePath "${{ env.PROJECT_NAME }}.xcarchive" \
             -exportPath Release \
             -exportOptionsPlist "$RUNNER_TEMP/export_options.plist"
-
-      - name: Verify generate_appcast exists
-        run: |
-          if [ ! -x Configuration/sparkle/generate_appcast ]; then
-            echo "::warning title=Missing generate_appcast::Configuration/sparkle/generate_appcast is not present or not executable; skipping appcast generation verification."
-          fi
 
       - name: Create DMG
         run: |

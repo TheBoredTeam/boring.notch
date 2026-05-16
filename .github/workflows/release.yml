@@ -205,7 +205,7 @@ jobs:
           git push origin "$HEAD_REF"
 
   reserve_build_number:
-    name: Reserve build number
+    name: Prepare release source
     needs: preparation
     runs-on: ubuntu-latest
     permissions:
@@ -226,9 +226,11 @@ jobs:
         id: reserve
         env:
           HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
+          VERSION: ${{ needs.preparation.outputs.version }}
         run: |
           set -euo pipefail
           COUNTER_FILE=".github/build-number"
+          PBXPROJ="${PROJECT_NAME}.xcodeproj/project.pbxproj"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --ff-only origin "$HEAD_REF"
@@ -241,8 +243,12 @@ jobs:
 
           NEXT_BUILD_NUMBER=$((BUILD_NUMBER + 1))
           printf '%s\n' "$NEXT_BUILD_NUMBER" > "$COUNTER_FILE"
-          git add "$COUNTER_FILE"
-          git commit -m "Reserve build number ${BUILD_NUMBER}"
+          python3 .github/scripts/stamp_version.py \
+            --pbxproj "$PBXPROJ" \
+            --version "$VERSION" \
+            --build-number "$BUILD_NUMBER"
+          git add "$COUNTER_FILE" "$PBXPROJ"
+          git commit -m "Prepare v${VERSION} build ${BUILD_NUMBER}"
           git push origin "HEAD:${HEAD_REF}"
 
           {
@@ -284,13 +290,6 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ needs.reserve_build_number.outputs.source_sha }}
-
-      - name: Set version and build number
-        run: |
-          set -euo pipefail
-          PBXPROJ="${PROJECT_NAME}.xcodeproj/project.pbxproj"
-          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${VERSION}/g" "$PBXPROJ"
-          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${BUILD_NUMBER}/g" "$PBXPROJ"
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -409,29 +408,37 @@ jobs:
             -o "$APPCAST_OUTPUT" \
             Release/
 
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: ${{ needs.preparation.outputs.title }}
+          NOTES: ${{ needs.preparation.outputs.release_notes_github }}
+        run: |
+          RELEASE_FLAGS=()
+          if [[ "${IS_BETA}" == "true" ]]; then
+            RELEASE_FLAGS=(--prerelease)
+          fi
+          gh release create "v${VERSION}" Release/boringNotch.dmg \
+            --target "$SOURCE_SHA" \
+            --title "v${VERSION} - ${TITLE}" \
+            --notes "$NOTES" \
+            "${RELEASE_FLAGS[@]}"
+
       - name: Commit appcast
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          PBXPROJ="${PROJECT_NAME}.xcodeproj/project.pbxproj"
           if [[ "${IS_BETA}" == "false" ]]; then
-            git add "$PBXPROJ" updater/appcast.xml
+            git add updater/appcast.xml
             if git diff --cached --quiet; then
-              echo "No version or appcast changes to commit."
+              echo "No appcast changes to commit."
             else
-              git commit -m "Update version to v${VERSION} and appcast"
+              git commit -m "Update appcast for v${VERSION}"
               git push origin "HEAD:${HEAD_REF}"
             fi
           else
             cp .github/scripts/merge_appcast_channel.py "$RUNNER_TEMP/merge_appcast_channel.py"
-            git add "$PBXPROJ"
-            if git diff --cached --quiet; then
-              echo "No version changes to commit."
-            else
-              git commit -m "Set version to v${VERSION} (build ${BUILD_NUMBER})"
-              git push origin "HEAD:${HEAD_REF}"
-            fi
 
             # Save generated appcast, switch to main, apply and push
             git fetch origin main
@@ -448,21 +455,6 @@ jobs:
               git push origin main
             fi
           fi
-
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TITLE: ${{ needs.preparation.outputs.title }}
-          NOTES: ${{ needs.preparation.outputs.release_notes_github }}
-        run: |
-          RELEASE_FLAGS=()
-          if [[ "${IS_BETA}" == "true" ]]; then
-            RELEASE_FLAGS=(--prerelease --target "$SOURCE_SHA")
-          fi
-          gh release create "v${VERSION}" Release/boringNotch.dmg \
-            --title "v${VERSION} - ${TITLE}" \
-            --notes "$NOTES" \
-            "${RELEASE_FLAGS[@]}"
 
   upgrade-brew:
     name: Update Homebrew cask
