@@ -16,7 +16,7 @@ env:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 jobs:
   # helper job to test for the release command in the comment; env is safe to use here
@@ -64,8 +64,9 @@ jobs:
     if: ${{ needs.check_release.outputs.is_release == 'true' && needs.check_release.outputs.is_eligible_pr == 'true' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      issues: write
+      pull-requests: read
     outputs:
       is_beta: ${{ steps.extract_version.outputs.is_beta }}
       version: ${{ steps.extract_version.outputs.version }}
@@ -80,11 +81,11 @@ jobs:
       - name: Validate permissions and PR state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENTER: ${{ github.event.comment.user.login }}
+          PR_NUMBER: ${{ github.event.issue.number }}
         run: |
           set -euo pipefail
           REPO="${{ github.repository }}"
-          COMMENTER="${{ github.event.comment.user.login }}"
-          PR_NUMBER="${{ github.event.issue.number }}"
 
           # Acknowledge the command
           gh api "repos/${REPO}/issues/comments/${{ github.event.comment.id }}/reactions" \
@@ -119,6 +120,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ steps.pr_info.outputs.base_ref }}
+          persist-credentials: false
 
       - name: Extract version from comment
         id: extract_version
@@ -221,10 +223,12 @@ jobs:
         with:
           ref: ${{ needs.preparation.outputs.head_ref }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Reserve next build number
         id: reserve
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
           VERSION: ${{ needs.preparation.outputs.version }}
         run: |
@@ -233,6 +237,8 @@ jobs:
           PBXPROJ="${PROJECT_NAME}.xcodeproj/project.pbxproj"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global credential.https://github.com.helper \
+            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
           git pull --ff-only origin "$HEAD_REF"
 
           BUILD_NUMBER="$(tr -d '[:space:]' < "$COUNTER_FILE")"
@@ -290,6 +296,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ needs.reserve_build_number.outputs.source_sha }}
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -425,10 +432,14 @@ jobs:
             "${RELEASE_FLAGS[@]}"
 
       - name: Commit appcast
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global credential.https://github.com.helper \
+            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
           if [[ "${IS_BETA}" == "false" ]]; then
             git add updater/appcast.xml
             if git diff --cached --quiet; then
@@ -528,8 +539,11 @@ jobs:
           repository: TheBoredTeam/homebrew-boring-notch
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: homebrew-tap
+          persist-credentials: false
 
       - name: Update casks in tap
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           set -euo pipefail
           cp boring-notch@rc.rb homebrew-tap/Casks/boring-notch@rc.rb
@@ -541,6 +555,8 @@ jobs:
           cd homebrew-tap
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global credential.https://github.com.helper \
+            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${HOMEBREW_TAP_TOKEN}\"; }; f"
           git add Casks/
           if git diff --cached --quiet; then
             echo "No changes to commit"
@@ -555,7 +571,8 @@ jobs:
     needs: [check_release, preparation, reserve_build_number, build, publish, upgrade-brew]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      issues: write
     env:
       ALL_RESULTS: ${{ join(needs.*.result, ',') }}
       RELEASE_SUCCEEDED: ${{ !contains(join(needs.*.result, ','), 'failure') && !contains(join(needs.*.result, ','), 'cancelled') }}
@@ -579,6 +596,7 @@ jobs:
         with:
           ref: ${{ needs.preparation.outputs.head_ref }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Merge PR (stable releases only)
         if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
