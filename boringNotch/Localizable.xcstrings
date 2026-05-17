@@ -14150,6 +14150,116 @@
           }
         }
       }
+    },
+    "music_control_empty_slot" : {
+      "comment" : "Music control button label: Empty slot placeholder",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empty slot"
+          }
+        }
+      }
+    },
+    "music_control_favorite" : {
+      "comment" : "Music control button label: Favorite (heart) current track",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorite"
+          }
+        }
+      }
+    },
+    "music_control_go_backward_15" : {
+      "comment" : "Music control button label: Seek backward 15 seconds",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backward 15s"
+          }
+        }
+      }
+    },
+    "music_control_go_forward_15" : {
+      "comment" : "Music control button label: Seek forward 15 seconds",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forward 15s"
+          }
+        }
+      }
+    },
+    "music_control_next" : {
+      "comment" : "Music control button label: Next track",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        }
+      }
+    },
+    "music_control_play_pause" : {
+      "comment" : "Music control button label: Play/Pause",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play/Pause"
+          }
+        }
+      }
+    },
+    "music_control_previous" : {
+      "comment" : "Music control button label: Previous track",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous"
+          }
+        }
+      }
+    },
+    "music_control_repeat" : {
+      "comment" : "Music control button label: Repeat mode",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat"
+          }
+        }
+      }
+    },
+    "music_control_shuffle" : {
+      "comment" : "Music control button label: Shuffle",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shuffle"
+          }
+        }
+      }
+    },
+    "music_control_volume" : {
+      "comment" : "Music control button label: Volume",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volume"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
