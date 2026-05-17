@@ -187,5 +187,3 @@ For a full list of licenses and attributions, please see the [Third-Party Licens
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
-

@@ -1,0 +1,288 @@
+name: Nightly Branch Builds
+
+on:
+  # Scheduled runs only start once this workflow exists on the default branch.
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-dev
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_NAME: boringNotch
+  NIGHTLY_BRANCH: dev
+
+jobs:
+  prepare:
+    name: Prepare nightly metadata
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: release-build-number
+      cancel-in-progress: false
+    outputs:
+      branch_name: ${{ steps.meta.outputs.branch_name }}
+      commit_sha: ${{ steps.meta.outputs.commit_sha }}
+      source_sha: ${{ steps.meta.outputs.source_sha }}
+      short_sha: ${{ steps.meta.outputs.short_sha }}
+      tag: ${{ steps.meta.outputs.tag }}
+      appcast_file: ${{ steps.meta.outputs.appcast_file }}
+      build_number: ${{ steps.meta.outputs.build_number }}
+      asset_name: ${{ steps.meta.outputs.asset_name }}
+      commit_message: ${{ steps.meta.outputs.commit_message }}
+    steps:
+      - name: Require admin for manual nightly runs
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          PERM=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          if [[ "$PERM" != "admin" ]]; then
+            echo "::error::${ACTOR} is not an admin (permission: ${PERM})"
+            exit 1
+          fi
+
+      - name: Checkout nightly branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ env.NIGHTLY_BRANCH }}
+          fetch-depth: 0
+
+      - name: Compute metadata and reserve build number
+        id: meta
+        run: |
+          set -euo pipefail
+          BRANCH_NAME="${NIGHTLY_BRANCH}"
+          COMMIT_SHA="$(git rev-parse HEAD)"
+          SHORT_SHA="${COMMIT_SHA::7}"
+          COMMIT_MESSAGE="$(git log -1 --pretty=%s)"
+          COUNTER_FILE=".github/build-number"
+
+          BUILD_NUMBER="$(tr -d '[:space:]' < "$COUNTER_FILE")"
+          if [[ ! "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid build number in ${COUNTER_FILE}: ${BUILD_NUMBER}"
+            exit 1
+          fi
+
+          NEXT_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          printf '%s\n' "$NEXT_BUILD_NUMBER" > "$COUNTER_FILE"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$COUNTER_FILE"
+          git commit -m "Reserve build number ${BUILD_NUMBER}"
+          git push origin "HEAD:${BRANCH_NAME}"
+
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          APPCAST_FILE="appcast-${BRANCH_NAME}.xml"
+          TAG="nightly-${BRANCH_NAME}-${SHORT_SHA}-${BUILD_NUMBER}"
+          ASSET_NAME="boringNotch-${BRANCH_NAME}-${SHORT_SHA}-${BUILD_NUMBER}.dmg"
+          {
+            echo "branch_name=$BRANCH_NAME"
+            echo "commit_sha=$COMMIT_SHA"
+            echo "source_sha=$SOURCE_SHA"
+            echo "short_sha=$SHORT_SHA"
+            echo "commit_message=$COMMIT_MESSAGE"
+            echo "tag=$TAG"
+            echo "appcast_file=$APPCAST_FILE"
+            echo "build_number=$BUILD_NUMBER"
+            echo "asset_name=$ASSET_NAME"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build nightly DMG
+    needs: prepare
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build_reusable.yml
+    with:
+      head_ref: ${{ needs.prepare.outputs.source_sha }}
+      version: ""
+      build_number: ${{ needs.prepare.outputs.build_number }}
+      xcode_version: "16.4"
+      code_sign_identity: "Apple Development"
+      update_channel: dev
+    secrets:
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+
+  publish:
+    name: Publish nightly channel
+    needs: [prepare, build]
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BRANCH_NAME: ${{ needs.prepare.outputs.branch_name }}
+      COMMIT_SHA: ${{ needs.prepare.outputs.commit_sha }}
+      SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+      SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      APPCAST_FILE: ${{ needs.prepare.outputs.appcast_file }}
+      ASSET_NAME: ${{ needs.prepare.outputs.asset_name }}
+      COMMIT_MESSAGE: ${{ needs.prepare.outputs.commit_message }}
+    steps:
+      - name: Checkout reserved nightly source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+
+      - name: Download DMG artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ env.PROJECT_NAME }}.dmg
+          path: Release
+
+      - name: Rename DMG to immutable name
+        run: |
+          set -euo pipefail
+          mv "Release/${PROJECT_NAME}.dmg" "Release/${ASSET_NAME}"
+
+      - name: Create embedded release notes
+        run: |
+          ESCAPED_COMMIT_MESSAGE="$(printf '%s' "$COMMIT_MESSAGE" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')"
+          cat > Release/boringNotch.html <<HTML
+          <h2>Nightly ${BRANCH_NAME}</h2>
+          <p>Commit: <code>${COMMIT_SHA}</code></p>
+          <p>Message: ${ESCAPED_COMMIT_MESSAGE}</p>
+          <p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/${COMMIT_SHA}">View commit</a></p>
+          HTML
+
+      - name: Build Sparkle generate_appcast from source
+        run: |
+          set -euo pipefail
+          SPARKLE_METADATA_PATH="boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          SPARKLE_SRC="$RUNNER_TEMP/Sparkle"
+          SPARKLE_DERIVED="$RUNNER_TEMP/sparkle-derived"
+          SPARKLE_REPO_URL="https://github.com/sparkle-project/Sparkle"
+
+          IFS=$'\t' read -r SPARKLE_VERSION SPARKLE_REVISION <<< "$(python3 - "$SPARKLE_METADATA_PATH" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          data = json.loads(path.read_text())
+          pins = data.get("pins", [])
+
+          sparkle = next((pin for pin in pins if pin.get("identity") == "sparkle"), None)
+          if sparkle is None:
+              print(f"::error::No 'sparkle' pin found in {path}", file=sys.stderr)
+              sys.exit(1)
+
+          state = sparkle.get("state", {})
+          version = state.get("version")
+          revision = state.get("revision")
+
+          if not version:
+              print(f"::error::Sparkle pin in {path} is not version-pinned", file=sys.stderr)
+              sys.exit(1)
+
+          if not revision:
+              print(f"::error::Sparkle pin in {path} has no revision", file=sys.stderr)
+              sys.exit(1)
+
+          print(f"{version}\t{revision}")
+          PY
+          )"
+
+          SPARKLE_TAG=""
+          for candidate in "$SPARKLE_VERSION" "v$SPARKLE_VERSION"; do
+            if git ls-remote --exit-code --tags "$SPARKLE_REPO_URL" "refs/tags/$candidate" >/dev/null; then
+              SPARKLE_TAG="$candidate"
+              break
+            else
+              ls_remote_exit=$?
+              if [[ "$ls_remote_exit" -ne 2 ]]; then
+                echo "::error::Failed to query Sparkle tags from $SPARKLE_REPO_URL while checking $candidate"
+                exit 1
+              fi
+            fi
+          done
+
+          [[ -n "$SPARKLE_TAG" ]] || { echo "::error::Could not find Sparkle tag $SPARKLE_VERSION or v$SPARKLE_VERSION"; exit 1; }
+
+          git clone --depth 1 --branch "$SPARKLE_TAG" --single-branch "$SPARKLE_REPO_URL" "$SPARKLE_SRC"
+
+          ACTUAL_REVISION="$(git -C "$SPARKLE_SRC" rev-parse HEAD)"
+          if [[ "$ACTUAL_REVISION" != "$SPARKLE_REVISION" ]]; then
+            echo "::error::Sparkle tag ${SPARKLE_TAG} resolves to ${ACTUAL_REVISION}, expected ${SPARKLE_REVISION}"
+            exit 1
+          fi
+
+          xcodebuild -project "$SPARKLE_SRC/Sparkle.xcodeproj" \
+            -scheme generate_appcast \
+            -configuration Release \
+            -derivedDataPath "$SPARKLE_DERIVED" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+          APPCAST_BIN="$SPARKLE_DERIVED/Build/Products/Release/generate_appcast"
+          [[ -x "$APPCAST_BIN" ]] || { echo "::error::generate_appcast was not built"; exit 1; }
+
+          install -m 0755 "$APPCAST_BIN" "$RUNNER_TEMP/generate_appcast"
+
+      - name: Generate signed nightly appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+        run: |
+          set -euo pipefail
+          test -x "$RUNNER_TEMP/generate_appcast" || {
+            echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
+          }
+          DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/${TAG}/"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
+            --ed-key-file - \
+            --link "https://github.com/TheBoredTeam/boring.notch/commits/${BRANCH_NAME}" \
+            --download-url-prefix "${DOWNLOAD_PREFIX}" \
+            --embed-release-notes \
+            --channel "${BRANCH_NAME}" \
+            -o "updater/${APPCAST_FILE}" \
+            Release/
+
+      - name: Create immutable nightly release
+        run: |
+          set -euo pipefail
+          TITLE="Nightly ${BRANCH_NAME}"
+          NOTES="Automated nightly build for ${BRANCH_NAME}. Commit: ${SHORT_SHA}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; keeping immutable release."
+          else
+            gh release create "$TAG" \
+              --title "$TITLE" \
+              --notes "$NOTES" \
+              --prerelease \
+              --target "$SOURCE_SHA"
+          fi
+
+      - name: Upload immutable nightly DMG
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fxq "$ASSET_NAME"; then
+            echo "Asset $ASSET_NAME already exists in $TAG; skipping upload."
+          else
+            gh release upload "$TAG" "Release/${ASSET_NAME}"
+          fi
+
+      - name: Commit branch appcast pointer
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "updater/${APPCAST_FILE}"
+          if git diff --cached --quiet; then
+            echo "No changes detected in ${APPCAST_FILE}; skipping commit and push."
+            exit 0
+          fi
+          git commit -m "Update ${APPCAST_FILE} to ${SHORT_SHA}"
+          git push origin "HEAD:${BRANCH_NAME}"

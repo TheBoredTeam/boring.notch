@@ -6,9 +6,11 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsArbitraryLoads</key>
+		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>BNUpdateChannel</key>
+	<string>stable</string>
 	<key>SUBundleName</key>
 	<string>Boring Notch</string>
 	<key>SUEnableAutomaticChecks</key>

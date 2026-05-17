@@ -22,6 +22,8 @@ struct DynamicNotchApp: App {
     let updaterController: SPUStandardUpdaterController
 
     init() {
+        UpdateChannel.applyBundledDefaultIfNeeded()
+
         let sparkleUpdaterDelegate = BoringSparkleUpdaterDelegate()
         self.sparkleUpdaterDelegate = sparkleUpdaterDelegate
         updaterController = SPUStandardUpdaterController(
@@ -60,6 +62,14 @@ enum SoftwareUpdateStore {
 
 @MainActor
 final class BoringSparkleUpdaterDelegate: NSObject, SPUUpdaterDelegate {
+    @objc func feedURLString(for updater: SPUUpdater) -> String? {
+        Defaults[.updateChannel].feedURLString
+    }
+
+    @objc func allowedChannels(for updater: SPUUpdater) -> Set<String> {
+        Defaults[.updateChannel].allowedSparkleChannels
+    }
+
     func updaterShouldPromptForPermissionToCheck(forUpdates updater: SPUUpdater) -> Bool {
         false
     }
