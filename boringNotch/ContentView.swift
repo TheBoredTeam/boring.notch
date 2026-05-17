@@ -132,8 +132,8 @@ struct ContentView: View {
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                     .background(.black)
                     .clipShape(currentNotchShape)
-                          .overlay(alignment: .top) {
-                              displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
+                    .overlay(alignment: .top) {
+                        displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
                         : Rectangle()
                             .fill(.black)
                             .frame(height: 1)
