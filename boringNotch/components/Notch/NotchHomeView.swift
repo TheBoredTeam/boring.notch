@@ -415,6 +415,21 @@ struct VolumeControlView: View {
             // volumeUpdateTask?.cancel() // No longer needed
         }
     }
+    
+    
+    private var volumeIcon: String {
+        if !musicManager.volumeControlSupported {
+            return "speaker.slash"
+        } else if volumeSliderValue == 0 {
+            return "speaker.slash.fill"
+        } else if volumeSliderValue < 0.33 {
+            return "speaker.wave.1"
+        } else if volumeSliderValue < 0.66 {
+            return "speaker.wave.2"
+        } else {
+            return "speaker.wave.3"
+        }
+    }
 }
 
 // MARK: - Main View
