@@ -32,6 +32,13 @@ struct FileShareView: View {
                 Task { await handleDrop(providers) }
                 return true
             }
+            .onHover { hovering in
+                if hovering {
+                    NSCursor.pointingHand.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
             .onTapGesture {
                 Task {
                     await handleClick()
