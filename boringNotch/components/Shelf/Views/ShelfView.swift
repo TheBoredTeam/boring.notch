@@ -38,7 +38,22 @@ struct ShelfView: View {
         ShelfStateViewModel.shared.load(providers)
         return true
     }
-    
+
+    private func presentFilePicker() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = true
+        panel.title = "Add to Shelf"
+        panel.message = "Choose files or folders to add to the shelf"
+
+        guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
+
+        let providers = panel.urls.map { NSItemProvider(contentsOf: $0) ?? NSItemProvider() }
+        vm.dropEvent = true
+        ShelfStateViewModel.shared.load(providers)
+    }
+
     private func updateQuickLookSelection() {
         guard quickLookService.isQuickLookOpen && !selection.selectedIDs.isEmpty else { return }
         
@@ -86,11 +101,23 @@ struct ShelfView: View {
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(.white, .gray)
                         .imageScale(.large)
-                    
+
                     Text("Drop files here")
                         .foregroundStyle(.gray)
                         .font(.system(.title3, design: .rounded))
                         .fontWeight(.medium)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .onHover { hovering in
+                    if hovering {
+                        NSCursor.pointingHand.push()
+                    } else {
+                        NSCursor.pop()
+                    }
+                }
+                .onTapGesture {
+                    presentFilePicker()
                 }
             } else {
                 ScrollView(.horizontal) {
