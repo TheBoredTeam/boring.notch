@@ -37,6 +37,11 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
 
+    @Default(.useCustomBorderColor) var useCustomBorderColor
+    @Default(.customBorderColorData) var customBorderColorData
+    @Default(.notchBorderWidth) var notchBorderWidth
+    @Default(.cornerRadiusScaling) var cornerRadiusScaling
+
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
 
@@ -44,17 +49,21 @@ struct ContentView: View {
     private let zeroHeightHoverPadding: CGFloat = 10
 
     private var topCornerRadius: CGFloat {
-       ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
-                ? cornerRadiusInsets.opened.top
-                : cornerRadiusInsets.closed.top
+        ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
+            ? cornerRadiusInsets.opened.top
+            : cornerRadiusInsets.closed.top
+    }
+
+    private var bottomCornerRadius: CGFloat {
+        ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
+            ? cornerRadiusInsets.opened.bottom
+            : cornerRadiusInsets.closed.bottom
     }
 
     private var currentNotchShape: NotchShape {
         NotchShape(
             topCornerRadius: topCornerRadius,
-            bottomCornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
-                ? cornerRadiusInsets.opened.bottom
-                : cornerRadiusInsets.closed.bottom
+            bottomCornerRadius: bottomCornerRadius
         )
     }
 
@@ -107,6 +116,40 @@ struct ContentView: View {
                             .fill(.black)
                             .frame(height: 1)
                             .padding(.horizontal, topCornerRadius)
+                    }
+                    .overlay {
+                        if useCustomBorderColor {
+                            let borderStyle = StrokeStyle(
+                                lineWidth: CGFloat(notchBorderWidth),
+                                lineCap: .round,
+                                lineJoin: .round
+                            )
+                            // Non-notch displays (external monitors) have no physical camera cutout,
+                            // so the upper shoulder curves should never appear regardless of state.
+                            let screenHasNotch = vm.screenUUID
+                                .flatMap { NSScreen.screen(withUUID: $0) }
+                                .map { $0.safeAreaInsets.top > 0 } ?? false
+                            // Show upper shoulder curves when:
+                            //   • cornerRadiusScaling is ON (user explicitly opted in — applies to all displays), OR
+                            //   • the display has a physical notch AND the notch is currently closed.
+                            // External monitors with scaling OFF always get a flat top.
+                            let showUpperCurves = cornerRadiusScaling || (screenHasNotch && vm.notchState == .closed)
+                            ZStack {
+                                NotchBorderShape(
+                                    topCornerRadius: topCornerRadius,
+                                    bottomCornerRadius: bottomCornerRadius,
+                                    topInset: showUpperCurves ? topCornerRadius : 0
+                                )
+                                .stroke(Color.effectiveBorder, style: borderStyle)
+
+                                if showUpperCurves {
+                                    NotchUpperCurvesShape(topCornerRadius: topCornerRadius)
+                                        .stroke(Color.effectiveBorder, style: borderStyle)
+                                }
+                            }
+                            // Offset the border 0.6pt outside the notch on every side.
+                            .padding(-0.6)
+                        }
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])

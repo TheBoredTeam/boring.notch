@@ -186,6 +186,10 @@ extension Defaults.Keys {
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
+    // Notch border (outline drawn around the notch shape)
+    static let useCustomBorderColor = Key<Bool>("useCustomBorderColor", default: false)
+    static let customBorderColorData = Key<Data?>("customBorderColorData", default: nil)
+    static let notchBorderWidth = Key<Double>("notchBorderWidth", default: 1.5)
     // Show or hide the title bar
     static let hideTitleBar = Key<Bool>("hideTitleBar", default: true)
     
