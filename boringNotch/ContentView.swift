@@ -38,7 +38,13 @@ struct ContentView: View {
     @Default(.showNotHumanFace) var showNotHumanFace
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
-    private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
+    private var animationSpring: Animation {
+        Animation.interactiveSpring(
+            response: scaledAnimationDuration(0.38),
+            dampingFraction: 0.8,
+            blendDuration: 0
+        )
+    }
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
@@ -120,12 +126,20 @@ struct ContentView: View {
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
                     .conditionalModifier(true) { view in
-                        let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
-                        let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
+                        let openAnimation = Animation.spring(
+                            response: scaledAnimationDuration(0.42),
+                            dampingFraction: 0.8,
+                            blendDuration: 0
+                        )
+                        let closeAnimation = Animation.spring(
+                            response: scaledAnimationDuration(0.45),
+                            dampingFraction: 1.0,
+                            blendDuration: 0
+                        )
                         
                         return view
                             .animation(vm.notchState == .open ? openAnimation : closeAnimation, value: vm.notchState)
-                            .animation(.smooth, value: gestureProgress)
+                            .animation(.smooth(duration: scaledAnimationDuration(0.35)), value: gestureProgress)
                     }
                     .contentShape(Rectangle())
                     .onHover { hovering in
@@ -210,7 +224,7 @@ struct ContentView: View {
             y: gestureScale,
             anchor: .top
         )
-        .animation(.smooth, value: gestureProgress)
+        .animation(.smooth(duration: scaledAnimationDuration(0.35)), value: gestureProgress)
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)

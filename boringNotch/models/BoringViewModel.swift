@@ -14,7 +14,9 @@ class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var detector = FullscreenMediaDetector.shared
 
     let animationLibrary: BoringAnimations = .init()
-    let animation: Animation?
+    var animation: Animation {
+        animationLibrary.animation
+    }
 
     @Published var contentType: ContentType = .normal
     @Published private(set) var notchState: NotchState = .closed
@@ -51,8 +53,6 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     init(screenUUID: String? = nil) {
-        animation = animationLibrary.animation
-
         super.init()
         
         self.screenUUID = screenUUID

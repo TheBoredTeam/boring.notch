@@ -139,6 +139,7 @@ struct GeneralSettings: View {
     @Default(.showEmojis) var showEmojis
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
+    @Default(.animationSpeedMultiplier) var animationSpeedMultiplier
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
@@ -342,8 +343,21 @@ struct GeneralSettings: View {
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
             }
+            Slider(value: $animationSpeedMultiplier, in: 0.5...3.0, step: 0.25) {
+                HStack {
+                    Text("Animation speed")
+                    Spacer()
+                    Text("\(animationSpeedMultiplier, specifier: "%.2g")x")
+                        .foregroundStyle(.secondary)
+                }
+            }
         } header: {
             Text("Notch behavior")
+        } footer: {
+            Text("Adjusts the notch opening, closing, and gesture spring animations.")
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+                .font(.caption)
         }
     }
 }
