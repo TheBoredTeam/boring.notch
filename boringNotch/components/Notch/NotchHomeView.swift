@@ -211,7 +211,9 @@ struct MusicControlsView: View {
     }
 
     private var slotToolbar: some View {
-        let slots = activeSlots
+        // Filter out empty slots so visible controls always center as a group,
+        // regardless of where the user placed them in the slot configuration.
+        let slots = activeSlots.filter { $0 != .none }
         return HStack(spacing: 6) {
             ForEach(Array(slots.enumerated()), id: \.offset) { index, slot in
                 slotView(for: slot)

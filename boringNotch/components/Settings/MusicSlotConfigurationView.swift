@@ -14,7 +14,7 @@ struct MusicSlotConfigurationView: View {
     @ObservedObject private var musicManager = MusicManager.shared
     @State private var draggedSlot: MusicControlButton?
 
-    private let fixedSlotCount: Int = 5
+    private let fixedSlotCount: Int = 7
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -34,6 +34,9 @@ struct MusicSlotConfigurationView: View {
         }
         .onAppear {
             ensureSlotCapacity(fixedSlotCount)
+            if Defaults[.musicControlSlotLimit] < fixedSlotCount {
+                Defaults[.musicControlSlotLimit] = fixedSlotCount
+            }
         }
     }
 
