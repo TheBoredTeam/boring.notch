@@ -1260,12 +1260,16 @@ struct Appearance: View {
                                 Text("Border width")
                                     .font(.body)
                                 Spacer()
-                                Slider(value: $notchBorderWidth, in: 0.5...6.0, step: 0.5)
+                                Slider(value: $notchBorderWidth, in: 0.25...2.0, step: 0.25)
                                     .frame(width: 160)
-                                Text(String(format: "%.1f pt", notchBorderWidth))
+                                Text(String(format: "%.2f pt", notchBorderWidth))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                     .frame(width: 50, alignment: .trailing)
+                            }
+                            .onAppear {
+                                let snapped = (notchBorderWidth / 0.25).rounded() * 0.25
+                                notchBorderWidth = min(max(snapped, 0.25), 2.0)
                             }
                         }
                     }

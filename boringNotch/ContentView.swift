@@ -42,6 +42,10 @@ struct ContentView: View {
     @Default(.notchBorderWidth) var notchBorderWidth
     @Default(.cornerRadiusScaling) var cornerRadiusScaling
 
+    /// Delayed mirror of notchState == .closed so shoulder curves only appear
+    /// after the close spring animation has mostly finished.
+    @State private var notchVisuallyClosedForCurves: Bool = true
+
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
 
@@ -129,11 +133,7 @@ struct ContentView: View {
                             let screenHasNotch = vm.screenUUID
                                 .flatMap { NSScreen.screen(withUUID: $0) }
                                 .map { $0.safeAreaInsets.top > 0 } ?? false
-                            // Show upper shoulder curves when:
-                            //   • cornerRadiusScaling is ON (user explicitly opted in — applies to all displays), OR
-                            //   • the display has a physical notch AND the notch is currently closed.
-                            // External monitors with scaling OFF always get a flat top.
-                            let showUpperCurves = cornerRadiusScaling || (screenHasNotch && vm.notchState == .closed)
+                            let showUpperCurves = cornerRadiusScaling || (screenHasNotch && notchVisuallyClosedForCurves)
                             ZStack {
                                 NotchBorderShape(
                                     topCornerRadius: topCornerRadius,
@@ -207,6 +207,15 @@ struct ContentView: View {
                         if newState == .closed && isHovering {
                             withAnimation {
                                 isHovering = false
+                            }
+                        }
+                        if newState == .open {
+                            notchVisuallyClosedForCurves = false
+                        } else {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                                if vm.notchState == .closed {
+                                    notchVisuallyClosedForCurves = true
+                                }
                             }
                         }
                     }
