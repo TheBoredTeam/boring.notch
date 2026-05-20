@@ -18,11 +18,17 @@ struct HoverButton: View {
 
     var body: some View {
         let size = CGFloat(scale == .large ? 40 : 30)
-        
+        // The large play/pause button is wider than its neighbors but its icon
+        // only fills the middle. The empty edges used to be tappable and would
+        // swallow taps meant for the adjacent ±15s skip buttons. Shrink the hit
+        // shape on large buttons so the wrong-button trap becomes a small dead
+        // zone instead.
+        let hitWidthRatio: CGFloat = (scale == .large) ? 0.7 : 1.0
+
         Button(action: action) {
             Rectangle()
                 .fill(.clear)
-                .contentShape(Rectangle())
+                .contentShape(Rectangle().scale(x: hitWidthRatio, y: 1.0))
                 .frame(width: size, height: size)
                 .overlay {
                     Capsule()
