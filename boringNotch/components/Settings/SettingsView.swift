@@ -1164,6 +1164,9 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.useCustomBorderColor) var useCustomBorderColor
+    @Default(.customBorderColorData) var customBorderColorData
+    @Default(.notchBorderWidth) var notchBorderWidth
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1172,6 +1175,9 @@ struct Appearance: View {
     @State private var name: String = ""
     @State private var url: String = ""
     @State private var speed: CGFloat = 1.0
+    @State private var customBorderColor: Color = .accentColor
+    @State private var selectedBorderPresetColor: PresetAccentColor? = nil
+
     var body: some View {
         Form {
             Section {
@@ -1179,9 +1185,102 @@ struct Appearance: View {
                 Defaults.Toggle(key: .settingsIconInNotch) {
                     Text("Show settings icon in notch")
                 }
-
             } header: {
                 Text("General")
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: 16) {
+                    Picker("Border color", selection: $useCustomBorderColor) {
+                        Text("Off").tag(false)
+                        Text("Custom").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+
+                    if useCustomBorderColor {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Color Presets")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
+
+                            HStack(spacing: 12) {
+                                ForEach(PresetAccentColor.allCases) { preset in
+                                    AccentCircleButton(
+                                        isSelected: selectedBorderPresetColor == preset,
+                                        color: preset.color,
+                                        isMulticolor: false
+                                    ) {
+                                        selectedBorderPresetColor = preset
+                                        customBorderColor = preset.color
+                                        saveCustomBorderColor(preset.color)
+                                    }
+                                }
+                                Spacer()
+                            }
+
+                            Divider()
+                                .padding(.vertical, 4)
+
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Pick a Color")
+                                        .font(.body)
+                                    Text("Choose any color")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                ColorPicker(selection: Binding(
+                                    get: { customBorderColor },
+                                    set: { newColor in
+                                        customBorderColor = newColor
+                                        selectedBorderPresetColor = nil
+                                        saveCustomBorderColor(newColor)
+                                    }
+                                ), supportsOpacity: true) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(customBorderColor)
+                                            .frame(width: 32, height: 32)
+                                        if selectedBorderPresetColor == nil {
+                                            Circle()
+                                                .strokeBorder(.primary.opacity(0.3), lineWidth: 2)
+                                                .frame(width: 32, height: 32)
+                                        }
+                                    }
+                                }
+                                .labelsHidden()
+                            }
+
+                            Divider()
+                                .padding(.vertical, 4)
+
+                            HStack {
+                                Text("Border width")
+                                    .font(.body)
+                                Spacer()
+                                Slider(value: $notchBorderWidth, in: 0.5...6.0, step: 0.5)
+                                    .frame(width: 160)
+                                Text(String(format: "%.1f pt", notchBorderWidth))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 50, alignment: .trailing)
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("Notch border")
+            } footer: {
+                Text("Draw a colored outline around the notch shape.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            .onAppear {
+                loadCustomBorderColor()
             }
 
             Section {
@@ -1400,6 +1499,27 @@ struct Appearance: View {
         .navigationTitle("Appearance")
     }
 
+    private func saveCustomBorderColor(_ color: Color) {
+        let nsColor = NSColor(color)
+        if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: nsColor, requiringSecureCoding: false) {
+            Defaults[.customBorderColorData] = colorData
+        }
+    }
+
+    private func loadCustomBorderColor() {
+        if let colorData = Defaults[.customBorderColorData],
+           let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
+            customBorderColor = Color(nsColor: nsColor)
+            selectedBorderPresetColor = nil
+            for preset in PresetAccentColor.allCases {
+                if colorsAreEqual(Color(nsColor: nsColor), preset.color) {
+                    selectedBorderPresetColor = preset
+                    break
+                }
+            }
+        }
+    }
+
     func checkVideoInput() -> Bool {
         if AVCaptureDevice.default(for: .video) != nil {
             return true
@@ -1409,44 +1529,53 @@ struct Appearance: View {
     }
 }
 
+// MARK: - Shared color utilities
+
+enum PresetAccentColor: String, CaseIterable, Identifiable {
+    case blue = "Blue"
+    case purple = "Purple"
+    case pink = "Pink"
+    case red = "Red"
+    case orange = "Orange"
+    case yellow = "Yellow"
+    case green = "Green"
+    case graphite = "Graphite"
+
+    var id: String { self.rawValue }
+
+    var color: Color {
+        switch self {
+        case .blue: return Color(red: 0.0, green: 0.478, blue: 1.0)
+        case .purple: return Color(red: 0.686, green: 0.322, blue: 0.871)
+        case .pink: return Color(red: 1.0, green: 0.176, blue: 0.333)
+        case .red: return Color(red: 1.0, green: 0.271, blue: 0.227)
+        case .orange: return Color(red: 1.0, green: 0.584, blue: 0.0)
+        case .yellow: return Color(red: 1.0, green: 0.8, blue: 0.0)
+        case .green: return Color(red: 0.4, green: 0.824, blue: 0.176)
+        case .graphite: return Color(red: 0.557, green: 0.557, blue: 0.576)
+        }
+    }
+}
+
+func colorsAreEqual(_ color1: Color, _ color2: Color) -> Bool {
+    let nsColor1 = NSColor(color1).usingColorSpace(.sRGB) ?? NSColor(color1)
+    let nsColor2 = NSColor(color2).usingColorSpace(.sRGB) ?? NSColor(color2)
+    return abs(nsColor1.redComponent - nsColor2.redComponent) < 0.01 &&
+           abs(nsColor1.greenComponent - nsColor2.greenComponent) < 0.01 &&
+           abs(nsColor1.blueComponent - nsColor2.blueComponent) < 0.01
+}
+
 struct Advanced: View {
     @Default(.useCustomAccentColor) var useCustomAccentColor
     @Default(.customAccentColorData) var customAccentColorData
     @Default(.extendHoverArea) var extendHoverArea
     @Default(.showOnLockScreen) var showOnLockScreen
     @Default(.hideFromScreenRecording) var hideFromScreenRecording
-    
+
     @State private var customAccentColor: Color = .accentColor
     @State private var selectedPresetColor: PresetAccentColor? = nil
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
-    
-    // macOS accent colors
-    enum PresetAccentColor: String, CaseIterable, Identifiable {
-        case blue = "Blue"
-        case purple = "Purple"
-        case pink = "Pink"
-        case red = "Red"
-        case orange = "Orange"
-        case yellow = "Yellow"
-        case green = "Green"
-        case graphite = "Graphite"
-        
-        var id: String { self.rawValue }
-        
-        var color: Color {
-            switch self {
-            case .blue: return Color(red: 0.0, green: 0.478, blue: 1.0)
-            case .purple: return Color(red: 0.686, green: 0.322, blue: 0.871)
-            case .pink: return Color(red: 1.0, green: 0.176, blue: 0.333)
-            case .red: return Color(red: 1.0, green: 0.271, blue: 0.227)
-            case .orange: return Color(red: 1.0, green: 0.584, blue: 0.0)
-            case .yellow: return Color(red: 1.0, green: 0.8, blue: 0.0)
-            case .green: return Color(red: 0.4, green: 0.824, blue: 0.176)
-            case .graphite: return Color(red: 0.557, green: 0.557, blue: 0.576)
-            }
-        }
-    }
     
     var body: some View {
         Form {
@@ -1556,7 +1685,7 @@ struct Advanced: View {
             .onAppear {
                 initializeAccentColorState()
             }
-            
+
             Section {
                 Defaults.Toggle(key: .enableShadow) {
                     Text("Enable window shadow")
@@ -1635,14 +1764,13 @@ struct Advanced: View {
             loadCustomColor()
         }
     }
-    
+
     private func forceUiUpdate() {
-        // Force refresh the UI
         DispatchQueue.main.async {
             NotificationCenter.default.post(name: Notification.Name("AccentColorChanged"), object: nil)
         }
     }
-    
+
     private func saveCustomColor(_ color: Color) {
         let nsColor = NSColor(color)
         if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: nsColor, requiringSecureCoding: false) {
@@ -1650,13 +1778,11 @@ struct Advanced: View {
             forceUiUpdate()
         }
     }
-    
+
     private func loadCustomColor() {
         if let colorData = Defaults[.customAccentColorData],
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
             customAccentColor = Color(nsColor: nsColor)
-            
-            // Check if loaded color matches a preset
             selectedPresetColor = nil
             for preset in PresetAccentColor.allCases {
                 if colorsAreEqual(Color(nsColor: nsColor), preset.color) {
@@ -1666,16 +1792,7 @@ struct Advanced: View {
             }
         }
     }
-    
-    private func colorsAreEqual(_ color1: Color, _ color2: Color) -> Bool {
-        let nsColor1 = NSColor(color1).usingColorSpace(.sRGB) ?? NSColor(color1)
-        let nsColor2 = NSColor(color2).usingColorSpace(.sRGB) ?? NSColor(color2)
-        
-        return abs(nsColor1.redComponent - nsColor2.redComponent) < 0.01 &&
-               abs(nsColor1.greenComponent - nsColor2.greenComponent) < 0.01 &&
-               abs(nsColor1.blueComponent - nsColor2.blueComponent) < 0.01
-    }
-    
+
     private func initializeAccentColorState() {
         if !useCustomAccentColor {
             selectedPresetColor = nil // Multicolor is selected when useCustomAccentColor is false
