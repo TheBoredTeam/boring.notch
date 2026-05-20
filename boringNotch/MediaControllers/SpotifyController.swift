@@ -107,7 +107,11 @@ class SpotifyController: MediaControllerProtocol {
         let currentTime = descriptor.atIndex(5)?.doubleValue ?? 0
         let duration = (descriptor.atIndex(6)?.doubleValue ?? 0)/1000
         let isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
-        let isRepeating = descriptor.atIndex(8)?.booleanValue ?? false
+        // 0 = AppleScript error path sentinel; 1 = off; 3 = all (Spotify only has on/off).
+        // Preserve previous repeat mode on the error path so the loop button doesn't
+        // flicker off during track switches.
+        let repeatRawValue = descriptor.atIndex(8)?.int32Value ?? 0
+        let resolvedRepeatMode = RepeatMode(rawValue: Int(repeatRawValue)) ?? self.playbackState.repeatMode
         let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
         let artworkURL = descriptor.atIndex(10)?.stringValue ?? ""
         
@@ -121,7 +125,7 @@ class SpotifyController: MediaControllerProtocol {
             duration: duration,
             playbackRate: 1,
             isShuffled: isShuffled,
-            repeatMode: isRepeating ? .all : .off,
+            repeatMode: resolvedRepeatMode,
             lastUpdated: Date(),
             artwork: nil,
             volume: Double(volumePercentage) / 100.0
@@ -186,11 +190,16 @@ class SpotifyController: MediaControllerProtocol {
                 set trackDuration to duration of current track
                 set shuffleState to shuffling
                 set repeatState to repeating
+                if repeatState then
+                    set repeatValue to 3
+                else
+                    set repeatValue to 1
+                end if
                 set currentVolume to sound volume
                 set artworkURL to artwork url of current track
-                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatState, currentVolume, artworkURL}
+                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, currentVolume, artworkURL}
             on error
-                return {false, "Unknown", "Unknown", "Unknown", 0, 0, false, false, 50, ""}
+                return {false, "Unknown", "Unknown", "Unknown", 0, 0, false, 0, 50, ""}
             end try
         end tell
         """

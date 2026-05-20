@@ -258,10 +258,11 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         } else {
             newPlaybackState.isShuffled = self.playbackState.isShuffled
         }
-        if let repeatModeValue = payload.repeatMode {
-            newPlaybackState.repeatMode = RepeatMode(rawValue: repeatModeValue) ?? .off
-        } else if !diff {
-            newPlaybackState.repeatMode = .off
+        // Repeat is a player-level setting, not a per-track one. Preserve it across
+        // payloads that don't include a value (e.g. track-change updates), so the
+        // loop button doesn't flicker off when the song changes.
+        if let repeatModeValue = payload.repeatMode, let parsed = RepeatMode(rawValue: repeatModeValue) {
+            newPlaybackState.repeatMode = parsed
         } else {
             newPlaybackState.repeatMode = self.playbackState.repeatMode
         }
