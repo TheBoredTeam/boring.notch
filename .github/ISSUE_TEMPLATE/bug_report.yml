@@ -1,0 +1,82 @@
+name: Bug report
+description: Something in Gojo isn't working as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill out the form below
+        so we can reproduce and fix it.
+
+  - type: input
+    id: gojo-version
+    attributes:
+      label: Gojo version
+      description: Settings → About, or `Gojo.app/Contents/Info.plist` → `CFBundleShortVersionString`
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: "14.5 Sonoma / 15.1 Sequoia"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: hardware
+    attributes:
+      label: Hardware
+      options:
+        - Apple Silicon (M1/M2/M3/M4)
+        - Intel
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of Gojo?
+      options:
+        - Music
+        - Clipboard
+        - Shelf (drag-and-drop)
+        - Windows / window snapping
+        - HUD (brightness / backlight / volume)
+        - Webcam mirror
+        - Calendar
+        - Notch open/close / hover
+        - Settings
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do and what did Gojo do instead of what you expected?
+      placeholder: |
+        Steps to reproduce:
+        1. ...
+        2. ...
+
+        Expected:
+        Got instead:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console logs (optional)
+      description: Console.app → filter "Gojo" → copy any relevant lines
+      render: shell
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot or recording (optional)
+      description: Drag any image/video file into this box.

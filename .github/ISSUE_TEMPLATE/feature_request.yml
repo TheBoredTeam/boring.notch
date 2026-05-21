@@ -1,0 +1,52 @@
+name: Feature request
+description: Suggest a new module, interaction, or polish for Gojo
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got an idea? Tell us about it. Please search existing issues first to
+        avoid duplicates.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What's the user need? When would you use it?
+      placeholder: |
+        When I'm in <situation>, I'd like to <verb> so that <outcome>.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What should Gojo do?
+      description: Describe the feature. Mockups, sketches, or references welcome.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of Gojo?
+      options:
+        - Music
+        - Clipboard
+        - Shelf
+        - Windows
+        - HUD
+        - Webcam
+        - Calendar
+        - Notch behavior
+        - Settings
+        - New module
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered (optional)
+      description: Other ways to solve the same problem you've tried or considered.

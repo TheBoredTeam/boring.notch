@@ -1,0 +1,66 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build (${{ matrix.configuration }})
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcode-select -p
+          xcodebuild -version
+          swift --version
+
+      - name: Cache Swift Package dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build/DerivedData/SourcePackages
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved', '**/project.pbxproj') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Build (${{ matrix.configuration }}, unsigned)
+        run: |
+          xcodebuild \
+            -project Gojo.xcodeproj \
+            -scheme Gojo \
+            -configuration ${{ matrix.configuration }} \
+            -destination 'platform=macOS' \
+            -derivedDataPath .build/ci \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build \
+            | xcpretty && exit ${PIPESTATUS[0]}
+
+      - name: Verify app bundle structure
+        if: matrix.configuration == 'Release'
+        run: |
+          APP=".build/ci/Build/Products/${{ matrix.configuration }}/Gojo.app"
+          test -d "$APP" || (echo "missing $APP"; exit 1)
+          test -x "$APP/Contents/MacOS/Gojo" || (echo "missing main binary"; exit 1)
+          test -d "$APP/Contents/XPCServices/GojoXPCHelper.xpc" || (echo "missing XPC helper"; exit 1)
+          test -d "$APP/Contents/Frameworks/Sparkle.framework" || (echo "missing Sparkle"; exit 1)
+          echo "✓ app bundle structure looks correct"
