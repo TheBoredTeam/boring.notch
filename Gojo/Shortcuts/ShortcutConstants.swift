@@ -20,4 +20,5 @@ extension KeyboardShortcuts.Name {
     static let windowTopHalf = Self("windowTopHalf", default: .init(.upArrow, modifiers: [.control, .option]))
     static let windowBottomHalf = Self("windowBottomHalf", default: .init(.downArrow, modifiers: [.control, .option]))
     static let windowMaximize = Self("windowMaximize", default: .init(.return, modifiers: [.control, .option]))
+    static let windowZoom = Self("windowZoom", default: .init(.z, modifiers: [.control, .option]))
 }

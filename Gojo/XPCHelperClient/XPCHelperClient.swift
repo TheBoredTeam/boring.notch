@@ -199,6 +199,21 @@ final class XPCHelperClient: NSObject {
         }
     }
 
+    nonisolated func performZoom(pid: pid_t, windowID: CGWindowID?) async -> Bool {
+        do {
+            let service = await MainActor.run { ensureRemoteService() }
+            let pidNumber = NSNumber(value: pid)
+            let windowIDNumber = windowID.map { NSNumber(value: $0) }
+            return try await service.withContinuation { service, continuation in
+                service.performZoom(pidNumber, windowID: windowIDNumber) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
     nonisolated func raiseWindow(pid: pid_t, windowID: CGWindowID?) async -> Bool {
         do {
             let service = await MainActor.run { ensureRemoteService() }

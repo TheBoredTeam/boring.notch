@@ -113,6 +113,19 @@ final class WindowActionExecutor {
         do {
             let window = try await provider.focusedWindow(for: notchScreen, promptIfNeeded: true)
 
+            if action == .zoom {
+                let success = await XPCHelperClient.shared.performZoom(pid: window.pid, windowID: window.windowID)
+                if success {
+                    state.lastAction = .zoom
+                    state.preview = .zoom
+                    state.statusKind = .success
+                    await refreshWindowList(state: state, focusedWindow: nil, screen: notchScreen)
+                } else {
+                    state.setFailure("Cannot reset \(window.appName)", detail: "macOS would not zoom this window.")
+                }
+                return
+            }
+
             if action == .maximize,
                let entry = history.entry(for: window),
                entry.lastAction == .maximize {
@@ -165,21 +178,29 @@ final class WindowActionExecutor {
         _ = await XPCHelperClient.shared.raiseWindow(pid: target.pid, windowID: target.windowID)
         NSRunningApplication(processIdentifier: target.pid)?.activate(options: [])
 
-        // Snap relative to the target window's display, not the notch's.
-        let targetScreen = NSScreen.screen(containing: target.normalFrame) ?? notchScreen ?? NSScreen.main
-        guard let targetScreen else {
-            state.setFailure("Cannot move \(target.appName)", detail: "No usable display.")
-            return
+        let success: Bool
+        if action == .zoom {
+            success = await XPCHelperClient.shared.performZoom(pid: target.pid, windowID: target.windowID)
+        } else {
+            // Snap relative to the target window's display, not the notch's.
+            let targetScreen = NSScreen.screen(containing: target.normalFrame) ?? notchScreen ?? NSScreen.main
+            guard let targetScreen else {
+                state.setFailure("Cannot move \(target.appName)", detail: "No usable display.")
+                return
+            }
+            let targetFrame = WindowFrameCalculator.targetFrame(for: action, in: targetScreen.visibleFrame)
+            success = await XPCHelperClient.shared.setWindowFrame(
+                targetFrame,
+                pid: target.pid,
+                windowID: target.windowID
+            )
         }
-        let targetFrame = WindowFrameCalculator.targetFrame(for: action, in: targetScreen.visibleFrame)
 
-        let success = await XPCHelperClient.shared.setWindowFrame(
-            targetFrame,
-            pid: target.pid,
-            windowID: target.windowID
-        )
         guard success else {
-            state.setFailure("Cannot move \(target.appName)", detail: "macOS would not move this window.")
+            state.setFailure(
+                "Cannot \(action == .zoom ? "reset" : "move") \(target.appName)",
+                detail: "macOS would not \(action == .zoom ? "zoom" : "move") this window."
+            )
             return
         }
 

@@ -18,6 +18,7 @@ final class WindowShortcutController {
         KeyboardShortcuts.onKeyDown(for: .windowTopHalf) { Self.execute(.topHalf) }
         KeyboardShortcuts.onKeyDown(for: .windowBottomHalf) { Self.execute(.bottomHalf) }
         KeyboardShortcuts.onKeyDown(for: .windowMaximize) { Self.execute(.maximize) }
+        KeyboardShortcuts.onKeyDown(for: .windowZoom) { Self.execute(.zoom) }
     }
 
     private static func execute(_ action: WindowAction) {

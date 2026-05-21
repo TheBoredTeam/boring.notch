@@ -7,6 +7,7 @@ enum WindowLayoutPreview: Equatable {
     case topHalf
     case bottomHalf
     case maximize
+    case zoom
     case error
 
     init(action: WindowAction) {
@@ -16,6 +17,7 @@ enum WindowLayoutPreview: Equatable {
         case .topHalf: self = .topHalf
         case .bottomHalf: self = .bottomHalf
         case .maximize: self = .maximize
+        case .zoom: self = .zoom
         }
     }
 
@@ -27,6 +29,7 @@ enum WindowLayoutPreview: Equatable {
         case .topHalf: return "Target layout: top half of the focused window display"
         case .bottomHalf: return "Target layout: bottom half of the focused window display"
         case .maximize: return "Target layout: full visible area of the focused window display"
+        case .zoom: return "Target layout: window default size"
         case .error: return "Target layout unavailable"
         }
     }

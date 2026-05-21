@@ -17,6 +17,7 @@ import Foundation
     func setWindowFrame(_ normalFrame: NSDictionary, pid: NSNumber, windowID: NSNumber?, with reply: @escaping (Bool) -> Void)
     func raiseWindow(_ pid: NSNumber, windowID: NSNumber?, with reply: @escaping (Bool) -> Void)
     func enumerateWindows(forScreen screenUUID: NSString?, with reply: @escaping (NSArray) -> Void)
+    func performZoom(_ pid: NSNumber, windowID: NSNumber?, with reply: @escaping (Bool) -> Void)
     // Keyboard backlight / CoreBrightness access (performed by the helper)
     func isKeyboardBrightnessAvailable(with reply: @escaping (Bool) -> Void)
     func currentKeyboardBrightness(with reply: @escaping (NSNumber?) -> Void)

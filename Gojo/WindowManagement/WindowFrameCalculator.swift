@@ -21,6 +21,10 @@ enum WindowFrameCalculator {
             frame.origin.y = visibleFrame.minY
         case .maximize:
             frame = visibleFrame
+        case .zoom:
+            // No fixed target frame — zoom is dispatched via the AX zoom button,
+            // not by setting a frame. Caller should branch on .zoom before reaching here.
+            break
         }
 
         return frame.integral
@@ -52,7 +56,8 @@ enum WindowFrameCalculator {
     static func matchingAction(for frame: CGRect, in visibleFrame: CGRect, tolerance: CGFloat = 6) -> WindowAction? {
         let frame = frame.integral
         return WindowAction.allCases.first { action in
-            matches(frame, targetFrame(for: action, in: visibleFrame), tolerance: tolerance)
+            guard action.isFrameBased else { return false }
+            return matches(frame, targetFrame(for: action, in: visibleFrame), tolerance: tolerance)
         }
     }
 

@@ -7,6 +7,9 @@ enum WindowAction: CaseIterable, Equatable, Identifiable {
     case topHalf
     case bottomHalf
     case maximize
+    /// Triggers the window's native zoom button (same as double-clicking the title bar) —
+    /// toggles between custom size and the app's default zoomed state.
+    case zoom
 
     var id: String { rawName }
 
@@ -17,6 +20,7 @@ enum WindowAction: CaseIterable, Equatable, Identifiable {
         case .topHalf: return "topHalf"
         case .bottomHalf: return "bottomHalf"
         case .maximize: return "maximize"
+        case .zoom: return "zoom"
         }
     }
 
@@ -27,6 +31,7 @@ enum WindowAction: CaseIterable, Equatable, Identifiable {
         case .topHalf: return "Top Half"
         case .bottomHalf: return "Bottom Half"
         case .maximize: return "Maximize"
+        case .zoom: return "Default Size"
         }
     }
 
@@ -37,6 +42,7 @@ enum WindowAction: CaseIterable, Equatable, Identifiable {
         case .topHalf: return "Top"
         case .bottomHalf: return "Bottom"
         case .maximize: return "Max"
+        case .zoom: return "Reset"
         }
     }
 
@@ -47,6 +53,7 @@ enum WindowAction: CaseIterable, Equatable, Identifiable {
         case .topHalf: return "rectangle.tophalf.filled"
         case .bottomHalf: return "rectangle.bottomhalf.filled"
         case .maximize: return "arrow.up.left.and.arrow.down.right"
+        case .zoom: return "rectangle.center.inset.filled"
         }
     }
 
@@ -57,6 +64,13 @@ enum WindowAction: CaseIterable, Equatable, Identifiable {
         case .topHalf: return "top half"
         case .bottomHalf: return "bottom half"
         case .maximize: return "full visible screen"
+        case .zoom: return "default size"
         }
+    }
+
+    /// True for actions that map to a specific target frame (used by snap geometry).
+    /// Zoom is button-press based and has no fixed target frame.
+    var isFrameBased: Bool {
+        self != .zoom
     }
 }

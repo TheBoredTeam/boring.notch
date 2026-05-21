@@ -132,6 +132,33 @@ class GojoXPCHelper: NSObject, GojoXPCHelperProtocol {
         }
     }
 
+    @objc func performZoom(_ pid: NSNumber, windowID: NSNumber?, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, AXIsProcessTrusted() else {
+                reply(false)
+                return
+            }
+            let pidValue = pid_t(truncating: pid)
+            let appElement = AXUIElementCreateApplication(pidValue)
+            let cgID = windowID.map { CGWindowID(truncating: $0) }
+            guard let windowElement = self.windowElement(for: appElement, exactWindowID: cgID)
+                ?? self.bestWindowElement(for: appElement, preferredWindowID: cgID) else {
+                reply(false)
+                return
+            }
+
+            var buttonValue: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(windowElement, kAXZoomButtonAttribute as CFString, &buttonValue) == .success,
+                  let value = buttonValue,
+                  CFGetTypeID(value) == AXUIElementGetTypeID() else {
+                reply(false)
+                return
+            }
+            let zoomButton = value as! AXUIElement
+            reply(AXUIElementPerformAction(zoomButton, kAXPressAction as CFString) == .success)
+        }
+    }
+
     @objc func raiseWindow(_ pid: NSNumber, windowID: NSNumber?, with reply: @escaping (Bool) -> Void) {
         DispatchQueue.main.async { [weak self] in
             guard let self, AXIsProcessTrusted() else {

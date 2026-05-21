@@ -29,9 +29,9 @@ struct WindowPowerView: View {
             screenUUID: vm.screenUUID,
             hoverPreview: $hoverPreview
         )
-        .padding(.horizontal, 10)
-        .padding(.top, 4)
-        .padding(.bottom, 8)
+        .padding(.horizontal, 12)
+        .padding(.top, 6)
+        .padding(.bottom, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task(id: vm.screenUUID) {
             await refresh()
@@ -60,7 +60,7 @@ private struct WindowsTabPanel: View {
     @Binding var hoverPreview: WindowAction?
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(alignment: .top, spacing: 12) {
             StageStrip(
                 windows: state.windows,
                 focusedID: targetSummary?.id,
@@ -75,11 +75,10 @@ private struct WindowsTabPanel: View {
                     }
                 }
             )
-            .frame(width: 72)
+            .frame(width: 68)
 
             PreviewMonitor(action: effectiveAction)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, 10)
 
             RightColumn(
                 state: state,
@@ -87,7 +86,7 @@ private struct WindowsTabPanel: View {
                 hoverPreview: $hoverPreview,
                 onAction: execute
             )
-            .frame(width: 232)
+            .frame(width: 212)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -103,8 +102,10 @@ private struct WindowsTabPanel: View {
     }
 
     private var effectiveAction: WindowAction? {
-        if let hoverPreview { return hoverPreview }
-        return targetSummary?.currentAction ?? state.lastAction
+        // Zoom has no predictable target rect, so it never previews — keep the current rect visible.
+        if let hoverPreview, hoverPreview.isFrameBased { return hoverPreview }
+        let current = targetSummary?.currentAction ?? state.lastAction
+        return (current?.isFrameBased == true) ? current : nil
     }
 
     private func execute(_ action: WindowAction) {
@@ -127,28 +128,26 @@ private struct StageStrip: View {
     let focusedID: String?
     let onSelect: (WindowSummary) -> Void
 
-    private let cardHeight: CGFloat = 32
+    private let maxVisibleWindows: Int = 6
 
     var body: some View {
         if windows.isEmpty {
             EmptyStagePlaceholder()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 2) {
-                    ForEach(windows) { window in
-                        StageCard(
-                            summary: window,
-                            isFocused: window.id == focusedID,
-                            onSelect: { onSelect(window) }
-                        )
-                        .frame(height: cardHeight)
-                    }
+            // Cards flex-fill so the strip bottoms out with the other columns.
+            // Cap at 6 to avoid sub-20px cards when many windows are open.
+            VStack(spacing: 3) {
+                ForEach(windows.prefix(maxVisibleWindows)) { window in
+                    StageCard(
+                        summary: window,
+                        isFocused: window.id == focusedID,
+                        onSelect: { onSelect(window) }
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .padding(.vertical, 2)
             }
-            .scrollClipDisabled()
-            .frame(maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }
@@ -265,8 +264,8 @@ private struct PreviewMonitor: View {
                             .stroke(WindowsTabTheme.monitorBorder, lineWidth: 1)
                     )
 
-                if let action {
-                    PreviewWindowRect(action: action, in: proxy.size)
+                if let action, let rect = PreviewWindowRect.rect(for: action, in: proxy.size) {
+                    PreviewWindowRect(rect: rect)
                         .transition(.opacity)
                 }
             }
@@ -276,17 +275,10 @@ private struct PreviewMonitor: View {
 }
 
 private struct PreviewWindowRect: View {
-    let action: WindowAction
-    let containerSize: CGSize
-
-    init(action: WindowAction, in containerSize: CGSize) {
-        self.action = action
-        self.containerSize = containerSize
-    }
+    let rect: CGRect
 
     var body: some View {
-        let rect = Self.rect(for: action, in: containerSize)
-        return RoundedRectangle(cornerRadius: 2.5, style: .continuous)
+        RoundedRectangle(cornerRadius: 2.5, style: .continuous)
             .fill(Color.white.opacity(0.06))
             .overlay(
                 RoundedRectangle(cornerRadius: 2.5, style: .continuous)
@@ -306,7 +298,8 @@ private struct PreviewWindowRect: View {
             .position(x: rect.midX, y: rect.midY)
     }
 
-    static func rect(for action: WindowAction, in size: CGSize) -> CGRect {
+    static func rect(for action: WindowAction, in size: CGSize) -> CGRect? {
+        guard action.isFrameBased else { return nil }
         let inset: CGFloat = 4
         let innerW = size.width - inset * 2
         let innerH = size.height - inset * 2
@@ -323,6 +316,8 @@ private struct PreviewWindowRect: View {
             return CGRect(x: inset, y: size.height - inset - halfH, width: innerW, height: halfH)
         case .maximize:
             return CGRect(x: inset, y: inset, width: innerW, height: innerH)
+        case .zoom:
+            return nil
         }
     }
 }
@@ -336,7 +331,7 @@ private struct RightColumn: View {
     let onAction: (WindowAction) -> Void
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             IdentityRow(state: state, target: target)
             ChipGrid(
                 currentAction: target?.currentAction ?? state.lastAction,
@@ -344,9 +339,6 @@ private struct RightColumn: View {
                 onAction: onAction
             )
         }
-        .padding(.leading, 8)
-        .padding(.trailing, 4)
-        .padding(.vertical, 2)
         .frame(maxHeight: .infinity, alignment: .top)
     }
 }
@@ -390,8 +382,6 @@ private struct IdentityRow: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 2)
-        .padding(.leading, 2)
     }
 
     private var displayName: String {
@@ -425,29 +415,32 @@ private struct ChipGrid: View {
     @Binding var hoverPreview: WindowAction?
     let onAction: (WindowAction) -> Void
 
-    // Five WindowActions plus one empty slot, arranged 3×2.
-    private let cells: [WindowAction?] = [
-        .leftHalf, .topHalf, .maximize,
-        .rightHalf, .bottomHalf, nil
+    // Six WindowActions arranged 3×2.
+    private let rows: [[WindowAction]] = [
+        [.leftHalf, .topHalf, .maximize],
+        [.rightHalf, .bottomHalf, .zoom]
     ]
 
     var body: some View {
-        let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
-        LazyVGrid(columns: columns, spacing: 4) {
-            ForEach(cells.indices, id: \.self) { idx in
-                if let action = cells[idx] {
-                    Chip(
-                        action: action,
-                        isOn: currentAction == action,
-                        hoverPreview: $hoverPreview,
-                        onAction: onAction
-                    )
-                } else {
-                    Color.clear
+        // Manual VStack/HStack so rows flex-fill the available height —
+        // LazyVGrid sizes rows to content, which leaves dead space at the bottom.
+        VStack(spacing: 9) {
+            ForEach(rows.indices, id: \.self) { rowIdx in
+                HStack(spacing: 10) {
+                    ForEach(rows[rowIdx], id: \.self) { action in
+                        Chip(
+                            action: action,
+                            isOn: currentAction == action,
+                            hoverPreview: $hoverPreview,
+                            onAction: onAction
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -462,8 +455,7 @@ private struct Chip: View {
         Button {
             onAction(action)
         } label: {
-            WindowPositionGlyph(action: action, isLit: isOn || isHovering)
-                .frame(width: 28, height: 20)
+            chipContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 5, style: .continuous)
@@ -479,6 +471,19 @@ private struct Chip: View {
         .accessibilityLabel(action.label)
     }
 
+    @ViewBuilder
+    private var chipContent: some View {
+        if action.isFrameBased {
+            WindowPositionGlyph(action: action, isLit: isOn || isHovering)
+                .frame(width: 28, height: 20)
+        } else {
+            // Non-frame actions (zoom): same screen-shaped frame as position glyphs,
+            // with expand arrows inside instead of a filled region.
+            ZoomGlyph(isLit: isOn || isHovering)
+                .frame(width: 28, height: 20)
+        }
+    }
+
     private var background: Color {
         if isOn { return WindowsTabTheme.chipActive }
         if isHovering { return WindowsTabTheme.chipHover }
@@ -487,6 +492,32 @@ private struct Chip: View {
 }
 
 // MARK: - Position glyph (signature)
+
+/// Screen-shaped frame with expand-arrows inside. Used for the zoom chip — matches the
+/// position glyph's outer rectangle so it sits visually with the other five chips.
+private struct ZoomGlyph: View {
+    let isLit: Bool
+
+    var body: some View {
+        GeometryReader { proxy in
+            let w = proxy.size.width
+            let h = proxy.size.height
+
+            ZStack {
+                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                    .strokeBorder(
+                        isLit ? WindowsTabTheme.etchedBorderLit : WindowsTabTheme.etchedBorder,
+                        lineWidth: 1
+                    )
+
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(isLit ? WindowsTabTheme.glyphFillLit : WindowsTabTheme.glyphFillDim)
+                    .frame(width: w, height: h)
+            }
+        }
+    }
+}
 
 /// Screen-shaped rectangle with the occupied region filled. Used in the stage strip and on chips.
 private struct WindowPositionGlyph: View {
@@ -518,7 +549,7 @@ private struct WindowPositionGlyph: View {
     }
 
     static func filledRect(for action: WindowAction?, w: CGFloat, h: CGFloat, pad: CGFloat) -> CGRect? {
-        guard let action else { return nil }
+        guard let action, action.isFrameBased else { return nil }
         let innerW = max(0, w - pad * 2)
         let innerH = max(0, h - pad * 2)
         let halfW = max(0, innerW / 2 - pad / 2)
@@ -534,6 +565,8 @@ private struct WindowPositionGlyph: View {
             return CGRect(x: pad, y: h - pad - halfH, width: innerW, height: halfH)
         case .maximize:
             return CGRect(x: pad, y: pad, width: innerW, height: innerH)
+        case .zoom:
+            return nil
         }
     }
 }
