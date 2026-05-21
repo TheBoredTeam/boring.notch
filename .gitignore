@@ -55,3 +55,13 @@ build/
 *.xcarchive
 *.dSYM
 .gstack/
+
+# Signing / secrets — never check these in
+*.p12
+*.p8
+sparkle_ed_private_key*
+AuthKey_*.p8
+*.cer
+*.mobileprovision
+.env.local
+.env.*.local

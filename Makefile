@@ -1,4 +1,4 @@
-.PHONY: help build run stop restart smoke test-window test-window-ui test-window-focus clean
+.PHONY: help build run stop restart smoke test-window test-window-ui test-window-focus release release-dry clean
 
 PROJECT := Gojo.xcodeproj
 SCHEME := Gojo
@@ -16,7 +16,20 @@ help:
 	@echo "  make test-window Run window management regression checks"
 	@echo "  make test-window-ui Run Windows tab UI regression checks"
 	@echo "  make test-window-focus Run focused-window provider regression checks"
+	@echo ""
+	@echo "Release:"
+	@echo "  make release VERSION=x.y.z      Cut a signed/notarized release (see RELEASING.md)"
+	@echo "  make release-dry VERSION=x.y.z  Build + sign + notarize without publishing"
+	@echo ""
 	@echo "  make clean       Remove local build artifacts"
+
+release:
+	@test -n "$(VERSION)" || (echo "Usage: make release VERSION=x.y.z"; exit 2)
+	@./scripts/release.sh $(VERSION)
+
+release-dry:
+	@test -n "$(VERSION)" || (echo "Usage: make release-dry VERSION=x.y.z"; exit 2)
+	@DRY_RUN=1 ./scripts/release.sh $(VERSION)
 
 build:
 	xcodebuild \

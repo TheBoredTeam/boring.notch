@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Gojo</title>
+    <link>https://rohoswagger.github.io/gojo/appcast.xml</link>
+    <description>Most recent changes to Gojo, with download links.</description>
+    <language>en</language>
+    <!-- Release items are appended here by .github/workflows/release.yml -->
+  </channel>
+</rss>
