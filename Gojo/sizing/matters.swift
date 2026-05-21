@@ -17,6 +17,25 @@ let openNotchSize: CGSize = .init(width: 640, height: 190)
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
+enum NotchContentLayout {
+    static let horizontalPadding: CGFloat = 12
+    static let topPadding: CGFloat = 4
+    static let bottomPadding: CGFloat = 6
+    static let openContentWidth: CGFloat = openNotchSize.width - horizontalPadding * 2
+    /// Windows tab: match album-art inset on the music player tab.
+    static let windowsContentPadding: CGFloat = 5
+    static let windowsTopPadding: CGFloat = 0
+    static let windowsBottomPadding: CGFloat = 8
+    /// Minimum content height so the layout map is not a tiny square in a tall notch.
+    static let windowsMinContentHeight: CGFloat = 112
+    /// Layout tile side length from available height (matches / exceeds open album art).
+    static func windowsLayoutTileSide(availableHeight: CGFloat) -> CGFloat {
+        let musicArt = MusicPlayerImageSizes.size.opened.width
+        let cap = min(max(availableHeight - 4, musicArt), 118)
+        return max(musicArt, cap)
+    }
+}
+
 enum MusicPlayerImageSizes {
     static let cornerRadiusInset: (opened: CGFloat, closed: CGFloat) = (opened: 13.0, closed: 4.0)
     static let size = (opened: CGSize(width: 90, height: 90), closed: CGSize(width: 20, height: 20))

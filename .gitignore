@@ -54,3 +54,4 @@ build/
 *.ipa
 *.xcarchive
 *.dSYM
+.gstack/

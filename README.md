@@ -49,7 +49,9 @@ open Gojo.xcodeproj
 Then build/run in Xcode or via:
 
 ```bash
-xcodebuild -project Gojo.xcodeproj -scheme Gojo -configuration Debug build
+make build
+make run
+make stop
 ```
 
 ## License and provenance

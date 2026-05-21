@@ -431,6 +431,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        WindowShortcutController.shared.register()
+
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
             let window = createGojoWindow(
@@ -466,7 +468,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor
-    private func viewModelForCurrentMouseLocation() -> GojoViewModel {
+    func viewModelForCurrentMouseLocation() -> GojoViewModel {
         let mouseLocation = NSEvent.mouseLocation
         var selectedViewModel = vm
 

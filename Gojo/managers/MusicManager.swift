@@ -7,12 +7,25 @@
 import AppKit
 import Combine
 import Defaults
+import ImageIO
 import SwiftUI
 
 let defaultImage: NSImage = .init(
     systemSymbolName: "heart.fill",
     accessibilityDescription: "Album Art"
 )!
+
+private struct ArtworkSignature: Equatable {
+    let byteCount: Int
+    let headHash: Int
+    let tailHash: Int
+
+    init(data: Data) {
+        byteCount = data.count
+        headHash = Data(data.prefix(4096)).hashValue
+        tailHash = Data(data.suffix(4096)).hashValue
+    }
+}
 
 class MusicManager: ObservableObject {
     // MARK: - Properties
@@ -54,7 +67,7 @@ class MusicManager: ObservableObject {
     @Published var canFavoriteTrack: Bool = false
     @Published var isFavoriteTrack: Bool = false
 
-    private var artworkData: Data? = nil
+    private var artworkSignature: ArtworkSignature? = nil
 
     // Store last values at the time artwork was changed
     private var lastArtworkTitle: String = "I'm Handsome"
@@ -201,7 +214,8 @@ class MusicManager: ObservableObject {
         let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
 
         // Check for artwork changes
-        let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
+        let incomingArtworkSignature = state.artwork.map(ArtworkSignature.init)
+        let artworkChanged = incomingArtworkSignature != nil && incomingArtworkSignature != self.artworkSignature
         let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged || bundleChanged
 
         // Handle artwork and visual transitions for changed content
@@ -217,7 +231,7 @@ class MusicManager: ObservableObject {
                     self.updateAlbumArt(newAlbumArt: appIconImage)
                 }
             }
-            self.artworkData = state.artwork
+            self.artworkSignature = incomingArtworkSignature
 
             if artworkChanged || state.artwork == nil {
                 // Update last artwork change values
@@ -523,16 +537,42 @@ class MusicManager: ObservableObject {
     }
 
     private func updateArtwork(_ artworkData: Data) {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            autoreleasepool {
+                guard let artworkImage = Self.downsampleArtwork(from: artworkData) else { return }
 
-            if let artworkImage = NSImage(data: artworkData) {
                 DispatchQueue.main.async { [weak self] in
                     self?.usingAppIconForArtwork = false
                     self?.updateAlbumArt(newAlbumArt: artworkImage)
                 }
             }
         }
+    }
+
+    private static func downsampleArtwork(from artworkData: Data, maxPixelSize: Int = 512) -> NSImage? {
+        let sourceOptions: [CFString: Any] = [
+            kCGImageSourceShouldCache: false
+        ]
+
+        guard let imageSource = CGImageSourceCreateWithData(artworkData as CFData, sourceOptions as CFDictionary) else {
+            return NSImage(data: artworkData)
+        }
+
+        let thumbnailOptions: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixelSize
+        ]
+
+        guard let thumbnail = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, thumbnailOptions as CFDictionary) else {
+            return NSImage(data: artworkData)
+        }
+
+        return NSImage(
+            cgImage: thumbnail,
+            size: NSSize(width: thumbnail.width, height: thumbnail.height)
+        )
     }
 
     private func updateIdleState(state: Bool) {

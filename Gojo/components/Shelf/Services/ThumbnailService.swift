@@ -14,8 +14,10 @@ actor ThumbnailService {
     static let shared = ThumbnailService()
 
     private var cache: [String: NSImage] = [:]
+    private var cacheOrder: [String] = []
     private var pendingRequests: [String: Task<NSImage?, Never>] = [:]
     private let thumbnailGenerator = QLThumbnailGenerator.shared
+    private let maxCachedThumbnails = 80
 
     private init() {}
     
@@ -23,6 +25,7 @@ actor ThumbnailService {
         let cacheKey = "\(url.path)_\(size.width)x\(size.height)"
         
         if let cached = cache[cacheKey] {
+            markCacheKeyUsed(cacheKey)
             return cached
         }
         
@@ -33,7 +36,7 @@ actor ThumbnailService {
         let task = Task<NSImage?, Never> {
             let thumbnail = await generateQuickLookThumbnail(for: url, size: size)
             if let thumbnail = thumbnail {
-                cache[cacheKey] = thumbnail
+                storeThumbnail(thumbnail, for: cacheKey)
             }
             pendingRequests[cacheKey] = nil
             return thumbnail
@@ -45,10 +48,12 @@ actor ThumbnailService {
     
     func clearCache() {
         cache.removeAll()
+        cacheOrder.removeAll()
     }
     
     func clearCache(for url: URL) {
         cache = cache.filter { !$0.key.starts(with: url.path) }
+        cacheOrder.removeAll { $0.starts(with: url.path) }
     }
     
     // MARK: - Private Methods
@@ -80,6 +85,21 @@ actor ThumbnailService {
                 }
             }
         }
+    }
+
+    private func storeThumbnail(_ thumbnail: NSImage, for cacheKey: String) {
+        cache[cacheKey] = thumbnail
+        markCacheKeyUsed(cacheKey)
+
+        while cacheOrder.count > maxCachedThumbnails, let oldestKey = cacheOrder.first {
+            cache.removeValue(forKey: oldestKey)
+            cacheOrder.removeFirst()
+        }
+    }
+
+    private func markCacheKeyUsed(_ cacheKey: String) {
+        cacheOrder.removeAll { $0 == cacheKey }
+        cacheOrder.append(cacheKey)
     }
 }
 

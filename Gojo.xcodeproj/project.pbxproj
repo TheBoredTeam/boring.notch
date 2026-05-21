@@ -74,12 +74,6 @@
 		11F748732EC9DA9300F841DB /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 11F748722EC9DA9300F841DB /* Lottie */; };
 		11F748822ECB07A400F841DB /* MusicControlButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F748812ECB07A400F841DB /* MusicControlButton.swift */; };
 		11F748842ECB27DC00F841DB /* MusicSlotConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F748832ECB27DC00F841DB /* MusicSlotConfigurationView.swift */; };
-		C1A000000000000000000201 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000101 /* ClipboardItem.swift */; };
-		C1A000000000000000000202 /* ClipboardPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000102 /* ClipboardPersistenceService.swift */; };
-		C1A000000000000000000203 /* ClipboardMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000103 /* ClipboardMonitorService.swift */; };
-		C1A000000000000000000204 /* ClipboardStateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000104 /* ClipboardStateViewModel.swift */; };
-		C1A000000000000000000205 /* ClipboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000105 /* ClipboardView.swift */; };
-		C1A000000000000000000206 /* ClipboardSettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000106 /* ClipboardSettingsScreen.swift */; };
 		14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DD62C6E015000B9F80C /* AudioPlayer.swift */; };
 		14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */; };
 		14288E0C2C6F8EC000B9F80C /* AppIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288E0B2C6F8EC000B9F80C /* AppIcons.swift */; };
@@ -148,6 +142,25 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		C1A000000000000000000201 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000101 /* ClipboardItem.swift */; };
+		C1A000000000000000000202 /* ClipboardPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000102 /* ClipboardPersistenceService.swift */; };
+		C1A000000000000000000203 /* ClipboardMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000103 /* ClipboardMonitorService.swift */; };
+		C1A000000000000000000204 /* ClipboardStateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000104 /* ClipboardStateViewModel.swift */; };
+		C1A000000000000000000205 /* ClipboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000105 /* ClipboardView.swift */; };
+		C1A000000000000000000206 /* ClipboardSettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000106 /* ClipboardSettingsScreen.swift */; };
+		C2B000000000000000201 /* WindowAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000101 /* WindowAction.swift */; };
+		C2B000000000000000202 /* WindowLayoutPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000102 /* WindowLayoutPreview.swift */; };
+		C2B000000000000000203 /* WindowPowerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000103 /* WindowPowerState.swift */; };
+		C2B000000000000000204 /* FocusedWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000104 /* FocusedWindow.swift */; };
+		C2B000000000000000205 /* FocusedWindowProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000105 /* FocusedWindowProvider.swift */; };
+		C2B000000000000000206 /* WindowGeometryCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000106 /* WindowGeometryCalculator.swift */; };
+		C2B000000000000000207 /* WindowHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000107 /* WindowHistoryStore.swift */; };
+		C2B000000000000000208 /* WindowActionExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000108 /* WindowActionExecutor.swift */; };
+		C2B000000000000000209 /* WindowShortcutController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000109 /* WindowShortcutController.swift */; };
+		C2B000000000000000210 /* WindowPowerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000110 /* WindowPowerView.swift */; };
+		C2B000000000000000211 /* WindowTargetResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000111 /* WindowTargetResolver.swift */; };
+		C2B000000000000000212 /* WindowFrameCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000112 /* WindowFrameCalculator.swift */; };
+		C2B000000000000000213 /* WindowTargetResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B000000000000000000111 /* WindowTargetResolver.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -247,12 +260,6 @@
 		11F748662EC9AC9600F841DB /* XPCHelperClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCHelperClient.swift; sourceTree = "<group>"; };
 		11F748812ECB07A400F841DB /* MusicControlButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicControlButton.swift; sourceTree = "<group>"; };
 		11F748832ECB27DC00F841DB /* MusicSlotConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicSlotConfigurationView.swift; sourceTree = "<group>"; };
-		C1A000000000000000000101 /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
-		C1A000000000000000000102 /* ClipboardPersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPersistenceService.swift; sourceTree = "<group>"; };
-		C1A000000000000000000103 /* ClipboardMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitorService.swift; sourceTree = "<group>"; };
-		C1A000000000000000000104 /* ClipboardStateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStateViewModel.swift; sourceTree = "<group>"; };
-		C1A000000000000000000105 /* ClipboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardView.swift; sourceTree = "<group>"; };
-		C1A000000000000000000106 /* ClipboardSettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSettingsScreen.swift; sourceTree = "<group>"; };
 		14288DD62C6E015000B9F80C /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressIndicator.swift; sourceTree = "<group>"; };
 		14288E0B2C6F8EC000B9F80C /* AppIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIcons.swift; sourceTree = "<group>"; };
@@ -320,6 +327,24 @@
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		C1A000000000000000000101 /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
+		C1A000000000000000000102 /* ClipboardPersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPersistenceService.swift; sourceTree = "<group>"; };
+		C1A000000000000000000103 /* ClipboardMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitorService.swift; sourceTree = "<group>"; };
+		C1A000000000000000000104 /* ClipboardStateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStateViewModel.swift; sourceTree = "<group>"; };
+		C1A000000000000000000105 /* ClipboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardView.swift; sourceTree = "<group>"; };
+		C1A000000000000000000106 /* ClipboardSettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSettingsScreen.swift; sourceTree = "<group>"; };
+		C2B000000000000000000101 /* WindowAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowAction.swift; sourceTree = "<group>"; };
+		C2B000000000000000000102 /* WindowLayoutPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutPreview.swift; sourceTree = "<group>"; };
+		C2B000000000000000000103 /* WindowPowerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPowerState.swift; sourceTree = "<group>"; };
+		C2B000000000000000000104 /* FocusedWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusedWindow.swift; sourceTree = "<group>"; };
+		C2B000000000000000000105 /* FocusedWindowProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusedWindowProvider.swift; sourceTree = "<group>"; };
+		C2B000000000000000000106 /* WindowGeometryCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowGeometryCalculator.swift; sourceTree = "<group>"; };
+		C2B000000000000000000107 /* WindowHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowHistoryStore.swift; sourceTree = "<group>"; };
+		C2B000000000000000000108 /* WindowActionExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowActionExecutor.swift; sourceTree = "<group>"; };
+		C2B000000000000000000109 /* WindowShortcutController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowShortcutController.swift; sourceTree = "<group>"; };
+		C2B000000000000000000110 /* WindowPowerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPowerView.swift; sourceTree = "<group>"; };
+		C2B000000000000000000111 /* WindowTargetResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowTargetResolver.swift; sourceTree = "<group>"; };
+		C2B000000000000000000112 /* WindowFrameCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowFrameCalculator.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -503,6 +528,7 @@
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
 				C1A000000000000000000001 /* Clipboard */,
 				9A987A042C73CA66005CA465 /* Shelf */,
+				C2B000000000000000000002 /* Windows */,
 				149E0B982C737D26006418B1 /* Webcam */,
 				B18654312C6F45AE000B926A /* Live activities */,
 				B18654302C6F4590000B926A /* Settings */,
@@ -518,51 +544,6 @@
 				B1F747F82EC7E94000F841DB /* LottieView.swift */,
 			);
 			path = components;
-			sourceTree = "<group>";
-		};
-		C1A000000000000000000001 /* Clipboard */ = {
-			isa = PBXGroup;
-			children = (
-				C1A000000000000000000002 /* Models */,
-				C1A000000000000000000003 /* Services */,
-				C1A000000000000000000004 /* ViewModels */,
-				C1A000000000000000000005 /* Views */,
-			);
-			path = Clipboard;
-			sourceTree = "<group>";
-		};
-		C1A000000000000000000002 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				C1A000000000000000000101 /* ClipboardItem.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		C1A000000000000000000003 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				C1A000000000000000000102 /* ClipboardPersistenceService.swift */,
-				C1A000000000000000000103 /* ClipboardMonitorService.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
-		C1A000000000000000000004 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				C1A000000000000000000104 /* ClipboardStateViewModel.swift */,
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		C1A000000000000000000005 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				C1A000000000000000000105 /* ClipboardView.swift */,
-				C1A000000000000000000106 /* ClipboardSettingsScreen.swift */,
-			);
-			path = Views;
 			sourceTree = "<group>";
 		};
 		147163B52C5D804B0068B555 /* managers */ = {
@@ -624,6 +605,7 @@
 				14288DE22C6E016F00B9F80C /* observers */,
 				14288DD92C6E015000B9F80C /* helpers */,
 				B186543A2C6F49A4000B926A /* Shortcuts */,
+				C2B000000000000000000001 /* WindowManagement */,
 				1443E7F12C609DB90027C1FC /* sizing */,
 				14D570C72C5F38760011E668 /* models */,
 				14D570BA2C5E98E30011E668 /* enums */,
@@ -815,6 +797,77 @@
 			path = Tips;
 			sourceTree = "<group>";
 		};
+		C1A000000000000000000001 /* Clipboard */ = {
+			isa = PBXGroup;
+			children = (
+				C1A000000000000000000002 /* Models */,
+				C1A000000000000000000003 /* Services */,
+				C1A000000000000000000004 /* ViewModels */,
+				C1A000000000000000000005 /* Views */,
+			);
+			path = Clipboard;
+			sourceTree = "<group>";
+		};
+		C1A000000000000000000002 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C1A000000000000000000101 /* ClipboardItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		C1A000000000000000000003 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				C1A000000000000000000102 /* ClipboardPersistenceService.swift */,
+				C1A000000000000000000103 /* ClipboardMonitorService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		C1A000000000000000000004 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				C1A000000000000000000104 /* ClipboardStateViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		C1A000000000000000000005 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C1A000000000000000000105 /* ClipboardView.swift */,
+				C1A000000000000000000106 /* ClipboardSettingsScreen.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C2B000000000000000000001 /* WindowManagement */ = {
+			isa = PBXGroup;
+			children = (
+				C2B000000000000000000101 /* WindowAction.swift */,
+				C2B000000000000000000102 /* WindowLayoutPreview.swift */,
+				C2B000000000000000000103 /* WindowPowerState.swift */,
+				C2B000000000000000000104 /* FocusedWindow.swift */,
+				C2B000000000000000000105 /* FocusedWindowProvider.swift */,
+				C2B000000000000000000111 /* WindowTargetResolver.swift */,
+				C2B000000000000000000106 /* WindowGeometryCalculator.swift */,
+				C2B000000000000000000112 /* WindowFrameCalculator.swift */,
+				C2B000000000000000000107 /* WindowHistoryStore.swift */,
+				C2B000000000000000000108 /* WindowActionExecutor.swift */,
+				C2B000000000000000000109 /* WindowShortcutController.swift */,
+			);
+			path = WindowManagement;
+			sourceTree = "<group>";
+		};
+		C2B000000000000000000002 /* Windows */ = {
+			isa = PBXGroup;
+			children = (
+				C2B000000000000000000110 /* WindowPowerView.swift */,
+			);
+			path = Windows;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -956,6 +1009,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C2B000000000000000213 /* WindowTargetResolver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -964,6 +1018,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				115C12EC2ED3D003009754CA /* OpenNotchHUD.swift in Sources */,
+				C2B000000000000000201 /* WindowAction.swift in Sources */,
+				C2B000000000000000202 /* WindowLayoutPreview.swift in Sources */,
+				C2B000000000000000203 /* WindowPowerState.swift in Sources */,
+				C2B000000000000000204 /* FocusedWindow.swift in Sources */,
+				C2B000000000000000205 /* FocusedWindowProvider.swift in Sources */,
+				C2B000000000000000211 /* WindowTargetResolver.swift in Sources */,
+				C2B000000000000000206 /* WindowGeometryCalculator.swift in Sources */,
+				C2B000000000000000212 /* WindowFrameCalculator.swift in Sources */,
+				C2B000000000000000207 /* WindowHistoryStore.swift in Sources */,
+				C2B000000000000000208 /* WindowActionExecutor.swift in Sources */,
+				C2B000000000000000209 /* WindowShortcutController.swift in Sources */,
+				C2B000000000000000210 /* WindowPowerView.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* CalendarView.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
 				1100292A2E8691B400035A57 /* FileShareView.swift in Sources */,
@@ -1282,13 +1348,13 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = Gojo/Gojo.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Gojo/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = L6U44C67P5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1336,13 +1402,13 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = Gojo/Gojo.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Gojo/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = L6U44C67P5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (

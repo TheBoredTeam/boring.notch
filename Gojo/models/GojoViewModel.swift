@@ -34,6 +34,9 @@ class GojoViewModel: NSObject, ObservableObject {
 
     @Published var screenUUID: String?
 
+    /// Per-notch window tiler UI state (shared tab selection stays on `GojoViewCoordinator`).
+    let windowPowerState = WindowPowerState()
+
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
     
@@ -210,8 +213,8 @@ class GojoViewModel: NSObject, ObservableObject {
         self.edgeAutoOpenActive = false
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
-        // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+        // Otherwise, if the user has not enabled openLastTabByDefault, set the view to home
+        if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
             coordinator.currentView = .shelf
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home

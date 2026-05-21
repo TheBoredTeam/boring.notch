@@ -18,10 +18,9 @@ struct GojoHeader: View {
             HStack {
                 if coordinator.alwaysShowTabs
                     || coordinator.currentView != .home
-                    || (!tvm.isEmpty && Defaults[.shelfEnabled]) {
+                    || (!tvm.isEmpty && Defaults[.shelfEnabled])
+                    || vm.notchState == .open {
                     TabSelectionView()
-                } else if vm.notchState == .open {
-                    EmptyView()
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -31,7 +30,7 @@ struct GojoHeader: View {
 
             if vm.notchState == .open {
                 Rectangle()
-                    .fill(NSScreen.screen(withUUID: coordinator.selectedScreenUUID)?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
+                    .fill(NSScreen.screen(withUUID: vm.screenUUID ?? coordinator.selectedScreenUUID)?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
                     .frame(width: vm.closedNotchSize.width)
                     .mask {
                         NotchShape()

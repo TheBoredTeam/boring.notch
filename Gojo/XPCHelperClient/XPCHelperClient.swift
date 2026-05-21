@@ -145,6 +145,88 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
+
+    nonisolated func focusedWindowSnapshot(promptIfNeeded: Bool) async -> NSDictionary? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let result: NSDictionary = try await service.withContinuation { service, continuation in
+                service.focusedWindowSnapshot(promptIfNeeded) { snapshot in
+                    continuation.resume(returning: snapshot)
+                }
+            }
+            await MainActor.run {
+                notifyAuthorizationChange((result["authorized"] as? NSNumber)?.boolValue == true)
+            }
+            guard result["error"] == nil else { return nil }
+            return result
+        } catch {
+            return nil
+        }
+    }
+
+    nonisolated func setFocusedWindowFrame(_ normalFrame: CGRect, windowID: CGWindowID?) async -> Bool {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let frameDictionary = normalFrame.dictionaryRepresentation as NSDictionary
+            let windowIDNumber = windowID.map { NSNumber(value: $0) }
+            return try await service.withContinuation { service, continuation in
+                service.setFocusedWindowFrame(frameDictionary, windowID: windowIDNumber) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    nonisolated func setWindowFrame(_ normalFrame: CGRect, pid: pid_t, windowID: CGWindowID?) async -> Bool {
+        do {
+            let service = await MainActor.run { ensureRemoteService() }
+            let frameDictionary = normalFrame.dictionaryRepresentation as NSDictionary
+            let pidNumber = NSNumber(value: pid)
+            let windowIDNumber = windowID.map { NSNumber(value: $0) }
+            return try await service.withContinuation { service, continuation in
+                service.setWindowFrame(frameDictionary, pid: pidNumber, windowID: windowIDNumber) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    nonisolated func raiseWindow(pid: pid_t, windowID: CGWindowID?) async -> Bool {
+        do {
+            let service = await MainActor.run { ensureRemoteService() }
+            let pidNumber = NSNumber(value: pid)
+            let windowIDNumber = windowID.map { NSNumber(value: $0) }
+            return try await service.withContinuation { service, continuation in
+                service.raiseWindow(pidNumber, windowID: windowIDNumber) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    nonisolated func enumerateWindows(screenUUID: String?) async -> [[String: Any]] {
+        do {
+            let service = await MainActor.run { ensureRemoteService() }
+            let result: NSArray = try await service.withContinuation { service, continuation in
+                service.enumerateWindows(forScreen: screenUUID as NSString?) { array in
+                    continuation.resume(returning: array)
+                }
+            }
+            return (result as? [[String: Any]]) ?? []
+        } catch {
+            return []
+        }
+    }
     
     // MARK: - Keyboard Brightness
     
@@ -246,5 +328,3 @@ final class XPCHelperClient: NSObject {
 extension Notification.Name {
     static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")
 }
-
-

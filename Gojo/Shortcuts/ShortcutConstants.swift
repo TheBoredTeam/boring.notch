@@ -15,4 +15,9 @@ extension KeyboardShortcuts.Name {
     static let increaseBacklight = Self("increaseBacklight", default: .init(.f2, modifiers: [.command]))
     static let toggleSneakPeek = Self("toggleSneakPeek", default: .init(.h, modifiers: [.command, .shift]))
     static let toggleNotchOpen = Self("toggleNotchOpen", default: .init(.i, modifiers: [.command, .shift]))
+    static let windowLeftHalf = Self("windowLeftHalf", default: .init(.leftArrow, modifiers: [.control, .option]))
+    static let windowRightHalf = Self("windowRightHalf", default: .init(.rightArrow, modifiers: [.control, .option]))
+    static let windowTopHalf = Self("windowTopHalf", default: .init(.upArrow, modifiers: [.control, .option]))
+    static let windowBottomHalf = Self("windowBottomHalf", default: .init(.downArrow, modifiers: [.control, .option]))
+    static let windowMaximize = Self("windowMaximize", default: .init(.return, modifiers: [.control, .option]))
 }

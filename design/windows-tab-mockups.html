@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gojo — Windows Tab · Design Shotgun v2</title>
+  <style>
+    :root {
+      --notch-w: 640px;
+      --notch-h: 190px;
+      --r-top: 19px;
+      --r-bot: 24px;
+
+      --ink-0: #000;
+      --ink-1: #0a0a0c;
+      --ink-2: #141417;
+      --ink-3: #1c1c20;
+      --hair: rgba(255,255,255,0.08);
+      --hair-2: rgba(255,255,255,0.14);
+      --text: #fff;
+      --t-1: rgba(255,255,255,0.92);
+      --t-2: rgba(255,255,255,0.62);
+      --t-3: rgba(255,255,255,0.40);
+      --t-4: rgba(255,255,255,0.22);
+
+      --accent: #6aa8ff;
+      --accent-2: #8b7dff;
+      --accent-soft: rgba(106,168,255,0.16);
+      --accent-glow: rgba(106,168,255,0.45);
+      --pos: #6ee2a8;
+      --warn: #f5c842;
+
+      --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+      --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background:
+        radial-gradient(1200px 600px at 50% -200px, rgba(106,168,255,0.10), transparent 60%),
+        radial-gradient(900px 500px at 90% 100%, rgba(139,125,255,0.06), transparent 60%),
+        #07070a;
+      color: var(--text);
+      font-family: var(--font);
+      font-feature-settings: "ss01", "cv11";
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.45;
+    }
+
+    body { padding: 56px 24px 120px; }
+
+    .wrap { max-width: 1180px; margin: 0 auto; }
+
+    /* ——— Page header ——— */
+    .page-head { margin-bottom: 56px; max-width: 760px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.14em; color: var(--t-3); margin-bottom: 14px;
+    }
+    .eyebrow::before { content: ""; width: 18px; height: 1px; background: var(--t-3); }
+    .page-head h1 {
+      font-size: 40px; font-weight: 600; letter-spacing: -0.025em;
+      line-height: 1.05; margin-bottom: 14px;
+      background: linear-gradient(180deg, #fff 0%, #b8b8c4 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .page-head p { color: var(--t-2); font-size: 15.5px; max-width: 640px; }
+    .page-head p strong { color: var(--t-1); font-weight: 500; }
+
+    .refs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
+    .ref {
+      font-size: 11.5px; color: var(--t-2); text-decoration: none;
+      padding: 5px 10px 5px 8px; border: 1px solid var(--hair);
+      border-radius: 999px; display: inline-flex; align-items: center; gap: 6px;
+      transition: all .15s;
+    }
+    .ref::before { content: ""; width: 4px; height: 4px; border-radius: 999px; background: var(--accent); }
+    .ref:hover { color: #fff; border-color: var(--hair-2); background: rgba(255,255,255,0.03); }
+
+    /* ——— Concept grid ——— */
+    .grid { display: flex; flex-direction: column; gap: 28px; }
+
+    .concept {
+      border: 1px solid var(--hair);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.005) 100%), var(--ink-1);
+      overflow: hidden;
+      position: relative;
+    }
+    .concept::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      border-radius: inherit;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .c-head {
+      padding: 22px 28px 18px;
+      display: grid; grid-template-columns: 44px 1fr auto; gap: 18px; align-items: center;
+      border-bottom: 1px solid var(--hair);
+    }
+    .c-id {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(106,168,255,0.18), rgba(139,125,255,0.10));
+      border: 1px solid rgba(106,168,255,0.30);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 15px; font-weight: 600; color: #c8d8ff;
+    }
+    .c-title h2 {
+      font-size: 19px; font-weight: 600; letter-spacing: -0.015em; margin-bottom: 3px;
+    }
+    .c-title .lineage { font-size: 12.5px; color: var(--t-3); font-family: var(--mono); }
+    .c-title .lineage span { color: var(--t-2); }
+    .c-tags { display: flex; gap: 6px; align-items: center; }
+    .c-tag {
+      font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 4px 9px; border-radius: 6px;
+      background: rgba(255,255,255,0.04); color: var(--t-2);
+      border: 1px solid var(--hair);
+    }
+    .c-tag.pos { color: #a4ecc4; background: rgba(110,226,168,0.08); border-color: rgba(110,226,168,0.25); }
+    .c-tag.con { color: #f0bdbd; background: rgba(240,140,140,0.06); border-color: rgba(240,140,140,0.20); }
+
+    .c-blurb { padding: 14px 28px 22px; color: var(--t-2); font-size: 14px; max-width: 820px; }
+
+    /* ——— Stage ——— */
+    .stage {
+      padding: 36px 24px 44px;
+      display: grid; grid-template-columns: 1fr; gap: 16px; align-items: center; justify-items: center;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(106,168,255,0.05), transparent 70%),
+        linear-gradient(180deg, var(--ink-2) 0%, var(--ink-1) 100%);
+      border-top: 1px solid var(--hair);
+    }
+    .stage-meta {
+      display: flex; gap: 14px; align-items: center;
+      font-family: var(--mono); font-size: 10.5px; color: var(--t-3); letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .stage-meta .dot { width: 4px; height: 4px; border-radius: 999px; background: var(--t-4); }
+
+    /* ——— Notch chrome (shared) ——— */
+    .notch {
+      width: var(--notch-w);
+      height: var(--notch-h);
+      background: #000;
+      border-radius: var(--r-top) var(--r-top) var(--r-bot) var(--r-bot);
+      box-shadow:
+        0 30px 80px -20px rgba(0,0,0,0.7),
+        0 1px 0 rgba(255,255,255,0.06) inset,
+        0 0 0 0.5px rgba(255,255,255,0.05);
+      position: relative;
+      overflow: hidden;
+      font-size: 13px;
+    }
+    .notch::before {
+      content: ""; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 50% 30% at 50% 0%, rgba(255,255,255,0.025), transparent 70%);
+      pointer-events: none;
+    }
+
+    /* shared top bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 16px 0;
+      height: 30px;
+      position: relative; z-index: 2;
+    }
+    .tabs { display: flex; align-items: center; gap: 2px; }
+    .tab {
+      width: 30px; height: 22px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t-3);
+    }
+    .tab svg { width: 14px; height: 14px; }
+    .tab.active { background: rgba(255,255,255,0.10); color: #fff; }
+    .status { display: flex; align-items: center; gap: 10px; color: var(--t-2); font-size: 11.5px; }
+    .status .gear { color: var(--t-3); }
+    .status .battery { display: inline-flex; align-items: center; gap: 4px; }
+    .battery-pill {
+      width: 24px; height: 12px; border-radius: 3px;
+      background: linear-gradient(90deg, var(--warn) 0%, var(--warn) 100%);
+      position: relative; box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
+    }
+    .battery-pill::after {
+      content: ""; position: absolute; right: -3px; top: 3px; width: 2px; height: 6px;
+      background: var(--warn); border-radius: 0 1.5px 1.5px 0;
+    }
+    .body {
+      padding: 6px 14px 12px;
+      position: relative; z-index: 1;
+      height: calc(var(--notch-h) - 30px);
+    }
+
+    /* ——— Realistic app icon ——— */
+    .app-icon {
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #fff; font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.18);
+      flex-shrink: 0;
+    }
+    .app-icon.cursor { background: linear-gradient(135deg, #1f1f24 0%, #0a0a0c 100%); border: 1px solid rgba(255,255,255,0.12); }
+    .app-icon.cursor::after { content: ""; width: 50%; height: 50%; background: linear-gradient(135deg, #fff 0%, #888 100%); clip-path: polygon(0 0, 100% 50%, 50% 60%, 60% 100%); }
+    .app-icon.figma { background: #2c2c2c; padding: 2px; }
+    .app-icon.fig-tile { position: relative; }
+    .app-icon.fig-tile::after, .app-icon.fig-tile::before { content: ""; }
+
+    /* ============================================================ */
+    /* CONCEPT 01 — Spatial Snap (Rectangle-inspired, refined)       */
+    /* ============================================================ */
+    .c01 .body { display: flex; gap: 14px; align-items: stretch; }
+
+    .c01-hero {
+      flex: 1; min-width: 0;
+      border-radius: 13px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
+      border: 1px solid var(--hair);
+      position: relative; padding: 10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .c01-screen {
+      width: 100%; height: 100%;
+      background:
+        linear-gradient(135deg, rgba(106,168,255,0.04), rgba(139,125,255,0.02)),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0 6px, transparent 6px 12px);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      position: relative;
+    }
+    .c01-screen::before {
+      content: "Built-in Retina · 2560×1664";
+      position: absolute; top: 6px; left: 8px;
+      font-family: var(--mono); font-size: 9px; color: var(--t-4); letter-spacing: 0.05em;
+    }
+
+    .snap-zone {
+      position: absolute;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(.2,.8,.2,1);
+      border: 1px solid transparent;
+    }
+    .snap-zone:hover, .snap-zone.active {
+      background: linear-gradient(180deg, rgba(106,168,255,0.30), rgba(106,168,255,0.18));
+      border-color: rgba(106,168,255,0.7);
+      box-shadow:
+        0 0 0 1px rgba(106,168,255,0.4),
+        0 0 24px rgba(106,168,255,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .snap-zone .kbd {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-family: var(--mono); font-size: 10px; color: var(--t-3);
+      opacity: 0; transition: opacity 0.18s;
+      white-space: nowrap;
+    }
+    .snap-zone:hover .kbd, .snap-zone.active .kbd { opacity: 1; color: #d4e4ff; }
+    .sz-l  { left: 4%;  top: 14%; width: 22%; height: 72%; border-radius: 8px 4px 4px 8px; }
+    .sz-r  { right: 4%; top: 14%; width: 22%; height: 72%; border-radius: 4px 8px 8px 4px; }
+    .sz-t  { left: 28%; top: 6%;  width: 44%; height: 28%; }
+    .sz-b  { left: 28%; bottom: 6%; width: 44%; height: 28%; }
+    .sz-m  { left: 34%; top: 38%; width: 32%; height: 22%; border-radius: 4px; }
+
+    .c01-side {
+      width: 200px; flex-shrink: 0;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 4px 4px 2px 4px;
+    }
+    .c01-app { display: flex; align-items: center; gap: 10px; }
+    .c01-app .app-icon { width: 36px; height: 36px; font-size: 16px; }
+    .c01-app .name { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+    .c01-app .sub  { font-size: 11px; color: var(--t-3); font-family: var(--mono); margin-top: 1px; }
+
+    .c01-hint {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 8px;
+      background: rgba(106,168,255,0.10);
+      border: 1px solid rgba(106,168,255,0.22);
+      font-size: 11px; color: #c8d8ff;
+    }
+    .c01-hint .kbd-pill {
+      font-family: var(--mono); font-size: 10px;
+      padding: 1px 5px; border-radius: 4px;
+      background: rgba(255,255,255,0.10); color: #fff;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .c01-list { display: flex; flex-direction: column; gap: 3px; }
+    .c01-list .row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11.5px; color: var(--t-2);
+    }
+    .c01-list .row .k { font-family: var(--mono); font-size: 10px; color: var(--t-3); }
+
+    /* ============================================================ */
+    /* CONCEPT 02 — Raycast command palette                          */
+    /* ============================================================ */
+    .c02 .body { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; }
+    .c02-search {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--hair);
+    }
+    .c02-search .app-icon { width: 22px; height: 22px; font-size: 11px; border-radius: 6px; }
+    .c02-search .lbl { font-size: 13px; color: var(--t-2); }
+    .c02-search .lbl b { color: #fff; font-weight: 600; }
+    .c02-search .sep { color: var(--t-4); }
+    .c02-search .caret { width: 1px; height: 14px; background: var(--accent); margin-left: -4px; animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .c02-rows { display: flex; flex-direction: column; gap: 1px; }
+    .c02-row {
+      display: grid; grid-template-columns: 22px 1fr auto auto; gap: 12px;
+      align-items: center; padding: 6px 12px;
+      border-radius: 8px; cursor: pointer;
+      color: var(--t-2); font-size: 12.5px;
+    }
+    .c02-row:hover, .c02-row.sel {
+      background: linear-gradient(90deg, rgba(106,168,255,0.18) 0%, rgba(106,168,255,0.05) 100%);
+      color: #fff;
+    }
+    .c02-row .glyph {
+      width: 22px; height: 22px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.06);
+      color: var(--t-1);
+    }
+    .c02-row.sel .glyph { background: rgba(106,168,255,0.3); color: #fff; }
+    .c02-row .glyph svg { width: 13px; height: 13px; }
+    .c02-row .desc { color: var(--t-3); font-size: 11px; }
+    .c02-row .kbd {
+      font-family: var(--mono); font-size: 10.5px;
+      padding: 2px 7px; border-radius: 5px;
+      background: rgba(255,255,255,0.06); color: var(--t-2);
+      border: 1px solid var(--hair);
+    }
+    .c02-row.sel .kbd { background: rgba(255,255,255,0.18); color: #fff; }
+
+    /* ============================================================ */
+    /* CONCEPT 03 — Control Center tiles                             */
+    /* ============================================================ */
+    .c03 .body { display: grid; grid-template-columns: 220px 1fr; gap: 12px; padding-top: 8px; }
+    .c03-id {
+      border-radius: 14px;
+      background:
+        radial-gradient(ellipse at top left, rgba(106,168,255,0.18), transparent 60%),
+        rgba(255,255,255,0.03);
+      border: 1px solid var(--hair);
+      padding: 14px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .c03-id .top { display: flex; gap: 10px; align-items: center; }
+    .c03-id .top .app-icon { width: 38px; height: 38px; font-size: 18px; }
+    .c03-id .name { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+    .c03-id .sub { font-size: 10.5px; color: var(--t-3); font-family: var(--mono); margin-top: 2px; }
+
+    .c03-meta { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--t-2); }
+    .c03-meta .row { display: flex; justify-content: space-between; }
+    .c03-meta .row .k { color: var(--t-3); font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .c03-tiles {
+      display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr 1fr; gap: 6px;
+    }
+    .c03-tile {
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid var(--hair);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; cursor: pointer; transition: all .15s;
+      position: relative;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .c03-tile:hover, .c03-tile.on {
+      background: linear-gradient(180deg, rgba(106,168,255,0.42) 0%, rgba(106,168,255,0.22) 100%);
+      border-color: rgba(106,168,255,0.5);
+      box-shadow: 0 0 24px rgba(106,168,255,0.25), inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+    .c03-tile .ico {
+      width: 22px; height: 16px; border-radius: 3px;
+      background: rgba(255,255,255,0.5);
+      position: relative; overflow: hidden;
+    }
+    .c03-tile .ico.left::before { content: ""; position: absolute; inset: 0; right: 50%; background: #fff; border-right: 1px solid #000; }
+    .c03-tile .ico.right::before { content: ""; position: absolute; inset: 0; left: 50%; background: #fff; border-left: 1px solid #000; }
+    .c03-tile .ico.top::before { content: ""; position: absolute; inset: 0; bottom: 50%; background: #fff; border-bottom: 1px solid #000; }
+    .c03-tile .ico.bottom::before { content: ""; position: absolute; inset: 0; top: 50%; background: #fff; border-top: 1px solid #000; }
+    .c03-tile .ico.fill { background: #fff; }
+    .c03-tile .ico.tl::before { content: ""; position: absolute; left: 0; top: 0; right: 50%; bottom: 50%; background: #fff; }
+    .c03-tile .ico.tr::before { content: ""; position: absolute; right: 0; top: 0; left: 50%; bottom: 50%; background: #fff; }
+    .c03-tile .ico.bl::before { content: ""; position: absolute; left: 0; bottom: 0; right: 50%; top: 50%; background: #fff; }
+    .c03-tile .ico.br::before { content: ""; position: absolute; right: 0; bottom: 0; left: 50%; top: 50%; background: #fff; }
+    .c03-tile .ico.center { background: transparent; }
+    .c03-tile .ico.center::before { content: ""; position: absolute; left: 25%; top: 25%; right: 25%; bottom: 25%; background: #fff; }
+    .c03-tile .ico { background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.25); }
+    .c03-tile .lbl { font-size: 9.5px; font-weight: 600; color: var(--t-2); text-transform: uppercase; letter-spacing: 0.05em; }
+    .c03-tile:hover .lbl, .c03-tile.on .lbl { color: #fff; }
+    .c03-tile .kbd {
+      position: absolute; top: 5px; right: 6px;
+      font-family: var(--mono); font-size: 8.5px; color: var(--t-4);
+    }
+    .c03-tile:hover .kbd, .c03-tile.on .kbd { color: #fff; opacity: 0.7; }
+
+    /* ============================================================ */
+    /* CONCEPT 04 — Stage Manager (left strip)                       */
+    /* ============================================================ */
+    .c04 .body { display: flex; gap: 12px; align-items: stretch; padding-top: 6px; }
+    .c04-strip {
+      width: 80px; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 2px 0;
+    }
+    .c04-mini {
+      flex: 1;
+      border-radius: 8px;
+      border: 1px solid var(--hair);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      position: relative; cursor: pointer;
+      transition: all .18s;
+      padding: 5px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .c04-mini .bar { height: 2px; border-radius: 1px; background: rgba(255,255,255,0.18); }
+    .c04-mini .body-fill { flex: 1; border-radius: 3px; background: rgba(255,255,255,0.04); }
+    .c04-mini .title { position: absolute; bottom: 4px; left: 6px; font-size: 8.5px; color: var(--t-3); font-family: var(--mono); }
+    .c04-mini.active {
+      border-color: rgba(106,168,255,0.5);
+      background: linear-gradient(180deg, rgba(106,168,255,0.18), rgba(106,168,255,0.05));
+      box-shadow: 0 0 16px rgba(106,168,255,0.18);
+    }
+    .c04-mini.active .bar { background: var(--accent); }
+    .c04-mini.active .title { color: #c8d8ff; }
+
+    .c04-main {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 4px 2px;
+    }
+    .c04-head { display: flex; align-items: center; gap: 10px; }
+    .c04-head .app-icon { width: 30px; height: 30px; font-size: 14px; }
+    .c04-head .name { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+    .c04-head .sub { font-size: 10.5px; color: var(--t-3); font-family: var(--mono); margin-top: 1px; }
+
+    .c04-zones { display: flex; gap: 5px; }
+    .c04-zone {
+      flex: 1; height: 60px;
+      border-radius: 10px;
+      border: 1px solid var(--hair);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+      cursor: pointer; transition: all .15s;
+      position: relative;
+    }
+    .c04-zone:hover, .c04-zone.on {
+      background: linear-gradient(180deg, rgba(106,168,255,0.32), rgba(106,168,255,0.12));
+      border-color: rgba(106,168,255,0.5);
+      box-shadow: 0 0 18px rgba(106,168,255,0.25);
+    }
+    .c04-zone svg { width: 20px; height: 20px; color: var(--t-2); }
+    .c04-zone:hover svg, .c04-zone.on svg { color: #fff; }
+    .c04-zone .lbl { font-size: 10px; color: var(--t-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .c04-zone:hover .lbl, .c04-zone.on .lbl { color: #fff; }
+
+    /* ============================================================ */
+    /* CONCEPT 05 — Live preview + chips                              */
+    /* ============================================================ */
+    .c05 .body { display: flex; gap: 14px; align-items: stretch; padding-top: 6px; }
+
+    .c05-preview {
+      width: 232px; flex-shrink: 0;
+      border-radius: 13px;
+      border: 1px solid var(--hair);
+      background:
+        radial-gradient(ellipse at top, rgba(106,168,255,0.10), transparent 50%),
+        linear-gradient(160deg, #1a1f2c 0%, #0e1118 100%);
+      position: relative; overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .c05-monitor {
+      position: absolute; left: 8px; right: 8px; top: 8px; bottom: 8px;
+      border-radius: 7px;
+      background:
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0 8px, transparent 8px 16px),
+        linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.55));
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .c05-window {
+      position: absolute;
+      border-radius: 5px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.30);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.20);
+      transition: all 0.35s cubic-bezier(.2, .8, .2, 1);
+    }
+    .c05-window::before {
+      content: ""; position: absolute; top: 4px; left: 5px;
+      width: 5px; height: 5px; border-radius: 999px;
+      background: #ff6058;
+      box-shadow: 8px 0 0 #ffbf2e, 16px 0 0 #28cc41;
+    }
+    .c05-window.s-left   { left: 4%; top: 8%;  width: 46%; height: 84%; }
+    .c05-window.s-right  { right: 4%; top: 8%; left: auto; width: 46%; height: 84%; }
+    .c05-window.s-top    { left: 4%; top: 8%;  width: 92%; height: 42%; }
+    .c05-window.s-bottom { left: 4%; bottom: 8%; top: auto; width: 92%; height: 42%; }
+    .c05-window.s-max    { left: 4%; top: 8%;  width: 92%; height: 84%; }
+    .c05-window.s-tl     { left: 4%; top: 8%;  width: 46%; height: 42%; }
+
+    .c05-preview .lbl {
+      position: absolute; bottom: 6px; left: 0; right: 0;
+      text-align: center; font-family: var(--mono); font-size: 9px;
+      color: var(--t-4); letter-spacing: 0.08em; text-transform: uppercase;
+    }
+
+    .c05-controls {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 2px 0;
+    }
+    .c05-app { display: flex; align-items: center; gap: 10px; }
+    .c05-app .app-icon { width: 34px; height: 34px; font-size: 16px; }
+    .c05-app .name { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; }
+    .c05-app .sub { font-size: 11px; color: var(--t-3); font-family: var(--mono); margin-top: 1px; }
+
+    .c05-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+    .c05-chip {
+      padding: 7px 11px; border-radius: 10px;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--hair);
+      font-size: 11.5px; font-weight: 500; color: var(--t-2);
+      cursor: pointer; transition: all .15s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .c05-chip:hover { background: rgba(255,255,255,0.07); color: #fff; }
+    .c05-chip.on {
+      background: linear-gradient(180deg, rgba(106,168,255,0.30), rgba(106,168,255,0.15));
+      border-color: rgba(106,168,255,0.5);
+      color: #fff;
+      box-shadow: 0 0 16px rgba(106,168,255,0.25);
+    }
+    .c05-chip svg { width: 12px; height: 12px; }
+    .c05-chip .kbd {
+      font-family: var(--mono); font-size: 9.5px; color: var(--t-4);
+      padding-left: 3px; border-left: 1px solid var(--hair);
+      margin-left: 2px;
+    }
+    .c05-chip.on .kbd { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.2); }
+
+    /* ============================================================ */
+    /* CONCEPT 06 — Minimal bar (Linear / Arc inspired)               */
+    /* ============================================================ */
+    .c06 .body {
+      display: flex; flex-direction: column; gap: 12px; padding-top: 18px; justify-content: center;
+    }
+    .c06-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 0 4px;
+    }
+    .c06-app { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; }
+    .c06-app .app-icon { width: 28px; height: 28px; font-size: 13px; border-radius: 7px; }
+    .c06-app .text { display: flex; flex-direction: column; min-width: 0; }
+    .c06-app .name { font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .c06-app .sub { font-size: 10.5px; color: var(--t-3); font-family: var(--mono); }
+
+    .c06-display {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--t-3); font-family: var(--mono);
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--hair);
+    }
+    .c06-display .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--pos); box-shadow: 0 0 6px var(--pos); }
+
+    .c06-bar {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
+      padding: 0 4px;
+    }
+    .c06-btn {
+      height: 50px; border-radius: 11px;
+      background: rgba(255,255,255,0.025); border: 1px solid var(--hair);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      cursor: pointer; transition: all .15s;
+      position: relative;
+      color: var(--t-2);
+    }
+    .c06-btn:hover, .c06-btn.on {
+      background: rgba(255,255,255,0.06);
+      border-color: var(--hair-2);
+      color: #fff;
+    }
+    .c06-btn.on {
+      background: linear-gradient(180deg, rgba(106,168,255,0.28), rgba(106,168,255,0.10));
+      border-color: rgba(106,168,255,0.45);
+      box-shadow: 0 0 14px rgba(106,168,255,0.18);
+    }
+    .c06-btn svg { width: 18px; height: 18px; }
+    .c06-btn .kbd {
+      position: absolute; top: 5px; right: 7px;
+      font-family: var(--mono); font-size: 8.5px;
+      color: var(--t-4); letter-spacing: 0.04em;
+    }
+    .c06-btn.on .kbd { color: rgba(255,255,255,0.55); }
+
+    /* ============================================================ */
+    /* FINAL — Stage strip + Live preview + Chips                     */
+    /* ============================================================ */
+    .final-wrap {
+      margin-bottom: 64px;
+    }
+    .final-banner {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.10em;
+      text-transform: uppercase; color: var(--accent);
+      padding: 5px 10px; border-radius: 6px;
+      background: rgba(106,168,255,0.10);
+      border: 1px solid rgba(106,168,255,0.30);
+      margin-bottom: 12px;
+    }
+    .final-banner::before {
+      content: ""; width: 5px; height: 5px; border-radius: 999px;
+      background: var(--accent); box-shadow: 0 0 8px var(--accent);
+    }
+    .concept.final {
+      border-color: rgba(106,168,255,0.32);
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(106,168,255,0.08), transparent 70%),
+        linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.005) 100%), var(--ink-1);
+      box-shadow: 0 30px 80px -30px rgba(106,168,255,0.18);
+    }
+    .concept.final .c-id {
+      background: linear-gradient(135deg, rgba(106,168,255,0.35), rgba(139,125,255,0.20));
+      border-color: rgba(106,168,255,0.55);
+      color: #fff;
+    }
+
+    /* ============================================================ */
+    /* Final concept — instrument readout                             */
+    /* Tokens:                                                        */
+    /*   --bezel   #000              anodized notch material          */
+    /*   --etched  rgba(255,255,255,.06)   whisper borders             */
+    /*   --etched2 rgba(255,255,255,.10)   slight emphasis             */
+    /*   --lit     #fff              selection / filament              */
+    /*   --readout rgba(255,255,255,.62)   secondary text               */
+    /*   --dim     rgba(255,255,255,.36)   tertiary text                */
+    /*   --ghost   rgba(255,255,255,.16)   inactive glyph cells         */
+    /* ============================================================ */
+    .cf .body {
+      display: grid;
+      grid-template-columns: 72px 1fr 232px;
+      gap: 0;
+      padding: 4px 10px 8px;
+    }
+    .cf-strip, .cf-mid, .cf-right { min-height: 0; }
+
+    /* ——— Stage strip — app icons + position glyph indicator ——— */
+    .cf-strip {
+      display: flex; flex-direction: column;
+      padding: 2px 0 2px;
+    }
+    .cf-card {
+      flex: 1; min-height: 0;
+      padding: 0 6px 0 8px;
+      cursor: pointer;
+      position: relative;
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      align-items: center;
+      column-gap: 8px;
+      transition: background-color .14s;
+      border-radius: 6px;
+    }
+    .cf-card::before {
+      content: ""; position: absolute; left: 0; top: 7px; bottom: 7px;
+      width: 2px;
+      background: transparent;
+      transition: background .14s;
+    }
+    .cf-card:hover { background: rgba(255,255,255,0.025); }
+    .cf-card.active { background: rgba(255,255,255,0.055); }
+    .cf-card.active::before { background: #fff; }
+
+    /* App icon (in stage card) */
+    .cf-card .cf-app {
+      width: 22px; height: 22px;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      opacity: 0.78;
+      transition: opacity .14s;
+    }
+    .cf-card:hover .cf-app,
+    .cf-card.active .cf-app { opacity: 1; }
+    .cf-card .cf-app svg { width: 14px; height: 14px; display: block; }
+
+    /* ——— Position glyph (signature): screen rectangle with filled region ——— */
+    .cf-glyph {
+      width: 18px; height: 12px;
+      border-radius: 1.5px;
+      background: transparent;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.20);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .cf-glyph::after {
+      content: "";
+      position: absolute;
+      background: rgba(255,255,255,0.45);
+      border-radius: 0.5px;
+      transition: inset 0.28s cubic-bezier(.2,.8,.2,1), background-color .14s;
+    }
+    .cf-glyph.g-left::after   { inset: 2px 50% 2px 2px; }
+    .cf-glyph.g-right::after  { inset: 2px 2px 2px 50%; }
+    .cf-glyph.g-top::after    { inset: 2px 2px 50% 2px; }
+    .cf-glyph.g-bottom::after { inset: 50% 2px 2px 2px; }
+    .cf-glyph.g-tl::after     { inset: 2px 50% 50% 2px; }
+    .cf-glyph.g-tr::after     { inset: 2px 2px 50% 50%; }
+    .cf-glyph.g-bl::after     { inset: 50% 50% 2px 2px; }
+    .cf-glyph.g-br::after     { inset: 50% 2px 2px 50%; }
+    .cf-glyph.g-fill::after   { inset: 2px; }
+    /* lit state */
+    .cf-card:hover .cf-glyph::after,
+    .cf-card.active .cf-glyph::after { background: #fff; }
+    .cf-card.active .cf-glyph { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35); }
+
+    /* ——— Middle column: preview (single surface, no nested frames) ——— */
+    .cf-mid {
+      display: flex; flex-direction: column;
+      padding: 4px 10px 4px;
+    }
+    .cf-preview {
+      flex: 1; min-height: 0;
+      position: relative;
+      background:
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 12px);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+      border-radius: 4px;
+    }
+    .cf-monitor { position: absolute; inset: 0; }
+    .cf-w {
+      position: absolute;
+      background: rgba(255,255,255,0.06);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.32);
+      transition: all 0.34s cubic-bezier(.2,.8,.2,1);
+      border-radius: 2.5px;
+    }
+    .cf-w::before {
+      content: ""; position: absolute; top: 3px; left: 4px;
+      width: 3px; height: 3px; border-radius: 999px;
+      background: rgba(255,255,255,0.55);
+      box-shadow: 5px 0 0 rgba(255,255,255,0.55), 10px 0 0 rgba(255,255,255,0.55);
+    }
+    .cf-w.p-left   { left: 3%;  top: 4%;  width: 46%; height: 92%; }
+    .cf-w.p-right  { left: 51%; top: 4%;  width: 46%; height: 92%; }
+    .cf-w.p-top    { left: 3%;  top: 4%;  width: 94%; height: 45%; }
+    .cf-w.p-bottom { left: 3%;  top: 51%; width: 94%; height: 45%; }
+    .cf-w.p-max    { left: 3%;  top: 4%;  width: 94%; height: 92%; }
+    .cf-w.p-tl     { left: 3%;  top: 4%;  width: 46%; height: 45%; }
+    .cf-w.p-tr     { left: 51%; top: 4%;  width: 46%; height: 45%; }
+    .cf-w.p-bl     { left: 3%;  top: 51%; width: 46%; height: 45%; }
+    .cf-w.p-br     { left: 51%; top: 51%; width: 46%; height: 45%; }
+
+    /* ——— Right column: identity + chips, no chrome ——— */
+    .cf-right {
+      display: flex; flex-direction: column;
+      padding: 2px 4px 2px 8px;
+      gap: 8px;
+    }
+    .cf-id {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      align-items: center;
+      column-gap: 9px;
+      padding: 2px 0 2px 2px;
+    }
+    .cf-id .app-icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      font-size: 14px;
+      background: transparent !important;
+      box-shadow: none;
+    }
+    .cf-id .app-icon svg { width: 22px; height: 22px; }
+    .cf-id .text { min-width: 0; }
+    .cf-id .name {
+      font-size: 14px; font-weight: 600; letter-spacing: -0.012em;
+      line-height: 1.1;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cf-id .sub {
+      font-size: 10.5px; color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cf-id .sub #cfPosLabel {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+    }
+    .cf-id .sub .dot { color: rgba(255,255,255,0.25); margin: 0 5px; }
+    .cf-id .sub .file { color: rgba(255,255,255,0.45); }
+
+    /* ——— Chips: bezel-less, glyph-only ——— */
+    .cf-chips {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: 1fr;
+      gap: 2px;
+      flex: 1; min-height: 0;
+    }
+    .cf-chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      background: transparent;
+      box-shadow: none;
+      border: none;
+      cursor: pointer;
+      transition: background-color .14s;
+      padding: 0;
+      position: relative;
+    }
+    .cf-chip:hover { background: rgba(255,255,255,0.04); }
+    .cf-chip.on    { background: rgba(255,255,255,0.07); }
+
+    /* chip glyph: larger, prominent */
+    .cf-chip .cf-glyph {
+      width: 28px; height: 20px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.20);
+    }
+    .cf-chip:hover .cf-glyph,
+    .cf-chip.on .cf-glyph { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35); }
+    .cf-chip:hover .cf-glyph::after,
+    .cf-chip.on .cf-glyph::after { background: #fff; }
+    .cf-chip .lbl { display: none; }
+    .cf-chip .kbd { display: none; }
+
+    /* ——— Footer feedback ——— */
+    .feedback {
+      max-width: 1180px; margin: 56px auto 0;
+      padding: 28px; border-radius: 16px;
+      background: linear-gradient(180deg, rgba(106,168,255,0.05), rgba(106,168,255,0.01));
+      border: 1px solid rgba(106,168,255,0.18);
+    }
+    .feedback h3 {
+      font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+      margin-bottom: 12px; color: #fff;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .feedback h3::before {
+      content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+    .feedback ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 32px; }
+    .feedback li {
+      font-size: 13px; color: var(--t-2);
+      padding-left: 14px; position: relative;
+    }
+    .feedback li::before {
+      content: ""; position: absolute; left: 0; top: 9px;
+      width: 4px; height: 4px; border-radius: 999px; background: var(--t-4);
+    }
+    .feedback li strong { color: #fff; font-weight: 600; }
+
+    @media (max-width: 700px) {
+      .notch { transform: scale(0.78); transform-origin: top center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="page-head">
+    <div class="eyebrow">Windows tab · final direction</div>
+    <h1>Live preview ✕ Stage&nbsp;strip.</h1>
+    <p>
+      Locked in: the mini-display preview from <strong>05</strong> with the multi-window stage strip from
+      <strong>04</strong>. Click a window in the strip to focus it — the preview and chips retarget instantly.
+      The six earlier concepts are kept below for reference.
+    </p>
+    <div class="refs">
+      <a class="ref" href="https://rectangleapp.com/" target="_blank" rel="noopener">Rectangle</a>
+      <a class="ref" href="https://magnet.cleverapps.ca/" target="_blank" rel="noopener">Magnet</a>
+      <a class="ref" href="https://www.raycast.com/" target="_blank" rel="noopener">Raycast</a>
+      <a class="ref" href="https://support.apple.com/guide/mac-help/use-control-center-mchl50f94f8f/mac" target="_blank" rel="noopener">Control Center</a>
+      <a class="ref" href="https://support.apple.com/guide/mac-help/stage-manager-mchl2f87a72d/mac" target="_blank" rel="noopener">Stage Manager</a>
+      <a class="ref" href="https://arc.net/" target="_blank" rel="noopener">Arc</a>
+      <a class="ref" href="https://linear.app/" target="_blank" rel="noopener">Linear</a>
+    </div>
+  </header>
+
+  <div class="final-wrap">
+    <div class="final-banner">✓ Selected direction</div>
+    <section class="concept final cf">
+      <div class="c-head">
+        <div class="c-id">★</div>
+        <div class="c-title">
+          <h2>Stage + Preview</h2>
+          <div class="lineage"><span>05 Live Preview</span> + <span>04 Stage Strip</span> · multi-window with see-before-you-snap</div>
+        </div>
+        <div class="c-tags">
+          <span class="c-tag pos">Multi-window</span>
+          <span class="c-tag pos">High feedback</span>
+          <span class="c-tag pos">Spatial</span>
+        </div>
+      </div>
+      <p class="c-blurb">
+        Three columns at 640×190. <strong>Left:</strong> stage strip of every visible window on this display —
+        click to focus, the rest of the UI retargets. <strong>Middle:</strong> live mini-display showing where
+        the active window sits now. <strong>Right:</strong> identity + six snap chips. Hovering a chip animates
+        the window glyph in the preview to its destination before you click. Click a stage card below to see
+        the whole UI swap.
+      </p>
+      <div class="stage">
+        <div class="stage-meta">
+          <span>Click a window</span><span class="dot"></span>
+          <span>Hover a chip</span><span class="dot"></span>
+          <span>Glyph animates</span>
+        </div>
+        <div class="notch">
+          <div class="topbar">
+            <div class="tabs">
+              <div class="tab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3z"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l4 9h10l4-9M3 7h18M3 7v10h18V7"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="12" height="12" rx="2"/><rect x="8" y="8" width="12" height="12" rx="2"/></svg></div>
+              <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+            </div>
+            <div class="status">
+              <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19 12h2M3 12h2M12 3v2M12 19v2M5.5 5.5l1.5 1.5M17 17l1.5 1.5M5.5 18.5L7 17M17 7l1.5-1.5"/></svg>
+              <span>100%</span>
+              <span class="battery"><span class="battery-pill"></span></span>
+            </div>
+          </div>
+          <div class="body">
+
+            <!-- Stage strip -->
+            <div class="cf-strip" id="cfStrip">
+              <div class="cf-card active" data-app="Cursor" data-file="main.swift" data-pos="p-right" data-poslabel="Right half">
+                <span class="cf-app" style="background:linear-gradient(135deg,#1c1c20 0%,#000 100%);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.2L4 7.6v8.8L12 20.8 20 16.4V7.6L12 3.2z"/><path d="M4 7.6L12 12L20 7.6M12 12v8.8"/></svg>
+                </span>
+                <span class="cf-glyph g-right"></span>
+              </div>
+              <div class="cf-card" data-app="Safari" data-file="rectangleapp.com" data-pos="p-left" data-poslabel="Left half">
+                <span class="cf-app" style="background:linear-gradient(135deg,#3ba0ff 0%,#0a63d4 100%);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M14.8 9.2L13 13l-3.8 1.8L11 11z" fill="#fff" stroke="none"/></svg>
+                </span>
+                <span class="cf-glyph g-left"></span>
+              </div>
+              <div class="cf-card" data-app="Linear" data-file="GOJ-204" data-pos="p-tl" data-poslabel="Top-left ¼">
+                <span class="cf-app" style="background:linear-gradient(135deg,#6e7ae6 0%,#3b46b8 100%);">
+                  <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 14.5L9.5 21H6L3 18zM3 10.5L13.5 21H10L3 13.5zM3 6.5L17.5 21H14L3 9.5zM4 4l17 17h-3.5L4 7.5zM8 4l13 13v-3.5L11.5 4zM12 4l9 9V9.5L15.5 4zM16 4l5 5V4z"/></svg>
+                </span>
+                <span class="cf-glyph g-tl"></span>
+              </div>
+              <div class="cf-card" data-app="Terminal" data-file="zsh · ~/gojo" data-pos="p-bl" data-poslabel="Bottom-left ¼">
+                <span class="cf-app" style="background:linear-gradient(135deg,#1a1a1a 0%,#000 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.12);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#7af598" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5l-5 5"/><path d="M12 17h7"/></svg>
+                </span>
+                <span class="cf-glyph g-bl"></span>
+              </div>
+            </div>
+
+            <!-- Live preview -->
+            <div class="cf-mid">
+              <div class="cf-preview">
+                <div class="cf-monitor">
+                  <div class="cf-w p-right" id="cfWin"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right column -->
+            <div class="cf-right">
+              <div class="cf-id">
+                <div class="app-icon" style="background:linear-gradient(135deg,#1c1c20 0%,#000 100%);">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity="0.92"><path d="M12 3.2L4 7.6v8.8L12 20.8 20 16.4V7.6L12 3.2z"/><path d="M4 7.6L12 12L20 7.6M12 12v8.8"/></svg>
+                </div>
+                <div class="text">
+                  <div class="name" id="cfAppName">Cursor</div>
+                  <div class="sub"><span id="cfPosLabel">Right half</span><span class="dot">·</span><span class="file" id="cfAppFile">main.swift</span></div>
+                </div>
+              </div>
+              <div class="cf-chips">
+                <button class="cf-chip" data-pos="p-left" data-poslabel="Left half">
+                  <span class="cf-glyph g-left"></span>
+                </button>
+                <button class="cf-chip" data-pos="p-top" data-poslabel="Top half">
+                  <span class="cf-glyph g-top"></span>
+                </button>
+                <button class="cf-chip" data-pos="p-tl" data-poslabel="Top-left ¼">
+                  <span class="cf-glyph g-tl"></span>
+                </button>
+                <button class="cf-chip on" data-pos="p-right" data-poslabel="Right half">
+                  <span class="cf-glyph g-right"></span>
+                </button>
+                <button class="cf-chip" data-pos="p-bottom" data-poslabel="Bottom half">
+                  <span class="cf-glyph g-bottom"></span>
+                </button>
+                <button class="cf-chip" data-pos="p-max" data-poslabel="Maximize">
+                  <span class="cf-glyph g-fill"></span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="eyebrow" style="margin: 0 0 20px;">Earlier exploration — kept for reference</div>
+
+  <main class="grid">
+
+    <!-- ============================================================ -->
+    <!-- 01 — Spatial Snap                                              -->
+    <!-- ============================================================ -->
+    <section class="concept c01">
+      <div class="c-head">
+        <div class="c-id">01</div>
+        <div class="c-title">
+          <h2>Spatial Snap</h2>
+          <div class="lineage"><span>Rectangle</span> · <span>Aero Snap</span> · zone-as-truth</div>
+        </div>
+        <div class="c-tags">
+          <span class="c-tag pos">Direct</span>
+          <span class="c-tag pos">Spatial</span>
+          <span class="c-tag con">Small targets</span>
+        </div>
+      </div>
+      <p class="c-blurb">A wide monitor silhouette sits at the heart. Hovering an edge shows the exact landing zone, the keyboard shortcut, and the size it'll snap to. Secondary column on the right gives you identity + a recent-positions list.</p>
+      <div class="stage">
+        <div class="stage-meta"><span>640 × 190</span><span class="dot"></span><span>Hover any zone</span></div>
+        <div class="notch">
+          <div class="topbar">
+            <div class="tabs">
+              <div class="tab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3z"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l4 9h10l4-9M3 7h18M3 7v10h18V7"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="12" height="12" rx="2"/><rect x="8" y="8" width="12" height="12" rx="2"/></svg></div>
+              <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+            </div>
+            <div class="status">
+              <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19 12h2M3 12h2M12 3v2M12 19v2M5.5 5.5l1.5 1.5M17 17l1.5 1.5M5.5 18.5L7 17M17 7l1.5-1.5"/></svg>
+              <span>100%</span>
+              <span class="battery"><span class="battery-pill"></span></span>
+            </div>
+          </div>
+          <div class="body">
+            <div class="c01-hero">
+              <div class="c01-screen">
+                <div class="snap-zone sz-l"><span class="kbd">⌃⌥←</span></div>
+                <div class="snap-zone sz-r"><span class="kbd">⌃⌥→</span></div>
+                <div class="snap-zone sz-t"><span class="kbd">⌃⌥↑</span></div>
+                <div class="snap-zone sz-b"><span class="kbd">⌃⌥↓</span></div>
+                <div class="snap-zone sz-m active"><span class="kbd">⌃⌥↩</span></div>
+              </div>
+            </div>
+            <div class="c01-side">
+              <div class="c01-app">
+                <div class="app-icon" style="background:linear-gradient(135deg,#1a1a1f 0%,#000 100%);"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M5 3l14 7-8 3v8z"/></svg></div>
+                <div>
+                  <div class="name">Cursor</div>
+                  <div class="sub">2560 × 1664 · Retina</div>
+                </div>
+              </div>
+              <div class="c01-hint">
+                <span class="kbd-pill">⏎</span>
+                Maximize on this display
+              </div>
+              <div class="c01-list">
+                <div class="row"><span>Recent: Top half</span><span class="k">2m</span></div>
+                <div class="row"><span>Recent: Right half</span><span class="k">8m</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 02 — Command palette                                           -->
+    <!-- ============================================================ -->
+    <section class="concept c02">
+      <div class="c-head">
+        <div class="c-id">02</div>
+        <div class="c-title">
+          <h2>Command Palette</h2>
+          <div class="lineage"><span>Raycast</span> · <span>Spotlight</span> · type-to-act</div>
+        </div>
+        <div class="c-tags">
+          <span class="c-tag pos">Keyboard-first</span>
+          <span class="c-tag pos">Extensible</span>
+          <span class="c-tag con">Less glanceable</span>
+        </div>
+      </div>
+      <p class="c-blurb">Treat window management as a command surface. The focused app's name is pre-filled; arrow keys + return execute. Power users will live in this. Visually quiet, mechanically deep.</p>
+      <div class="stage">
+        <div class="stage-meta"><span>Type / arrow / ⏎</span><span class="dot"></span><span>Shortcut hints inline</span></div>
+        <div class="notch">
+          <div class="topbar">
+            <div class="tabs">
+              <div class="tab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3z"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l4 9h10l4-9M3 7h18M3 7v10h18V7"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="12" height="12" rx="2"/><rect x="8" y="8" width="12" height="12" rx="2"/></svg></div>
+              <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+            </div>
+            <div class="status">
+              <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19 12h2M3 12h2M12 3v2M12 19v2M5.5 5.5l1.5 1.5M17 17l1.5 1.5M5.5 18.5L7 17M17 7l1.5-1.5"/></svg>
+              <span>100%</span>
+              <span class="battery"><span class="battery-pill"></span></span>
+            </div>
+          </div>
+          <div class="body">
+            <div class="c02-search">
+              <div class="app-icon" style="background:linear-gradient(135deg,#1a1a1f 0%,#000 100%);"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M5 3l14 7-8 3v8z"/></svg></div>
+              <span class="lbl"><b>Cursor</b> <span class="sep">›</span> snap</span>
+              <span class="caret"></span>
+            </div>
+            <div class="c02-rows">
+              <div class="c02-row sel">
+                <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="16" rx="1"/></svg></div>
+                <div><span style="font-weight:500;">Snap Left Half</span> <span class="desc">  ·  1280×1664 on Built-in Retina</span></div>
+                <span class="kbd">⌃⌥←</span>
+                <span class="kbd">⏎</span>
+              </div>
+              <div class="c02-row">
+                <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="13" y="4" width="7" height="16" rx="1"/></svg></div>
+                <div><span style="font-weight:500;">Snap Right Half</span> <span class="desc">  ·  use after pinning a doc on the left</span></div>
+                <span class="kbd">⌃⌥→</span>
+                <span class="kbd">⏎</span>
+              </div>
+              <div class="c02-row">
+                <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg></div>
+                <div><span style="font-weight:500;">Maximize</span> <span class="desc">  ·  fill the active display</span></div>
+                <span class="kbd">⌃⌥↩</span>
+                <span class="kbd">⏎</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 03 — Control Center tiles                                      -->
+    <!-- ============================================================ -->
+    <section class="concept c03">
+      <div class="c-head">
+        <div class="c-id">03</div>
+        <div class="c-title">
+          <h2>Control Tiles</h2>
+          <div class="lineage"><span>macOS Control Center</span> · <span>iOS widgets</span> · big-button affordance</div>
+        </div>
+        <div class="c-tags">
+          <span class="c-tag pos">Huge tap targets</span>
+          <span class="c-tag pos">On-brand for macOS</span>
+          <span class="c-tag con">More layout space</span>
+        </div>
+      </div>
+      <p class="c-blurb">A 5×2 grid of glossy tiles. Identity card on the left carries the app name, display, and live size. The grid covers halves, quarters, thirds, and fill — accessed by mouse or keyboard, same hit area either way.</p>
+      <div class="stage">
+        <div class="stage-meta"><span>Glassy tiles</span><span class="dot"></span><span>Currently Right half</span></div>
+        <div class="notch">
+          <div class="topbar">
+            <div class="tabs">
+              <div class="tab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3z"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l4 9h10l4-9M3 7h18M3 7v10h18V7"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="12" height="12" rx="2"/><rect x="8" y="8" width="12" height="12" rx="2"/></svg></div>
+              <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+            </div>
+            <div class="status">
+              <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19 12h2M3 12h2M12 3v2M12 19v2M5.5 5.5l1.5 1.5M17 17l1.5 1.5M5.5 18.5L7 17M17 7l1.5-1.5"/></svg>
+              <span>100%</span>
+              <span class="battery"><span class="battery-pill"></span></span>
+            </div>
+          </div>
+          <div class="body">
+            <div class="c03-id">
+              <div class="top">
+                <div class="app-icon" style="background:linear-gradient(135deg,#1a1a1f 0%,#000 100%);"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M5 3l14 7-8 3v8z"/></svg></div>
+                <div>
+                  <div class="name">Cursor</div>
+                  <div class="sub">Display 1 · 1.0×</div>
+                </div>
+              </div>
+              <div class="c03-meta">
+                <div class="row"><span class="k">Size</span><span>1280 × 1664</span></div>
+                <div class="row"><span class="k">Pos</span><span>1280, 0</span></div>
+                <div class="row"><span class="k">Layout</span><span>Right half</span></div>
+              </div>
+            </div>
+            <div class="c03-tiles">
+              <div class="c03-tile"><span class="kbd">⌥1</span><span class="ico left"></span><span class="lbl">Left ½</span></div>
+              <div class="c03-tile on"><span class="kbd">⌥2</span><span class="ico right"></span><span class="lbl">Right ½</span></div>
+              <div class="c03-tile"><span class="kbd">⌥3</span><span class="ico top"></span><span class="lbl">Top ½</span></div>
+              <div class="c03-tile"><span class="kbd">⌥4</span><span class="ico bottom"></span><span class="lbl">Btm ½</span></div>
+              <div class="c03-tile"><span class="kbd">⌥M</span><span class="ico fill"></span><span class="lbl">Fill</span></div>
+              <div class="c03-tile"><span class="kbd">⌥Q</span><span class="ico tl"></span><span class="lbl">Top L</span></div>
+              <div class="c03-tile"><span class="kbd">⌥W</span><span class="ico tr"></span><span class="lbl">Top R</span></div>
+              <div class="c03-tile"><span class="kbd">⌥A</span><span class="ico bl"></span><span class="lbl">Bot L</span></div>
+              <div class="c03-tile"><span class="kbd">⌥S</span><span class="ico br"></span><span class="lbl">Bot R</span></div>
+              <div class="c03-tile"><span class="kbd">⌥C</span><span class="ico center"></span><span class="lbl">Center</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 04 — Stage strip                                               -->
+    <!-- ============================================================ -->
+    <section class="concept c04">
+      <div class="c-head">
+        <div class="c-id">04</div>
+        <div class="c-title">
+          <h2>Stage Strip</h2>
+          <div class="lineage"><span>Stage Manager</span> · <span>Mission Control</span> · window-as-card</div>
+        </div>
+        <div class="c-tags">
+          <span class="c-tag pos">Multi-window</span>
+          <span class="c-tag pos">Spatial memory</span>
+          <span class="c-tag con">Most novel UX</span>
+        </div>
+      </div>
+      <p class="c-blurb">Left strip mirrors Stage Manager — every visible window as a tiny card you can click to focus. Right side acts on whichever card is active. Best concept if the Windows tab should also do switching, not just snapping.</p>
+      <div class="stage">
+        <div class="stage-meta"><span>Click a card to focus</span><span class="dot"></span><span>Action targets active card</span></div>
+        <div class="notch">
+          <div class="topbar">
+            <div class="tabs">
+              <div class="tab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3z"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l4 9h10l4-9M3 7h18M3 7v10h18V7"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="12" height="12" rx="2"/><rect x="8" y="8" width="12" height="12" rx="2"/></svg></div>
+              <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+            </div>
+            <div class="status">
+              <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19 12h2M3 12h2M12 3v2M12 19v2M5.5 5.5l1.5 1.5M17 17l1.5 1.5M5.5 18.5L7 17M17 7l1.5-1.5"/></svg>
+              <span>100%</span>
+              <span class="battery"><span class="battery-pill"></span></span>
+            </div>
+          </div>
+          <div class="body">
+            <div class="c04-strip">
+              <div class="c04-mini active"><div class="bar"></div><div class="body-fill"></div><span class="title">Cursor</span></div>
+              <div class="c04-mini"><div class="bar"></div><div class="body-fill"></div><span class="title">Safari</span></div>
+              <div class="c04-mini"><div class="bar"></div><div class="body-fill"></div><span class="title">Linear</span></div>
+            </div>
+            <div class="c04-main">
+              <div class="c04-head">
+                <div class="app-icon cursor" style="width:30px;height:30px;background:linear-gradient(135deg,#1a1a1f,#000);"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M5 3l14 7-8 3v8z"/></svg></div>
+                <div>
+                  <div class="name">Cursor — main.swift</div>
+                  <div class="sub">Display 1 · Right half · ⌃⌥→</div>
+                </div>
+              </div>
+              <div class="c04-zones">
+                <div class="c04-zone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="16" rx="1"/></svg><span class="lbl">Left</span></div>
+                <div class="c04-zone on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="13" y="4" width="7" height="16" rx="1"/></svg><span class="lbl">Right</span></div>
+                <div class="c04-zone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="7" rx="1"/></svg><span class="lbl">Top</span></div>
+                <div class="c04-zone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="13" width="16" height="7" rx="1"/></svg><span class="lbl">Bottom</span></div>
+                <div class="c04-zone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/></svg><span class="lbl">Fill</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 05 — Live preview                                              -->
+    <!-- ============================================================ -->
+    <section class="concept c05">
+      <div class="c-head">
+        <div class="c-id">05</div>
+        <div class="c-title">
+          <h2>Live Preview</h2>
+          <div class="lineage"><span>Moom</span> · <span>macOS tiling HUD</span> · see-before-you-snap</div>
+        </div>
+        <div class="c-tags">
+          <span class="c-tag pos">Highest feedback</span>
+          <span class="c-tag pos">Delightful</span>
+          <span class="c-tag con">Most engineering</span>
+        </div>
+      </div>
+      <p class="c-blurb">A real miniature of your display lives on the left. Hovering an action chip animates the window glyph to its destination. The realest "what will happen" preview of any concept — Moom did this best, we can do it better with the notch.</p>
+      <div class="stage">
+        <div class="stage-meta"><span>Hover a chip</span><span class="dot"></span><span>Window glyph animates</span></div>
+        <div class="notch">
+          <div class="topbar">
+            <div class="tabs">
+              <div class="tab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3z"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l4 9h10l4-9M3 7h18M3 7v10h18V7"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="12" height="12" rx="2"/><rect x="8" y="8" width="12" height="12" rx="2"/></svg></div>
+              <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+            </div>
+            <div class="status">
+              <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19 12h2M3 12h2M12 3v2M12 19v2M5.5 5.5l1.5 1.5M17 17l1.5 1.5M5.5 18.5L7 17M17 7l1.5-1.5"/></svg>
+              <span>100%</span>
+              <span class="battery"><span class="battery-pill"></span></span>
+            </div>
+          </div>
+          <div class="body">
+            <div class="c05-preview">
+              <div class="c05-monitor"></div>
+              <div class="c05-window s-right" id="previewWin"></div>
+              <div class="lbl">Display 1 · Live preview</div>
+            </div>
+            <div class="c05-controls">
+              <div class="c05-app">
+                <div class="app-icon" style="background:linear-gradient(135deg,#1a1a1f 0%,#000 100%);"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M5 3l14 7-8 3v8z"/></svg></div>
+                <div>
+                  <div class="name">Cursor</div>
+                  <div class="sub">main.swift · unsaved</div>
+                </div>
+              </div>
+              <div class="c05-chips">
+                <button class="c05-chip" data-pos="s-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="16" rx="1"/></svg>Left<span class="kbd">⌃⌥←</span></button>
+                <button class="c05-chip on" data-pos="s-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="13" y="4" width="7" height="16" rx="1"/></svg>Right<span class="kbd">⌃⌥→</span></button>
+                <button class="c05-chip" data-pos="s-top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="7" rx="1"/></svg>Top<span class="kbd">⌃⌥↑</span></button>
+                <button class="c05-chip" data-pos="s-bottom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="13" width="16" height="7" rx="1"/></svg>Bottom<span class="kbd">⌃⌥↓</span></button>
+                <button class="c05-chip" data-pos="s-max"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>Fill<span class="kbd">⌃⌥↩</span></button>
+                <button class="c05-chip" data-pos="s-tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1"/></svg>Top-L</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 06 — Minimal bar                                               -->
+    <!-- ============================================================ -->
+    <section class="concept c06">
+      <div class="c-head">
+        <div class="c-id">06</div>
+        <div class="c-title">
+          <h2>Minimal Bar</h2>
+          <div class="lineage"><span>Linear</span> · <span>Arc</span> · <span>Amethyst</span> · utility, not toy</div>
+        </div>
+        <div class="c-tags">
+          <span class="c-tag pos">Calmest</span>
+          <span class="c-tag pos">Lowest noise</span>
+          <span class="c-tag con">Less spatial</span>
+        </div>
+      </div>
+      <p class="c-blurb">Two rows. Identity on top — app, file, display — then a single bar of six equal buttons. Reads as a tool, not an interface. Best if the Windows tab should feel like Spotlight or Linear's command bar: present when you need it, invisible when you don't.</p>
+      <div class="stage">
+        <div class="stage-meta"><span>Two rows</span><span class="dot"></span><span>Quietest direction</span></div>
+        <div class="notch">
+          <div class="topbar">
+            <div class="tabs">
+              <div class="tab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3z"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l4 9h10l4-9M3 7h18M3 7v10h18V7"/></svg></div>
+              <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="12" height="12" rx="2"/><rect x="8" y="8" width="12" height="12" rx="2"/></svg></div>
+              <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+            </div>
+            <div class="status">
+              <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19 12h2M3 12h2M12 3v2M12 19v2M5.5 5.5l1.5 1.5M17 17l1.5 1.5M5.5 18.5L7 17M17 7l1.5-1.5"/></svg>
+              <span>100%</span>
+              <span class="battery"><span class="battery-pill"></span></span>
+            </div>
+          </div>
+          <div class="body">
+            <div class="c06-row">
+              <div class="c06-app">
+                <div class="app-icon" style="background:linear-gradient(135deg,#1a1a1f 0%,#000 100%);"><svg width="13" height="13" viewBox="0 0 24 24" fill="#fff"><path d="M5 3l14 7-8 3v8z"/></svg></div>
+                <div class="text">
+                  <div class="name">Cursor</div>
+                  <div class="sub">main.swift</div>
+                </div>
+              </div>
+              <div class="c06-display"><span class="dot"></span>Display 1</div>
+            </div>
+            <div class="c06-bar">
+              <div class="c06-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="16" rx="1"/></svg><span class="kbd">⌥1</span></div>
+              <div class="c06-btn on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="13" y="4" width="7" height="16" rx="1"/></svg><span class="kbd">⌥2</span></div>
+              <div class="c06-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="7" rx="1"/></svg><span class="kbd">⌥3</span></div>
+              <div class="c06-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="13" width="16" height="7" rx="1"/></svg><span class="kbd">⌥4</span></div>
+              <div class="c06-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="7" width="10" height="10" rx="1"/></svg><span class="kbd">⌥C</span></div>
+              <div class="c06-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="1"/></svg><span class="kbd">⌥M</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="feedback">
+    <h3>Where to push back</h3>
+    <ul>
+      <li><strong>Direction</strong> — which one (or two-mixed) feels like Gojo? Hot take welcome.</li>
+      <li><strong>Identity</strong> — is "Cursor · main.swift" too much, or not enough?</li>
+      <li><strong>Empty state</strong> — replace identity with a dashed placeholder, or shrink to a hint?</li>
+      <li><strong>Multi-display</strong> — show display pill always, only on multi-mon, or never inline?</li>
+      <li><strong>Shortcuts</strong> — keep visible (current) or reveal on ⌘-hold?</li>
+      <li><strong>Maximize</strong> — center tile (03), trailing chip (05), or its own hot corner?</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+  // ——— Final concept: stage cards + preview + chips ———
+  (function(){
+    const win   = document.getElementById('cfWin');
+    const label = document.getElementById('cfPosLabel');
+    const name  = document.getElementById('cfAppName');
+    const file  = document.getElementById('cfAppFile');
+    const cards = document.querySelectorAll('#cfStrip .cf-card');
+    const chips = document.querySelectorAll('.cf-chip');
+
+    function applyPos(pos, posLabel) {
+      win.className = 'cf-w ' + pos;
+      if (posLabel) label.textContent = posLabel;
+      chips.forEach(c => c.classList.toggle('on', c.dataset.pos === pos));
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        cards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        name.textContent = card.dataset.app;
+        file.textContent = card.dataset.file;
+        applyPos(card.dataset.pos, card.dataset.poslabel);
+      });
+    });
+
+    chips.forEach(chip => {
+      chip.addEventListener('mouseenter', () => {
+        applyPos(chip.dataset.pos, chip.dataset.poslabel);
+      });
+    });
+  })();
+
+  document.querySelectorAll('.c05-chip').forEach(chip => {
+    chip.addEventListener('mouseenter', () => {
+      document.querySelectorAll('.c05-chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+      const pos = chip.dataset.pos;
+      const win = document.getElementById('previewWin');
+      win.className = 'c05-window ' + pos;
+    });
+  });
+</script>
+
+</body>
+</html>

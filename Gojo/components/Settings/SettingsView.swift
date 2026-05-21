@@ -1606,6 +1606,20 @@ struct Shortcuts: View {
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
+            Section {
+                KeyboardShortcuts.Recorder("Left Half:", name: .windowLeftHalf)
+                KeyboardShortcuts.Recorder("Right Half:", name: .windowRightHalf)
+                KeyboardShortcuts.Recorder("Top Half:", name: .windowTopHalf)
+                KeyboardShortcuts.Recorder("Bottom Half:", name: .windowBottomHalf)
+                KeyboardShortcuts.Recorder("Maximize / Restore:", name: .windowMaximize)
+            } header: {
+                Text("Windows")
+            } footer: {
+                Text("Move the focused app window without opening Gojo. Maximize stores the previous frame, then pressing it again restores.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shortcuts")

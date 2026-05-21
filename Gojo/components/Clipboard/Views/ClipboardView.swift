@@ -52,9 +52,9 @@ struct ClipboardView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(.horizontal, 12)
-        .padding(.top, 4)
-        .padding(.bottom, 6)
+        .padding(.horizontal, NotchContentLayout.horizontalPadding)
+        .padding(.top, NotchContentLayout.topPadding)
+        .padding(.bottom, NotchContentLayout.bottomPadding)
         .onAppear {
             clipboard.start()
             focusSearchSoon()

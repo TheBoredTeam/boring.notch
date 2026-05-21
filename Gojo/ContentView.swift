@@ -356,8 +356,11 @@ struct ContentView: View {
                         ShelfView()
                     case .clipboard:
                         ClipboardView()
+                    case .windows:
+                        WindowPowerView()
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .transition(
                     .scale(scale: 0.8, anchor: .top)
                     .combined(with: .opacity)
