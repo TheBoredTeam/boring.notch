@@ -1,4 +1,5 @@
 import AppKit
+import KeyboardShortcuts
 import SwiftUI
 
 private enum WindowsTabTheme {
@@ -473,15 +474,29 @@ private struct Chip: View {
 
     @ViewBuilder
     private var chipContent: some View {
-        if action.isFrameBased {
-            WindowPositionGlyph(action: action, isLit: isOn || isHovering)
-                .frame(width: 28, height: 20)
-        } else {
-            // Non-frame actions (zoom): same screen-shaped frame as position glyphs,
-            // with expand arrows inside instead of a filled region.
-            ZoomGlyph(isLit: isOn || isHovering)
-                .frame(width: 28, height: 20)
+        VStack(spacing: 4) {
+            if action.isFrameBased {
+                WindowPositionGlyph(action: action, isLit: isOn || isHovering)
+                    .frame(width: 28, height: 20)
+            } else {
+                // Non-frame actions (zoom): same screen-shaped frame as position glyphs,
+                // with expand arrows inside instead of a filled region.
+                ZoomGlyph(isLit: isOn || isHovering)
+                    .frame(width: 28, height: 20)
+            }
+
+            if let shortcutText {
+                Text(shortcutText)
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundStyle(isOn || isHovering ? Color.white.opacity(0.75) : Color.white.opacity(0.38))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
         }
+    }
+
+    private var shortcutText: String? {
+        KeyboardShortcuts.getShortcut(for: action.shortcutName)?.description
     }
 
     private var background: Color {

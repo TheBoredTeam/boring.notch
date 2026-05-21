@@ -1,4 +1,5 @@
 import Foundation
+import KeyboardShortcuts
 
 /// The small v1 set of Rectangle-style actions Gojo exposes as keyboard-first window power.
 enum WindowAction: CaseIterable, Equatable, Identifiable {
@@ -72,5 +73,17 @@ enum WindowAction: CaseIterable, Equatable, Identifiable {
     /// Zoom is button-press based and has no fixed target frame.
     var isFrameBased: Bool {
         self != .zoom
+    }
+
+    /// The user-configurable keyboard shortcut bound to this action.
+    var shortcutName: KeyboardShortcuts.Name {
+        switch self {
+        case .leftHalf: return .windowLeftHalf
+        case .rightHalf: return .windowRightHalf
+        case .topHalf: return .windowTopHalf
+        case .bottomHalf: return .windowBottomHalf
+        case .maximize: return .windowMaximize
+        case .zoom: return .windowZoom
+        }
     }
 }
