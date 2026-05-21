@@ -1612,6 +1612,7 @@ struct Shortcuts: View {
                 KeyboardShortcuts.Recorder("Top Half:", name: .windowTopHalf)
                 KeyboardShortcuts.Recorder("Bottom Half:", name: .windowBottomHalf)
                 KeyboardShortcuts.Recorder("Maximize / Restore:", name: .windowMaximize)
+                KeyboardShortcuts.Recorder("Zoom (Default Size):", name: .windowZoom)
             } header: {
                 Text("Windows")
             } footer: {
