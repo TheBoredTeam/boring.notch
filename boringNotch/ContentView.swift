@@ -358,6 +358,9 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .pet:
+                        ExpandedPetPanelView()
+                            .environmentObject(vm)
                     }
                 }
                 .transition(
@@ -387,6 +390,12 @@ struct ContentView: View {
                     .fill(.black)
                     .frame(width: vm.closedNotchSize.width - 20)
                 MinimalFaceFeatures()
+                    .gesture(LongPressGesture(minimumDuration: 0.6).onEnded { _ in
+                        withAnimation(.spring(response: 0.38, dampingFraction: 0.8)) {
+                            vm.open()
+                            coordinator.currentView = .pet
+                        }
+                    })
             }
         }.frame(
             height: vm.effectiveClosedNotchHeight,

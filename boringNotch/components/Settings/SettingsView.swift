@@ -1405,7 +1405,22 @@ struct Appearance: View {
                         .tag(MirrorShapeEnum.rectangle)
                 }
                 Defaults.Toggle(key: .showNotHumanFace) {
-                    Text("Show cool face animation while inactive")
+                    Text("Show Notch Pet assistant while inactive")
+                }
+                
+                if Defaults[.showNotHumanFace] {
+                    Button(role: .destructive, action: {
+                        UserDefaults.standard.set(0, forKey: "pet_total_clicks")
+                        UserDefaults.standard.set(0, forKey: "pet_total_feeds")
+                        PetManager.shared.totalClicks = 0
+                        PetManager.shared.totalFeeds = 0
+                    }) {
+                        Text("Reset Pet Interaction Statistics")
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundColor(.red)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 20)
                 }
             } header: {
                 HStack {

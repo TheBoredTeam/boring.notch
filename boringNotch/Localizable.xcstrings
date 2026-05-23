@@ -701,6 +701,16 @@
         }
       }
     },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
     "%d%%" : {
       "localizations" : {
         "ar" : {
@@ -1300,6 +1310,9 @@
           }
         }
       }
+    },
+    "🍖 x%lld" : {
+
     },
     "About" : {
       "localizations" : {
@@ -5307,6 +5320,9 @@
           }
         }
       }
+    },
+    "Clicks: %lld" : {
+
     },
     "Clipboard History" : {
 
@@ -9429,6 +9445,9 @@
           }
         }
       }
+    },
+    "Feed Cookie" : {
+
     },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
@@ -15435,6 +15454,9 @@
         }
       }
     },
+    "Notch Pet Details" : {
+
+    },
     "Notch sizing" : {
       "localizations" : {
         "ar" : {
@@ -17735,6 +17757,9 @@
         }
       }
     },
+    "Reset Pet Interaction Statistics" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -19042,6 +19067,7 @@
       }
     },
     "Show cool face animation while inactive" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19640,6 +19666,9 @@
           }
         }
       }
+    },
+    "Show Notch Pet assistant while inactive" : {
+
     },
     "Show on all displays" : {
       "localizations" : {
@@ -23643,6 +23672,9 @@
           }
         }
       }
+    },
+    "z" : {
+
     }
   },
   "version" : "1.0"
