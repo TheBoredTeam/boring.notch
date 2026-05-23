@@ -49,7 +49,7 @@ struct SettingsView: View {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
                 NavigationLink(value: "Shelf") {
-                    Label("Shelf", systemImage: "books.vertical")
+                    Label("Clipboard Shelf", systemImage: "doc.on.clipboard.fill")
                 }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
@@ -910,7 +910,7 @@ struct About: View {
 }
 
 struct Shelf: View {
-    
+    @ObservedObject var clipboardManager = ClipboardManager.shared
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
@@ -1012,9 +1012,26 @@ struct Shelf: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            
+            Section {
+                Toggle("Enable clipboard tracking", isOn: $clipboardManager.isTracking)
+                
+                Button(role: .destructive, action: {
+                    withAnimation {
+                        clipboardManager.clearAllNonPinned()
+                    }
+                }) {
+                    Text("Clear Clipboard History")
+                        .foregroundColor(.red)
+                }
+            } header: {
+                Text("Clipboard History")
+            } footer: {
+                Text("Enables automatic clipboard tracking. Pinned items are preserved when clearing history.")
+            }
         }
         .accentColor(.effectiveAccent)
-        .navigationTitle("Shelf")
+        .navigationTitle("Clipboard Shelf")
     }
 }
 

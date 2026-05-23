@@ -5202,6 +5202,12 @@
         }
       }
     },
+    "Clear All" : {
+
+    },
+    "Clear Clipboard History" : {
+
+    },
     "Clear slot" : {
       "localizations" : {
         "ar" : {
@@ -5301,6 +5307,15 @@
           }
         }
       }
+    },
+    "Clipboard History" : {
+
+    },
+    "Clipboard is empty" : {
+
+    },
+    "Clipboard Shelf" : {
+
     },
     "Close" : {
       "localizations" : {
@@ -7807,6 +7822,7 @@
       }
     },
     "Drop files here" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8305,6 +8321,9 @@
           }
         }
       }
+    },
+    "Enable clipboard tracking" : {
+
     },
     "Enable colored spectrograms" : {
       "extractionState" : "stale",
@@ -8906,6 +8925,9 @@
           }
         }
       }
+    },
+    "Enables automatic clipboard tracking. Pinned items are preserved when clearing history." : {
+
     },
     "Enhance your experience with HUDs" : {
       "localizations" : {
@@ -15010,6 +15032,9 @@
         }
       }
     },
+    "No results found" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -18112,6 +18137,9 @@
         }
       }
     },
+    "Search clipboard..." : {
+
+    },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
         "ar" : {
@@ -18513,6 +18541,7 @@
       }
     },
     "Shelf" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
