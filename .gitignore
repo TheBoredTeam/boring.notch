@@ -37,9 +37,6 @@ build/
 *.tmp
 *.log
 
-# Claude
-CLAUDE.md
-
 # Other
 *.DS_Store
 *.vscode/
