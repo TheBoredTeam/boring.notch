@@ -109,6 +109,7 @@ extension Notification.Name {
     static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
     static let notchHeightChanged = Notification.Name("NotchHeightChanged")
     static let showOnAllDisplaysChanged = Notification.Name("showOnAllDisplaysChanged")
+    static let onlyShowOnNotchDisplaysChanged = Notification.Name("onlyShowOnNotchDisplaysChanged")
     static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
     
     // MARK: - Shelf
@@ -209,6 +210,7 @@ extension Defaults.Keys {
     static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
+    static let onlyShowOnNotchDisplays = Key<Bool>("onlyShowOnNotchDisplays", default: true)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     

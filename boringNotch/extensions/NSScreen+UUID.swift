@@ -9,6 +9,10 @@ import AppKit
 import CoreGraphics
 
 extension NSScreen {
+    var hasNotch: Bool {
+        safeAreaInsets.top > 0
+    }
+
     /// Returns a persistent UUID for this display
     var displayUUID: String? {
         guard let number = deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else {

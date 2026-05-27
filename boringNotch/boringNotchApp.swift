@@ -208,6 +208,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if Defaults[.showOnAllDisplays] {
             for screen in NSScreen.screens {
+                if Defaults[.onlyShowOnNotchDisplays] && !screen.hasNotch { continue }
                 setupDragDetectorForScreen(screen)
             }
         } else {
@@ -215,7 +216,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 ?? NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
                 ?? NSScreen.main
 
-            if let screen = preferredScreen {
+            if let screen = preferredScreen,
+               !(Defaults[.onlyShowOnNotchDisplays] && !screen.hasNotch) {
                 setupDragDetectorForScreen(screen)
             }
         }
@@ -353,6 +355,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 guard let self = self else { return }
                 self.cleanupWindows(shouldInvert: true)
+                self.adjustWindowPosition(changeAlpha: true)
+                self.setupDragDetectors()
+            }
+        })
+
+        observers.append(NotificationCenter.default.addObserver(
+            forName: Notification.Name.onlyShowOnNotchDisplaysChanged, object: nil, queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                self.cleanupWindows()
                 self.adjustWindowPosition(changeAlpha: true)
                 self.setupDragDetectors()
             }
@@ -541,7 +554,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Create or update windows for all screens
             for screen in NSScreen.screens {
                 guard let uuid = screen.displayUUID else { continue }
-                
+
+                if Defaults[.onlyShowOnNotchDisplays] && !screen.hasNotch {
+                    if let window = windows[uuid] {
+                        window.close()
+                        NotchSpaceManager.shared.notchSpace.windows.remove(window)
+                        windows.removeValue(forKey: uuid)
+                        viewModels.removeValue(forKey: uuid)
+                    }
+                    continue
+                }
+
                 if windows[uuid] == nil {
                     let viewModel = BoringViewModel(screenUUID: uuid)
                     let window = createBoringNotchWindow(for: screen, with: viewModel)
@@ -569,6 +592,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 coordinator.selectedScreenUUID = mainUUID
                 selectedScreen = mainScreen
             } else {
+                if let window = window {
+                    window.alphaValue = 0
+                }
+                return
+            }
+
+            if Defaults[.onlyShowOnNotchDisplays] && !selectedScreen.hasNotch {
                 if let window = window {
                     window.alphaValue = 0
                 }

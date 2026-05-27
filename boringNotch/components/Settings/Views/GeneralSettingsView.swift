@@ -27,6 +27,7 @@ struct GeneralSettings: View {
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
+    @Default(.onlyShowOnNotchDisplays) var onlyShowOnNotchDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
@@ -61,6 +62,13 @@ struct GeneralSettings: View {
                 .onChange(of: showOnAllDisplays) {
                     NotificationCenter.default.post(
                         name: Notification.Name.showOnAllDisplaysChanged, object: nil)
+                }
+                Defaults.Toggle(key: .onlyShowOnNotchDisplays) {
+                    Text("Only show on displays with a notch")
+                }
+                .onChange(of: onlyShowOnNotchDisplays) {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.onlyShowOnNotchDisplaysChanged, object: nil)
                 }
                 Picker("Preferred display", selection: $coordinator.preferredScreenUUID) {
                     ForEach(screens, id: \.uuid) { screen in
