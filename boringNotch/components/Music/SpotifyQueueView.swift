@@ -79,7 +79,7 @@ struct SpotifyQueuePopoverContent: View {
             if musicManager.queueSupported {
                 connectButton
             } else {
-                Text("Add a Spotify client ID in Settings.")
+                Text("Add a Spotify client ID in the boringNotch target build settings (SPOTIFY_CLIENT_ID), then rebuild.")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.65))
             }

@@ -127,7 +127,6 @@ struct Media: View {
 }
 
 private struct SpotifyQueueSettingsSection: View {
-    @Default(.mediaController) private var mediaController
     @ObservedObject private var musicManager = MusicManager.shared
 
     var body: some View {
@@ -161,19 +160,15 @@ private struct SpotifyQueueSettingsSection: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Queue uses the Spotify Web API. Playback controls still use AppleScript.")
                 Text("In the Spotify Developer Dashboard, add redirect URI: http://127.0.0.1:8765/callback.")
-                Text("Requires Spotify as the selected music source. Add the Queue control in Media controls above.")
+                Text("Works with any music source while Spotify is playing. Add the Queue control in Media controls above.")
                 Text("Tap a track in the queue to play it. Reconnect Spotify if play from queue does not work (playback permission was added).")
             }
             .font(.caption)
             .foregroundStyle(.secondary)
         }
-        .disabled(mediaController != .spotify)
     }
 
     private var statusLabel: String {
-        if mediaController != .spotify {
-            return "Select Spotify as music source"
-        }
         if !musicManager.queueSupported {
             return "Not configured"
         }

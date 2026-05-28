@@ -27,6 +27,8 @@ class MusicManager: ObservableObject {
 
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
+    /// Used for Spotify Web API queue when playback comes from Now Playing / another source.
+    private var spotifyQueueFallbackController: SpotifyController?
 
     // Published properties for UI
     @Published var songTitle: String = "I'm Handsome"
@@ -190,10 +192,24 @@ class MusicManager: ObservableObject {
         forceUpdate()
     }
 
+    /// Spotify queue uses the Web API and works whenever a client ID is configured,
+    /// even if the notch music source is Now Playing or Apple Music.
+    private func controllerForSpotifyQueue() -> SpotifyController? {
+        guard SpotifyConfig.isConfigured else { return nil }
+        if let activeSpotify = activeController as? SpotifyController {
+            spotifyQueueFallbackController = nil
+            return activeSpotify
+        }
+        if spotifyQueueFallbackController == nil {
+            spotifyQueueFallbackController = SpotifyController()
+        }
+        return spotifyQueueFallbackController
+    }
+
     private func bindQueueState(from controller: any MediaControllerProtocol) {
         resetQueueState()
 
-        guard let queueController = controller as? any QueueProvidingMediaController else {
+        guard let queueController = controllerForSpotifyQueue() else {
             return
         }
 
@@ -231,15 +247,13 @@ class MusicManager: ObservableObject {
             }
             .store(in: &controllerCancellables)
 
-        if let spotifyController = controller as? SpotifyController {
-            Task {
-                await spotifyController.syncQueueAuthState()
-            }
+        Task {
+            await queueController.syncQueueAuthState()
         }
     }
 
     func syncSpotifyQueueAuth() async {
-        guard let spotifyController = activeController as? SpotifyController else { return }
+        guard let spotifyController = controllerForSpotifyQueue() else { return }
         await spotifyController.syncQueueAuthState()
     }
 
@@ -252,26 +266,26 @@ class MusicManager: ObservableObject {
     }
 
     func connectSpotifyQueue() {
-        guard let queueController = activeController as? any QueueProvidingMediaController else { return }
+        guard let queueController = controllerForSpotifyQueue() else { return }
         Task {
             await queueController.connectQueue()
         }
     }
 
     func disconnectSpotifyQueue() {
-        guard let queueController = activeController as? any QueueProvidingMediaController else { return }
+        guard let queueController = controllerForSpotifyQueue() else { return }
         queueController.disconnectQueue()
     }
 
     func refreshQueue() {
-        guard let queueController = activeController as? any QueueProvidingMediaController else { return }
+        guard let queueController = controllerForSpotifyQueue() else { return }
         Task {
             await queueController.refreshQueue()
         }
     }
 
     func playQueueItem(_ item: SpotifyQueueItem) {
-        guard let queueController = activeController as? any QueueProvidingMediaController else { return }
+        guard let queueController = controllerForSpotifyQueue() else { return }
         guard item.canPlay else { return }
 
         applyOptimisticQueueSelection(for: item)
