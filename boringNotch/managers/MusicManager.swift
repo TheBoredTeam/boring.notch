@@ -58,6 +58,12 @@ class MusicManager: ObservableObject {
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
     @Published var isFavoriteTrack: Bool = false
 
+    @Published var queueSupported: Bool = false
+    @Published var queueItems: [SpotifyQueueItem] = []
+    @Published var queueAuthState: SpotifyQueueAuthState = .unauthenticated
+    @Published var isLoadingQueue: Bool = false
+    @Published var queueErrorMessage: String?
+
     private var artworkData: Data? = nil
 
     // Store last values at the time artwork was changed
@@ -117,6 +123,7 @@ class MusicManager: ObservableObject {
         if activeController != nil {
             controllerCancellables.removeAll()
             activeController = nil
+            resetQueueState()
         }
 
         let newController: (any MediaControllerProtocol)?
@@ -177,9 +184,125 @@ class MusicManager: ObservableObject {
         activeController = controller
         
         self.canFavoriteTrack = controller.supportsFavorite
+        bindQueueState(from: controller)
 
         // Get current state from active controller
         forceUpdate()
+    }
+
+    private func bindQueueState(from controller: any MediaControllerProtocol) {
+        resetQueueState()
+
+        guard let queueController = controller as? any QueueProvidingMediaController else {
+            return
+        }
+
+        queueSupported = queueController.queueSupported
+        queueAuthState = queueController.queueAuthState
+        queueItems = queueController.queueItems
+        isLoadingQueue = queueController.isLoadingQueue
+        queueErrorMessage = queueController.queueErrorMessage
+
+        queueController.queueAuthStatePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                self?.queueAuthState = state
+            }
+            .store(in: &controllerCancellables)
+
+        queueController.queueItemsPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] items in
+                self?.queueItems = items
+            }
+            .store(in: &controllerCancellables)
+
+        queueController.isLoadingQueuePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] loading in
+                self?.isLoadingQueue = loading
+            }
+            .store(in: &controllerCancellables)
+
+        queueController.queueErrorPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] message in
+                self?.queueErrorMessage = message
+            }
+            .store(in: &controllerCancellables)
+
+        if let spotifyController = controller as? SpotifyController {
+            Task {
+                await spotifyController.syncQueueAuthState()
+            }
+        }
+    }
+
+    func syncSpotifyQueueAuth() async {
+        guard let spotifyController = activeController as? SpotifyController else { return }
+        await spotifyController.syncQueueAuthState()
+    }
+
+    private func resetQueueState() {
+        queueSupported = false
+        queueItems = []
+        queueAuthState = .unauthenticated
+        isLoadingQueue = false
+        queueErrorMessage = nil
+    }
+
+    func connectSpotifyQueue() {
+        guard let queueController = activeController as? any QueueProvidingMediaController else { return }
+        Task {
+            await queueController.connectQueue()
+        }
+    }
+
+    func disconnectSpotifyQueue() {
+        guard let queueController = activeController as? any QueueProvidingMediaController else { return }
+        queueController.disconnectQueue()
+    }
+
+    func refreshQueue() {
+        guard let queueController = activeController as? any QueueProvidingMediaController else { return }
+        Task {
+            await queueController.refreshQueue()
+        }
+    }
+
+    func playQueueItem(_ item: SpotifyQueueItem) {
+        guard let queueController = activeController as? any QueueProvidingMediaController else { return }
+        guard item.canPlay else { return }
+
+        applyOptimisticQueueSelection(for: item)
+        applyOptimisticNowPlaying(from: item)
+
+        Task {
+            await queueController.playQueueItem(item)
+            await MainActor.run {
+                self.forceUpdate()
+            }
+        }
+    }
+
+    private func applyOptimisticQueueSelection(for item: SpotifyQueueItem) {
+        queueItems = queueItems.map { queueItem in
+            SpotifyQueueItem(
+                id: queueItem.id,
+                uri: queueItem.uri,
+                title: queueItem.title,
+                subtitle: queueItem.subtitle,
+                artworkURL: queueItem.artworkURL,
+                isCurrentlyPlaying: queueItem.id == item.id
+            )
+        }
+    }
+
+    private func applyOptimisticNowPlaying(from item: SpotifyQueueItem) {
+        songTitle = item.title
+        artistName = item.subtitle
+        isPlaying = true
+        isPlayerIdle = false
     }
 
     // MARK: - Update Methods

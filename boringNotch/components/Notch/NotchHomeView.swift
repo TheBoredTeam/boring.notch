@@ -288,6 +288,8 @@ struct MusicControlsView: View {
             HoverButton(icon: "goforward.15", scale: .medium) {
                 MusicManager.shared.skip(seconds: 15)
             }
+        case .queue:
+            SpotifyQueueControlButton()
         case .none:
             Color.clear.frame(height: 1)
         }

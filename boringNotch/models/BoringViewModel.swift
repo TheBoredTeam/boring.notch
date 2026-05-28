@@ -30,6 +30,13 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
+    @Published var isMusicQueuePopoverActive: Bool = false
+    /// Skips auto-closing the notch when the queue popover dismisses after picking a track.
+    var isDismissingMusicQueueForPlayback: Bool = false
+
+    var isPopoverBlockingNotchClose: Bool {
+        isBatteryPopoverActive || isMusicQueuePopoverActive
+    }
 
     @Published var screenUUID: String?
 
@@ -216,6 +223,7 @@ class BoringViewModel: NSObject, ObservableObject {
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
         self.isBatteryPopoverActive = false
+        self.isMusicQueuePopoverActive = false
         if self.coordinator.shouldShowSneakPeek(on: self.screenUUID) {
             self.coordinator.toggleSneakPeek(status: false, type: .music, targetScreenUUID: self.screenUUID)
         }
