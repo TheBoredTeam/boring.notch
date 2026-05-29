@@ -11,15 +11,25 @@ import UniformTypeIdentifiers
 
 struct ShelfDropService {
     static func items(from providers: [NSItemProvider]) async -> [ShelfItem] {
-        var results: [ShelfItem] = []
-
-        for provider in providers {
-            if let item = await processProvider(provider) {
-                results.append(item)
+        // Process providers concurrently for better performance with large drops
+        await withTaskGroup(of: ShelfItem?.self) { group in
+            for provider in providers {
+                group.addTask {
+                    await processProvider(provider)
+                }
             }
+            
+            var results: [ShelfItem] = []
+            results.reserveCapacity(providers.count)
+            
+            for await item in group {
+                if let item = item {
+                    results.append(item)
+                }
+            }
+            
+            return results
         }
-
-        return results
     }
     
     private static func processProvider(_ provider: NSItemProvider) async -> ShelfItem? {

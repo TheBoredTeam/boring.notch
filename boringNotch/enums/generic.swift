@@ -13,12 +13,6 @@ public enum Style {
     case floating
 }
 
-public enum ContentType: Int, Codable, Hashable, Equatable {
-    case normal
-    case menu
-    case settings
-}
-
 public enum NotchState {
     case closed
     case open
@@ -27,17 +21,6 @@ public enum NotchState {
 public enum NotchViews {
     case home
     case shelf
-}
-
-enum SettingsEnum {
-    case general
-    case about
-    case charge
-    case download
-    case mediaPlayback
-    case hud
-    case shelf
-    case extensions
 }
 
 enum DownloadIndicatorStyle: String, Defaults.Serializable {
@@ -63,7 +46,18 @@ enum WindowHeightMode: String, Defaults.Serializable {
 }
 
 enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
-    case white = "White"
-    case albumArt = "Match album art"
-    case accent = "Accent color"
+    case white
+    case albumArt
+    case accent
+    
+    var localizedString: String {
+        switch self {
+        case .white:
+            return NSLocalizedString("slider_color_white", comment: "Slider color option: white")
+        case .albumArt:
+            return NSLocalizedString("slider_color_album_art", comment: "Slider color option: match album art")
+        case .accent:
+            return NSLocalizedString("slider_color_accent", comment: "Slider color option: accent color")
+        }
+    }
 }
