@@ -7,6 +7,7 @@
 //  Modified by Alexander on 2025-05-18.
 //
 
+import AppKit
 import Foundation
 
 struct EventModel: Equatable, Identifiable {
@@ -84,12 +85,24 @@ extension EventModel {
 
     func calendarAppURL() -> URL? {
 
-        guard let id = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+        guard let encodedId = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
             return nil
         }
 
         guard !type.isReminder else {
-            return URL(string: "x-apple-reminderkit://remcdreminder/\(id)")
+            return URL(string: "x-apple-reminderkit://remcdreminder/\(encodedId)")
+        }
+
+        // Detect the default calendar app via which app handles webcal:// — this reflects
+        // the "Default Calendar App" system setting. ical:// is Apple Calendar's proprietary
+        // scheme and is never handled by third-party apps, so we must route per-app.
+        if let webcalURL = URL(string: "webcal://x"),
+           let appURL = NSWorkspace.shared.urlForApplication(toOpen: webcalURL),
+           let bundleId = Bundle(url: appURL)?.bundleIdentifier?.lowercased()
+        {
+            if bundleId.contains("fantastical") {
+                return URL(string: "x-fantastical2://show?eventIdentifier=\(encodedId)")
+            }
         }
 
         let date: String
@@ -105,9 +118,9 @@ extension EventModel {
                 return nil
             }
         } else {
-            date =  ""
+            date = ""
         }
-        return URL(string: "ical://ekevent\(date)/\(id)?method=show&options=more")
+        return URL(string: "ical://ekevent\(date)/\(encodedId)?method=show&options=more")
     }
 }
 
