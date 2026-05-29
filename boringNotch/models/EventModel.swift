@@ -7,6 +7,7 @@
 //  Modified by Alexander on 2025-05-18.
 //
 
+import AppKit
 import Foundation
 
 struct EventModel: Equatable, Identifiable {
@@ -83,31 +84,53 @@ extension EventModel {
     var isMeeting: Bool { !participants.isEmpty }
 
     func calendarAppURL() -> URL? {
-
-        guard let id = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+        guard let encodedId = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
             return nil
         }
 
         guard !type.isReminder else {
-            return URL(string: "x-apple-reminderkit://remcdreminder/\(id)")
+            return URL(string: "x-apple-reminderkit://remcdreminder/\(encodedId)")
         }
 
-        let date: String
+        // Recurrence date fragment — only used by the Apple Calendar ical:// template.
+        // Other app templates omit {date} so this replacement is a harmless no-op for them.
+        let dateFragment: String
         if hasRecurrenceRules {
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
             if !isAllDay {
                 formatter.timeZone = .init(secondsFromGMT: 0)
             }
-            if let formattedDate = formatter.string(for: start) {
-                date = "/\(formattedDate)"
-            } else {
-                return nil
-            }
+            guard let formattedDate = formatter.string(for: start) else { return nil }
+            dateFragment = "/\(formattedDate)"
         } else {
-            date =  ""
+            dateFragment = ""
         }
-        return URL(string: "ical://ekevent\(date)/\(id)?method=show&options=more")
+
+        if let template = Self.urlTemplate(forDefaultCalendarApp: ()) {
+            let urlString = template
+                .replacingOccurrences(of: "{id}", with: encodedId)
+                .replacingOccurrences(of: "{date}", with: dateFragment)
+            return URL(string: urlString)
+        }
+
+        // Fallback when the plist is missing or the default app has no entry.
+        return URL(string: "ical://ekevent\(dateFragment)/\(encodedId)?method=show&options=more")
+    }
+
+    // Reads CalendarAppURLSchemes.plist and returns the URL template for the current
+    // default calendar app (identified by which app handles webcal:// links).
+    private static func urlTemplate(forDefaultCalendarApp _: ()) -> String? {
+        guard
+            let webcalURL = URL(string: "webcal://x"),
+            let appURL = NSWorkspace.shared.urlForApplication(toOpen: webcalURL),
+            let bundleId = Bundle(url: appURL)?.bundleIdentifier,
+            let plistURL = Bundle.main.url(forResource: "CalendarAppURLSchemes", withExtension: "plist"),
+            let data = try? Data(contentsOf: plistURL),
+            let mapping = try? PropertyListDecoder().decode([String: String].self, from: data)
+        else { return nil }
+
+        return mapping[bundleId]
     }
 }
 

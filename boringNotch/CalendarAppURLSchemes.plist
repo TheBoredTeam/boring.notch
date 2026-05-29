@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+    Maps a calendar app's bundle ID to a URL template for opening a specific event.
+
+    Placeholders:
+      {id}   – percent-encoded EKEvent.calendarItemIdentifier
+      {date} – ISO-8601 recurrence date prefix used by Apple Calendar ("/yyyy-MM-dd'T'HH:mm:ssZ"),
+               empty string for non-recurring events; safe to omit from templates that don't need it
+
+    To add support for another calendar app:
+      1. Find its bundle ID (e.g. via: mdls -name kMDItemCFBundleIdentifier /Applications/YourApp.app)
+      2. Find its URL scheme (check the app's documentation or Info.plist CFBundleURLSchemes)
+      3. Add a new key/string pair below
+-->
+<dict>
+    <!-- Apple Calendar -->
+    <key>com.apple.iCal</key>
+    <string>ical://ekevent{date}/{id}?method=show&amp;options=more</string>
+
+    <!-- Fantastical (bundle ID unchanged across versions 2 and 3) -->
+    <key>com.flexibits.fantastical2.mac</key>
+    <string>x-fantastical2://show?eventIdentifier={id}</string>
+
+    <!-- BusyCal -->
+    <key>com.busymac.busycal3</key>
+    <string>busycal://open?calendarItemIdentifier={id}</string>
+</dict>
+</plist>
