@@ -57,6 +57,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
+                NavigationLink(value: "Pi") {
+                    Label("Pi", systemImage: "sparkles")
+                }
                 // NavigationLink(value: "Extensions") {
                 //     Label("Extensions", systemImage: "puzzlepiece.extension")
                 // }
@@ -92,6 +95,8 @@ struct SettingsView: View {
                     Screenshots()
                 case "Shortcuts":
                     Shortcuts()
+                case "Pi":
+                    PiSettings()
                 case "Extensions":
                     GeneralSettings()
                 case "Advanced":

@@ -59,3 +59,18 @@ boring-shots/
 *.xcarchive
 *.dSYM
 
+# Sidecar (Bun) — all produced by `make sidecar`, not committed
+sidecar/node_modules/
+boringNotch/Resources/pi-sidecar
+boringNotch/Resources/package.json
+boringNotch/Resources/theme/
+boringNotch/Resources/export-html/
+
+# Environment / secrets
+.env
+.env.*
+
+# Local agent tooling
+.claude/
+.cursor/
+

@@ -50,7 +50,9 @@ struct ExpandedItem {
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
-    @Published var currentView: NotchViews = .home
+    @Published var currentView: NotchViews = .home {
+        didSet { Defaults[.lastSelectedView] = currentView }
+    }
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
@@ -72,7 +74,7 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
-    @AppStorage("openLastTabByDefault") var openLastTabByDefault: Bool = false {
+    @AppStorage("openLastTabByDefault") var openLastTabByDefault: Bool = true {
         didSet {
             if openLastTabByDefault {
                 alwaysShowTabs = true
@@ -122,6 +124,13 @@ class BoringViewCoordinator: ObservableObject {
         }
         
         selectedScreenUUID = preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
+
+        // Restore the last-selected tab across restarts. Setting this re-triggers the
+        // didSet (writing the same value back), which is harmless.
+        if openLastTabByDefault {
+            currentView = Defaults[.lastSelectedView]
+        }
+
         // Observe changes to accessibility authorization and react accordingly
         accessibilityObserver = NotificationCenter.default.addObserver(
             forName: Notification.Name.accessibilityAuthorizationChanged,
@@ -296,5 +305,34 @@ class BoringViewCoordinator: ObservableObject {
     
     func showEmpty() {
         currentView = .home
+    }
+
+    // MARK: - Pi peek (collapsed live-activity for a running Pi turn)
+
+    struct PiPeek {
+        var show: Bool = false
+    }
+
+    @Published var piPeek = PiPeek()
+    private var piPeekTask: Task<Void, Never>?
+
+    /// Show the Pi peek and cancel any pending auto-hide (a run is starting/ongoing).
+    func showPiPeek() {
+        piPeekTask?.cancel()
+        piPeekTask = nil
+        withAnimation(.smooth) { piPeek.show = true }
+    }
+
+    /// After a run finishes, leave a brief "done" peek then auto-dismiss — mirrors
+    /// `scheduleSneakPeekHide`.
+    func schedulePiPeekHide(after duration: TimeInterval = 2.5) {
+        piPeekTask?.cancel()
+        piPeekTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(duration))
+            guard let self, !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(.smooth) { self.piPeek.show = false }
+            }
+        }
     }
 }

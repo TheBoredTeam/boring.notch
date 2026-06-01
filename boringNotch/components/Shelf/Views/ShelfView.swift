@@ -25,7 +25,12 @@ struct ShelfView: View {
                 .onDrop(of: [.fileURL, .url, .image, .png, .tiff, .jpeg, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
                 }
+            if !tvm.isEmpty {
+                TrashBucketView()
+                    .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
+            }
         }
+        .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: tvm.isEmpty)
         // Bind Quick Look to shelf selection
         .onChange(of: selection.selectedIDs) {
             updateQuickLookSelection()

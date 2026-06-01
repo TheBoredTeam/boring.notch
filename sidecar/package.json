@@ -1,0 +1,14 @@
+{
+  "name": "pi-sidecar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-contained Pi coding-agent sidecar for boring.notch. Speaks newline-delimited JSON over stdin/stdout.",
+  "scripts": {
+    "build": "bun build ./index.ts --compile --outfile ../boringNotch/Resources/pi-sidecar",
+    "dev": "bun run index.ts"
+  },
+  "dependencies": {
+    "@mariozechner/pi-coding-agent": "^0.73.1"
+  }
+}
