@@ -78,6 +78,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let doubleTapService = DoubleCommandTapService()
     private var doubleCommandCancellable: AnyCancellable?
     private var didShowScreenRecordingAlert = false
+    /// The Accessibility prompt is shown at most once per launch. Without this
+    /// guard, `applyDoubleCommandSetting()` re-fires the prompting API on every
+    /// `applicationDidBecomeActive`, nagging the user repeatedly while the grant
+    /// is still pending. Re-armed when the double-⌘ setting is turned off so
+    /// re-enabling can prompt again.
+    private var didRequestAccessibilityPrompt = false
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -496,14 +502,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     func applyDoubleCommandSetting() {
         if Defaults[.screenshotDoubleCommandEnabled] {
+            screenshotPermissions.refresh()
             if !screenshotPermissions.accessibilityGranted {
-                screenshotPermissions.requestAccessibility()
+                // Prompt at most once per launch. This method runs on every
+                // `applicationDidBecomeActive`, so calling the prompting API
+                // unconditionally re-opened the system dialog each time the app
+                // regained focus. Later activations rely on the refresh() above
+                // (non-prompting) to detect a grant and start the tap.
+                if !didRequestAccessibilityPrompt {
+                    didRequestAccessibilityPrompt = true
+                    screenshotPermissions.requestAccessibility()
+                }
             }
-            if !doubleTapService.isRunning {
+            if screenshotPermissions.accessibilityGranted, !doubleTapService.isRunning {
                 _ = doubleTapService.start()
             }
         } else {
             doubleTapService.stop()
+            // Re-arm so toggling the feature back on prompts again if needed.
+            didRequestAccessibilityPrompt = false
         }
     }
 
