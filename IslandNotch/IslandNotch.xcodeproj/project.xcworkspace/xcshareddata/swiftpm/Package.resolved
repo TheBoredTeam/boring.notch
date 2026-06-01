@@ -1,0 +1,24 @@
+{
+  "originHash" : "6055fd705fd9c601cd3edaed00f5e9ae3e1d4743babb1e9fddaa39c8ec196c46",
+  "pins" : [
+    {
+      "identity" : "dynamicnotchkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/MrKai77/DynamicNotchKit",
+      "state" : {
+        "revision" : "cd0b3e52d537db115ad3a9d89601f20e0bee8d27",
+        "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "keyboardshortcuts",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sindresorhus/KeyboardShortcuts",
+      "state" : {
+        "revision" : "1aef85578fdd4f9eaeeb8d53b7b4fc31bf08fe27",
+        "version" : "2.4.0"
+      }
+    }
+  ],
+  "version" : 3
+}

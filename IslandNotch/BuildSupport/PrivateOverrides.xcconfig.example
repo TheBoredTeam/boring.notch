@@ -1,0 +1,13 @@
+// Copy this file to "PrivateOverrides.xcconfig" (same folder) and fill in your
+// Apple Developer Team ID. The real PrivateOverrides.xcconfig is gitignored so
+// your signing identity never lands in version control.
+//
+//   cp PrivateOverrides.xcconfig.example PrivateOverrides.xcconfig
+//
+// Find your Team ID in Xcode > Settings > Accounts, or at
+// https://developer.apple.com/account (Membership details).
+
+DEVELOPMENT_TEAM = ABCDE12345
+
+// Optional: override the bundle identifier for your own signing.
+// APP_BUNDLE_ID = com.yourname.islandnotch

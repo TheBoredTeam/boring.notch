@@ -1,0 +1,19 @@
+// Shared public build defaults for IslandNotch.
+// Machine-specific signing (your Apple Developer Team ID) belongs in the
+// gitignored PrivateOverrides.xcconfig (copy from PrivateOverrides.xcconfig.example).
+
+APP_BUNDLE_ID = com.constellagent.islandnotch
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+// 14.0 floor: the app uses the Observation framework (@Observable / @Environment
+// object / withObservationTracking), which requires macOS 14+.
+MACOSX_DEPLOYMENT_TARGET = 14.0
+SWIFT_VERSION = 5.0
+
+// Empty here so open-source / unsigned local builds work out of the box.
+// Set DEVELOPMENT_TEAM in PrivateOverrides.xcconfig for a stable Developer-ID
+// signature (required so TCC permission grants survive rebuilds).
+DEVELOPMENT_TEAM =
+
+#include? "PrivateOverrides.xcconfig"

@@ -1,0 +1,68 @@
+# Optional XcodeGen spec. The committed IslandNotch.xcodeproj is the source of
+# truth and opens directly in Xcode. This file exists only so you can regenerate
+# an equivalent project from scratch:
+#
+#   brew install xcodegen
+#   cd macos && xcodegen generate
+#
+# Keep this in sync with IslandNotch.xcodeproj when build settings change.
+
+name: IslandNotch
+options:
+  bundleIdPrefix: com.constellagent
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+configs:
+  Debug: debug
+  Release: release
+
+packages:
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    majorVersion: 2.0.0
+  DynamicNotchKit:
+    url: https://github.com/MrKai77/DynamicNotchKit
+    majorVersion: 1.1.0
+
+targets:
+  IslandNotch:
+    type: application
+    platform: macOS
+    sources:
+      - path: IslandNotch
+    configFiles:
+      Debug: BuildSupport/Base.xcconfig
+      Release: BuildSupport/Base.xcconfig
+    info:
+      path: BuildSupport/IslandNotch-Info.plist
+    entitlements:
+      path: BuildSupport/IslandNotch.entitlements
+    settings:
+      configs:
+        Debug:
+          ENABLE_DEBUG_DYLIB: NO
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_ID)
+        INFOPLIST_FILE: BuildSupport/IslandNotch-Info.plist
+        CODE_SIGN_ENTITLEMENTS: BuildSupport/IslandNotch.entitlements
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: $(DEVELOPMENT_TEAM)
+        ENABLE_HARDENED_RUNTIME: YES
+        GENERATE_INFOPLIST_FILE: NO
+        MARKETING_VERSION: $(MARKETING_VERSION)
+        CURRENT_PROJECT_VERSION: $(CURRENT_PROJECT_VERSION)
+    dependencies:
+      - package: KeyboardShortcuts
+      - package: DynamicNotchKit
+schemes:
+  IslandNotch:
+    build:
+      targets:
+        IslandNotch: all
+    run:
+      config: Debug
+    profile:
+      config: Release
+    archive:
+      config: Release

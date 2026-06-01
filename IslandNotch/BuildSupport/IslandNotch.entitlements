@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Non-sandboxed Developer-ID app. The App Sandbox is impractical here:
+	     a global CGEventTap, launching /usr/sbin/screencapture, and writing PNGs
+	     to ~/Desktop all require unsandboxed access. Hardened Runtime is enabled
+	     via the ENABLE_HARDENED_RUNTIME build setting (required for notarization);
+	     no hardened-runtime exceptions are needed for these operations. -->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+</dict>
+</plist>
