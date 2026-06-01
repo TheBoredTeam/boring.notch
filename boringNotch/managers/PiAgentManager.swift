@@ -117,7 +117,12 @@ final class PiAgentManager: ObservableObject {
     private func launch(exe: URL) async {
         let process = Process()
         process.executableURL = exe
-        // Inherit env (HOME) so the sidecar reuses ~/.pi & ~/.composio CLI login.
+        // Inherit env (HOME) so the sidecar reuses ~/.pi & ~/.composio CLI login,
+        // but fix up PATH: GUI apps launch with launchd's bare PATH
+        // (/usr/bin:/bin:/usr/sbin:/sbin), so the sidecar's `npm root -g` (and any
+        // CLI it shells out to) fails with "Executable not found in $PATH" unless
+        // the standard user tool directories are added.
+        process.environment = Self.sidecarEnvironment()
 
         let stdin = Pipe()
         let reader = JSONLinesPipeHandler()
@@ -142,6 +147,32 @@ final class PiAgentManager: ObservableObject {
             lastError = "Failed to launch pi-sidecar: \(error.localizedDescription)"
             didLaunch = false
         }
+    }
+
+    /// The app's environment with PATH augmented by the common user tool
+    /// directories (node/npm/bun/composio installs). Finder, Dock, and `open`
+    /// launches only get launchd's bare PATH, which has none of them.
+    private static func sidecarEnvironment() -> [String: String] {
+        var env = ProcessInfo.processInfo.environment
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let candidates = [
+            "\(home)/.local/share/fnm/aliases/default/bin", // fnm's stable default node
+            "/opt/homebrew/bin",
+            "/usr/local/bin",
+            "\(home)/.bun/bin",
+            "\(home)/.local/bin",
+            "\(home)/.npm-global/bin",
+            "\(home)/Library/pnpm",
+            "\(home)/.composio",
+        ].filter { FileManager.default.fileExists(atPath: $0) }
+
+        let inherited = (env["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin")
+            .split(separator: ":").map(String.init)
+        var seen = Set<String>()
+        env["PATH"] = (candidates + inherited)
+            .filter { seen.insert($0).inserted }
+            .joined(separator: ":")
+        return env
     }
 
     /// Tear down the child process. Called from the AppDelegate on terminate.

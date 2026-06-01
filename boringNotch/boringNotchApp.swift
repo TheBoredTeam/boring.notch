@@ -86,6 +86,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// is still pending. Re-armed when the double-⌘ setting is turned off so
     /// re-enabling can prompt again.
     private var didRequestAccessibilityPrompt = false
+    /// Polls Accessibility trust while double-⌘ is enabled but ungranted, so the
+    /// event tap starts as soon as the user grants — without relaunching the app.
+    private var accessibilityPollTask: Task<Void, Never>?
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -518,14 +521,52 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     screenshotPermissions.requestAccessibility()
                 }
             }
-            if screenshotPermissions.accessibilityGranted, !doubleTapService.isRunning {
-                _ = doubleTapService.start()
+            if screenshotPermissions.accessibilityGranted {
+                stopAccessibilityPolling()
+                if !doubleTapService.isRunning {
+                    _ = doubleTapService.start()
+                }
+            } else {
+                // Don't fail silently: an ad-hoc rebuild invalidates the TCC grant,
+                // so this state is common. Keep checking so the tap starts the
+                // moment the user re-grants — no relaunch required (the XPC-helper
+                // accessibility monitor can't cover this; it tracks the helper's
+                // own trust, not the main app's).
+                Log.hotkey.notice("double-⌘ enabled but Accessibility not granted — polling for grant")
+                startAccessibilityPolling()
             }
         } else {
+            stopAccessibilityPolling()
             doubleTapService.stop()
             // Re-arm so toggling the feature back on prompts again if needed.
             didRequestAccessibilityPrompt = false
         }
+    }
+
+    /// Re-checks Accessibility trust every few seconds while double-⌘ is enabled but
+    /// ungranted. Stops itself once the grant appears (via applyDoubleCommandSetting).
+    @MainActor
+    private func startAccessibilityPolling() {
+        guard accessibilityPollTask == nil else { return }
+        accessibilityPollTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(3))
+                guard let self, !Task.isCancelled else { return }
+                self.screenshotPermissions.refresh()
+                if self.screenshotPermissions.accessibilityGranted {
+                    Log.hotkey.notice("Accessibility granted — starting double-⌘ tap")
+                    self.accessibilityPollTask = nil
+                    self.applyDoubleCommandSetting()
+                    return
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func stopAccessibilityPolling() {
+        accessibilityPollTask?.cancel()
+        accessibilityPollTask = nil
     }
 
     @MainActor
