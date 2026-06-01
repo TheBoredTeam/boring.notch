@@ -38,9 +38,9 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
 
     /// Height of the open panel's content. Mirrors `openNotchSize.height` (190) in
-    /// every tab except the Pi tab when expanded, where it grows to
-    /// `expandedPanelHeight` (360). SwiftUI frames bind to this instead of the
-    /// literal so toggling Pi's expand state animates the panel.
+    /// every tab except the Pi tab, where it follows the measured content height —
+    /// clamped to [base, `expandedPanelHeight`] — so the panel grows with the answer.
+    /// SwiftUI frames bind to this instead of the literal.
     @Published var openPanelHeight: CGFloat = openNotchSize.height
     
     let webcamManager = WebcamManager.shared
@@ -76,29 +76,41 @@ class BoringViewModel: NSObject, ObservableObject {
         setupPanelHeightObserver()
     }
 
-    /// Recompute `openPanelHeight` whenever the active tab or Pi's expand state
-    /// changes, so the open panel grows/shrinks for the expanded Pi tab.
+    /// Recompute `openPanelHeight` whenever the active tab or the Pi tab's measured
+    /// content height changes, so the open panel grows/shrinks with Pi's content.
     private func setupPanelHeightObserver() {
         let viewPublisher = coordinator.$currentView.removeDuplicates()
-        let expandedPublisher = Defaults.publisher(.piExpanded).map(\.newValue).removeDuplicates()
+        let measuredPublisher = PiAgentManager.shared.$measuredContentHeight.removeDuplicates()
 
-        Publishers.CombineLatest(viewPublisher, expandedPublisher)
+        Publishers.CombineLatest(viewPublisher, measuredPublisher)
             .receive(on: RunLoop.main)
-            .sink { [weak self] view, expanded in
-                self?.applyPanelHeight(view: view, expanded: expanded)
+            .sink { [weak self] view, measured in
+                self?.applyPanelHeight(view: view, measuredContentHeight: measured)
             }
             .store(in: &cancellables)
     }
 
-    private func applyPanelHeight(view: NotchViews, expanded: Bool) {
-        let target: CGFloat = (view == .pi && expanded) ? expandedPanelHeight : openNotchSize.height
+    /// The Pi panel's height follows its content (clamped to [base, expanded]); every
+    /// other tab uses the base height. Quantized to whole points to avoid spring churn
+    /// on per-token deltas.
+    ///
+    /// Animation gating (motion spec): streaming growth rides the height spring so many
+    /// small deltas read as one continuous swell; typing growth and tab switches assign
+    /// directly (the frequency rule — things the user triggers constantly don't animate).
+    private func applyPanelHeight(view: NotchViews, measuredContentHeight: CGFloat) {
+        let target: CGFloat = view == .pi
+            ? min(max(measuredContentHeight.rounded(), openNotchSize.height), expandedPanelHeight)
+            : openNotchSize.height
         guard openPanelHeight != target else { return }
-        openPanelHeight = target
-    }
 
-    /// The open panel/window height the Pi tab currently wants (compact vs expanded).
-    var piExpandedNow: Bool {
-        coordinator.currentView == .pi && Defaults[.piExpanded]
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        if view == .pi && PiAgentManager.shared.isRunning && !reduceMotion {
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.85, blendDuration: 0)) {
+                openPanelHeight = target
+            }
+        } else {
+            openPanelHeight = target
+        }
     }
     
     private func setupDetectorObserver() {

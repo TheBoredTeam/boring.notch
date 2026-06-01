@@ -60,6 +60,13 @@ struct ContentView: View {
         )
     }
 
+    /// True while the open Pi tab is session-pinned: un-hover style closes (mouse-away,
+    /// sharing finished, battery popover dismissed) are blocked. Deliberate closes
+    /// (swipe-up, tab switch) still win — they clear the pin first.
+    private var piPinHoldsOpen: Bool {
+        coordinator.currentView == .pi && PiAgentManager.shared.piPinned
+    }
+
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
@@ -120,8 +127,10 @@ struct ContentView: View {
                     )
                 
                 mainLayout
+                    // No `.animation(value: openPanelHeight)` here: BoringViewModel
+                    // gates the height animation itself (streaming growth = spring,
+                    // typing growth = instant, per the motion spec).
                     .frame(height: vm.notchState == .open ? vm.openPanelHeight : nil)
-                    .animation(.spring(response: 0.42, dampingFraction: 0.85, blendDuration: 0), value: vm.openPanelHeight)
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
                         let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
@@ -157,7 +166,7 @@ struct ContentView: View {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.piPinHoldsOpen {
                                         self.vm.close()
                                     }
                                 }
@@ -178,7 +187,7 @@ struct ContentView: View {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !self.piPinHoldsOpen {
                                         self.vm.close()
                                     }
                                 }
@@ -293,7 +302,7 @@ struct ContentView: View {
                               .transition(.opacity)
                       } else if coordinator.piPeek.show && coordinator.currentView == .pi && vm.notchState == .closed && !vm.hideOnClosed {
                           PiPeekView(logoNamespace: piLogoNamespace)
-                              .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
+                              .transition(Motion.transition(Motion.peekWings, reduceMotion: reduceMotion))
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -557,8 +566,8 @@ struct ContentView: View {
                     withAnimation(animationSpring) {
                         self.isHovering = false
                     }
-                    
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.piPinHoldsOpen {
                         self.vm.close()
                     }
                 }
@@ -608,7 +617,9 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 isHovering = false
             }
-            if !SharingStateManager.shared.preventNotchClose { 
+            if !SharingStateManager.shared.preventNotchClose {
+                // Swipe-up is a deliberate close — it beats the Pi session pin.
+                PiAgentManager.shared.piPinned = false
                 gestureProgress = .zero
                 vm.close()
             }

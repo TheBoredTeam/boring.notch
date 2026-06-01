@@ -4,6 +4,8 @@
  *
  *   stdin   {"type":"prompt","text":"…"}   {"type":"abort"}   {"type":"set_model","id":"…"}
  *   stdout  {"type":"status","word":"thinking"}
+ *           {"type":"tool_forming","index":0,"tool":"GMAIL_SEND_EMAIL","toolkit":"gmail",
+ *            "logo":"https://logos.composio.dev/api/gmail"}   // tool/toolkit/logo null until known
  *           {"type":"tool_start","id":"t1","tool":"GMAIL_SEND_EMAIL","word":"gmail",
  *            "toolkit":"gmail","logo":"https://logos.composio.dev/api/gmail"}
  *           {"type":"tool_end","id":"t1","ok":true}
@@ -71,6 +73,17 @@ function unwrapComposioAction(toolName: string, args: any): string | null {
     return null;
 }
 
+/**
+ * A tool call the model is still streaming arguments for. Tracked per
+ * `contentIndex` so the notch can show "Calling a tool…" the instant the model
+ * commits to a call — seconds before `tool_execution_start` fires — and upgrade
+ * to the real name/toolkit as soon as either becomes readable.
+ */
+interface FormingTool {
+    tool: string | null;
+    toolkit: string | null;
+}
+
 async function main(): Promise<void> {
     let session;
     try {
@@ -86,10 +99,42 @@ async function main(): Promise<void> {
         process.exit(1);
     }
 
+    // Tool calls the model is still streaming arguments for, keyed by contentIndex.
+    const formingTools = new Map<number, FormingTool>();
+
+    /**
+     * Emit `tool_forming` for a (possibly still anonymous) tool call, but only when
+     * something actually changed — toolcall_delta fires per token, so unconditional
+     * re-emits would flood the wire.
+     */
+    function emitToolForming(index: number, toolName: string | null): void {
+        const known = formingTools.get(index);
+        const slug = toolName ? toolkitSlug(toolName) : null;
+        if (known && known.tool === toolName && known.toolkit === slug) return;
+        formingTools.set(index, { tool: toolName, toolkit: slug });
+        emit({
+            type: "tool_forming",
+            index,
+            tool: toolName,
+            toolkit: slug,
+            logo: slug ? `https://logos.composio.dev/api/${slug}` : null,
+        });
+    }
+
+    /** Read a forming tool call's name out of the partial assistant message, if the provider exposes it. */
+    function formingNameFromPartial(partial: any, contentIndex: number): string | null {
+        const block = partial?.content?.[contentIndex];
+        if (block?.type === "toolCall" && typeof block.name === "string" && block.name) {
+            return block.name;
+        }
+        return null;
+    }
+
     // Translate agent events → wire protocol.
     session.subscribe((event: any) => {
         switch (event.type) {
             case "agent_start":
+                formingTools.clear();
                 emitStatus("thinking");
                 break;
             case "message_update": {
@@ -99,6 +144,22 @@ async function main(): Promise<void> {
                     emit({ type: "text_delta", delta: a.delta });
                 } else if (a.type === "thinking_delta") {
                     emitStatus("thinking");
+                } else if (a.type === "toolcall_start") {
+                    // The name is provider-dependent here — emit immediately either way
+                    // so the notch can show "Calling a tool…" instead of "Thinking…".
+                    emitToolForming(a.contentIndex, formingNameFromPartial(a.partial, a.contentIndex));
+                } else if (a.type === "toolcall_delta") {
+                    // Upgrade to the real name once it becomes readable (emit-on-change only).
+                    if (formingTools.get(a.contentIndex)?.tool == null) {
+                        const name = formingNameFromPartial(a.partial, a.contentIndex);
+                        if (name) emitToolForming(a.contentIndex, name);
+                    }
+                } else if (a.type === "toolcall_end") {
+                    // Name is guaranteed now, and arguments are parsed — unwrap the
+                    // composio meta-tool to the real toolkit (Gmail, Calendar, …).
+                    const name =
+                        unwrapComposioAction(a.toolCall.name, a.toolCall.arguments) ?? a.toolCall.name;
+                    emitToolForming(a.contentIndex, name);
                 } else if (a.type === "error") {
                     emit({ type: "error", message: "assistant error" });
                 }
@@ -125,6 +186,7 @@ async function main(): Promise<void> {
                 emit({ type: "tool_end", id: event.toolCallId, ok: !event.isError });
                 break;
             case "agent_end":
+                formingTools.clear();
                 emitStatus("done");
                 emit({ type: "done" });
                 break;

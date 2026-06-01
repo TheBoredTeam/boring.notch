@@ -16,8 +16,9 @@ let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 
-/// Expanded Pi tab: the open panel grows from `openNotchSize.height` (190) to this,
-/// and the host SkyLight window grows to `expandedWindowHeight` to make room.
+/// Pi tab growth cap: the open panel grows with its content from
+/// `openNotchSize.height` (190) up to this, and the host SkyLight window grows
+/// alongside it (panel + `shadowPadding`) to make room.
 let expandedPanelHeight: CGFloat = 360
 let expandedWindowHeight: CGFloat = expandedPanelHeight + shadowPadding
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))

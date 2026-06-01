@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi Tab — UX Overhaul Spec · boring.notch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PI TAB UX OVERHAUL — DESIGN ENGINEERING SPEC
+   Aesthetic: engineering drawing / lab spec sheet, on black.
+   Motion rules: transform+opacity only · ease-out for feedback ·
+   springs for things settling · exits ~20% faster than enters ·
+   reduced-motion collapses to fades.
+   ============================================================ */
+
+:root {
+  /* palette */
+  --ink: #0b0b0c;
+  --ink-2: #111113;
+  --ink-3: #18181b;
+  --paper: #e9e6df;
+  --paper-dim: #8e8b83;
+  --paper-faint: #56544e;
+  --copper: #d49a52;
+  --copper-dim: rgba(212, 154, 82, 0.16);
+  --hairline: rgba(233, 230, 223, 0.08);
+  --hairline-strong: rgba(233, 230, 223, 0.16);
+
+  /* demo accents */
+  --gmail: #f3766b;
+  --apple-green: #4fd964;
+  --apple-orange: #ff9f0a;
+
+  /* easings (animations.dev vocabulary) */
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* type */
+  --serif: 'Instrument Serif', Georgia, serif;
+  --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  --system: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* film grain */
+body::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+::selection { background: var(--copper-dim); color: var(--copper); }
+
+/* ---------- layout shell ---------- */
+
+.sheet {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 0 32px 160px;
+}
+
+/* ---------- header ---------- */
+
+header {
+  padding: 88px 0 72px;
+  border-bottom: 1px solid var(--hairline-strong);
+  position: relative;
+}
+
+.doc-meta {
+  display: flex;
+  gap: 28px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.doc-meta b { color: var(--copper); font-weight: 500; }
+
+h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(44px, 7vw, 84px);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+}
+h1 em {
+  font-style: italic;
+  color: var(--copper);
+}
+
+.lede {
+  margin-top: 36px;
+  max-width: 620px;
+  font-size: 14px;
+  color: var(--paper-dim);
+}
+.lede strong { color: var(--paper); font-weight: 500; }
+
+nav.toc {
+  margin-top: 48px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+nav.toc a {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--paper-dim);
+  text-decoration: none;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 100px;
+  padding: 7px 16px;
+  transition: color 150ms ease, border-color 150ms ease, transform 160ms var(--ease-out-quint);
+}
+@media (hover: hover) and (pointer: fine) {
+  nav.toc a:hover { color: var(--copper); border-color: var(--copper); }
+}
+nav.toc a:active { transform: scale(0.97); }
+
+/* ---------- sections ---------- */
+
+section {
+  padding-top: 96px;
+  position: relative;
+}
+
+.sec-head {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 32px;
+  align-items: baseline;
+  margin-bottom: 16px;
+}
+
+.sec-num {
+  font-family: var(--serif);
+  font-size: 72px;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--paper-faint);
+}
+
+.sec-head h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.sec-head h2 em { font-style: italic; color: var(--copper); }
+
+.sec-body {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 32px;
+}
+.sec-body > * { grid-column: 2; }
+
+.prose {
+  max-width: 640px;
+  color: var(--paper-dim);
+  font-size: 13px;
+  margin-bottom: 36px;
+}
+.prose strong { color: var(--paper); font-weight: 500; }
+.prose code, td code, .why code {
+  font-size: 12px;
+  color: var(--copper);
+  background: var(--copper-dim);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* ---------- demo stage (the fake macOS screen) ---------- */
+
+.stage {
+  background:
+    radial-gradient(120% 90% at 70% -10%, #1d2c40 0%, transparent 60%),
+    radial-gradient(100% 80% at 20% 110%, #2a1d33 0%, transparent 55%),
+    linear-gradient(165deg, #14181f 0%, #0d0f14 100%);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 28px;
+}
+
+/* macOS menu bar */
+.menubar {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  font-family: var(--system);
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  position: relative;
+  z-index: 1;
+}
+.menubar .left, .menubar .right { display: flex; gap: 18px; align-items: center; }
+.menubar .apple { font-size: 14px; }
+.menubar .right { font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.7); }
+
+/* the notch assembly sits centered, overlapping the menubar */
+.notch-rail {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.notch {
+  background: #000;
+  display: flex;
+  align-items: center;
+  height: 38px;
+  border-radius: 0 0 14px 14px;
+  /* width animates via the wings — transform-free width change is acceptable here
+     because it happens at peek start/end only (occasional), not per-frame */
+  transition: filter 200ms ease;
+}
+
+/* peek wings: LEFT logo slot · CENTER black gap · RIGHT text+wave slot */
+.peek {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+.peek-left, .peek-right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  overflow: hidden;
+  /* wings grow from 0 width — clip, don't scale, so children never distort */
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 420ms var(--ease-out-quint), opacity 300ms ease-out;
+}
+.notch.peeking .peek-left { max-width: 84px; opacity: 1; }
+.notch.peeking .peek-right { max-width: 220px; opacity: 1; }
+
+.peek-gap {
+  width: 172px;   /* the physical notch */
+  height: 100%;
+  background: #000;
+  flex-shrink: 0;
+}
+
+/* LEFT — toolkit logo + glow.
+   Same breathing-room rule as the right wing: the logo is never glued to the
+   pill's edge (14px) nor to the notch cutout (14px). Today it sits flush. */
+.peek-left { padding-left: 14px; padding-right: 14px; }
+.logo-slot {
+  width: 26px; height: 26px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.logo-glow {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow-color, rgba(255,255,255,0.5)) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 420ms var(--ease-out-quint), transform 420ms var(--ease-out-quint), background 300ms ease;
+  filter: blur(4px);
+}
+.notch.running .logo-glow { opacity: 0.85; transform: scale(1); }
+.logo-mark {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  position: relative;
+  z-index: 1;
+  background: rgba(255,255,255,0.1);
+  transition: background 300ms ease, transform 300ms var(--ease-out-quint);
+}
+
+/* RIGHT — spacing + sanitized text + wave */
+.peek-right {
+  /* THE SPACING FIX: 16px breathing room between the notch edge and the text.
+     today: 6px — text feels glued to the hardware. */
+  padding-left: 16px;
+  padding-right: 14px;
+  gap: 9px;
+}
+
+.peek-text {
+  font-family: var(--system);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: rgba(255,255,255,0.55);
+  position: relative;
+  transition: color 250ms ease;
+}
+
+/* shimmer = "the model is still forming this" — linear because it is constant
+   motion (the one legitimate use of linear). solid = "this is now executing". */
+.peek-text.shimmer {
+  background: linear-gradient(100deg,
+    var(--shimmer-base, rgba(255,255,255,0.38)) 20%,
+    var(--shimmer-peak, rgba(255,255,255,0.95)) 50%,
+    var(--shimmer-base, rgba(255,255,255,0.38)) 80%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-sweep 1.8s linear infinite;
+}
+@keyframes shimmer-sweep {
+  from { background-position: 125% 0; }
+  to   { background-position: -125% 0; }
+}
+
+/* text swap: exit fades down+blur (fast), enter rises in (ease-out) */
+.peek-text.swap-out {
+  animation: text-out 160ms var(--ease-out-quint) forwards;
+}
+.peek-text.swap-in {
+  animation: text-in 220ms var(--ease-out-quint);
+}
+@keyframes text-out {
+  to { opacity: 0; transform: translateY(4px); filter: blur(2px); }
+}
+@keyframes text-in {
+  from { opacity: 0; transform: translateY(-4px); filter: blur(2px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* equalizer wave — 4 bars, scaleY only, staggered */
+.wave {
+  display: flex;
+  gap: 2.5px;
+  align-items: center;
+  height: 14px;
+  width: 18px;
+  flex-shrink: 0;
+}
+.wave i {
+  width: 2.5px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--wave-color, rgba(255,255,255,0.85));
+  transform: scaleY(0.25);
+  transform-origin: center;
+  transition: background 300ms ease;
+}
+.notch.running .wave i { animation: wave-dance 0.9s ease-in-out infinite; }
+.notch.running .wave i:nth-child(1) { animation-delay: 0ms; }
+.notch.running .wave i:nth-child(2) { animation-delay: 140ms; }
+.notch.running .wave i:nth-child(3) { animation-delay: 280ms; }
+.notch.running .wave i:nth-child(4) { animation-delay: 420ms; }
+@keyframes wave-dance {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+
+/* measurement annotation overlay (engineering-drawing style) */
+.measure {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease 200ms;
+}
+.stage.annotated .measure { opacity: 1; }
+.measure .bracket {
+  width: 100%;
+  height: 8px;
+  border-left: 1px solid var(--copper);
+  border-right: 1px solid var(--copper);
+  border-bottom: 1px solid var(--copper);
+}
+.measure .label {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--copper);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* stage floor: controls + status */
+.stage-floor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 56px 24px 22px;
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--copper);
+  border: none;
+  border-radius: 100px;
+  padding: 10px 22px;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out-quint), filter 150ms ease;
+}
+.btn:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .btn:hover { filter: brightness(1.1); } }
+.btn[disabled] { opacity: 0.4; cursor: default; }
+.btn.ghost {
+  background: transparent;
+  color: var(--paper-dim);
+  border: 1px solid var(--hairline-strong);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn.ghost:hover { color: var(--copper); border-color: var(--copper); filter: none; }
+}
+
+.phase-readout {
+  font-size: 11px;
+  color: var(--paper-faint);
+  letter-spacing: 0.05em;
+}
+.phase-readout b { color: var(--copper); font-weight: 500; }
+
+/* ---------- wire console ---------- */
+
+.wire {
+  background: var(--ink-2);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 28px;
+  min-height: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.wire-title {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+}
+.wire-line {
+  font-size: 11.5px;
+  line-height: 2;
+  color: var(--paper-dim);
+  white-space: pre;
+  overflow-x: auto;
+  opacity: 0;
+  transform: translateY(-6px);
+  animation: wire-in 240ms var(--ease-out-quint) forwards;
+}
+@keyframes wire-in { to { opacity: 1; transform: translateY(0); } }
+.wire-line .t { color: var(--paper-faint); }
+.wire-line .key { color: var(--copper); }
+.wire-line.new-event { color: var(--paper); }
+.wire-line.new-event::after {
+  content: 'NEW';
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  background: var(--copper);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 10px;
+  vertical-align: 1px;
+}
+
+/* ---------- latency timeline ---------- */
+
+.timeline {
+  background: var(--ink-2);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 26px 28px 30px;
+  margin-bottom: 28px;
+}
+.timeline h4 {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+.tl-track {
+  position: relative;
+  height: 2px;
+  background: var(--hairline-strong);
+  margin: 38px 12px 14px;
+}
+.tl-mark {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--paper-faint);
+}
+.tl-mark.hot { background: var(--copper); box-shadow: 0 0 0 4px var(--copper-dim); }
+.tl-mark .tag {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-24deg);
+  transform-origin: bottom left;
+  font-size: 9.5px;
+  white-space: nowrap;
+  color: var(--paper-faint);
+  letter-spacing: 0.03em;
+}
+.tl-mark.hot .tag { color: var(--copper); }
+.tl-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+  font-size: 11px;
+}
+.tl-row .who {
+  width: 90px;
+  flex-shrink: 0;
+  text-align: right;
+  color: var(--paper-faint);
+  letter-spacing: 0.05em;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.tl-bar-rail { flex: 1; position: relative; height: 22px; }
+.tl-bar {
+  position: absolute;
+  height: 100%;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.tl-bar.dead {
+  background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(233,230,223,0.07) 4px, rgba(233,230,223,0.07) 8px);
+  color: var(--paper-faint);
+  border: 1px dashed var(--hairline-strong);
+}
+.tl-bar.live {
+  background: var(--copper-dim);
+  color: var(--copper);
+  border: 1px solid rgba(212, 154, 82, 0.4);
+}
+
+/* ---------- spec tables ---------- */
+
+table.spec {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 28px;
+  font-size: 12px;
+}
+table.spec caption {
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  padding-bottom: 14px;
+}
+table.spec th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--copper);
+  padding: 10px 16px 10px 0;
+  border-bottom: 1px solid var(--hairline-strong);
+}
+table.spec td {
+  padding: 12px 16px 12px 0;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--paper-dim);
+  vertical-align: top;
+}
+table.spec td:first-child { color: var(--paper); }
+table.spec tr:last-child td { border-bottom: none; }
+
+/* ---------- §02 hover/pin demo ---------- */
+
+.hover-stage-wrap { position: relative; }
+
+#hoverStage .menubar { user-select: none; }
+
+/* the open panel that drops below the notch */
+.panel {
+  width: 480px;
+  background: #000;
+  border-radius: 0 0 22px 22px;
+  padding: 14px 16px 16px;
+  font-family: var(--system);
+  transform-origin: top center;
+  transform: scaleY(0.6) scaleX(0.92);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 420ms var(--ease-out-quint),
+    opacity 260ms ease-out,
+    height 420ms var(--ease-out-quint);
+  height: 0;
+  overflow: hidden;
+}
+.panel.open {
+  transform: scaleY(1) scaleX(1);
+  opacity: 1;
+  pointer-events: auto;
+  height: 188px;
+}
+.panel.open.expanded { height: 320px; }
+/* exit ~20% faster than enter */
+.panel:not(.open) {
+  transition:
+    transform 320ms var(--ease-out-quint),
+    opacity 200ms ease-out,
+    height 320ms var(--ease-out-quint);
+}
+
+/* mini pi-tab inside the panel */
+.pi-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 9px 10px;
+}
+.pi-row .mark {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.12);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.pi-row .field {
+  flex: 1;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.4);
+}
+.pi-pin {
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: rgba(255,255,255,0.85);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 140ms var(--ease-out-quint), background 200ms ease, color 200ms ease, box-shadow 200ms ease;
+  flex-shrink: 0;
+}
+.pi-pin:active { transform: scale(0.94); }
+.pi-pin.pinned {
+  background: var(--copper);
+  color: #000;
+  box-shadow: 0 0 0 4px var(--copper-dim);
+}
+.pi-send {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: #5e9eff;
+  border: none;
+  color: white;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.pi-answer {
+  margin-top: 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.35);
+  height: 110px;
+  transition: height 420ms var(--ease-out-quint);
+}
+.panel.expanded .pi-answer { height: 240px; }
+
+/* state machine diagram */
+.fsm {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.fsm-state {
+  flex: 1;
+  min-width: 180px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 14px;
+  padding: 20px 22px;
+  position: relative;
+  transition: border-color 250ms ease, background 250ms ease;
+}
+.fsm-state + .fsm-state { margin-left: 36px; }
+.fsm-state::before {
+  /* connector arrow */
+  content: '⟷';
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--paper-faint);
+  font-size: 14px;
+}
+.fsm-state:first-child::before { content: none; }
+.fsm-state.active {
+  border-color: var(--copper);
+  background: var(--copper-dim);
+}
+.fsm-state h5 {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+.fsm-state.active h5 { color: var(--copper); }
+.fsm-state p { font-size: 11px; color: var(--paper-dim); line-height: 1.6; }
+.fsm-state .live-dot {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--copper);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.fsm-state.active .live-dot { opacity: 1; animation: pulse-dot 1.6s ease-in-out infinite; }
+@keyframes pulse-dot { 50% { opacity: 0.35; } }
+
+.hint {
+  font-size: 11px;
+  color: var(--paper-faint);
+  letter-spacing: 0.04em;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hint::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--copper);
+}
+
+/* ---------- §03 growing field demo ---------- */
+
+.field-stage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-bottom: 28px;
+}
+@media (max-width: 800px) { .field-stage { grid-template-columns: 1fr; } }
+
+.pi-panel-demo {
+  background: #000;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 22px;
+  padding: 16px;
+  font-family: var(--system);
+  align-self: start;
+}
+
+.prompt-shell {
+  background: rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 9px;
+  align-items: flex-end;
+  transition: box-shadow 200ms ease;
+}
+.prompt-shell:focus-within {
+  box-shadow: 0 0 0 1.5px rgba(212, 154, 82, 0.45);
+}
+.prompt-shell .mark {
+  width: 24px; height: 24px;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.12);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-bottom: 1px;
+}
+
+/* THE FIELD — field-sizing: content with a max-line clamp.
+   Growth is NOT animated: typing is a 100×/day action (frequency rule). */
+.grow-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: rgba(255,255,255,0.92);
+  font-family: var(--system);
+  font-size: 13px;
+  line-height: 1.5;
+  field-sizing: content;
+  min-height: calc(1.5em * 1);
+  max-height: calc(1.5em * 6);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.grow-field::placeholder { color: rgba(255,255,255,0.35); }
+
+.prompt-actions { display: flex; gap: 6px; flex-shrink: 0; margin-bottom: 1px; }
+
+/* static gap between prompt and answer (not the feature — just layout) */
+.panel-gap { height: 12px; }
+
+/* THE ANSWER AREA — content-driven height, Dynamic Island style.
+   Starts at a base, grows with the streamed text (the panel grows with it),
+   clamps at max, and only then scrolls. Height transitions are interruptible
+   (CSS transition retargets per chunk → reads as one continuous growth). */
+.demo-answer {
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 14px 14px 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.4);
+  height: 76px;                /* base — set by JS thereafter */
+  overflow-y: hidden;          /* growth is the behavior; scroll ONLY at max (JS flips it) */
+  scrollbar-width: thin;
+  transition: height 240ms var(--ease-out-quint);
+}
+.demo-answer.streaming { color: rgba(255,255,255,0.78); }
+/* the text block must be block-level so its height is measurable and pushes growth */
+#answerText { white-space: pre-wrap; }
+
+/* THE COMFORT FOOTER — blank, but load-bearing. Rides BELOW the text inside
+   the growing area, so the newest line never sits on the panel's edge. */
+.answer-inset {
+  height: 28px;
+  position: relative;
+  transition: background 250ms ease, outline-color 250ms ease;
+  border-radius: 6px;
+  outline: 1px dashed transparent;
+}
+.answer-inset.spotlit {
+  background: repeating-linear-gradient(-45deg, transparent, transparent 5px, var(--copper-dim) 5px, var(--copper-dim) 10px);
+  outline-color: var(--copper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-answer { transition: none; }
+}
+
+.line-counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--paper-faint);
+  letter-spacing: 0.06em;
+}
+.line-counter b { color: var(--copper); font-weight: 500; }
+
+/* code equivalence card */
+.equiv {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.code-card {
+  background: var(--ink-2);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.code-card h5 {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--paper-faint);
+  margin-bottom: 12px;
+}
+.code-card pre {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--paper-dim);
+  overflow-x: auto;
+}
+.code-card pre b { color: var(--copper); font-weight: 500; }
+.code-card pre i { color: var(--paper-faint); font-style: normal; }
+
+/* ---------- decisions / closing ---------- */
+
+.decision-grid {
+  counter-reset: decision;
+}
+.decision {
+  display: grid;
+  grid-template-columns: 52px 200px 1fr;
+  gap: 24px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--hairline);
+  align-items: baseline;
+}
+.decision:last-child { border-bottom: none; }
+.decision::before {
+  counter-increment: decision;
+  content: counter(decision, decimal-leading-zero);
+  font-family: var(--serif);
+  font-size: 26px;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--paper-faint);
+}
+.decision h4 {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--paper);
+}
+.decision p { font-size: 12.5px; color: var(--paper-dim); }
+.decision p code { font-size: 11.5px; }
+
+footer {
+  margin-top: 120px;
+  padding-top: 48px;
+  border-top: 1px solid var(--hairline-strong);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+footer .sig {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--paper-dim);
+}
+footer .meta {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+}
+
+/* ---------- reduced motion: collapse everything to fades ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .peek-text.shimmer { animation: none; -webkit-text-fill-color: currentColor; background: none; }
+  .notch.running .wave i { animation: none; transform: scaleY(0.55); }
+  .peek-text.swap-in, .peek-text.swap-out { animation: none; }
+  .panel, .panel:not(.open) { transition: opacity 150ms ease; transform: none; }
+  .logo-glow { transition: opacity 200ms ease; transform: scale(1); }
+  .fsm-state.active .live-dot { animation: none; }
+  .wire-line { animation: none; opacity: 1; transform: none; }
+}
+
+@media (max-width: 720px) {
+  .sec-head, .sec-body { grid-template-columns: 1fr; gap: 8px; }
+  .sec-num { font-size: 48px; }
+  .sec-body > * { grid-column: 1; }
+  .decision { grid-template-columns: 40px 1fr; }
+  .decision p { grid-column: 2; }
+}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+<!-- ============================================ HEADER -->
+<header>
+  <div class="doc-meta">
+    <span>boring.notch / <b>pi tab</b></span>
+    <span>spec <b>BN-PI-002</b></span>
+    <span>status <b>awaiting alignment</b></span>
+    <span>2026-06-01</span>
+  </div>
+  <h1>The notch should feel like<br>it's <em>thinking with you.</em></h1>
+  <p class="lede">
+    Three changes to the Pi tab, scoped and grounded against
+    <strong>pi-mono</strong> (the agent SDK), <strong>open-webui / vercel-ai</strong> (prompt field convergence),
+    and <strong>DynamicNotchKit</strong> (hover semantics). Every demo below is live —
+    hover it, type in it, run it. <strong>Nothing here is implemented yet.</strong>
+    Aligned → it becomes the implementation plan.
+  </p>
+  <nav class="toc">
+    <a href="#s1">01 · Streamed tool-calls</a>
+    <a href="#s2">02 · Hover &amp; pin</a>
+    <a href="#s3">03 · Growing prompt field</a>
+    <a href="#s4">04 · Locked decisions</a>
+  </nav>
+</header>
+
+<!-- ============================================ §01 STREAMED TOOL CALLS -->
+<section id="s1">
+  <div class="sec-head">
+    <div class="sec-num">01</div>
+    <h2>Tool calls, <em>streamed</em> —<br>not announced after the fact.</h2>
+  </div>
+  <div class="sec-body">
+
+    <p class="prose">
+      Today the notch only learns about a tool when <code>tool_execution_start</code> fires —
+      <strong>after</strong> the model has finished writing every argument. For a long email body that's
+      seconds of generic “Thinking…” followed by a sudden jump. The pi SDK already emits
+      <code>toolcall_start</code> the instant the model commits to a tool; the sidecar just drops it.
+      We surface it: the sanitized name appears <strong>while the call is still forming</strong>, shimmering
+      until it executes, then settling solid. Shimmer = forming. Solid = running. ✓ = done.
+    </p>
+
+    <!-- LIVE DEMO -->
+    <div class="stage" id="peekStage">
+      <div class="menubar">
+        <div class="left"><span class="apple"></span><span>Finder</span><span style="opacity:.6">File</span><span style="opacity:.6">Edit</span><span style="opacity:.6">View</span></div>
+        <div class="right"><span>◐</span><span>⚡︎ 84%</span><span>Sun Jun 1</span><span>9:41 AM</span></div>
+      </div>
+
+      <div class="notch-rail">
+        <div class="notch" id="peekNotch">
+          <div class="peek">
+            <div class="peek-left">
+              <div class="logo-slot">
+                <div class="logo-glow" id="peekGlow"></div>
+                <div class="logo-mark" id="peekLogo">✳︎</div>
+              </div>
+            </div>
+            <div class="peek-gap"></div>
+            <div class="peek-right">
+              <span class="peek-text" id="peekText">Ready</span>
+              <span class="wave" id="peekWave"><i></i><i></i><i></i><i></i></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 16px spacing measurement (right wing: notch → text) -->
+      <div class="measure" id="spacingMeasure" style="top: 44px; width: 16px;">
+        <div class="bracket" style="width: 100%;"></div>
+        <div class="label">16 pt — was 6 pt</div>
+      </div>
+      <!-- 14px spacing measurement (left wing: logo → notch) -->
+      <div class="measure" id="logoMeasure" style="top: 44px; width: 14px;">
+        <div class="bracket" style="width: 100%;"></div>
+        <div class="label">14 pt — was 0 (flush)</div>
+      </div>
+
+      <div class="stage-floor">
+        <div style="display:flex; gap:10px;">
+          <button class="btn" id="runBtn">Simulate a run</button>
+          <button class="btn ghost" id="annotateBtn">Show spacing</button>
+        </div>
+        <div class="phase-readout" id="phaseReadout">idle — press <b>simulate</b> to stream a turn</div>
+      </div>
+    </div>
+
+    <!-- WIRE CONSOLE -->
+    <div class="wire" id="wireConsole">
+      <div class="wire-title"><span>sidecar → notch · newline-delimited json</span><span id="wireClock"></span></div>
+      <div id="wireLines"></div>
+    </div>
+
+    <!-- LATENCY TIMELINE -->
+    <div class="timeline">
+      <h4>When does the user learn what Pi is doing?</h4>
+      <div class="tl-track">
+        <span class="tl-mark" style="left:0%"><span class="tag">prompt sent</span></span>
+        <span class="tl-mark" style="left:18%"><span class="tag">model picks tool</span></span>
+        <span class="tl-mark hot" style="left:22%"><span class="tag">toolcall_start</span></span>
+        <span class="tl-mark" style="left:58%"><span class="tag">args finish streaming</span></span>
+        <span class="tl-mark" style="left:62%"><span class="tag">tool_execution_start</span></span>
+        <span class="tl-mark" style="left:88%"><span class="tag">tool_execution_end</span></span>
+      </div>
+      <div class="tl-row">
+        <span class="who">Today</span>
+        <div class="tl-bar-rail">
+          <div class="tl-bar dead" style="left:0; width:62%;">“Thinking…” (blind)</div>
+          <div class="tl-bar live" style="left:62%; width:26%;">“Send email”</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <span class="who">Proposed</span>
+        <div class="tl-bar-rail">
+          <div class="tl-bar dead" style="left:0; width:22%;">“Thinking…”</div>
+          <div class="tl-bar live" style="left:22%; width:66%;">“Send email” — shimmer while forming, solid while running</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPEC TABLE -->
+    <table class="spec">
+      <caption>§01 · Behavior &amp; motion spec</caption>
+      <thead><tr><th style="width:30%">Element</th><th style="width:40%">Behavior</th><th>Motion</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Sidecar wire protocol</td>
+          <td>New event: <code>tool_forming</code> emitted on SDK <code>toolcall_start</code> (name known, args still streaming). Existing <code>tool_start</code> / <code>tool_end</code> unchanged.</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Sanitized tool text</td>
+          <td>Appears at <code>tool_forming</code> with shimmer; goes solid + accent-tinted at <code>tool_start</code>; flashes ✓ at <code>tool_end</code>.</td>
+          <td>Swap: out 160ms / in 220ms, ease-out-quint, ±4px translate + 2px blur. Shimmer: 1.8s linear loop (constant motion → linear is correct).</td>
+        </tr>
+        <tr>
+          <td>Notch ↔ text spacing</td>
+          <td>16pt leading gap between notch edge and tool text (was 6pt). Text never feels glued to the hardware cutout.</td>
+          <td>Static.</td>
+        </tr>
+        <tr>
+          <td>Logo ↔ notch spacing</td>
+          <td>14pt gap between the toolkit logo and the notch cutout, and 14pt from the pill's left edge (today the logo sits flush against the cutout). Both wings get the same breathing-room rule.</td>
+          <td>Static.</td>
+        </tr>
+        <tr>
+          <td>Toolkit logo glow</td>
+          <td>Blooms in the toolkit's sampled accent the moment the toolkit is known (now at <code>tool_forming</code> — earlier than today).</td>
+          <td>Spring(duration 0.42, bounce 0.15), scale 0.6→1 + opacity. Never from scale(0).</td>
+        </tr>
+        <tr>
+          <td>Wave bars</td>
+          <td>White while thinking, accent-tinted while a tool runs. Active during the whole run.</td>
+          <td>scaleY only, staggered, 24fps cap (existing AudioSpectrum).</td>
+        </tr>
+        <tr>
+          <td>Open Pi panel — same language</td>
+          <td>The open panel's <strong>activity line</strong> and <strong>tool chips</strong> adopt the identical phase language: a chip appears at <code>tool_forming</code> with a shimmering label, goes solid at <code>tool_start</code>, resolves ✓/✗ at <code>tool_end</code>. Structure unchanged (activity line + chips + transcript) — only the timing and the shimmer treatment are new. Peek and panel are never out of sync because they read the same <code>toolPhase</code> state.</td>
+          <td>Same as peek: swap 160/220ms ease-out-quint, shimmer 1.8s linear, chips keep their existing enter spring.</td>
+        </tr>
+        <tr>
+          <td>Reduce Motion</td>
+          <td>Shimmer → static dimmed text. Wave → static bars at 55%. Glow → opacity-only fade. Text swaps → crossfade.</td>
+          <td>150–200ms opacity fades only.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================ §02 HOVER / PIN -->
+<section id="s2">
+  <div class="sec-head">
+    <div class="sec-num">02</div>
+    <h2><em>Pinned</em> stays put.<br>Everything else closes.</h2>
+  </div>
+  <div class="sec-body">
+
+    <p class="prose">
+      The current rule holds the panel open when there's draft text or a running task — which means
+      the notch sometimes refuses to close and the user can't tell why. New rule, one sentence:
+      <strong>the panel stays open without hover if and only if you pinned it.</strong>
+      Not pinned → unhover always closes (a running task collapses to the §01 peek, so nothing is lost).
+      And since the panel now sizes itself to its content (§03), the old expand chevron has exactly one job
+      left: it's a <strong>pin</strong> — and it must <em>look</em> pinned, so the behavior is never a mystery.
+    </p>
+
+    <p class="hint">Live demo — hover the notch below, click <b style="color:var(--copper)">pin</b>, then move your mouse away.</p>
+
+    <!-- LIVE DEMO -->
+    <div class="stage hover-stage-wrap" id="hoverStage" style="min-height: 430px;">
+      <div class="menubar">
+        <div class="left"><span class="apple"></span><span>Finder</span><span style="opacity:.6">File</span><span style="opacity:.6">Edit</span></div>
+        <div class="right"><span>⚡︎ 84%</span><span>9:41 AM</span></div>
+      </div>
+
+      <div class="notch-rail" id="hoverRail">
+        <div class="notch" id="hoverNotch">
+          <div class="peek">
+            <div class="peek-left">
+              <div class="logo-slot">
+                <div class="logo-glow"></div>
+                <div class="logo-mark">✉︎</div>
+              </div>
+            </div>
+            <div class="peek-gap"></div>
+            <div class="peek-right">
+              <span class="peek-text">Send email</span>
+              <span class="wave"><i></i><i></i><i></i><i></i></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="hoverPanel">
+          <div class="pi-row">
+            <div class="mark">✳︎</div>
+            <div class="field" id="hoverField">Ask Pi anything…</div>
+            <button class="pi-pin" id="pinBtn" title="Keep open without hover">pin</button>
+            <button class="pi-send">↑</button>
+          </div>
+          <div class="pi-answer" id="hoverAnswer">Pi's answer will stream here.</div>
+        </div>
+      </div>
+
+      <div class="stage-floor" style="padding-top: 380px;">
+        <label style="display:flex; align-items:center; gap:10px; font-size:11px; color:var(--paper-dim); cursor:pointer;">
+          <input type="checkbox" id="runningToggle" style="accent-color: var(--copper);">
+          simulate a running task (unhover → collapses to peek, not to nothing)
+        </label>
+        <div class="phase-readout" id="hoverReadout">state: <b>closed</b></div>
+      </div>
+    </div>
+
+    <!-- STATE MACHINE -->
+    <div class="fsm" id="fsm">
+      <div class="fsm-state active" data-state="closed">
+        <span class="live-dot"></span>
+        <h5>Closed</h5>
+        <p>Resting. If a run is active, the streamed peek (§01) is the resting state instead of bare hardware.</p>
+      </div>
+      <div class="fsm-state" data-state="open">
+        <span class="live-dot"></span>
+        <h5>Open</h5>
+        <p>Hover-dependent. Mouse leaves → closes after a 100ms grace, <em>regardless</em> of draft text or a running task. Height hugs the content (§03) the whole time.</p>
+      </div>
+      <div class="fsm-state" data-state="pinned">
+        <span class="live-dot"></span>
+        <h5>Open · pinned</h5>
+        <p>Hover-independent. Stays until you unpin it or close it deliberately. The pin renders filled + tinted while engaged — visible state, never a mystery. Size still hugs content; pinning changes nothing about geometry.</p>
+      </div>
+    </div>
+
+    <!-- SPEC TABLE -->
+    <table class="spec">
+      <caption>§02 · The complete close-decision table (every input enumerated)</caption>
+      <thead><tr><th>Pi tab state</th><th>Mouse leaves the notch</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Unpinned · idle · empty</td><td>Closes (100ms grace)</td><td>Same as Home/Shelf tabs.</td></tr>
+        <tr><td>Unpinned · unsent draft text</td><td><strong>Closes</strong> — changed</td><td>Draft survives in memory (<code>PiAgentManager.draft</code>); re-hover and it's still there. A hidden hold is a mystery, not a feature.</td></tr>
+        <tr><td>Unpinned · task running</td><td><strong>Closes → §01 peek</strong> — changed</td><td>The peek IS the live activity. Collapsing to it loses nothing and reads as "still working."</td></tr>
+        <tr><td>Pinned · any</td><td><strong>Stays open</strong> — changed</td><td>Pinning is a deliberate act; deliberate acts deserve persistence. This is the only Pi hold-open reason left.</td></tr>
+        <tr><td>Keyboard focus in field</td><td>Follows the rules above</td><td>Focus gates <code>canBecomeKey</code> (typing), never close-prevention. Unchanged.</td></tr>
+        <tr><td>Share sheet active</td><td>Stays open</td><td>Existing <code>SharingStateManager</code> sessions still prevent close. Unchanged.</td></tr>
+      </tbody>
+    </table>
+
+    <table class="spec">
+      <caption>§02 · Motion spec</caption>
+      <thead><tr><th style="width:30%">Moment</th><th>Treatment</th></tr></thead>
+      <tbody>
+        <tr><td>Panel open (hover)</td><td>Existing spring (response 0.42, damping 0.8) — unchanged; it's the notch's identity.</td></tr>
+        <tr><td>Panel close (unhover)</td><td>Existing close spring (response 0.45, damping 1.0) — already ~20% snappier than open. Keep.</td></tr>
+        <tr><td>Content-driven height (§03)</td><td>Panel height rides the existing <code>openPanelHeight</code> spring as content grows/shrinks. Window grows before / shrinks after (existing machinery). The pin never changes geometry.</td></tr>
+        <tr><td>Pin engage</td><td>Pin fills with accent + soft ring; scale-press 0.94 on tap, 140ms ease-out-quint. SF Symbol <code>pin</code> → <code>pin.fill</code> replace transition.</td></tr>
+        <tr><td>Close while running</td><td>Panel close spring and §01 peek wings grow simultaneously — paired elements, same timing source.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================ §03 GROWING FIELD -->
+<section id="s3">
+  <div class="sec-head">
+    <div class="sec-num">03</div>
+    <h2>The panel <em>hugs the conversation</em> —<br>it grows from a base, never traps a scroll.</h2>
+  </div>
+  <div class="sec-body">
+
+    <p class="prose">
+      This is <code>field-sizing: content</code> applied to the <strong>whole panel</strong> — the Dynamic Island rule.
+      The Pi panel starts at its <strong>base height (190pt)</strong>. As the response streams in, the answer area
+      expands with the text and <strong>the panel grows downward with it</strong>, line by line, up to the
+      <strong>360pt max</strong> — and only past that does inner scrolling engage, as the documented last resort.
+      Under the text rides a small <strong>blank footer</strong>: dynamic empty space that moves down as the panel
+      grows, so the newest streamed words never sit on the panel's edge. The prompt field follows the same rule
+      (grows 1→6 lines; its growth is panel growth too). The result: an idle Pi tab is small, a working Pi tab
+      is exactly as big as what it's saying — <strong>the notch is sized by the conversation, not by a constant.</strong>
+    </p>
+
+    <p class="hint">Live demo — press “Stream a response” and watch the panel itself grow from base to max · type in the field (that grows it too) · spotlight the footer.</p>
+
+    <!-- LIVE DEMO -->
+    <div class="field-stage">
+      <div>
+        <div class="pi-panel-demo">
+          <div class="prompt-shell">
+            <div class="mark">✳︎</div>
+            <textarea class="grow-field" id="growField" rows="1"
+              placeholder="Ask Pi anything… (try pasting a paragraph)"></textarea>
+            <div class="prompt-actions">
+              <button class="pi-pin" title="Keep open without hover">pin</button>
+              <button class="pi-send">↑</button>
+            </div>
+          </div>
+          <div class="panel-gap"></div>
+          <div class="demo-answer" id="demoAnswer"><div id="answerText">Pi's answer will stream here.</div><div class="answer-inset" id="answerInset"></div></div>
+        </div>
+        <div class="line-counter">
+          <span>panel: <b id="panelHeight">190pt</b> · <span id="panelState">at base</span> · field: <b id="lineCount">1</b>/6</span>
+          <span style="display:flex; gap:8px;">
+            <button class="btn ghost" id="streamBtn" style="padding: 6px 14px;">Stream a response</button>
+            <button class="btn ghost" id="footerSpotBtn" style="padding: 6px 14px;">Spotlight footer</button>
+          </span>
+        </div>
+      </div>
+
+      <!-- EQUIVALENCE -->
+      <div class="equiv">
+        <div class="code-card">
+          <h5>The web pattern (Emil's tip), promoted to the panel</h5>
+          <pre>.pi-panel {                  <i>/* not just the textarea — */</i>
+  <b>height: max-content;</b>       <i>/* the PANEL is field-sized   */</i>
+  min-height: 190pt;         <i>/* base                       */</i>
+  <b>max-height: 360pt;</b>         <i>/* clamp, then inner scroll   */</i>
+}</pre>
+        </div>
+        <div class="code-card">
+          <h5>The SwiftUI equivalent — content-driven panel height</h5>
+          <pre><i>// answer content reports its natural size…</i>
+PiMarkdownView(text: pi.transcript)
+  <b>.onGeometryChange(for: CGFloat.self)</b> { $0.size.height }
+    action: { pi.contentHeight = $0 }
+<b>Color.clear.frame(height: 28)</b>      <i>// the dynamic blank footer</i>
+
+<i>// …and the panel height follows it (BoringViewModel):</i>
+openPanelHeight = <b>clamp(headerH + contentH + footerH,
+                        190, 360)</b>   <i>// base … max</i>
+<i>// rides the existing height spring — interruptible,</i>
+<i>// retargets per streamed chunk = one continuous growth</i></pre>
+        </div>
+        <div class="code-card">
+          <h5>The SwiftUI equivalent — prompt field (same rule)</h5>
+          <pre>TextField("Ask Pi anything…",
+          text: $pi.draft,
+          <b>axis: .vertical</b>)
+  <b>.lineLimit(1...6)</b>       <i>// its growth is panel growth too</i>
+  .onSubmit(submit)         <i>// ↵ sends · ⇧↵ inserts newline</i></pre>
+        </div>
+        <div class="code-card">
+          <h5>What animates, what doesn't</h5>
+          <pre><i>Response streaming → panel growth RIDES THE SPRING
+(once per turn, continuous, interruptible — the
+Dynamic Island feel).
+
+Typing → field/panel growth is INSTANT (frequency
+rule: 100+ times/day actions never animate).
+
+The window pre-grows to max when a run starts
+(existing grow-before machinery), so the panel
+never fights NSWindow.setFrame mid-stream.</i></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPEC TABLE -->
+    <table class="spec">
+      <caption>§03 · Behavior spec — every input case</caption>
+      <thead><tr><th style="width:34%">Case</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td>Idle, empty tab</td><td>Panel at <strong>base: 190pt</strong>. Answer area shows its placeholder at base size (~2 lines + footer).</td></tr>
+        <tr><td>Response streaming, fits</td><td>Answer area expands with the text; <strong>the panel grows with it</strong>, riding the existing height spring (interruptible — each chunk retargets, reads as one continuous growth). Window is pre-grown to max so the panel never waits on it.</td></tr>
+        <tr><td>Response reaches max</td><td>Panel clamps at <strong>360pt</strong>; inner scrolling engages, auto-following the newest text — the documented last resort, never the default experience.</td></tr>
+        <tr><td>Comfort footer</td><td><strong>28pt blank space under the text inside the growing area, always.</strong> While growing, it's what separates the newest line from the panel edge. At max, it rides the scroll content. Dynamic, zero conditional logic.</td></tr>
+        <tr><td>New prompt sent</td><td>Transcript clears → panel returns to base on the spring (collapse is part of the same motion language as growth).</td></tr>
+        <tr><td>Prompt field 1–6 lines</td><td>Field grows per line — and since the panel hugs content, field growth is panel growth. <strong>Instant</strong>, no animation (typing = frequency rule).</td></tr>
+        <tr><td>Prompt field &gt; 6 lines</td><td>Field clamps at 6 lines and scrolls internally.</td></tr>
+        <tr><td>↵ Return / ⇧↵</td><td>↵ sends (unchanged). <strong>⇧↵ inserts a newline</strong> — required once the field is multi-line.</td></tr>
+        <tr><td>Mouse leaves mid-stream</td><td>§02 rule applies: not pinned → panel closes to the §01 peek at whatever height it had. Re-hover → reopens and the spring catches up to the current content height.</td></tr>
+        <tr><td>Reduce Motion</td><td>Panel height changes jump (no spring); everything else per the §01/§02 fallbacks.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================ §04 DECISIONS -->
+<section id="s4">
+  <div class="sec-head">
+    <div class="sec-num">04</div>
+    <h2>Locked <em>decisions.</em></h2>
+  </div>
+  <div class="sec-body">
+    <div class="decision-grid">
+      <div class="decision">
+        <h4>Streaming source of truth</h4>
+        <p>Sidecar maps SDK <code>message_update / toolcall_start</code> → new wire event <code>tool_forming</code>. The Swift side treats it as "name known, not yet executing." No partial-args parsing in v1 — the name is enough to drive the whole UI.</p>
+      </div>
+      <div class="decision">
+        <h4>Shimmer semantics</h4>
+        <p>Shimmer means <strong>forming</strong>, solid means <strong>executing</strong>, ✓ means <strong>done</strong>. One visual language across the peek and the open tab's activity line. Linear sweep, 1.8s loop, killed under Reduce Motion.</p>
+      </div>
+      <div class="decision">
+        <h4>Spacing</h4>
+        <p>16pt between the notch cutout and the sanitized tool text (was 6pt). 14pt between the toolkit logo and the cutout, and 14pt from the pill's outer edge (was flush). Both wings breathe; the cutout reads as hardware, not as a divider the content leans on.</p>
+      </div>
+      <div class="decision">
+        <h4>Hold-open has exactly one reason</h4>
+        <p>Pi panel stays open without hover ⟺ user pinned it. Draft text and running tasks no longer hold the panel — the draft persists in memory, the run collapses to the peek. Share-sheet sessions (existing, app-wide) remain untouched.</p>
+      </div>
+      <div class="decision">
+        <h4>The pin is visible, and it's only a pin</h4>
+        <p>The old expand chevron becomes a pin (SF Symbol <code>pin</code>/<code>pin.fill</code>, accent-tinted + ring while engaged). It controls hover-independence and nothing else — geometry always belongs to the content. <code>Defaults[.piExpanded]</code> is replaced by <code>Defaults[.piPinned]</code>.</p>
+      </div>
+      <div class="decision">
+        <h4>The panel hugs the conversation (Dynamic Island rule)</h4>
+        <p>Panel height = clamp(content height, <strong>190pt base</strong>, <strong>360pt max</strong>), always. The streamed response grows it on the existing height spring (continuous, interruptible); typing grows it instantly (frequency rule); past max, inner scroll engages as the last resort. A 28pt blank comfort footer rides under the text the whole way.</p>
+      </div>
+      <div class="decision">
+        <h4>Prompt field grows, same rule</h4>
+        <p><code>TextField(axis: .vertical).lineLimit(1...6)</code> — its growth is panel growth. ⇧↵ for newline, ↵ to send.</p>
+      </div>
+      <div class="decision">
+        <h4>Reduce Motion is a first-class path</h4>
+        <p>Every new animation has a defined fallback: shimmer → static, wave → static bars, glow → fade, swaps → crossfade. Mirrors the existing <code>Motion.resolved()</code> pattern.</p>
+      </div>
+    </div>
+
+    <table class="spec" style="margin-top: 48px;">
+      <caption>Where the changes land (file map — for the implementation plan)</caption>
+      <thead><tr><th style="width:40%">File</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td><code>sidecar/index.ts</code></td><td>Emit <code>tool_forming</code> on <code>message_update.toolcall_start</code>; carry tool name + toolkit + logo URL.</td></tr>
+        <tr><td><code>managers/PiAgentManager.swift</code></td><td>Decode <code>tool_forming</code>; new published <code>toolPhase</code> (forming / running / done); drive <code>currentToolPretty</code> from it.</td></tr>
+        <tr><td><code>components/Pi/PiPeekView.swift</code></td><td>16pt text spacing + 14pt logo spacing; shimmer text treatment; phase-driven solid/✓ states.</td></tr>
+        <tr><td><code>components/Pi/PiShimmerText.swift</code> <i>(new)</i></td><td>Reusable shimmer text view (mask + linear gradient sweep), Reduce Motion aware.</td></tr>
+        <tr><td><code>components/Pi/PiAgentView.swift</code></td><td>Multi-line growing TextField (⇧↵/↵); content-height reporting via <code>onGeometryChange</code>; 28pt comfort footer; pin button (replaces chevron); <code>shouldHold = piPinned</code> only; activity line uses shimmer.</td></tr>
+        <tr><td><code>models/BoringViewModel.swift</code></td><td><code>openPanelHeight</code> becomes content-driven: clamp(Pi content height, 190, 360) when on the Pi tab; constant 190 elsewhere. Replaces the piExpanded observer.</td></tr>
+        <tr><td><code>boringNotchApp.swift</code></td><td><code>syncNotchWindowHeight</code>: window pre-grows to max when the Pi panel is open (or a run starts), shrinks after close — so panel growth never waits on <code>NSWindow.setFrame</code> mid-stream.</td></tr>
+        <tr><td><code>models/Constants.swift</code></td><td><code>Defaults[.piExpanded]</code> → <code>Defaults[.piPinned]</code> (with a one-time migration of the old key).</td></tr>
+        <tr><td><code>components/Shelf/Screenshots/Motion.swift</code></td><td>Add <code>Motion.shimmer</code>, <code>Motion.glowBloom</code> constants so the vocabulary stays centralized.</td></tr>
+        <tr><td><code>ContentView.swift</code></td><td>No structural change — close path already respects <code>preventNotchClose</code>; it just gets simpler inputs.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <div class="sig">— aligned? then we build.</div>
+  <div class="meta">spec BN-PI-002 · grounded via nia: pi-mono · open-webui · vercel/ai-chatbot · DynamicNotchKit · NotchDrop</div>
+</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   §01 — STREAMED TOOL-CALL DEMO
+   A scripted run that mirrors the real wire protocol, including
+   the proposed `tool_forming` event.
+   ============================================================ */
+(() => {
+  const notch = document.getElementById('peekNotch');
+  const text = document.getElementById('peekText');
+  const glow = document.getElementById('peekGlow');
+  const logo = document.getElementById('peekLogo');
+  const wave = document.getElementById('peekWave');
+  const runBtn = document.getElementById('runBtn');
+  const annotateBtn = document.getElementById('annotateBtn');
+  const stage = document.getElementById('peekStage');
+  const readout = document.getElementById('phaseReadout');
+  const wireLines = document.getElementById('wireLines');
+  const wireClock = document.getElementById('wireClock');
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const GMAIL = '#f3766b';
+  let running = false;
+  let timeouts = [];
+
+  function setText(content, { shimmer = false, color = null } = {}) {
+    // swap out → swap in, blur-masked (Emil: blur bridges imperfect crossfades)
+    const apply = () => {
+      text.textContent = content;
+      text.classList.remove('swap-out');
+      text.classList.toggle('shimmer', shimmer && !reduceMotion);
+      text.style.color = color || 'rgba(255,255,255,0.55)';
+      if (shimmer && !reduceMotion && color) {
+        text.style.setProperty('--shimmer-base', color + '66');
+        text.style.setProperty('--shimmer-peak', color);
+      } else {
+        text.style.removeProperty('--shimmer-base');
+        text.style.removeProperty('--shimmer-peak');
+      }
+      text.classList.add('swap-in');
+      setTimeout(() => text.classList.remove('swap-in'), 260);
+    };
+    if (reduceMotion) { apply(); return; }
+    text.classList.add('swap-out');
+    setTimeout(apply, 150);
+  }
+
+  function setAccent(color) {
+    glow.style.setProperty('--glow-color', color ? color + 'cc' : 'rgba(255,255,255,0.5)');
+    wave.querySelectorAll('i').forEach(b => b.style.background = color || 'rgba(255,255,255,0.85)');
+  }
+
+  function wire(json, { isNew = false, t = 0 } = {}) {
+    const line = document.createElement('div');
+    line.className = 'wire-line' + (isNew ? ' new-event' : '');
+    const pretty = json
+      .replace(/"(type|word|tool|toolkit|id|ok|delta)":/g, '<span class="key">"$1":</span>');
+    line.innerHTML = `<span class="t">+${String(t).padStart(4,' ')}ms</span>  ${pretty}`;
+    wireLines.appendChild(line);
+    wireLines.parentElement.scrollTop = wireLines.parentElement.scrollHeight;
+  }
+
+  function phase(label) {
+    readout.innerHTML = label;
+  }
+
+  function schedule(fn, ms) { timeouts.push(setTimeout(fn, ms)); }
+
+  function reset() {
+    timeouts.forEach(clearTimeout);
+    timeouts = [];
+    wireLines.innerHTML = '';
+    notch.classList.remove('peeking', 'running');
+    setAccent(null);
+    logo.textContent = '✳︎';
+    logo.style.background = 'rgba(255,255,255,0.1)';
+  }
+
+  function simulate() {
+    if (running) return;
+    running = true;
+    runBtn.disabled = true;
+    reset();
+    wireClock.textContent = 'streaming…';
+
+    // t=0 — prompt sent, peek wings grow, thinking shimmer
+    schedule(() => {
+      notch.classList.add('peeking', 'running');
+      setText('Thinking…', { shimmer: true });
+      wire('{"type":"status","word":"thinking"}', { t: 0 });
+      phase('phase: <b>thinking</b> — wave active, neutral shimmer');
+    }, 100);
+
+    // t=900 — THE NEW EVENT: model commits to a tool, args still streaming
+    schedule(() => {
+      wire('{"type":"tool_forming","id":"t1","tool":"GMAIL_SEND_EMAIL","toolkit":"gmail"}', { isNew: true, t: 900 });
+      setText('Send email', { shimmer: true, color: GMAIL });
+      setAccent(GMAIL);
+      logo.textContent = '✉︎';
+      logo.style.background = GMAIL + '33';
+      phase('phase: <b>forming</b> — name known instantly, shimmer = args still streaming');
+    }, 1000);
+
+    // t=1400..2400 — args streaming (toolcall_delta, collapsed on the wire)
+    schedule(() => {
+      wire('{"type":"…toolcall_delta × n (collapsed — not forwarded over the wire)"}', { t: 1400 });
+    }, 1500);
+
+    // t=2600 — args complete → execution starts → text goes SOLID
+    schedule(() => {
+      wire('{"type":"tool_start","id":"t1","tool":"GMAIL_SEND_EMAIL","toolkit":"gmail","logo":"…/api/gmail"}', { t: 2600 });
+      setText('Send email', { shimmer: false, color: GMAIL });
+      phase('phase: <b>running</b> — solid text = executing now');
+    }, 2700);
+
+    // t=4400 — tool done → ✓ tick
+    schedule(() => {
+      wire('{"type":"tool_end","id":"t1","ok":true}', { t: 4400 });
+      setText('✓ Sent', { shimmer: false, color: '#4fd964' });
+      phase('phase: <b>tool done</b> — ✓ flash, then back to thinking');
+    }, 4500);
+
+    // t=5400 — model writes the answer
+    schedule(() => {
+      wire('{"type":"status","word":"thinking"}', { t: 5400 });
+      wire('{"type":"text_delta","delta":"Done — I sent the email to…"}', { t: 5600 });
+      setText('Thinking…', { shimmer: true });
+      setAccent(null);
+      phase('phase: <b>answering</b> — streaming the reply text');
+    }, 5500);
+
+    // t=7000 — done
+    schedule(() => {
+      wire('{"type":"status","word":"done"}', { t: 7000 });
+      wire('{"type":"done"}', { t: 7000 });
+      notch.classList.remove('running');
+      setText('Done', { shimmer: false, color: '#4fd964' });
+      phase('phase: <b>done</b> — wave stops, peek rests. replay anytime.');
+      wireClock.textContent = 'turn complete';
+      running = false;
+      runBtn.disabled = false;
+    }, 7100);
+  }
+
+  runBtn.addEventListener('click', simulate);
+  annotateBtn.addEventListener('click', () => {
+    stage.classList.toggle('annotated');
+    const on = stage.classList.contains('annotated');
+    annotateBtn.textContent = on ? 'Hide spacing' : 'Show spacing';
+    if (on && !notch.classList.contains('peeking')) {
+      // need the peek visible to point at the gap
+      notch.classList.add('peeking');
+      setText('Send email', { color: GMAIL });
+      setAccent(GMAIL);
+      logo.textContent = '✉︎';
+    }
+    // position the measure brackets: right wing (notch → text) and left wing (logo → notch)
+    const m = document.getElementById('spacingMeasure');
+    const lm = document.getElementById('logoMeasure');
+    const rail = document.querySelector('#peekStage .notch-rail');
+    const rightWing = document.querySelector('#peekStage .peek-right');
+    const gap = document.querySelector('#peekStage .peek-gap');
+    setTimeout(() => {
+      const railRect = rail.getBoundingClientRect();
+      const wingRect = rightWing.getBoundingClientRect();
+      const gapRect = gap.getBoundingClientRect();
+      // right: bracket starts at the notch's right edge, spans the 16px lead-in
+      m.style.left = (gapRect.right - railRect.left) + 'px';
+      // left: bracket ends at the notch's left edge, spans the 14px logo gap
+      lm.style.left = (gapRect.left - railRect.left - 14) + 'px';
+    }, 450);
+  });
+})();
+
+/* ============================================================
+   §02 — HOVER / PIN STATE MACHINE DEMO
+   Real mouse hover drives it. Pin = expanded = hover-independent.
+   ============================================================ */
+(() => {
+  const rail = document.getElementById('hoverRail');
+  const notch = document.getElementById('hoverNotch');
+  const panel = document.getElementById('hoverPanel');
+  const pinBtn = document.getElementById('pinBtn');
+  const readout = document.getElementById('hoverReadout');
+  const runningToggle = document.getElementById('runningToggle');
+  const fsm = document.getElementById('fsm');
+  const answer = document.getElementById('hoverAnswer');
+  const field = document.getElementById('hoverField');
+
+  let state = 'closed';        // closed | open | pinned
+  let hoverTimer = null;
+  let leaveTimer = null;
+
+  const HOVER_DELAY = 250;     // mirrors Defaults[.minimumHoverDuration]
+  const LEAVE_GRACE = 120;     // mirrors the 100ms grace
+
+  function setFsm(s) {
+    fsm.querySelectorAll('.fsm-state').forEach(el =>
+      el.classList.toggle('active', el.dataset.state === (s === 'pinned' ? 'pinned' : s)));
+  }
+
+  function render() {
+    const pinned = state === 'pinned';
+    const open = state === 'open' || pinned;
+    panel.classList.toggle('open', open);
+    // height is CONTENT-driven (§03): a running task = streamed answer = taller panel.
+    // pinning never changes geometry — it only changes the close rule.
+    panel.classList.toggle('expanded', open && runningToggle.checked);
+    pinBtn.classList.toggle('pinned', pinned);
+    pinBtn.textContent = pinned ? 'pinned' : 'pin';
+    pinBtn.title = pinned ? 'Unpin (close on unhover again)' : 'Keep open without hover';
+
+    // peek shows when closed AND running
+    const showPeek = !open && runningToggle.checked;
+    notch.classList.toggle('peeking', showPeek);
+    notch.classList.toggle('running', showPeek);
+
+    const labels = { closed: 'closed', open: 'open (hover-dependent)', pinned: 'open · <b style="color:var(--copper)">pinned</b>' };
+    readout.innerHTML = `state: <b>${labels[state]}</b>` + (showPeek ? ' — collapsed to live peek' : '');
+    setFsm(state);
+
+    answer.textContent = runningToggle.checked
+      ? 'Working on it — sending the email via Gmail…'
+      : "Pi's answer will stream here.";
+    field.textContent = runningToggle.checked ? 'send the Q3 recap to the team' : 'Ask Pi anything…';
+  }
+
+  rail.addEventListener('mouseenter', () => {
+    clearTimeout(leaveTimer);
+    if (state !== 'closed') return;
+    hoverTimer = setTimeout(() => { state = (state === 'closed') ? 'open' : state; render(); }, HOVER_DELAY);
+  });
+
+  rail.addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimer);
+    if (state === 'pinned') return;          // THE RULE: pinned ignores hover
+    leaveTimer = setTimeout(() => {
+      if (state === 'open') { state = 'closed'; render(); }
+    }, LEAVE_GRACE);
+  });
+
+  pinBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    state = (state === 'pinned') ? 'open' : 'pinned';
+    render();
+  });
+
+  runningToggle.addEventListener('change', render);
+
+  render();
+})();
+
+/* ============================================================
+   §03 — GROWING FIELD DEMO
+   Native field-sizing: content where supported; measured fallback
+   elsewhere (the open-webui scrollHeight technique).
+   ============================================================ */
+(() => {
+  const field = document.getElementById('growField');
+  const lineCount = document.getElementById('lineCount');
+  const scrollState = document.getElementById('scrollState');
+  const answer = document.getElementById('demoAnswer');
+  const answerText = document.getElementById('answerText');
+  const inset = document.getElementById('answerInset');
+  const spotBtn = document.getElementById('footerSpotBtn');
+  const streamBtn = document.getElementById('streamBtn');
+
+  const panelHeight = document.getElementById('panelHeight');
+  const panelState = document.getElementById('panelState');
+
+  const supportsFieldSizing = CSS.supports('field-sizing', 'content');
+  const LINE = 1.5 * 13;       // line-height × font-size
+  const MAX_LINES = 6;
+
+  /* ---- the Dynamic Island rule: panel height = clamp(content, base, max) ---- */
+  // demo px ↔ real pt mapping: base answer 76px ≈ 190pt panel, max answer 246px ≈ 360pt panel
+  const ANSWER_BASE = 76;
+  const ANSWER_MAX = 246;
+  const PT_BASE = 190, PT_MAX = 360;
+
+  function syncPanel() {
+    // natural = streamed text block + comfort footer + top padding
+    // (offsetHeight of the block-level text div — grows with every wrapped line)
+    const natural = answerText.offsetHeight + 28 + 14;
+    const h = Math.max(ANSWER_BASE, Math.min(natural, ANSWER_MAX));
+    answer.style.height = h + 'px';
+
+    // GROWTH is the behavior. Scroll exists ONLY past max — the last resort.
+    const capped = natural > ANSWER_MAX;
+    answer.style.overflowY = capped ? 'auto' : 'hidden';
+    if (capped) answer.scrollTop = answer.scrollHeight;
+
+    // readout in real-world pt
+    const pct = (h - ANSWER_BASE) / (ANSWER_MAX - ANSWER_BASE);
+    panelHeight.textContent = Math.round(PT_BASE + pct * (PT_MAX - PT_BASE)) + 'pt';
+    panelState.textContent = capped ? 'at max — inner scroll engaged'
+      : (pct === 0 ? 'at base' : 'growing with the text');
+    panelState.style.color = capped ? 'var(--copper)' : '';
+  }
+
+  /* ---- growing prompt field (its growth is panel growth too) ---- */
+  function measure() {
+    // JS fallback for browsers without field-sizing (the open-webui technique)
+    if (!supportsFieldSizing) {
+      field.style.height = '';
+      const h = Math.min(field.scrollHeight, LINE * MAX_LINES);
+      field.style.height = h + 'px';
+    }
+    const lines = Math.max(1, Math.round(Math.min(field.scrollHeight, field.clientHeight + 1) / LINE));
+    lineCount.textContent = Math.min(lines, MAX_LINES);
+    scrollState && (scrollState.textContent = '');
+  }
+
+  field.addEventListener('input', measure);
+  field.addEventListener('focus', measure);
+  measure();
+  syncPanel();
+
+  /* ---- streamed response drives panel growth ---- */
+  const RESPONSE = "Done — I sent the Q3 recap to the team.\n\nWhat went out:\n•  Subject: “Q3 Recap — wins, misses, what's next”\n•  To: team@modem.dev (12 people)\n•  Attached the revenue summary you asked for\n\nGmail confirmed delivery at 9:42 AM. The thread already has two replies — want me to summarize them, or schedule the follow-up discussion for Thursday?";
+  let streaming = false;
+
+  function streamResponse() {
+    if (streaming) return;
+    streaming = true;
+    streamBtn.disabled = true;
+    answer.classList.add('streaming');
+    answerText.textContent = '';
+    syncPanel();
+    const words = RESPONSE.split(/(\s+)/);
+    let i = 0;
+    const tick = () => {
+      if (i >= words.length) {
+        streaming = false;
+        streamBtn.disabled = false;
+        streamBtn.textContent = 'Replay response';
+        return;
+      }
+      answerText.textContent += words[i++];
+      // each chunk retargets the height transition → one continuous, interruptible
+      // growth (the SwiftUI build rides the existing openPanelHeight spring instead)
+      syncPanel();
+      setTimeout(tick, words[i - 1].trim() ? 34 : 10);
+    };
+    tick();
+  }
+
+  streamBtn.addEventListener('click', streamResponse);
+
+  spotBtn.addEventListener('click', () => {
+    inset.classList.toggle('spotlit');
+    const on = inset.classList.contains('spotlit');
+    spotBtn.textContent = on ? 'Hide spotlight' : 'Spotlight footer';
+    if (on) answer.scrollTo({ top: answer.scrollHeight, behavior: 'smooth' });
+  });
+})();
+</script>
+</body>
+</html>

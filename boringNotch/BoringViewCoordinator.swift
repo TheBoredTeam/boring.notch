@@ -51,7 +51,14 @@ class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home {
-        didSet { Defaults[.lastSelectedView] = currentView }
+        didSet {
+            Defaults[.lastSelectedView] = currentView
+            // Switching away from the Pi tab is a deliberate close for its panel —
+            // the session pin doesn't survive it.
+            if oldValue == .pi && currentView != .pi {
+                PiAgentManager.shared.piPinned = false
+            }
+        }
     }
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?

@@ -33,6 +33,30 @@ enum Motion {
     /// Removal — faster than the enter, no bounce (exits beat enters).
     static let shelfItemExit = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.18)
 
+    // MARK: Pi peek + panel
+
+    /// Peek wings appearing when a run starts. Width clip-grow + opacity, ease-out-quint.
+    static let peekWingEnter = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.42)
+
+    /// Peek wings retracting — exit ≈ 25% faster than the enter.
+    static let peekWingExit = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.32)
+
+    /// Peek/activity text swap, outgoing half (thinking → forming → name → ✓).
+    static let textSwapOut = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.16)
+
+    /// Peek/activity text swap, incoming half — slightly slower than the out.
+    static let textSwapIn = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.22)
+
+    /// One full shimmer sweep across forming-tool text. Linear is correct here:
+    /// constant looping motion is its one legitimate use.
+    static let shimmerPeriod: TimeInterval = 1.8
+
+    /// Toolkit glow blooming behind the peek logo. Spring keeps it interruptible.
+    static let glowBloom = Animation.spring(duration: 0.42, bounce: 0.15)
+
+    /// Done-peek auto-dismiss — an exit, so faster and smaller.
+    static let peekDismiss = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.25)
+
     /// Reduced-motion fallback for any of the above: near-instant, movement dropped.
     static let reduced = Animation.easeOut(duration: 0.12)
 
@@ -55,11 +79,50 @@ enum Motion {
     /// Overlays anchored to an item (copied flash, delete button): scale from 0.92.
     static let overlay = AnyTransition.scale(scale: 0.92).combined(with: .opacity)
 
+    /// Pi peek wings appearing/retracting beside the notch cutout. Opacity-led — the
+    /// wings read as clip-growing because the black notch shape widens around them;
+    /// children never scale on enter (clip, don't squash). The exit adds a slight
+    /// shrink and runs ~25% faster (exits beat enters).
+    static let peekWings = AnyTransition.asymmetric(
+        insertion: .opacity.animation(peekWingEnter),
+        removal: .scale(scale: 0.94).combined(with: .opacity).animation(peekWingExit)
+    )
+
+    /// Pi peek/activity text swap (thinking → forming → tool name → ✓): the incoming
+    /// text drops in from −4pt while a 2pt blur resolves; the outgoing text falls +4pt
+    /// and blurs away, ~25% faster. The blur bridges the two strings into one
+    /// perceived object instead of a hard crossfade.
+    static let textSwap = AnyTransition.asymmetric(
+        insertion: .modifier(
+            active: TextSwapEffect(offsetY: -4, blur: 2, opacity: 0),
+            identity: TextSwapEffect(offsetY: 0, blur: 0, opacity: 1)
+        ).animation(textSwapIn),
+        removal: .modifier(
+            active: TextSwapEffect(offsetY: 4, blur: 2, opacity: 0),
+            identity: TextSwapEffect(offsetY: 0, blur: 0, opacity: 1)
+        ).animation(textSwapOut)
+    )
+
     /// Opacity-only transition for Reduce Motion: keeps the fade cue, drops movement.
     static let reducedTransition = AnyTransition.opacity
 
     /// Picks a movement transition or the opacity-only fallback.
     static func transition(_ full: AnyTransition, reduceMotion: Bool) -> AnyTransition {
         reduceMotion ? reducedTransition : full
+    }
+}
+
+/// Backs `Motion.textSwap`: translate + blur + fade as one unit so the swap reads as
+/// a single object changing, not two strings trading places.
+struct TextSwapEffect: ViewModifier {
+    let offsetY: CGFloat
+    let blur: CGFloat
+    let opacity: Double
+
+    func body(content: Content) -> some View {
+        content
+            .offset(y: offsetY)
+            .blur(radius: blur)
+            .opacity(opacity)
     }
 }

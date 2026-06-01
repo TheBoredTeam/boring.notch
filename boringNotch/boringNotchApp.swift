@@ -77,7 +77,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotkeyService = HotkeyService()
     private let doubleTapService = DoubleCommandTapService()
     private var doubleCommandCancellable: AnyCancellable?
-    /// Grows/shrinks the notch window when the Pi tab's expand state toggles.
+    /// Grows/shrinks the notch window as the Pi tab's content-driven panel height changes.
     private var piExpandedCancellable: AnyCancellable?
     private var didShowScreenRecordingAlert = false
     /// The Accessibility prompt is shown at most once per launch. Without this
@@ -535,17 +535,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         screenshotPermissions.requestScreenRecording()
     }
 
-    // MARK: - Pi expand: grow/shrink the notch window
+    // MARK: - Pi panel growth: grow/shrink the notch window
 
-    /// Keep the notch window height in sync with the Pi tab's expand state. The
-    /// window is tall (≈380, incl. shadow) only while the expanded Pi tab is open;
-    /// every other state stays short (210) so the transparent lower region never
-    /// blocks clicks. Grow-before / shrink-after ordering avoids clipping the panel
-    /// during its height animation.
+    /// Keep the notch window height in sync with the open panel's content-driven
+    /// height (the Pi tab grows with its answer). The window is taller than the
+    /// base only while the Pi tab is open and its panel has grown; every other
+    /// state stays short so the transparent lower region never blocks clicks.
+    /// Grow-before / shrink-after ordering avoids clipping the panel during its
+    /// height animation.
     @MainActor
     private func observePiExpansion() {
-        // Expand toggle: grow immediately, shrink after the panel settles.
-        let expandedSignal = Defaults.publisher(.piExpanded)
+        // Content-driven panel height (Pi tab growth/shrink).
+        let panelSignal = vm.$openPanelHeight
             .map { _ in () }
             .eraseToAnyPublisher()
         // Tab switches in/out of Pi.
@@ -557,45 +558,53 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             .map { _ in () }
             .eraseToAnyPublisher()
 
-        piExpandedCancellable = Publishers.MergeMany([expandedSignal, viewSignal, stateSignal])
+        piExpandedCancellable = Publishers.MergeMany([panelSignal, viewSignal, stateSignal])
             .receive(on: RunLoop.main)
             .sink { [weak self] in
                 self?.syncNotchWindowHeight()
             }
     }
 
+    /// The window height a view model's current state wants: panel height + shadow
+    /// while the Pi tab is open (content-driven), the short base height otherwise.
+    @MainActor
+    private func windowHeightTarget(for viewModel: BoringViewModel) -> CGFloat {
+        guard viewModel.notchState == .open, coordinator.currentView == .pi else {
+            return windowSize.height
+        }
+        return max(viewModel.openPanelHeight + shadowPadding, windowSize.height)
+    }
+
     /// Resize each notch window to fit its current state, re-anchoring the top edge
     /// at the screen top (the same math as `positionWindow`). Growing happens
-    /// immediately; shrinking is deferred so the panel's collapse animation finishes
-    /// before the window clips it.
+    /// immediately (so the panel never clips while swelling); shrinking is deferred
+    /// so the panel's collapse animation finishes before the window clips it. The
+    /// window itself is never animated — it's invisible, and animating it would
+    /// fight the panel spring.
     @MainActor
     func syncNotchWindowHeight() {
-        let wantExpanded = coordinator.currentView == .pi && Defaults[.piExpanded]
-
         func apply(_ window: NSWindow, viewModel: BoringViewModel) {
-            let target = (viewModel.notchState == .open && wantExpanded)
-                ? expandedWindowHeight : windowSize.height
+            let target = windowHeightTarget(for: viewModel)
             guard abs(window.frame.height - target) > 0.5 else { return }
             guard let screen = window.screen ?? NSScreen.screen(withUUID: viewModel.screenUUID ?? "") else { return }
             let screenFrame = screen.frame
-            let resize = {
+            let resize = { (height: CGFloat) in
                 var frame = window.frame
-                frame.size.height = target
+                frame.size.height = height
                 frame.origin.x = screenFrame.origin.x + (screenFrame.width / 2) - frame.width / 2
-                frame.origin.y = screenFrame.origin.y + screenFrame.height - target
+                frame.origin.y = screenFrame.origin.y + screenFrame.height - height
                 window.setFrame(frame, display: true)
             }
             if target > window.frame.height {
-                resize() // grow before the panel expands
+                resize(target) // grow before the panel expands
             } else {
                 // shrink after the panel collapse animation (~openAnimation) completes
                 Task { @MainActor in
                     try? await Task.sleep(for: .milliseconds(460))
                     // Re-check: state may have changed during the delay.
-                    let stillWantsShort = !(coordinator.currentView == .pi
-                        && Defaults[.piExpanded] && viewModel.notchState == .open)
-                    if stillWantsShort, abs(window.frame.height - windowSize.height) > 0.5 {
-                        resize()
+                    let latest = self.windowHeightTarget(for: viewModel)
+                    if latest < window.frame.height - 0.5 {
+                        resize(latest)
                     }
                 }
             }
