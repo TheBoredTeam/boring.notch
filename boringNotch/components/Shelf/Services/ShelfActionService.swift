@@ -23,21 +23,37 @@ enum ShelfActionService {
         case .text(let string):
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(string, forType: .string)
+        case .screenshot(let meta):
+            // Unsandboxed plain path — open the PNG directly.
+            NSWorkspace.shared.open(URL(fileURLWithPath: meta.path))
         }
     }
 
     static func reveal(_ item: ShelfItem) {
-        guard case .file(let bookmark) = item.kind else { return }
-        handleBookmarkedFile(bookmark) { url in
-            NSWorkspace.shared.activateFileViewerSelecting([url])
+        switch item.kind {
+        case .file(let bookmark):
+            handleBookmarkedFile(bookmark) { url in
+                NSWorkspace.shared.activateFileViewerSelecting([url])
+            }
+        case .screenshot(let meta):
+            NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: meta.path)])
+        default:
+            return
         }
     }
 
     static func copyPath(_ item: ShelfItem) {
-        guard case .file(let bookmark) = item.kind else { return }
-        handleBookmarkedFile(bookmark) { url in
+        switch item.kind {
+        case .file(let bookmark):
+            handleBookmarkedFile(bookmark) { url in
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(url.path, forType: .string)
+            }
+        case .screenshot(let meta):
             NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(url.path, forType: .string)
+            NSPasteboard.general.setString(meta.path, forType: .string)
+        default:
+            return
         }
     }
 

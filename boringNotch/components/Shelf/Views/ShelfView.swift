@@ -13,6 +13,7 @@ struct ShelfView: View {
     @StateObject var tvm = ShelfStateViewModel.shared
     @StateObject var selection = ShelfSelectionModel.shared
     @StateObject private var quickLookService = QuickLookService()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let spacing: CGFloat = 8
 
     var body: some View {
@@ -21,7 +22,7 @@ struct ShelfView: View {
                 .aspectRatio(1, contentMode: .fit)
                 .environmentObject(vm)
             panel
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                .onDrop(of: [.fileURL, .url, .image, .png, .tiff, .jpeg, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
                 }
         }
@@ -95,15 +96,23 @@ struct ShelfView: View {
             } else {
                 ScrollView(.horizontal) {
                     HStack(spacing: spacing) {
-                        ForEach(tvm.items) { item in
+                        ForEach(Array(tvm.items.enumerated()), id: \.element.id) { index, item in
                             ShelfItemView(item: item)
                                 .environmentObject(quickLookService)
+                                .transition(Motion.transition(Motion.thumbnail, reduceMotion: reduceMotion))
+                                // Subtle cascade on appear so items don't pop in all at once.
+                                .animation(
+                                    reduceMotion
+                                        ? Motion.reduced
+                                        : Motion.shelfItemEnter.delay(Double(min(index, 8)) * 0.03),
+                                    value: tvm.items.count
+                                )
                         }
                     }
                 }
                 .padding(-spacing)
                 .scrollIndicators(.never)
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                .onDrop(of: [.fileURL, .url, .image, .png, .tiff, .jpeg, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
                 }
             }

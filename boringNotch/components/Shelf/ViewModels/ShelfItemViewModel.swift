@@ -64,6 +64,14 @@ final class ShelfItemViewModel: ObservableObject {
             return NSItemProvider(object: string as NSString)
         case .link(let url):
             return NSItemProvider(object: url as NSURL)
+        case .screenshot:
+            let provider = NSItemProvider()
+            if let url = item.fileURL {
+                provider.registerObject(url as NSURL, visibility: .all)
+            } else {
+                provider.registerObject(item.displayName as NSString, visibility: .all)
+            }
+            return provider
         }
     }
 
@@ -83,6 +91,8 @@ final class ShelfItemViewModel: ObservableObject {
                 textItems.append(string)
             case .link:
                 break
+            case .screenshot:
+                if let url = item.fileURL { urls.append(url) }
             }
         }
         if !urls.isEmpty {
@@ -106,7 +116,12 @@ final class ShelfItemViewModel: ObservableObject {
         } else if flags.contains(.control) {
             handleRightClick(event: event, view: view)
         } else {
-            if !selection.isSelected(item.id) { selection.selectSingle(item) }
+            // Plain left-click: select + copy to clipboard with a "Copied" flash.
+            // Double-click still opens; modifier-clicks still multi-select.
+            selection.selectSingle(item)
+            if event.clickCount == 1 {
+                ShelfStateViewModel.shared.copyToClipboard(item)
+            }
         }
         if event.clickCount == 2 { handleDoubleClick() }
     }
@@ -140,6 +155,11 @@ final class ShelfItemViewModel: ObservableObject {
                         itemsToShare.append(string)
                     case .link(let url):
                         itemsToShare.append(url)
+                    case .screenshot:
+                        if let url = item.fileURL {
+                            itemsToShare.append(url)
+                            fileURLs.append(url)
+                        }
                     }
                 }
             }
@@ -367,6 +387,27 @@ final class ShelfItemViewModel: ObservableObject {
             menu.addItem(copyPathItem)
         }
 
+        // Agent payload copy — for screenshots and image files. "Copy for <agent>"
+        // uses the active agent's payload mode; "Copy as ▸" picks a mode explicitly.
+        let isScreenshot: Bool = { if case .screenshot = item.kind { return true } else { return false } }()
+        let isImageFile = item.fileURL.map { ImageProcessingService.shared.isImageFile($0) } ?? false
+        if isScreenshot || isImageFile {
+            menu.addItem(NSMenuItem.separator())
+            let agent = ScreenshotPreferences.activeAgent
+            let agentName = agent == .custom ? ScreenshotPreferences.customAgentName : agent.displayName
+            addMenuItem(title: "Copy for \(agentName)")
+
+            let copyAs = NSMenuItem(title: "Copy as", action: nil, keyEquivalent: "")
+            let copyAsMenu = NSMenu()
+            for mode in PayloadMode.allCases {
+                let mi = NSMenuItem(title: mode.displayName, action: nil, keyEquivalent: "")
+                mi.representedObject = "__COPYAS__" + mode.rawValue
+                copyAsMenu.addItem(mi)
+            }
+            copyAs.submenu = copyAsMenu
+            menu.addItem(copyAs)
+        }
+
         menu.addItem(NSMenuItem.separator())
         addMenuItem(title: "Remove")
 
@@ -417,6 +458,12 @@ final class ShelfItemViewModel: ObservableObject {
 
             if let marker = sender.representedObject as? String, marker == "__OTHER__" {
                 openWithPanel()
+                return
+            }
+
+            if let marker = sender.representedObject as? String, marker.hasPrefix("__COPYAS__"),
+               let mode = PayloadMode(rawValue: String(marker.dropFirst("__COPYAS__".count))) {
+                ShelfStateViewModel.shared.copyToClipboard(item, mode: mode)
                 return
             }
 
@@ -490,6 +537,7 @@ final class ShelfItemViewModel: ObservableObject {
                             // Use immediate update for user-initiated menu action
                             return await ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
                         }
+                        if case .screenshot = item.kind { return item.fileURL }
                         return nil
                     }
                     if !urls.isEmpty {
@@ -523,6 +571,7 @@ final class ShelfItemViewModel: ObservableObject {
                         if case .file = item.kind {
                             return ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
                         }
+                        if case .screenshot = item.kind { return item.fileURL }
                         return nil
                     }
                     if !fileURLs.isEmpty {
@@ -553,6 +602,9 @@ final class ShelfItemViewModel: ObservableObject {
             case "Create PDF":
                 handleCreatePDF()
             
+            case let t where t.hasPrefix("Copy for "):
+                ShelfStateViewModel.shared.copyToClipboard(item)
+
             case "Compress":
                 let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
                 let fileURLs = selected.compactMap { $0.fileURL }

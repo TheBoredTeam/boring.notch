@@ -27,6 +27,34 @@ final class ShelfPersistenceService {
         encoder.outputFormatting = [.prettyPrinted]
         decoder.dateDecodingStrategy = .iso8601
         encoder.dateEncodingStrategy = .iso8601
+
+        // Sandbox-flip migration: when the app previously ran sandboxed, the shelf
+        // store lived inside the app container. After dropping the sandbox the same
+        // relative path resolves to the real ~/Library/Application Support, so copy
+        // the old container store across on first unsandboxed launch to avoid the
+        // shelf appearing "wiped." One-shot: only when the new path doesn't exist yet.
+        Self.migrateFromSandboxContainerIfNeeded(to: fileURL, using: fm)
+    }
+
+    /// Copies a pre-flip sandboxed `items.json` from the app container into the
+    /// real Application Support location, but only if no store exists there yet.
+    private static func migrateFromSandboxContainerIfNeeded(to destination: URL, using fm: FileManager) {
+        guard !fm.fileExists(atPath: destination.path) else { return }
+
+        let containerStore = fm.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Containers", isDirectory: true)
+            .appendingPathComponent("theboringteam.boringnotch", isDirectory: true)
+            .appendingPathComponent("Data/Library/Application Support/boringNotch/Shelf", isDirectory: true)
+            .appendingPathComponent("items.json")
+
+        guard fm.fileExists(atPath: containerStore.path) else { return }
+
+        do {
+            try fm.copyItem(at: containerStore, to: destination)
+            print("📦 Migrated shelf store from sandbox container to \(destination.path)")
+        } catch {
+            print("⚠️ Failed to migrate shelf store from sandbox container: \(error.localizedDescription)")
+        }
     }
 
     func load() -> [ShelfItem] {

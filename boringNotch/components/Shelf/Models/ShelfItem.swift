@@ -8,14 +8,37 @@
 import AppKit
 import Foundation
 
+/// Metadata for a screenshot the user captured through boring.notch. Because the
+/// app is unsandboxed, a plain absolute path is the entire storage contract — the
+/// PNG on disk is what every consumer (Quick Look, thumbnails, drag, agent copy)
+/// resolves against.
+struct ScreenshotMeta: Codable, Equatable, Sendable {
+    /// Absolute POSIX path to the captured PNG.
+    var path: String
+    /// How the capture was triggered (drives auto-copy policy + analytics).
+    var source: CaptureSource
+    /// When the capture happened (drives retention).
+    var timestamp: Date
+    /// Whether this screenshot may be copied as an agent payload (always true today).
+    var agentEligible: Bool
+
+    init(path: String, source: CaptureSource, timestamp: Date = Date(), agentEligible: Bool = true) {
+        self.path = path
+        self.source = source
+        self.timestamp = timestamp
+        self.agentEligible = agentEligible
+    }
+}
+
 enum ShelfItemKind: Codable, Equatable, Sendable {
     case file(bookmark: Data)
     case text(string: String)
     case link(url: URL)
+    case screenshot(meta: ScreenshotMeta)
 
     enum CodingKeys: String, CodingKey { case type, value }
 
-    enum KindTag: String, Codable { case file, text, link }
+    enum KindTag: String, Codable { case file, text, link, screenshot }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -28,6 +51,8 @@ enum ShelfItemKind: Codable, Equatable, Sendable {
             self = .text(string: try container.decode(String.self, forKey: .value))
         case .link:
             self = .link(url: try container.decode(URL.self, forKey: .value))
+        case .screenshot:
+            self = .screenshot(meta: try container.decode(ScreenshotMeta.self, forKey: .value))
         }
     }
 
@@ -43,6 +68,9 @@ enum ShelfItemKind: Codable, Equatable, Sendable {
         case .link(let url):
             try container.encode(KindTag.link, forKey: .type)
             try container.encode(url, forKey: .value)
+        case .screenshot(let meta):
+            try container.encode(KindTag.screenshot, forKey: .type)
+            try container.encode(meta, forKey: .value)
         }
     }
 
@@ -115,37 +143,63 @@ struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
             } else {
                 return s
             }
+        case .screenshot(let meta):
+            return Foundation.URL(fileURLWithPath: meta.path).lastPathComponent
         }
     }
-    
+
     var fileURL: URL? {
-        guard case .file = kind else { return nil }
-        return ShelfStateViewModel.shared.resolveFileURL(for: self)
+        switch kind {
+        case .file:
+            return ShelfStateViewModel.shared.resolveFileURL(for: self)
+        case .screenshot(let meta):
+            // A plain path (sandbox off) — return it directly so Quick Look,
+            // thumbnails and drag all reuse the existing file-backed code paths.
+            return Foundation.URL(fileURLWithPath: meta.path)
+        default:
+            return nil
+        }
     }
-    
+
     var URL: URL? {
         if case let .file(bookmark) = kind { return resolvedContext(for: bookmark)?.url }
         else if case let .link(url) = kind { return url }
+        else if case let .screenshot(meta) = kind { return Foundation.URL(fileURLWithPath: meta.path) }
         else { return nil }
     }
-    
+
     var icon: NSImage {
-        guard case .file = kind else {
+        switch kind {
+        case .file:
+            if let resolvedURL = ShelfStateViewModel.shared.resolveFileURL(for: self) {
+                return NSWorkspace.shared.icon(forFile: resolvedURL.path)
+            }
+            return NSImage()
+        case .screenshot(let meta):
+            return NSWorkspace.shared.icon(forFile: meta.path)
+        default:
             return Self.thumbnailSymbolImage(systemName: kind.iconSymbolName) ?? NSImage()
         }
-        if let resolvedURL = ShelfStateViewModel.shared.resolveFileURL(for: self) {
-            return NSWorkspace.shared.icon(forFile: resolvedURL.path)
-        }
-        return NSImage()
     }
-    
+
 
     func cleanupStoredData() {
+        // Screenshots boring.notch captured: delete the backing PNG, but only when
+        // it lives inside a recognized capture folder so we never delete an
+        // arbitrary file a screenshot item might somehow point at.
+        if case let .screenshot(meta) = kind {
+            let url = Foundation.URL(fileURLWithPath: meta.path)
+            if CaptureLocation.isWithinACaptureFolder(url) {
+                try? FileManager.default.removeItem(at: url)
+            }
+            return
+        }
+
         guard case let .file(bookmark) = kind,
               let context = resolvedContext(for: bookmark) else { return }
-        
+
         let url = context.url
-        
+
         // Handle temporary files
         if isTemporary {
             TemporaryFileStorageService.shared.removeTemporaryFileIfNeeded(at: url)
@@ -199,6 +253,8 @@ extension ShelfItem {
             return "link://" + u.absoluteString
         case .text(let s):
             return "text://" + s
+        case .screenshot(let meta):
+            return "screenshot://" + Foundation.URL(fileURLWithPath: meta.path).standardizedFileURL.path
         }
     }
 }
@@ -213,6 +269,8 @@ private extension ShelfItemKind {
             return "text.justifyleft"
         case .link:
             return "link"
+        case .screenshot:
+            return "camera.viewfinder"
         }
     }
 }

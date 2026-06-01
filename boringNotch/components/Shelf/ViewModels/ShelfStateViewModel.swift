@@ -17,6 +17,11 @@ final class ShelfStateViewModel: ObservableObject {
 
     @Published var isLoading: Bool = false
 
+    /// The item showing the transient "Copied" flash, cleared after ~1.2s. Mirrors
+    /// IslandNotch's `lastCopiedFileID`.
+    @Published var lastCopiedItemID: ShelfItem.ID?
+    private var flashClearTask: Task<Void, Never>?
+
     var isEmpty: Bool { items.isEmpty }
 
     // Queue for deferred bookmark updates to avoid publishing during view updates
@@ -46,6 +51,55 @@ final class ShelfStateViewModel: ObservableObject {
     func remove(_ item: ShelfItem) {
         item.cleanupStoredData()
         items.removeAll { $0.id == item.id }
+    }
+
+    // MARK: - Generic copy + flash
+
+    /// Copies an item to the clipboard in its kind's natural representation and
+    /// triggers the "Copied" flash. Screenshots/images use the active agent's
+    /// payload mode so a single click produces a paste-ready agent prompt.
+    func copyToClipboard(_ item: ShelfItem) {
+        let pb = NSPasteboard.general
+        switch item.kind {
+        case .file:
+            if let url = resolveAndUpdateBookmark(for: item) {
+                pb.clearContents()
+                pb.writeObjects([url as NSURL])
+            } else {
+                pb.clearContents()
+                pb.setString(item.displayName, forType: .string)
+            }
+        case .text(let string):
+            pb.clearContents()
+            pb.setString(string, forType: .string)
+        case .link(let url):
+            pb.clearContents()
+            pb.writeObjects([url as NSURL])
+        case .screenshot(let meta):
+            let agent = ScreenshotPreferences.activeAgent
+            PasteboardService.copy(url: Foundation.URL(fileURLWithPath: meta.path),
+                                   mode: ScreenshotPreferences.payloadMode(for: agent))
+        }
+        flashCopied(item.id)
+    }
+
+    /// Copies a screenshot/image item as a specific agent payload mode (used by the
+    /// right-click "Copy as ▸" submenu).
+    func copyToClipboard(_ item: ShelfItem, mode: PayloadMode) {
+        guard let url = item.fileURL else { return }
+        PasteboardService.copy(url: url, mode: mode)
+        flashCopied(item.id)
+    }
+
+    /// Sets the "Copied" flash for `id`, auto-clearing after ~1.2s.
+    func flashCopied(_ id: ShelfItem.ID) {
+        lastCopiedItemID = id
+        flashClearTask?.cancel()
+        flashClearTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            guard let self, !Task.isCancelled else { return }
+            if self.lastCopiedItemID == id { self.lastCopiedItemID = nil }
+        }
     }
 
     func updateBookmark(for item: ShelfItem, bookmark: Data) {

@@ -143,6 +143,20 @@
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		FEDB00000000000000000001 /* ScreenshotLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA00000000000000000001 /* ScreenshotLog.swift */; };
+		FEDB00000000000000000002 /* PayloadMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA00000000000000000002 /* PayloadMode.swift */; };
+		FEDB00000000000000000003 /* AgentTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA00000000000000000003 /* AgentTarget.swift */; };
+		FEDB00000000000000000004 /* CaptureSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA00000000000000000004 /* CaptureSource.swift */; };
+		FEDB00000000000000000005 /* CaptureLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA00000000000000000005 /* CaptureLocation.swift */; };
+		FEDB00000000000000000006 /* CaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA00000000000000000006 /* CaptureService.swift */; };
+		FEDB00000000000000000007 /* PasteboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA00000000000000000007 /* PasteboardService.swift */; };
+		FEDB00000000000000000008 /* CodeSigningStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA00000000000000000008 /* CodeSigningStatus.swift */; };
+		FEDB00000000000000000009 /* PermissionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA00000000000000000009 /* PermissionsService.swift */; };
+		FEDB0000000000000000000A /* DoubleCommandTapService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA0000000000000000000A /* DoubleCommandTapService.swift */; };
+		FEDB0000000000000000000B /* HotkeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA0000000000000000000B /* HotkeyService.swift */; };
+		FEDB0000000000000000000C /* ScreenshotPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA0000000000000000000C /* ScreenshotPreferences.swift */; };
+		FEDB0000000000000000000D /* Motion.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA0000000000000000000D /* Motion.swift */; };
+		FEDB0000000000000000000F /* ScreenshotRetentionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA0000000000000000000F /* ScreenshotRetentionService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -309,6 +323,20 @@
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		FEDA00000000000000000001 /* ScreenshotLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotLog.swift; sourceTree = "<group>"; };
+		FEDA00000000000000000002 /* PayloadMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayloadMode.swift; sourceTree = "<group>"; };
+		FEDA00000000000000000003 /* AgentTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentTarget.swift; sourceTree = "<group>"; };
+		FEDA00000000000000000004 /* CaptureSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSource.swift; sourceTree = "<group>"; };
+		FEDA00000000000000000005 /* CaptureLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureLocation.swift; sourceTree = "<group>"; };
+		FEDA00000000000000000006 /* CaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureService.swift; sourceTree = "<group>"; };
+		FEDA00000000000000000007 /* PasteboardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardService.swift; sourceTree = "<group>"; };
+		FEDA00000000000000000008 /* CodeSigningStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSigningStatus.swift; sourceTree = "<group>"; };
+		FEDA00000000000000000009 /* PermissionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsService.swift; sourceTree = "<group>"; };
+		FEDA0000000000000000000A /* DoubleCommandTapService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleCommandTapService.swift; sourceTree = "<group>"; };
+		FEDA0000000000000000000B /* HotkeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyService.swift; sourceTree = "<group>"; };
+		FEDA0000000000000000000C /* ScreenshotPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotPreferences.swift; sourceTree = "<group>"; };
+		FEDA0000000000000000000D /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
+		FEDA0000000000000000000F /* ScreenshotRetentionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotRetentionService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -651,11 +679,33 @@
 			isa = PBXGroup;
 			children = (
 				1113ABB82E80E27000EC13B2 /* Models */,
+				FEDA0000000000000000000E /* Screenshots */,
 				1113ABBF2E80E27000EC13B2 /* Services */,
 				1113ABC22E80E27000EC13B2 /* ViewModels */,
 				1113ABC42E80E27000EC13B2 /* Views */,
 			);
 			path = Shelf;
+			sourceTree = "<group>";
+		};
+		FEDA0000000000000000000E /* Screenshots */ = {
+			isa = PBXGroup;
+			children = (
+				FEDA00000000000000000003 /* AgentTarget.swift */,
+				FEDA00000000000000000005 /* CaptureLocation.swift */,
+				FEDA00000000000000000006 /* CaptureService.swift */,
+				FEDA00000000000000000004 /* CaptureSource.swift */,
+				FEDA00000000000000000008 /* CodeSigningStatus.swift */,
+				FEDA0000000000000000000A /* DoubleCommandTapService.swift */,
+				FEDA0000000000000000000B /* HotkeyService.swift */,
+				FEDA0000000000000000000D /* Motion.swift */,
+				FEDA00000000000000000007 /* PasteboardService.swift */,
+				FEDA00000000000000000002 /* PayloadMode.swift */,
+				FEDA00000000000000000009 /* PermissionsService.swift */,
+				FEDA0000000000000000000C /* ScreenshotPreferences.swift */,
+				FEDA0000000000000000000F /* ScreenshotRetentionService.swift */,
+				FEDA00000000000000000001 /* ScreenshotLog.swift */,
+			);
+			path = Screenshots;
 			sourceTree = "<group>";
 		};
 		B141C23B2CA5F50900AC8CC8 /* Onboarding */ = {
@@ -948,6 +998,20 @@
 				1113ABCC2E80E27000EC13B2 /* ShelfDropService.swift in Sources */,
 				1100292E2E86940F00035A57 /* QuickShareService.swift in Sources */,
 				1113ABCE2E80E27000EC13B2 /* ShelfActionService.swift in Sources */,
+				FEDB00000000000000000001 /* ScreenshotLog.swift in Sources */,
+				FEDB00000000000000000002 /* PayloadMode.swift in Sources */,
+				FEDB00000000000000000003 /* AgentTarget.swift in Sources */,
+				FEDB00000000000000000004 /* CaptureSource.swift in Sources */,
+				FEDB00000000000000000005 /* CaptureLocation.swift in Sources */,
+				FEDB00000000000000000006 /* CaptureService.swift in Sources */,
+				FEDB00000000000000000007 /* PasteboardService.swift in Sources */,
+				FEDB00000000000000000008 /* CodeSigningStatus.swift in Sources */,
+				FEDB00000000000000000009 /* PermissionsService.swift in Sources */,
+				FEDB0000000000000000000A /* DoubleCommandTapService.swift in Sources */,
+				FEDB0000000000000000000B /* HotkeyService.swift in Sources */,
+				FEDB0000000000000000000C /* ScreenshotPreferences.swift in Sources */,
+				FEDB0000000000000000000D /* Motion.swift in Sources */,
+				FEDB0000000000000000000F /* ScreenshotRetentionService.swift in Sources */,
 				1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */,
 				5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */,
 				14C08BC12C8E03AD000F8AA0 /* NSImage+Extensions.swift in Sources */,
@@ -1243,6 +1307,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "boring.notch captures screenshots you trigger and adds them to the shelf.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1296,6 +1361,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "boring.notch captures screenshots you trigger and adds them to the shelf.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
