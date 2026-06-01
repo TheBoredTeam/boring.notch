@@ -36,6 +36,12 @@ class BoringViewModel: NSObject, ObservableObject {
 
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
+
+    /// Height of the open panel's content. Mirrors `openNotchSize.height` (190) in
+    /// every tab except the Pi tab when expanded, where it grows to
+    /// `expandedPanelHeight` (360). SwiftUI frames bind to this instead of the
+    /// literal so toggling Pi's expand state animates the panel.
+    @Published var openPanelHeight: CGFloat = openNotchSize.height
     
     let webcamManager = WebcamManager.shared
     @Published var isCameraExpanded: Bool = false
@@ -65,8 +71,34 @@ class BoringViewModel: NSObject, ObservableObject {
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
-        
+
         setupDetectorObserver()
+        setupPanelHeightObserver()
+    }
+
+    /// Recompute `openPanelHeight` whenever the active tab or Pi's expand state
+    /// changes, so the open panel grows/shrinks for the expanded Pi tab.
+    private func setupPanelHeightObserver() {
+        let viewPublisher = coordinator.$currentView.removeDuplicates()
+        let expandedPublisher = Defaults.publisher(.piExpanded).map(\.newValue).removeDuplicates()
+
+        Publishers.CombineLatest(viewPublisher, expandedPublisher)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] view, expanded in
+                self?.applyPanelHeight(view: view, expanded: expanded)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func applyPanelHeight(view: NotchViews, expanded: Bool) {
+        let target: CGFloat = (view == .pi && expanded) ? expandedPanelHeight : openNotchSize.height
+        guard openPanelHeight != target else { return }
+        openPanelHeight = target
+    }
+
+    /// The open panel/window height the Pi tab currently wants (compact vs expanded).
+    var piExpandedNow: Bool {
+        coordinator.currentView == .pi && Defaults[.piExpanded]
     }
     
     private func setupDetectorObserver() {

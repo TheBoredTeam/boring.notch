@@ -21,17 +21,26 @@ final class SharingStateManager: ObservableObject {
 		didSet { syncPreventNotchClose() }
 	}
 
-	private var keyboardFocusHeld: Bool = false {
+	/// Whether a notch text field currently wants keyboard input. Drives the notch
+	/// window's `canBecomeKey` so keystrokes route to the field. This is intentionally
+	/// NOT a reason to keep the notch open — otherwise focusing the field would pin it.
+	private var keyboardFocusHeld: Bool = false
+
+	/// A real reason to keep the notch from closing on un-hover: unsent prompt text
+	/// or a running task. Independent of keyboard focus, so an empty/idle field still
+	/// collapses like Home/Shelf.
+	private var holdOpenRequested: Bool = false {
 		didSet { syncPreventNotchClose() }
 	}
 
 	@Published private(set) var preventNotchClose: Bool = false
 
-	/// True while a text field inside the notch needs keyboard input.
+	/// True while a text field inside the notch needs keyboard input — gates the
+	/// window's `canBecomeKey`.
 	var holdsKeyboardFocus: Bool { keyboardFocusHeld }
 
 	private func syncPreventNotchClose() {
-		let newValue = activeSessions > 0 || keyboardFocusHeld
+		let newValue = activeSessions > 0 || holdOpenRequested
 		if newValue != preventNotchClose {
 			preventNotchClose = newValue
 			if !newValue {
@@ -40,8 +49,14 @@ final class SharingStateManager: ObservableObject {
 		}
 	}
 
+	/// Allow/deny the notch window becoming key (for typing). Follows field focus.
 	func setKeyboardFocusHeld(_ held: Bool) {
 		keyboardFocusHeld = held
+	}
+
+	/// Request/release a hold that prevents the notch closing on un-hover.
+	func setHoldOpen(_ hold: Bool) {
+		holdOpenRequested = hold
 	}
 
 	private var activeDelegates: [UUID: SharingLifecycleDelegate] = [:]

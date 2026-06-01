@@ -50,6 +50,27 @@ function toolkitSlug(toolName: string): string {
     return prefix.toLowerCase();
 }
 
+/**
+ * Composio routes some calls through the meta-tool `composio_execute_tool`, whose
+ * own slug is just `composio` — so without unwrapping, the notch would show the
+ * generic Composio mark even while Gmail/Calendar/etc. is the real app at work.
+ *
+ * The execute payload carries the underlying action as a `*_*` slug. Pull it out
+ * (the exact key varies across Composio versions, so try the known aliases) and
+ * return it so the caller can drive the real toolkit's logo/color and a pretty
+ * action name. `composio_search_tools` / `composio_get_tool_schemas` are genuine
+ * meta-ops and are intentionally left as `composio`.
+ */
+function unwrapComposioAction(toolName: string, args: any): string | null {
+    if (toolName !== "composio_execute_tool") return null;
+    const candidate =
+        args?.tool_slug ?? args?.toolSlug ?? args?.slug ?? args?.tool ?? args?.action ?? args?.action_name;
+    if (typeof candidate === "string" && candidate.includes("_")) {
+        return candidate;
+    }
+    return null;
+}
+
 async function main(): Promise<void> {
     let session;
     try {
@@ -84,13 +105,16 @@ async function main(): Promise<void> {
                 break;
             }
             case "tool_execution_start": {
-                const slug = toolkitSlug(event.toolName);
+                // Unwrap composio_execute_tool → the real app (Gmail, Calendar, …) so
+                // the notch shows that app's logo/color, not the generic Composio mark.
+                const displayTool = unwrapComposioAction(event.toolName, event.args) ?? event.toolName;
+                const slug = toolkitSlug(displayTool);
                 // Reset status so a "thinking" after this tool re-emits.
                 lastStatusWord = slug;
                 emit({
                     type: "tool_start",
                     id: event.toolCallId,
-                    tool: event.toolName,
+                    tool: displayTool,
                     word: slug,
                     toolkit: slug,
                     logo: `https://logos.composio.dev/api/${slug}`,

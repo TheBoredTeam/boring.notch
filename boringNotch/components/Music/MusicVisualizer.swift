@@ -13,13 +13,16 @@ class AudioSpectrum: NSView {
     private var barScales: [CGFloat] = []
     private var isPlaying: Bool = true
     private var animationTimer: Timer?
-    
+    /// Bar color. Defaults to white so the music player visualizer is unchanged;
+    /// the Pi peek passes the active toolkit accent for flair.
+    private var tint: NSColor = .white
+
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
         setupBars()
     }
-    
+
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         wantsLayer = true
@@ -40,8 +43,8 @@ class AudioSpectrum: NSView {
             barLayer.frame = CGRect(x: xPosition, y: 0, width: barWidth, height: totalHeight)
             barLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             barLayer.position = CGPoint(x: xPosition + barWidth / 2, y: totalHeight / 2)
-            barLayer.fillColor = NSColor.white.cgColor
-            barLayer.backgroundColor = NSColor.white.cgColor
+            barLayer.fillColor = tint.cgColor
+            barLayer.backgroundColor = tint.cgColor
             barLayer.allowsGroupOpacity = false
             barLayer.masksToBounds = true
             let path = NSBezierPath(roundedRect: CGRect(x: 0, y: 0, width: barWidth, height: totalHeight),
@@ -102,18 +105,31 @@ class AudioSpectrum: NSView {
             stopAnimating()
         }
     }
+
+    func setTint(_ color: NSColor) {
+        guard color != tint else { return }
+        tint = color
+        for barLayer in barLayers {
+            barLayer.fillColor = color.cgColor
+            barLayer.backgroundColor = color.cgColor
+        }
+    }
 }
 
 struct AudioSpectrumView: NSViewRepresentable {
     @Binding var isPlaying: Bool
-    
+    /// Bar color. Defaults to white (music player); the Pi peek passes a toolkit accent.
+    var tint: NSColor = .white
+
     func makeNSView(context: Context) -> AudioSpectrum {
         let spectrum = AudioSpectrum()
+        spectrum.setTint(tint)
         spectrum.setPlaying(isPlaying)
         return spectrum
     }
-    
+
     func updateNSView(_ nsView: AudioSpectrum, context: Context) {
+        nsView.setTint(tint)
         nsView.setPlaying(isPlaying)
     }
 }

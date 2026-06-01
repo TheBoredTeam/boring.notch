@@ -120,7 +120,8 @@ struct ContentView: View {
                     )
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .frame(height: vm.notchState == .open ? vm.openPanelHeight : nil)
+                    .animation(.spring(response: 0.42, dampingFraction: 0.85, blendDuration: 0), value: vm.openPanelHeight)
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
                         let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
@@ -206,7 +207,7 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .frame(maxWidth: windowSize.width, maxHeight: max(windowSize.height, expandedWindowHeight), alignment: .top)
         .compositingGroup()
         .scaleEffect(
             x: gestureScale,
@@ -290,7 +291,7 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
-                      } else if coordinator.piPeek.show && vm.notchState == .closed && !vm.hideOnClosed {
+                      } else if coordinator.piPeek.show && coordinator.currentView == .pi && vm.notchState == .closed && !vm.hideOnClosed {
                           PiPeekView(logoNamespace: piLogoNamespace)
                               .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
