@@ -43,7 +43,7 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 **System Requirements:**
 - macOS **14 Sonoma** or later
-- Apple Silicon or Intel Mac
+- **Apple Silicon Mac (M1 or newer)** — this build is `arm64`-only and will **not** run on Intel Macs
 
 ---
 
@@ -52,6 +52,26 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 <a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
 
 Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
+
+> [!TIP]
+> If you were handed the `boringNotch.dmg` file directly (e.g. via AirDrop or a download link), you can do the whole install from the Terminal. Adjust the path to the `.dmg` if it isn't in `~/Downloads`:
+>
+> ```bash
+> # 1. Mount the disk image
+> hdiutil attach ~/Downloads/boringNotch.dmg
+>
+> # 2. Copy the app into /Applications
+> cp -R "/Volumes/boring.notch/boringNotch.app" /Applications/
+>
+> # 3. Eject the disk image
+> hdiutil detach "/Volumes/boring.notch"
+>
+> # 4. Remove the quarantine flag so macOS will open it (see note below)
+> xattr -dr com.apple.quarantine /Applications/boringNotch.app
+>
+> # 5. Launch it
+> open /Applications/boringNotch.app
+> ```
 
 > [!IMPORTANT]
 > We don't have an Apple Developer account (yet 👀), so macOS will warn you that Boring Notch is from an unidentified developer on first launch. This is expected behavior.
