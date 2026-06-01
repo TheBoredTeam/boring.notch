@@ -77,11 +77,17 @@ final class ShelfSelectionModel: ObservableObject {
 
     @Published private(set) var isDragging: Bool = false
 
-    func beginDrag() {
+    /// The items currently being dragged. The trash bucket reads this on drop so it
+    /// can delete exactly what the user dragged in, independent of pasteboard parsing.
+    @Published private(set) var activeDragItems: [ShelfItem] = []
+
+    func beginDrag(items: [ShelfItem] = []) {
         isDragging = true
+        activeDragItems = items
     }
 
     func endDrag() {
         isDragging = false
+        activeDragItems = []
     }
 }

@@ -67,7 +67,9 @@ struct ShelfItemView: View {
                         viewModel.handleClick(event: event, view: nsview)
                     },
                     onHoverChange: { hovering in isHovered = hovering },
-                    onPressChange: { pressing in isPressed = pressing }
+                    onPressChange: { pressing in isPressed = pressing },
+                    canDelete: isHovered && !selection.isDragging,
+                    onDeleteHit: { ShelfActionService.remove(item) }
                 )
             } else {
                 Color.clear
@@ -235,6 +237,8 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     let onClick: (NSEvent, NSView) -> Void
     var onHoverChange: ((Bool) -> Void)? = nil
     var onPressChange: ((Bool) -> Void)? = nil
+    var canDelete: Bool = false
+    var onDeleteHit: (() -> Void)? = nil
 
     func makeNSView(context: Context) -> DraggableClickView {
         let view = DraggableClickView()
@@ -245,6 +249,8 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         view.onClick = onClick
         view.onHoverChange = onHoverChange
         view.onPressChange = onPressChange
+        view.canDelete = canDelete
+        view.onDeleteHit = onDeleteHit
         return view
     }
 
@@ -259,6 +265,8 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         nsView.onClick = onClick
         nsView.onHoverChange = onHoverChange
         nsView.onPressChange = onPressChange
+        nsView.canDelete = canDelete
+        nsView.onDeleteHit = onDeleteHit
     }
     
     private func renderDragPreview() -> NSImage {
@@ -282,6 +290,10 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         var onClick: ((NSEvent, NSView) -> Void)?
         var onHoverChange: ((Bool) -> Void)?
         var onPressChange: ((Bool) -> Void)?
+        /// Whether the hover delete (✕) affordance is currently shown and actionable.
+        var canDelete: Bool = false
+        /// Invoked when the user clicks inside the top-trailing delete rect.
+        var onDeleteHit: (() -> Void)?
 
         private var mouseDownEvent: NSEvent?
         private let dragThreshold: CGFloat = 3.0
@@ -316,9 +328,25 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         }
 
         override func mouseDown(with event: NSEvent) {
+            // The hover ✕ button lives in a SwiftUI overlay *behind* this NSView in the
+            // ZStack, so its click would otherwise be swallowed here and routed to the
+            // copy path. Hit-test the top-trailing delete rect first and divert to
+            // delete when the affordance is showing.
+            if canDelete, deleteHitRect.contains(convert(event.locationInWindow, from: nil)) {
+                onPressChange?(false)
+                onDeleteHit?()
+                return
+            }
             mouseDownEvent = event
             onPressChange?(true)
             onClick?(event, self)
+        }
+
+        /// Top-trailing rect matching the SwiftUI delete button (16pt glyph + 4pt
+        /// padding, anchored `.topTrailing`). Generous enough to feel forgiving.
+        private var deleteHitRect: NSRect {
+            let size: CGFloat = 26
+            return NSRect(x: bounds.maxX - size, y: bounds.maxY - size, width: size, height: size)
         }
 
         override func mouseUp(with event: NSEvent) {
@@ -442,7 +470,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         }
         
         func draggingSession(_ session: NSDraggingSession, willBeginAt screenPoint: NSPoint) {
-            ShelfSelectionModel.shared.beginDrag()
+            ShelfSelectionModel.shared.beginDrag(items: draggedItems)
         }
         
         
