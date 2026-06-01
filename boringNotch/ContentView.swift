@@ -131,6 +131,18 @@ struct ContentView: View {
                     // gates the height animation itself (streaming growth = spring,
                     // typing growth = instant, per the motion spec).
                     .frame(height: vm.notchState == .open ? vm.openPanelHeight : nil)
+                    // Laid-out height probe: feeds vm.laidOutPanelHeight (a plain var,
+                    // never re-renders) so the Pi tab's content measurement can use
+                    // values from the same layout pass instead of the animation target.
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear
+                                .preference(key: PanelLaidOutHeightKey.self, value: geo.size.height)
+                                .onPreferenceChange(PanelLaidOutHeightKey.self) { height in
+                                    vm.laidOutPanelHeight = height
+                                }
+                        }
+                    )
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
                         let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
@@ -628,6 +640,14 @@ struct ContentView: View {
                 haptics.toggle()
             }
         }
+    }
+}
+
+/// Reports the open panel's laid-out height (the animated frame, not the target).
+private struct PanelLaidOutHeightKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 

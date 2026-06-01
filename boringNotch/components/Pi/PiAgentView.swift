@@ -329,9 +329,17 @@ struct PiAgentView: View {
     /// height with the answer's viewport swapped for its content's natural height.
     /// BoringViewModel clamps this into [base, expanded] — the panel grows with the
     /// answer (no inner scrolling) until the cap, where the ScrollView takes over.
+    ///
+    /// Uses the panel's *laid-out* height (vm.laidOutPanelHeight), never the target
+    /// (vm.openPanelHeight): while the open spring / tab transition is animating, the
+    /// viewport is mid-flight and the target has already jumped, so mixing them
+    /// produced garbage that fed back into the height pipeline and thrashed the panel.
+    /// Laid-out panel = chrome + laid-out viewport at every animation frame, so this
+    /// difference — and therefore `desired` — stays stable while the panel animates.
     private func reportDesiredHeight() {
         guard scrollViewportHeight > 0 else { return }
-        let desired = (vm.openPanelHeight - scrollViewportHeight + transcriptContentHeight).rounded()
+        let panelHeight = vm.laidOutPanelHeight > 0 ? vm.laidOutPanelHeight : vm.openPanelHeight
+        let desired = (panelHeight - scrollViewportHeight + transcriptContentHeight).rounded()
         if abs(pi.measuredContentHeight - desired) >= 1 {
             pi.measuredContentHeight = desired
         }

@@ -42,6 +42,15 @@ class BoringViewModel: NSObject, ObservableObject {
     /// clamped to [base, `expandedPanelHeight`] — so the panel grows with the answer.
     /// SwiftUI frames bind to this instead of the literal.
     @Published var openPanelHeight: CGFloat = openNotchSize.height
+
+    /// The panel's *laid-out* height, reported each layout pass by ContentView's
+    /// geometry probe. Differs from `openPanelHeight` (the target) while the panel
+    /// frame is mid-animation. PiAgentView's content measurement reads this so its
+    /// math only mixes values from the same layout pass — mixing the target with
+    /// laid-out values produced garbage measurements during the open spring.
+    /// Deliberately not @Published: it changes every animation frame and nothing
+    /// should re-render off it.
+    var laidOutPanelHeight: CGFloat = 0
     
     let webcamManager = WebcamManager.shared
     @Published var isCameraExpanded: Bool = false
