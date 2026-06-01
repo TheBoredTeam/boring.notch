@@ -146,7 +146,12 @@ else
 fi
 
 log "Done. Launching…"
-open "$DEST"
+# Launch WITHOUT propagating a possibly-stale COMPOSIO_API_KEY from this shell.
+# `open` leaks the caller's exported env into the app, and a stale key there shadows
+# the valid one in launchctl / ~/.composio / the pi extension config — surfacing as a
+# bogus "Invalid API key" in the Pi tab. Drop it so the app resolves the persisted
+# (valid) key instead. (See the composio-key-wiring note.)
+env -u COMPOSIO_API_KEY open "$DEST"
 
 cat <<EOF
 
