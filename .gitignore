@@ -28,8 +28,14 @@ DerivedData/
 
 # Build output
 build/
+build_release/
+build_*/
 *.app
 *.dSYM
+*.dmg
+
+# Local screenshot capture folders (boring.notch shelf captures)
+boring-shots/
 
 # Temporary files
 *.swp

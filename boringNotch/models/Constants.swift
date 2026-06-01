@@ -171,6 +171,17 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     
+    // MARK: Screenshots
+    static let screenshotCaptureLocation = Key<CaptureLocation>("screenshotCaptureLocation", default: .desktopBoringShots)
+    static let screenshotRetentionDays = Key<Int>("screenshotRetentionDays", default: 0)
+    static let screenshotDoubleCommandEnabled = Key<Bool>("screenshotDoubleCommandEnabled", default: true)
+    static let screenshotAutoCopySources = Key<Set<CaptureSource>>("screenshotAutoCopySources", default: [.doubleCommand, .chord])
+    static let screenshotActiveAgent = Key<AgentTarget>("screenshotActiveAgent", default: .claudeCode)
+    static let screenshotCustomAgentName = Key<String>("screenshotCustomAgentName", default: "Custom")
+    static let screenshotPayloadModeClaudeCode = Key<PayloadMode>("screenshotPayloadModeClaudeCode", default: AgentTarget.claudeCode.defaultPayloadMode)
+    static let screenshotPayloadModeCodex = Key<PayloadMode>("screenshotPayloadModeCodex", default: AgentTarget.codex.defaultPayloadMode)
+    static let screenshotPayloadModeCustom = Key<PayloadMode>("screenshotPayloadModeCustom", default: AgentTarget.custom.defaultPayloadMode)
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)

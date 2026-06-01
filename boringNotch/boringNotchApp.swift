@@ -30,6 +30,10 @@ struct DynamicNotchApp: App {
 
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+            Button("Capture Screenshot") {
+                appDelegate.triggerCapture(.menu)
+            }
+            Divider()
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
@@ -67,6 +71,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
+
+    // MARK: Screenshot capture
+    let screenshotPermissions = PermissionsService()
+    private let hotkeyService = HotkeyService()
+    private let doubleTapService = DoubleCommandTapService()
+    private var doubleCommandCancellable: AnyCancellable?
+    private var didShowScreenRecordingAlert = false
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -422,6 +433,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupDragDetectors()
 
+        setupScreenshotCapture()
+
+        // Prune old captured screenshots in the background (never user-dropped files).
+        Task { await ScreenshotRetentionService.runSweep() }
+
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
@@ -436,6 +452,161 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousScreens = NSScreen.screens
+    }
+
+    // MARK: - Screenshot capture setup
+
+    /// Installs the capture triggers (chord + double-⌘), wires preferences, and
+    /// preflights Screen Recording. Everything degrades gracefully: the chord and
+    /// menu capture work without Accessibility; double-⌘ simply stays off.
+    @MainActor
+    private func setupScreenshotCapture() {
+        hotkeyService.onCapture = { [weak self] source in self?.triggerCapture(source) }
+        hotkeyService.start()
+        doubleTapService.onCapture = { [weak self] source in self?.triggerCapture(source) }
+
+        applyDoubleCommandSetting()
+
+        // React live to the Settings toggle, mirroring how BoringViewCoordinator
+        // observes .hudReplacement.
+        doubleCommandCancellable = Defaults.publisher(.screenshotDoubleCommandEnabled)
+            .sink { [weak self] _ in
+                Task { @MainActor in self?.applyDoubleCommandSetting() }
+            }
+
+        // Re-apply when Accessibility authorization changes (reuses the existing
+        // notification the XPC helper posts).
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.accessibilityAuthorizationChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.screenshotPermissions.refresh()
+                self?.applyDoubleCommandSetting()
+            }
+        }
+
+        ensureScreenRecordingPermission()
+    }
+
+    /// Starts or stops the double-⌘ event tap to match the user's setting,
+    /// requesting Accessibility on demand. No Accessibility → tap stays off.
+    @MainActor
+    func applyDoubleCommandSetting() {
+        if Defaults[.screenshotDoubleCommandEnabled] {
+            if !screenshotPermissions.accessibilityGranted {
+                screenshotPermissions.requestAccessibility()
+            }
+            if !doubleTapService.isRunning {
+                _ = doubleTapService.start()
+            }
+        } else {
+            doubleTapService.stop()
+        }
+    }
+
+    @MainActor
+    private func ensureScreenRecordingPermission() {
+        screenshotPermissions.refresh()
+        guard !screenshotPermissions.screenRecordingGranted else { return }
+        screenshotPermissions.requestScreenRecording()
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        Task { @MainActor in
+            screenshotPermissions.refresh()
+            applyDoubleCommandSetting()
+        }
+    }
+
+    // MARK: - Screenshot capture
+
+    /// Captures an interactive screenshot, files it into the existing shelf, and
+    /// surfaces the notch. Reuses the shelf's dedup/add/persist pipeline so a
+    /// captured screenshot is just another `ShelfItem`.
+    func triggerCapture(_ source: CaptureSource) {
+        Task { @MainActor in
+            guard let folder = ScreenshotPreferences.resolvedCaptureFolder() else {
+                Log.capture.error("no capture folder; aborting capture")
+                return
+            }
+            let destination = folder.appendingPathComponent(ScreenshotPreferences.makeTimestampFilename())
+            let result = await ScreencaptureCLIService().captureInteractive(to: destination)
+
+            switch result {
+            case .cancelled:
+                Log.capture.debug("capture cancelled (source: \(source.rawValue))")
+            case .failed(let error):
+                Log.capture.error("capture failed: \(error.localizedDescription)")
+                presentScreenRecordingGuidanceIfNeeded()
+            case .captured(let url):
+                // Guard against a denied Screen Recording grant producing an
+                // empty/black file: validate before adding a shelf item.
+                guard Self.isValidImage(at: url) else {
+                    try? FileManager.default.removeItem(at: url)
+                    presentScreenRecordingGuidanceIfNeeded()
+                    return
+                }
+
+                let meta = ScreenshotMeta(path: url.path, source: source)
+                let item = ShelfItem(kind: .screenshot(meta: meta))
+                ShelfStateViewModel.shared.add([item])
+                Log.capture.debug("captured \(url.lastPathComponent) (source: \(source.rawValue))")
+
+                if ScreenshotPreferences.shouldAutoCopy(source) {
+                    let agent = ScreenshotPreferences.activeAgent
+                    PasteboardService.copy(url: url, mode: ScreenshotPreferences.payloadMode(for: agent))
+                    ShelfStateViewModel.shared.flashCopied(item.id)
+                }
+
+                openShelfForCapture()
+
+                // Opportunistic prune of stale captures after a new one lands.
+                Task { await ScreenshotRetentionService.runSweep() }
+            }
+        }
+    }
+
+    /// Opens the notch (on the screen under the cursor) and switches it to the shelf.
+    @MainActor
+    private func openShelfForCapture() {
+        let mouseLocation = NSEvent.mouseLocation
+        var viewModel = self.vm
+        if Defaults[.showOnAllDisplays] {
+            for screen in NSScreen.screens where screen.frame.contains(mouseLocation) {
+                if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
+                    viewModel = screenViewModel
+                    break
+                }
+            }
+        }
+        viewModel.open()
+        coordinator.currentView = .shelf
+    }
+
+    /// Loads the file as an image and confirms it has non-zero dimensions.
+    private static func isValidImage(at url: URL) -> Bool {
+        guard let image = NSImage(contentsOf: url) else { return false }
+        return image.size.width > 0 && image.size.height > 0
+    }
+
+    @MainActor
+    private func presentScreenRecordingGuidanceIfNeeded() {
+        screenshotPermissions.refresh()
+        guard !screenshotPermissions.screenRecordingGranted, !didShowScreenRecordingAlert else { return }
+        didShowScreenRecordingAlert = true
+        let alert = NSAlert()
+        alert.messageText = "Screen Recording permission needed"
+        alert.informativeText = "boring.notch needs Screen Recording access to capture screenshots. Grant it in System Settings → Privacy & Security → Screen Recording, then relaunch."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open System Settings")
+        alert.addButton(withTitle: "Later")
+        if alert.runModal() == .alertFirstButtonReturn {
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+                NSWorkspace.shared.open(url)
+            }
+        }
     }
 
     func playWelcomeSound() {

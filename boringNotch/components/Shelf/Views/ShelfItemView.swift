@@ -15,15 +15,20 @@ struct ShelfItemView: View {
     let item: ShelfItem
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var selection = ShelfSelectionModel.shared
+    @ObservedObject private var shelf = ShelfStateViewModel.shared
     @StateObject private var viewModel: ShelfItemViewModel
     @EnvironmentObject private var quickLookService: QuickLookService
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showStack = false
     @State private var cachedPreviewImage: NSImage?
     @State private var debouncedDropTarget = false
+    @State private var isHovered = false
+    @State private var isPressed = false
 
     private var isSelected: Bool { viewModel.isSelected }
     private var shouldHideDuringDrag: Bool { selection.isDragging && selection.isSelected(item.id) && false }
-    
+    private var isCopied: Bool { shelf.lastCopiedItemID == item.id }
+
     init(item: ShelfItem) {
         self.item = item
         _viewModel = StateObject(wrappedValue: ShelfItemViewModel(item: item))
@@ -41,6 +46,12 @@ struct ShelfItemView: View {
                 .padding(.horizontal, 5)
                 .background(backgroundView)
                 .contentShape(Rectangle())
+                .overlay(alignment: .topTrailing) { deleteButton }
+                .overlay { copiedFlashOverlay }
+                .scaleEffect(itemScale)
+                .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: isHovered)
+                .animation(Motion.resolved(Motion.press, reduceMotion: reduceMotion), value: isPressed)
+                .animation(Motion.resolved(Motion.flash, reduceMotion: reduceMotion), value: isCopied)
                 .animation(.easeInOut(duration: 0.1), value: debouncedDropTarget)
                 .animation(.easeInOut(duration: 0.1), value: isSelected)
 
@@ -54,7 +65,9 @@ struct ShelfItemView: View {
                     onRightClick: viewModel.handleRightClick,
                     onClick: { event, nsview in
                         viewModel.handleClick(event: event, view: nsview)
-                    }
+                    },
+                    onHoverChange: { hovering in isHovered = hovering },
+                    onPressChange: { pressing in isPressed = pressing }
                 )
             } else {
                 Color.clear
@@ -111,6 +124,50 @@ struct ShelfItemView: View {
             .truncationMode(.middle)
             .multilineTextAlignment(.center)
             .frame(height: 30, alignment: .top)
+    }
+
+    // MARK: Hover / press / copied affordances
+
+    private var itemScale: CGFloat {
+        if reduceMotion { return 1 }
+        if isPressed { return 0.96 }
+        if isHovered { return 1.05 }
+        return 1
+    }
+
+    @ViewBuilder
+    private var deleteButton: some View {
+        if isHovered && !selection.isDragging {
+            Button {
+                ShelfActionService.remove(item)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 16))
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(.white, .black.opacity(0.55))
+                    .background(Circle().fill(.black.opacity(0.001)))
+            }
+            .buttonStyle(.plain)
+            .help("Remove from shelf")
+            .padding(4)
+            .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
+        }
+    }
+
+    @ViewBuilder
+    private var copiedFlashOverlay: some View {
+        if isCopied {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(.black.opacity(0.45))
+                .overlay {
+                    Label("Copied", systemImage: "checkmark.circle.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .labelStyle(.titleAndIcon)
+                }
+                .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
+                .allowsHitTesting(false)
+        }
     }
 
     private var backgroundView: some View {
@@ -176,7 +233,9 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     @ViewBuilder let dragPreviewContent: () -> Content
     let onRightClick: (NSEvent, NSView) -> Void
     let onClick: (NSEvent, NSView) -> Void
-    
+    var onHoverChange: ((Bool) -> Void)? = nil
+    var onPressChange: ((Bool) -> Void)? = nil
+
     func makeNSView(context: Context) -> DraggableClickView {
         let view = DraggableClickView()
         view.item = item
@@ -184,9 +243,11 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         view.dragPreviewImage = cachedPreviewImage ?? renderDragPreview()
         view.onRightClick = onRightClick
         view.onClick = onClick
+        view.onHoverChange = onHoverChange
+        view.onPressChange = onPressChange
         return view
     }
-    
+
     func updateNSView(_ nsView: DraggableClickView, context: Context) {
         nsView.item = item
         nsView.viewModel = viewModel
@@ -196,6 +257,8 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         }
         nsView.onRightClick = onRightClick
         nsView.onClick = onClick
+        nsView.onHoverChange = onHoverChange
+        nsView.onPressChange = onPressChange
     }
     
     private func renderDragPreview() -> NSImage {
@@ -217,33 +280,65 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         var dragPreviewImage: NSImage?
         var onRightClick: ((NSEvent, NSView) -> Void)?
         var onClick: ((NSEvent, NSView) -> Void)?
+        var onHoverChange: ((Bool) -> Void)?
+        var onPressChange: ((Bool) -> Void)?
 
         private var mouseDownEvent: NSEvent?
         private let dragThreshold: CGFloat = 3.0
         private var draggedURLs: [URL] = []
         private var draggedItems: [ShelfItem] = []
-        
+        private var trackingArea: NSTrackingArea?
+
+        override func updateTrackingAreas() {
+            super.updateTrackingAreas()
+            if let trackingArea { removeTrackingArea(trackingArea) }
+            let area = NSTrackingArea(
+                rect: bounds,
+                options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+                owner: self,
+                userInfo: nil
+            )
+            addTrackingArea(area)
+            trackingArea = area
+        }
+
+        override func mouseEntered(with event: NSEvent) {
+            onHoverChange?(true)
+        }
+
+        override func mouseExited(with event: NSEvent) {
+            onHoverChange?(false)
+            onPressChange?(false)
+        }
+
         override func rightMouseDown(with event: NSEvent) {
             onRightClick?(event, self)
         }
-        
+
         override func mouseDown(with event: NSEvent) {
             mouseDownEvent = event
+            onPressChange?(true)
             onClick?(event, self)
         }
-        
+
+        override func mouseUp(with event: NSEvent) {
+            onPressChange?(false)
+            super.mouseUp(with: event)
+        }
+
         override func mouseDragged(with event: NSEvent) {
             guard let mouseDownEvent = mouseDownEvent else {
                 super.mouseDragged(with: event)
                 return
             }
-            
+
             let dragDistance = hypot(
                 event.locationInWindow.x - mouseDownEvent.locationInWindow.x,
                 event.locationInWindow.y - mouseDownEvent.locationInWindow.y
             )
-            
+
             if dragDistance > dragThreshold {
+                onPressChange?(false)
                 startDragSession(with: event)
                 self.mouseDownEvent = nil
             } else {
@@ -318,6 +413,12 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             case .link(let url):
                 pasteboardItem.setString(url.absoluteString, forType: .URL)
                 pasteboardItem.setString(url.absoluteString, forType: .string)
+                return pasteboardItem
+
+            case .screenshot(let meta):
+                let url = URL(fileURLWithPath: meta.path)
+                pasteboardItem.setString(url.absoluteString, forType: .fileURL)
+                pasteboardItem.setString(url.path, forType: .string)
                 return pasteboardItem
             }
         }

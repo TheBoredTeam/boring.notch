@@ -15,4 +15,7 @@ extension KeyboardShortcuts.Name {
     static let increaseBacklight = Self("increaseBacklight", default: .init(.f2, modifiers: [.command]))
     static let toggleSneakPeek = Self("toggleSneakPeek", default: .init(.h, modifiers: [.command, .shift]))
     static let toggleNotchOpen = Self("toggleNotchOpen", default: .init(.i, modifiers: [.command, .shift]))
+    /// Configurable global chord that triggers an interactive screenshot capture.
+    /// Defaults to ⌘⇧7 to avoid clashing with the system ⌘⇧4/5 screenshot tools.
+    static let captureScreenshot = Self("captureScreenshot", default: .init(.seven, modifiers: [.command, .shift]))
 }

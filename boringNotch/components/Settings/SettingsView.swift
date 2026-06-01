@@ -51,6 +51,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Screenshots") {
+                    Label("Screenshots", systemImage: "camera.viewfinder")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +88,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Screenshots":
+                    Screenshots()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1015,6 +1020,154 @@ struct Shelf: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shelf")
+    }
+}
+
+struct Screenshots: View {
+    @Default(.screenshotCaptureLocation) var captureLocation
+    @Default(.screenshotDoubleCommandEnabled) var doubleCommandEnabled
+    @Default(.screenshotActiveAgent) var activeAgent
+    @Default(.screenshotCustomAgentName) var customAgentName
+    @Default(.screenshotAutoCopySources) var autoCopySources
+    @Default(.screenshotRetentionDays) var retentionDays
+
+    @State private var permissions = PermissionsService()
+
+    /// Binding to the active agent's payload mode (each agent stores its own).
+    private var activePayloadMode: Binding<PayloadMode> {
+        Binding(
+            get: { ScreenshotPreferences.payloadMode(for: activeAgent) },
+            set: { ScreenshotPreferences.setPayloadMode($0, for: activeAgent) }
+        )
+    }
+
+    private func autoCopyBinding(_ source: CaptureSource) -> Binding<Bool> {
+        Binding(
+            get: { autoCopySources.contains(source) },
+            set: { isOn in
+                if isOn { autoCopySources.insert(source) } else { autoCopySources.remove(source) }
+            }
+        )
+    }
+
+    var body: some View {
+        Form {
+            // MARK: Capture
+            Section {
+                Picker("Save screenshots to", selection: $captureLocation) {
+                    ForEach(CaptureLocation.allCases) { location in
+                        Text(location.displayName).tag(location)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                HStack {
+                    Text("Capture shortcut")
+                    Spacer()
+                    KeyboardShortcuts.Recorder(for: .captureScreenshot)
+                }
+
+                Toggle("Capture on double-⌘ tap", isOn: $doubleCommandEnabled)
+            } header: {
+                Text("Capture")
+            } footer: {
+                Text("Double-⌘ requires Accessibility permission. The keyboard shortcut and menu-bar capture work without it.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            // MARK: Agent
+            Section {
+                Picker("Paste into", selection: $activeAgent) {
+                    ForEach(AgentTarget.allCases) { agent in
+                        Text(agent.displayName).tag(agent)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                if activeAgent == .custom {
+                    TextField("Custom agent name", text: $customAgentName)
+                }
+
+                Picker("Copy as", selection: activePayloadMode) {
+                    ForEach(PayloadMode.allCases) { mode in
+                        Text(mode.displayName).tag(mode)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Text(activePayloadMode.wrappedValue.explanation)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } header: {
+                Text("Agent")
+            }
+
+            // MARK: Auto-copy
+            Section {
+                ForEach(CaptureSource.allCases) { source in
+                    Toggle(source.displayName, isOn: autoCopyBinding(source))
+                }
+            } header: {
+                Text("Auto-copy to clipboard")
+            } footer: {
+                Text("Screenshots from the selected sources are copied for the active agent the moment they're captured.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            // MARK: Retention
+            Section {
+                Stepper(value: $retentionDays, in: 0...365) {
+                    Text(retentionDays == 0 ? "Keep screenshots forever" : "Delete after \(retentionDays) day\(retentionDays == 1 ? "" : "s")")
+                }
+            } header: {
+                Text("Retention")
+            } footer: {
+                Text("Only deletes screenshots boring.notch captured — never files you dropped onto the shelf.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            // MARK: Permissions
+            Section {
+                permissionRow(
+                    title: "Screen Recording",
+                    granted: permissions.screenRecordingGranted,
+                    action: { permissions.requestScreenRecording(); permissions.refresh() }
+                )
+                permissionRow(
+                    title: "Accessibility (double-⌘)",
+                    granted: permissions.accessibilityGranted,
+                    action: { permissions.requestAccessibility(); permissions.refresh() }
+                )
+                if permissions.isAdHocSigned {
+                    Text("This build is ad-hoc signed; macOS may reset permission grants on each rebuild.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } header: {
+                Text("Permissions")
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Screenshots")
+        .onAppear { permissions.refresh() }
+    }
+
+    @ViewBuilder
+    private func permissionRow(title: String, granted: Bool, action: @escaping () -> Void) -> some View {
+        HStack {
+            Image(systemName: granted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundStyle(granted ? Color.green : Color.orange)
+            Text(title)
+            Spacer()
+            if granted {
+                Text("Granted").foregroundColor(.secondary)
+            } else {
+                Button("Grant…", action: action)
+            }
+        }
     }
 }
 
