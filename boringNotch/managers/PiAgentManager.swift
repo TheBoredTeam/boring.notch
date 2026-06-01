@@ -45,9 +45,18 @@ final class PiAgentManager: ObservableObject {
     @Published private(set) var statusWord: String = ""
     @Published private(set) var toolkitLogo: NSImage?
     @Published private(set) var currentTool: String?
+    /// The active tool's name, sanitized for display ("Send email", "Execute tool").
+    @Published private(set) var currentToolPretty: String?
+    /// Flair color sampled from the active toolkit's logo (gmail red, calendar blue, …).
+    /// Lightened for legible text/tint. Nil → callers fall back to the app accent.
+    @Published private(set) var toolkitAccent: NSColor?
     @Published private(set) var chips: [ToolChip] = []
     @Published private(set) var transcript: String = ""
     @Published private(set) var lastError: String?
+
+    /// Backs the prompt field so typed text survives collapse/expand and feeds the
+    /// hover-hold condition. Lifted out of `PiAgentView`'s `@State`.
+    @Published var draft: String = ""
 
     // MARK: Process plumbing
     private var process: Process?
@@ -149,6 +158,7 @@ final class PiAgentManager: ObservableObject {
         transcript = ""
         chips = []
         currentTool = nil
+        currentToolPretty = nil
         lastError = nil
         statusWord = "thinking"
         isRunning = true
@@ -200,6 +210,7 @@ final class PiAgentManager: ObservableObject {
         case "tool_start":
             let id = event.id ?? UUID().uuidString
             currentTool = event.tool
+            currentToolPretty = event.tool.map(Self.prettyToolName)
             if let word = event.word { statusWord = word }
             let chip = ToolChip(
                 id: id,
@@ -226,12 +237,35 @@ final class PiAgentManager: ObservableObject {
         case "done":
             isRunning = false
             currentTool = nil
+            currentToolPretty = nil
             if statusWord != "aborted" { statusWord = "done" }
-            BoringViewCoordinator.shared.schedulePiPeekHide()
+            // Keep the peek up (don't auto-hide): with the notch collapsed and the Pi
+            // tab active, the peek IS the resting state — mouse-away lands on the peek
+            // instead of vanishing. ContentView gates it to `currentView == .pi`, so a
+            // different tab still gets its own live-activity.
+            BoringViewCoordinator.shared.showPiPeek()
 
         default:
             break
         }
+    }
+
+    // MARK: - Tool name display
+
+    /// Turn a raw Composio tool name into something human ("Send email").
+    /// Drops the first `_`-segment (the toolkit slug, matching `sidecar`'s
+    /// `toolkitSlug`), joins the rest with spaces, and sentence-cases the result.
+    /// `GMAIL_SEND_EMAIL → "Send email"`, `composio_execute_tool → "Execute tool"`,
+    /// `composio_get_tool_schemas → "Get tool schemas"`.
+    static func prettyToolName(_ raw: String) -> String {
+        let parts = raw.split(separator: "_").map(String.init)
+        // Drop the toolkit slug. If there's only one segment, keep it as-is.
+        let rest = parts.count > 1 ? Array(parts.dropFirst()) : parts
+        let joined = rest.joined(separator: " ").trimmingCharacters(in: .whitespaces)
+        let base = joined.isEmpty ? raw : joined
+        let lowered = base.lowercased()
+        guard let first = lowered.first else { return base }
+        return first.uppercased() + lowered.dropFirst()
     }
 
     // MARK: - Toolkit logos (cached like album art)
@@ -239,14 +273,14 @@ final class PiAgentManager: ObservableObject {
     private func loadLogo(from urlString: String, slug: String) {
         let key = slug as NSString
         if let cached = logoMemoryCache.object(forKey: key) {
-            toolkitLogo = cached
+            adoptLogo(cached, slug: slug)
             return
         }
 
         let diskURL = logoDiskDir.appendingPathComponent(slug + ".png")
         if let data = try? Data(contentsOf: diskURL), let image = NSImage(data: data) {
             logoMemoryCache.setObject(image, forKey: key)
-            toolkitLogo = image
+            adoptLogo(image, slug: slug)
             return
         }
 
@@ -260,9 +294,32 @@ final class PiAgentManager: ObservableObject {
                 self.logoMemoryCache.setObject(image, forKey: key)
                 // Only adopt if this is still (or again) the active toolkit.
                 if self.currentTool != nil || self.toolkitLogo == nil {
-                    self.toolkitLogo = image
+                    self.adoptLogo(image, slug: slug)
                 }
             }
         }
+    }
+
+    /// Publish a toolkit logo and sample its flair color (lightened for legibility).
+    /// The color follows whichever toolkit is active — gmail red, calendar blue, etc.
+    /// The Composio mark is monochrome, so it averages to a neutral light gray
+    /// (averageColor floors near-black to min brightness), which is honest to the mark.
+    private func adoptLogo(_ image: NSImage, slug: String) {
+        toolkitLogo = image
+        image.averageColor { [weak self] color in
+            // averageColor already hops back to the main queue.
+            guard let self, let color else { return }
+            self.toolkitAccent = Self.legibleTint(color)
+        }
+    }
+
+    /// Mix a sampled color toward white so it stays readable as text/wave tint on
+    /// the black notch (mirrors the mockup's `lighten`).
+    private static func legibleTint(_ color: NSColor, amount: CGFloat = 0.45) -> NSColor {
+        guard let rgb = color.usingColorSpace(.sRGB) else { return color }
+        let r = rgb.redComponent + (1 - rgb.redComponent) * amount
+        let g = rgb.greenComponent + (1 - rgb.greenComponent) * amount
+        let b = rgb.blueComponent + (1 - rgb.blueComponent) * amount
+        return NSColor(srgbRed: r, green: g, blue: b, alpha: 1)
     }
 }

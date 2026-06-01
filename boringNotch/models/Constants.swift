@@ -92,6 +92,8 @@ extension Defaults.Keys {
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
     //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let lastSelectedView = Key<NotchViews>("lastSelectedView", default: .home)
+    // Pi tab: persisted expand state (compact 190pt ↔ expanded ~360pt).
+    static let piExpanded = Key<Bool>("piExpanded", default: false)
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
     

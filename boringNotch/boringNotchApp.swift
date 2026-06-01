@@ -77,7 +77,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotkeyService = HotkeyService()
     private let doubleTapService = DoubleCommandTapService()
     private var doubleCommandCancellable: AnyCancellable?
+    /// Grows/shrinks the notch window when the Pi tab's expand state toggles.
+    private var piExpandedCancellable: AnyCancellable?
     private var didShowScreenRecordingAlert = false
+    /// The Accessibility prompt is shown at most once per launch. Without this
+    /// guard, `applyDoubleCommandSetting()` re-fires the prompting API on every
+    /// `applicationDidBecomeActive`, nagging the user repeatedly while the grant
+    /// is still pending. Re-armed when the double-⌘ setting is turned off so
+    /// re-enabling can prompt again.
+    private var didRequestAccessibilityPrompt = false
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -436,6 +444,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupScreenshotCapture()
 
+        observePiExpansion()
+
         // Prune old captured screenshots in the background (never user-dropped files).
         Task { await ScreenshotRetentionService.runSweep() }
 
@@ -496,14 +506,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     func applyDoubleCommandSetting() {
         if Defaults[.screenshotDoubleCommandEnabled] {
+            screenshotPermissions.refresh()
             if !screenshotPermissions.accessibilityGranted {
-                screenshotPermissions.requestAccessibility()
+                // Prompt at most once per launch. This method runs on every
+                // `applicationDidBecomeActive`, so calling the prompting API
+                // unconditionally re-opened the system dialog each time the app
+                // regained focus. Later activations rely on the refresh() above
+                // (non-prompting) to detect a grant and start the tap.
+                if !didRequestAccessibilityPrompt {
+                    didRequestAccessibilityPrompt = true
+                    screenshotPermissions.requestAccessibility()
+                }
             }
-            if !doubleTapService.isRunning {
+            if screenshotPermissions.accessibilityGranted, !doubleTapService.isRunning {
                 _ = doubleTapService.start()
             }
         } else {
             doubleTapService.stop()
+            // Re-arm so toggling the feature back on prompts again if needed.
+            didRequestAccessibilityPrompt = false
         }
     }
 
@@ -512,6 +533,83 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         screenshotPermissions.refresh()
         guard !screenshotPermissions.screenRecordingGranted else { return }
         screenshotPermissions.requestScreenRecording()
+    }
+
+    // MARK: - Pi expand: grow/shrink the notch window
+
+    /// Keep the notch window height in sync with the Pi tab's expand state. The
+    /// window is tall (≈380, incl. shadow) only while the expanded Pi tab is open;
+    /// every other state stays short (210) so the transparent lower region never
+    /// blocks clicks. Grow-before / shrink-after ordering avoids clipping the panel
+    /// during its height animation.
+    @MainActor
+    private func observePiExpansion() {
+        // Expand toggle: grow immediately, shrink after the panel settles.
+        let expandedSignal = Defaults.publisher(.piExpanded)
+            .map { _ in () }
+            .eraseToAnyPublisher()
+        // Tab switches in/out of Pi.
+        let viewSignal = coordinator.$currentView
+            .map { _ in () }
+            .eraseToAnyPublisher()
+        // Open/close of the primary window (covers the single-display case).
+        let stateSignal = vm.$notchState
+            .map { _ in () }
+            .eraseToAnyPublisher()
+
+        piExpandedCancellable = Publishers.MergeMany([expandedSignal, viewSignal, stateSignal])
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in
+                self?.syncNotchWindowHeight()
+            }
+    }
+
+    /// Resize each notch window to fit its current state, re-anchoring the top edge
+    /// at the screen top (the same math as `positionWindow`). Growing happens
+    /// immediately; shrinking is deferred so the panel's collapse animation finishes
+    /// before the window clips it.
+    @MainActor
+    func syncNotchWindowHeight() {
+        let wantExpanded = coordinator.currentView == .pi && Defaults[.piExpanded]
+
+        func apply(_ window: NSWindow, viewModel: BoringViewModel) {
+            let target = (viewModel.notchState == .open && wantExpanded)
+                ? expandedWindowHeight : windowSize.height
+            guard abs(window.frame.height - target) > 0.5 else { return }
+            guard let screen = window.screen ?? NSScreen.screen(withUUID: viewModel.screenUUID ?? "") else { return }
+            let screenFrame = screen.frame
+            let resize = {
+                var frame = window.frame
+                frame.size.height = target
+                frame.origin.x = screenFrame.origin.x + (screenFrame.width / 2) - frame.width / 2
+                frame.origin.y = screenFrame.origin.y + screenFrame.height - target
+                window.setFrame(frame, display: true)
+            }
+            if target > window.frame.height {
+                resize() // grow before the panel expands
+            } else {
+                // shrink after the panel collapse animation (~openAnimation) completes
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(460))
+                    // Re-check: state may have changed during the delay.
+                    let stillWantsShort = !(coordinator.currentView == .pi
+                        && Defaults[.piExpanded] && viewModel.notchState == .open)
+                    if stillWantsShort, abs(window.frame.height - windowSize.height) > 0.5 {
+                        resize()
+                    }
+                }
+            }
+        }
+
+        if Defaults[.showOnAllDisplays] {
+            for (uuid, window) in windows {
+                if let viewModel = viewModels[uuid] {
+                    apply(window, viewModel: viewModel)
+                }
+            }
+        } else if let window = window {
+            apply(window, viewModel: vm)
+        }
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
