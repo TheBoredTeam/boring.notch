@@ -41,7 +41,7 @@ class BoringNotchWindow: NSPanel {
     }
     
     override var canBecomeKey: Bool {
-        false
+        SharingStateManager.shared.holdsKeyboardFocus
     }
     
     override var canBecomeMain: Bool {

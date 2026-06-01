@@ -18,18 +18,31 @@ final class SharingStateManager: ObservableObject {
 	static let shared = SharingStateManager()
 
 	private var activeSessions: Int = 0 {
-		didSet {
-			let newValue = activeSessions > 0
-			if newValue != preventNotchClose {
-				preventNotchClose = newValue
-				if !newValue {
-					NotificationCenter.default.post(name: .sharingDidFinish, object: nil)
-				}
+		didSet { syncPreventNotchClose() }
+	}
+
+	private var keyboardFocusHeld: Bool = false {
+		didSet { syncPreventNotchClose() }
+	}
+
+	@Published private(set) var preventNotchClose: Bool = false
+
+	/// True while a text field inside the notch needs keyboard input.
+	var holdsKeyboardFocus: Bool { keyboardFocusHeld }
+
+	private func syncPreventNotchClose() {
+		let newValue = activeSessions > 0 || keyboardFocusHeld
+		if newValue != preventNotchClose {
+			preventNotchClose = newValue
+			if !newValue {
+				NotificationCenter.default.post(name: .sharingDidFinish, object: nil)
 			}
 		}
 	}
 
-	@Published var preventNotchClose: Bool = false
+	func setKeyboardFocusHeld(_ held: Bool) {
+		keyboardFocusHeld = held
+	}
 
 	private var activeDelegates: [UUID: SharingLifecycleDelegate] = [:]
 
