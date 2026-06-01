@@ -13,6 +13,7 @@
 		11FACE100000000000000103 /* NotchKeyboardFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE100000000000000102 /* NotchKeyboardFocus.swift */; };
 		11FACE1000000000000000D2 /* PiPeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000D1 /* PiPeekView.swift */; };
 		11FACE1000000000000000E2 /* PiThinkingBarsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000E1 /* PiThinkingBarsView.swift */; };
+		11FACE100000000000000105 /* PiShimmerText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE100000000000000104 /* PiShimmerText.swift */; };
 		11FACE1000000000000000F8 /* PiMarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000F7 /* PiMarkdownView.swift */; };
 		11FACE1000000000000000F6 /* PiSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000F5 /* PiSettings.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
@@ -214,6 +215,7 @@
 		11FACE100000000000000102 /* NotchKeyboardFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchKeyboardFocus.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000D1 /* PiPeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiPeekView.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000E1 /* PiThinkingBarsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiThinkingBarsView.swift; sourceTree = "<group>"; };
+		11FACE100000000000000104 /* PiShimmerText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiShimmerText.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000F7 /* PiMarkdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiMarkdownView.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000F5 /* PiSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiSettings.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
@@ -426,6 +428,7 @@
 				11FACE100000000000000102 /* NotchKeyboardFocus.swift */,
 				11FACE1000000000000000D1 /* PiPeekView.swift */,
 				11FACE1000000000000000E1 /* PiThinkingBarsView.swift */,
+				11FACE100000000000000104 /* PiShimmerText.swift */,
 				11FACE1000000000000000F7 /* PiMarkdownView.swift */,
 			);
 			path = Pi;
@@ -1064,6 +1067,7 @@
 				11FACE100000000000000103 /* NotchKeyboardFocus.swift in Sources */,
 				11FACE1000000000000000D2 /* PiPeekView.swift in Sources */,
 				11FACE1000000000000000E2 /* PiThinkingBarsView.swift in Sources */,
+				11FACE100000000000000105 /* PiShimmerText.swift in Sources */,
 				11FACE1000000000000000F8 /* PiMarkdownView.swift in Sources */,
 				11FACE1000000000000000F6 /* PiSettings.swift in Sources */,
 				11FACE010000000000000001 /* TrashBucketView.swift in Sources */,

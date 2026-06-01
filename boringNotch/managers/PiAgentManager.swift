@@ -19,6 +19,7 @@ struct PiEvent: Codable {
     let word: String?
     let delta: String?
     let id: String?
+    let index: Int?
     let tool: String?
     let toolkit: String?
     let logo: String?
@@ -53,6 +54,25 @@ final class PiAgentManager: ObservableObject {
     @Published private(set) var chips: [ToolChip] = []
     @Published private(set) var transcript: String = ""
     @Published private(set) var lastError: String?
+
+    /// A tool call the model is still streaming arguments for (sidecar `tool_forming`).
+    /// Sanitized for display ("Send email"); nil when no name is known yet but a call
+    /// is forming → callers show a generic "Calling a tool…" shimmer.
+    @Published private(set) var formingToolPretty: String?
+    /// Toolkit slug of the forming tool (gmail, googlecalendar, …); nil until known.
+    @Published private(set) var formingToolkit: String?
+    /// True from `tool_forming` until the next `tool_start`/`done` — drives shimmer.
+    @Published private(set) var isForming: Bool = false
+
+    /// Session pin: keeps the open Pi panel from collapsing on un-hover. Runtime-only
+    /// (never persisted) — cleared by unpin, swipe-up close, tab switch, panel close,
+    /// and app restart. Deliberate closes beat the pin.
+    @Published var piPinned: Bool = false
+
+    /// Natural height of the Pi tab's content, reported up from PiAgentView via a
+    /// PreferenceKey. BoringViewModel clamps this into `openPanelHeight` so the panel
+    /// grows with the answer instead of being a fixed box.
+    @Published var measuredContentHeight: CGFloat = 0
 
     /// Backs the prompt field so typed text survives collapse/expand and feeds the
     /// hover-hold condition. Lifted out of `PiAgentView`'s `@State`.
@@ -159,6 +179,7 @@ final class PiAgentManager: ObservableObject {
         chips = []
         currentTool = nil
         currentToolPretty = nil
+        clearFormingState()
         lastError = nil
         statusWord = "thinking"
         isRunning = true
@@ -207,8 +228,21 @@ final class PiAgentManager: ObservableObject {
         case "text_delta":
             if let delta = event.delta { transcript += delta }
 
+        case "tool_forming":
+            // The model committed to a tool call but is still streaming its arguments.
+            // Surface it immediately (shimmer) instead of leaving "Thinking…" up.
+            isForming = true
+            formingToolPretty = event.tool.map(Self.prettyToolName)
+            formingToolkit = event.toolkit
+            if let logo = event.logo, let toolkit = event.toolkit {
+                loadLogo(from: logo, slug: toolkit)
+            }
+            BoringViewCoordinator.shared.showPiPeek()
+
         case "tool_start":
             let id = event.id ?? UUID().uuidString
+            // The forming phase resolved into a real execution — hand off to the chip.
+            clearFormingState()
             currentTool = event.tool
             currentToolPretty = event.tool.map(Self.prettyToolName)
             if let word = event.word { statusWord = word }
@@ -238,16 +272,25 @@ final class PiAgentManager: ObservableObject {
             isRunning = false
             currentTool = nil
             currentToolPretty = nil
+            clearFormingState()
             if statusWord != "aborted" { statusWord = "done" }
-            // Keep the peek up (don't auto-hide): with the notch collapsed and the Pi
-            // tab active, the peek IS the resting state — mouse-away lands on the peek
-            // instead of vanishing. ContentView gates it to `currentView == .pi`, so a
-            // different tab still gets its own live-activity.
+            // Show "✓ Done" briefly, then auto-hide. The peek is only rendered while
+            // the notch is collapsed and the Pi tab is active, so when the panel is
+            // open this is a no-op; when collapsed, the peek confirms completion and
+            // gets out of the way instead of squatting next to the notch forever.
             BoringViewCoordinator.shared.showPiPeek()
+            BoringViewCoordinator.shared.schedulePiPeekHide(after: 3)
 
         default:
             break
         }
+    }
+
+    /// Forget any in-flight `tool_forming` state (run boundary, tool resolved, done).
+    private func clearFormingState() {
+        isForming = false
+        formingToolPretty = nil
+        formingToolkit = nil
     }
 
     // MARK: - Tool name display

@@ -2,35 +2,30 @@
 //  PiAgentView.swift
 //  boringNotch
 //
-//  The expanded Pi tab: a prompt field, a live activity line (status word +
-//  thinking bars), tool chips that resolve running → ✓, and the streamed answer.
+//  The expanded Pi tab: a multiline prompt field, a live activity line (status word +
+//  thinking bars), tool chips that resolve forming → running → ✓, and the streamed
+//  answer in a panel that grows with its content.
 //
 
-import Defaults
 import SwiftUI
 
 struct PiAgentView: View {
+    @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var pi = PiAgentManager.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var promptFocused: Bool
-    @Default(.piExpanded) private var piExpanded
     var logoNamespace: Namespace.ID
 
-    /// Hold the notch open only while there's unsent text or a run is active —
-    /// independent of keyboard focus AND of the expand state, so an expanded tab is
-    /// NOT pinned: mouse-away collapses it like any other tab, and the chevron simply
-    /// toggles the panel size (which persists). This is the "unpin" the user asked
-    /// for — expanding no longer traps the notch open.
-    private var shouldHold: Bool {
-        !pi.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || pi.isRunning
-    }
+    /// Presentation height of the answer ScrollView's viewport (what it's allocated).
+    @State private var scrollViewportHeight: CGFloat = 0
+    /// Natural height of the transcript content inside the ScrollView (incl. footer).
+    @State private var transcriptContentHeight: CGFloat = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             header
             activityLine
-            if !pi.chips.isEmpty {
+            if !pi.chips.isEmpty || pi.isForming {
                 chipsRow
             }
             answer
@@ -43,38 +38,45 @@ struct PiAgentView: View {
         .onAppear {
             promptFocused = true                                          // instant typing
             SharingStateManager.shared.setKeyboardFocusHeld(true)         // let the window become key
-            SharingStateManager.shared.setHoldOpen(shouldHold)            // close-prevention reasons
         }
-        // canBecomeKey (typing) follows the field's focus…
+        // canBecomeKey (typing) follows the field's focus. Staying-open is governed
+        // by the session pin alone (checked in ContentView's un-hover paths) — draft
+        // text and running tasks no longer hold the panel open.
         .onChange(of: promptFocused) { _, focused in
             SharingStateManager.shared.setKeyboardFocusHeld(focused)
         }
-        // …while staying-open is gated only on unsent text / a running task (not focus, not expand).
-        .onChange(of: pi.draft) { _, _ in SharingStateManager.shared.setHoldOpen(shouldHold) }
-        .onChange(of: pi.isRunning) { _, _ in SharingStateManager.shared.setHoldOpen(shouldHold) }
         .onDisappear {
             SharingStateManager.shared.setKeyboardFocusHeld(false)
-            SharingStateManager.shared.setHoldOpen(false)
+            // Leaving the tab / closing the panel is a deliberate close — clear the pin.
+            pi.piPinned = false
         }
         .notchKeyboardFocus(promptFocused) // makes the window key while the field is focused
     }
 
-    // MARK: Header (logo + prompt + chevron + send/stop)
+    // MARK: Header (logo + prompt + pin + send/stop)
 
     private var header: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .bottom, spacing: 8) {
             logo
                 .frame(width: 24, height: 24)
                 .matchedGeometryEffect(id: "piLogo", in: logoNamespace)
 
-            TextField("Ask Pi anything…", text: $pi.draft)
+            TextField("Ask Pi anything…", text: $pi.draft, axis: .vertical)
+                .lineLimit(1...6)
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
                 .focused($promptFocused)
                 .notchAcceptsFirstMouse()
                 .onSubmit(submit)
+                // ⇧↵ inserts a newline; plain ↵ falls through to onSubmit (send).
+                // (Option+↵ also inserts a newline natively in vertical-axis fields.)
+                .onKeyPress(.return, phases: .down) { press in
+                    guard press.modifiers.contains(.shift) else { return .ignored }
+                    pi.draft += "\n"
+                    return .handled
+                }
 
-            expandButton
+            pinButton
 
             if pi.isRunning {
                 Button(action: pi.abort) {
@@ -96,7 +98,7 @@ struct PiAgentView: View {
                 }
                 .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
                 .disabled(pi.draft.trimmingCharacters(in: .whitespaces).isEmpty)
-                .help("Send (↵)")
+                .help("Send (↵) — ⇧↵ for a new line")
                 .transition(.opacity)
             }
         }
@@ -108,24 +110,28 @@ struct PiAgentView: View {
         .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: pi.isRunning)
     }
 
-    /// Chevron toggle: compact ↔ expanded. Pins the tab open while expanded and
-    /// persists the choice (Defaults). The window resize is driven separately by
-    /// `AppDelegate.observePiExpansion`.
-    private var expandButton: some View {
+    /// Session pin: keeps the panel open across mouse-away while engaged. Runtime
+    /// only — swipe-up, tab switch, and panel close all clear it (deliberate close
+    /// beats pin).
+    private var pinButton: some View {
         Button {
             withAnimation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion)) {
-                piExpanded.toggle()
+                pi.piPinned.toggle()
             }
         } label: {
-            Image(systemName: piExpanded ? "chevron.down.chevron.up" : "chevron.up.chevron.down")
+            Image(systemName: pi.piPinned ? "pin.fill" : "pin")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(.white.opacity(pi.piPinned ? 1 : 0.85))
                 .contentTransition(.symbolEffect(.replace))
                 .padding(6)
-                .background(Circle().fill(Color.white.opacity(0.12)))
+                .background(
+                    Circle().fill(pi.piPinned ? Color.effectiveAccent : Color.white.opacity(0.12))
+                )
+                .shadow(color: pi.piPinned ? Color.effectiveAccent.opacity(0.55) : .clear, radius: 5)
         }
         .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
-        .help(piExpanded ? "Collapse" : "Expand")
+        .help(pi.piPinned ? "Unpin — panel collapses on mouse-away" : "Pin open")
+        .accessibilityLabel(pi.piPinned ? "Unpin panel" : "Pin panel open")
     }
 
     /// Logo precedence: (1) live per-toolkit CDN metadata logo, (2) the bundled
@@ -157,21 +163,34 @@ struct PiAgentView: View {
     private var activityLine: some View {
         HStack(spacing: 7) {
             if pi.isRunning || pi.statusWord == "done" || pi.statusWord == "aborted" {
-                Text(activityText)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(statusColor)
-                    .contentTransition(.opacity)
-                    .accessibilityLabel("Status: \(activityText)")
+                Group {
+                    if pi.isForming {
+                        PiShimmerText(
+                            text: activityText,
+                            baseColor: .gray,
+                            active: true,
+                            font: .system(size: 11, weight: .medium, design: .rounded)
+                        )
+                    } else {
+                        Text(activityText)
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(statusColor)
+                    }
+                }
+                .id(activityText)
+                .transition(Motion.transition(Motion.textSwap, reduceMotion: reduceMotion))
+                .accessibilityLabel("Status: \(activityText)")
                 PiThinkingBarsView(isActive: pi.isRunning)
             }
         }
         .frame(height: 14)
-        .animation(Motion.resolved(Motion.flash, reduceMotion: reduceMotion), value: activityText)
+        .animation(Motion.resolved(Motion.textSwapIn, reduceMotion: reduceMotion), value: activityText)
     }
 
-    /// Prefer the sanitized current tool name during a run ("Send email"), falling
-    /// back to the status word ("thinking"/"done"/"aborted").
+    /// Forming tool ("Send email…" shimmer) → executing tool ("Send email") →
+    /// status word ("thinking"/"done"/"aborted").
     private var activityText: String {
+        if pi.isForming { return pi.formingToolPretty ?? "Calling a tool…" }
         if pi.isRunning, let pretty = pi.currentToolPretty { return pretty }
         return pi.statusWord.isEmpty ? "thinking" : pi.statusWord
     }
@@ -189,6 +208,12 @@ struct PiAgentView: View {
     private var chipsRow: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
+                // A tool the model is still forming (arguments streaming) — shimmer
+                // label, no spinner. Replaced by the real chip at tool_start.
+                if pi.isForming {
+                    formingChip
+                        .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
+                }
                 ForEach(pi.chips) { chip in
                     PiToolChipView(chip: chip, reduceMotion: reduceMotion)
                         .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
@@ -198,6 +223,32 @@ struct PiAgentView: View {
         }
         .scrollIndicators(.never)
         .animation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion), value: pi.chips)
+        .animation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion), value: pi.isForming)
+    }
+
+    private var formingChip: some View {
+        HStack(spacing: 5) {
+            // Same fixed icon slot as the real chip so the label lands at the same x
+            // when the chip resolves at tool_start.
+            Circle()
+                .fill(Color.white.opacity(0.35))
+                .frame(width: 5, height: 5)
+                .frame(width: 11, height: 11)
+
+            PiShimmerText(
+                text: pi.formingToolPretty ?? "Calling a tool…",
+                baseColor: .white.opacity(0.9),
+                active: true,
+                font: .system(size: 10, weight: .medium, design: .monospaced)
+            )
+        }
+        .padding(.horizontal, 9)
+        .padding(.vertical, 4.5)
+        .background(
+            Capsule().fill(Color.white.opacity(0.05))
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(pi.formingToolPretty ?? "Tool"), preparing")
     }
 
     // MARK: Answer
@@ -205,19 +256,28 @@ struct PiAgentView: View {
     private var answer: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                Group {
-                    if pi.transcript.isEmpty {
-                        Text(placeholder)
-                            .font(.system(size: 12))
-                            .foregroundStyle(.gray)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    } else {
-                        PiMarkdownView(text: pi.transcript)
+                VStack(alignment: .leading, spacing: 0) {
+                    Group {
+                        if pi.transcript.isEmpty {
+                            Text(placeholder)
+                                .font(.system(size: 12))
+                                .foregroundStyle(.gray)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            PiMarkdownView(text: pi.transcript)
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    // Comfort footer: keeps the newest line off the panel's bottom edge;
+                    // the auto-scroll anchor rides on it.
+                    Color.clear
+                        .frame(height: 28)
+                        .id("piTranscriptBottom")
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .id("piTranscriptBottom")
+                .background(heightReader(into: $transcriptContentHeight))
             }
+            .background(heightReader(into: $scrollViewportHeight))
             .scrollIndicators(.visible)
             .onChange(of: pi.transcript) { _, _ in
                 withAnimation(Motion.resolved(.easeOut(duration: 0.18), reduceMotion: reduceMotion)) {
@@ -231,6 +291,8 @@ struct PiAgentView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color.white.opacity(0.04))
         )
+        .onChange(of: transcriptContentHeight) { _, _ in reportDesiredHeight() }
+        .onChange(of: scrollViewportHeight) { _, _ in reportDesiredHeight() }
     }
 
     private var placeholder: String {
@@ -249,6 +311,32 @@ struct PiAgentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    // MARK: Content-height reporting
+
+    /// GeometryReader+PreferenceKey height probe (deployment target is macOS 14, so
+    /// no `onGeometryChange`).
+    private func heightReader(into binding: Binding<CGFloat>) -> some View {
+        GeometryReader { geo in
+            Color.clear
+                .preference(key: PiContentHeightKey.self, value: geo.size.height)
+                .onPreferenceChange(PiContentHeightKey.self) { height in
+                    binding.wrappedValue = height
+                }
+        }
+    }
+
+    /// Tell the view model how tall the open panel wants to be: the current panel
+    /// height with the answer's viewport swapped for its content's natural height.
+    /// BoringViewModel clamps this into [base, expanded] — the panel grows with the
+    /// answer (no inner scrolling) until the cap, where the ScrollView takes over.
+    private func reportDesiredHeight() {
+        guard scrollViewportHeight > 0 else { return }
+        let desired = (vm.openPanelHeight - scrollViewportHeight + transcriptContentHeight).rounded()
+        if abs(pi.measuredContentHeight - desired) >= 1 {
+            pi.measuredContentHeight = desired
+        }
+    }
+
     // MARK: Actions
 
     private func submit() {
@@ -256,6 +344,14 @@ struct PiAgentView: View {
         guard !text.isEmpty else { return }
         pi.send(text)
         pi.draft = ""
+    }
+}
+
+/// Reports a view's laid-out height up the tree (transcript content / scroll viewport).
+private struct PiContentHeightKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
@@ -304,7 +400,7 @@ private struct PiPressButtonStyle: ButtonStyle {
     let reduceMotion: Bool
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
             .animation(Motion.resolved(Motion.press, reduceMotion: reduceMotion), value: configuration.isPressed)
     }
 }
