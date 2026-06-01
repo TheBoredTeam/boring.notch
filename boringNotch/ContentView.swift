@@ -134,6 +134,7 @@ struct ContentView: View {
                         handleHover(hovering)
                     }
                     .onTapGesture {
+                        guard vm.notchState == .closed else { return }
                         doOpen()
                     }
                     .conditionalModifier(Defaults[.enableGestures]) { view in

@@ -10,6 +10,7 @@
 		11FACE1000000000000000A2 /* JSONLinesPipeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000A1 /* JSONLinesPipeHandler.swift */; };
 		11FACE1000000000000000B2 /* PiAgentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000B1 /* PiAgentManager.swift */; };
 		11FACE1000000000000000C2 /* PiAgentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000C1 /* PiAgentView.swift */; };
+		11FACE100000000000000103 /* NotchKeyboardFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE100000000000000102 /* NotchKeyboardFocus.swift */; };
 		11FACE1000000000000000D2 /* PiPeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000D1 /* PiPeekView.swift */; };
 		11FACE1000000000000000E2 /* PiThinkingBarsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000E1 /* PiThinkingBarsView.swift */; };
 		11FACE1000000000000000F6 /* PiSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000F5 /* PiSettings.swift */; };
@@ -209,6 +210,7 @@
 		11FACE1000000000000000A1 /* JSONLinesPipeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLinesPipeHandler.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000B1 /* PiAgentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiAgentManager.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000C1 /* PiAgentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiAgentView.swift; sourceTree = "<group>"; };
+		11FACE100000000000000102 /* NotchKeyboardFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchKeyboardFocus.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000D1 /* PiPeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiPeekView.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000E1 /* PiThinkingBarsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiThinkingBarsView.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000F5 /* PiSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiSettings.swift; sourceTree = "<group>"; };
@@ -419,6 +421,7 @@
 			isa = PBXGroup;
 			children = (
 				11FACE1000000000000000C1 /* PiAgentView.swift */,
+				11FACE100000000000000102 /* NotchKeyboardFocus.swift */,
 				11FACE1000000000000000D1 /* PiPeekView.swift */,
 				11FACE1000000000000000E1 /* PiThinkingBarsView.swift */,
 			);
@@ -1055,6 +1058,7 @@
 				11FACE1000000000000000A2 /* JSONLinesPipeHandler.swift in Sources */,
 				11FACE1000000000000000B2 /* PiAgentManager.swift in Sources */,
 				11FACE1000000000000000C2 /* PiAgentView.swift in Sources */,
+				11FACE100000000000000103 /* NotchKeyboardFocus.swift in Sources */,
 				11FACE1000000000000000D2 /* PiPeekView.swift in Sources */,
 				11FACE1000000000000000E2 /* PiThinkingBarsView.swift in Sources */,
 				11FACE1000000000000000F6 /* PiSettings.swift in Sources */,

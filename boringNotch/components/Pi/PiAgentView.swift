@@ -32,9 +32,10 @@ struct PiAgentView: View {
         .onAppear { promptFocused = true }
         .onChange(of: promptFocused) { _, focused in
             // Don't let the notch collapse out from under the keyboard while typing.
-            SharingStateManager.shared.preventNotchClose = focused
+            SharingStateManager.shared.setKeyboardFocusHeld(focused)
         }
-        .onDisappear { SharingStateManager.shared.preventNotchClose = false }
+        .onDisappear { SharingStateManager.shared.setKeyboardFocusHeld(false) }
+        .notchKeyboardFocus(promptFocused)
     }
 
     // MARK: Header (logo + prompt + send/stop)
@@ -49,6 +50,7 @@ struct PiAgentView: View {
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
                 .focused($promptFocused)
+                .notchAcceptsFirstMouse()
                 .onSubmit(submit)
 
             if pi.isRunning {
