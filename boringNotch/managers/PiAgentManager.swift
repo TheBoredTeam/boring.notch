@@ -304,6 +304,10 @@ final class PiAgentManager: ObservableObject {
             currentTool = nil
             currentToolPretty = nil
             clearFormingState()
+            // Return to base: drop the last tool's colored logo/accent so the peek
+            // falls back to the bundled Composio mark instead of squatting on it.
+            toolkitLogo = nil
+            toolkitAccent = nil
             if statusWord != "aborted" { statusWord = "done" }
             // Show "✓ Done" briefly, then auto-hide. The peek is only rendered while
             // the notch is collapsed and the Pi tab is active, so when the panel is
