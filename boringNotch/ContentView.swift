@@ -61,8 +61,10 @@ struct ContentView: View {
     }
 
     /// True while the open Pi tab is session-pinned: un-hover style closes (mouse-away,
-    /// sharing finished, battery popover dismissed) are blocked. Deliberate closes
-    /// (swipe-up, tab switch) still win — they clear the pin first.
+    /// sharing finished, battery popover dismissed) and the swipe-up close are all
+    /// blocked, so scrolling the streamed answer is pure scrolling — it can never
+    /// scale, dim, or dismiss the panel. Unpinning or switching tabs are the ways out
+    /// (tab switch clears the pin).
     private var piPinHoldsOpen: Bool {
         coordinator.currentView == .pi && PiAgentManager.shared.piPinned
     }
@@ -614,6 +616,10 @@ struct ContentView: View {
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
         guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        // Pinned Pi panel: swipe-up is completely inert. Scroll-wheel events over the
+        // panel only scroll the streamed answer — they never drive gestureProgress
+        // (scale/dim) or close the notch. Unpin or switch tabs to close.
+        guard !piPinHoldsOpen else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
@@ -630,8 +636,6 @@ struct ContentView: View {
                 isHovering = false
             }
             if !SharingStateManager.shared.preventNotchClose {
-                // Swipe-up is a deliberate close — it beats the Pi session pin.
-                PiAgentManager.shared.piPinned = false
                 gestureProgress = .zero
                 vm.close()
             }

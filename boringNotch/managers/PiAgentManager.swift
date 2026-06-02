@@ -64,9 +64,10 @@ final class PiAgentManager: ObservableObject {
     /// True from `tool_forming` until the next `tool_start`/`done` — drives shimmer.
     @Published private(set) var isForming: Bool = false
 
-    /// Session pin: keeps the open Pi panel from collapsing on un-hover. Runtime-only
-    /// (never persisted) — cleared by unpin, swipe-up close, tab switch, panel close,
-    /// and app restart. Deliberate closes beat the pin.
+    /// Session pin: keeps the open Pi panel from collapsing on un-hover and makes the
+    /// swipe-up close inert, so reading/scrolling a streamed answer can never dismiss
+    /// the panel. Runtime-only (never persisted) — cleared by unpin, tab switch,
+    /// panel close, and app restart.
     @Published var piPinned: Bool = false
 
     /// Natural height of the Pi tab's content, reported up from PiAgentView via a
