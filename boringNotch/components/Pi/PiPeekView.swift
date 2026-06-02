@@ -71,6 +71,7 @@ struct PiPeekView: View {
                 .aspectRatio(contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         } else if let composio = NSImage(named: "composio-mark") {
+            let _ = (composio.isTemplate = true)   // force AppKit template mask → tints to foregroundStyle
             Image(nsImage: composio)
                 .resizable()
                 .renderingMode(.template)

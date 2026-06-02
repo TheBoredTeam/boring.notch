@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi · Logo tint, centering & base-state reset — boring.notch</title>
+<style>
+/* ============================================================
+   PI — LOGO / CENTERING / BASE-STATE  ·  edit spec
+   House style: native-macOS dev doc on ink. SF type, one indigo
+   accent, git-diff color for the changes (− red / + green),
+   before→after for everything, the real Composio glyph inlined.
+   Motion: transform+opacity only, ease-out, reduced-motion safe.
+   ============================================================ */
+
+:root{
+  --bg:#08090a;
+  --surface:#0e1012;
+  --surface-2:#14171a;
+  --line:rgba(255,255,255,.07);
+  --line-2:rgba(255,255,255,.13);
+
+  --text:#ecedef;
+  --dim:#9a9da3;
+  --faint:#5e6066;
+
+  --accent:#8b95ff;          /* my signature — soft indigo */
+  --accent-dim:rgba(139,149,255,.14);
+
+  --add:#4ec97a;             /* added / fixed / after */
+  --add-bg:rgba(78,201,122,.10);
+  --del:#f3736b;             /* removed / regression / before */
+  --del-bg:rgba(243,115,107,.09);
+
+  --gmail:#ea4335;           /* a sample toolkit color for the peek mock */
+
+  --ease:cubic-bezier(.22,1,.36,1);
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;
+  --text-ff:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  background:
+    radial-gradient(140% 100% at 85% -10%, rgba(139,149,255,.06) 0%, transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--text-ff);
+  font-size:14px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+.wrap{max-width:980px;margin:0 auto;padding:0 28px 140px}
+
+/* ---------- masthead ---------- */
+header{padding:84px 0 44px;border-bottom:1px solid var(--line)}
+.kicker{
+  display:inline-flex;align-items:center;gap:9px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:26px;
+}
+.kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+h1{
+  font-family:var(--display);
+  font-weight:600;
+  font-size:clamp(34px,5.4vw,60px);
+  line-height:1.02;
+  letter-spacing:-.03em;
+}
+h1 .soft{color:var(--dim)}
+.lede{margin-top:24px;max-width:660px;color:var(--dim);font-size:15px}
+.lede b{color:var(--text);font-weight:600}
+
+.pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:34px}
+.pill{
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;
+  padding:7px 13px;border-radius:8px;border:1px solid var(--line-2);
+  color:var(--dim);display:inline-flex;gap:8px;align-items:center;
+}
+.pill b{color:var(--text);font-weight:600}
+.pill .tick{color:var(--add)}
+.pill.warn{border-color:rgba(243,115,107,.3)}
+.pill.warn .tick{color:var(--del)}
+
+/* ---------- section frame ---------- */
+section{padding-top:76px}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:14px;
+  display:flex;align-items:center;gap:12px;
+}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--accent);opacity:.6}
+h2{
+  font-family:var(--display);font-weight:600;
+  font-size:clamp(24px,3.4vw,36px);letter-spacing:-.02em;line-height:1.08;
+}
+.sub{margin-top:14px;max-width:680px;color:var(--dim)}
+.sub code,.prose code,td code{
+  font-family:var(--mono);font-size:.86em;color:var(--accent);
+  background:var(--accent-dim);padding:1px 6px;border-radius:5px;
+}
+
+/* ---------- edit card ---------- */
+.edit{
+  margin-top:30px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:linear-gradient(180deg,var(--surface) 0%,rgba(14,16,18,.6) 100%);
+  overflow:hidden;
+}
+.edit-head{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:18px 22px;border-bottom:1px solid var(--line);flex-wrap:wrap;
+}
+.edit-where{font-family:var(--mono);font-size:12.5px;color:var(--text)}
+.edit-where .arrow{color:var(--faint);margin:0 8px}
+.edit-where .ln{color:var(--accent)}
+.tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  padding:5px 10px;border-radius:6px;border:1px solid var(--line-2);color:var(--dim);
+}
+
+.edit-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media (max-width:780px){.edit-body{grid-template-columns:1fr}}
+
+.col{padding:22px}
+.col + .col{border-left:1px solid var(--line)}
+@media (max-width:780px){.col + .col{border-left:none;border-top:1px solid var(--line)}}
+.col h4{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.col h4 .swatch{width:8px;height:8px;border-radius:2px}
+.col.before h4 .swatch{background:var(--del)}
+.col.after h4 .swatch{background:var(--add)}
+
+/* git-diff code block */
+.diff{
+  font-family:var(--mono);font-size:12px;line-height:1.85;
+  background:var(--bg);border:1px solid var(--line);border-radius:11px;
+  padding:12px 4px;overflow-x:auto;
+}
+.diff .row{display:flex;white-space:pre}
+.diff .gutter{width:22px;flex-shrink:0;text-align:center;color:var(--faint);user-select:none}
+.diff .code{padding-right:14px;color:var(--dim)}
+.diff .row.add{background:var(--add-bg)}
+.diff .row.add .gutter{color:var(--add)}
+.diff .row.add .code{color:var(--text)}
+.diff .row.del{background:var(--del-bg)}
+.diff .row.del .gutter{color:var(--del)}
+.diff .row.del .code{color:#e9b6b2}
+.diff .com{color:var(--faint)}
+.diff .kw{color:var(--accent)}
+
+/* ---------- live notch mock ---------- */
+.mockwrap{margin-top:32px;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.mock{
+  position:relative;
+  background:
+    radial-gradient(120% 90% at 72% -10%,#1b2738 0%,transparent 58%),
+    radial-gradient(100% 80% at 18% 115%,#241a2e 0%,transparent 55%),
+    linear-gradient(165deg,#11151b 0%,#0b0d11 100%);
+  padding:0;
+}
+.menubar{
+  height:34px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;font-size:12px;color:rgba(255,255,255,.78);
+  font-weight:500;position:relative;z-index:1;
+}
+.menubar .l,.menubar .r{display:flex;gap:16px;align-items:center}
+.menubar .r{font-size:11px;font-weight:400;color:rgba(255,255,255,.62)}
+
+/* the floating notch */
+.notch-rail{position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center}
+.notch{
+  background:#000;display:flex;align-items:center;height:34px;
+  border-radius:0 0 13px 13px;
+}
+.peek{display:flex;align-items:center;height:100%}
+.peek-side{display:flex;align-items:center;height:100%}
+.peek-left{padding:0 13px}
+.peek-gap{width:150px;height:100%;background:#000;flex-shrink:0}
+.peek-right{padding-left:15px;padding-right:13px;gap:9px}
+
+.logo-slot{width:24px;height:24px;position:relative;display:grid;place-items:center}
+.logo-glow{
+  position:absolute;inset:-9px;border-radius:50%;
+  background:radial-gradient(circle,var(--glow,rgba(255,255,255,.4)) 0%,transparent 70%);
+  opacity:0;transform:scale(.6);filter:blur(4px);
+  transition:opacity .42s var(--ease),transform .42s var(--ease),background .3s ease;
+}
+.notch.running .logo-glow{opacity:.8;transform:scale(1)}
+
+/* the mark itself — Composio (white) OR a colored toolkit tile */
+.mark{
+  width:22px;height:22px;display:grid;place-items:center;position:relative;z-index:1;
+  transition:opacity .25s var(--ease);
+}
+.mark svg{width:18px;height:18px;color:rgba(255,255,255,.92)}   /* white composio */
+.mark.tool{
+  border-radius:6px;background:var(--gmail);color:#fff;
+  font-weight:700;font-size:12px;font-family:var(--display);
+}
+.peek-text{
+  font-size:11.5px;font-weight:600;white-space:nowrap;color:rgba(255,255,255,.55);
+  transition:opacity .2s var(--ease),color .2s ease;
+}
+.wave{display:flex;gap:2.5px;align-items:center;height:13px;width:17px;flex-shrink:0}
+.wave i{width:2.5px;height:100%;border-radius:2px;background:rgba(255,255,255,.8);transform:scaleY(.25);transform-origin:center}
+.notch.running .wave i{animation:wd .9s ease-in-out infinite}
+.notch.running .wave i:nth-child(2){animation-delay:.14s}
+.notch.running .wave i:nth-child(3){animation-delay:.28s}
+.notch.running .wave i:nth-child(4){animation-delay:.42s}
+@keyframes wd{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+
+/* the expanded "Ask Pi anything" row — used to show the centering fix */
+.pirow{
+  display:flex;gap:8px;background:rgba(255,255,255,.06);
+  border-radius:12px;padding:8px;width:330px;
+}
+.pirow.bottom{align-items:flex-end}      /* the regression */
+.pirow.center{align-items:center}         /* the fix */
+.pirow .m{width:24px;height:24px;display:grid;place-items:center;flex-shrink:0}
+.pirow .m svg{width:20px;height:20px;color:rgba(255,255,255,.92)}
+.pirow .field{
+  flex:1;font-size:13px;color:rgba(255,255,255,.4);line-height:1.5;
+  padding-top:1px;
+}
+.pirow .pin,.pirow .send{
+  width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+  font-size:12px;
+}
+.pirow .pin{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85)}
+.pirow .send{background:var(--accent);color:#0b0d11}
+
+/* centerline guide that proves the fix */
+.guide{position:relative}
+.guide::after{
+  content:"";position:absolute;left:0;right:0;top:50%;height:1px;
+  background:repeating-linear-gradient(90deg,var(--accent) 0 6px,transparent 6px 12px);
+  opacity:.35;pointer-events:none;
+}
+
+.mock-floor{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:64px 22px 22px;position:relative;z-index:1;flex-wrap:wrap;
+}
+.mock-stack{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.mock-stack .unit{display:flex;flex-direction:column;gap:12px;align-items:center}
+.unit .cap{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;display:flex;gap:7px;align-items:center}
+.unit .cap .sw{width:8px;height:8px;border-radius:2px}
+.unit.b .cap{color:var(--del)} .unit.b .cap .sw{background:var(--del)}
+.unit.a .cap{color:var(--add)} .unit.a .cap .sw{background:var(--add)}
+
+.btn{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;
+  color:#0b0d11;background:var(--accent);border:none;border-radius:9px;
+  padding:9px 18px;cursor:pointer;transition:transform .15s var(--ease),filter .15s ease;
+}
+.btn:active{transform:scale(.97)}
+.btn:hover{filter:brightness(1.08)}
+.readout{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.readout b{color:var(--accent);font-weight:500}
+
+/* ---------- scope guard ---------- */
+.guard{margin-top:26px;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.guard-row{display:flex;gap:16px;padding:16px 20px;align-items:flex-start}
+.guard-row + .guard-row{border-top:1px solid var(--line)}
+.guard-row .ic{
+  width:22px;height:22px;border-radius:7px;flex-shrink:0;display:grid;place-items:center;
+  background:var(--add-bg);color:var(--add);font-size:13px;margin-top:1px;
+}
+.guard-row .txt b{color:var(--text);font-weight:600}
+.guard-row .txt{color:var(--dim);font-size:13px}
+
+/* ---------- grilling ledger ---------- */
+.ledger{margin-top:26px;display:grid;gap:14px}
+.qa{border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:var(--surface)}
+.qa .q{display:flex;gap:12px;align-items:baseline}
+.qa .q .n{font-family:var(--mono);font-size:12px;color:var(--accent);flex-shrink:0}
+.qa .q .t{font-weight:600;color:var(--text)}
+.qa .a{margin-top:10px;padding-left:30px;color:var(--dim);font-size:13px}
+.qa .a b{color:var(--add);font-weight:600}
+.qa .a code{font-family:var(--mono);font-size:.86em;color:var(--accent);background:var(--accent-dim);padding:1px 5px;border-radius:5px}
+
+/* ---------- footer ---------- */
+footer{
+  margin-top:96px;padding-top:34px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--faint);
+}
+footer b{color:var(--dim);font-weight:500}
+
+@media (prefers-reduced-motion:reduce){
+  .notch.running .wave i{animation:none;transform:scaleY(.55)}
+  *{transition-duration:.001ms !important}
+}
+</style>
+</head>
+<body>
+
+<!-- the real Composio glyph, once, as a reusable symbol (fills/strokes → currentColor) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="composio" viewBox="0 0 128 128">
+    <path fill="none" stroke="currentColor" stroke-width="3.54162" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
+      d="M107.693 77.6012L20.3072 84.1247C16.029 84.4282 12.3575 81.0298 12.3575 76.7516V64.554V63.7044V51.5069C12.3575 47.1983 16.029 43.8 20.3072 44.1337L107.693 50.6573C111.971 50.9911 115.642 47.5927 115.642 43.2841V28.6592C115.642 25.7767 113.974 23.1369 111.334 21.9536L73.9522 4.68886C69.0368 2.44354 63.4538 6.02392 63.4538 11.3945V62.7942V65.4036V116.803C63.4538 122.204 69.0368 125.785 73.9522 123.509L111.303 106.275C113.913 105.061 115.612 102.451 115.612 99.5689V84.944C115.642 80.6657 111.971 77.2674 107.693 77.6012Z"/>
+    <path fill="none" stroke="currentColor" stroke-width="3.54162" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
+      d="M115.639 37.1854L45.7607 22.8942C41.179 21.9536 36.8704 25.4733 36.8704 30.146V63.2494V65.0092V98.1126C36.8704 102.785 41.179 106.305 45.7607 105.364L115.639 91.0732"/>
+    <path fill="currentColor" d="M36.7388 80.0987V48.7041C36.7388 47.1712 35.5766 45.8881 34.0512 45.7369L16.374 43.9851C14.6196 43.8113 13.0983 45.1893 13.0983 46.9523V81.532C13.0983 83.2738 14.5849 84.6447 16.3209 84.504L33.9981 83.0707C35.5463 82.9451 36.7388 81.652 36.7388 80.0987Z"/>
+    <path fill="currentColor" d="M63.574 44.29V28.9518C63.574 27.4869 62.5099 26.239 61.0634 26.0076L41.3911 22.86C39.0618 22.4873 36.9518 24.2866 36.9518 26.6455V42.8026C36.9518 44.3662 38.1597 45.6643 39.7193 45.7766L60.3782 47.264C62.1048 47.3883 63.574 46.0211 63.574 44.29Z"/>
+    <path fill="currentColor" d="M36.9517 101.581V86.2429C36.9517 84.778 38.0158 83.5301 39.4623 83.2987L59.1346 80.1511C61.4639 79.7784 63.5739 81.5777 63.5739 83.9365V100.094C63.5739 101.657 62.366 102.955 60.8063 103.068L40.1475 104.555C38.4209 104.679 36.9517 103.312 36.9517 101.581Z"/>
+    <path fill="currentColor" d="M115.541 37.4841L63.5739 26.6223V13.3337C63.5739 7.11171 70.0272 2.9886 75.6731 5.6033L115.541 24.0665V37.4841Z"/>
+    <path fill="currentColor" d="M115.541 90.5157L63.5739 101.378V114.666C63.5739 120.888 70.0272 125.011 75.6731 122.396L115.541 103.933V90.5157Z"/>
+  </symbol>
+</svg>
+
+<div class="wrap">
+
+<!-- ============ MASTHEAD ============ -->
+<header>
+  <span class="kicker"><span class="dot"></span> boring.notch · pi tab · edit spec</span>
+  <h1>White mark, centered prompt,<br><span class="soft">and a clean return to base.</span></h1>
+  <p class="lede">
+    A small visual regression on the Pi tab, scoped by grilling into <b>exactly two code edits</b>.
+    Everything below is grounded in the current source — the white Composio mark and the live peek
+    behaviour are <b>already correct</b> and explicitly out of scope. Each edit shows its real diff
+    and a live before→after notch you can press.
+  </p>
+  <div class="pills">
+    <span class="pill warn"><span class="tick">●</span> regression <b>2 symptoms</b></span>
+    <span class="pill"><span class="tick">✓</span> grilled <b>4 decisions locked</b></span>
+    <span class="pill"><span class="tick">✓</span> blast radius <b>2 files · ~6 lines</b></span>
+    <span class="pill">date <b>2026-06-02</b></span>
+  </div>
+</header>
+
+<!-- ============ EDIT 01 — CENTERING ============ -->
+<section id="e1">
+  <div class="eyebrow">edit 01 · vertical centering</div>
+  <h2>The prompt sits low. Put it on the centerline.</h2>
+  <p class="sub">
+    The header row aligns the logo, text field, and buttons to a shared <b>bottom</b> edge,
+    so the placeholder drifts below the 24&times;24 mark. You asked for the text aligned in the
+    middle — that's a one-token change: <code>.bottom</code> → <code>.center</code> on the
+    header <code>HStack</code>.
+  </p>
+
+  <div class="edit">
+    <div class="edit-head">
+      <span class="edit-where">PiAgentView.swift<span class="arrow">·</span><span class="ln">line 59</span><span class="arrow">·</span>var header</span>
+      <span class="tag">1 line</span>
+    </div>
+    <div class="edit-body">
+      <div class="col before">
+        <h4><span class="swatch"></span>before</h4>
+        <div class="diff">
+          <div class="row"><span class="gutter"> </span><span class="code"><span class="kw">private var</span> header: <span class="kw">some</span> View {</span></div>
+          <div class="row del"><span class="gutter">−</span><span class="code">    HStack(alignment: .bottom, spacing: 8) {</span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">        logo</span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">        TextField(<span class="com">"Ask Pi anything…"</span>, …)</span></div>
+        </div>
+      </div>
+      <div class="col after">
+        <h4><span class="swatch"></span>after</h4>
+        <div class="diff">
+          <div class="row"><span class="gutter"> </span><span class="code"><span class="kw">private var</span> header: <span class="kw">some</span> View {</span></div>
+          <div class="row add"><span class="gutter">+</span><span class="code">    HStack(alignment: .center, spacing: 8) {</span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">        logo</span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">        TextField(<span class="com">"Ask Pi anything…"</span>, …)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- live mock -->
+  <div class="mockwrap">
+    <div class="mock">
+      <div class="mock-floor" style="padding-top:30px">
+        <div class="mock-stack">
+          <div class="unit b">
+            <span class="cap"><span class="sw"></span>.bottom — today</span>
+            <div class="guide">
+              <div class="pirow bottom">
+                <span class="m"><svg><use href="#composio"/></svg></span>
+                <span class="field">Ask Pi anything…</span>
+                <span class="pin">⇧</span>
+                <span class="send">↑</span>
+              </div>
+            </div>
+          </div>
+          <div class="unit a">
+            <span class="cap"><span class="sw"></span>.center — fixed</span>
+            <div class="guide">
+              <div class="pirow center">
+                <span class="m"><svg><use href="#composio"/></svg></span>
+                <span class="field">Ask Pi anything…</span>
+                <span class="pin">⇧</span>
+                <span class="send">↑</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="readout">dashed line = vertical center · <b>watch the placeholder</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDIT 02 — BASE STATE ============ -->
+<section id="e2">
+  <div class="eyebrow">edit 02 · return to base</div>
+  <h2>When the work is done, fall back to Composio.</h2>
+  <p class="sub">
+    The peek shows the live toolkit logo during a call — correct, keep it. But the <code>done</code>
+    handler never clears <code>toolkitLogo</code>, so the peek keeps squatting on the <b>last tool's
+    colored logo</b> instead of returning to the Composio mark. Resetting it (and its sampled accent)
+    lets the existing logo precedence fall through to the white brand mark — your "show the Composio
+    logo, nothing else." The existing 3&nbsp;s auto-hide stays.
+  </p>
+
+  <div class="edit">
+    <div class="edit-head">
+      <span class="edit-where">PiAgentManager.swift<span class="arrow">·</span><span class="ln">case "done"</span></span>
+      <span class="tag">+2 lines</span>
+    </div>
+    <div class="edit-body">
+      <div class="col before">
+        <h4><span class="swatch"></span>before</h4>
+        <div class="diff">
+          <div class="row"><span class="gutter"> </span><span class="code"><span class="kw">case</span> <span class="com">"done"</span>:</span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    isRunning = <span class="kw">false</span></span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    currentTool = <span class="kw">nil</span></span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    currentToolPretty = <span class="kw">nil</span></span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    clearFormingState()</span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    <span class="kw">if</span> statusWord != <span class="com">"aborted"</span> { … }</span></div>
+        </div>
+      </div>
+      <div class="col after">
+        <h4><span class="swatch"></span>after</h4>
+        <div class="diff">
+          <div class="row"><span class="gutter"> </span><span class="code"><span class="kw">case</span> <span class="com">"done"</span>:</span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    isRunning = <span class="kw">false</span></span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    currentTool = <span class="kw">nil</span></span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    currentToolPretty = <span class="kw">nil</span></span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    clearFormingState()</span></div>
+          <div class="row add"><span class="gutter">+</span><span class="code">    <span class="com">// back to base: drop the tool's logo/accent</span></span></div>
+          <div class="row add"><span class="gutter">+</span><span class="code">    toolkitLogo = <span class="kw">nil</span></span></div>
+          <div class="row add"><span class="gutter">+</span><span class="code">    toolkitAccent = <span class="kw">nil</span></span></div>
+          <div class="row"><span class="gutter"> </span><span class="code">    <span class="kw">if</span> statusWord != <span class="com">"aborted"</span> { … }</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- live mock you can actually run -->
+  <div class="mockwrap">
+    <div class="mock">
+      <div class="menubar">
+        <div class="l"><span></span><span>Finder</span><span style="opacity:.6">File</span><span style="opacity:.6">Edit</span></div>
+        <div class="r"><span>⚡︎ 84%</span><span>9:41 AM</span></div>
+      </div>
+      <div class="notch-rail">
+        <div class="notch" id="simNotch">
+          <div class="peek">
+            <div class="peek-side peek-left">
+              <div class="logo-slot">
+                <div class="logo-glow" id="simGlow"></div>
+                <div class="mark" id="simMark"><svg><use href="#composio"/></svg></div>
+              </div>
+            </div>
+            <div class="peek-gap"></div>
+            <div class="peek-side peek-right">
+              <span class="peek-text" id="simText">Ready</span>
+              <span class="wave"><i></i><i></i><i></i><i></i></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-floor">
+        <button class="btn" id="simBtn">Run a turn → watch it reset</button>
+        <div class="readout">state: <b id="simState">base · Composio</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCOPE GUARD ============ -->
+<section id="scope">
+  <div class="eyebrow">scope guard · do not touch</div>
+  <h2>What's already right.</h2>
+  <p class="sub">Read the source before assuming a fix — these were already correct, and the grilling confirmed they stay.</p>
+
+  <div class="guard">
+    <div class="guard-row">
+      <span class="ic">✓</span>
+      <span class="txt"><b>White Composio mark.</b> Both views already apply <code>.renderingMode(.template)</code> + <code>.foregroundStyle(.white.opacity(0.92))</code>, and the asset carries <code>template-rendering-intent: template</code>. The grey screenshots were a stale build; the latest render confirms white.</span>
+    </div>
+    <div class="guard-row">
+      <span class="ic">✓</span>
+      <span class="txt"><b>Peek logo precedence during a call.</b> live toolkit CDN logo → bundled Composio mark → <code>sparkles</code>. The colored per-tool morph + glow is the whole point of the live activity. Untouched.</span>
+    </div>
+    <div class="guard-row">
+      <span class="ic">✓</span>
+      <span class="txt"><b>The 3-second auto-hide.</b> The peek confirms "✓ Done" then gets out of the way instead of squatting by the notch. Kept exactly — edit 02 only changes <em>which logo</em> shows during that window.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GRILLING LEDGER ============ -->
+<section id="ledger">
+  <div class="eyebrow">grilling ledger · how we got here</div>
+  <h2>Four questions, resolved.</h2>
+
+  <div class="ledger">
+    <div class="qa">
+      <div class="q"><span class="n">Q1</span><span class="t">"Text aligned in the middle" — which axis?</span></div>
+      <div class="a"><b>Vertical center.</b> Text was sitting low vs. the logo → <code>HStack(alignment: .center)</code>. Not horizontal centering (a leading input + trailing send button would look unbalanced).</div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="n">Q2</span><span class="t">Peek logo during vs. after a call?</span></div>
+      <div class="a"><b>Live tool logo during, Composio at base.</b> The 3-tier precedence is correct and well-implemented — only the reset-to-base was missing.</div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="n">Q3</span><span class="t">What is the final "base state"?</span></div>
+      <div class="a"><b>Reset → Composio → keep the 3 s hide.</b> Drop the tool logo so the clean Composio frame returns, then let the existing auto-hide collapse it. Not a permanently-parked logo.</div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="n">Q4</span><span class="t">"Black Composio mark" — rendered dark?</span></div>
+      <div class="a"><b>The brand asset, tinted white.</b> "Black" = the brand (its fills are black); on the black notch it must render white to be visible. Same <code>composio-mark</code>, no literal dark pixels.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>boring.notch · pi · <b>logo-tint / centering / base-state</b></span>
+  <span><b>2 files</b> · PiAgentView.swift · PiAgentManager.swift</span>
+  <span>status <b>scoped — awaiting go</b></span>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  /* Edit-02 live sim: base → forming → running → done → reset to Composio */
+  var notch = document.getElementById('simNotch');
+  var mark  = document.getElementById('simMark');
+  var text  = document.getElementById('simText');
+  var glow  = document.getElementById('simGlow');
+  var state = document.getElementById('simState');
+  var btn   = document.getElementById('simBtn');
+  if(!btn) return;
+
+  var COMPOSIO = '<svg><use href="#composio"/></svg>';
+  var timers = [];
+  function clear(){ timers.forEach(clearTimeout); timers = []; }
+  function at(ms, fn){ timers.push(setTimeout(fn, ms)); }
+
+  function toComposio(){ mark.className = 'mark'; mark.innerHTML = COMPOSIO; }
+  function toTool(){ mark.className = 'mark tool'; mark.innerHTML = 'M'; }
+
+  function reset(){
+    clear();
+    notch.classList.remove('running');
+    glow.style.setProperty('--glow','rgba(255,255,255,.4)');
+    toComposio();
+    text.textContent = 'Ready';
+    text.style.color = 'rgba(255,255,255,.55)';
+    state.textContent = 'base · Composio';
+  }
+
+  btn.addEventListener('click', function(){
+    clear();
+    notch.classList.add('running');
+
+    // forming — toolkit known, colored logo + glow blooms
+    glow.style.setProperty('--glow', 'rgba(234,67,53,.6)');
+    toTool();
+    text.textContent = 'Calling a tool…';
+    text.style.color = 'rgba(255,255,255,.78)';
+    state.textContent = 'forming · tool logo';
+
+    // running
+    at(900, function(){
+      text.textContent = 'Send email';
+      state.textContent = 'running · tool logo';
+    });
+
+    // done → THE FIX: tool logo/accent reset → Composio returns
+    at(2200, function(){
+      notch.classList.remove('running');
+      glow.style.setProperty('--glow','rgba(255,255,255,.4)');
+      toComposio();                       // toolkitLogo = nil → fall back to brand mark
+      text.textContent = '✓ Done';
+      text.style.color = 'rgba(255,255,255,.55)';
+      state.textContent = 'done · reset to Composio';
+    });
+
+    // existing 3s auto-hide → resting base
+    at(2200 + 3000, reset);
+  });
+})();
+</script>
+
+</body>
+</html>

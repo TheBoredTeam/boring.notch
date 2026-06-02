@@ -56,7 +56,7 @@ struct PiAgentView: View {
     // MARK: Header (logo + prompt + pin + send/stop)
 
     private var header: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(alignment: .center, spacing: 8) {
             logo
                 .frame(width: 24, height: 24)
                 .matchedGeometryEffect(id: "piLogo", in: logoNamespace)
@@ -145,6 +145,7 @@ struct PiAgentView: View {
                 .aspectRatio(contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         } else if let composio = NSImage(named: "composio-mark") {
+            let _ = (composio.isTemplate = true)   // force AppKit template mask → tints to foregroundStyle
             Image(nsImage: composio)
                 .resizable()
                 .renderingMode(.template)
