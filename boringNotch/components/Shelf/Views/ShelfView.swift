@@ -99,26 +99,38 @@ struct ShelfView: View {
                         .fontWeight(.medium)
                 }
             } else {
-                ScrollView(.horizontal) {
-                    HStack(spacing: spacing) {
-                        ForEach(Array(tvm.items.enumerated()), id: \.element.id) { index, item in
-                            ShelfItemView(item: item)
-                                .environmentObject(quickLookService)
-                                .transition(Motion.transition(Motion.thumbnail, reduceMotion: reduceMotion))
-                                // Subtle cascade on appear so items don't pop in all at once.
-                                .animation(
-                                    reduceMotion
-                                        ? Motion.reduced
-                                        : Motion.shelfItemEnter.delay(Double(min(index, 8)) * 0.03),
-                                    value: tvm.items.count
-                                )
+                ScrollViewReader { proxy in
+                    ScrollView(.horizontal) {
+                        HStack(spacing: spacing) {
+                            ForEach(Array(tvm.items.enumerated()), id: \.element.id) { index, item in
+                                ShelfItemView(item: item)
+                                    .id(item.id)
+                                    .environmentObject(quickLookService)
+                                    .transition(Motion.transition(Motion.thumbnail, reduceMotion: reduceMotion))
+                                    // Subtle cascade on appear so items don't pop in all at once.
+                                    .animation(
+                                        reduceMotion
+                                            ? Motion.reduced
+                                            : Motion.shelfItemEnter.delay(Double(min(index, 8)) * 0.03),
+                                        value: tvm.items.count
+                                    )
+                            }
                         }
                     }
-                }
-                .padding(-spacing)
-                .scrollIndicators(.never)
-                .onDrop(of: [.fileURL, .url, .image, .png, .tiff, .jpeg, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-                    handleDrop(providers: providers)
+                    .padding(-spacing)
+                    .scrollIndicators(.never)
+                    // Newest items land leftmost (index 0). If the shelf was scrolled
+                    // rightward, snap back to the leading edge so the new arrival is
+                    // visible. Keys off the front item's id so it fires on add/promote.
+                    .onChange(of: tvm.items.first?.id) { _, frontID in
+                        guard let frontID else { return }
+                        withAnimation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion)) {
+                            proxy.scrollTo(frontID, anchor: .leading)
+                        }
+                    }
+                    .onDrop(of: [.fileURL, .url, .image, .png, .tiff, .jpeg, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                        handleDrop(providers: providers)
+                    }
                 }
             }
         }
