@@ -28,22 +28,36 @@ final class ShelfStateViewModel: ObservableObject {
     private var pendingBookmarkUpdates: [ShelfItem.ID: Data] = [:]
     private var updateTask: Task<Void, Never>?
 
+    /// One-shot flag: older builds appended new drops (oldest-leftmost). The shelf now
+    /// shows newest-leftmost, so the persisted array is reversed exactly once on first
+    /// launch under the new build to bring existing items onto the new invariant.
+    private static let newestLeftMigrationKey = "ShelfNewestLeftMigrationV1"
+
     private init() {
-        items = ShelfPersistenceService.shared.load()
+        var loaded = ShelfPersistenceService.shared.load()
+        if !UserDefaults.standard.bool(forKey: Self.newestLeftMigrationKey) {
+            // Existing items were stored oldest-first; reverse once so the most
+            // recently added item sits leftmost, matching new-drop behavior below.
+            loaded.reverse()
+            UserDefaults.standard.set(true, forKey: Self.newestLeftMigrationKey)
+        }
+        items = loaded
     }
 
 
     func add(_ newItems: [ShelfItem]) {
         guard !newItems.isEmpty else { return }
         var merged = items
-        // Deduplicate by identityKey while preserving order (existing first)
-        var seen: Set<String> = Set(merged.map { $0.identityKey })
+        // Newest-leftmost invariant: insert each new item at the front (index 0) in
+        // iteration order, so within a single multi-file drop the LAST item processed
+        // ends up leftmost. A re-dropped item (same identityKey) is PROMOTED to the
+        // front — its stale entry is removed first, then re-inserted at 0. Because
+        // identityKey is path/content-based, the duplicate references the same backing
+        // file, so dropping the old array entry never orphans an on-disk screenshot.
         for it in newItems {
             let key = it.identityKey
-            if !seen.contains(key) {
-                merged.append(it)
-                seen.insert(key)
-            }
+            merged.removeAll { $0.identityKey == key }
+            merged.insert(it, at: 0)
         }
         items = merged
     }
