@@ -80,16 +80,12 @@ struct PiAgentView: View {
                 .font(.system(size: 13))
                 .focused($promptFocused)
                 .notchAcceptsFirstMouse()
-                // ⌘↵ sends; plain ↵ (and ⇧↵) just inserts a newline.
+                // ↵ and ⌘↵ both send; Option+↵ inserts a newline.
                 // (Option+↵ inserts a newline natively in vertical-axis fields —
                 // at the cursor, so let it through untouched.)
                 .onKeyPress(.return, phases: .down) { press in
-                    if press.modifiers.contains(.command) {
-                        submit()
-                        return .handled
-                    }
                     if press.modifiers.contains(.option) { return .ignored }
-                    pi.draft += "\n"
+                    submit()
                     return .handled
                 }
 
@@ -118,7 +114,7 @@ struct PiAgentView: View {
                 .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
                 .disabled(pi.draft.trimmingCharacters(in: .whitespaces).isEmpty)
                 .keyboardShortcut(.return, modifiers: .command)
-                .help("Send (⌘↵) — ↵ for a new line")
+                .help("Send (↵ or ⌘↵) — ⌥↵ for a new line")
                 .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             }
         }
