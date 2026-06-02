@@ -20,6 +20,13 @@ struct PiAgentView: View {
     @State private var scrollViewportHeight: CGFloat = 0
     /// Natural height of the transcript content inside the ScrollView (incl. footer).
     @State private var transcriptContentHeight: CGFloat = 0
+    /// Stick-to-bottom: true while the answer view follows the streamed tail. Broken
+    /// by the user scrolling up to read; restored when they scroll back to the bottom
+    /// or a new turn starts. Never broken by content growth itself.
+    @State private var isFollowingTail = true
+    /// The transcript's top edge within the answer scroll view's coordinate space
+    /// (0 at rest, decreasing as the user scrolls down). Drives user-scroll detection.
+    @State private var transcriptScrollMinY: CGFloat = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -27,14 +34,20 @@ struct PiAgentView: View {
             activityLine
             if !pi.chips.isEmpty || pi.isForming {
                 chipsRow
+                    .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             }
             answer
             if let error = pi.lastError {
                 errorRow(error)
+                    .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             }
         }
         .padding(.horizontal, 4)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // Rows appearing/leaving (chips, error) settle in with the shared item spring
+        // instead of popping — the layout shift underneath them animates as one unit.
+        .animation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion), value: !pi.chips.isEmpty || pi.isForming)
+        .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: pi.lastError)
         .onAppear {
             promptFocused = true                                          // instant typing
             SharingStateManager.shared.setKeyboardFocusHeld(true)         // let the window become key
@@ -82,6 +95,8 @@ struct PiAgentView: View {
 
             pinButton
 
+            // Send ⇄ stop swap rides Motion.overlay (scale from 0.92 + fade) — the
+            // incoming button never appears from nothing.
             if pi.isRunning {
                 Button(action: pi.abort) {
                     Image(systemName: "stop.fill")
@@ -92,7 +107,7 @@ struct PiAgentView: View {
                 .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
                 .keyboardShortcut(".", modifiers: .command)
                 .help("Stop (⌘.)")
-                .transition(.opacity)
+                .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             } else {
                 Button(action: submit) {
                     Image(systemName: "arrow.up")
@@ -104,7 +119,7 @@ struct PiAgentView: View {
                 .disabled(pi.draft.trimmingCharacters(in: .whitespaces).isEmpty)
                 .keyboardShortcut(.return, modifiers: .command)
                 .help("Send (⌘↵) — ↵ for a new line")
-                .transition(.opacity)
+                .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             }
         }
         .padding(8)
@@ -115,9 +130,9 @@ struct PiAgentView: View {
         .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: pi.isRunning)
     }
 
-    /// Session pin: keeps the panel open across mouse-away while engaged. Runtime
-    /// only — swipe-up, tab switch, and panel close all clear it (deliberate close
-    /// beats pin).
+    /// Session pin: keeps the panel open across mouse-away and makes swipe-up inert,
+    /// so reading/scrolling a streamed answer can never dismiss the panel. Runtime
+    /// only — unpin, tab switch, and panel close clear it.
     private var pinButton: some View {
         Button {
             withAnimation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion)) {
@@ -269,11 +284,15 @@ struct PiAgentView: View {
                                 .font(.system(size: 12))
                                 .foregroundStyle(.gray)
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                                .transition(.opacity)
                         } else {
                             PiMarkdownView(text: pi.transcript)
+                                .transition(.opacity)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    // Placeholder → first content is a crossfade, not a hard swap.
+                    .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: pi.transcript.isEmpty)
 
                     // Comfort footer: keeps the newest line off the panel's bottom edge;
                     // the auto-scroll anchor rides on it.
@@ -282,13 +301,27 @@ struct PiAgentView: View {
                         .id("piTranscriptBottom")
                 }
                 .background(heightReader(into: $transcriptContentHeight))
+                .background(scrollPositionReader)
             }
+            .coordinateSpace(name: Self.answerScrollSpace)
             .background(heightReader(into: $scrollViewportHeight))
             .scrollIndicators(.visible)
+            .onChange(of: transcriptScrollMinY) { oldY, newY in
+                updateTailFollowing(oldMinY: oldY, newMinY: newY)
+            }
             .onChange(of: pi.transcript) { _, _ in
-                withAnimation(Motion.resolved(.easeOut(duration: 0.18), reduceMotion: reduceMotion)) {
-                    proxy.scrollTo("piTranscriptBottom", anchor: .bottom)
-                }
+                // Stick-to-bottom: follow the stream only while the user is at the
+                // tail. Unanimated on purpose — deltas land many times a second, and
+                // an animated scroll restarted on every token perpetually lags and
+                // rubber-bands. Instant tracking reads as the content simply growing.
+                guard isFollowingTail else { return }
+                proxy.scrollTo("piTranscriptBottom", anchor: .bottom)
+            }
+            .onChange(of: pi.isRunning) { _, running in
+                // A new turn always rejoins the tail.
+                guard running else { return }
+                isFollowingTail = true
+                proxy.scrollTo("piTranscriptBottom", anchor: .bottom)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -299,6 +332,52 @@ struct PiAgentView: View {
         )
         .onChange(of: transcriptContentHeight) { _, _ in reportDesiredHeight() }
         .onChange(of: scrollViewportHeight) { _, _ in reportDesiredHeight() }
+    }
+
+    // MARK: Stick-to-bottom scroll tracking
+
+    /// Coordinate space of the answer ScrollView (scroll-position probe reads against it).
+    private static let answerScrollSpace = "piAnswerScroll"
+
+    /// Within this distance of the bottom the user counts as "at the tail" — generous
+    /// enough to absorb the comfort footer and sub-line scroll positions.
+    private static let tailRejoinDistance: CGFloat = 44
+    /// An upward scroll must leave at least this much content below the viewport
+    /// before following breaks — keeps bottom rubber-band bounces from unsticking.
+    private static let tailBreakDistance: CGFloat = 8
+
+    /// How much content currently sits below the viewport's bottom edge.
+    private var distanceFromBottom: CGFloat {
+        transcriptContentHeight - scrollViewportHeight + transcriptScrollMinY
+    }
+
+    /// Stick-to-bottom bookkeeping. Content growth never breaks following (streaming
+    /// pushes the bottom away without the user touching anything — minY is unchanged);
+    /// only an actual upward scroll does. Scrolling back to the bottom rejoins the tail.
+    private func updateTailFollowing(oldMinY: CGFloat, newMinY: CGFloat) {
+        if newMinY > oldMinY + 0.5 {
+            // Content moved down ⇒ the user scrolled up.
+            if distanceFromBottom > Self.tailBreakDistance {
+                isFollowingTail = false
+            }
+        } else if distanceFromBottom <= Self.tailRejoinDistance {
+            // The user scrolled back down to the tail.
+            isFollowingTail = true
+        }
+    }
+
+    /// Reports the transcript's top edge within the answer ScrollView (scroll position).
+    private var scrollPositionReader: some View {
+        GeometryReader { geo in
+            Color.clear
+                .preference(
+                    key: PiScrollMinYKey.self,
+                    value: geo.frame(in: .named(Self.answerScrollSpace)).minY
+                )
+                .onPreferenceChange(PiScrollMinYKey.self) { minY in
+                    transcriptScrollMinY = minY
+                }
+        }
     }
 
     private var placeholder: String {
@@ -356,6 +435,8 @@ struct PiAgentView: View {
     private func submit() {
         let text = pi.draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
+        // Sending a prompt always rejoins the streamed tail.
+        isFollowingTail = true
         pi.send(text)
         pi.draft = ""
     }
@@ -363,6 +444,15 @@ struct PiAgentView: View {
 
 /// Reports a view's laid-out height up the tree (transcript content / scroll viewport).
 private struct PiContentHeightKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+/// Reports the transcript's top edge within the answer ScrollView's coordinate space
+/// (the scroll position probe behind stick-to-bottom).
+private struct PiScrollMinYKey: PreferenceKey {
     static let defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
