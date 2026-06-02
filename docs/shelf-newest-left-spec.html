@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shelf Ordering — Newest-Leftmost Spec · boring.notch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   SHELF ORDERING — NEWEST-LEFTMOST · DESIGN ENGINEERING SPEC
+   Aesthetic: engineering drawing / lab spec sheet, on black.
+   Motion rules (animations.dev): transform+opacity only ·
+   ease-out for feedback · springs for things settling ·
+   exits faster than enters · reduced-motion collapses to fades.
+   This document is the SOURCE OF TRUTH for shelf insertion order.
+   ============================================================ */
+
+:root {
+  --ink: #0b0b0c;
+  --ink-2: #111113;
+  --ink-3: #18181b;
+  --paper: #e9e6df;
+  --paper-dim: #8e8b83;
+  --paper-faint: #56544e;
+  --copper: #d49a52;
+  --copper-dim: rgba(212, 154, 82, 0.16);
+  --copper-glow: rgba(212, 154, 82, 0.32);
+  --hairline: rgba(233, 230, 223, 0.08);
+  --hairline-strong: rgba(233, 230, 223, 0.16);
+  --green: #4fd964;
+  --red: #f3766b;
+
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+
+  --serif: 'Instrument Serif', Georgia, serif;
+  --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  --system: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  width: 200%; height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9999;
+}
+::selection { background: var(--copper-dim); color: var(--copper); }
+
+.sheet { max-width: 1060px; margin: 0 auto; padding: 0 32px 160px; }
+
+/* ---------- header ---------- */
+header { padding: 88px 0 56px; border-bottom: 1px solid var(--hairline-strong); position: relative; }
+.doc-meta {
+  display: flex; gap: 28px; font-size: 11px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--paper-faint); margin-bottom: 40px; flex-wrap: wrap;
+}
+.doc-meta b { color: var(--copper); font-weight: 500; }
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 6.4vw, 78px); line-height: 0.98; letter-spacing: -0.015em; }
+h1 em { font-style: italic; color: var(--copper); }
+.lede { margin-top: 32px; max-width: 660px; color: var(--paper-dim); font-size: 14px; line-height: 1.75; }
+.lede b { color: var(--paper); font-weight: 500; }
+
+/* ---------- section scaffolding ---------- */
+section { padding: 64px 0; border-bottom: 1px solid var(--hairline); }
+.kicker {
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--copper); margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+}
+.kicker::before { content: ''; width: 22px; height: 1px; background: var(--copper); display: inline-block; }
+h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 3.6vw, 40px); line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 20px; }
+h3 { font-family: var(--system); font-weight: 600; font-size: 15px; letter-spacing: -0.005em; margin: 28px 0 10px; }
+p { color: var(--paper-dim); max-width: 680px; margin-bottom: 14px; }
+p b { color: var(--paper); font-weight: 500; }
+.tag { color: var(--copper); }
+
+/* ---------- the live demo ---------- */
+.demo {
+  margin: 36px 0 8px; background: var(--ink-2); border: 1px solid var(--hairline-strong);
+  border-radius: 16px; padding: 28px; position: relative; overflow: hidden;
+}
+.demo-label {
+  position: absolute; top: 14px; right: 18px; font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--paper-faint);
+}
+.demo-label b { color: var(--copper); }
+
+/* the notch shelf mock */
+.notch-rail { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.left-axis, .right-axis {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper-faint);
+  white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.left-axis b { color: var(--copper); font-weight: 600; }
+.axis-arrow { font-size: 16px; color: var(--paper-faint); }
+
+.shelf {
+  flex: 1; min-height: 96px; background: #000; border: 2px dashed var(--hairline-strong);
+  border-radius: 14px; padding: 12px; display: flex; align-items: center; gap: 10px;
+  overflow-x: auto; scrollbar-width: thin; scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) { .shelf { scroll-behavior: auto; } }
+.shelf::-webkit-scrollbar { height: 6px; }
+.shelf::-webkit-scrollbar-thumb { background: var(--hairline-strong); border-radius: 3px; }
+.shelf.empty { justify-content: center; color: var(--paper-faint); font-size: 12px; border-style: dashed; }
+
+.thumb {
+  flex: 0 0 auto; width: 64px; height: 78px; border-radius: 9px; position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  font-size: 9px; color: rgba(0,0,0,0.62); font-weight: 600; padding-bottom: 5px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+  animation: thumbEnter 0.34s var(--ease-out-quint) both;
+}
+@keyframes thumbEnter {
+  from { opacity: 0; transform: translateX(-14px) scale(0.9); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .thumb { animation: thumbFade 0.12s ease-out both; }
+  @keyframes thumbFade { from { opacity: 0; } to { opacity: 1; } }
+}
+.thumb .seq {
+  position: absolute; top: 5px; left: 5px; font-size: 9px; font-weight: 700;
+  background: rgba(0,0,0,0.4); color: #fff; border-radius: 5px; padding: 1px 5px;
+}
+.thumb.flash { outline: 2px solid var(--copper); outline-offset: 2px; animation: promote 0.42s var(--ease-out-quint) both; }
+@keyframes promote {
+  0% { transform: scale(1.12); box-shadow: 0 0 0 4px var(--copper-glow); }
+  100% { transform: scale(1); box-shadow: 0 4px 14px rgba(0,0,0,0.45); }
+}
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+button.act {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.02em;
+  background: var(--ink-3); color: var(--paper); border: 1px solid var(--hairline-strong);
+  border-radius: 9px; padding: 9px 14px; cursor: pointer;
+  transition: transform 0.12s var(--ease-out-quint), background 0.16s var(--ease-out-quint), border-color 0.16s var(--ease-out-quint);
+}
+button.act:hover { background: #202024; border-color: var(--copper-dim); transform: translateY(-1px); }
+button.act:active { transform: translateY(0) scale(0.97); }
+button.act.primary { border-color: var(--copper-dim); color: var(--copper); }
+button.act.ghost { color: var(--paper-faint); }
+.hint { font-size: 11px; color: var(--paper-faint); margin-top: 12px; }
+.hint code { color: var(--copper); }
+
+/* ---------- decision cards ---------- */
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 28px; }
+@media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
+.card { background: var(--ink-2); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; }
+.card .num { font-size: 11px; color: var(--copper); letter-spacing: 0.12em; margin-bottom: 8px; }
+.card h4 { font-family: var(--system); font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.card p { font-size: 12px; margin-bottom: 0; color: var(--paper-dim); }
+.card .verdict { margin-top: 12px; font-size: 11px; color: var(--green); letter-spacing: 0.04em; }
+.card .verdict::before { content: '✓ '; }
+
+/* ---------- code ---------- */
+pre {
+  background: var(--ink-2); border: 1px solid var(--hairline-strong); border-left: 2px solid var(--copper);
+  border-radius: 10px; padding: 18px 20px; overflow-x: auto; margin: 18px 0; font-size: 12.5px; line-height: 1.6;
+}
+pre code { color: var(--paper); }
+.c-key { color: #c792ea; } .c-fn { color: var(--copper); } .c-str { color: #c3e88d; }
+.c-com { color: var(--paper-faint); font-style: italic; } .c-num { color: #f78c6c; }
+.file-ref { font-size: 11px; color: var(--paper-faint); margin-bottom: -8px; }
+.file-ref b { color: var(--copper); }
+
+table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12.5px; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+th { color: var(--copper); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; font-size: 10.5px; }
+td b { color: var(--paper); }
+td.was { color: var(--red); } td.now { color: var(--green); }
+
+footer { padding: 48px 0 0; color: var(--paper-faint); font-size: 11px; letter-spacing: 0.06em; }
+footer b { color: var(--copper); }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header>
+  <div class="doc-meta">
+    <span>DOC · <b>SHELF-ORD-001</b></span>
+    <span>COMPONENT · <b>boringNotch / Shelf</b></span>
+    <span>STATUS · <b>APPROVED</b></span>
+    <span>DATE · <b>2026-06-02</b></span>
+  </div>
+  <h1>Newest image,<br><em>leftmost</em>.</h1>
+  <p class="lede">
+    The shelf is a recency rail. The <b>most recently added</b> image sits at the
+    <b>left edge</b>; everything older flows to the <b>right</b>. This document is the
+    source of truth for shelf insertion order — every decision below is settled, and the
+    panel beside each one is <b>live</b>: drop, batch-drop, and re-drop to watch the
+    invariant hold.
+  </p>
+</header>
+
+<!-- ============ THE INVARIANT ============ -->
+<section>
+  <div class="kicker">The invariant</div>
+  <h2>Last in, far left.</h2>
+  <p>
+    One rule governs everything: when an item enters the shelf it is inserted at
+    <b>index 0</b>. The view renders the array front-to-back into a horizontal row, so
+    index 0 is the leftmost thumbnail. Drop a new image and the rail shifts right to make
+    room on the left.
+  </p>
+
+  <div class="demo">
+    <div class="demo-label">LIVE · <b>shelf rail</b></div>
+    <div class="notch-rail">
+      <div class="left-axis"><b>NEWEST</b><span class="axis-arrow">←</span></div>
+      <div class="shelf empty" id="shelf1">drop something —</div>
+      <div class="right-axis">OLDEST<span class="axis-arrow">→</span></div>
+    </div>
+    <div class="controls">
+      <button class="act primary" onclick="drop1()">＋ Drop new image</button>
+      <button class="act ghost" onclick="reset1()">Reset</button>
+    </div>
+    <div class="hint">Each drop is stamped with a sequence number. Watch: the highest number is always furthest left.</div>
+  </div>
+</section>
+
+<!-- ============ BATCH ============ -->
+<section>
+  <div class="kicker">Decision 4 · Batch drops</div>
+  <h2>Drop three at once.</h2>
+  <p>
+    When several files arrive in one gesture they carry no individual timestamps. We treat
+    the batch as a sequence and insert each at the front in iteration order — so the
+    <b>last item in the batch ends up leftmost</b>, and the whole batch sits to the left of
+    everything that was already on the shelf, in consistent newest-left order.
+  </p>
+
+  <div class="demo">
+    <div class="demo-label">LIVE · <b>batch of 3</b></div>
+    <div class="notch-rail">
+      <div class="left-axis"><b>NEWEST</b><span class="axis-arrow">←</span></div>
+      <div class="shelf empty" id="shelf2">drop a batch —</div>
+      <div class="right-axis">OLDEST<span class="axis-arrow">→</span></div>
+    </div>
+    <div class="controls">
+      <button class="act" onclick="seed2()">Seed 2 older items</button>
+      <button class="act primary" onclick="batch2()">＋ Drop batch [A, B, C]</button>
+      <button class="act ghost" onclick="reset2()">Reset</button>
+    </div>
+    <div class="hint">Batch <code>[A,B,C]</code> → C lands leftmost, then B, then A, all left of the older items.</div>
+  </div>
+</section>
+
+<!-- ============ RE-DROP ============ -->
+<section>
+  <div class="kicker">Decision 3 · Re-drop</div>
+  <h2>Re-dropping promotes to front.</h2>
+  <p>
+    Dropping an image that is <b>already on the shelf</b> doesn't create a duplicate and
+    doesn't leave it in place — it's the most recently touched item, so it is
+    <b>promoted to the leftmost position</b>. Implementation: remove the stale entry by
+    <span class="tag">identityKey</span>, then insert at index 0.
+  </p>
+
+  <div class="demo">
+    <div class="demo-label">LIVE · <b>promote</b></div>
+    <div class="notch-rail">
+      <div class="left-axis"><b>NEWEST</b><span class="axis-arrow">←</span></div>
+      <div class="shelf empty" id="shelf3">seed, then re-drop —</div>
+      <div class="right-axis">OLDEST<span class="axis-arrow">→</span></div>
+    </div>
+    <div class="controls">
+      <button class="act" onclick="seed3()">Seed [1, 2, 3, 4]</button>
+      <button class="act primary" onclick="redrop3()">Re-drop item #2</button>
+      <button class="act ghost" onclick="reset3()">Reset</button>
+    </div>
+    <div class="hint">Re-dropping <code>#2</code> pulls it from the middle to the far left — no duplicate added.</div>
+  </div>
+</section>
+
+<!-- ============ MIGRATION ============ -->
+<section>
+  <div class="kicker">Decision 2 · Migration</div>
+  <h2>Existing shelves reverse once.</h2>
+  <p>
+    Items saved by older builds are stored oldest-first (the old <span class="tag">append</span>
+    order). On the <b>first launch</b> under the new build the persisted array is
+    <b>reversed exactly once</b> — guarded by <span class="tag">ShelfNewestLeftMigrationV1</span> in
+    UserDefaults — so your existing items adopt the newest-leftmost invariant immediately
+    instead of looking inconsistent until the shelf churns over.
+  </p>
+
+  <div class="demo">
+    <div class="demo-label">LIVE · <b>one-shot reverse</b></div>
+    <div class="notch-rail">
+      <div class="left-axis"><b>NEWEST</b><span class="axis-arrow">←</span></div>
+      <div class="shelf empty" id="shelf4">load an old shelf —</div>
+      <div class="right-axis">OLDEST<span class="axis-arrow">→</span></div>
+    </div>
+    <div class="controls">
+      <button class="act" onclick="loadOld4()">Load OLD-build shelf (oldest-left)</button>
+      <button class="act primary" onclick="migrate4()">Run migration once</button>
+      <button class="act ghost" onclick="reset4()">Reset</button>
+    </div>
+    <div class="hint" id="hint4">Old store shows #1 (oldest) on the left. Migration flips it so #5 (newest) leads.</div>
+  </div>
+</section>
+
+<!-- ============ DECISIONS SUMMARY ============ -->
+<section>
+  <div class="kicker">Settled decisions</div>
+  <h2>What we agreed in the grill.</h2>
+  <div class="cards">
+    <div class="card">
+      <div class="num">DECISION 1</div>
+      <h4>Order basis: insertion recency</h4>
+      <p>Newest-added is leftmost — not a timestamp sort. No new model field; works uniformly for files, links, text, and screenshots.</p>
+      <div class="verdict">insert(at: 0), no schema change</div>
+    </div>
+    <div class="card">
+      <div class="num">DECISION 2</div>
+      <h4>Migration: reverse existing once</h4>
+      <p>Persisted oldest-first arrays are reversed a single time on first launch, gated by a UserDefaults flag.</p>
+      <div class="verdict">ShelfNewestLeftMigrationV1</div>
+    </div>
+    <div class="card">
+      <div class="num">DECISION 3</div>
+      <h4>Re-drop promotes to front</h4>
+      <p>A duplicate (same identityKey) is removed and re-inserted at index 0. No orphaned files — identityKey is path/content-based.</p>
+      <div class="verdict">removeAll + insert(at: 0)</div>
+    </div>
+    <div class="card">
+      <div class="num">DECISION 4</div>
+      <h4>Batch: last in batch leftmost</h4>
+      <p>Each item in a multi-drop inserts at the front in iteration order, so the batch sits left of older items, last-processed leading.</p>
+      <div class="verdict">per-item insert(at: 0)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ IMPLEMENTATION ============ -->
+<section>
+  <div class="kicker">Implementation</div>
+  <h2>The exact change.</h2>
+
+  <p class="file-ref"><b>ShelfStateViewModel.swift</b> · add(_:) — insertion + promote + batch</p>
+  <pre><code><span class="c-key">func</span> <span class="c-fn">add</span>(_ newItems: [ShelfItem]) {
+    <span class="c-key">guard</span> !newItems.isEmpty <span class="c-key">else</span> { <span class="c-key">return</span> }
+    <span class="c-key">var</span> merged = items
+    <span class="c-com">// Newest-leftmost: insert each at front in iteration order (last in batch = leftmost).</span>
+    <span class="c-com">// Re-dropped item (same identityKey) is promoted: remove stale entry, re-insert at 0.</span>
+    <span class="c-key">for</span> it <span class="c-key">in</span> newItems {
+        <span class="c-key">let</span> key = it.identityKey
+        merged.<span class="c-fn">removeAll</span> { $0.identityKey == key }
+        merged.<span class="c-fn">insert</span>(it, at: <span class="c-num">0</span>)
+    }
+    items = merged
+}</code></pre>
+
+  <p class="file-ref"><b>ShelfStateViewModel.swift</b> · init() — one-shot reverse migration</p>
+  <pre><code><span class="c-key">private init</span>() {
+    <span class="c-key">var</span> loaded = ShelfPersistenceService.shared.<span class="c-fn">load</span>()
+    <span class="c-key">if</span> !UserDefaults.standard.<span class="c-fn">bool</span>(forKey: Self.newestLeftMigrationKey) {
+        loaded.<span class="c-fn">reverse</span>()  <span class="c-com">// oldest-first → newest-first, exactly once</span>
+        UserDefaults.standard.<span class="c-fn">set</span>(<span class="c-key">true</span>, forKey: Self.newestLeftMigrationKey)
+    }
+    items = loaded
+}</code></pre>
+
+  <p class="file-ref"><b>ShelfView.swift</b> · content — snap to leading on new arrival</p>
+  <pre><code><span class="c-fn">ScrollViewReader</span> { proxy <span class="c-key">in</span>
+    <span class="c-fn">ScrollView</span>(.horizontal) {
+        <span class="c-fn">HStack</span> { <span class="c-fn">ForEach</span>(tvm.items) { item <span class="c-key">in</span> ShelfItemView(item: item).<span class="c-fn">id</span>(item.id) } }
+    }
+    <span class="c-com">// New items land at index 0; snap back to leading so they're visible.</span>
+    .<span class="c-fn">onChange</span>(of: tvm.items.first?.id) { _, frontID <span class="c-key">in</span>
+        <span class="c-key">guard let</span> frontID <span class="c-key">else</span> { <span class="c-key">return</span> }
+        <span class="c-fn">withAnimation</span>(Motion.<span class="c-fn">resolved</span>(Motion.shelfItemEnter, reduceMotion: reduceMotion)) {
+            proxy.<span class="c-fn">scrollTo</span>(frontID, anchor: .leading)
+        }
+    }
+}</code></pre>
+
+  <h3>Before / after</h3>
+  <table>
+    <tr><th>Behavior</th><th>Was</th><th>Now</th></tr>
+    <tr><td><b>New drop</b></td><td class="was">append → rightmost</td><td class="now">insert(at:0) → leftmost</td></tr>
+    <tr><td><b>Re-drop existing</b></td><td class="was">skipped, stays put</td><td class="now">promoted to leftmost</td></tr>
+    <tr><td><b>Batch [A,B,C]</b></td><td class="was">A…B…C left-to-right at end</td><td class="now">C,B,A at front (last=left)</td></tr>
+    <tr><td><b>Existing shelf</b></td><td class="was">oldest-leftmost (stale)</td><td class="now">reversed once → newest-left</td></tr>
+    <tr><td><b>Scroll position</b></td><td class="was">stays where scrolled</td><td class="now">snaps to leading on add</td></tr>
+  </table>
+</section>
+
+<footer>
+  <p><b>boring.notch</b> · Shelf ordering spec · SHELF-ORD-001 · Reduced-motion honored throughout · Aligned via /grill-me + /grill-with-docs</p>
+</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   Live shelf simulator. Mirrors the Swift logic exactly:
+   - add(): for each item, removeByKey then unshift (insert at 0)
+   - render(): array index 0 = leftmost DOM child
+   ============================================================ */
+const PALETTE = ['#f3766b','#4fd964','#ff9f0a','#d49a52','#7aa2f7','#bb9af7','#7dcfff','#9ece6a'];
+function hue(seq){ return PALETTE[(seq-1) % PALETTE.length]; }
+
+function makeThumb(seq, label){ return { key: 'item-'+seq, seq, label: label || ('#'+seq) }; }
+
+function render(elId, arr, opts){
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  if(!arr.length){ el.classList.add('empty'); el.textContent = (opts && opts.placeholder) || 'empty —'; return; }
+  el.classList.remove('empty');
+  arr.forEach((it) => {
+    const d = document.createElement('div');
+    d.className = 'thumb' + (opts && opts.flashKey === it.key ? ' flash' : '');
+    d.style.background = 'linear-gradient(150deg, ' + hue(it.seq) + ', ' + hue(it.seq) + 'bb)';
+    d.innerHTML = '<span class="seq">'+it.seq+'</span>' + it.label;
+    el.appendChild(d);
+  });
+  // snap to leading edge (mirrors scrollTo(anchor:.leading))
+  el.scrollLeft = 0;
+}
+
+/* mirrors ShelfStateViewModel.add() */
+function add(arr, items){
+  items.forEach(it => {
+    const i = arr.findIndex(x => x.key === it.key);
+    if(i >= 0) arr.splice(i, 1);   // removeAll { identityKey == key }
+    arr.unshift(it);               // insert(at: 0)
+  });
+  return arr;
+}
+
+/* ---- demo 1: single drops ---- */
+let s1 = [], n1 = 0;
+function drop1(){ n1++; add(s1, [makeThumb(n1)]); render('shelf1', s1); }
+function reset1(){ s1 = []; n1 = 0; render('shelf1', s1, {placeholder:'drop something —'}); }
+
+/* ---- demo 2: batch ---- */
+let s2 = [], n2 = 0;
+function seed2(){ s2 = []; n2 = 0; add(s2, [makeThumb(++n2,'old1')]); add(s2, [makeThumb(++n2,'old2')]); render('shelf2', s2); }
+function batch2(){
+  const batch = [makeThumb(++n2,'A'), makeThumb(++n2,'B'), makeThumb(++n2,'C')];
+  add(s2, batch); render('shelf2', s2);
+}
+function reset2(){ s2 = []; n2 = 0; render('shelf2', s2, {placeholder:'drop a batch —'}); }
+
+/* ---- demo 3: re-drop promote ---- */
+let s3 = [];
+function seed3(){ s3 = []; for(let i=1;i<=4;i++) add(s3, [makeThumb(i)]); render('shelf3', s3); }
+function redrop3(){
+  if(!s3.length){ seed3(); }
+  add(s3, [makeThumb(2)]);          // same key 'item-2' → promoted
+  render('shelf3', s3, {flashKey:'item-2'});
+}
+function reset3(){ s3 = []; render('shelf3', s3, {placeholder:'seed, then re-drop —'}); }
+
+/* ---- demo 4: migration ---- */
+let s4 = [], migrated4 = false;
+function loadOld4(){
+  // old build persisted oldest-first: [#1(oldest) ... #5(newest)] → render shows #1 leftmost
+  s4 = [makeThumb(1),makeThumb(2),makeThumb(3),makeThumb(4),makeThumb(5)];
+  migrated4 = false;
+  render('shelf4', s4);
+  document.getElementById('hint4').innerHTML = 'OLD store loaded: <code>#1</code> (oldest) is wrongly leftmost. Run migration →';
+}
+function migrate4(){
+  if(!s4.length){ loadOld4(); }
+  if(migrated4){ document.getElementById('hint4').innerHTML = 'Already migrated — the flag prevents a second reverse. ✓'; return; }
+  s4.reverse(); migrated4 = true;
+  render('shelf4', s4, {flashKey:'item-5'});
+  document.getElementById('hint4').innerHTML = 'Migrated once: <code>#5</code> (newest) now leads. Flag set — won\'t reverse again. ✓';
+}
+function reset4(){ s4 = []; migrated4 = false; render('shelf4', s4, {placeholder:'load an old shelf —'}); document.getElementById('hint4').innerHTML = 'Old store shows #1 (oldest) on the left. Migration flips it so #5 (newest) leads.'; }
+</script>
+</body>
+</html>
