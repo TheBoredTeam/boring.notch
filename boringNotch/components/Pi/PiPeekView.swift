@@ -4,9 +4,11 @@
 //
 //  The collapsed live-activity for a running Pi turn. Mirrors MusicLiveActivity's
 //  three-slot layout: toolkit logo (with a colored glow) on the left, the black
-//  notch spacer in the middle, the current phase text + a tinted wave on the right.
+//  notch spacer in the middle, the current phase text + a tinted wave on the right —
+//  the right slot rides on a two-hue "edge bloom" gradient that expands while a tool
+//  call is in flight and shrinks back while the model is just thinking.
 //
-//  Phase text precedence: forming tool (shimmer) → executing tool (solid, accent)
+//  Phase text precedence: forming tool (shimmer) → executing tool (solid, white)
 //  → "✓ Done" → status word.
 //
 
@@ -20,6 +22,30 @@ struct PiPeekView: View {
 
     private var slot: CGFloat { max(0, vm.effectiveClosedNotchHeight - 12) }
 
+    /// One wing's width — shared by the left (logo) and right (text + wave) slots.
+    ///
+    /// The peek is screen-centered and the physical notch is screen-centered, so the
+    /// black spacer only lines up with the camera housing when both wings are equal.
+    /// Unequal wings shift the spacer off-center and the phase text slides under the
+    /// real notch. The wing is sized to the live phase text so longer labels widen
+    /// the notch instead of hiding or truncating.
+    private var wingWidth: CGFloat {
+        // Measure peekText at the label font (11pt semibold rounded, 0.2 kerning).
+        let base = NSFont.systemFont(ofSize: 11, weight: .semibold)
+        let descriptor = base.fontDescriptor.withDesign(.rounded) ?? base.fontDescriptor
+        let font = NSFont(descriptor: descriptor, size: 11) ?? base
+        let textWidth = ceil(
+            (peekText as NSString).size(withAttributes: [.font: font, .kern: 0.2]).width
+        )
+        // Right slot naturals: 18 leading + text + 10 gap + 16 wave + 16 trailing.
+        let rightNatural = 18 + textWidth + 10 + 16 + 16
+        // Left slot naturals: 14 leading + logo + 14 trailing.
+        let leftNatural = slot + 28
+        // Cap so two wings + the notch never outgrow the host window.
+        let cap = (windowSize.width - vm.closedNotchSize.width) / 2 - 8
+        return min(cap, max(148, rightNatural, leftNatural))
+    }
+
     /// Flair color sampled from the active toolkit logo, or the app accent as a
     /// fallback (idle / before a logo loads).
     private var accentColor: Color {
@@ -31,31 +57,51 @@ struct PiPeekView: View {
         pi.toolkitAccent ?? NSColor.effectiveAccent
     }
 
+    /// The accent hue-shifted toward indigo — the second stop of the edge bloom, so
+    /// the gradient reads as a two-hue aurora (gmail red→violet, calendar blue→indigo)
+    /// instead of a flat single-color glow.
+    private var companionColor: Color {
+        let base = pi.toolkitAccent ?? NSColor.effectiveAccent
+        let shifted = base.blended(withFraction: 0.6, of: .systemIndigo) ?? base
+        return Color(nsColor: shifted)
+    }
+
+    /// True while the model is forming or executing a tool call — drives the bloom's
+    /// expansion. Plain thinking keeps it small; tool work makes it swell.
+    private var toolCallActive: Bool {
+        pi.isForming || pi.currentTool != nil
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // LEFT — toolkit logo with a colored glow (morphs to/from the tab).
-            // Breathing room on both sides: 14pt outer edge, 14pt before the cutout.
+            // Pinned to the outer edge of a full wing so the center spacer stays
+            // glued to the physical notch.
             logo
                 .frame(width: slot, height: slot)
                 .background(glow)
                 .matchedGeometryEffect(id: "piLogo", in: logoNamespace)
                 .padding(.leading, 14)
-                .padding(.trailing, 14)
+                .frame(width: wingWidth, alignment: .leading)
 
             // CENTER — the physical notch gap.
             Rectangle()
                 .fill(.black)
                 .frame(width: vm.closedNotchSize.width)
 
-            // RIGHT — phase text (shimmer while forming, tinted while executing) + the wave.
-            HStack(spacing: 8) {
+            // RIGHT — phase text (shimmer while forming, tinted while executing) pushed
+            // apart from the wave, both riding on the edge bloom.
+            HStack(spacing: 10) {
                 peekLabel
                     .id(peekText)
                     .transition(Motion.transition(Motion.textSwap, reduceMotion: reduceMotion))
+                Spacer(minLength: 10)
                 PiThinkingBarsView(isActive: pi.isRunning, tint: waveTint)
             }
-            .frame(width: max(slot, 96), alignment: .leading)
-            .padding(.leading, 16)
+            .padding(.leading, 18)
+            .padding(.trailing, 16)
+            .frame(width: wingWidth, alignment: .leading)
+            .background(edgeBloom)
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
         .animation(Motion.resolved(Motion.textSwapIn, reduceMotion: reduceMotion), value: peekText)
@@ -87,14 +133,15 @@ struct PiPeekView: View {
         }
     }
 
-    /// Soft colored glow behind the logo — blooms in while a run is active. The
-    /// toolkit color arrives as early as `tool_forming` (logo loads then), so the
-    /// bloom takes on the real app's flair before the tool even executes.
+    /// Soft colored glow behind the logo — blooms in while a run is active and swells
+    /// further while a tool call is in flight. The toolkit color arrives as early as
+    /// `tool_forming` (logo loads then), so the bloom takes on the real app's flair
+    /// before the tool even executes.
     private var glow: some View {
         Circle()
             .fill(
                 RadialGradient(
-                    colors: [accentColor.opacity(0.75), .clear],
+                    colors: [accentColor.opacity(0.8), companionColor.opacity(0.4), .clear],
                     center: .center,
                     startRadius: 0,
                     endRadius: slot * 0.9
@@ -102,25 +149,69 @@ struct PiPeekView: View {
             )
             .frame(width: slot * 1.7, height: slot * 1.7)
             .blur(radius: slot * 0.18)
-            .opacity(pi.isRunning ? 0.85 : 0)
-            .scaleEffect(pi.isRunning ? 1 : 0.6)
+            .opacity(pi.isRunning ? (toolCallActive ? 1 : 0.7) : 0)
+            .scaleEffect(pi.isRunning ? (toolCallActive ? 1.15 : 0.85) : 0.6)
             .animation(
                 reduceMotion ? Motion.reduced : Motion.glowBloom,
                 value: pi.isRunning
             )
+            .animation(
+                reduceMotion ? Motion.reduced : Motion.glowBloom,
+                value: toolCallActive
+            )
             .allowsHitTesting(false)
     }
 
+    /// The screenshot-style aurora bleeding in from the peek's outer edge: a two-hue
+    /// elliptical gradient (toolkit accent → indigo companion → clear) anchored at the
+    /// trailing edge behind the wave. It expands while a tool call is in flight,
+    /// settles back while the model is just thinking, and collapses when the run ends.
+    private var edgeBloom: some View {
+        EllipticalGradient(
+            colors: [
+                accentColor.opacity(0.65),
+                companionColor.opacity(0.35),
+                .clear,
+            ],
+            center: .trailing,
+            startRadiusFraction: 0,
+            endRadiusFraction: 0.95
+        )
+        .scaleEffect(
+            x: toolCallActive ? 1.0 : 0.55,
+            y: toolCallActive ? 1.0 : 0.75,
+            anchor: .trailing
+        )
+        .blur(radius: 7)
+        .opacity(pi.isRunning ? (toolCallActive ? 1 : 0.5) : 0)
+        .animation(
+            reduceMotion ? Motion.reduced : Motion.glowBloom,
+            value: toolCallActive
+        )
+        .animation(
+            reduceMotion ? Motion.reduced : Motion.glowBloom,
+            value: pi.isRunning
+        )
+        .allowsHitTesting(false)
+    }
+
     /// The right-slot label for the current phase. Forming tools shimmer; executing
-    /// tools sit solid in the toolkit accent; everything else is resting gray.
+    /// tools sit solid in white (they ride on the colored bloom, so white reads
+    /// cleaner than accent-on-accent); everything else is resting gray.
     @ViewBuilder
     private var peekLabel: some View {
         if pi.isForming {
-            PiShimmerText(text: peekText, baseColor: .gray, active: true)
+            PiShimmerText(
+                text: peekText,
+                baseColor: .gray,
+                active: true,
+                font: .system(size: 11, weight: .semibold, design: .rounded)
+            )
         } else {
             Text(peekText)
-                .font(.system(size: 10, weight: .semibold, design: .rounded))
-                .foregroundStyle(pi.isRunning ? accentColor : .gray)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .kerning(0.2)
+                .foregroundStyle(pi.isRunning ? .white : .gray)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }

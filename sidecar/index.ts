@@ -16,9 +16,37 @@
  * It reuses the user's pi/composio CLI login by inheriting HOME (so ~/.pi and
  * ~/.composio resolve). The Composio × Pi extension is auto-loaded by pi from the
  * user's `packages` setting in ~/.pi/agent/settings.json.
+ *
+ * Conversation lifecycle: one in-memory session carries context across prompts,
+ * but it expires after IDLE_RESET_MS without a prompt following the last
+ * response — the next prompt then starts a fresh thread instead of dragging
+ * hours of stale context (and its token cost) along.
  */
 
-import { createAgentSession, SessionManager } from "@mariozechner/pi-coding-agent";
+import {
+    createAgentSession,
+    DefaultResourceLoader,
+    getAgentDir,
+    SessionManager,
+    SettingsManager,
+} from "@mariozechner/pi-coding-agent";
+
+/**
+ * Appended to pi's system prompt. Prompts from the notch are one-shot commands
+ * fired from a tiny panel — not a chat — so the agent must act, never interview.
+ */
+const NOTCH_SYSTEM_PROMPT = `
+## boring.notch execution context
+
+You are running inside boring.notch, a small macOS notch utility. Each user prompt is a
+one-shot command, not the start of a conversation:
+
+- NEVER ask clarifying questions or present options — there is no back-and-forth. Pick the
+  most reasonable interpretation and execute it fully.
+- Use your tools to complete the task end-to-end in this single turn.
+- Keep the final reply short: what was done and the key result. No "let me know if…"
+  closers, no follow-up questions.
+`.trim();
 
 // stdout is our protocol channel — keep it pure. Route any stray library logging
 // to stderr so it can't corrupt a JSON line.
@@ -85,18 +113,84 @@ interface FormingTool {
 }
 
 async function main(): Promise<void> {
-    let session;
-    try {
-        const result = await createAgentSession({
-            // No persisted session file — each app run is ephemeral.
-            sessionManager: SessionManager.inMemory(),
-            // Model/provider/extensions all inherited from ~/.pi/agent settings.
-        });
-        session = result.session;
-    } catch (e: any) {
-        emit({ type: "error", message: "init failed: " + String(e?.message ?? e) });
-        emit({ type: "done" });
-        process.exit(1);
+    // ── Conversation lifecycle ──────────────────────────────────────────────
+    // One in-memory session holds the conversation across prompts. It is NOT
+    // app-lifetime: IDLE_RESET_MS after the last response with no new prompt,
+    // the session is disposed and a fresh one is created, so a prompt after a
+    // long gap starts a clean thread.
+    const IDLE_RESET_MS = 5 * 60 * 1000;
+
+    let session: any = null;
+    let sessionPromise: Promise<any> | null = null;
+    let unsubscribe: (() => void) | null = null;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    /** Create the session on first use (or after an idle reset); reuse it otherwise. */
+    function ensureSession(): Promise<any> {
+        if (!sessionPromise) {
+            sessionPromise = (async () => {
+                // Mirror createAgentSession's default loader wiring, but append the
+                // notch's one-shot-command contract to the system prompt. The override
+                // form keeps any user APPEND_SYSTEM.md instead of shadowing it.
+                const cwd = process.cwd();
+                const agentDir = getAgentDir();
+                const settingsManager = SettingsManager.create(cwd, agentDir);
+                const resourceLoader = new DefaultResourceLoader({
+                    cwd,
+                    agentDir,
+                    settingsManager,
+                    appendSystemPromptOverride: (base: string[]) => [...base, NOTCH_SYSTEM_PROMPT],
+                });
+                await resourceLoader.reload();
+
+                const result = await createAgentSession({
+                    // No persisted session file — conversations never outlive the process.
+                    sessionManager: SessionManager.inMemory(),
+                    // Model/provider/extensions all inherited from ~/.pi/agent settings.
+                    settingsManager,
+                    resourceLoader,
+                });
+                session = result.session;
+                unsubscribe = session.subscribe(handleAgentEvent);
+                return session;
+            })().catch((e) => {
+                // Don't cache the failure — let the next prompt retry.
+                sessionPromise = null;
+                throw e;
+            });
+        }
+        return sessionPromise;
+    }
+
+    /** Drop the current conversation so the next ensureSession() starts fresh. */
+    function teardownSession(): void {
+        unsubscribe?.();
+        unsubscribe = null;
+        session?.dispose();
+        session = null;
+        sessionPromise = null;
+    }
+
+    /** (Re)start the idle countdown. Armed on each response, disarmed by each prompt. */
+    function armIdleReset(): void {
+        disarmIdleReset();
+        idleTimer = setTimeout(() => {
+            idleTimer = null;
+            toErr(`idle reset: dropping conversation after ${IDLE_RESET_MS / 60000}min without a prompt`);
+            teardownSession();
+            // Recreate eagerly so the next prompt doesn't pay session-creation
+            // latency. If this fails, ensureSession() retries on the next prompt.
+            ensureSession().catch((e: any) =>
+                toErr("idle reset: recreate failed (will retry on next prompt):", String(e?.message ?? e)),
+            );
+        }, IDLE_RESET_MS);
+    }
+
+    function disarmIdleReset(): void {
+        if (idleTimer) {
+            clearTimeout(idleTimer);
+            idleTimer = null;
+        }
     }
 
     // Tool calls the model is still streaming arguments for, keyed by contentIndex.
@@ -130,8 +224,9 @@ async function main(): Promise<void> {
         return null;
     }
 
-    // Translate agent events → wire protocol.
-    session.subscribe((event: any) => {
+    // Translate agent events → wire protocol. Named (not inline) so each fresh
+    // session created by ensureSession() can re-subscribe the same handler.
+    function handleAgentEvent(event: any): void {
         switch (event.type) {
             case "agent_start":
                 formingTools.clear();
@@ -189,32 +284,47 @@ async function main(): Promise<void> {
                 formingTools.clear();
                 emitStatus("done");
                 emit({ type: "done" });
+                // Last response delivered — start the conversation-expiry countdown.
+                armIdleReset();
                 break;
         }
-    });
+    }
+
+    // Create the first session up front so launch/config failures surface immediately.
+    try {
+        await ensureSession();
+    } catch (e: any) {
+        emit({ type: "error", message: "init failed: " + String(e?.message ?? e) });
+        emit({ type: "done" });
+        process.exit(1);
+    }
 
     async function handlePrompt(text: string): Promise<void> {
+        disarmIdleReset(); // a prompt keeps the conversation alive
         lastStatusWord = null; // fresh run → let "thinking" emit again
         try {
-            if (session.isStreaming) {
-                await session.prompt(text, { streamingBehavior: "followUp" });
+            const s = await ensureSession();
+            if (s.isStreaming) {
+                await s.prompt(text, { streamingBehavior: "followUp" });
             } else {
-                await session.prompt(text);
+                await s.prompt(text);
             }
         } catch (e: any) {
             emit({ type: "error", message: String(e?.message ?? e) });
             emit({ type: "done" });
+            armIdleReset();
         }
     }
 
     async function handleAbort(): Promise<void> {
         try {
-            await session.abort();
+            await session?.abort();
         } catch {
             /* ignore */
         }
         emitStatus("aborted");
         emit({ type: "done" });
+        armIdleReset();
     }
 
     function dispatch(msg: any): void {
