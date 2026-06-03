@@ -47,7 +47,8 @@ one-shot command, not the start of a conversation:
 - For Composio tools: use only ACTIVE connected accounts, always pass \`account\` when an
   alias/id is available, never use EXPIRED/INITIALIZING accounts, and if no ACTIVE
   account exists call \`composio_manage_connections\`. If a connection URL is returned,
-  include it plainly in the final answer as a bare URL.
+  mention that the user should use the connection link; do not paste raw URLs unless
+  explicitly requested.
 - Keep the final reply short: what was done and the key result. No "let me know if…"
   closers, no follow-up questions.
 `.trim();
@@ -138,6 +139,10 @@ function firstHttpUrl(text: string): string | null {
 function connectionAppFromText(text: string, fallback?: string): string {
     const match = text.match(/Connect\s+([A-Za-z0-9_-]+)\s*:/i);
     return (match?.[1] ?? fallback ?? "Composio").toLowerCase();
+}
+
+function markdownLinkText(text: string): string {
+    return text.replace(/[\\\[\]]/g, "\\$&");
 }
 
 function isConnectionText(text: string): boolean {
@@ -269,7 +274,7 @@ async function main(): Promise<void> {
         const app = connectionAppFromText(text, fallbackApp);
         const alias = typeof context.args?.alias === "string" ? context.args.alias : undefined;
         emit({ type: "connection_required", app, url, alias });
-        emit({ type: "text_delta", delta: `\n\nConnect ${app}: ${url}\n` });
+        emit({ type: "text_delta", delta: `\n\n[Connect ${markdownLinkText(app)}](${url})\n` });
     }
 
     // Translate agent events → wire protocol. Named (not inline) so each fresh
@@ -280,6 +285,7 @@ async function main(): Promise<void> {
                 formingTools.clear();
                 toolContexts.clear();
                 emittedConnectionUrls.clear();
+                emit({ type: "agent_start" });
                 emitStatus("thinking");
                 break;
             case "message_update": {

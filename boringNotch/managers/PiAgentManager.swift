@@ -243,7 +243,15 @@ final class PiAgentManager: ObservableObject {
     /// Abort the current run (⌘.).
     func abort() {
         guard isRunning else { return }
+        connectionPrompt = nil
         write(["type": "abort"])
+    }
+
+    /// Hide the transient Composio auth CTA. The transcript may still contain the
+    /// per-turn markdown link; the oversized prompt should not reserve layout after
+    /// click, finish, abort, or the next turn.
+    func dismissConnectionPrompt() {
+        connectionPrompt = nil
     }
 
     private func write(_ object: [String: Any]) {
@@ -264,6 +272,9 @@ final class PiAgentManager: ObservableObject {
         switch event.type {
         case "ready":
             break
+
+        case "agent_start":
+            connectionPrompt = nil
 
         case "status":
             if let word = event.word { statusWord = word }
@@ -316,9 +327,11 @@ final class PiAgentManager: ObservableObject {
             }
 
         case "error":
+            connectionPrompt = nil
             lastError = event.message ?? "Pi encountered an error."
 
         case "done":
+            connectionPrompt = nil
             isRunning = false
             currentTool = nil
             currentToolPretty = nil
