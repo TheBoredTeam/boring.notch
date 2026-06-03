@@ -278,36 +278,33 @@ struct PiAgentView: View {
     private func connectionPrompt(_ prompt: ConnectionPrompt) -> some View {
         Button {
             NSWorkspace.shared.open(prompt.url)
+            pi.dismissConnectionPrompt()
         } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "link.circle.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.effectiveAccent)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Connect \(prompt.app)")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.primary)
-                    Text(prompt.alias.map { "Alias: \($0)" } ?? "Open Composio connection link")
-                        .font(.system(size: 10.5))
-                        .foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 8)
-                Image(systemName: "arrow.up.forward")
+            HStack(spacing: 6) {
+                Image(systemName: "link")
                     .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.effectiveAccent)
+                Text("Connect \(prompt.app)" + (prompt.alias.map { " · \($0)" } ?? ""))
+                    .font(.system(size: 11.5, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Image(systemName: "arrow.up.forward")
+                    .font(.system(size: 9.5, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
             .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                Capsule(style: .continuous)
                     .fill(Color.effectiveAccent.opacity(0.12))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color.effectiveAccent.opacity(0.35), lineWidth: 1)
+                        Capsule(style: .continuous)
+                            .stroke(Color.effectiveAccent.opacity(0.30), lineWidth: 1)
                     )
             )
         }
         .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
+        .fixedSize(horizontal: true, vertical: false)
         .help(prompt.url.absoluteString)
         .accessibilityLabel("Connect \(prompt.app) in Composio")
     }

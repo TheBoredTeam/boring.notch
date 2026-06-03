@@ -598,8 +598,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let stateSignal = vm.$notchState
             .map { _ in () }
             .eraseToAnyPublisher()
+        // Pending hover-open of a content-tall Pi panel. This lets the host window
+        // grow before `notchState` flips to open, so hover behaves like Home/Shelf
+        // instead of briefly clipping the panel and firing a false mouse-leave.
+        let edgeAutoOpenSignal = vm.$edgeAutoOpenActive
+            .map { _ in () }
+            .eraseToAnyPublisher()
 
-        piExpandedCancellable = Publishers.MergeMany([panelSignal, viewSignal, stateSignal])
+        piExpandedCancellable = Publishers.MergeMany([panelSignal, viewSignal, stateSignal, edgeAutoOpenSignal])
             .receive(on: RunLoop.main)
             .sink { [weak self] in
                 self?.syncNotchWindowHeight()
@@ -607,10 +613,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// The window height a view model's current state wants: panel height + shadow
-    /// while the Pi tab is open (content-driven), the short base height otherwise.
+    /// while the Pi tab is open (or is just about to hover-open), the short base
+    /// height otherwise.
     @MainActor
     private func windowHeightTarget(for viewModel: BoringViewModel) -> CGFloat {
-        guard viewModel.notchState == .open, coordinator.currentView == .pi else {
+        guard coordinator.currentView == .pi,
+              (viewModel.notchState == .open || viewModel.edgeAutoOpenActive) else {
             return windowSize.height
         }
         return max(viewModel.openPanelHeight + shadowPadding, windowSize.height)

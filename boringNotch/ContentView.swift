@@ -6,6 +6,7 @@
 //  Modified by Richard Kunkli on 24/08/2024.
 //
 
+import AppKit
 import AVFoundation
 import Combine
 import Defaults
@@ -535,6 +536,14 @@ struct ContentView: View {
     }
 
     private func doOpen() {
+        if coordinator.currentView == .pi {
+            // Pi can reopen to a content-tall panel (Composio CTA / streamed answer).
+            // Grow the host window before flipping the SwiftUI panel open so the
+            // hover transition has the same stable hit area as the fixed-height tabs.
+            vm.edgeAutoOpenActive = true
+            (NSApp.delegate as? AppDelegate)?.syncNotchWindowHeight()
+        }
+
         withAnimation(animationSpring) {
             vm.open()
         }
@@ -572,6 +581,10 @@ struct ContentView: View {
                 }
             }
         } else {
+            if vm.notchState == .closed {
+                vm.edgeAutoOpenActive = false
+            }
+
             hoverTask = Task {
                 try? await Task.sleep(for: .milliseconds(100))
                 guard !Task.isCancelled else { return }
@@ -583,6 +596,8 @@ struct ContentView: View {
 
                     if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.piPinHoldsOpen {
                         self.vm.close()
+                    } else if self.vm.notchState == .closed {
+                        self.vm.edgeAutoOpenActive = false
                     }
                 }
             }
