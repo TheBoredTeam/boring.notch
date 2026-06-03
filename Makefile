@@ -5,7 +5,7 @@
 #
 # The binary and its assets are gitignored (the binary is ~69 MB); run this once
 # after a fresh checkout, and again whenever sidecar/index.ts changes.
-SIDECAR_PKG := sidecar/node_modules/@mariozechner/pi-coding-agent
+SIDECAR_PKG := sidecar/node_modules/@earendil-works/pi-coding-agent
 RES := boringNotch/Resources
 
 .PHONY: sidecar
