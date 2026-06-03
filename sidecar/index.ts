@@ -29,7 +29,7 @@ import {
     getAgentDir,
     SessionManager,
     SettingsManager,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 
 /**
  * Appended to pi's system prompt. Prompts from the notch are one-shot commands
