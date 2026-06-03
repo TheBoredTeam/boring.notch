@@ -7,6 +7,7 @@
 //  answer in a panel that grows with its content.
 //
 
+import AppKit
 import SwiftUI
 
 struct PiAgentView: View {
@@ -34,6 +35,10 @@ struct PiAgentView: View {
             activityLine
             if !pi.chips.isEmpty || pi.isForming {
                 chipsRow
+                    .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
+            }
+            if let prompt = pi.connectionPrompt {
+                connectionPrompt(prompt)
                     .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             }
             answer
@@ -266,6 +271,45 @@ struct PiAgentView: View {
         )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(pi.formingToolPretty ?? "Tool"), preparing")
+    }
+
+    // MARK: Connection prompt
+
+    private func connectionPrompt(_ prompt: ConnectionPrompt) -> some View {
+        Button {
+            NSWorkspace.shared.open(prompt.url)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "link.circle.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.effectiveAccent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Connect \(prompt.app)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Text(prompt.alias.map { "Alias: \($0)" } ?? "Open Composio connection link")
+                        .font(.system(size: 10.5))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "arrow.up.forward")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.effectiveAccent.opacity(0.12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.effectiveAccent.opacity(0.35), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
+        .help(prompt.url.absoluteString)
+        .accessibilityLabel("Connect \(prompt.app) in Composio")
     }
 
     // MARK: Answer

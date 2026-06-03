@@ -25,6 +25,15 @@ struct PiEvent: Codable {
     let logo: String?
     let ok: Bool?
     let message: String?
+    let app: String?
+    let url: String?
+    let alias: String?
+}
+
+struct ConnectionPrompt: Equatable {
+    let app: String
+    let url: URL
+    let alias: String?
 }
 
 /// A single tool invocation shown as a chip in the expanded Pi tab.
@@ -53,6 +62,7 @@ final class PiAgentManager: ObservableObject {
     @Published private(set) var toolkitAccent: NSColor?
     @Published private(set) var chips: [ToolChip] = []
     @Published private(set) var transcript: String = ""
+    @Published private(set) var connectionPrompt: ConnectionPrompt?
     @Published private(set) var lastError: String?
 
     /// A tool call the model is still streaming arguments for (sidecar `tool_forming`).
@@ -208,6 +218,7 @@ final class PiAgentManager: ObservableObject {
         start()
 
         transcript = ""
+        connectionPrompt = nil
         chips = []
         currentTool = nil
         currentToolPretty = nil
@@ -295,6 +306,13 @@ final class PiAgentManager: ObservableObject {
             if let id = event.id, let idx = chips.firstIndex(where: { $0.id == id }) {
                 chips[idx].running = false
                 chips[idx].ok = event.ok ?? true
+            }
+
+        case "connection_required":
+            if let app = event.app,
+               let rawURL = event.url,
+               let url = URL(string: rawURL) {
+                connectionPrompt = ConnectionPrompt(app: app, url: url, alias: event.alias)
             }
 
         case "error":
