@@ -15,13 +15,17 @@
 #
 # Usage
 # -----
-#   scripts/sign-and-install.sh [-s SCHEME] [-i "Identity"] [-b BUNDLE_ID] [-n]
+#   scripts/sign-and-install.sh [-s SCHEME] [-i "Identity"] [-b BUNDLE_ID] [-n] [-k]
 #
 #   -s SCHEME      Xcode scheme to build           (default: boringNotch)
 #   -i IDENTITY    codesign identity to sign with  (default: first
 #                  "Apple Development" identity in the login keychain)
 #   -b BUNDLE_ID   bundle id for the TCC reset      (default: theboringteam.boringnotch)
 #   -n             do NOT reset TCC (keep existing Accessibility/SR grants)
+#   -k             KEEP build_install/ after a successful install. Default is to
+#                  prune it: the canonical app lives in /Applications, so the
+#                  ~1GB derivedDataPath copy left behind is a redundant duplicate.
+#                  Pass -k for faster incremental rebuilds at the cost of the disk.
 #   -h             help
 #
 # Run `make sidecar` first if sidecar/index.ts changed — the binary is embedded
@@ -38,14 +42,16 @@ SCHEME="boringNotch"
 IDENTITY=""
 BUNDLE_ID="theboringteam.boringnotch"
 RESET_TCC=1
+KEEP_BUILD=0
 
-while getopts "s:i:b:nh" opt; do
+while getopts "s:i:b:nkh" opt; do
     case "$opt" in
         s) SCHEME="$OPTARG" ;;
         i) IDENTITY="$OPTARG" ;;
         b) BUNDLE_ID="$OPTARG" ;;
         n) RESET_TCC=0 ;;
-        h) sed -n '2,40p' "$0"; exit 0 ;;
+        k) KEEP_BUILD=1 ;;
+        h) sed -n '2,44p' "$0"; exit 0 ;;
         *) echo "Run with -h for usage." >&2; exit 2 ;;
     esac
 done
@@ -152,6 +158,19 @@ log "Done. Launching…"
 # bogus "Invalid API key" in the Pi tab. Drop it so the app resolves the persisted
 # (valid) key instead. (See the composio-key-wiring note.)
 env -u COMPOSIO_API_KEY open "$DEST"
+
+# --- prune the redundant build copy ---
+# The app now lives in /Applications. The derivedDataPath ($BUILD_DIR, ~1GB) is just a
+# duplicate of what we installed, so delete it unless -k asked to keep it for fast
+# incremental rebuilds. This is the one place a redundant boringNotch.app accumulates;
+# stray copies in ~/Library/Developer/Xcode/DerivedData (from opening in Xcode.app) are
+# left alone — they're Xcode's own cache, not ours to nuke.
+if [ "$KEEP_BUILD" -eq 0 ]; then
+    log "Pruning redundant build copy ($BUILD_DIR)… (pass -k to keep it)"
+    rm -rf "$ROOT/$BUILD_DIR"
+else
+    warn "Keeping $BUILD_DIR (-k). Next build is incremental, but it's ~1GB on disk."
+fi
 
 cat <<EOF
 
