@@ -36,7 +36,8 @@ final class ShelfItemViewModel: ObservableObject {
         static let remove = NSLocalizedString("Shelf.ContextMenu.Remove", comment: "Context menu item: Remove")
 
         static var convertImageMenu: String {
-            convertImage.replacingOccurrences(of: "…", with: "").replacingOccurrences(of: "...", with: "")
+            let resolved = convertImage == "Shelf.ContextMenu.ConvertImage" ? "Convert Image…" : convertImage
+            return resolved.replacingOccurrences(of: "…", with: "").replacingOccurrences(of: "...", with: "")
         }
     }
 

@@ -36,7 +36,7 @@ final class ImageProcessingService {
 
     private static let preferredFormats: [ImageConversionFormat] = [
         .init(displayName: "PNG", utType: .png, fileExtension: "png", supportsCompressionQuality: false),
-        .init(displayName: "JPEG", utType: .jpeg, fileExtension: "jpg", supportsCompressionQuality: true),
+        .init(displayName: "JPG", utType: .jpeg, fileExtension: "jpg", supportsCompressionQuality: true),
         .init(displayName: "WEBP", utType: UTType("org.webmproject.webp") ?? UTType(importedAs: "org.webmproject.webp"), fileExtension: "webp", supportsCompressionQuality: true),
         .init(displayName: "HEIC", utType: .heic, fileExtension: "heic", supportsCompressionQuality: true),
         .init(displayName: "TIFF", utType: .tiff, fileExtension: "tiff", supportsCompressionQuality: false),
