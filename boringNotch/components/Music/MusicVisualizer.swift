@@ -72,18 +72,25 @@ class AudioSpectrum: NSView {
     
     private func updateBars() {
         for (i, barLayer) in barLayers.enumerated() {
-            let currentScale = barScales[i]
+            // Start from where the bar actually is right now (the in-flight presentation
+            // value), not the last target — so a tick that interrupts the previous
+            // animation continues smoothly instead of snapping back.
+            let presented = (barLayer.presentation()?.value(forKeyPath: "transform.scale.y") as? CGFloat)
+                ?? barScales[i]
             let targetScale = CGFloat.random(in: 0.35 ... 1.0)
             barScales[i] = targetScale
             let animation = CABasicAnimation(keyPath: "transform.scale.y")
-            animation.fromValue = currentScale
+            animation.fromValue = presented
             animation.toValue = targetScale
-            animation.duration = 0.3
+            // Per-bar duration so the four bars drift out of phase rather than pulsing
+            // in lockstep — reads as a livelier, more organic equalizer.
+            animation.duration = 0.26 + Double(i) * 0.05
             animation.autoreverses = true
+            animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             animation.fillMode = .forwards
             animation.isRemovedOnCompletion = false
             if #available(macOS 13.0, *) {
-                animation.preferredFrameRateRange = CAFrameRateRange(minimum: 24, maximum: 24, preferred: 24)
+                animation.preferredFrameRateRange = CAFrameRateRange(minimum: 24, maximum: 30, preferred: 30)
             }
             barLayer.add(animation, forKey: "scaleY")
         }

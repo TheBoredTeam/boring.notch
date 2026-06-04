@@ -38,15 +38,19 @@ struct PiMarkdownView: View {
                 .font(.system(size: headingSize(level), weight: .semibold))
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
+                // Extra air above the top-level headings so sections read as sections,
+                // not just slightly-bigger lines. (The VStack's 7pt handles the rest.)
+                .padding(.top, level <= 2 ? 3 : 0)
 
         case let .paragraph(content):
             Text(Self.inline(content, accent: accent))
                 .font(.system(size: 12))
                 .foregroundStyle(.primary)
+                .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
 
         case let .list(items):
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .firstTextBaseline, spacing: 7) {
                         Text(item.ordered.map { "\($0)." } ?? "•")
@@ -57,6 +61,7 @@ struct PiMarkdownView: View {
                         Text(Self.inline(item.text, accent: accent))
                             .font(.system(size: 12))
                             .foregroundStyle(.primary)
+                            .lineSpacing(2)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -81,6 +86,7 @@ struct PiMarkdownView: View {
                 Text(Self.inline(content, accent: accent))
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
+                    .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

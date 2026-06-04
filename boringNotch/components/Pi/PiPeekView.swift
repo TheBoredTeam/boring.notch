@@ -106,20 +106,53 @@ struct PiPeekView: View {
         .init(x: 0.55, y: 0.48),
     ]
 
-    /// The toolkit's real brand palette as SwiftUI colors — the aurora paints these
-    /// directly rather than averaging them into one muddy blob (see the toolkit-palette
-    /// spec). A single-hue mark is paired with its `companionColor` for two-hue depth; an
-    /// empty palette falls back to indigo + companion. Capped at five (the anchor count).
+    /// Anchors for RAW curated overrides — mirrors the mockup's `meshCss` layout
+    /// (`docs/pi-brand-palette-manifest.html` `ANCH`), but the mockup paints across a
+    /// continuous bar including dead-center, whereas the real notch masks its center with
+    /// the camera housing. So the mockup's center stop is remapped onto a visible wing —
+    /// no stop is lost behind the notch. Order follows the manifest stops: stop0 dominant
+    /// (left), stop1 (right), stop2 grounding note (lower-right, off the masked center).
+    private static let overrideAnchors: [UnitPoint] = [
+        .init(x: 0.10, y: 0.28),   // stop0 — dominant hue, left wing      (mockup 18%,28%)
+        .init(x: 0.88, y: 0.34),   // stop1 — right wing                   (mockup 78%,34%)
+        .init(x: 0.80, y: 0.80),   // stop2 — grounding note, lower-right  (mockup 50%,70% → off-center)
+        .init(x: 0.16, y: 0.78),   // spare — lower-left wing
+        .init(x: 0.50, y: 0.48),   // spare — masked center (unused by 2–3 stop overrides)
+    ]
+
+    /// The toolkit's brand palette as `(color, weight)` pairs the aurora paints directly,
+    /// rather than averaging them into one muddy blob (see the toolkit-palette spec). A
+    /// single-hue mark is paired with its `companionColor` for two-hue depth; an empty
+    /// palette falls back to indigo + companion. Capped at five (the anchor count).
     ///
-    /// Each color is re-saturated first: `PiAgentManager.legibleTint` mixes the brand
-    /// color 45% toward white for legible *text*, which leaves the aurora pastel. The
-    /// gradient wants the deep, saturated brand tone (the toolkit-palette mockup's
-    /// `#d83030`, not a washed pink), so we push saturation back up and brightness down.
-    private var auroraPalette: [Color] {
-        let cols = pi.toolkitPalette.map { Self.deepen($0) }
-        guard let first = cols.first else { return [Self.deepen(.systemIndigo), companionColor] }
-        let base = cols.count >= 2 ? cols : [first, companionColor]
+    /// Two render modes, keyed by `pi.toolkitPaletteIsRaw`:
+    /// - **Raw curated override** — the manifest stops, verbatim (`rawColor`, no `deepen`
+    ///   distortion). Each stop's per-stop `weight` (the mockup's `*0.55` highlight)
+    ///   travels in the source color's alpha; we lift it out here so the bloom can shrink
+    ///   + dim it exactly like the mockup. White stays white, black stays black.
+    /// - **Derived palette** — re-saturated via `deepen` (undoing `legibleTint`'s wash for
+    ///   text); weight is always 1, so these render identically to before.
+    private var auroraStops: [(color: Color, weight: CGFloat)] {
+        let raw = pi.toolkitPaletteIsRaw
+        let mapped: [(color: Color, weight: CGFloat)] = pi.toolkitPalette.map {
+            let w = raw ? ($0.usingColorSpace(.sRGB)?.alphaComponent ?? 1) : 1
+            let c = raw ? Self.rawColor($0) : Self.deepen($0)
+            return (color: c, weight: w)
+        }
+        guard let first = mapped.first else {
+            return [(color: Self.deepen(.systemIndigo), weight: 1), (color: companionColor, weight: 1)]
+        }
+        let base = mapped.count >= 2 ? mapped : [first, (color: companionColor, weight: 1)]
         return Array(base.prefix(Self.auroraAnchors.count))
+    }
+
+    /// A curated stop → SwiftUI `Color`, verbatim — no `deepen` re-saturation, so the
+    /// hand-picked mockup hues (white highlight, black grounding, brand colors) land
+    /// exactly as authored. The weight rides in `ns`'s alpha; we force opacity 1 here and
+    /// apply the weight as a bloom multiplier in `aurora` instead.
+    private static func rawColor(_ ns: NSColor) -> Color {
+        guard let c = ns.usingColorSpace(.sRGB) else { return Color(nsColor: ns) }
+        return Color(.sRGB, red: c.redComponent, green: c.greenComponent, blue: c.blueComponent, opacity: 1)
     }
 
     /// Restore a brand color to a deep, saturated tone for the aurora, undoing the
@@ -172,7 +205,14 @@ struct PiPeekView: View {
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
         // One continuous aurora behind the whole peek; the black center spacer above
         // masks its middle so only the wings glow. Sits under the content.
-        .background(aurora)
+        //
+        // It bleeds out past ContentView's closed-state horizontal inset
+        // (`cornerRadiusInsets.closed.bottom`) so the glow reaches the *real* notch
+        // silhouette edges instead of floating inset — the parent NotchShape clip then
+        // trims the bleed to the rounded chin, so the color reads as the notch itself
+        // glowing. Without the bleed the aurora showed as a boxy rounded rect tucked
+        // inside the notch, its near-square top corners reading as "squared up".
+        .background(aurora.padding(.horizontal, -cornerRadiusInsets.closed.bottom))
         .animation(Motion.resolved(Motion.textSwapIn, reduceMotion: reduceMotion), value: peekText)
     }
 
@@ -218,31 +258,65 @@ struct PiPeekView: View {
     private var aurora: some View {
         GeometryReader { geo in
             let w = geo.size.width
+            let h = geo.size.height
+            // Underglow only. The big wing-spanning blooms read as a distracting colored
+            // field washing onto the screen, so collapse them to two soft pools of the
+            // brand color tucked *under* the chin — the dominant stop on the left wing, its
+            // companion on the right. The pool centers sit just below the bottom edge
+            // (y > 1) so only the gentle upper falloff is visible; clipped to the chin it
+            // reads as light spilling from the notch's rounded bottom, not a lit panel.
+            // The center spacer in `body` still masks the camera housing between them.
+            let left = auroraStops.first?.color ?? Color(nsColor: .systemIndigo)
+            let right = auroraStops.count > 1 ? auroraStops[1].color : companionColor
             ZStack {
                 Color.black
-                ForEach(Array(auroraPalette.enumerated()), id: \.offset) { index, color in
-                    let anchor = Self.auroraAnchors[index % Self.auroraAnchors.count]
-                    RadialGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: color, location: 0),
-                            .init(color: color.opacity(0), location: 0.55),
-                        ]),
-                        center: anchor,
-                        startRadius: 0,
-                        endRadius: w * (index.isMultiple(of: 2) ? 0.30 : 0.40)
-                    )
-                    .blendMode(.plusLighter)
-                }
+                RadialGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: left.opacity(0.72), location: 0),
+                        .init(color: left.opacity(0), location: 0.62),
+                    ]),
+                    center: UnitPoint(x: 0.14, y: 1.08),
+                    startRadius: 0,
+                    endRadius: w * 0.55
+                )
+                .blendMode(.screen)
+                RadialGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: right.opacity(0.72), location: 0),
+                        .init(color: right.opacity(0), location: 0.62),
+                    ]),
+                    center: UnitPoint(x: 0.86, y: 1.08),
+                    startRadius: 0,
+                    endRadius: w * 0.55
+                )
+                .blendMode(.screen)
             }
-            .frame(width: w, height: geo.size.height)
+            .frame(width: w, height: h)
         }
         .compositingGroup()
         .blur(radius: 5)
+        // Vertical fade, bottom-biased to match the underglow: the color is fully present
+        // along the chin and dissolves to clear toward the top, so any stray glow can't
+        // reach the top corners and the notch reads as lit only at its rounded bottom.
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0.0),
+                    .init(color: .white.opacity(0.55), location: 0.5),
+                    .init(color: .white, location: 1.0),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        // Clip to the actual notch silhouette (not a plain rounded rect) so the bled
+        // glow hugs the rounded 20pt chin exactly the way the parent NotchShape does —
+        // rounded corners, no boxy lit panel floating inside. With the fade above, the
+        // chin it rounds is already black, so no hard color edge remains.
         .clipShape(
-            UnevenRoundedRectangle(
-                topLeadingRadius: 6, bottomLeadingRadius: 20,
-                bottomTrailingRadius: 20, topTrailingRadius: 6,
-                style: .continuous
+            NotchShape(
+                topCornerRadius: cornerRadiusInsets.closed.top,
+                bottomCornerRadius: 20
             )
         )
         .scaleEffect(y: toolCallActive ? 1.0 : 0.96, anchor: .bottom)

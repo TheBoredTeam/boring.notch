@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi · Notch UX fixes — boring.notch</title>
+<style>
+:root{
+  --bg:#0a0b0c; --surface:#121417; --surface-2:#0c0e11;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+  --dim:#7c8088; --txt:#e7e9ec; --accent:#7b9cff; --accent-dim:rgba(123,156,255,.14);
+  --good:#5ad19a; --bad:#ff6b6b; --warn:#ffb454;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#15171b,var(--bg));color:var(--txt);
+  font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:42px 24px 100px}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim)}
+.kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);
+  animation:pulse 2.4s var(--ease) infinite}
+@keyframes pulse{50%{opacity:.4}}
+h1{font-size:31px;margin:14px 0 8px;letter-spacing:-.02em;line-height:1.12}
+.lede{color:var(--dim);font-size:15px;max-width:70ch}
+.lede b{color:var(--txt);font-weight:600}
+code,.k{font-family:var(--mono);font-size:.84em;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:5px}
+
+/* problem index */
+.index{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:30px}
+@media(max-width:820px){.index{grid-template-columns:1fr 1fr}}
+.idx{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--surface),rgba(14,16,18,.5));
+  padding:15px 15px 16px;text-decoration:none;color:inherit;transition:.18s var(--ease);display:block}
+.idx:hover{border-color:var(--line-2);transform:translateY(-2px)}
+.idx .n{font-family:var(--mono);font-size:11px;color:var(--accent)}
+.idx h4{margin:7px 0 5px;font-size:13.5px;letter-spacing:-.01em}
+.idx p{margin:0;font-size:11.5px;color:var(--dim);line-height:1.45}
+.idx .src{margin-top:9px;font-family:var(--mono);font-size:9.5px;color:var(--dim);opacity:.75}
+
+/* sections */
+section{margin-top:64px;scroll-margin-top:20px}
+.sec-num{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--accent);text-transform:uppercase}
+section h2{margin:8px 0 6px;font-size:22px;letter-spacing:-.015em}
+section .sub{color:var(--dim);font-size:14px;max-width:74ch;margin:0 0 4px}
+.prose{color:var(--dim);font-size:13.5px;max-width:74ch;margin:14px 0 0}
+.prose b{color:var(--txt)}
+
+/* screenshot evidence chip */
+.evidence{display:inline-flex;align-items:center;gap:8px;margin-top:14px;border:1px solid var(--line-2);
+  border-radius:8px;padding:6px 11px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.evidence b{color:var(--warn);font-weight:600}
+
+/* stage */
+.stage{margin-top:24px;border:1px solid var(--line);border-radius:20px;
+  background:linear-gradient(180deg,var(--surface),rgba(14,16,18,.4));overflow:hidden}
+.screen{position:relative;height:300px;background:linear-gradient(180deg,#20262d,#0a0c0e);
+  display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
+.screen.tall{height:340px}
+.screen::before{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(90deg,transparent 0 39px,rgba(255,255,255,.02) 39px 40px),
+  repeating-linear-gradient(0deg,transparent 0 39px,rgba(255,255,255,.02) 39px 40px);pointer-events:none}
+.screen .desk{position:absolute;left:50%;top:150px;transform:translateX(-50%);width:74%;height:120px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.05)}
+.menubar{position:absolute;top:0;left:0;right:0;height:26px;background:rgba(0,0,0,.4);
+  border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:16px;padding:0 14px;
+  font-size:11px;color:#aeb2b8;font-family:var(--mono);z-index:6}
+.menubar .right{margin-left:auto;display:flex;gap:14px;opacity:.7}
+svg{display:block;overflow:visible;position:relative;z-index:3}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:15px 18px;border-top:1px solid var(--line);
+  background:rgba(0,0,0,.18)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden;background:var(--surface)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--dim);font-family:var(--mono);font-size:11px;
+  letter-spacing:.03em;padding:8px 13px;cursor:pointer;transition:.16s var(--ease);white-space:nowrap}
+.seg button+button{border-left:1px solid var(--line-2)}
+.seg button.on{background:var(--accent);color:#0a0b0c;font-weight:600}
+.seglabel{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
+  margin-right:2px;align-self:center}
+.toggle{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--dim);
+  cursor:pointer;user-select:none;border:1px solid var(--line-2);border-radius:9px;padding:7px 12px;background:var(--surface)}
+.toggle input{appearance:none;width:30px;height:17px;border-radius:9px;background:rgba(255,255,255,.16);position:relative;
+  cursor:pointer;transition:.2s var(--ease);flex:none}
+.toggle input:checked{background:var(--accent)}
+.toggle input::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;
+  background:#fff;transition:.2s var(--ease)}
+.toggle input:checked::after{transform:translateX(13px)}
+.spacer{flex:1}
+.readout{font-family:var(--mono);font-size:10.5px;color:var(--dim);padding:11px 18px;border-top:1px solid var(--line);
+  background:var(--surface-2)}
+.readout b{color:var(--accent);font-weight:600}
+
+/* option cards */
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+@media(max-width:820px){.opts{grid-template-columns:1fr}}
+.opt{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--surface),rgba(14,16,18,.55));
+  padding:18px;position:relative;transition:.16s var(--ease)}
+.opt.rec{border-color:rgba(90,209,154,.4);box-shadow:0 0 0 1px rgba(90,209,154,.18)}
+.opt h4{margin:0 0 4px;font-size:13.5px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.opt .tag{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line-2);
+  border-radius:5px;padding:3px 6px;color:var(--dim);margin-left:auto}
+.opt.rec .tag{border-color:rgba(90,209,154,.45);color:var(--good)}
+.opt p{margin:8px 0 0;color:var(--dim);font-size:12.5px}
+.opt ul{margin:9px 0 0;padding-left:16px;color:var(--dim);font-size:12px}
+.opt li{margin:4px 0}
+.opt .where{display:inline-block;margin-top:11px;font-family:var(--mono);font-size:10px;color:var(--accent);
+  background:var(--accent-dim);border-radius:6px;padding:3px 7px}
+.tradeoff{margin-top:9px;font-size:11.5px;color:var(--dim)}
+.tradeoff .pro{color:var(--good)} .tradeoff .con{color:var(--warn)}
+
+pre{margin:16px 0 0;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:15px;
+  overflow:auto;font-family:var(--mono);font-size:11.5px;line-height:1.65;color:#c6cbd2}
+pre .add{color:var(--good)} pre .del{color:var(--bad)} pre .cm{color:#6b7178}
+
+/* decisions table */
+h2.big{font-size:24px;margin:0 0 6px}
+table{width:100%;border-collapse:collapse;margin-top:22px;font-size:12.5px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+  padding:10px 14px 10px 0;border-bottom:1px solid var(--line-2);font-weight:500}
+td{padding:13px 14px 13px 0;border-bottom:1px solid var(--line);color:var(--dim);vertical-align:top}
+td:first-child{color:var(--txt);white-space:nowrap}
+td .pick{color:var(--good);font-weight:600}
+.foot{margin-top:60px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.divider{height:1px;background:var(--line);margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker"><span class="dot"></span>boring.notch · Pi · exploration</div>
+  <h1>Notch UX fixes — four problems, picked from three screenshots.</h1>
+  <p class="lede">
+    After the <b>corner-fix / inner-fade / underglow</b> passes, three new screenshots surfaced four
+    distinct issues. This page diagnoses each one against the <b>real code</b> (file + symbol named under
+    every option), renders the geometry live where it helps, and lays out <b>2–3 options per problem</b>
+    with a recommended pick. Nothing here is implemented — flip the toggles, then tell me which column wins
+    and it becomes the patch.
+  </p>
+
+  <div class="index">
+    <a class="idx" href="#s1">
+      <div class="n">01</div>
+      <h4>Tall Pi panel hides the tabs</h4>
+      <p>Content-driven height squeezes the shared Home / Shelf / Pi switcher row to zero.</p>
+      <div class="src">PiAgentView · reportDesiredHeight</div>
+    </a>
+    <a class="idx" href="#s2">
+      <div class="n">02</div>
+      <h4>Scroll pill too big</h4>
+      <p>The answer’s always-on scroll indicator reads as a fat vertical bar. “Make this smaller.”</p>
+      <div class="src">PiAgentView.swift · answer</div>
+    </a>
+    <a class="idx" href="#s3">
+      <div class="n">03</div>
+      <h4>Corners still read jagged</h4>
+      <p>Quadratic notch corners alias into a “squared” look on the open panel.</p>
+      <div class="src">NotchShape.swift · path(in:)</div>
+    </a>
+    <a class="idx" href="#s4">
+      <div class="n">04</div>
+      <h4>Glow too loud · two screens</h4>
+      <p>The aurora distracts, and the notch renders on every display instead of one.</p>
+      <div class="src">PiPeekView · aurora / showOnAllDisplays</div>
+    </a>
+  </div>
+
+  <!-- ============================================================ §01 -->
+  <section id="s1">
+    <div class="sec-num">01 — Content eats the header</div>
+    <h2>The tall Pi panel squeezes the tab row to zero.</h2>
+    <p class="sub">Screenshots 4 &amp; 5, same session, same settings: the <b>Home / Shelf / Pi</b> switcher is
+      present on Home (short content) and <b>gone</b> on Pi (tall, streaming content).</p>
+
+    <p class="prose">
+      Not a tab-layout bug — the switcher is <b>shared</b>: <code>TabSelectionView</code> lives only in
+      <code>BoringHeader</code>, rendered once for every tab, above the content. The cause is height. The Pi
+      panel is <b>sized by its own content</b> — <code>PiAgentView.reportDesiredHeight()</code> →
+      <code>measuredContentHeight</code> → <code>openPanelHeight</code> — and the answer is greedy
+      (<code>maxHeight: .infinity</code> + <code>.layoutPriority(1)</code>). When the Pi content is tall
+      (prompt + <code>done</code> + 4 chips + the Connect CTA + the answer, as in shot 4), it claims the
+      <b>entire</b> panel height and the <code>BoringHeader</code> row above it compresses to nothing — so the
+      switcher vanishes. On Home/Shelf the content is short and fixed (shot 5), so there’s always slack for the
+      header. <b>Pi just measures and grows as if the header row weren’t there.</b>
+    </p>
+    <div class="evidence">shots 4 vs 5 · header present on short Home · gone on tall Pi — <b>height, not width</b></div>
+
+    <div class="stage">
+      <div class="screen tall" style="align-items:center">
+        <svg id="viz1" width="440" height="320" viewBox="0 0 440 320"></svg>
+      </div>
+      <div class="controls">
+        <span class="seglabel">Height math</span>
+        <div class="seg" id="seg1">
+          <button data-v="now" class="on">Now · content-only</button>
+          <button data-v="fix">A · reserve header</button>
+        </div>
+        <span class="spacer"></span>
+        <label class="toggle"><input type="checkbox" id="tall1" checked> tall Pi content</label>
+      </div>
+      <div class="readout" id="read1"></div>
+    </div>
+
+    <div class="opts">
+      <div class="opt rec">
+        <h4>A · Make the height math header-aware <span class="tag">recommended</span></h4>
+        <p>Reserve the tab row: <code>openPanelHeight = headerHeight + contentHeight</code>, and cap the answer’s
+          max at <code>panel − headerHeight</code>. The switcher can never be squeezed out.</p>
+        <ul><li>Exactly your instinct — Pi stops pretending the header isn’t there.</li>
+          <li>No new layout; the fixed-size tabs already assume this slot exists.</li></ul>
+        <div class="tradeoff"><span class="pro">+ correct by construction</span></div>
+        <span class="where">PiAgentView.reportDesiredHeight + BoringViewModel height clamp</span>
+      </div>
+      <div class="opt">
+        <h4>B · Pin the header’s layout priority <span class="tag">structural</span></h4>
+        <p>Give <code>BoringHeader</code> a higher <code>.layoutPriority</code> than the Pi content so the answer
+          yields the header’s row first when space is tight.</p>
+        <div class="tradeoff"><span class="pro">+ tiny diff</span> · <span class="con">− doesn’t shrink the measured height, so the window may still over-grow</span></div>
+        <span class="where">ContentView.swift · NotchLayout header zone</span>
+      </div>
+      <div class="opt">
+        <h4>C · Cap the Pi content budget <span class="tag">blunt</span></h4>
+        <p>Lower the growth cap to <code>expandedPanelHeight − headerHeight</code> so content can never request
+          the header’s space.</p>
+        <div class="tradeoff"><span class="pro">+ trivial</span> · <span class="con">− loses ~32 pt of answer room</span></div>
+        <span class="where">sizing/matters.swift · expandedPanelHeight</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" style="margin-top:64px"></div>
+
+  <!-- ============================================================ §02 -->
+  <section id="s2">
+    <div class="sec-num">02 — Scroll indicator</div>
+    <h2>The answer’s scroll pill is too heavy.</h2>
+    <p class="sub">From screenshot 2 (“make this smaller”) and visible again in screenshot 3 beside the RSVP
+      line: a fat, always-on vertical bar.</p>
+
+    <p class="prose">
+      <code>PiAgentView.answer</code> sets <code>.scrollIndicators(.visible)</code>, forcing the legacy
+      overlay scroller to stay on at full weight even when there’s barely anything to scroll. Combined with
+      the <code>28 pt</code> comfort footer it reads as a permanent chrome rail down the panel’s right edge —
+      exactly the “pill” in the crop. The fix is to stop pinning it visible; the affordance the panel actually
+      needs (knowing more text exists) is already carried by growth + the comfort footer.
+    </p>
+    <div class="evidence">screenshot 2 · the lone vertical pill <b>is</b> the overlay scroller thumb</div>
+
+    <div class="stage">
+      <div class="screen tall" style="align-items:center">
+        <svg id="viz2" width="420" height="300" viewBox="0 0 420 300"></svg>
+      </div>
+      <div class="controls">
+        <span class="seglabel">Indicator</span>
+        <div class="seg" id="seg2">
+          <button data-v="now" class="on">Now · .visible</button>
+          <button data-v="auto">A · .automatic</button>
+          <button data-v="never">B · .never</button>
+        </div>
+        <span class="spacer"></span>
+        <label class="toggle"><input type="checkbox" id="overflow2" checked> content overflows</label>
+      </div>
+      <div class="readout" id="read2"></div>
+    </div>
+
+    <div class="opts">
+      <div class="opt rec">
+        <h4>A · <code>.automatic</code> <span class="tag">recommended</span></h4>
+        <p>Indicator fades in only <b>while scrolling</b>, then disappears — the native macOS overlay behavior.
+          Thin, transient, present exactly when relevant.</p>
+        <div class="tradeoff"><span class="pro">+ one-token change, native feel</span></div>
+        <span class="where">PiAgentView.swift · .scrollIndicators(.automatic)</span>
+      </div>
+      <div class="opt">
+        <h4>B · <code>.never</code> <span class="tag">cleanest</span></h4>
+        <p>Hide it entirely. The panel already grows with content and the 28 pt footer signals “more below.”
+          Zero chrome on the answer.</p>
+        <div class="tradeoff"><span class="pro">+ purest look</span> · <span class="con">− no scroll-position cue at max height</span></div>
+        <span class="where">PiAgentView.swift · .scrollIndicators(.never)</span>
+      </div>
+      <div class="opt">
+        <h4>C · Thin inset custom rail <span class="tag">most work</span></h4>
+        <p>Replace the system scroller with a 3 pt rounded indicator inset from the chin, tinted to the toolkit
+          accent.</p>
+        <div class="tradeoff"><span class="pro">+ on-brand</span> · <span class="con">− custom overlay + scroll-fraction plumbing</span></div>
+        <span class="where">PiAgentView.swift · overlay over the ScrollView</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" style="margin-top:64px"></div>
+
+  <!-- ============================================================ §03 -->
+  <section id="s3">
+    <div class="sec-num">03 — Corner geometry</div>
+    <h2>The corners read jagged — quadratic, not squircle.</h2>
+    <p class="sub">From screenshot 3: the open panel’s rounded chin still looks “squared and jagged” even after
+      the 24 pt corner-fix.</p>
+
+    <p class="prose">
+      <code>NotchShape.path(in:)</code> builds every corner with a single <code>addQuadCurve</code>. A quadratic
+      arc isn’t the <b>continuous (squircle) curvature</b> macOS uses for its own notch and rounded rects — the
+      curvature jumps at the tangent, so the eye reads a faint “corner” instead of a smooth flow, and the hard
+      clip edge aliases against the bright aurora. Bumping the radius (the 24 pt fix) made it rounder but not
+      <i>smoother</i>. The lasting fix is to match Apple’s curvature with a cubic.
+    </p>
+    <div class="evidence">screenshot 3 · chin corner shows a curvature kink + aliased clip edge</div>
+
+    <div class="stage">
+      <div class="screen" style="align-items:center">
+        <svg id="viz3" width="620" height="280" viewBox="0 0 620 280"></svg>
+      </div>
+      <div class="controls">
+        <span class="seglabel">Corner</span>
+        <div class="seg" id="seg3">
+          <button data-v="quad" class="on">Now · quadratic</button>
+          <button data-v="cont">A · continuous cubic</button>
+        </div>
+        <span class="spacer"></span>
+        <label class="toggle"><input type="checkbox" id="zoom3" checked> zoom the chin corner</label>
+        <label class="toggle"><input type="checkbox" id="overlay3"> overlay both</label>
+      </div>
+      <div class="readout" id="read3"></div>
+    </div>
+
+    <div class="opts">
+      <div class="opt rec">
+        <h4>A · Continuous-curvature path <span class="tag">recommended</span></h4>
+        <p>Rebuild each corner with a cubic that holds curvature into the straight (≈ the <code>.continuous</code>
+          superellipse). The chin flows instead of kinking.</p>
+        <ul><li>Matches the hardware notch + every macOS rounded rect.</li>
+          <li>Geometry-only; <code>animatableData</code> stays the two radii.</li></ul>
+        <span class="where">NotchShape.swift · replace addQuadCurve with addCurve</span>
+      </div>
+      <div class="opt">
+        <h4>B · Radius + 0.5 px hairline mask <span class="tag">cheap</span></h4>
+        <p>Keep the quad, raise the chin to ~26 pt and inset a sub-pixel mask so the clip edge doesn’t alias
+          against the glow.</p>
+        <div class="tradeoff"><span class="pro">+ smallest diff</span> · <span class="con">− still subtly non-continuous</span></div>
+        <span class="where">ContentView.swift · openBottom + mask inset</span>
+      </div>
+      <div class="opt">
+        <h4>C · <code>.continuous</code> RoundedRectangle where free <span class="tag">partial</span></h4>
+        <p>For surfaces not bound to the housing silhouette (the answer card, chips) use a continuous rounded
+          rect directly. Doesn’t fix the notch chin itself.</p>
+        <div class="tradeoff"><span class="con">− leaves the actual notch corner untouched</span></div>
+        <span class="where">PiAgentView.swift · card backgrounds</span>
+      </div>
+    </div>
+
+    <pre><span class="cm">// NotchShape.swift — Option A sketch (chin corner)</span>
+<span class="del">- path.addQuadCurve(to: bottomTangent,</span>
+<span class="del">-     control: CGPoint(x: rect.minX + topR, y: rect.maxY))</span>
+<span class="add">+ // continuous: longer tangents → curvature carries into the straight</span>
+<span class="add">+ path.addCurve(to: bottomTangent,</span>
+<span class="add">+     control1: CGPoint(x: rect.minX + topR, y: rect.maxY - botR*0.45),</span>
+<span class="add">+     control2: CGPoint(x: rect.minX + topR + botR*0.45, y: rect.maxY))</span></pre>
+  </section>
+
+  <div class="divider" style="margin-top:64px"></div>
+
+  <!-- ============================================================ §04 -->
+  <section id="s4">
+    <div class="sec-num">04 — Glow intensity · display targeting</div>
+    <h2>The aurora is too loud, and it’s on every screen.</h2>
+    <p class="sub">From screenshot 3: “the gradients are too much distraction / big,” and the notch should
+      “render on one screen if two screens are present.”</p>
+
+    <p class="prose">
+      Two independent knobs. <b>Intensity:</b> the aurora blooms at radius <code>0.30–0.70·w</code> and core
+      opacity up to <code>0.92–1.0</code> — tuned to <i>show off</i> a brand palette, which reads as a
+      distraction during ordinary work. <b>Targeting:</b> <code>Defaults[.showOnAllDisplays]</code> defaults to
+      <code>true</code>, so <code>adjustWindowPosition</code> spins up a notch window per <code>NSScreen</code>.
+      Upstream already supports the off-path — when <code>false</code> it renders only on the preferred screen.
+      Both are choices, not new machinery.
+    </p>
+    <div class="evidence">grounded · upstream <b>boring.notch</b> + DynamicNotchKit (Nia) — single-display is the off-branch of the same switch</div>
+
+    <div class="stage">
+      <div class="screen tall" style="align-items:flex-start">
+        <div class="desk"></div>
+        <svg id="viz4" width="760" height="320" viewBox="0 0 760 320"></svg>
+      </div>
+      <div class="controls">
+        <span class="seglabel">Glow</span>
+        <div class="seg" id="seg4">
+          <button data-v="now" class="on">Now · full aurora</button>
+          <button data-v="dial">A · dialed −40%</button>
+          <button data-v="under">B · underglow only</button>
+          <button data-v="tied">C · activity-tied</button>
+        </div>
+        <span class="spacer"></span>
+        <label class="toggle"><input type="checkbox" id="run4" checked> tool executing</label>
+      </div>
+      <div class="readout" id="read4"></div>
+    </div>
+
+    <div class="opts">
+      <div class="opt">
+        <h4>A · Dial intensity −40% <span class="tag">quiet</span></h4>
+        <p>Keep the aurora’s identity, just turn it down: core opacity ×0.6, radius ×0.8, desaturate one step.
+          Present but no longer shouting.</p>
+        <div class="tradeoff"><span class="pro">+ keeps brand color</span> · <span class="con">− still a colored field</span></div>
+        <span class="where">PiPeekView.swift · aurora core/fade/opacity consts</span>
+      </div>
+      <div class="opt rec">
+        <h4>B · Underglow only <span class="tag">recommended</span></h4>
+        <p>Drop the wing blooms; keep a thin brand-tinted glow hugging just under the chin (the
+          <code>underglow</code> doc’s direction). The notch is lit, the screen isn’t washed.</p>
+        <ul><li>Lowest distraction; still signals “Pi is working.”</li>
+          <li>Re-uses the inner-fade mask already in <code>aurora</code>.</li></ul>
+        <span class="where">PiPeekView.swift · collapse blooms → single chin band</span>
+      </div>
+      <div class="opt">
+        <h4>C · Activity-tied bloom <span class="tag">dynamic</span></h4>
+        <p>Near-invisible while idle/thinking; a brief bloom on <code>tool_start</code> that settles back to
+          underglow. Loud only at the moment that earns it.</p>
+        <div class="tradeoff"><span class="pro">+ expressive</span> · <span class="con">− most motion to tune</span></div>
+        <span class="where">PiPeekView.swift · toolCallActive drives opacity envelope</span>
+      </div>
+    </div>
+
+    <h4 style="margin:30px 0 0;font-size:15px;letter-spacing:-.01em">Display targeting — pick the resting rule</h4>
+    <div class="opts" style="grid-template-columns:1fr 1fr">
+      <div class="opt rec">
+        <h4>One screen · preferred <span class="tag">recommended</span></h4>
+        <p>Default <code>showOnAllDisplays = false</code>. The notch lives on the preferred display only — the
+          off-branch that already exists. Matches the ask directly.</p>
+        <span class="where">Constants.swift · default false · already wired</span>
+      </div>
+      <div class="opt">
+        <h4>Follow the active display <span class="tag">option</span></h4>
+        <p>A single notch that hops to whichever screen has the cursor / key window. One notch, always where you
+          are — more code than flipping the default.</p>
+        <span class="where">boringNotchApp.swift · move window on screen-focus change</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ DECISIONS -->
+  <section id="decisions">
+    <div class="sec-num">— Summary</div>
+    <h2 class="big">Recommended picks</h2>
+    <p class="sub">My defaults if you say “go.” Each is independent — accept, swap, or veto per row.</p>
+    <table>
+      <thead><tr><th style="width:24%">Problem</th><th style="width:30%">Pick</th><th>Why</th><th style="width:24%">Touch</th></tr></thead>
+      <tbody>
+        <tr><td>01 · Tabs hidden</td><td><span class="pick">A · reserve header height</span></td>
+          <td>Pi’s content-driven height ignores the tab row; make the math header-aware so it can’t be squeezed.</td>
+          <td><code>PiAgentView.swift</code></td></tr>
+        <tr><td>02 · Scroll pill</td><td><span class="pick">A · .automatic</span></td>
+          <td>One-token change; thin + transient, native macOS behavior.</td>
+          <td><code>PiAgentView.swift</code></td></tr>
+        <tr><td>03 · Jagged corners</td><td><span class="pick">A · continuous cubic</span></td>
+          <td>Matches the hardware notch + macOS rounded rects; kills the curvature kink and alias.</td>
+          <td><code>NotchShape.swift</code></td></tr>
+        <tr><td>04a · Loud glow</td><td><span class="pick">B · underglow only</span></td>
+          <td>Lowest distraction, still signals work; re-uses the inner-fade mask.</td>
+          <td><code>PiPeekView.swift</code></td></tr>
+        <tr><td>04b · Two screens</td><td><span class="pick">One screen · preferred</span></td>
+          <td>Flip an existing default — no new machinery, exactly the ask.</td>
+          <td><code>Constants.swift</code></td></tr>
+      </tbody>
+    </table>
+    <p class="prose">All five are geometry / config / single-property changes — no behavior, palette, or streaming
+      logic touched. Reply with the columns you want and I’ll land them as one scoped patch (+ a quick build).</p>
+  </section>
+
+  <div class="foot">
+    <span>boring.notch · Pi · notch UX fixes</span>
+    <span>grounded: code + Nia (boring.notch, DynamicNotchKit, NotchDrop) · not yet implemented</span>
+  </div>
+</div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function seg(id,cb){const root=document.getElementById(id);root.querySelectorAll('button').forEach(b=>{
+  b.onclick=()=>{root.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');cb(b.dataset.v);};});}
+
+/* ── notch path (ported verbatim from NotchShape.swift), quad OR continuous ── */
+function notchPath(x,y,w,h,topR,botR,cont){
+  const minX=x,minY=y,maxX=x+w,maxY=y+h;
+  if(!cont){
+    return [`M ${minX} ${minY}`,
+      `Q ${minX+topR} ${minY} ${minX+topR} ${minY+topR}`,
+      `L ${minX+topR} ${maxY-botR}`,
+      `Q ${minX+topR} ${maxY} ${minX+topR+botR} ${maxY}`,
+      `L ${maxX-topR-botR} ${maxY}`,
+      `Q ${maxX-topR} ${maxY} ${maxX-topR} ${maxY-botR}`,
+      `L ${maxX-topR} ${minY+topR}`,
+      `Q ${maxX-topR} ${minY} ${maxX} ${minY}`,`Z`].join(' ');
+  }
+  // continuous: cubic with longer tangents (~superellipse), k=.45 of the radius
+  const kt=topR*.45, kb=botR*.45;
+  return [`M ${minX} ${minY}`,
+    `C ${minX+topR-kt} ${minY} ${minX+topR} ${minY+topR-kt} ${minX+topR} ${minY+topR}`,
+    `L ${minX+topR} ${maxY-botR}`,
+    `C ${minX+topR} ${maxY-botR+kb} ${minX+topR+botR-kb} ${maxY} ${minX+topR+botR} ${maxY}`,
+    `L ${maxX-topR-botR} ${maxY}`,
+    `C ${maxX-topR-botR+kb} ${maxY} ${maxX-topR} ${maxY-botR+kb} ${maxX-topR} ${maxY-botR}`,
+    `L ${maxX-topR} ${minY+topR}`,
+    `C ${maxX-topR} ${minY+topR-kt} ${maxX-topR+kt} ${minY} ${maxX} ${minY}`,`Z`].join(' ');
+}
+
+/* ════════════════ §01 — content eats the header ════════════════ */
+const s1={v:'now',tall:true};
+function r1(){
+  const svg=document.getElementById('viz1');svg.innerHTML='';
+  const x=40,y=14,w=360,PANEL=290;            // panel = fixed visible window (openPanelHeight cap)
+  const headerH=34;                            // BoringHeader row
+  const contentNeed=s1.tall?300:150;           // what PiAgentView measures
+  // panel outline
+  svg.appendChild(el('path',{d:notchPath(x,y,w,PANEL,8,24,true),fill:'#000',stroke:'rgba(255,255,255,.06)'}));
+  // compute header vs content split
+  let hdr, cont;
+  if(s1.v==='now'){
+    // content-only measurement: content claims min(need, PANEL); header gets the remainder
+    cont=Math.min(contentNeed,PANEL);
+    hdr=Math.max(0,PANEL-cont);
+  } else {
+    // reserve header: header always gets headerH; content capped at PANEL-headerH
+    hdr=headerH;
+    cont=Math.min(contentNeed,PANEL-headerH);
+  }
+  // header row (tabs) — clipped to its allotted height
+  const clipH=el('clipPath',{id:'h1'});clipH.appendChild(el('rect',{x:x,y:y,width:w,height:Math.max(0,hdr)}));svg.appendChild(clipH);
+  const hg=el('g',{'clip-path':'url(#h1)'});
+  ['Home','Shelf','Pi'].forEach((l,i)=>{const tx=x+22+i*34, sel=i===2;
+    if(sel) hg.appendChild(el('rect',{x:tx-13,y:y+8,width:26,height:20,rx:10,fill:'rgba(255,255,255,.16)'}));
+    hg.appendChild(el('circle',{cx:tx,cy:y+18,r:5,fill:sel?'#fff':'#9aa0a8'}));});
+  // right controls
+  hg.appendChild(el('circle',{cx:x+w-58,cy:y+18,r:8,fill:'rgba(255,255,255,.12)'}));
+  hg.appendChild(el('rect',{x:x+w-40,y:y+12,width:22,height:12,rx:3,fill:'rgba(120,220,140,.5)'}));
+  svg.appendChild(hg);
+  // divider where header ends
+  svg.appendChild(el('line',{x1:x+12,y1:y+hdr,x2:x+w-12,y2:y+hdr,stroke:'rgba(123,156,255,.35)','stroke-dasharray':'3 3'}));
+  // content area
+  const cy0=y+hdr+6, cw=w-36, cx0=x+18;
+  // prompt field
+  svg.appendChild(el('rect',{x:cx0,y:cy0,width:cw,height:30,rx:9,fill:'rgba(255,255,255,.06)'}));
+  // chips + lines hint
+  const rows=Math.max(0,Math.floor((cont-44)/15));
+  for(let i=0;i<rows;i++){const lw=(i%3===2)?cw*0.5:cw*0.8;
+    svg.appendChild(el('rect',{x:cx0+4,y:cy0+40+i*15,width:lw,height:6,rx:3,fill:'rgba(255,255,255,.18)'}));}
+  const gone=hdr<8;
+  document.getElementById('read1').innerHTML = s1.v==='now'
+    ? (gone
+      ? `content-only · content needs <b>${contentNeed}</b> ≥ panel <b>${PANEL}</b> → header squeezed to <b style="color:var(--bad)">${Math.round(hdr)} pt</b> · switcher gone`
+      : `content-only · content <b>${contentNeed}</b> fits · header keeps <b>${Math.round(hdr)} pt</b> (Home/Shelf are always short)`)
+    : `reserve header · header pinned at <b style="color:var(--good)">${headerH} pt</b> · content capped at <b>${PANEL-headerH}</b> → switcher always present ✓`;
+}
+seg('seg1',v=>{s1.v=v;r1();});
+document.getElementById('tall1').onchange=e=>{s1.tall=e.target.checked;r1();};
+
+/* ════════════════ §02 — scroll indicator ════════════════ */
+const s2={v:'now',overflow:true};
+function r2(){
+  const svg=document.getElementById('viz2');svg.innerHTML='';
+  const x=40,y=20,w=340,h=260;
+  // panel
+  svg.appendChild(el('path',{d:notchPath(x,y,w,h,8,24,true),fill:'#000',stroke:'rgba(255,255,255,.06)'}));
+  // header row (logo + field)
+  svg.appendChild(el('rect',{x:x+18,y:y+18,width:w-36,height:34,rx:10,fill:'rgba(255,255,255,.06)'}));
+  svg.appendChild(el('circle',{cx:x+36,cy:y+35,r:11,fill:'rgba(255,255,255,.12)'}));
+  const ft=el('text',{x:x+54,y:y+39,fill:'rgba(255,255,255,.4)','font-size':'11','font-family':'var(--sans)'});ft.textContent='Ask Pi anything…';svg.appendChild(ft);
+  // answer card
+  const ay=y+64, aw=w-36, ah=h-84, ax=x+18;
+  svg.appendChild(el('rect',{x:ax,y:ay,width:aw,height:ah,rx:12,fill:'rgba(255,255,255,.04)'}));
+  // text lines
+  const lines=s2.overflow?9:3;
+  for(let i=0;i<lines;i++){const lw=(i%3===2)?aw*0.5:aw*0.82;
+    svg.appendChild(el('rect',{x:ax+12,y:ay+14+i*16,width:lw,height:6,rx:3,fill:'rgba(255,255,255,.22)'}));}
+  // clip text to card
+  const cl=el('clipPath',{id:'a2'});cl.appendChild(el('rect',{x:ax,y:ay,width:aw,height:ah,rx:12}));svg.appendChild(cl);
+  svg.lastChild; // keep
+  // indicator
+  const railX=ax+aw-9;
+  let note='';
+  if(s2.v==='now'){
+    // fat always-on
+    svg.appendChild(el('rect',{x:railX-1,y:ay+8,width:7,height:ah-16,rx:3.5,fill:'rgba(255,255,255,.07)'}));
+    svg.appendChild(el('rect',{x:railX-1,y:ay+8,width:7,height:s2.overflow?ah*0.42:ah-16,rx:3.5,fill:'rgba(255,255,255,.55)'}));
+    note='<b style="color:var(--bad)">.visible</b> · 7 pt thumb pinned on, even when little overflows';
+  } else if(s2.v==='auto'){
+    if(s2.overflow){svg.appendChild(el('rect',{x:railX+2,y:ay+10,width:3,height:ah*0.40,rx:1.5,fill:'rgba(255,255,255,.5)'}));
+      note='<b style="color:var(--good)">.automatic</b> · 3 pt, shown only while scrolling';}
+    else note='<b style="color:var(--good)">.automatic</b> · hidden — nothing to scroll';
+  } else {
+    note='<b style="color:var(--good)">.never</b> · no rail; growth + footer carry the cue';
+  }
+  // comfort footer hint
+  svg.appendChild(el('rect',{x:ax+12,y:ay+ah-16,width:aw*0.3,height:5,rx:2.5,fill:'rgba(255,255,255,.06)'}));
+  document.getElementById('read2').innerHTML=note;
+}
+seg('seg2',v=>{s2.v=v;r2();});
+document.getElementById('overflow2').onchange=e=>{s2.overflow=e.target.checked;r2();};
+
+/* ════════════════ §03 — corners ════════════════ */
+const s3={v:'quad',zoom:true,overlay:false};
+function r3(){
+  const svg=document.getElementById('viz3');svg.innerHTML='';
+  const drawPanel=(cont,color,op)=>{
+    const w=300,h=160,x=(620-w)/2,y=40;
+    svg.appendChild(el('path',{d:notchPath(x,y,w,h,8,24,cont),fill:color,'fill-opacity':op,
+      stroke:cont?'rgba(123,156,255,.0)':'rgba(255,255,255,.0)'}));
+  };
+  if(s3.overlay){
+    drawPanel(false,'#ff6b6b',.30);
+    drawPanel(true,'#5ad19a',.30);
+  } else {
+    drawPanel(s3.v==='cont','#000',1);
+  }
+  // zoom inset on the lower-left chin corner
+  if(s3.zoom){
+    const w=300,h=160,x=(620-w)/2,y=40;
+    const cxp=x+8, cyp=y+h; // corner-ish region
+    const zx=470,zy=150,zs=120;
+    svg.appendChild(el('rect',{x:zx,y:zy,width:zs,height:zs,rx:12,fill:'rgba(0,0,0,.5)',stroke:'rgba(255,255,255,.12)'}));
+    const zl=el('text',{x:zx+zs/2,y:zy-8,fill:'var(--dim)','font-size':'10','font-family':'var(--mono)','text-anchor':'middle'});
+    zl.textContent='chin corner ×4';svg.appendChild(zl);
+    // draw magnified corner: sample the chin curve region scaled
+    const g=el('g',{transform:`translate(${zx},${zy})`});
+    const cl=el('clipPath',{id:'z3'});cl.appendChild(el('rect',{x:0,y:0,width:zs,height:zs,rx:12}));g.appendChild(cl);
+    // local mini path of just the bottom-left chin, scale 4
+    const mini=(cont)=>{const sc=4,bx=8,by=zs-8;
+      // approximate the chin sweep from straight-down into the flat bottom
+      if(!cont) return `M ${bx} ${by-22*sc/4} Q ${bx} ${by} ${bx+22*sc/4} ${by}`;
+      const k=22*.45*sc/4;return `M ${bx} ${by-22*sc/4} C ${bx} ${by-22*sc/4+k} ${bx+22*sc/4-k} ${by} ${bx+22*sc/4} ${by}`;
+    };
+    const showCont = s3.overlay? null : (s3.v==='cont');
+    if(s3.overlay){
+      g.appendChild(el('path',{d:mini(false),fill:'none',stroke:'#ff6b6b','stroke-width':3,'clip-path':'url(#z3)'}));
+      g.appendChild(el('path',{d:mini(true),fill:'none',stroke:'#5ad19a','stroke-width':3,'clip-path':'url(#z3)'}));
+    } else {
+      g.appendChild(el('path',{d:mini(showCont),fill:'none',stroke:showCont?'#5ad19a':'#ff8f6b','stroke-width':3,'clip-path':'url(#z3)'}));
+    }
+    svg.appendChild(g);
+  }
+  document.getElementById('read3').innerHTML = s3.overlay
+    ? '<b style="color:#ff6b6b">red</b> quad vs <b style="color:#5ad19a">green</b> continuous — note the curvature kink where red meets the straight'
+    : (s3.v==='cont'
+        ? '<b style="color:var(--good)">continuous cubic</b> · curvature carries into the straight — no kink, no alias'
+        : '<b style="color:var(--bad)">quadratic</b> · curvature jumps at the tangent → reads as a faint “corner”');
+}
+seg('seg3',v=>{s3.v=v;r3();});
+document.getElementById('zoom3').onchange=e=>{s3.zoom=e.target.checked;r3();};
+document.getElementById('overlay3').onchange=e=>{s3.overlay=e.target.checked;r3();};
+
+/* ════════════════ §04 — glow ════════════════ */
+const s4={v:'now',run:true};
+function r4(){
+  const svg=document.getElementById('viz4');svg.innerHTML='';
+  const W=760,notchW=380,h=78,x=(W-notchW)/2,y=10;
+  const defs=el('defs',{});svg.appendChild(defs);
+  const cx=W/2;
+  const intensity={now:{op:.95,r:230,band:0},dial:{op:.55,r:175,band:0},under:{op:.8,r:120,band:1},tied:{op:s4.run?.9:.18,r:s4.run?210:90,band:s4.run?0:1}}[s4.v];
+  if(s4.run || s4.v==='tied'){
+    // two brand blooms (red+violet) behind the notch
+    const blooms=s4.v==='under'||(s4.v==='tied'&&!s4.run)
+      ? [] // underglow handled below
+      : [['#ff6b6b',x+notchW*0.18],['#9b7bff',x+notchW*0.82]];
+    blooms.forEach((b,i)=>{
+      const id='g4'+i;const g=el('radialGradient',{id,cx:'0',cy:'0',r:intensity.r,gradientUnits:'userSpaceOnUse',
+        gradientTransform:`translate(${b[1]} ${y+h*0.5})`});
+      g.appendChild(el('stop',{offset:'0%','stop-color':b[0],'stop-opacity':intensity.op}));
+      g.appendChild(el('stop',{offset:'62%','stop-color':b[0],'stop-opacity':'0'}));
+      defs.appendChild(g);
+      svg.appendChild(el('rect',{x:0,y:0,width:W,height:300,fill:`url(#${id})`,style:'mix-blend-mode:screen'}));
+    });
+    // underglow band (B, or tied-at-rest)
+    if(intensity.band){
+      const id='gb4';const g=el('linearGradient',{id,x1:'0',y1:'0',x2:'0',y2:'1'});
+      g.appendChild(el('stop',{offset:'0%','stop-color':'#9b7bff','stop-opacity':'0'}));
+      g.appendChild(el('stop',{offset:'100%','stop-color':'#9b7bff','stop-opacity':'.55'}));
+      defs.appendChild(g);
+      const cl=el('clipPath',{id:'cb4'});cl.appendChild(el('path',{d:notchPath(x-30,y,notchW+60,h+18,8,22,true)}));defs.appendChild(cl);
+      svg.appendChild(el('rect',{x:x-30,y:y+h-26,width:notchW+60,height:44,fill:`url(#${id})`,'clip-path':'url(#cb4)',style:'mix-blend-mode:screen'}));
+    }
+  }
+  // the opaque notch on top
+  svg.appendChild(el('path',{d:notchPath(x,y,notchW,h,8,22,true),fill:'#000'}));
+  // peek content hint: logo dot + text + wave
+  svg.appendChild(el('circle',{cx:x+38,cy:y+h/2,r:11,fill:'rgba(255,255,255,.14)'}));
+  const t=el('text',{x:x+notchW-150,y:y+h/2+4,fill:'rgba(255,255,255,.85)','font-size':'12','font-family':'var(--sans)'});
+  t.textContent= s4.run?'Send email':'Ready';svg.appendChild(t);
+  [0,1,2,3].forEach(i=>svg.appendChild(el('rect',{x:x+notchW-46+i*6,y:y+h/2-7,width:3,height:14,rx:1.5,
+    fill:s4.run?'rgba(155,123,255,.9)':'rgba(255,255,255,.3)'})));
+  const map={now:'full aurora · radius 230, opacity .95 — washes onto the screen below',
+    dial:'dialed −40% · opacity .55, radius 175 — present, quieter',
+    under:'underglow only · a thin chin band, no screen wash',
+    tied:s4.run?'activity-tied · blooms during execution':'activity-tied · settled to underglow at rest'};
+  document.getElementById('read4').innerHTML='<b>'+s4.v.toUpperCase()+'</b> · '+map[s4.v];
+}
+seg('seg4',v=>{s4.v=v;r4();});
+document.getElementById('run4').onchange=e=>{s4.run=e.target.checked;r4();};
+
+r1();r2();r3();r4();
+</script>
+</body>
+</html>

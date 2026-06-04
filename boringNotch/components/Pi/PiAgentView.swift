@@ -74,15 +74,18 @@ struct PiAgentView: View {
     // MARK: Header (logo + prompt + pin + send/stop)
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 8) {
+        HStack(alignment: .center, spacing: 7) {
             logo
-                .frame(width: 24, height: 24)
+                // Tighter than before (was 24): a smaller textbox leaves more headroom
+                // for the tab switcher above, and the mark sits closer to the peek's
+                // slot size so the matchedGeometry morph travels less.
+                .frame(width: 20, height: 20)
                 .matchedGeometryEffect(id: "piLogo", in: logoNamespace)
 
             TextField("Ask Pi anything…", text: $pi.draft, axis: .vertical)
                 .lineLimit(1...6)
                 .textFieldStyle(.plain)
-                .font(.system(size: 13))
+                .font(.system(size: 12.5))
                 .focused($promptFocused)
                 .notchAcceptsFirstMouse()
                 // ↵ and ⌘↵ both send; Option+↵ inserts a newline.
@@ -101,34 +104,46 @@ struct PiAgentView: View {
             if pi.isRunning {
                 Button(action: pi.abort) {
                     Image(systemName: "stop.fill")
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.white)
-                        .padding(6)
+                        .padding(5)
                         .background(Circle().fill(Color.red.opacity(0.85)))
                 }
-                .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
+                .buttonStyle(PressStyle(reduceMotion: reduceMotion))
                 .keyboardShortcut(".", modifiers: .command)
                 .help("Stop (⌘.)")
                 .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             } else {
                 Button(action: submit) {
                     Image(systemName: "arrow.up")
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.white)
-                        .padding(6)
+                        .padding(5)
                         .background(Circle().fill(Color.effectiveAccent))
                 }
-                .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
+                .buttonStyle(PressStyle(reduceMotion: reduceMotion))
                 .disabled(pi.draft.trimmingCharacters(in: .whitespaces).isEmpty)
                 .keyboardShortcut(.return, modifiers: .command)
                 .help("Send (↵ or ⌘↵) — ⌥↵ for a new line")
                 .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             }
         }
-        .padding(8)
+        // Slimmer vertical padding (was a uniform 8) is the bulk of the height saving;
+        // horizontal stays 8 so the field isn't cramped side-to-side.
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Color.white.opacity(0.06))
+                // Focus ring: an accent hairline blooms in when the field is focused,
+                // so the textbox visibly "hears" the cursor. Eased, transform/opacity-free.
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(Color.effectiveAccent.opacity(promptFocused ? 0.45 : 0), lineWidth: 1)
+                )
         )
         .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: pi.isRunning)
+        .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: promptFocused)
     }
 
     /// Session pin: keeps the panel open across mouse-away and makes swipe-up inert,
@@ -141,16 +156,16 @@ struct PiAgentView: View {
             }
         } label: {
             Image(systemName: pi.piPinned ? "pin.fill" : "pin")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.white.opacity(pi.piPinned ? 1 : 0.85))
                 .contentTransition(.symbolEffect(.replace))
-                .padding(6)
+                .padding(5)
                 .background(
                     Circle().fill(pi.piPinned ? Color.effectiveAccent : Color.white.opacity(0.12))
                 )
                 .shadow(color: pi.piPinned ? Color.effectiveAccent.opacity(0.55) : .clear, radius: 5)
         }
-        .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
+        .buttonStyle(PressStyle(reduceMotion: reduceMotion))
         .help(pi.piPinned ? "Unpin — panel collapses on mouse-away" : "Pin open")
         .accessibilityLabel(pi.piPinned ? "Unpin panel" : "Pin panel open")
     }
@@ -228,24 +243,41 @@ struct PiAgentView: View {
     // MARK: Chips
 
     private var chipsRow: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 8) {
-                // A tool the model is still forming (arguments streaming) — shimmer
-                // label, no spinner. Replaced by the real chip at tool_start.
-                if pi.isForming {
-                    formingChip
-                        .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    // Resolved tool chips, oldest → newest (left → right; chips.append).
+                    ForEach(pi.chips) { chip in
+                        PiToolChipView(chip: chip, reduceMotion: reduceMotion)
+                            .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
+                    }
+                    // The tool still forming sits at the *trailing* (newest) end — the same
+                    // slot the resolved chip lands in when it appends, so it swaps in place
+                    // (the leading position it used to occupy made the swap jump the row).
+                    if pi.isForming {
+                        formingChip
+                            .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
+                    }
+                    // Scroll anchor: keeps the live activity in view as chips overflow.
+                    Color.clear.frame(width: 1, height: 1).id(Self.chipsTailID)
                 }
-                ForEach(pi.chips) { chip in
-                    PiToolChipView(chip: chip, reduceMotion: reduceMotion)
-                        .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
-                }
+                .padding(.vertical, 2)
             }
-            .padding(.vertical, 2)
+            .scrollIndicators(.never)
+            .animation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion), value: pi.chips)
+            .animation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion), value: pi.isForming)
+            // Follow the newest chip / forming label as the row grows past the viewport.
+            .onChange(of: pi.chips.count) { _, _ in scrollChipsToTail(proxy) }
+            .onChange(of: pi.isForming) { _, forming in if forming { scrollChipsToTail(proxy) } }
         }
-        .scrollIndicators(.never)
-        .animation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion), value: pi.chips)
-        .animation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion), value: pi.isForming)
+    }
+
+    private static let chipsTailID = "piChipsTail"
+
+    private func scrollChipsToTail(_ proxy: ScrollViewProxy) {
+        withAnimation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion)) {
+            proxy.scrollTo(Self.chipsTailID, anchor: .trailing)
+        }
     }
 
     private var formingChip: some View {
@@ -303,7 +335,7 @@ struct PiAgentView: View {
                     )
             )
         }
-        .buttonStyle(PiPressButtonStyle(reduceMotion: reduceMotion))
+        .buttonStyle(PressStyle(reduceMotion: reduceMotion))
         .fixedSize(horizontal: true, vertical: false)
         .help(prompt.url.absoluteString)
         .accessibilityLabel("Connect \(prompt.app) in Composio")
@@ -360,7 +392,9 @@ struct PiAgentView: View {
             }
             .coordinateSpace(name: Self.answerScrollSpace)
             .background(heightReader(into: $scrollViewportHeight))
-            .scrollIndicators(.visible)
+            // .automatic: a thin overlay scroller that fades in only while scrolling,
+            // instead of the heavy always-on rail .visible pins down the panel's edge.
+            .scrollIndicators(.automatic)
             .onChange(of: transcriptScrollMinY) { oldY, newY in
                 updateTailFollowing(oldMinY: oldY, newMinY: newY)
             }
@@ -379,7 +413,11 @@ struct PiAgentView: View {
                 proxy.scrollTo("piTranscriptBottom", anchor: .bottom)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // minHeight floors the viewport so chrome (incl. the Connect CTA) can never
+        // starve it to zero; layoutPriority gives the flexible answer first claim on
+        // space over the fixed chrome rows.
+        .frame(maxWidth: .infinity, minHeight: Self.answerMinViewportHeight, maxHeight: .infinity, alignment: .topLeading)
+        .layoutPriority(1)
         .padding(10)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -387,12 +425,25 @@ struct PiAgentView: View {
         )
         .onChange(of: transcriptContentHeight) { _, _ in reportDesiredHeight() }
         .onChange(of: scrollViewportHeight) { _, _ in reportDesiredHeight() }
+        // The Connect CTA appearing/leaving changes the chrome height; re-measure so the
+        // panel resizes to fit the answer immediately instead of waiting for another
+        // content/viewport delta.
+        .onChange(of: pi.connectionPrompt) { _, _ in reportDesiredHeight() }
     }
 
     // MARK: Stick-to-bottom scroll tracking
 
     /// Coordinate space of the answer ScrollView (scroll-position probe reads against it).
     private static let answerScrollSpace = "piAnswerScroll"
+
+    /// Floor for the answer ScrollView's viewport. Chrome rows (header, activity line,
+    /// chips, and especially the Connect CTA) are fixed-size and stack above the answer;
+    /// when enough of them appear they could otherwise starve the flexible answer to a
+    /// zero-height viewport. A non-zero floor guarantees the viewport never collapses,
+    /// which keeps the content-drives-panel height loop (`reportDesiredHeight`) alive —
+    /// a zero viewport used to deadlock panel growth so the answer stayed invisible
+    /// behind the CTA until it was dismissed.
+    private static let answerMinViewportHeight: CGFloat = 72
 
     /// Within this distance of the bottom the user counts as "at the tail" — generous
     /// enough to absorb the comfort footer and sub-line scroll positions.
@@ -481,9 +532,15 @@ struct PiAgentView: View {
     /// Laid-out panel = chrome + laid-out viewport at every animation frame, so this
     /// difference — and therefore `desired` — stays stable while the panel animates.
     private func reportDesiredHeight() {
-        guard scrollViewportHeight > 0 else { return }
+        // Floor the viewport instead of bailing on zero. A hard `guard viewportHeight > 0`
+        // here used to deadlock: when chrome (e.g. the Connect CTA) starved the answer to
+        // a zero-height viewport, this returned early and the panel never grew to reveal
+        // the answer. The answer ScrollView now carries the same floor, so a realized
+        // viewport is always ≥ it; flooring the pre-layout zero keeps `panelHeight -
+        // viewport` (the chrome height) from over-counting on the first frame.
+        let viewport = max(scrollViewportHeight, Self.answerMinViewportHeight)
         let panelHeight = vm.laidOutPanelHeight > 0 ? vm.laidOutPanelHeight : vm.openPanelHeight
-        let desired = (panelHeight - scrollViewportHeight + transcriptContentHeight).rounded()
+        let desired = (panelHeight - viewport + transcriptContentHeight).rounded()
         if abs(pi.measuredContentHeight - desired) >= 1 {
             pi.measuredContentHeight = desired
         }
@@ -554,16 +611,5 @@ private struct PiToolChipView: View {
         )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(chip.tool), \(chip.running ? "running" : (chip.ok == false ? "failed" : "done"))")
-    }
-}
-
-// MARK: - Press style
-
-private struct PiPressButtonStyle: ButtonStyle {
-    let reduceMotion: Bool
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
-            .animation(Motion.resolved(Motion.press, reduceMotion: reduceMotion), value: configuration.isPressed)
     }
 }

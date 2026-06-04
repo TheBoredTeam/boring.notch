@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "palettes": {
+    "notion":       { "stops": ["#C9C7C1", "#8C8A85"], "note": "Warm Notion graphite (existing)" },
+    "github":       { "stops": ["#212183", "#000000"], "note": "Octocat indigo grounded to black" },
+    "sentry":       { "stops": ["#7553FF", "#000000"], "note": "Sentry violet grounded to black" },
+    "linear":       { "stops": ["#5E6AD2", "#8299FF"], "note": "Brand indigo → logo periwinkle" },
+    "googlesheets": { "stops": ["#34A853", "#FFFFFF*0.55", "#0B5226"], "note": "Sheets green, small white highlight, darkened green for depth" },
+    "googledocs":   { "stops": ["#4285F4", "#FFFFFF*0.55", "#174EA6"], "note": "Docs blue, small white highlight, darkened page-blue for depth" },
+    "exa":          { "stops": ["#1F40ED", "#5B73FF"], "note": "Exa blue → electric lift" },
+    "spotify":      { "stops": ["#1ED760", "#1DB954"], "note": "Bright → classic green" },
+    "supabase":     { "stops": ["#3ECF8E", "#249361"], "note": "Logo gradient emerald → deep" },
+    "discord":      { "stops": ["#5865F2", "#7983F5"], "note": "Blurple → light blurple" },
+    "firecrawl":    { "stops": ["#FA5D19", "#FF9244"], "note": "\"Heat\" orange → amber flame" },
+    "zep":          { "stops": ["#5C2CA4", "#BA429B"], "note": "Zep violet → magenta" },
+    "browserbase":  { "stops": ["#F03603", "#FF8A3D"], "note": "Browserbase ember → amber" },
+    "reddit":       { "stops": ["#FF4500", "#FFFFFF", "#842123"], "note": "Orangered, full white belly, darkened red shadow" }
+  }
+}

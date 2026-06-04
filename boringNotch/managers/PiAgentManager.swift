@@ -65,6 +65,10 @@ final class PiAgentManager: ObservableObject {
     /// aurora's multi-color mesh. Empty for a monochrome mark → callers fall back to a
     /// single indigo. `toolkitAccent` mirrors `toolkitPalette.first` for back-compat.
     @Published private(set) var toolkitPalette: [NSColor] = []
+    /// True when `toolkitPalette` is a curated override published RAW (mockup stops,
+    /// per-stop weight packed into each color's alpha). The peek aurora reads this to
+    /// skip `deepen()` and honor weights so the in-app render copies the manifest mockup.
+    @Published private(set) var toolkitPaletteIsRaw: Bool = false
     @Published private(set) var chips: [ToolChip] = []
     @Published private(set) var transcript: String = ""
     @Published private(set) var connectionPrompt: ConnectionPrompt?
@@ -404,6 +408,7 @@ final class PiAgentManager: ObservableObject {
             toolkitLogo = nil
             toolkitAccent = nil
             toolkitPalette = []
+            toolkitPaletteIsRaw = false
             if statusWord != "aborted" { statusWord = "done" }
             // Show "✓ Done" briefly, then auto-hide. The peek is only rendered while
             // the notch is collapsed and the Pi tab is active, so when the panel is
@@ -489,43 +494,40 @@ final class PiAgentManager: ObservableObject {
     /// Resolve the active toolkit's aurora palette and publish `toolkitPalette` /
     /// `toolkitAccent`. Resolution order (lightest path first):
     ///   1. `paletteCache[slug]` — already derived this session → publish instantly.
-    ///   2. SVG `fill=` metadata — the exact brand hex, no bitmap allocation. Runs the
-    ///      3-case saturation gate (≥2 saturated → rich; 1 → that hue; 0 → indigo).
-    ///   3. Curated override for a monochrome mark (Notion, GitHub) — published
-    ///      directly, bypassing the saturation gate (a curated table is intentional,
-    ///      not histogram noise).
+    ///   2. Curated override (`brandColorOverrides`, from `BrandPalettes.json`) — an
+    ///      intentional allowlist published RAW (no `legibleTint`): the stops are
+    ///      hand-picked to read on black, so tinting would only mute them to pastel.
+    ///      Wins over SVG extraction for any listed slug.
+    ///   3. SVG `fill=` metadata — the exact brand hex, no bitmap allocation. Tinted,
+    ///      then run through the 3-case saturation gate (≥2 saturated → rich; 1 → that
+    ///      hue; 0 → indigo).
     ///   4. Raster histogram on the rendered image — robustness for any non-SVG (PNG)
     ///      logo, or a memory-cache hit whose palette wasn't memoized.
     private func derivePalette(slug: String, svgData: Data?, fallbackImage: NSImage) {
-        // 1. Memo hit.
+        // 1. Memo hit. The cache stores colors but not rawness — recompute it from the
+        // allowlist so a cached override still publishes with the raw flag set.
         if let cached = paletteCache[slug] {
-            publishPalette(cached, slug: slug)
+            publishPalette(cached, slug: slug, raw: Self.brandColorOverrides[slug] != nil)
             return
         }
 
-        // 2/3. We have the raw SVG bytes: try exact brand colors, then the override.
+        // 2. Curated allowlist wins, rendered RAW (already-legible, hand-picked stops).
+        if let override = Self.brandColorOverrides[slug], !override.isEmpty {
+            publishPalette(override, slug: slug, raw: true)
+            return
+        }
+
+        // 3. Real SVG brand colors (tinted + gated).
         if let svgData {
             let brand = NSImage.brandColorsFromSVG(svgData, max: 4)
             if !brand.isEmpty {
                 publishPalette(Self.gatedPalette(from: brand.map { Self.legibleTint($0) }), slug: slug)
                 return
             }
-            // Monochrome SVG (no real hue) → curated gradient, bypassing the gate.
-            if let override = Self.brandColorOverrides[slug], !override.isEmpty {
-                publishPalette(override.map { Self.legibleTint($0) }, slug: slug)
-                return
-            }
-            // Monochrome, not yet curated → histogram (still empty → gate yields the
-            // indigo fallback). Graceful degradation for unknown mono brands.
-            derivePaletteFromRaster(fallbackImage, slug: slug)
-            return
         }
 
-        // No SVG bytes (memory-cache hit, memo miss): try the override, else histogram.
-        if let override = Self.brandColorOverrides[slug], !override.isEmpty {
-            publishPalette(override.map { Self.legibleTint($0) }, slug: slug)
-            return
-        }
+        // 4. Raster histogram → gate → indigo fallback. Graceful degradation for any
+        // non-SVG logo or a monochrome mark that isn't curated.
         derivePaletteFromRaster(fallbackImage, slug: slug)
     }
 
@@ -552,10 +554,13 @@ final class PiAgentManager: ObservableObject {
 
     /// Memoize and publish a derived palette. `toolkitAccent` mirrors
     /// `toolkitPalette.first` for every existing reader.
-    private func publishPalette(_ palette: [NSColor], slug: String) {
+    private func publishPalette(_ palette: [NSColor], slug: String, raw: Bool = false) {
         paletteCache[slug] = palette
         toolkitPalette = palette
-        toolkitAccent = palette.first
+        // A raw override may pack a per-stop weight into the first stop's alpha; force it
+        // opaque so a weighted first stop can't wash the thinking-bars/wave tint.
+        toolkitAccent = palette.first?.withAlphaComponent(1)
+        toolkitPaletteIsRaw = raw
     }
 
     /// HSB-saturation test used to count "real" hues in a tinted palette. Tested on the
@@ -580,20 +585,71 @@ final class PiAgentManager: ObservableObject {
         return NSColor(srgbRed: r, green: g, blue: b, alpha: 1)
     }
 
-    /// Tiny `#RRGGBB` → NSColor helper for the curated table (delegates to the SVG
+    /// Tiny `#RRGGBB` → NSColor helper for the curated defaults (delegates to the SVG
     /// parser's hex decode). The literals here are known-valid, so a failed parse is a
     /// programmer error — fall back to mid-grey rather than crash.
     private static func hex(_ s: String) -> NSColor {
         NSImage.colorFromHex(s) ?? NSColor(white: 0.5, alpha: 1)
     }
 
-    /// Brand gradients for monochrome toolkits whose logo SVG carries no real hue
-    /// (Composio exposes no color metadata either). Seeded; tune freely. Keyed by slug.
-    /// 1–2 stops each — two stops give the aurora internal depth without invoking the
-    /// indigo `companionColor`. More mono slugs (x, openai, anthropic, vercel, …) can be
-    /// appended as they show up.
-    private static let brandColorOverrides: [String: [NSColor]] = [
+    /// Parse a curated JSON stop: "#RRGGBB" or "#RRGGBB*0.55". The optional `*weight`
+    /// suffix (0–1) is packed into the returned color's ALPHA channel — the aurora reads
+    /// that alpha as a radius+opacity multiplier (the mockup's per-stop weight), not as
+    /// real transparency. Only the curated path uses this; `NSImage.colorFromHex` (shared
+    /// with the SVG `fill=` parser) is left untouched.
+    private static func weightedColorFromHex(_ s: String) -> NSColor? {
+        let parts = s.split(separator: "*", maxSplits: 1, omittingEmptySubsequences: false)
+        guard let base = NSImage.colorFromHex(String(parts[0]))?.usingColorSpace(.sRGB) else { return nil }
+        let w = max(0, min(1, parts.count == 2 ? CGFloat(Double(parts[1]) ?? 1) : 1))
+        return NSColor(srgbRed: base.redComponent, green: base.greenComponent, blue: base.blueComponent, alpha: w)
+    }
+
+    /// One entry in `BrandPalettes.json`: a list of `#RRGGBB` stops. The JSON also
+    /// carries a human `note` per entry; it's documentation-only, so the decoder ignores
+    /// it (unknown keys are skipped).
+    private struct BrandPaletteEntry: Decodable {
+        let stops: [String]
+    }
+
+    /// Top level of `BrandPalettes.json`. `version` is reserved for future migrations
+    /// (decoded optionally; not gated on today).
+    private struct BrandManifest: Decodable {
+        let version: Int?
+        let palettes: [String: BrandPaletteEntry]
+    }
+
+    /// Compiled fallback for the two original curated brands, so notion+github still
+    /// render even if the bundled JSON is missing or corrupt. The JSON wins on conflict
+    /// (see `brandColorOverrides`); the nine newer brands are JSON-only.
+    private static let compiledDefaults: [String: [NSColor]] = [
         "notion": [hex("#C9C7C1"), hex("#8C8A85")],   // warm Notion graphite glow
-        "github": [hex("#8B949E"), hex("#6E7681")],   // GitHub's own grey scale
+        "github": [hex("#212183"), hex("#000000")],   // octocat indigo grounded to black (matches JSON)
     ]
+
+    /// Curated brand gradients, keyed by lowercase toolkit slug. This is an intentional
+    /// allowlist: a listed slug always renders these hand-picked, already-legible stops
+    /// *raw* (no `legibleTint`), overriding its automatic SVG/raster palette. Source of
+    /// truth is the version-controlled `Resources/BrandPalettes.json` — edit + push to add
+    /// or tune a brand, no recompile. Compiled defaults are merged underneath as a
+    /// resilience floor; JSON is authoritative on conflict.
+    private static let brandColorOverrides: [String: [NSColor]] = {
+        var table = compiledDefaults
+        table.merge(loadBrandPalettes()) { _, json in json }
+        return table
+    }()
+
+    /// Decode `BrandPalettes.json` from the app bundle into `[slug: [NSColor]]`. Any
+    /// failure (missing bundle, unreadable, undecodable) yields an empty table so the
+    /// compiled defaults still apply. Keys are lowercased; an entry whose stops all fail
+    /// to parse is dropped rather than published empty.
+    private static func loadBrandPalettes() -> [String: [NSColor]] {
+        guard let url = Bundle.main.url(forResource: "BrandPalettes", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let manifest = try? JSONDecoder().decode(BrandManifest.self, from: data)
+        else { return [:] }
+        return manifest.palettes.reduce(into: [:]) { acc, kv in
+            let colors = kv.value.stops.compactMap(weightedColorFromHex)
+            if !colors.isEmpty { acc[kv.key.lowercased()] = colors }
+        }
+    }
 }
