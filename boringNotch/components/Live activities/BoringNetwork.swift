@@ -8,25 +8,23 @@ struct BoringNetworkActivityView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            HStack {
-                Text(statusText)
-                    .font(.subheadline)
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-            }
+            Text(statusText)
+                .font(.subheadline)
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.9)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             Rectangle()
                 .fill(.black)
                 .frame(width: centerWidth)
 
-            HStack {
-                Image(systemName: symbolName)
-                    .foregroundStyle(isConnected ? .white : .gray)
-                    .frame(width: 18, height: 18)
-                    .contentTransition(.interpolate)
-            }
-            .frame(width: 76, alignment: .trailing)
+            Image(systemName: symbolName)
+                .foregroundStyle(isConnected ? .white : .gray)
+                .frame(width: 18, height: 18)
+                .contentTransition(.interpolate)
+                .frame(width: 52, alignment: .trailing)
         }
+        .padding(.horizontal, 18)
     }
 }

@@ -93,7 +93,9 @@ struct ContentView: View {
             && coordinator.expandingView.show
             && vm.notchState == .closed
         {
-            chinWidth = 640
+            chinWidth = coordinator.expandingView.type == .network
+                ? networkModel.preferredNotificationWidth
+                : 640
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -330,7 +332,7 @@ struct ContentView: View {
                             statusText: networkModel.statusText,
                             symbolName: networkModel.symbolName,
                             isConnected: networkModel.isConnected,
-                            centerWidth: vm.closedNotchSize.width + 10
+                            centerWidth: max(220, vm.closedNotchSize.width - 36)
                         )
                         .frame(height: displayClosedNotchHeight, alignment: .center)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {

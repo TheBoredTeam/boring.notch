@@ -44,6 +44,15 @@ class NetworkStatusViewModel: ObservableObject {
         state.status == .connected
     }
 
+    var preferredNotificationWidth: CGFloat {
+        switch state.status {
+        case .connected:
+            return 700
+        case .disconnected, .requiresConnection:
+            return 760
+        }
+    }
+
     private func setupMonitor() {
         networkManagerId = networkManager.addObserver { [weak self] event in
             self?.handleNetworkEvent(event)
