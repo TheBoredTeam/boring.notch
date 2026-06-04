@@ -71,7 +71,7 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
-    static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
+    static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: true)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     

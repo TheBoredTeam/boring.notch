@@ -232,10 +232,15 @@ class BoringViewModel: NSObject, ObservableObject {
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
         let screenFrame = getScreenFrame(screenUUID)
         if let frame = screenFrame {
-            
-            let baseY = frame.maxY - notchSize.height
+            // When open, the visible panel can be taller than `notchSize.height`
+            // (the Pi tab grows up to `expandedPanelHeight`). The hit-test must
+            // cover the full open panel — using only `notchSize.height` makes a
+            // cursor genuinely inside a tall panel read as "outside", which lets a
+            // resize-induced phantom exit close it.
+            let hoverHeight = notchState == .open ? max(openPanelHeight, notchSize.height) : notchSize.height
+            let baseY = frame.maxY - hoverHeight
             let baseX = frame.midX - notchSize.width / 2
-            
+
             return position.y >= baseY && position.x >= baseX && position.x <= baseX + notchSize.width
         }
         
