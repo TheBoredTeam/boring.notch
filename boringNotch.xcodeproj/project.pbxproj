@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		11FACE1000000000000000A2 /* JSONLinesPipeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000A1 /* JSONLinesPipeHandler.swift */; };
 		11FACE1000000000000000B2 /* PiAgentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000B1 /* PiAgentManager.swift */; };
+		11FACE100000000000000F02 /* ComposioConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE100000000000000F01 /* ComposioConnectionManager.swift */; };
 		11FACE1000000000000000C2 /* PiAgentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000C1 /* PiAgentView.swift */; };
 		11FACE100000000000000103 /* NotchKeyboardFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE100000000000000102 /* NotchKeyboardFocus.swift */; };
 		11FACE1000000000000000D2 /* PiPeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000D1 /* PiPeekView.swift */; };
@@ -212,6 +213,7 @@
 /* Begin PBXFileReference section */
 		11FACE1000000000000000A1 /* JSONLinesPipeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLinesPipeHandler.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000B1 /* PiAgentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiAgentManager.swift; sourceTree = "<group>"; };
+		11FACE100000000000000F01 /* ComposioConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposioConnectionManager.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000C1 /* PiAgentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiAgentView.swift; sourceTree = "<group>"; };
 		11FACE100000000000000102 /* NotchKeyboardFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchKeyboardFocus.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000D1 /* PiPeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiPeekView.swift; sourceTree = "<group>"; };
@@ -592,6 +594,7 @@
 			isa = PBXGroup;
 			children = (
 				11FACE1000000000000000B1 /* PiAgentManager.swift */,
+				11FACE100000000000000F01 /* ComposioConnectionManager.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
@@ -1067,6 +1070,7 @@
 				1113ABC52E80E27000EC13B2 /* ShelfItemView.swift in Sources */,
 				11FACE1000000000000000A2 /* JSONLinesPipeHandler.swift in Sources */,
 				11FACE1000000000000000B2 /* PiAgentManager.swift in Sources */,
+				11FACE100000000000000F02 /* ComposioConnectionManager.swift in Sources */,
 				11FACE1000000000000000C2 /* PiAgentView.swift in Sources */,
 				11FACE100000000000000103 /* NotchKeyboardFocus.swift in Sources */,
 				11FACE1000000000000000D2 /* PiPeekView.swift in Sources */,

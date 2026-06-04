@@ -25,6 +25,22 @@ struct PiEvent: Codable {
     let logo: String?
     let ok: Bool?
     let message: String?
+    // Connection management (Composio v3 SDK) — see ComposioConnectionManager.
+    let items: [PiConnectionItem]?   // "connections"
+    let alias: String?               // "connection_expired"
+    let connectedAccountId: String?  // "connection_expired"
+    let userId: String?              // "connection_expired"
+    let status: String?              // "connection_expired"
+    let url: String?                 // "connection_link"
+}
+
+/// One connected account row from the sidecar's `connections` event.
+struct PiConnectionItem: Codable, Equatable {
+    let toolkit: String
+    let alias: String?
+    let connectedAccountId: String
+    let authConfigId: String?
+    let status: String
 }
 
 /// A single tool invocation shown as a chip in the expanded Pi tab.
@@ -159,6 +175,10 @@ final class PiAgentManager: ObservableObject {
                 }
             }
             flushPendingPrompt()
+            flushPendingMessages()
+            // Push default aliases + pull the initial connection inventory now that
+            // stdin is wired (sidecar also auto-reconciles on its own startup).
+            ComposioConnectionManager.shared.sidecarDidLaunch()
         } catch {
             lastError = "Failed to launch pi-sidecar: \(error.localizedDescription)"
             didLaunch = false
@@ -250,6 +270,51 @@ final class PiAgentManager: ObservableObject {
         write(["type": "abort"])
     }
 
+    // MARK: - Connection management commands (Composio)
+
+    /// Control messages queued before stdin is wired (e.g. default aliases sent at
+    /// launch). Flushed in order the moment the sidecar process is up.
+    private var pendingMessages: [[String: Any]] = []
+
+    /// Ask the sidecar to (re)list connected accounts. The reply arrives as a
+    /// `connections` event, forwarded to `ComposioConnectionManager`. Lazily launches.
+    func requestConnections() {
+        start()
+        writeOrQueue(["type": "list_connections"])
+    }
+
+    /// Kick off hosted re-auth for a toolkit/account; the sidecar replies with a
+    /// `connection_link` the caller opens in the browser.
+    func reconnect(connectedAccountId: String? = nil, toolkit: String? = nil) {
+        start()
+        var msg: [String: Any] = ["type": "reconnect"]
+        if let connectedAccountId { msg["connectedAccountId"] = connectedAccountId }
+        if let toolkit { msg["toolkit"] = toolkit }
+        writeOrQueue(msg)
+    }
+
+    /// Push the per-toolkit default account aliases so the agent auto-selects the
+    /// right account. Sent on change and at launch.
+    func setDefaultAliases(_ map: [String: String]) {
+        start()
+        writeOrQueue(["type": "set_default_aliases", "map": map])
+    }
+
+    private func writeOrQueue(_ object: [String: Any]) {
+        if stdinHandle == nil {
+            pendingMessages.append(object)
+        } else {
+            write(object)
+        }
+    }
+
+    private func flushPendingMessages() {
+        guard stdinHandle != nil, !pendingMessages.isEmpty else { return }
+        let queued = pendingMessages
+        pendingMessages = []
+        for msg in queued { write(msg) }
+    }
+
     private func write(_ object: [String: Any]) {
         guard let stdinHandle else { return }
         guard var data = try? JSONSerialization.data(withJSONObject: object) else { return }
@@ -336,6 +401,26 @@ final class PiAgentManager: ObservableObject {
             // gets out of the way instead of squatting next to the notch forever.
             BoringViewCoordinator.shared.showPiPeek()
             BoringViewCoordinator.shared.schedulePiPeekHide(after: 3)
+
+        // MARK: Connection management (forwarded to ComposioConnectionManager)
+
+        case "connections":
+            ComposioConnectionManager.shared.applyConnections(event.items ?? [])
+
+        case "connection_expired":
+            if let toolkit = event.toolkit, let id = event.connectedAccountId {
+                ComposioConnectionManager.shared.markReauthNeeded(
+                    toolkit: toolkit,
+                    alias: event.alias,
+                    connectedAccountId: id,
+                    status: event.status ?? "EXPIRED"
+                )
+            }
+
+        case "connection_link":
+            if let raw = event.url, let url = URL(string: raw) {
+                ComposioConnectionManager.shared.openConnectionLink(url)
+            }
 
         default:
             break

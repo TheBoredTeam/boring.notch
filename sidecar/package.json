@@ -9,6 +9,7 @@
     "dev": "bun run index.ts"
   },
   "dependencies": {
+    "@composio/core": "^0.10.0",
     "@earendil-works/pi-coding-agent": "^0.78.0"
   }
 }
