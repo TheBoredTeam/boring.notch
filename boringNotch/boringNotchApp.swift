@@ -621,7 +621,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
               (viewModel.notchState == .open || viewModel.edgeAutoOpenActive) else {
             return windowSize.height
         }
-        return max(viewModel.openPanelHeight + shadowPadding, windowSize.height)
+        // Hold the host window at a stable height for the whole open session rather
+        // than resizing per `openPanelHeight` content delta. The SwiftUI panel still
+        // animates its visible height 190↔360 inside this fixed window (see
+        // ContentView's `mainLayout` frame), so content sizing/animation is preserved
+        // while the window stops churning — eliminating the per-delta `setFrame` /
+        // tracking-area re-evaluation that fired phantom `mouseExited` events and
+        // closed the panel out from under the cursor.
+        return max(expandedWindowHeight, windowSize.height)
     }
 
     /// Resize each notch window to fit its current state, re-anchoring the top edge

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi · Peek aurora gradient redesign — boring.notch</title>
+<style>
+/* ============================================================
+   PI — PEEK AURORA GRADIENT  ·  plan spec
+   House style: native-macOS dev doc on ink. SF type, one indigo
+   accent, git-diff color for changes (− red / + green), live
+   peek-strip mocks. The aurora swatches below are real CSS —
+   what you see is a faithful stand-in for the SwiftUI result.
+   ============================================================ */
+:root{
+  --bg:#08090a; --surface:#0e1012; --surface-2:#14171a;
+  --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.13);
+  --text:#ecedef; --dim:#9a9da3; --faint:#5e6066;
+  --accent:#8b95ff; --accent-dim:rgba(139,149,255,.14);
+  --add:#4ec97a; --add-bg:rgba(78,201,122,.10);
+  --del:#f3736b; --del-bg:rgba(243,115,107,.09);
+  --gmail:#ea4335;           /* a sample toolkit accent for the peek mock */
+  --companion:#5b53d6;       /* indigo companion (accent blended → systemIndigo) */
+  --ease:cubic-bezier(.22,1,.36,1);
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;
+  --text-ff:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important}}
+body{
+  background:radial-gradient(140% 100% at 85% -10%, rgba(139,149,255,.06) 0%, transparent 55%),var(--bg);
+  background-attachment:fixed; color:var(--text);
+  font-family:var(--text-ff); font-size:14px; line-height:1.65;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+.wrap{max-width:980px;margin:0 auto;padding:0 28px 140px}
+
+/* masthead */
+header{padding:84px 0 44px;border-bottom:1px solid var(--line)}
+.kicker{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:26px}
+.kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(34px,5.4vw,60px);line-height:1.02;letter-spacing:-.03em}
+h1 .soft{color:var(--dim)}
+.lede{margin-top:24px;max-width:680px;color:var(--dim);font-size:15px}
+.lede b{color:var(--text);font-weight:600}
+.pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:34px}
+.pill{font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:7px 13px;border-radius:8px;border:1px solid var(--line-2);color:var(--dim);display:inline-flex;gap:8px;align-items:center}
+.pill b{color:var(--text);font-weight:600}
+.pill .tick{color:var(--add)}
+.pill.warn{border-color:rgba(243,115,107,.3)} .pill.warn .tick{color:var(--del)}
+
+/* section frame */
+section{padding-top:76px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--accent);opacity:.6}
+h2{font-family:var(--display);font-weight:600;font-size:clamp(24px,3.4vw,36px);letter-spacing:-.02em;line-height:1.08}
+.sub{margin-top:14px;max-width:700px;color:var(--dim)}
+.sub code,.prose code,td code,li code{font-family:var(--mono);font-size:.86em;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:5px}
+.prose{margin-top:22px;max-width:720px;color:var(--dim)}
+.prose p{margin-top:14px} .prose b{color:var(--text);font-weight:600}
+
+/* ---------- the peek strip mock ---------- */
+.stage{margin-top:30px;border:1px solid var(--line);border-radius:18px;background:
+  linear-gradient(180deg,#101317,#0a0c0e);
+  padding:46px 30px;display:grid;gap:30px;grid-template-columns:1fr 1fr}
+@media(max-width:780px){.stage{grid-template-columns:1fr}}
+.peekwrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.peeklabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:8px}
+.peeklabel .sw{width:8px;height:8px;border-radius:2px}
+.peeklabel.bad .sw{background:var(--del)} .peeklabel.good .sw{background:var(--add)}
+/* the black notch pill */
+.notch{position:relative;width:300px;height:46px;border-radius:0 0 22px 22px;background:#000;
+  border:1px solid rgba(255,255,255,.06);border-top:none;overflow:hidden;
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+  box-shadow:0 16px 40px rgba(0,0,0,.55)}
+.notch .logo{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#2b2d31,#19191c);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;z-index:3}
+.notch .ph{font-family:var(--mono);font-size:12px;color:#cfd2d6;z-index:3;letter-spacing:.02em}
+.notch .wave{display:flex;gap:3px;align-items:center;z-index:3}
+.notch .wave i{width:2px;height:10px;background:#e7e9ec;border-radius:2px;animation:eq 1s var(--ease) infinite}
+.notch .wave i:nth-child(2){height:16px;animation-delay:.1s}
+.notch .wave i:nth-child(3){height:7px;animation-delay:.2s}
+.notch .wave i:nth-child(4){height:13px;animation-delay:.3s}
+@keyframes eq{0%,100%{transform:scaleY(.6)}50%{transform:scaleY(1)}}
+/* the gradient layer sits behind content */
+.aura{position:absolute;inset:0;z-index:1;filter:blur(6px)}
+
+/* BEFORE — muddy single-color haze (current) */
+.aura.before{
+  background:
+    radial-gradient(60% 120% at 14% 50%, rgba(234,67,53,.55) 0%, rgba(91,83,214,.30) 45%, transparent 72%),
+    radial-gradient(80% 140% at 100% 50%, rgba(234,67,53,.40) 0%, rgba(91,83,214,.22) 50%, transparent 80%);
+}
+/* AFTER — native-mesh aurora (hero). Real CSS stand-in: offset radial blobs, screen-blended */
+.aura.mesh{mix-blend-mode:screen}
+.aura.mesh::before,.aura.mesh::after{content:"";position:absolute;inset:-20%;mix-blend-mode:screen}
+.aura.mesh{
+  background:
+    radial-gradient(42% 130% at 8% 30%, rgba(234,67,53,.85) 0%, transparent 60%),
+    radial-gradient(46% 140% at 38% 80%, rgba(255,120,90,.55) 0%, transparent 58%),
+    radial-gradient(50% 150% at 78% 22%, rgba(120,110,255,.70) 0%, transparent 60%),
+    radial-gradient(60% 160% at 100% 70%, rgba(91,83,214,.80) 0%, transparent 64%);
+  animation:drift 7s var(--ease) infinite alternate;
+}
+@keyframes drift{from{background-position:0 0,0 0,0 0,0 0}to{background-position:6% -4%,-4% 5%,5% 3%,-3% -5%}}
+
+.cap{font-family:var(--mono);font-size:11px;color:var(--dim);max-width:300px;text-align:center;line-height:1.5}
+.cap b{color:var(--text)}
+
+/* ---------- candidate swatch row ---------- */
+.cards{margin-top:30px;display:grid;gap:14px;grid-template-columns:repeat(2,1fr)}
+@media(max-width:780px){.cards{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.card .swatch{height:84px;position:relative;background:#000}
+.card .swatch .g{position:absolute;inset:0;filter:blur(2px)}
+.card .body{padding:14px 16px}
+.card h5{font-family:var(--display);font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card h5 .star{color:var(--accent)}
+.card p{margin-top:6px;color:var(--dim);font-size:12.5px;line-height:1.5}
+.card .meta{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-top:10px}
+.g.c1{background:radial-gradient(45% 140% at 10% 30%,rgba(234,67,53,.9),transparent 60%),radial-gradient(50% 150% at 45% 85%,rgba(255,120,90,.6),transparent 58%),radial-gradient(55% 150% at 80% 20%,rgba(120,110,255,.75),transparent 60%),radial-gradient(60% 160% at 100% 70%,rgba(91,83,214,.85),transparent 64%);mix-blend-mode:screen}
+.g.c2{background:radial-gradient(70% 130% at 0% 50%,rgba(234,67,53,.7),rgba(91,83,214,.35) 50%,transparent 78%),radial-gradient(70% 130% at 20% 50%,rgba(255,120,90,.35),transparent 70%);mix-blend-mode:screen}
+.g.c3{background:radial-gradient(circle at 18% 60%,rgba(234,67,53,.8),transparent 45%),radial-gradient(circle at 55% 30%,rgba(255,120,90,.5),transparent 45%),radial-gradient(circle at 88% 65%,rgba(91,83,214,.8),transparent 50%);mix-blend-mode:screen}
+.g.c4{background:conic-gradient(from 200deg at 70% 50%,rgba(234,67,53,.8),rgba(255,120,90,.4),rgba(91,83,214,.85),rgba(234,67,53,.8));mix-blend-mode:screen}
+
+/* ---------- decision / option cards ---------- */
+.opts{margin-top:26px;display:grid;gap:14px;grid-template-columns:1fr 1fr}
+@media(max-width:780px){.opts{grid-template-columns:1fr}}
+.opt{border:1px solid var(--line);border-radius:14px;padding:20px 22px;background:linear-gradient(180deg,var(--surface),rgba(14,16,18,.6))}
+.opt.reco{border-color:rgba(139,149,255,.4)}
+.opt h4{font-family:var(--display);font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px}
+.opt .badge{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px;border:1px solid var(--line-2);color:var(--dim)}
+.opt.reco .badge{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.opt p{margin-top:12px;color:var(--dim);font-size:13px;line-height:1.55}
+.opt ul{margin-top:12px;padding-left:18px;color:var(--dim);font-size:12.5px}
+.opt li{margin-top:6px}
+
+/* git-diff block */
+.diff{margin-top:24px;font-family:var(--mono);font-size:12px;line-height:1.85;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:14px 6px;overflow-x:auto}
+.diff .row{display:flex;white-space:pre}
+.diff .gutter{width:24px;flex-shrink:0;text-align:center;color:var(--faint);user-select:none}
+.diff .code{padding-right:14px;color:var(--dim)}
+.diff .row.add{background:var(--add-bg)} .diff .row.add .gutter{color:var(--add)} .diff .row.add .code{color:var(--text)}
+.diff .row.del{background:var(--del-bg)} .diff .row.del .gutter{color:var(--del)} .diff .row.del .code{color:#e9b6b2}
+.diff .cmt{color:var(--faint)}
+
+/* steps */
+.steps{margin-top:24px;display:grid;gap:0;counter-reset:s}
+.step{position:relative;padding:18px 0 18px 54px;border-top:1px solid var(--line)}
+.step:last-child{border-bottom:1px solid var(--line)}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:18px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;color:var(--accent)}
+.step h4{font-family:var(--display);font-size:15px;font-weight:600}
+.step p{margin-top:5px;color:var(--dim);font-size:13px}
+
+footer{margin-top:90px;padding-top:30px;border-top:1px solid var(--line);color:var(--faint);font-family:var(--mono);font-size:11px;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker"><span class="dot"></span>Pi · peek aurora · plan</div>
+    <h1>Redesign the peek aurora.<br><span class="soft">Native mesh on macOS&nbsp;15, tasteful fallback on 14.</span></h1>
+    <p class="lede">The collapsed running-agent strip draws a logo <b>glow</b> and a right-edge <b>edgeBloom</b> that read as a flat, muddy single-color haze. You run <b>macOS&nbsp;15+</b>, so the redesign leads with SwiftUI's native <code>MeshGradient</code> for a real woven aurora — and keeps a layered-radial fallback because the shipped deployment floor is still <b>14.0</b>.</p>
+    <div class="pills">
+      <span class="pill"><span class="tick">✓</span> skill&nbsp;<b>emil-design-eng</b> · taste</span>
+      <span class="pill"><span class="tick">✓</span> skill&nbsp;<b>web-animation-design</b> · motion</span>
+      <span class="pill warn"><span class="tick">!</span> floor&nbsp;<b>macOS&nbsp;14.0</b> → fallback required</span>
+      <span class="pill"><span class="tick">✓</span> plan edited · <b>not</b> implemented yet</span>
+    </div>
+  </header>
+
+  <!-- ========== THE PROBLEM, LIVE ========== -->
+  <section>
+    <div class="eyebrow">the change, live</div>
+    <h2>Before → after, in the notch itself</h2>
+    <p class="sub">Both strips below are real CSS rendered against a black notch — the right one is a faithful stand-in for what native <code>MeshGradient</code> produces. Sample toolkit color: Gmail red → indigo companion.</p>
+    <div class="stage">
+      <div class="peekwrap">
+        <div class="peeklabel bad"><span class="sw"></span>before · muddy haze</div>
+        <div class="notch">
+          <div class="aura before"></div>
+          <div class="logo">✦</div><div class="ph">Bash</div>
+          <div class="wave"><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="cap">One elliptical blur smears both hues into a single <b>flat pink-grey</b>. No depth, no light.</div>
+      </div>
+      <div class="peekwrap">
+        <div class="peeklabel good"><span class="sw"></span>after · mesh aurora</div>
+        <div class="notch">
+          <div class="aura mesh"></div>
+          <div class="logo">✦</div><div class="ph">Bash</div>
+          <div class="wave"><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="cap">Offset color blobs blended like <b>light</b>, drifting gently. Reads as a real aurora bleeding from the edge.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== HOW I GOT HERE ========== -->
+  <section>
+    <div class="eyebrow">research · /find-skills + /nia</div>
+    <h2>What the skill + index search turned up</h2>
+    <div class="prose">
+      <p><b>Skill hunt (/find-skills).</b> The ecosystem's gradient skills are all low-install and web/WinForms-oriented — <code>nexu-io/…gradient</code> (186), <code>tailwind-gradient-builder</code> (175), <code>bergside/…gradient</code> (156) — none SwiftUI-relevant. The right tools are already installed locally: <b>emil-design-eng</b> (Emil Kowalski's UI-polish philosophy) for color-stop and contrast judgment, and <b>web-animation-design</b> for the bloom timing and reduced-motion behavior.</p>
+      <p><b>Index search (/nia).</b> Confirmed the hard constraint straight from the project: <code>MACOSX_DEPLOYMENT_TARGET = 14.0</code> across all six build configs. nia's corpus had no rich native-<code>MeshGradient</code> sample to lift, so the mesh recipe below comes from the SwiftUI API directly — additive light blending, pinned-corner control points.</p>
+    </div>
+  </section>
+
+  <!-- ========== CANDIDATES ========== -->
+  <section>
+    <div class="eyebrow">step 2a · pick a direction</div>
+    <h2>Four candidates for the HTML preview</h2>
+    <p class="sub">The throwaway <code>boring-notch-gradient-options.html</code> will render these side by side at peek scale. Leads with the mesh look since that's your machine; the others double as fallback references.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="swatch"><div class="g c1"></div></div>
+        <div class="body"><h5><span class="star">★</span> Native-mesh aurora</h5><p>3×3 mesh, accent + companion woven through pinned-black corners. The hero look on macOS&nbsp;15.</p><div class="meta">default · MeshGradient</div></div>
+      </div>
+      <div class="card">
+        <div class="swatch"><div class="g c2"></div></div>
+        <div class="body"><h5>Refined two-hue</h5><p>Today's elliptical concept, but additive blend, tighter stops, less blur haze, a faint depth layer.</p><div class="meta">macOS 14 sibling</div></div>
+      </div>
+      <div class="card">
+        <div class="swatch"><div class="g c3"></div></div>
+        <div class="body"><h5>Layered radial bloom</h5><p>2–3 offset radials, screen-blended → fake mesh depth. The concrete <code>#available</code> fallback.</p><div class="meta">macOS 14 fallback</div></div>
+      </div>
+      <div class="card">
+        <div class="swatch"><div class="g c4"></div></div>
+        <div class="body"><h5>Angular light sweep</h5><p>Conic gradient for a moving-light feel in the resting state. Optional, if you want motion when idle.</p><div class="meta">optional</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== THE DECISION ========== -->
+  <section>
+    <div class="eyebrow">decision needed · before step 2b</div>
+    <h2>How to resolve the macOS-15 / 14 split</h2>
+    <p class="sub"><code>MeshGradient</code> needs macOS&nbsp;15. The app's floor is 14.0. One choice, your call:</p>
+    <div class="opts">
+      <div class="opt reco">
+        <h4>A · Hero + fallback <span class="badge">recommended</span></h4>
+        <p>Native <code>MeshGradient</code> behind <code>if&nbsp;#available(macOS&nbsp;15,&nbsp;*)</code>, layered-radial for 14. You see the hero look; 14 users still get a tasteful gradient.</p>
+        <ul><li>No project setting changes</li><li>Two code paths to keep as siblings</li><li>Widest compatibility</li></ul>
+      </div>
+      <div class="opt">
+        <h4>B · Bump floor to 15.0 <span class="badge">simpler code</span></h4>
+        <p>Set <code>MACOSX_DEPLOYMENT_TARGET = 15.0</code>, drop the fallback entirely. <code>glow</code>/<code>edgeBloom</code> become straight mesh gradients.</p>
+        <ul><li>One clean code path</li><li>Cuts off macOS&nbsp;14 users</li><li>Edits the .pbxproj (6 configs)</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== THE MESH RECIPE ========== -->
+  <section>
+    <div class="eyebrow">step 2b · the swift shape</div>
+    <h2>What replaces <code>glow</code> + <code>edgeBloom</code></h2>
+    <p class="sub">Each becomes an <code>@available</code>-gated <code>@ViewBuilder</code>: a real mesh on 15, the layered radials on 14. Corners stay pinned near-black so the aurora bleeds into the notch instead of forming a hard rectangle; interior points carry <code>accentColor</code> / <code>companionColor</code> and breathe on <code>toolCallActive</code>.</p>
+    <div class="diff">
+      <div class="row del"><span class="gutter">-</span><span class="code">RadialGradient(colors: [accent.opacity(0.8),</span></div>
+      <div class="row del"><span class="gutter">-</span><span class="code">  companion.opacity(0.4), .clear], center: .center, …)</span></div>
+      <div class="row"><span class="gutter"> </span><span class="code cmt">// glow + edgeBloom → one gated aurora fill</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">@ViewBuilder private var auroraFill: some View {</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">  if #available(macOS 15, *) {</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">    MeshGradient(width: 3, height: 3,</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">      points: meshPoints,   // corners pinned, interior breathes</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">      colors: meshColors)   // accent / companion + ~black corners</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">    .blendMode(.plusLighter)   // light, not paint</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">  } else {</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">    // layered RadialGradients, screen-blended (the 14 sibling)</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">  }</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">}</span></div>
+    </div>
+    <p class="sub" style="margin-top:18px">All existing plumbing stays: <code>pi.isRunning</code>, <code>toolCallActive</code>, <code>reduceMotion</code>, <code>Motion.glowBloom</code>, scale/opacity transitions, <code>.allowsHitTesting(false)</code>. Under Reduce Motion the mesh points hold static — only the opacity/scale bloom remains.</p>
+  </section>
+
+  <!-- ========== SEQUENCE ========== -->
+  <section>
+    <div class="eyebrow">execution order</div>
+    <h2>The sequence</h2>
+    <div class="steps">
+      <div class="step"><h4>Pick A or B</h4><p>The macOS-15 / 14 decision above. Gates everything downstream.</p></div>
+      <div class="step"><h4>Render the option mockups</h4><p><code>boring-notch-gradient-options.html</code> — the four candidates at peek scale, sent for you to choose one (or a blend).</p></div>
+      <div class="step"><h4>Rebuild the fill in PiPeekView</h4><p>Native mesh hero + layered fallback, two-hue identity preserved, all animation state untouched.</p></div>
+      <div class="step"><h4>Verify both paths</h4><p>macOS-15 mesh on your machine; force the <code>else</code> branch to sanity-check the 14 fallback. Build per the no-hardened-runtime signing note.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    plan: there-are-2-things-recursive-turing.md · part 2 (gradients) · edited, not implemented · skills: emil-design-eng + web-animation-design
+  </footer>
+
+</div>
+</body>
+</html>

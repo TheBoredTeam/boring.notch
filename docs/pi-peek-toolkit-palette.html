@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi · Toolkit-palette aurora — boring.notch</title>
+<style>
+/* ============================================================
+   PI — TOOLKIT-PALETTE AURORA  ·  plan spec
+   Draw the gradient from the Composio toolkit logo's REAL palette
+   instead of one averaged blob. Every swatch + notch below uses
+   colors extracted from the actual logos.composio.dev/api/<slug>
+   SVGs — and the "before" muddy color is the real averaged value
+   the app computes today.
+   ============================================================ */
+:root{
+  --bg:#08090a; --surface:#0e1012; --surface-2:#14171a;
+  --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.13);
+  --text:#ecedef; --dim:#9a9da3; --faint:#5e6066;
+  --accent:#8b95ff; --accent-dim:rgba(139,149,255,.14);
+  --companion:#8b95ff;       /* indigo companion for mono logos */
+  --add:#4ec97a; --del:#f3736b;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;
+  --text-ff:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(140% 100% at 85% -10%,rgba(139,149,255,.06),transparent 55%),var(--bg);background-attachment:fixed;color:var(--text);font-family:var(--text-ff);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:0 28px 140px}
+
+header{padding:84px 0 40px;border-bottom:1px solid var(--line)}
+.kicker{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:26px}
+.kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(34px,5.4vw,58px);line-height:1.03;letter-spacing:-.03em}
+h1 .soft{color:var(--dim)}
+.lede{margin-top:24px;max-width:720px;color:var(--dim);font-size:15px}
+.lede b{color:var(--text);font-weight:600}
+
+section{padding-top:72px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--accent);opacity:.6}
+h2{font-family:var(--display);font-weight:600;font-size:clamp(23px,3.3vw,34px);letter-spacing:-.02em;line-height:1.1}
+.sub{margin-top:14px;max-width:740px;color:var(--dim)}
+.sub code,.prose code{font-family:var(--mono);font-size:.86em;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:5px}
+.prose{margin-top:20px;max-width:740px;color:var(--dim)}.prose p{margin-top:13px}.prose b{color:var(--text)}
+
+/* root-cause callout */
+.callout{margin-top:26px;border:1px solid rgba(243,115,107,.28);border-radius:14px;background:linear-gradient(180deg,rgba(243,115,107,.06),rgba(14,16,18,.4));padding:22px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.callout .chip{width:64px;height:64px;border-radius:12px;flex-shrink:0;border:1px solid var(--line-2)}
+.callout .txt{flex:1;min-width:240px}
+.callout h4{font-family:var(--display);font-size:16px;font-weight:600}
+.callout p{margin-top:8px;color:var(--dim);font-size:13px}
+.callout code{font-family:var(--mono);font-size:12px;color:var(--text)}
+.arrowbig{font-size:22px;color:var(--faint)}
+
+/* app grid */
+.grid{margin-top:30px;display:grid;gap:18px;grid-template-columns:repeat(2,1fr)}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.app{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--surface),rgba(14,16,18,.6));overflow:hidden}
+.app-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 14px;border-bottom:1px solid var(--line)}
+.app-name{font-family:var(--display);font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px}
+.app-slug{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.app-name .mono-flag{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--line-2);border-radius:5px;padding:2px 6px}
+.pal{display:flex;gap:5px}
+.pal i{width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,.14)}
+.notches{display:flex;flex-direction:column;gap:0}
+.nrow{display:flex;align-items:center;gap:14px;padding:16px 18px}
+.nrow + .nrow{border-top:1px solid var(--line)}
+.nlabel{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;width:54px;flex-shrink:0;display:flex;align-items:center;gap:6px}
+.nlabel .sw{width:7px;height:7px;border-radius:2px}
+.nlabel.bad{color:var(--del)} .nlabel.bad .sw{background:var(--del)}
+.nlabel.good{color:var(--add)} .nlabel.good .sw{background:var(--add)}
+/* notch */
+.notch{position:relative;flex:1;height:42px;border-radius:0 0 20px 20px;background:#000;border:1px solid rgba(255,255,255,.06);border-top:none;overflow:hidden;display:flex;align-items:center;justify-content:space-between;padding:0 14px;box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.notch .logo{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;z-index:3;overflow:hidden}
+.notch .logo img{width:100%;height:100%;object-fit:contain;display:block}
+.notch .ph{font-family:var(--mono);font-size:11px;color:#cfd2d6;z-index:3}
+.notch .wave{display:flex;gap:2.5px;z-index:3}
+.notch .wave i{width:2px;height:9px;background:#e7e9ec;border-radius:2px;animation:eq 1s var(--ease) infinite}
+.notch .wave i:nth-child(2){height:14px;animation-delay:.1s}.notch .wave i:nth-child(3){height:6px;animation-delay:.2s}.notch .wave i:nth-child(4){height:12px;animation-delay:.3s}
+@keyframes eq{0%,100%{transform:scaleY(.6)}50%{transform:scaleY(1)}}
+.aura{position:absolute;inset:0;z-index:1}
+.aura.before{filter:blur(7px)}
+.aura.after{mix-blend-mode:screen;filter:blur(5px);animation:drift 7s var(--ease) infinite alternate}
+@keyframes drift{from{background-position:0 0}to{background-position:7% -5%}}
+
+/* recipe / diff */
+.diff{margin-top:24px;font-family:var(--mono);font-size:12px;line-height:1.85;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:14px 6px;overflow-x:auto}
+.diff .row{display:flex;white-space:pre}.diff .gutter{width:24px;flex-shrink:0;text-align:center;color:var(--faint);user-select:none}
+.diff .code{padding-right:14px;color:var(--dim)}
+.diff .add{background:rgba(78,201,122,.1)}.diff .add .gutter{color:var(--add)}.diff .add .code{color:var(--text)}
+.diff .del{background:rgba(243,115,107,.09)}.diff .del .gutter{color:var(--del)}.diff .del .code{color:#e9b6b2}
+.diff .cmt{color:var(--faint)}
+
+.opts{margin-top:24px;display:grid;gap:14px;grid-template-columns:1fr 1fr 1fr}
+@media(max-width:860px){.opts{grid-template-columns:1fr}}
+.opt{border:1px solid var(--line);border-radius:13px;padding:18px;background:var(--surface)}
+.opt h4{font-family:var(--display);font-size:14px;font-weight:600}
+.opt p{margin-top:8px;color:var(--dim);font-size:12.5px;line-height:1.5}
+.opt .n{font-family:var(--mono);font-size:11px;color:var(--accent)}
+
+footer{margin-top:90px;padding-top:30px;border-top:1px solid var(--line);color:var(--faint);font-family:var(--mono);font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker"><span class="dot"></span>Pi · peek aurora · toolkit palette</div>
+    <h1>Draw the aurora from the<br><span class="soft">toolkit's real logo palette.</span></h1>
+    <p class="lede">Today the peek color is <b>one averaged blob</b> of the Composio logo, then mechanically tinted toward indigo. Averaging a multi-color logo collapses it to mud. Instead: pull the <b>actual brand palette</b> from the same <code>logos.composio.dev/api/&lt;slug&gt;</code> asset the app already fetches, and weave those real colors through the mesh. Every color below is extracted from the live logos.</p>
+  </header>
+
+  <!-- ROOT CAUSE -->
+  <section>
+    <div class="eyebrow">root cause</div>
+    <h2>Why it looks muddy: averaging</h2>
+    <div class="callout">
+      <div class="chip" style="background:#d83030"></div>
+      <div class="chip" style="background:#3078f0"></div>
+      <div class="chip" style="background:#30a848"></div>
+      <div class="chip" style="background:#f0a800"></div>
+      <span class="arrowbig">→</span>
+      <div class="chip" style="background:#c8b1a5"></div>
+      <div class="txt">
+        <h4>Gmail's logo → <code>#c8b1a5</code> beige mud</h4>
+        <p><code>NSImage.averageColor()</code> sums every pixel of Gmail's red + blue + green + yellow envelope and returns one muddy beige. <code>legibleTint()</code> lightens it, <code>companionColor</code> blends 60% to indigo — but the source was already dead. <b>The fix isn't a better blur; it's not throwing the palette away.</b></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE GRID -->
+  <section>
+    <div class="eyebrow">extracted from live composio logos</div>
+    <h2>Before (averaged) → after (palette mesh)</h2>
+    <p class="sub">Each card: the real palette pulled from the logo SVG, then the same notch rendered the old way (top) and the new way (bottom). Mono logos — Notion, GitHub — fall back to their one brand color woven with the indigo companion, so they still get depth.</p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- HANDLING -->
+  <section>
+    <div class="eyebrow">how the palette is sourced</div>
+    <h2>Three cases, one rule</h2>
+    <div class="opts">
+      <div class="opt"><div class="n">2+ hues</div><h4>Multi-color logo</h4><p>Gmail, Calendar, Slack, Drive → take the top 2–4 area-weighted dominant colors and assign them to mesh control points. The aurora <i>is</i> the brand.</p></div>
+      <div class="opt"><div class="n">1 hue</div><h4>Single-color logo</h4><p>Linear → pair the brand color with a lighter + a companion shade of itself so the mesh still has internal variation, not a flat wash.</p></div>
+      <div class="opt"><div class="n">0 hues</div><h4>Mono / grey logo</h4><p>Notion, GitHub → too desaturated to carry an aurora alone, so keep today's behavior: brand tone + indigo <code>companionColor</code>. Two-hue depth preserved.</p></div>
+    </div>
+  </section>
+
+  <!-- RECIPE -->
+  <section>
+    <div class="eyebrow">the swift change</div>
+    <h2>Palette extraction replaces the single average</h2>
+    <p class="sub">In <code>PiAgentManager.adoptLogo</code>, swap the single <code>averageColor</code> for a small dominant-color pass over the cached logo, publishing a <code>toolkitPalette: [NSColor]</code>. <code>PiPeekView</code> feeds that array straight into the <code>MeshGradient</code> control points (corners stay pinned near-black).</p>
+    <div class="diff">
+      <div class="row"><span class="gutter"> </span><span class="code cmt">// PiAgentManager.adoptLogo(_:slug:)</span></div>
+      <div class="row del"><span class="gutter">-</span><span class="code">image.averageColor { color in</span></div>
+      <div class="row del"><span class="gutter">-</span><span class="code">  self.toolkitAccent = Self.legibleTint(color)   // one muddy hue</span></div>
+      <div class="row del"><span class="gutter">-</span><span class="code">}</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">image.dominantColors(max: 4) { palette in        // area-weighted</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">  let tinted = palette.map { Self.legibleTint($0) }</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">  self.toolkitPalette = tinted                   // [NSColor]</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">  self.toolkitAccent  = tinted.first             // back-compat</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">  // <2 saturated colors? append companionColor (mono fallback)</span></div>
+      <div class="row add"><span class="gutter">+</span><span class="code">}</span></div>
+      <div class="row"><span class="gutter"> </span><span class="code cmt">// PiPeekView: MeshGradient(colors: meshColors(from: pi.toolkitPalette))</span></div>
+    </div>
+  </section>
+
+  <footer>colors extracted live from logos.composio.dev/api/&lt;slug&gt; · before = NSImage.averageColor + legibleTint(0.45) · plan: part 2 gradients</footer>
+</div>
+
+<script>
+// Real data — palettes from the logo SVGs, "before" = today's averaged+legible color.
+const APPS = [
+  {slug:"gmail",          name:"Gmail",    before:"#c8b1a5", palette:["#d83030","#3078f0","#30a848","#f0a800"], mono:false},
+  {slug:"googlecalendar", name:"Calendar", before:"#bacfd3", palette:["#3078f0","#f0a800","#30a848","#1860c0"], mono:false},
+  {slug:"slack",          name:"Slack",    before:"#bfc3b7", palette:["#d81848","#18a878","#d8a818","#30c0f0"], mono:false},
+  {slug:"googledrive",    name:"Drive",    before:"#b9cbe0", palette:["#1878f0","#f0a800","#00a830","#d83030"], mono:false},
+  {slug:"linear",         name:"Linear",   before:"#bac7ff", palette:["#7890f0","#9aa6ff","#8b95ff"], mono:false},
+  {slug:"notion",         name:"Notion",   before:"#d3d3d3", palette:["#b9bcc4","#8b95ff"], mono:true},
+];
+// Real Composio logo SVGs (logos.composio.dev/api/<slug>) inlined as data URIs.
+const LOGOS = {"gmail": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8wXzEyKSI+CjxwYXRoIGQ9Ik04LjcyNzUgMTEzLjg1NEgyOS4wOTFWNjQuNEwwIDQyLjU4MTdWMTA1LjEyN0MwIDEwOS45NDkgMy45MDU1IDExMy44NTUgOC43Mjc1IDExMy44NTVWMTEzLjg1NFoiIGZpbGw9IiM0Mjg1RjQiLz4KPHBhdGggZD0iTTk4LjkwOSAxMTMuODU0SDExOS4yNzNDMTI0LjA5NSAxMTMuODU0IDEyOCAxMDkuOTQ5IDEyOCAxMDUuMTI3VjQyLjU4MTdMOTguOTA5IDY0LjRWMTEzLjg1NFoiIGZpbGw9IiMzNEE4NTMiLz4KPHBhdGggZD0iTTk4LjkwOSAyNi41ODE3VjY0LjRMMTI4IDQyLjU4MTdWMzAuOTQ1NUMxMjggMjAuMTYgMTE1LjY4NyAxNCAxMDcuMDU0IDIwLjQ3MjdMOTguOTA5IDI2LjU4MTdaIiBmaWxsPSIjRkJCQzA0Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjkuMDkxIDY0LjRWMjYuNTgxN0w2NCA1Mi43NjM4TDk4LjkwOSAyNi41ODE3VjY0LjRMNjQgOTAuNTgxN0wyOS4wOTEgNjQuNFoiIGZpbGw9IiNFQTQzMzUiLz4KPHBhdGggZD0iTTAgMzAuOTQ1NVY0Mi41ODE3TDI5LjA5MSA2NC40VjI2LjU4MTdMMjAuOTQ1NSAyMC40NzI3QzEyLjMxMjUgMTQgMCAyMC4xNiAwIDMwLjk0NVYzMC45NDU1WiIgZmlsbD0iI0M1MjIxRiIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzBfMTIiPgo8cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9Ijk5Ljg1NSIgZmlsbD0id2hpdGUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgMTQpIi8+CjwvY2xpcFBhdGg+CjwvZGVmcz4KPC9zdmc+Cg==", "googlecalendar": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8wXzY0KSI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMV8wXzY0KSI+CjxwYXRoIGQ9Ik05Ny42ODQ0IDMwLjMxNTVMNjcuMzY4OSAyNi45NDcyTDMwLjMxNjEgMzAuMzE1NUwyNi45NDcxIDY0TDMwLjMxNTUgOTcuNjg0NUw2My45OTk5IDEwMS44OTVMOTcuNjg0NCA5Ny42ODQ1TDEwMS4wNTMgNjMuMTU4NEw5Ny42ODQ0IDMwLjMxNTVaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNDQuMTM1IDgyLjU3NjZDNDEuNjE3MyA4MC44NzU1IDM5Ljg3MzkgNzguMzkxNyAzOC45MjIyIDc1LjEwNzJMNDQuNzY2NyA3Mi42OTg5QzQ1LjI5NzMgNzQuNzIgNDYuMjIzNCA3Ni4yODYxIDQ3LjU0NTYgNzcuMzk3OEM0OC44NTk1IDc4LjUwOTQgNTAuNDU5NSA3OS4wNTY2IDUyLjMyOSA3OS4wNTY2QzU0LjI0MDYgNzkuMDU2NiA1NS44ODI5IDc4LjQ3NTUgNTcuMjU1IDc3LjMxMzNDNTguNjI3MiA3Ni4xNTEgNTkuMzE4NCA3NC42Njg4IDU5LjMxODQgNzIuODc1NUM1OS4zMTg0IDcxLjA0IDU4LjU5MzkgNjkuNTQwNSA1Ny4xNDU2IDY4LjM3ODlDNTUuNjk3MyA2Ny4yMTczIDUzLjg3ODQgNjYuNjM1NSA1MS43MDU2IDY2LjYzNTVINDguMzI5VjYwLjg1MDZINTEuMzZDNTMuMjI5NCA2MC44NTA2IDU0LjgwNDUgNjAuMzQ1NiA1Ni4wODQ1IDU5LjMzNUM1Ny4zNjQ1IDU4LjMyNDUgNTguMDA0NSA1Ni45NDM0IDU4LjAwNDUgNTUuMTgzNEM1OC4wMDQ1IDUzLjYxNzMgNTcuNDMxNyA1Mi4zNzA2IDU2LjI4NjcgNTEuNDM2MkM1NS4xNDE4IDUwLjUwMTggNTMuNjkyOCA1MC4wMzAxIDUxLjkzMjggNTAuMDMwMUM1MC4yMTUgNTAuMDMwMSA0OC44NTA2IDUwLjQ4NTEgNDcuODQgNTEuNDAyOUM0Ni44Mjk0IDUyLjMyMDYgNDYuMDk2NiA1My40NDkgNDUuNjMzOSA1NC43Nzk1TDM5Ljg0OSA1Mi4zNzEyQzQwLjYxNSA1MC4xOTg0IDQyLjAyMTggNDguMjc4NCA0NC4wODQ1IDQ2LjYxOTVDNDYuMTQ3OCA0NC45NjA2IDQ4Ljc4MzQgNDQuMTI2NyA1MS45ODM0IDQ0LjEyNjdDNTQuMzQ5NCA0NC4xMjY3IDU2LjQ4IDQ0LjU4MTggNTguMzY2NyA0NS40OTk1QzYwLjI1MjggNDYuNDE3MyA2MS43MzUgNDcuNjg5IDYyLjgwNDUgNDkuMzA1NkM2My44NzM5IDUwLjkzMDYgNjQuNDA0NSA1Mi43NTAxIDY0LjQwNDUgNTQuNzcwNkM2NC40MDQ1IDU2LjgzMzkgNjMuOTA3OCA1OC41NzY2IDYyLjkxMzkgNjAuMDA4M0M2MS45MiA2MS40NCA2MC42OTg5IDYyLjUzNDQgNTkuMjUwNiA2My4zMDExVjYzLjY0NjFDNjEuMTYyMiA2NC40NDYxIDYyLjcyIDY1LjY2NzIgNjMuOTQ5NCA2Ny4zMDk0QzY1LjE3MDYgNjguOTUxNyA2NS43ODUgNzAuOTEzOSA2NS43ODUgNzMuMjA0NUM2NS43ODUgNzUuNDk1IDY1LjIwMzggNzcuNTQxMSA2NC4wNDE2IDc5LjMzNUM2Mi44Nzk0IDgxLjEyOSA2MS4yNzEgODIuNTQzNCA1OS4yMzMzIDgzLjU3MDZDNTcuMTg3MiA4NC41OTc4IDU0Ljg4ODMgODUuMTIgNTIuMzM2NiA4NS4xMkM0OS4zODExIDg1LjEyODMgNDYuNjUyOCA4NC4yNzc4IDQ0LjEzNSA4Mi41NzY2WiIgZmlsbD0iIzFBNzNFOCIvPgo8cGF0aCBkPSJNODAgNTMuNTc1TDczLjYxNjYgNTguMjE1TDcwLjQwODMgNTMuMzQ3OEw4MS45MiA0NS4wNDQ1SDg2LjMzMjhWODQuMjEwNkg4MFY1My41NzVaIiBmaWxsPSIjMUE3M0U4Ii8+CjxwYXRoIGQ9Ik05Ny42ODQ0IDEyOEwxMjggOTcuNjg0NUwxMTIuODQyIDkwLjk0NzhMOTcuNjg0NCA5Ny42ODQ1TDkwLjk0NzggMTEyLjg0Mkw5Ny42ODQ0IDEyOFoiIGZpbGw9IiNFQTQzMzUiLz4KPHBhdGggZD0iTTIzLjU3ODkgMTEyLjg0MkwzMC4zMTU1IDEyOEg5Ny42ODM4Vjk3LjY4NDVIMzAuMzE1NUwyMy41Nzg5IDExMi44NDJaIiBmaWxsPSIjMzRBODUzIi8+CjxwYXRoIGQ9Ik0xMC4xMDUgMEM0LjUyMjI0IDAgMCA0LjUyMjI0IDAgMTAuMTA1Vjk3LjY4MzhMMTUuMTU3OCAxMDQuNDJMMzAuMzE1NSA5Ny42ODM4VjMwLjMxNTVIOTcuNjgzOEwxMDQuNDIgMTUuMTU3OEw5Ny42ODQ1IDBIMTAuMTA1WiIgZmlsbD0iIzQyODVGNCIvPgo8cGF0aCBkPSJNMCA5Ny42ODQ1VjExNy44OTVDMCAxMjMuNDc4IDQuNTIyMjQgMTI4IDEwLjEwNSAxMjhIMzAuMzE1NVY5Ny42ODQ1SDBaIiBmaWxsPSIjMTg4MDM4Ii8+CjxwYXRoIGQ9Ik05Ny42ODQ0IDMwLjMxNTVWOTcuNjgzOEgxMjhWMzAuMzE1NUwxMTIuODQyIDIzLjU3ODlMOTcuNjg0NCAzMC4zMTU1WiIgZmlsbD0iI0ZCQkMwNCIvPgo8cGF0aCBkPSJNMTI4IDMwLjMxNTVWMTAuMTA1QzEyOCA0LjUyMTYgMTIzLjQ3OCAwIDExNy44OTUgMEg5Ny42ODQ0VjMwLjMxNTVIMTI4WiIgZmlsbD0iIzE5NjdEMiIvPgo8L2c+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMF82NCI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8Y2xpcFBhdGggaWQ9ImNsaXAxXzBfNjQiPgo8cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0id2hpdGUiLz4KPC9jbGlwUGF0aD4KPC9kZWZzPgo8L3N2Zz4K", "slack": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8wXzExMykiPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDFfMF8xMTMpIj4KPHBhdGggZD0iTTI2Ljg5MjUgODAuODg2QzI2Ljg5MjUgODguMjg2NiAyMC44NDY5IDk0LjMzMjMgMTMuNDQ2MyA5NC4zMzIzQzYuMDQ1NjEgOTQuMzMyMyAwIDg4LjI4NjYgMCA4MC44ODZDMCA3My40ODUzIDYuMDQ1NjEgNjcuNDM5NyAxMy40NDYzIDY3LjQzOTdIMjYuODkyNVY4MC44ODZaIiBmaWxsPSIjRTAxRTVBIi8+CjxwYXRoIGQ9Ik0zMy42Njc1IDgwLjg4NkMzMy42Njc1IDczLjQ4NTMgMzkuNzEzMSA2Ny40Mzk3IDQ3LjExMzcgNjcuNDM5N0M1NC41MTQ0IDY3LjQzOTcgNjAuNTYgNzMuNDg1MyA2MC41NiA4MC44ODZWMTE0LjU1NEM2MC41NiAxMjEuOTU0IDU0LjUxNDQgMTI4IDQ3LjExMzcgMTI4QzM5LjcxMzEgMTI4IDMzLjY2NzUgMTIxLjk1NCAzMy42Njc1IDExNC41NTRWODAuODg2WiIgZmlsbD0iI0UwMUU1QSIvPgo8cGF0aCBkPSJNNDcuMTEzNyAyNi44OTI1QzM5LjcxMzEgMjYuODkyNSAzMy42Njc1IDIwLjg0NjkgMzMuNjY3NSAxMy40NDYzQzMzLjY2NzUgNi4wNDU2IDM5LjcxMzEgLTMuODE0N2UtMDYgNDcuMTEzNyAtMy44MTQ3ZS0wNkM1NC41MTQ0IC0zLjgxNDdlLTA2IDYwLjU2IDYuMDQ1NiA2MC41NiAxMy40NDYzVjI2Ljg5MjVINDcuMTEzN1oiIGZpbGw9IiMzNkM1RjAiLz4KPHBhdGggZD0iTTQ3LjExNCAzMy42Njc4QzU0LjUxNDcgMzMuNjY3OCA2MC41NjAzIDM5LjcxMzQgNjAuNTYwMyA0Ny4xMTRDNjAuNTYwMyA1NC41MTQ3IDU0LjUxNDcgNjAuNTYwMyA0Ny4xMTQgNjAuNTYwM0gxMy40NDYzQzYuMDQ1NiA2MC41NjAzIDAgNTQuNTE0NyAwIDQ3LjExNEMwIDM5LjcxMzQgNi4wNDU2IDMzLjY2NzggMTMuNDQ2MyAzMy42Njc4SDQ3LjExNFoiIGZpbGw9IiMzNkM1RjAiLz4KPHBhdGggZD0iTTEwMS4xMDcgNDcuMTE0QzEwMS4xMDcgMzkuNzEzNCAxMDcuMTUzIDMzLjY2NzggMTE0LjU1NCAzMy42Njc4QzEyMS45NTQgMzMuNjY3OCAxMjggMzkuNzEzNCAxMjggNDcuMTE0QzEyOCA1NC41MTQ3IDEyMS45NTQgNjAuNTYwMyAxMTQuNTU0IDYwLjU2MDNIMTAxLjEwN1Y0Ny4xMTRaIiBmaWxsPSIjMkVCNjdEIi8+CjxwYXRoIGQ9Ik05NC4zMzIyIDQ3LjExNEM5NC4zMzIyIDU0LjUxNDcgODguMjg2NiA2MC41NjAzIDgwLjg4NTkgNjAuNTYwM0M3My40ODUzIDYwLjU2MDMgNjcuNDM5NyA1NC41MTQ3IDY3LjQzOTcgNDcuMTE0VjEzLjQ0NjNDNjcuNDM5NyA2LjA0NTYgNzMuNDg1MyAtMy44MTQ3ZS0wNiA4MC44ODU5IC0zLjgxNDdlLTA2Qzg4LjI4NjYgLTMuODE0N2UtMDYgOTQuMzMyMiA2LjA0NTYgOTQuMzMyMiAxMy40NDYzVjQ3LjExNFoiIGZpbGw9IiMyRUI2N0QiLz4KPHBhdGggZD0iTTgwLjg4NTkgMTAxLjEwN0M4OC4yODY2IDEwMS4xMDcgOTQuMzMyMiAxMDcuMTUzIDk0LjMzMjIgMTE0LjU1NEM5NC4zMzIyIDEyMS45NTQgODguMjg2NiAxMjggODAuODg1OSAxMjhDNzMuNDg1MyAxMjggNjcuNDM5NyAxMjEuOTU0IDY3LjQzOTcgMTE0LjU1NFYxMDEuMTA3SDgwLjg4NTlaIiBmaWxsPSIjRUNCMjJFIi8+CjxwYXRoIGQ9Ik04MC44ODU5IDk0LjMzMjNDNzMuNDg1MyA5NC4zMzIzIDY3LjQzOTcgODguMjg2NiA2Ny40Mzk3IDgwLjg4NkM2Ny40Mzk3IDczLjQ4NTMgNzMuNDg1MyA2Ny40Mzk3IDgwLjg4NTkgNjcuNDM5N0gxMTQuNTU0QzEyMS45NTQgNjcuNDM5NyAxMjggNzMuNDg1MyAxMjggODAuODg2QzEyOCA4OC4yODY2IDEyMS45NTQgOTQuMzMyMyAxMTQuNTU0IDk0LjMzMjNIODAuODg1OVoiIGZpbGw9IiNFQ0IyMkUiLz4KPC9nPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzBfMTEzIj4KPHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIGZpbGw9IndoaXRlIi8+CjwvY2xpcFBhdGg+CjxjbGlwUGF0aCBpZD0iY2xpcDFfMF8xMTMiPgo8cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0id2hpdGUiLz4KPC9jbGlwUGF0aD4KPC9kZWZzPgo8L3N2Zz4K", "googledrive": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8wXzE4NSkiPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDFfMF8xODUpIj4KPHBhdGggZD0iTTkuMzI2ODggMTA0LjgzNEwxNC45NzE4IDExNC41ODRDMTYuMTQ0NyAxMTYuNjM3IDE3LjgzMDkgMTE4LjI1IDE5LjgxMDMgMTE5LjQyM0wzOS45NzA2IDg0LjUyNjlILTAuMzUwMDk4Qy0wLjM1MDA5OCA4Ni43OTk1IDAuMjM2Mzg2IDg5LjA3MjIgMS40MDkzNSA5MS4xMjQ5TDkuMzI2ODggMTA0LjgzNFoiIGZpbGw9IiMwMDY2REEiLz4KPHBhdGggZD0iTTYzLjY0OTkgNDMuNDczMUw0My40ODk1IDguNTc3MzJDNDEuNTEwMiA5Ljc1MDI5IDM5LjgyNCAxMS4zNjMxIDM4LjY1MSAxMy40MTU4TDEuNDA5MzUgNzcuOTI5QzAuMjU3OTU4IDc5LjkzNzQgLTAuMzQ4NTY1IDgyLjIxMTkgLTAuMzUwMDk4IDg0LjUyNjlIMzkuOTcwNkw2My42NDk5IDQzLjQ3MzFaIiBmaWxsPSIjMDBBQzQ3Ii8+CjxwYXRoIGQ9Ik0xMDcuNDg5IDExOS40MjNDMTA5LjQ2OSAxMTguMjUgMTExLjE1NSAxMTYuNjM3IDExMi4zMjggMTE0LjU4NEwxMTQuNjc0IDExMC41NTJMMTI1Ljg5IDkxLjEyNDlDMTI3LjA2MyA4OS4wNzIyIDEyNy42NSA4Ni43OTk1IDEyNy42NSA4NC41MjY5SDg3LjMyNjJMOTUuOTA2NCAxMDEuMzg4TDEwNy40ODkgMTE5LjQyM1oiIGZpbGw9IiNFQTQzMzUiLz4KPHBhdGggZD0iTTYzLjY0OTYgNDMuNDczMUw4My44MSA4LjU3NzMyQzgxLjgzMDYgNy40MDQzNSA3OS41NTggNi44MTc4NyA3Ny4yMTIxIDYuODE3ODdINTAuMDg3MkM0Ny43NDEzIDYuODE3ODcgNDUuNDY4NiA3LjQ3NzY3IDQzLjQ4OTMgOC41NzczMkw2My42NDk2IDQzLjQ3MzFaIiBmaWxsPSIjMDA4MzJEIi8+CjxwYXRoIGQ9Ik04Ny4zMjk0IDg0LjUyNjlIMzkuOTcwOUwxOS44MTA1IDExOS40MjNDMjEuNzg5OSAxMjAuNTk2IDI0LjA2MjYgMTIxLjE4MiAyNi40MDg1IDEyMS4xODJIMTAwLjg5MkMxMDMuMjM4IDEyMS4xODIgMTA1LjUxIDEyMC41MjIgMTA3LjQ5IDExOS40MjNMODcuMzI5NCA4NC41MjY5WiIgZmlsbD0iIzI2ODRGQyIvPgo8cGF0aCBkPSJNMTA3LjI3IDQ1LjY3MjRMODguNjQ4OCAxMy40MTU4Qzg3LjQ3NTggMTEuMzYzMSA4NS43ODk2IDkuNzUwMjkgODMuODEwMyA4LjU3NzMyTDYzLjY0OTkgNDMuNDczMUw4Ny4zMjkyIDg0LjUyNjlIMTI3LjU3N0MxMjcuNTc3IDgyLjI1NDMgMTI2Ljk5IDc5Ljk4MTcgMTI1LjgxNyA3Ny45MjlMMTA3LjI3IDQ1LjY3MjRaIiBmaWxsPSIjRkZCQTAwIi8+CjwvZz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF8wXzE4NSI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8Y2xpcFBhdGggaWQ9ImNsaXAxXzBfMTg1Ij4KPHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMTQuMzY0IiBmaWxsPSJ3aGl0ZSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTAuMzUwMDk4IDYuODE3ODcpIi8+CjwvY2xpcFBhdGg+CjwvZGVmcz4KPC9zdmc+Cg==", "linear": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIGZpbGw9IiM4Mjk5RkYiPgogIDxwYXRoCiAgICBkPSJNMi4xNDcgOS4zODNjLS4wMjctLjExNC4xMDktLjE4Ni4xOTItLjEwM0w2LjcyIDEzLjY2Yy4wODMuMDgzLjAxMS4yMTktLjEwMy4xOTJhNi4wMTUgNi4wMTUgMCAwIDEtNC40Ny00LjQ3Wk0yIDcuNjI3YS4xMTkuMTE5IDAgMCAwIC4wMzUuMDkxbDYuMjQ3IDYuMjQ3YS4xMTkuMTE5IDAgMCAwIC4wOTEuMDM1Yy4yODUtLjAxOC41NjQtLjA1NS44MzYtLjExMWEuMTE3LjExNyAwIDAgMCAuMDU3LS4xOThMMi4zMSA2LjczNGEuMTE3LjExNyAwIDAgMC0uMTk4LjA1NyA2LjAwNyA2LjAwNyAwIDAgMC0uMTEuODM2Wk0yLjUwNSA1LjU2NWEuMTE5LjExOSAwIDAgMCAuMDI1LjEzMmw3Ljc3MyA3Ljc3M2EuMTE4LjExOCAwIDAgMCAuMTMyLjAyNWMuMjE1LS4wOTYuNDIyLS4yMDMuNjIzLS4zMjJhLjExOC4xMTggMCAwIDAgLjAyMi0uMTg1TDMuMDEyIDQuOTJhLjExOC4xMTggMCAwIDAtLjE4NS4wMjJjLS4xMTkuMi0uMjI2LjQwOC0uMzIyLjYyM1pNMy41MTkgNC4xNjlhLjExOC4xMTggMCAwIDEtLjAwNS0uMTYzIDYuMDA2IDYuMDA2IDAgMSAxIDguNDggOC40OC4xMTguMTE4IDAgMCAxLS4xNjMtLjAwNUwzLjUyIDQuMTY5WiIKICAvPgo8L3N2Zz4K", "notion": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAuMDAgMC4wMCA1MTIuMDAgNTEyLjAwIiB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCI+CjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9IgogIE0gNTEyLjAwIDAuMDAKICBMIDUxMi4wMCA1MTIuMDAKICBMIDAuMDAgNTEyLjAwCiAgTCAwLjAwIDAuMDAKICBMIDUxMi4wMCAwLjAwCiAgWiIKLz4KPHBhdGggZmlsbD0iIzAwMDAwMCIgZD0iCiAgTSAxNDYuNTYgNDU4LjYzCiAgQyAxMzguNDYgNDU3LjU0IDEzMi4zOSA0NTMuNDYgMTI3LjUzIDQ0Ny4yMwogIFEgMTE5LjQzIDQzNi44MSA3MS42MyAzNzQuNjIKICBRIDY4Ljk5IDM3MS4xOSA2NS4yNSAzNjQuMjQKICBRIDYwLjA1IDM1NC41OCA2MC4wNCAzNDQuMjUKICBRIDU5Ljk0IDI0NS4wMCA2MC4wNCA5My4wMQogIFEgNjAuMDQgODYuOTkgNjMuMjYgODAuMzcKICBDIDY3LjA1IDcyLjU4IDc1LjMwIDY4LjM2IDgzLjc1IDY3LjczCiAgUSAxMjEuNTYgNjQuOTAgMzIxLjc1IDUwLjE2CiAgQyAzMzQuODAgNDkuMjAgMzQ2LjE2IDUwLjc2IDM1Ny45NSA1OC44NQogIFEgMzYxLjMyIDYxLjE3IDQzNS4xNSAxMTMuMTcKICBRIDQ0NS4wNiAxMjAuMTUgNDQ4LjI1IDEyMy41MQogIFEgNDUyLjA5IDEyNy41NyA0NTIuMDYgMTM0LjUwCiAgUSA0NTEuOTIgMTczLjIzIDQ1Mi4wNCA0MTIuNTAKICBDIDQ1Mi4wNSA0MjUuMzcgNDQ5LjA0IDQzNi45NSA0MzUuMDUgNDQxLjA5CiAgUSA0MjkuNTAgNDQyLjczIDQyNC41MCA0NDMuMDQKICBRIDM4Mi4xNCA0NDUuNjUgMTU5LjA3IDQ1OS4xMAogIFEgMTUyLjg2IDQ1OS40NyAxNDYuNTYgNDU4LjYzCiAgWgogIE0gMzk2LjE0IDExNS4xMQogIFEgMzk2LjMwIDExNC4yNSAzOTUuMzIgMTEyLjc2CiAgUSAzOTQuNTEgMTExLjU0IDM5My41MSAxMTAuODQKICBRIDM4Ny45MCAxMDYuOTYgMzYzLjk3IDg5LjQ1CiAgUSAzNDkuNjAgNzguOTMgMzQ1LjM3IDc2Ljk0CiAgUSAzMzUuMjYgNzIuMTkgMzIzLjQ5IDczLjA0CiAgUSAxMzQuNjcgODYuNzQgMTAxLjc1IDg5LjI2CiAgQyA5OC45NCA4OS40OCA5My44NyA5MS40NCA5NS4yNyA5NS4xNgogIFEgOTUuNzIgOTYuMzQgOTguMDMgOTguMjAKICBRIDExNy40NiAxMTMuODcgMTMxLjY4IDEyNC44MwogIEMgMTM5Ljc2IDEzMS4wNSAxNDguNDMgMTMwLjk2IDE1OC4yNCAxMzAuMzYKICBRIDIyNy4yMSAxMjYuMTcgMzk1LjAxIDExNi4xMAogIEEgMS4yMiAxLjIxIC04Ni4wIDAgMCAzOTYuMTQgMTE1LjExCiAgWgogIE0gMTQ3LjM3IDE1OS44NgogIFEgMTQxLjE1IDE2My42NiAxNDEuMTUgMTcxLjAzCiAgUSAxNDEuMDggMzc4LjAwIDE0MS4xNSA0MTMuMDMKICBDIDE0MS4xNyA0MjQuMjAgMTQ5LjM3IDQyOC43MCAxNTkuNTUgNDI4LjEyCiAgUSAyMjEuNTYgNDI0LjYxIDQwNS4xMiA0MTMuOTEKICBRIDQxNC4zNiA0MTMuMzcgNDE3LjIwIDQxMS45NwogIEMgNDIzLjg4IDQwOC42OCA0MjQuODkgNDAxLjYxIDQyNC44OSAzOTQuNTAKICBRIDQyNC44NiAyNzYuMTcgNDI0Ljg4IDE1Ny44OQogIEMgNDI0Ljg5IDE1MC4yNyA0MjIuMTggMTQyLjY0IDQxMy4yNCAxNDMuMTYKICBRIDI4MS4zNSAxNTAuODYgMTU0LjI4IDE1OC4zMAogIEMgMTUyLjIxIDE1OC40MyAxNDguOTQgMTU4LjkwIDE0Ny4zNyAxNTkuODYKICBaCiAgTSAzMzcuODMgMzE3LjU4CiAgTCAyNTcuNDQgMTk0LjU0CiAgQSAwLjg1IDAuODUgMC4wIDAgMCAyNTYuNjggMTk0LjE2CiAgUSAyMDAuNzEgMTk3Ljk0IDE5OS40OSAxOTguMDIKICBRIDE4NC43NyAxOTkuMDcgMTg0LjM2IDIxNC42NwogIEEgMS44MCAxLjgwIDAuMCAwIDAgMTg2LjAyIDIxNi41MgogIEwgMjA0LjM0IDIxNy45NwogIEEgMC40NSAwLjQ0IC04OC4wIDAgMSAyMDQuNzUgMjE4LjQyCiAgTCAyMDQuNzUgMzc0LjE0CiAgQSAwLjc3IDAuNzcgMC4wIDAgMSAyMDQuMTkgMzc0Ljg4CiAgTCAxODkuOTcgMzc4Ljc5CiAgQSAzLjUxIDMuNDkgLTcwLjYgMCAwIDE4OC44MyAzNzkuMzQKICBRIDE4My4yMCAzODMuNDQgMTg0LjU4IDM5MS4wMQogIEEgMC40NyAwLjQ3IDAuMCAwIDAgMTg1LjA4IDM5MS40MAogIFEgMjE4LjY2IDM4OS40NiAyNDMuMjQgMzg4LjAzCiAgQyAyNTEuMjcgMzg3LjU2IDI1OC40NSAzODMuMDAgMjU5LjQ4IDM3NC40OQogIEEgMC42NiAwLjY1IDkuOCAwIDAgMjU4Ljk3IDM3My43OAogIEwgMjM1LjQxIDM2OC40OAogIEEgMC42OSAwLjY4IC04My43IDAgMSAyMzQuODggMzY3LjgxCiAgTCAyMzQuODggMjUwLjU2CiAgQSAwLjIzIDAuMjMgMC4wIDAgMSAyMzUuMzEgMjUwLjQ0CiAgUSAyNzIuNDEgMzA4LjgwIDMxMS4yMCAzNjkuNzkKICBDIDMxMy43NSAzNzMuNzkgMzE3LjA0IDM3Ny43MSAzMjAuMTQgMzgxLjEyCiAgQyAzMzIuMjkgMzk0LjQyIDM1Mi44OSAzODYuNjEgMzY1LjkwIDM3OS41MAogIEEgMC40NCAwLjQyIDc2LjMgMCAwIDM2Ni4xMiAzNzkuMTIKICBMIDM2Ni4xMiAyMDQuODMKICBBIDAuNDUgMC40NCAtNi42IDAgMSAzNjYuNDcgMjA0LjQwCiAgUSAzNzMuODIgMjAyLjg0IDM3Ni4zOSAyMDIuNDQKICBDIDM4MS4yNSAyMDEuNjcgMzg0LjIxIDIwMC4yMiAzODUuMzAgMTk1LjU1CiAgUSAzODYuMjcgMTkxLjM2IDM4NS4yMCAxODcuNDkKICBBIDAuNjggMC42NyA4MC4xIDAgMCAzODQuNTAgMTg2Ljk5CiAgUSAzNzUuNzggMTg3LjU0IDMzNi40MiAxODkuNzkKICBRIDMyOS4yMCAxOTAuMjAgMzI3LjY0IDE5MC42NQogIEMgMzIwLjcxIDE5Mi42NSAzMTYuNTkgMTk4LjE4IDMxNy40OCAyMDUuNDkKICBBIDAuNzUgMC43NSAwLjAgMCAwIDMxOC4xNCAyMDYuMTUKICBMIDMzNy45NiAyMDguNDIKICBBIDAuMzMgMC4zMyAwLjAgMCAxIDMzOC4yNiAyMDguNzUKICBMIDMzOC4yNiAzMTcuNDUKICBBIDAuMjMgMC4yMyAwLjAgMCAxIDMzNy44MyAzMTcuNTgKICBaIgovPgo8L3N2Zz4K"};
+const ANCH=[[8,30],[42,82],[78,20],[100,70],[55,48]];
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function meshCss(cols){
+  return cols.map((c,i)=>{const[x,y]=ANCH[i%ANCH.length];const s=44+(i%2)*16;
+    return `radial-gradient(${s}% ${s+95}% at ${x}% ${y}%, ${hexA(c,0.95)} 0%, transparent 60%)`;}).join(',');
+}
+function beforeCss(c){return `radial-gradient(75% 130% at 30% 50%, ${hexA(c,0.7)} 0%, ${hexA(c,0.28)} 45%, transparent 80%)`;}
+function notch(cls,bg,logo){return `<div class="notch"><div class="aura ${cls}" style="background:${bg}"></div>
+  <div class="logo"><img src="${logo}" alt=""></div><div class="ph">Bash</div>
+  <div class="wave"><i></i><i></i><i></i><i></i></div></div>`;}
+document.getElementById('grid').innerHTML = APPS.map(a=>`
+  <div class="app">
+    <div class="app-head">
+      <div class="app-name">${a.name} ${a.mono?'<span class="mono-flag">mono → companion</span>':''}<span class="app-slug">/${a.slug}</span></div>
+      <div class="pal">${a.palette.map(c=>`<i style="background:${c}"></i>`).join('')}</div>
+    </div>
+    <div class="notches">
+      <div class="nrow"><div class="nlabel bad"><span class="sw"></span>now</div>${notch('before',beforeCss(a.before),LOGOS[a.slug])}</div>
+      <div class="nrow"><div class="nlabel good"><span class="sw"></span>new</div>${notch('after',meshCss(a.palette),LOGOS[a.slug])}</div>
+    </div>
+  </div>`).join('');
+</script>
+</body>
+</html>

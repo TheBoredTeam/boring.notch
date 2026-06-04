@@ -182,6 +182,7 @@ struct ContentView: View {
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
                                     if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.piPinHoldsOpen {
+                                        guard !self.vm.isMouseHovering() else { return }
                                         self.vm.close()
                                     }
                                 }
@@ -203,6 +204,7 @@ struct ContentView: View {
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
                                     if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !self.piPinHoldsOpen {
+                                        guard !self.vm.isMouseHovering() else { return }
                                         self.vm.close()
                                     }
                                 }
@@ -595,6 +597,10 @@ struct ContentView: View {
                     }
 
                     if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.piPinHoldsOpen {
+                        // Belt-and-suspenders: a resize-induced phantom exit can fire
+                        // onHover(false) while the cursor is still over the (possibly
+                        // tall) panel — don't close a panel the pointer is inside.
+                        guard !self.vm.isMouseHovering() else { return }
                         self.vm.close()
                     } else if self.vm.notchState == .closed {
                         self.vm.edgeAutoOpenActive = false
