@@ -72,6 +72,8 @@ boringNotch/Resources/export-html/
 
 # Local agent tooling
 .claude/
-.cursor/
+.cursor/*
+!.cursor/plans/
+!.cursor/plans/**
 
 .gstack/
