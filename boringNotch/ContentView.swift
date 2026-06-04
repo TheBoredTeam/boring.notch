@@ -21,6 +21,7 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+    @ObservedObject var networkModel = NetworkStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @State private var hoverTask: Task<Void, Never>?
@@ -88,8 +89,9 @@ struct ContentView: View {
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
-        if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
+        if (coordinator.expandingView.type == .battery || coordinator.expandingView.type == .network)
+            && coordinator.expandingView.show
+            && vm.notchState == .closed
         {
             chinWidth = 640
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
@@ -320,6 +322,16 @@ struct ContentView: View {
                             }
                             .frame(width: 76, alignment: .trailing)
                         }
+                        .frame(height: displayClosedNotchHeight, alignment: .center)
+                    } else if coordinator.expandingView.type == .network && coordinator.expandingView.show
+                        && vm.notchState == .closed
+                    {
+                        BoringNetworkActivityView(
+                            statusText: networkModel.statusText,
+                            symbolName: networkModel.symbolName,
+                            isConnected: networkModel.isConnected,
+                            centerWidth: vm.closedNotchSize.width + 10
+                        )
                         .frame(height: displayClosedNotchHeight, alignment: .center)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
                           InlineOSD(
