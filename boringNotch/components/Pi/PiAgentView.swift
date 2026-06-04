@@ -312,24 +312,42 @@ struct PiAgentView: View {
     // MARK: Answer
 
     private var answer: some View {
-        ScrollViewReader { proxy in
+        // Connection deeplinks are surfaced by the Connect CTA capsule, so render the
+        // transcript with them stripped — they never appear inline (or repeat).
+        let shown = pi.displayTranscript
+        // Trim before deciding emptiness: a connection-blocked turn often leaves only
+        // whitespace (the model wrote nothing but the stripped deeplink), which would
+        // otherwise render as an invisible non-empty answer — a blank box with no
+        // placeholder. Treating whitespace as empty surfaces the placeholder/guidance.
+        let isBlank = shown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     Group {
-                        if pi.transcript.isEmpty {
+                        if isBlank {
                             Text(placeholder)
                                 .font(.system(size: 12))
                                 .foregroundStyle(.gray)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .transition(.opacity)
+                        } else if pi.isRunning || !MDBlock.hasBlockStructure(shown) {
+                            // Streaming, or settled-but-plain prose: one inline Text.
+                            // Never reflows mid-stream (the common case) and avoids
+                            // per-delta re-parse of unclosed fences/lists.
+                            PiInlineText(text: shown)
+                                .transition(.opacity)
                         } else {
-                            PiMarkdownView(text: pi.transcript)
+                            // Settled and block-structured: full markdown layout. A
+                            // structured answer flips inline→block once at settle.
+                            PiMarkdownView(text: shown)
                                 .transition(.opacity)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     // Placeholder → first content is a crossfade, not a hard swap.
-                    .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: pi.transcript.isEmpty)
+                    .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: isBlank)
+                    // Smooth single inline→block crossfade once the run settles.
+                    .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: pi.isRunning)
 
                     // Comfort footer: keeps the newest line off the panel's bottom edge;
                     // the auto-scroll anchor rides on it.
@@ -418,7 +436,11 @@ struct PiAgentView: View {
     }
 
     private var placeholder: String {
-        pi.isRunning ? "" : "Pi’s answer will stream here."
+        if pi.isRunning { return "" }
+        // A connection-blocked turn ends with no prose — guide the user instead of
+        // showing an empty box that reads as a lost response.
+        if pi.connectionPrompt != nil { return "Connect the app above, then send your prompt again." }
+        return "Pi’s answer will stream here."
     }
 
     private func errorRow(_ message: String) -> some View {

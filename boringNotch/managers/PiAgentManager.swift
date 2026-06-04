@@ -60,10 +60,20 @@ final class PiAgentManager: ObservableObject {
     /// Flair color sampled from the active toolkit's logo (gmail red, calendar blue, …).
     /// Lightened for legible text/tint. Nil → callers fall back to the app accent.
     @Published private(set) var toolkitAccent: NSColor?
+    /// Area-weighted dominant colors of the active toolkit's logo (gmail's red/blue/
+    /// green/yellow, calendar blue, …), each lightened for legibility. Drives the peek
+    /// aurora's multi-color mesh. Empty for a monochrome mark → callers fall back to a
+    /// single indigo. `toolkitAccent` mirrors `toolkitPalette.first` for back-compat.
+    @Published private(set) var toolkitPalette: [NSColor] = []
     @Published private(set) var chips: [ToolChip] = []
     @Published private(set) var transcript: String = ""
     @Published private(set) var connectionPrompt: ConnectionPrompt?
     @Published private(set) var lastError: String?
+
+    /// Connection deeplinks surfaced this turn (from `connection_required`). The CTA
+    /// capsule is the only place these should appear — `displayTranscript` strips them
+    /// out of the rendered prose so they never show inline (and never repeat).
+    private var connectionDeeplinks: Set<String> = []
 
     /// A tool call the model is still streaming arguments for (sidecar `tool_forming`).
     /// Sanitized for display ("Send email"); nil when no name is known yet but a call
@@ -105,6 +115,12 @@ final class PiAgentManager: ObservableObject {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }()
+
+    /// Memoized publish-tinted palettes keyed by slug. Populated on first derive, read
+    /// first on every subsequent derive (including the memory-image-cache path that
+    /// holds no raw SVG bytes). Never cleared on `done` — a pure slug→colors memo, so
+    /// re-running the same toolkit paints instantly without re-parsing.
+    private var paletteCache: [String: [NSColor]] = [:]
 
     private init() {}
 
@@ -219,6 +235,7 @@ final class PiAgentManager: ObservableObject {
 
         transcript = ""
         connectionPrompt = nil
+        connectionDeeplinks = []
         chips = []
         currentTool = nil
         currentToolPretty = nil
@@ -247,11 +264,51 @@ final class PiAgentManager: ObservableObject {
         write(["type": "abort"])
     }
 
-    /// Hide the transient Composio auth CTA. The transcript may still contain the
-    /// per-turn markdown link; the oversized prompt should not reserve layout after
-    /// click, finish, abort, or the next turn.
+    /// Hide the Composio auth CTA after the user clicks it. The CTA otherwise persists
+    /// past the end of the turn (so it stays actionable) and is reset on the next turn
+    /// or on abort/error. The deeplink never appears in the transcript
+    /// (`displayTranscript` strips it), so dismissing the capsule removes the only place
+    /// it was shown.
     func dismissConnectionPrompt() {
         connectionPrompt = nil
+    }
+
+    /// `transcript` with Composio connection deeplinks removed. Those links are
+    /// surfaced by the Connect CTA capsule, so rendering them inline — often echoed
+    /// several times by the model — is redundant noise. Strips both `[label](url)`
+    /// markdown links and bare URLs for every connection URL seen this turn, then
+    /// tidies the blank lines the removal leaves behind. No connection links → returns
+    /// `transcript` untouched (the common, zero-cost case).
+    var displayTranscript: String {
+        guard !connectionDeeplinks.isEmpty else { return transcript }
+        var text = transcript
+        for url in connectionDeeplinks {
+            let escaped = NSRegularExpression.escapedPattern(for: url)
+            // `[any label](url)` (allow surrounding whitespace) then the bare/angle-
+            // bracketed URL — order matters so the markdown wrapper goes first.
+            let patterns = ["\\[[^\\]]*\\]\\(\\s*\(escaped)\\s*\\)", "<?\(escaped)>?"]
+            for pattern in patterns {
+                guard let re = try? NSRegularExpression(pattern: pattern) else { continue }
+                let range = NSRange(text.startIndex..., in: text)
+                text = re.stringByReplacingMatches(in: text, range: range, withTemplate: "")
+            }
+        }
+        return Self.collapseBlankLines(text)
+    }
+
+    /// Trim trailing whitespace per line and collapse runs of blank lines to one, so a
+    /// stripped link doesn't leave a hole in the prose.
+    private static func collapseBlankLines(_ s: String) -> String {
+        var out: [String] = []
+        var lastEmpty = false
+        for line in s.components(separatedBy: "\n") {
+            let trimmed = line.replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
+            let empty = trimmed.trimmingCharacters(in: .whitespaces).isEmpty
+            if empty && lastEmpty { continue }
+            out.append(trimmed)
+            lastEmpty = empty
+        }
+        return out.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func write(_ object: [String: Any]) {
@@ -275,6 +332,7 @@ final class PiAgentManager: ObservableObject {
 
         case "agent_start":
             connectionPrompt = nil
+            connectionDeeplinks = []
 
         case "status":
             if let word = event.word { statusWord = word }
@@ -324,6 +382,7 @@ final class PiAgentManager: ObservableObject {
                let rawURL = event.url,
                let url = URL(string: rawURL) {
                 connectionPrompt = ConnectionPrompt(app: app, url: url, alias: event.alias)
+                connectionDeeplinks.insert(rawURL)  // strip it from the rendered prose
             }
 
         case "error":
@@ -331,7 +390,11 @@ final class PiAgentManager: ObservableObject {
             lastError = event.message ?? "Pi encountered an error."
 
         case "done":
-            connectionPrompt = nil
+            // connectionPrompt is deliberately NOT cleared here. `done` is exactly when
+            // the user needs to act on the Connect CTA: the model asked them to connect
+            // an app, finished its turn, and the capsule has to survive so it can be
+            // clicked. It clears on the next turn (send / agent_start), on click/dismiss
+            // (dismissConnectionPrompt), or on abort/error.
             isRunning = false
             currentTool = nil
             currentToolPretty = nil
@@ -340,6 +403,7 @@ final class PiAgentManager: ObservableObject {
             // falls back to the bundled Composio mark instead of squatting on it.
             toolkitLogo = nil
             toolkitAccent = nil
+            toolkitPalette = []
             if statusWord != "aborted" { statusWord = "done" }
             // Show "✓ Done" briefly, then auto-hide. The peek is only rendered while
             // the notch is collapsed and the Pi tab is active, so when the panel is
@@ -383,7 +447,11 @@ final class PiAgentManager: ObservableObject {
     private func loadLogo(from urlString: String, slug: String) {
         let key = slug as NSString
         if let cached = logoMemoryCache.object(forKey: key) {
+            // No raw SVG bytes on this path — derivePalette leans on `paletteCache`
+            // (populated on the first in-session load) and falls back to the histogram
+            // on the cached image if somehow missing.
             adoptLogo(cached, slug: slug)
+            derivePalette(slug: slug, svgData: nil, fallbackImage: cached)
             return
         }
 
@@ -391,6 +459,7 @@ final class PiAgentManager: ObservableObject {
         if let data = try? Data(contentsOf: diskURL), let image = NSImage(data: data) {
             logoMemoryCache.setObject(image, forKey: key)
             adoptLogo(image, slug: slug)
+            derivePalette(slug: slug, svgData: data, fallbackImage: image)
             return
         }
 
@@ -405,22 +474,100 @@ final class PiAgentManager: ObservableObject {
                 // Only adopt if this is still (or again) the active toolkit.
                 if self.currentTool != nil || self.toolkitLogo == nil {
                     self.adoptLogo(image, slug: slug)
+                    self.derivePalette(slug: slug, svgData: data, fallbackImage: image)
                 }
             }
         }
     }
 
-    /// Publish a toolkit logo and sample its flair color (lightened for legibility).
-    /// The color follows whichever toolkit is active — gmail red, calendar blue, etc.
-    /// The Composio mark is monochrome, so it averages to a neutral light gray
-    /// (averageColor floors near-black to min brightness), which is honest to the mark.
+    /// Publish the toolkit logo for display. Color derivation is split out into
+    /// `derivePalette` so the cheap SVG-metadata path can run without re-rasterizing.
     private func adoptLogo(_ image: NSImage, slug: String) {
         toolkitLogo = image
-        image.averageColor { [weak self] color in
-            // averageColor already hops back to the main queue.
-            guard let self, let color else { return }
-            self.toolkitAccent = Self.legibleTint(color)
+    }
+
+    /// Resolve the active toolkit's aurora palette and publish `toolkitPalette` /
+    /// `toolkitAccent`. Resolution order (lightest path first):
+    ///   1. `paletteCache[slug]` — already derived this session → publish instantly.
+    ///   2. SVG `fill=` metadata — the exact brand hex, no bitmap allocation. Runs the
+    ///      3-case saturation gate (≥2 saturated → rich; 1 → that hue; 0 → indigo).
+    ///   3. Curated override for a monochrome mark (Notion, GitHub) — published
+    ///      directly, bypassing the saturation gate (a curated table is intentional,
+    ///      not histogram noise).
+    ///   4. Raster histogram on the rendered image — robustness for any non-SVG (PNG)
+    ///      logo, or a memory-cache hit whose palette wasn't memoized.
+    private func derivePalette(slug: String, svgData: Data?, fallbackImage: NSImage) {
+        // 1. Memo hit.
+        if let cached = paletteCache[slug] {
+            publishPalette(cached, slug: slug)
+            return
         }
+
+        // 2/3. We have the raw SVG bytes: try exact brand colors, then the override.
+        if let svgData {
+            let brand = NSImage.brandColorsFromSVG(svgData, max: 4)
+            if !brand.isEmpty {
+                publishPalette(Self.gatedPalette(from: brand.map { Self.legibleTint($0) }), slug: slug)
+                return
+            }
+            // Monochrome SVG (no real hue) → curated gradient, bypassing the gate.
+            if let override = Self.brandColorOverrides[slug], !override.isEmpty {
+                publishPalette(override.map { Self.legibleTint($0) }, slug: slug)
+                return
+            }
+            // Monochrome, not yet curated → histogram (still empty → gate yields the
+            // indigo fallback). Graceful degradation for unknown mono brands.
+            derivePaletteFromRaster(fallbackImage, slug: slug)
+            return
+        }
+
+        // No SVG bytes (memory-cache hit, memo miss): try the override, else histogram.
+        if let override = Self.brandColorOverrides[slug], !override.isEmpty {
+            publishPalette(override.map { Self.legibleTint($0) }, slug: slug)
+            return
+        }
+        derivePaletteFromRaster(fallbackImage, slug: slug)
+    }
+
+    /// Raster histogram fallback: the original `dominantColors` path, kept for any logo
+    /// that isn't a parseable SVG. Runs the same 3-case gate before publishing.
+    private func derivePaletteFromRaster(_ image: NSImage, slug: String) {
+        image.dominantColors(max: 4) { [weak self] colors in
+            // dominantColors already hops back to the main queue.
+            guard let self else { return }
+            self.publishPalette(Self.gatedPalette(from: colors.map { Self.legibleTint($0) }), slug: slug)
+        }
+    }
+
+    /// The 3-case saturation gate, shared by the SVG and raster paths. Input is already
+    /// legible-tinted. ≥2 saturated hues → keep the rich palette so a near-mono mark
+    /// doesn't fake a multi-color aurora; exactly 1 → keep that single hue; 0 → a
+    /// legible indigo so the aurora still reads.
+    private static func gatedPalette(from tinted: [NSColor]) -> [NSColor] {
+        let saturated = tinted.filter { isSaturated($0) }
+        if saturated.count >= 2 { return tinted }
+        if saturated.count == 1 { return saturated }
+        return [legibleTint(.systemIndigo)]
+    }
+
+    /// Memoize and publish a derived palette. `toolkitAccent` mirrors
+    /// `toolkitPalette.first` for every existing reader.
+    private func publishPalette(_ palette: [NSColor], slug: String) {
+        paletteCache[slug] = palette
+        toolkitPalette = palette
+        toolkitAccent = palette.first
+    }
+
+    /// HSB-saturation test used to count "real" hues in a tinted palette. Tested on the
+    /// *tinted* color on purpose: `legibleTint` mixes toward white, which lowers
+    /// saturation, so a 0.22 threshold is calibrated for post-tint values (this is not
+    /// a bug — testing the raw color would over-count washed-out grays). Lower to 0.18
+    /// if too many real-colored logos fall through to the mono-indigo branch.
+    private static func isSaturated(_ color: NSColor, threshold: CGFloat = 0.22) -> Bool {
+        guard let rgb = color.usingColorSpace(.sRGB) else { return false }
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        rgb.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
+        return s >= threshold
     }
 
     /// Mix a sampled color toward white so it stays readable as text/wave tint on
@@ -432,4 +579,21 @@ final class PiAgentManager: ObservableObject {
         let b = rgb.blueComponent + (1 - rgb.blueComponent) * amount
         return NSColor(srgbRed: r, green: g, blue: b, alpha: 1)
     }
+
+    /// Tiny `#RRGGBB` → NSColor helper for the curated table (delegates to the SVG
+    /// parser's hex decode). The literals here are known-valid, so a failed parse is a
+    /// programmer error — fall back to mid-grey rather than crash.
+    private static func hex(_ s: String) -> NSColor {
+        NSImage.colorFromHex(s) ?? NSColor(white: 0.5, alpha: 1)
+    }
+
+    /// Brand gradients for monochrome toolkits whose logo SVG carries no real hue
+    /// (Composio exposes no color metadata either). Seeded; tune freely. Keyed by slug.
+    /// 1–2 stops each — two stops give the aurora internal depth without invoking the
+    /// indigo `companionColor`. More mono slugs (x, openai, anthropic, vercel, …) can be
+    /// appended as they show up.
+    private static let brandColorOverrides: [String: [NSColor]] = [
+        "notion": [hex("#C9C7C1"), hex("#8C8A85")],   // warm Notion graphite glow
+        "github": [hex("#8B949E"), hex("#6E7681")],   // GitHub's own grey scale
+    ]
 }

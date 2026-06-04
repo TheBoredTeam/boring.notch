@@ -237,7 +237,20 @@ class BoringViewModel: NSObject, ObservableObject {
             // cover the full open panel — using only `notchSize.height` makes a
             // cursor genuinely inside a tall panel read as "outside", which lets a
             // resize-induced phantom exit close it.
-            let hoverHeight = notchState == .open ? max(openPanelHeight, notchSize.height) : notchSize.height
+            //
+            // Crucially, hit-test against the panel's *stable ceiling*, not the live
+            // `openPanelHeight`. While a Pi answer streams in, the host window is
+            // already grown to its full height but `openPanelHeight` animates 190→tall
+            // over a spring. A cursor moving down into the (visible) panel can land
+            // below the lagging `openPanelHeight` band for a frame or two, read as
+            // "outside", and close the panel out from under the pointer — the flicker
+            // loop seen only when text is present. The expanded ceiling closes that
+            // transient dead zone; an empty short panel just treats its (invisible)
+            // grown-window area as still-hovered, which is harmless.
+            let openCeiling: CGFloat = coordinator.currentView == .pi
+                ? max(openPanelHeight, expandedPanelHeight)
+                : openPanelHeight
+            let hoverHeight = notchState == .open ? max(openCeiling, notchSize.height) : notchSize.height
             let baseY = frame.maxY - hoverHeight
             let baseX = frame.midX - notchSize.width / 2
 
