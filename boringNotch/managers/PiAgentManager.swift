@@ -25,15 +25,6 @@ struct PiEvent: Codable {
     let logo: String?
     let ok: Bool?
     let message: String?
-    let app: String?
-    let url: String?
-    let alias: String?
-}
-
-struct ConnectionPrompt: Equatable {
-    let app: String
-    let url: URL
-    let alias: String?
 }
 
 /// A single tool invocation shown as a chip in the expanded Pi tab.
@@ -71,13 +62,7 @@ final class PiAgentManager: ObservableObject {
     @Published private(set) var toolkitPaletteIsRaw: Bool = false
     @Published private(set) var chips: [ToolChip] = []
     @Published private(set) var transcript: String = ""
-    @Published private(set) var connectionPrompt: ConnectionPrompt?
     @Published private(set) var lastError: String?
-
-    /// Connection deeplinks surfaced this turn (from `connection_required`). The CTA
-    /// capsule is the only place these should appear — `displayTranscript` strips them
-    /// out of the rendered prose so they never show inline (and never repeat).
-    private var connectionDeeplinks: Set<String> = []
 
     /// A tool call the model is still streaming arguments for (sidecar `tool_forming`).
     /// Sanitized for display ("Send email"); nil when no name is known yet but a call
@@ -238,8 +223,6 @@ final class PiAgentManager: ObservableObject {
         start()
 
         transcript = ""
-        connectionPrompt = nil
-        connectionDeeplinks = []
         chips = []
         currentTool = nil
         currentToolPretty = nil
@@ -264,55 +247,7 @@ final class PiAgentManager: ObservableObject {
     /// Abort the current run (⌘.).
     func abort() {
         guard isRunning else { return }
-        connectionPrompt = nil
         write(["type": "abort"])
-    }
-
-    /// Hide the Composio auth CTA after the user clicks it. The CTA otherwise persists
-    /// past the end of the turn (so it stays actionable) and is reset on the next turn
-    /// or on abort/error. The deeplink never appears in the transcript
-    /// (`displayTranscript` strips it), so dismissing the capsule removes the only place
-    /// it was shown.
-    func dismissConnectionPrompt() {
-        connectionPrompt = nil
-    }
-
-    /// `transcript` with Composio connection deeplinks removed. Those links are
-    /// surfaced by the Connect CTA capsule, so rendering them inline — often echoed
-    /// several times by the model — is redundant noise. Strips both `[label](url)`
-    /// markdown links and bare URLs for every connection URL seen this turn, then
-    /// tidies the blank lines the removal leaves behind. No connection links → returns
-    /// `transcript` untouched (the common, zero-cost case).
-    var displayTranscript: String {
-        guard !connectionDeeplinks.isEmpty else { return transcript }
-        var text = transcript
-        for url in connectionDeeplinks {
-            let escaped = NSRegularExpression.escapedPattern(for: url)
-            // `[any label](url)` (allow surrounding whitespace) then the bare/angle-
-            // bracketed URL — order matters so the markdown wrapper goes first.
-            let patterns = ["\\[[^\\]]*\\]\\(\\s*\(escaped)\\s*\\)", "<?\(escaped)>?"]
-            for pattern in patterns {
-                guard let re = try? NSRegularExpression(pattern: pattern) else { continue }
-                let range = NSRange(text.startIndex..., in: text)
-                text = re.stringByReplacingMatches(in: text, range: range, withTemplate: "")
-            }
-        }
-        return Self.collapseBlankLines(text)
-    }
-
-    /// Trim trailing whitespace per line and collapse runs of blank lines to one, so a
-    /// stripped link doesn't leave a hole in the prose.
-    private static func collapseBlankLines(_ s: String) -> String {
-        var out: [String] = []
-        var lastEmpty = false
-        for line in s.components(separatedBy: "\n") {
-            let trimmed = line.replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
-            let empty = trimmed.trimmingCharacters(in: .whitespaces).isEmpty
-            if empty && lastEmpty { continue }
-            out.append(trimmed)
-            lastEmpty = empty
-        }
-        return out.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func write(_ object: [String: Any]) {
@@ -335,8 +270,7 @@ final class PiAgentManager: ObservableObject {
             break
 
         case "agent_start":
-            connectionPrompt = nil
-            connectionDeeplinks = []
+            break
 
         case "status":
             if let word = event.word { statusWord = word }
@@ -381,24 +315,10 @@ final class PiAgentManager: ObservableObject {
                 chips[idx].ok = event.ok ?? true
             }
 
-        case "connection_required":
-            if let app = event.app,
-               let rawURL = event.url,
-               let url = URL(string: rawURL) {
-                connectionPrompt = ConnectionPrompt(app: app, url: url, alias: event.alias)
-                connectionDeeplinks.insert(rawURL)  // strip it from the rendered prose
-            }
-
         case "error":
-            connectionPrompt = nil
             lastError = event.message ?? "Pi encountered an error."
 
         case "done":
-            // connectionPrompt is deliberately NOT cleared here. `done` is exactly when
-            // the user needs to act on the Connect CTA: the model asked them to connect
-            // an app, finished its turn, and the capsule has to survive so it can be
-            // clicked. It clears on the next turn (send / agent_start), on click/dismiss
-            // (dismissConnectionPrompt), or on abort/error.
             isRunning = false
             currentTool = nil
             currentToolPretty = nil

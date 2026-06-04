@@ -44,12 +44,12 @@ one-shot command, not the start of a conversation:
 - NEVER ask clarifying questions or present options — there is no back-and-forth. Pick the
   most reasonable interpretation and execute it fully.
 - Use your tools to complete the task end-to-end in this single turn.
-- For Composio tools: use only ACTIVE connected accounts, always pass \`account\` when an
-  alias/id is available, never use EXPIRED/INITIALIZING accounts, and if no ACTIVE
-  account exists call \`composio_manage_connections\`. If a connection URL is returned,
-  do NOT paste, mention, or describe the link — the host app automatically shows the
-  user a "Connect" button for it. Just say which app needs connecting (one short
-  sentence) and stop.
+- For Composio tools: use only ACTIVE connected accounts. When a default account is
+  listed for a toolkit below, pass that account; otherwise use the most recently
+  connected ACTIVE account. Never use EXPIRED/INITIALIZING accounts. If no ACTIVE account
+  exists for a toolkit, do NOT paste, mention, or describe any connection/authorization
+  URL — reconnection is handled outside this chat by the host app. Just say
+  "<app> needs reconnecting in Settings." (one short sentence) and stop.
 - Keep the final reply short: what was done and the key result. No "let me know if…"
   closers, no follow-up questions.
 `.trim();
@@ -118,34 +118,6 @@ interface FormingTool {
     toolkit: string | null;
 }
 
-type ToolContext = {
-    toolName?: string;
-    args?: any;
-};
-
-function textFromToolResult(result: any): string {
-    const content = result?.content;
-    if (!Array.isArray(content)) return "";
-    return content
-        .map((item) => (item?.type === "text" && typeof item.text === "string" ? item.text : ""))
-        .filter(Boolean)
-        .join("\n");
-}
-
-function firstHttpUrl(text: string): string | null {
-    const match = text.match(/https?:\/\/[^\s)\]}>"]+/);
-    return match?.[0] ?? null;
-}
-
-function connectionAppFromText(text: string, fallback?: string): string {
-    const match = text.match(/Connect\s+([A-Za-z0-9_-]+)\s*:/i);
-    return (match?.[1] ?? fallback ?? "Composio").toLowerCase();
-}
-
-function isConnectionText(text: string): boolean {
-    return /connect|connection|required|composio/i.test(text) && /https?:\/\//i.test(text);
-}
-
 async function main(): Promise<void> {
     // ── Conversation lifecycle ──────────────────────────────────────────────
     // One in-memory session holds the conversation across prompts. It is NOT
@@ -158,8 +130,6 @@ async function main(): Promise<void> {
     let sessionPromise: Promise<any> | null = null;
     let unsubscribe: (() => void) | null = null;
     let idleTimer: ReturnType<typeof setTimeout> | null = null;
-    const toolContexts = new Map<string, ToolContext>();
-    const emittedConnectionUrls = new Set<string>();
 
     /** Create the session on first use (or after an idle reset); reuse it otherwise. */
     function ensureSession(): Promise<any> {
@@ -260,32 +230,12 @@ async function main(): Promise<void> {
         return null;
     }
 
-    function emitVisibleToolConnection(result: any, context: ToolContext = {}): void {
-        const text = textFromToolResult(result);
-        if (!text || !isConnectionText(text)) return;
-        const url = firstHttpUrl(text);
-        if (!url || emittedConnectionUrls.has(url)) return;
-        emittedConnectionUrls.add(url);
-
-        const fallbackApp = context.args?.app ?? toolkitSlug(context.toolName ?? "composio");
-        const app = connectionAppFromText(text, fallbackApp);
-        const alias = typeof context.args?.alias === "string" ? context.args.alias : undefined;
-        emit({ type: "connection_required", app, url, alias });
-        // The host app surfaces this as a "Connect …" CTA capsule from the
-        // connection_required event above — do NOT also inject the link into the
-        // transcript. Doing so rendered the deeplink inline (and, with the model
-        // sometimes echoing it too, repeatedly), which is exactly the noise the CTA
-        // exists to replace.
-    }
-
     // Translate agent events → wire protocol. Named (not inline) so each fresh
     // session created by ensureSession() can re-subscribe the same handler.
     function handleAgentEvent(event: any): void {
         switch (event.type) {
             case "agent_start":
                 formingTools.clear();
-                toolContexts.clear();
-                emittedConnectionUrls.clear();
                 emit({ type: "agent_start" });
                 emitStatus("thinking");
                 break;
@@ -318,7 +268,6 @@ async function main(): Promise<void> {
                 break;
             }
             case "tool_execution_start": {
-                toolContexts.set(event.toolCallId, { toolName: event.toolName, args: event.args });
                 // Unwrap composio_execute_tool → the real app (Gmail, Calendar, …) so
                 // the notch shows that app's logo/color, not the generic Composio mark.
                 const displayTool = unwrapComposioAction(event.toolName, event.args) ?? event.toolName;
@@ -335,12 +284,7 @@ async function main(): Promise<void> {
                 });
                 break;
             }
-            case "tool_execution_update":
-                emitVisibleToolConnection(event.partialResult, toolContexts.get(event.toolCallId));
-                break;
             case "tool_execution_end":
-                emitVisibleToolConnection(event.result, toolContexts.get(event.toolCallId));
-                toolContexts.delete(event.toolCallId);
                 emit({ type: "tool_end", id: event.toolCallId, ok: !event.isError });
                 break;
             case "agent_end":

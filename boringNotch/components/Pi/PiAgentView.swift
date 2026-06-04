@@ -37,10 +37,6 @@ struct PiAgentView: View {
                 chipsRow
                     .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             }
-            if let prompt = pi.connectionPrompt {
-                connectionPrompt(prompt)
-                    .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
-            }
             answer
             if let error = pi.lastError {
                 errorRow(error)
@@ -305,48 +301,10 @@ struct PiAgentView: View {
         .accessibilityLabel("\(pi.formingToolPretty ?? "Tool"), preparing")
     }
 
-    // MARK: Connection prompt
-
-    private func connectionPrompt(_ prompt: ConnectionPrompt) -> some View {
-        Button {
-            NSWorkspace.shared.open(prompt.url)
-            pi.dismissConnectionPrompt()
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "link")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Color.effectiveAccent)
-                Text("Connect \(prompt.app)" + (prompt.alias.map { " · \($0)" } ?? ""))
-                    .font(.system(size: 11.5, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                Image(systemName: "arrow.up.forward")
-                    .font(.system(size: 9.5, weight: .semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 9)
-            .padding(.vertical, 5)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(Color.effectiveAccent.opacity(0.12))
-                    .overlay(
-                        Capsule(style: .continuous)
-                            .stroke(Color.effectiveAccent.opacity(0.30), lineWidth: 1)
-                    )
-            )
-        }
-        .buttonStyle(PressStyle(reduceMotion: reduceMotion))
-        .fixedSize(horizontal: true, vertical: false)
-        .help(prompt.url.absoluteString)
-        .accessibilityLabel("Connect \(prompt.app) in Composio")
-    }
-
     // MARK: Answer
 
     private var answer: some View {
-        // Connection deeplinks are surfaced by the Connect CTA capsule, so render the
-        // transcript with them stripped — they never appear inline (or repeat).
-        let shown = pi.displayTranscript
+        let shown = pi.transcript
         // Trim before deciding emptiness: a connection-blocked turn often leaves only
         // whitespace (the model wrote nothing but the stripped deeplink), which would
         // otherwise render as an invisible non-empty answer — a blank box with no
@@ -413,9 +371,9 @@ struct PiAgentView: View {
                 proxy.scrollTo("piTranscriptBottom", anchor: .bottom)
             }
         }
-        // minHeight floors the viewport so chrome (incl. the Connect CTA) can never
-        // starve it to zero; layoutPriority gives the flexible answer first claim on
-        // space over the fixed chrome rows.
+        // minHeight floors the viewport so the chrome rows can never starve it to zero;
+        // layoutPriority gives the flexible answer first claim on space over the fixed
+        // chrome rows.
         .frame(maxWidth: .infinity, minHeight: Self.answerMinViewportHeight, maxHeight: .infinity, alignment: .topLeading)
         .layoutPriority(1)
         .padding(10)
@@ -425,10 +383,6 @@ struct PiAgentView: View {
         )
         .onChange(of: transcriptContentHeight) { _, _ in reportDesiredHeight() }
         .onChange(of: scrollViewportHeight) { _, _ in reportDesiredHeight() }
-        // The Connect CTA appearing/leaving changes the chrome height; re-measure so the
-        // panel resizes to fit the answer immediately instead of waiting for another
-        // content/viewport delta.
-        .onChange(of: pi.connectionPrompt) { _, _ in reportDesiredHeight() }
     }
 
     // MARK: Stick-to-bottom scroll tracking
@@ -437,12 +391,11 @@ struct PiAgentView: View {
     private static let answerScrollSpace = "piAnswerScroll"
 
     /// Floor for the answer ScrollView's viewport. Chrome rows (header, activity line,
-    /// chips, and especially the Connect CTA) are fixed-size and stack above the answer;
-    /// when enough of them appear they could otherwise starve the flexible answer to a
-    /// zero-height viewport. A non-zero floor guarantees the viewport never collapses,
-    /// which keeps the content-drives-panel height loop (`reportDesiredHeight`) alive —
-    /// a zero viewport used to deadlock panel growth so the answer stayed invisible
-    /// behind the CTA until it was dismissed.
+    /// chips) are fixed-size and stack above the answer; when enough of them appear they
+    /// could otherwise starve the flexible answer to a zero-height viewport. A non-zero
+    /// floor guarantees the viewport never collapses, which keeps the
+    /// content-drives-panel height loop (`reportDesiredHeight`) alive — a zero viewport
+    /// used to deadlock panel growth so the answer stayed invisible.
     private static let answerMinViewportHeight: CGFloat = 72
 
     /// Within this distance of the bottom the user counts as "at the tail" — generous
@@ -488,9 +441,6 @@ struct PiAgentView: View {
 
     private var placeholder: String {
         if pi.isRunning { return "" }
-        // A connection-blocked turn ends with no prose — guide the user instead of
-        // showing an empty box that reads as a lost response.
-        if pi.connectionPrompt != nil { return "Connect the app above, then send your prompt again." }
         return "Pi’s answer will stream here."
     }
 
@@ -533,11 +483,11 @@ struct PiAgentView: View {
     /// difference — and therefore `desired` — stays stable while the panel animates.
     private func reportDesiredHeight() {
         // Floor the viewport instead of bailing on zero. A hard `guard viewportHeight > 0`
-        // here used to deadlock: when chrome (e.g. the Connect CTA) starved the answer to
-        // a zero-height viewport, this returned early and the panel never grew to reveal
-        // the answer. The answer ScrollView now carries the same floor, so a realized
-        // viewport is always ≥ it; flooring the pre-layout zero keeps `panelHeight -
-        // viewport` (the chrome height) from over-counting on the first frame.
+        // here used to deadlock: when chrome starved the answer to a zero-height viewport,
+        // this returned early and the panel never grew to reveal the answer. The answer
+        // ScrollView now carries the same floor, so a realized viewport is always ≥ it;
+        // flooring the pre-layout zero keeps `panelHeight - viewport` (the chrome height)
+        // from over-counting on the first frame.
         let viewport = max(scrollViewportHeight, Self.answerMinViewportHeight)
         let panelHeight = vm.laidOutPanelHeight > 0 ? vm.laidOutPanelHeight : vm.openPanelHeight
         let desired = (panelHeight - viewport + transcriptContentHeight).rounded()

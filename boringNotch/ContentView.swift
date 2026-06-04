@@ -52,17 +52,10 @@ struct ContentView: View {
                 : cornerRadiusInsets.closed.top
     }
 
-    /// The closed Pi peek rounds its chin more than the default 14pt so the aurora reads
-    /// as a soft rounded glow rather than a boxy rectangle (matches the toolkit-palette
-    /// mockup's 0 0 20 20 notch). NotchShape.bottomCornerRadius is animatable, so the
-    /// switch to/from the Pi peek tweens smoothly. Other closed content keeps 14pt.
-    private var piPeekActive: Bool {
-        coordinator.piPeek.show && coordinator.currentView == .pi
-            && vm.notchState == .closed && !vm.hideOnClosed
-    }
-
     private var currentNotchShape: NotchShape {
-        let closedBottom: CGFloat = piPeekActive ? 20 : cornerRadiusInsets.closed.bottom
+        // The closed Pi peek is now a quiet logo + equalizer (no aurora), so it keeps the
+        // default 14pt chin like the music live-activity — no special rounding needed.
+        let closedBottom: CGFloat = cornerRadiusInsets.closed.bottom
         let openBottom: CGFloat
         if vm.notchState == .open && coordinator.currentView == .pi {
             // The open Pi tab always reads as a soft, rounded glass panel (matches the
