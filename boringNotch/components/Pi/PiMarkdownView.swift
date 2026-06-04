@@ -147,6 +147,47 @@ struct PiMarkdownView: View {
     }
 }
 
+// MARK: - Inline-only renderer
+
+/// Lightweight single-`Text` renderer for streaming or block-free prose. Joins the
+/// transcript's lines into one paragraph and runs them through `PiMarkdownView.inline`
+/// — so bold/italic/inline-code and autolinked bare URLs stay styled and tappable —
+/// without the block layout that reflows mid-stream. The answer view uses this while
+/// `pi.isRunning` or when a settled transcript has no block structure.
+struct PiInlineText: View {
+    let text: String
+    var accent: Color = .effectiveAccent
+
+    var body: some View {
+        Text(PiMarkdownView.inline(structuredText, accent: accent))
+            .font(.system(size: 12))
+            .foregroundStyle(.primary)
+            .lineSpacing(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .textSelection(.enabled)
+            .tint(accent)
+    }
+
+    /// The streamed text with line breaks PRESERVED — only each line's trailing
+    /// whitespace is trimmed and runs of blank lines collapsed to one. Previously every
+    /// newline was flattened to a space, which turned a multi-paragraph answer into one
+    /// run-on wall that read as cut off / wrong-sized while streaming. Inline markdown is
+    /// parsed with `.inlineOnlyPreservingWhitespace`, so the newlines render as real line
+    /// breaks without the per-delta block re-parse that streaming must avoid.
+    private var structuredText: String {
+        var out: [String] = []
+        var lastBlank = false
+        for raw in text.components(separatedBy: "\n") {
+            let line = raw.trimmingCharacters(in: .whitespaces)
+            let blank = line.isEmpty
+            if blank && lastBlank { continue }
+            out.append(line)
+            lastBlank = blank
+        }
+        return out.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
 // MARK: - Block model + parser
 
 enum MDBlock {
@@ -242,6 +283,24 @@ enum MDBlock {
         }
         flushParagraph()
         return blocks
+    }
+
+    /// True if `raw` contains any block-level markdown — a `#` heading, ```` ``` ````
+    /// fence, `>` quote, list marker, or `|` table row. Used by the answer view to
+    /// decide between the lightweight inline `Text` (plain prose / mid-stream) and the
+    /// full block renderer (settled + structured). O(lines) with an early return on
+    /// the first block marker; only runs while settled, never per streamed delta.
+    static func hasBlockStructure(_ raw: String) -> Bool {
+        for line in raw.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty { continue }
+            if trimmed.hasPrefix("```") { return true }
+            if trimmed.hasPrefix(">") { return true }
+            if trimmed.hasPrefix("|") { return true }
+            if headingMatch(trimmed) != nil { return true }
+            if listItem(trimmed) != nil { return true }
+        }
+        return false
     }
 
     private static func headingMatch(_ line: String) -> (level: Int, text: String)? {
