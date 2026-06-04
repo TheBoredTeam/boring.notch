@@ -63,11 +63,20 @@ struct ContentView: View {
 
     private var currentNotchShape: NotchShape {
         let closedBottom: CGFloat = piPeekActive ? 20 : cornerRadiusInsets.closed.bottom
+        let openBottom: CGFloat
+        if vm.notchState == .open && coordinator.currentView == .pi {
+            // The open Pi tab always reads as a soft, rounded glass panel (matches the
+            // brand-palette mockup's 24pt chin) — never the boxy 14pt corner you'd
+            // otherwise get with corner-radius scaling switched off.
+            openBottom = 24
+        } else if Defaults[.cornerRadiusScaling] {
+            openBottom = cornerRadiusInsets.opened.bottom
+        } else {
+            openBottom = cornerRadiusInsets.closed.bottom
+        }
         return NotchShape(
             topCornerRadius: topCornerRadius,
-            bottomCornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
-                ? cornerRadiusInsets.opened.bottom
-                : closedBottom
+            bottomCornerRadius: vm.notchState == .open ? openBottom : closedBottom
         )
     }
 
@@ -385,6 +394,13 @@ struct ContentView: View {
                       .fixedSize()
               }
               .zIndex(2)
+              // Reserve the header row. The open panel's height is driven by the Pi tab's
+              // content (PiAgentView.reportDesiredHeight → openPanelHeight), and its answer
+              // is greedy (maxHeight .infinity + layoutPriority). Without this, a tall Pi
+              // turn claims the whole panel and the header — the Home/Shelf/Pi switcher —
+              // gets compressed to zero. A higher layout priority makes the content yield
+              // the header's row first (its ScrollView just scrolls), so the tabs always show.
+              .layoutPriority(1)
             if vm.notchState == .open {
                 VStack {
                     switch coordinator.currentView {
@@ -397,9 +413,11 @@ struct ContentView: View {
                     }
                 }
                 .transition(
-                    .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
+                    reduceMotion
+                        ? .opacity
+                        : .scale(scale: 0.97, anchor: .top)
+                            .combined(with: .opacity)
+                            .animation(Motion.tabContent)
                 )
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)

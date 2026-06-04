@@ -39,6 +39,7 @@
 		112B0EB92E30DD0F00562D6C /* mediaremote-adapter.pl in Resources */ = {isa = PBXBuildFile; fileRef = 112B0EB32E30DD0F00562D6C /* mediaremote-adapter.pl */; };
 		11FACE0000000000000000A2 /* pi-sidecar in Resources */ = {isa = PBXBuildFile; fileRef = 11FACE0000000000000000A1 /* pi-sidecar */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11FACE0000000000000000B2 /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 11FACE0000000000000000B1 /* package.json */; };
+		11FACE0000000000000000E2 /* BrandPalettes.json in Resources */ = {isa = PBXBuildFile; fileRef = 11FACE0000000000000000E1 /* BrandPalettes.json */; };
 		11FACE0000000000000000C2 /* theme in Resources */ = {isa = PBXBuildFile; fileRef = 11FACE0000000000000000C1 /* theme */; };
 		11FACE0000000000000000D2 /* export-html in Resources */ = {isa = PBXBuildFile; fileRef = 11FACE0000000000000000D1 /* export-html */; };
 		112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */; };
@@ -236,6 +237,7 @@
 		112B0EB32E30DD0F00562D6C /* mediaremote-adapter.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = "mediaremote-adapter.pl"; sourceTree = "<group>"; };
 		11FACE0000000000000000A1 /* pi-sidecar */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "pi-sidecar"; sourceTree = "<group>"; };
 		11FACE0000000000000000B1 /* package.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		11FACE0000000000000000E1 /* BrandPalettes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = BrandPalettes.json; sourceTree = "<group>"; };
 		11FACE0000000000000000C1 /* theme */ = {isa = PBXFileReference; lastKnownFileType = folder; path = theme; sourceTree = "<group>"; };
 		11FACE0000000000000000D1 /* export-html */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "export-html"; sourceTree = "<group>"; };
 		112B0EB52E30DD0F00562D6C /* MediaRemoteAdapterTestClient */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = MediaRemoteAdapterTestClient; sourceTree = "<group>"; };
@@ -683,6 +685,7 @@
 			children = (
 				11FACE0000000000000000A1 /* pi-sidecar */,
 				11FACE0000000000000000B1 /* package.json */,
+				11FACE0000000000000000E1 /* BrandPalettes.json */,
 				11FACE0000000000000000C1 /* theme */,
 				11FACE0000000000000000D1 /* export-html */,
 			);
@@ -1004,6 +1007,7 @@
 				112B0EB92E30DD0F00562D6C /* mediaremote-adapter.pl in Resources */,
 				11FACE0000000000000000A2 /* pi-sidecar in Resources */,
 				11FACE0000000000000000B2 /* package.json in Resources */,
+				11FACE0000000000000000E2 /* BrandPalettes.json in Resources */,
 				11FACE0000000000000000C2 /* theme in Resources */,
 				11FACE0000000000000000D2 /* export-html in Resources */,
 				B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */,

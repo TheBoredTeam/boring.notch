@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi · Notch underglow — two options</title>
+<style>
+  :root{
+    --bg:#0a0b0c; --surface:#121417; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --dim:#7c8088; --txt:#e7e9ec; --accent:#7b9cff; --accent-dim:rgba(123,156,255,.14);
+    --good:#5ad19a; --bad:#ff6b6b;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#15171b,var(--bg));color:var(--txt);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding:42px 24px 80px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:30px;margin:14px 0 6px;letter-spacing:-.02em}
+  .lede{color:var(--dim);font-size:15px;max-width:68ch}
+  .lede code,.prose code{font-family:var(--mono);font-size:.84em;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:5px}
+
+  /* side-by-side stages */
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}
+  @media(max-width:860px){.pair{grid-template-columns:1fr}}
+  .stage{border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,var(--surface),rgba(14,16,18,.4));overflow:hidden}
+  .stage.pick{border-color:rgba(123,156,255,.45);box-shadow:0 0 0 1px rgba(123,156,255,.25),0 14px 40px -18px rgba(123,156,255,.4)}
+  .stagehead{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .stagehead h3{margin:0;font-size:14px;letter-spacing:-.01em}
+  .stagehead .tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line-2);border-radius:5px;padding:3px 7px;color:var(--dim);margin-left:auto}
+  .stagehead .pickbtn{appearance:none;border:1px solid var(--line-2);background:var(--surface);color:var(--dim);font-family:var(--mono);font-size:10.5px;border-radius:7px;padding:6px 11px;cursor:pointer;transition:.18s var(--ease)}
+  .stage.pick .pickbtn{background:var(--accent);color:#0a0b0c;font-weight:600;border-color:var(--accent)}
+  .screen{position:relative;height:280px;background:linear-gradient(180deg,#20262d,#0a0c0e);overflow:hidden}
+  .screen::before{content:"";position:absolute;inset:0;background:
+      repeating-linear-gradient(90deg,transparent 0 39px,rgba(255,255,255,.022) 39px 40px),
+      repeating-linear-gradient(0deg,transparent 0 39px,rgba(255,255,255,.022) 39px 40px);
+      pointer-events:none}
+  /* a faint window / app behind, so a glow spilling onto the screen reads as light on content */
+  .screen .desk{position:absolute;left:50%;top:120px;transform:translateX(-50%);width:78%;height:130px;border-radius:14px;
+      background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.05)}
+  .menubar{position:absolute;top:0;left:0;right:0;height:24px;background:rgba(0,0,0,.4);border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;align-items:center;gap:14px;padding:0 12px;font-size:10.5px;color:#aeb2b8;font-family:var(--mono);z-index:5}
+  .menubar .right{margin-left:auto;display:flex;gap:12px;opacity:.7}
+  svg{display:block;overflow:visible;position:relative;z-index:2}
+  .note{padding:13px 16px;border-top:1px solid var(--line);color:var(--dim);font-size:12.5px}
+  .note b{color:var(--txt)}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-top:26px}
+  .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden;background:var(--surface)}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:8px 13px;cursor:pointer;transition:.18s var(--ease)}
+  .seg button+button{border-left:1px solid var(--line-2)}
+  .seg button.on{background:var(--accent);color:#0a0b0c;font-weight:600}
+  .toggle{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;user-select:none;border:1px solid var(--line-2);border-radius:9px;padding:8px 12px;background:var(--surface)}
+  .toggle input{appearance:none;width:30px;height:17px;border-radius:9px;background:rgba(255,255,255,.16);position:relative;cursor:pointer;transition:.2s var(--ease);flex:none}
+  .toggle input:checked{background:var(--accent)}
+  .toggle input::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:.2s var(--ease)}
+  .toggle input:checked::after{transform:translateX(13px)}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:34px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--surface),rgba(14,16,18,.55));padding:20px}
+  .card h3{margin:0 0 8px;font-size:14px;letter-spacing:-.01em}
+  .card p{margin:8px 0 0;color:var(--dim);font-size:13px}
+  .card ul{margin:10px 0 0;padding-left:18px;color:var(--dim);font-size:12.5px}
+  .card li{margin:4px 0}
+  .card .where{font-family:var(--mono);font-size:11px;color:var(--accent);background:var(--accent-dim);border-radius:6px;padding:2px 7px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <span class="kicker"><span class="dot"></span>boring.notch · Pi</span>
+  <h1>Notch underglow — two options</h1>
+  <p class="lede">Today the running-agent glow is <b>hard-clipped to the notch silhouette</b>
+  (<code>clipShape(NotchShape(bottomCornerRadius: 20))</code>) — so the color ends in a crisp edge at the
+  rounded chin. That edge is the <b>abrupt / mechanical</b> look. Both options below soften it. The notch
+  silhouette itself (black, rounded) is identical in both — only the <b>gradient</b> changes. Toggle the
+  controls; the left panel is locked to <b>A</b>, the right to <b>B</b>, so you can compare straight across.</p>
+
+  <div class="controls">
+    <label class="toggle"><input type="checkbox" id="running" checked> agent running</label>
+    <label class="toggle"><input type="checkbox" id="guides"> show notch outline</label>
+    <div class="seg" id="palette">
+      <button data-pal="brand" class="on">brand glow</button>
+      <button data-pal="mono">mono glow</button>
+    </div>
+  </div>
+
+  <div class="pair">
+    <!-- ── OPTION A ── -->
+    <div class="stage" id="stageA">
+      <div class="stagehead">
+        <h3>A · Spill below the notch</h3>
+        <button class="pickbtn" data-pick="A">choose A</button>
+        <span class="tag">underglow</span>
+      </div>
+      <div class="screen">
+        <div class="menubar"><span> Pi</span><span> File</span><span> Edit</span>
+          <span class="right"><span>100%</span><span>15:46</span></span></div>
+        <div class="desk"></div>
+        <svg id="vizA" width="100%" height="280" viewBox="0 0 520 280" preserveAspectRatio="xMidYMin meet"></svg>
+      </div>
+      <div class="note">Notch stays solid black + rounded. A soft colored glow <b>bleeds below the chin</b>
+        onto the screen and fades downward — the notch reads as a light source. Drawn <b>outside</b> the
+        notch clip, in <code style="font-family:var(--mono);font-size:.85em">ContentView</code>.</div>
+    </div>
+
+    <!-- ── OPTION B ── -->
+    <div class="stage" id="stageB">
+      <div class="stagehead">
+        <h3>B · Fade inside the notch</h3>
+        <button class="pickbtn" data-pick="B">choose B</button>
+        <span class="tag">inner fade</span>
+      </div>
+      <div class="screen">
+        <div class="menubar"><span> Pi</span><span> File</span><span> Edit</span>
+          <span class="right"><span>100%</span><span>15:46</span></span></div>
+        <div class="desk"></div>
+        <svg id="vizB" width="100%" height="280" viewBox="0 0 520 280" preserveAspectRatio="xMidYMin meet"></svg>
+      </div>
+      <div class="note">Color stays <b>within the notch</b> but fades downward to black before the chin, so
+        there's no hard lit edge. Self-contained in
+        <code style="font-family:var(--mono);font-size:.85em">PiPeekView</code> — smaller change.</div>
+    </div>
+  </div>
+
+  <!-- trade-offs -->
+  <div class="grid">
+    <div class="card">
+      <h3>A · Spill below — the trade-offs</h3>
+      <p>Most like “a gradient layer <i>under</i> the notch, seamless.” The glow lives on the desktop, not
+      inside the cutout.</p>
+      <ul>
+        <li>Reads as the notch <b>casting light</b> — softest, least mechanical.</li>
+        <li>Needs a new unclipped layer behind/below the notch in <span class="where">ContentView</span>
+            (the current <code>clipShape</code> trims anything past the chin).</li>
+        <li>Must not capture mouse (<code>allowsHitTesting(false)</code>) and must sit in the window's
+            free space below the closed peek.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>B · Inner fade — the trade-offs</h3>
+      <p>Keeps everything where it is today; just changes the gradient so it dies out before the chin.</p>
+      <ul>
+        <li>Smallest diff — one gradient + a vertical fade mask in <span class="where">PiPeekView</span>.</li>
+        <li>Glow stays <b>contained</b> in the notch — cleaner, but less of the “spilling underneath” feel.</li>
+        <li>No window-space or hit-testing concerns.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── NotchShape path, ported verbatim from NotchShape.swift ──────────────────
+function notchPath(x,y,w,h,topR,botR){
+  const minX=x,minY=y,maxX=x+w,maxY=y+h;
+  return [
+    `M ${minX} ${minY}`,
+    `Q ${minX+topR} ${minY} ${minX+topR} ${minY+topR}`,
+    `L ${minX+topR} ${maxY-botR}`,
+    `Q ${minX+topR} ${maxY} ${minX+topR+botR} ${maxY}`,
+    `L ${maxX-topR-botR} ${maxY}`,
+    `Q ${maxX-topR} ${maxY} ${maxX-topR} ${maxY-botR}`,
+    `L ${maxX-topR} ${minY+topR}`,
+    `Q ${maxX-topR} ${minY} ${maxX} ${minY}`,
+    `Z`
+  ].join(' ');
+}
+
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+const PALETTES = {
+  brand: ['#d83030','#7b4cff','#2f7bff'],
+  mono:  ['#7b9cff','#9db4ff']
+};
+const state = { running:true, guides:false, pal:'brand' };
+
+// shared geometry (points → px in a 520-wide stage)
+const VBW=520, cx=VBW/2;
+const topR=6, botR=20;
+const notchW=150, notchH=42;       // peek-ish silhouette
+const x=cx-notchW/2, y=24;
+const spacerW=58;                  // camera housing / closedNotchSize.width
+
+function peekContent(svg){
+  // logo chip (left wing) + thinking wave (right wing) so it reads as the live peek
+  svg.appendChild(el('rect',{x:x+16,y:y+notchH/2-9,width:18,height:18,rx:5,fill:'rgba(255,255,255,.92)'}));
+  for(let i=0;i<4;i++){
+    const bh=[11,17,9,14][i];
+    svg.appendChild(el('rect',{x:x+notchW-54+i*9,y:y+notchH/2-bh/2,width:3.4,height:bh,rx:2,fill:'rgba(255,255,255,.85)'}));
+  }
+}
+
+function blooms(defs, ax, aw, ay, ah, tag){
+  const cols = PALETTES[state.pal];
+  const anchors = cols.length>2
+    ? [[0.12,0.30,0.95],[0.88,0.34,1.05],[0.78,0.82,0.70]]
+    : [[0.16,0.34,1.0],[0.86,0.40,1.1]];
+  anchors.forEach((p,i)=>{
+    const id=`${tag}-b${i}`;
+    const g=el('radialGradient',{id,cx:ax+aw*p[0],cy:ay+ah*p[1],r:ah*p[2],gradientUnits:'userSpaceOnUse'});
+    g.appendChild(el('stop',{offset:'0%','stop-color':cols[i%cols.length],'stop-opacity':'.95'}));
+    g.appendChild(el('stop',{offset:'62%','stop-color':cols[i%cols.length],'stop-opacity':'0'}));
+    defs.appendChild(g);
+    return id;
+  });
+  return anchors.map((_,i)=>`${tag}-b${i}`);
+}
+
+// ── OPTION A : underglow that spills below the chin and fades down ──
+function renderA(){
+  const svg=document.getElementById('vizA'); svg.innerHTML='';
+  const defs=el('defs'); svg.appendChild(defs);
+
+  // glow region: as wide as the notch + a little, hanging from the notch top,
+  // extending well BELOW the chin, faded vertically so it dies into the desktop.
+  const gx=x-26, gw=notchW+52, gy=y+6, gh=notchH+78;
+  const ids=blooms(defs,gx,gw,gy,gh*0.5,'A');
+
+  // vertical fade: full near the notch, gone by the bottom → the "underneath" melt
+  const fade=el('linearGradient',{id:'A-fade',x1:0,y1:gy,x2:0,y2:gy+gh,gradientUnits:'userSpaceOnUse'});
+  fade.appendChild(el('stop',{offset:'0%','stop-color':'#fff','stop-opacity':'1'}));
+  fade.appendChild(el('stop',{offset:'42%','stop-color':'#fff','stop-opacity':'.85'}));
+  fade.appendChild(el('stop',{offset:'100%','stop-color':'#fff','stop-opacity':'0'}));
+  defs.appendChild(fade);
+  const fmask=el('mask',{id:'A-mask'});
+  fmask.appendChild(el('rect',{x:gx-20,y:gy-20,width:gw+40,height:gh+40,fill:'url(#A-fade)'}));
+  defs.appendChild(fmask);
+
+  // the glow group — blurred blooms, vertically faded, NOT clipped to the notch
+  const g=el('g',{mask:'url(#A-mask)',opacity:state.running?'1':'0',style:'transition:opacity .4s var(--ease)'});
+  ids.forEach(id=>{
+    const r=el('rect',{x:gx-30,y:gy-30,width:gw+60,height:gh+60,fill:`url(#${id})`});
+    r.setAttribute('style','mix-blend-mode:screen;filter:blur(9px)');
+    g.appendChild(r);
+  });
+  svg.appendChild(g);
+
+  // the notch silhouette on TOP of the glow (solid black, rounded) + content
+  const notchD=notchPath(x,y,notchW,notchH,topR,botR);
+  svg.appendChild(el('path',{d:notchD,fill:'#000'}));
+  // camera-housing spacer
+  svg.appendChild(el('rect',{x:cx-spacerW/2,y:y,width:spacerW,height:notchH,fill:'#000'}));
+  peekContent(svg);
+
+  if(state.guides) svg.appendChild(el('path',{d:notchD,fill:'none',stroke:'var(--accent)','stroke-width':1.2,'stroke-dasharray':'4 4',opacity:.9}));
+}
+
+// ── OPTION B : glow inside the notch, faded down to black before the chin ──
+function renderB(){
+  const svg=document.getElementById('vizB'); svg.innerHTML='';
+  const defs=el('defs'); svg.appendChild(defs);
+
+  const notchD=notchPath(x,y,notchW,notchH,topR,botR);
+
+  // clip to the notch silhouette (today's behaviour)
+  const clip=el('clipPath',{id:'B-clip'});
+  clip.appendChild(el('path',{d:notchD}));
+  defs.appendChild(clip);
+
+  // blooms biased to the TOP of the notch, then a vertical fade to black before the chin
+  const ids=blooms(defs,x,notchW,y,notchH,'B');
+  const fade=el('linearGradient',{id:'B-fade',x1:0,y1:y,x2:0,y2:y+notchH,gradientUnits:'userSpaceOnUse'});
+  fade.appendChild(el('stop',{offset:'0%','stop-color':'#fff','stop-opacity':'1'}));
+  fade.appendChild(el('stop',{offset:'55%','stop-color':'#fff','stop-opacity':'.55'}));
+  fade.appendChild(el('stop',{offset:'100%','stop-color':'#fff','stop-opacity':'0'}));
+  defs.appendChild(fade);
+  const fmask=el('mask',{id:'B-mask'});
+  fmask.appendChild(el('rect',{x:x-20,y:y-20,width:notchW+40,height:notchH+40,fill:'url(#B-fade)'}));
+  defs.appendChild(fmask);
+
+  // black notch base first
+  svg.appendChild(el('path',{d:notchD,fill:'#000'}));
+
+  // glow group: clipped to notch + vertically faded
+  const g=el('g',{'clip-path':'url(#B-clip)',opacity:state.running?'1':'0',style:'transition:opacity .4s var(--ease)'});
+  const inner=el('g',{mask:'url(#B-mask)'});
+  ids.forEach(id=>{
+    const r=el('rect',{x:x-30,y:y-30,width:notchW+60,height:notchH+60,fill:`url(#${id})`});
+    r.setAttribute('style','mix-blend-mode:screen;filter:blur(6px)');
+    inner.appendChild(r);
+  });
+  g.appendChild(inner);
+  svg.appendChild(g);
+
+  // camera-housing spacer + content on top
+  svg.appendChild(el('rect',{x:cx-spacerW/2,y:y,width:spacerW,height:notchH,fill:'#000'}));
+  peekContent(svg);
+
+  if(state.guides) svg.appendChild(el('path',{d:notchD,fill:'none',stroke:'var(--accent)','stroke-width':1.2,'stroke-dasharray':'4 4',opacity:.9}));
+}
+
+function render(){ renderA(); renderB(); }
+
+// controls
+document.getElementById('running').onchange=e=>{state.running=e.target.checked;render();};
+document.getElementById('guides').onchange=e=>{state.guides=e.target.checked;render();};
+document.querySelectorAll('#palette button').forEach(b=>b.onclick=()=>{
+  state.pal=b.dataset.pal;
+  document.querySelectorAll('#palette button').forEach(x=>x.classList.toggle('on',x===b));
+  render();
+});
+document.querySelectorAll('.pickbtn').forEach(b=>b.onclick=()=>{
+  document.getElementById('stageA').classList.toggle('pick',b.dataset.pick==='A');
+  document.getElementById('stageB').classList.toggle('pick',b.dataset.pick==='B');
+});
+render();
+</script>
+</body>
+</html>

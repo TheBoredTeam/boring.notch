@@ -54,6 +54,17 @@ enum Motion {
     /// Toolkit glow blooming behind the peek logo. Spring keeps it interruptible.
     static let glowBloom = Animation.spring(duration: 0.42, bounce: 0.15)
 
+    // MARK: Tabs
+
+    /// The selected pill sliding between Home / Shelf / Pi. A frequent action, so it
+    /// stays fast (~0.3s) with a faint settle — the old `.smooth` (~0.5s) read sluggish
+    /// for something used dozens of times a session.
+    static let tabSwitch = Animation.spring(duration: 0.3, bounce: 0.14)
+
+    /// Swapping the tab's *content* (Home ⇄ Pi). ease-out-quint, exit-fast; the pill
+    /// slide already signals the change, so the content barely scales (0.97, not 0.8).
+    static let tabContent = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.28)
+
     /// Done-peek auto-dismiss — an exit, so faster and smaller.
     static let peekDismiss = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.25)
 
@@ -124,5 +135,21 @@ struct TextSwapEffect: ViewModifier {
             .offset(y: offsetY)
             .blur(radius: blur)
             .opacity(opacity)
+    }
+}
+
+/// The one canonical press-feedback style for every pressable control in the notch
+/// (tabs, header icons, Pi send/pin/stop). Scale-down on press, on the `Motion.press`
+/// ease-out-quint @ 120ms — feedback must feel immediate (ease-out, not ease-in-out).
+/// Reduce Motion drops the scale entirely. `scale` defaults to a subtle 0.94; small
+/// targets (tabs) can pass 0.92.
+struct PressStyle: ButtonStyle {
+    var scale: CGFloat = 0.94
+    var reduceMotion: Bool = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? scale : 1)
+            .animation(Motion.resolved(Motion.press, reduceMotion: reduceMotion), value: configuration.isPressed)
     }
 }

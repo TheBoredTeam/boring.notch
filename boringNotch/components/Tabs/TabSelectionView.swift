@@ -22,29 +22,31 @@ let tabs = [
 
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {
             ForEach(tabs) { tab in
-                    TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
-                        withAnimation(.smooth) {
-                            coordinator.currentView = tab.view
-                        }
+                let isSelected = coordinator.currentView == tab.view
+                TabButton(label: tab.label, icon: tab.icon, selected: isSelected) {
+                    // Frequent action → fast snappy spring, not the old ~0.5s `.smooth`.
+                    withAnimation(Motion.resolved(Motion.tabSwitch, reduceMotion: reduceMotion)) {
+                        coordinator.currentView = tab.view
                     }
-                    .frame(height: 26)
-                    .foregroundStyle(tab.view == coordinator.currentView ? .white : .gray)
-                    .background {
-                        if tab.view == coordinator.currentView {
-                            Capsule()
-                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
-                                .matchedGeometryEffect(id: "capsule", in: animation)
-                        } else {
-                            Capsule()
-                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
-                                .matchedGeometryEffect(id: "capsule", in: animation)
-                                .hidden()
-                        }
+                }
+                .frame(height: 26)
+                // The selected icon eases white↔gray rather than snapping as the pill slides.
+                .foregroundStyle(isSelected ? .white : .gray)
+                .background {
+                    // Only the selected tab owns the pill; matchedGeometry slides it
+                    // between tabs. (Attaching the same id to hidden non-selected copies
+                    // is a matchedGeometry anti-pattern — there must be one source.)
+                    if isSelected {
+                        Capsule()
+                            .fill(Color(nsColor: .secondarySystemFill))
+                            .matchedGeometryEffect(id: "capsule", in: animation)
                     }
+                }
             }
         }
         .clipShape(Capsule())

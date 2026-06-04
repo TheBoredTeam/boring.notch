@@ -13,6 +13,7 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         HStack(spacing: 0) {
             HStack {
@@ -56,7 +57,7 @@ struct BoringHeader: View {
                                             .imageScale(.medium)
                                     }
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(PressStyle(reduceMotion: reduceMotion))
                         }
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
@@ -75,7 +76,7 @@ struct BoringHeader: View {
                                             .imageScale(.medium)
                                     }
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(PressStyle(reduceMotion: reduceMotion))
                         }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(

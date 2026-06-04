@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi · Notch corner fix — boring.notch</title>
+<style>
+  :root{
+    --bg:#0a0b0c; --surface:#121417; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --dim:#7c8088; --txt:#e7e9ec; --accent:#7b9cff; --accent-dim:rgba(123,156,255,.14);
+    --good:#5ad19a; --bad:#ff6b6b;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#15171b,var(--bg));color:var(--txt);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:42px 24px 80px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:30px;margin:14px 0 6px;letter-spacing:-.02em}
+  .lede{color:var(--dim);font-size:15px;max-width:64ch}
+  .lede code,.prose code{font-family:var(--mono);font-size:.84em;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:5px}
+
+  /* stage */
+  .stage{margin-top:30px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,var(--surface),rgba(14,16,18,.4));overflow:hidden}
+  .screen{position:relative;height:300px;background:
+      linear-gradient(180deg,#1d2228,#0c0e10);
+      display:flex;align-items:flex-start;justify-content:center}
+  .screen::before{content:"";position:absolute;inset:0;background:
+      repeating-linear-gradient(90deg,transparent 0 39px,rgba(255,255,255,.025) 39px 40px),
+      repeating-linear-gradient(0deg,transparent 0 39px,rgba(255,255,255,.025) 39px 40px);
+      pointer-events:none}
+  .menubar{position:absolute;top:0;left:0;right:0;height:26px;background:rgba(0,0,0,.35);border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;align-items:center;gap:16px;padding:0 14px;font-size:11px;color:#aeb2b8;font-family:var(--mono)}
+  .menubar .right{margin-left:auto;display:flex;gap:14px;opacity:.7}
+  svg{display:block;overflow:visible}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px 18px;border-top:1px solid var(--line);background:rgba(0,0,0,.18)}
+  .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden;background:var(--surface)}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:8px 13px;cursor:pointer;transition:.18s var(--ease)}
+  .seg button+button{border-left:1px solid var(--line-2)}
+  .seg button.on{background:var(--accent);color:#0a0b0c;font-weight:600}
+  .toggle{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;user-select:none;border:1px solid var(--line-2);border-radius:9px;padding:8px 12px;background:var(--surface)}
+  .toggle input{appearance:none;width:30px;height:17px;border-radius:9px;background:rgba(255,255,255,.16);position:relative;cursor:pointer;transition:.2s var(--ease);flex:none}
+  .toggle input:checked{background:var(--accent)}
+  .toggle input::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:.2s var(--ease)}
+  .toggle input:checked::after{transform:translateX(13px)}
+  .spacer{flex:1}
+  .hint{font-family:var(--mono);font-size:10.5px;color:var(--dim);opacity:.8}
+
+  .legend{display:flex;gap:18px;flex-wrap:wrap;padding:13px 18px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .legend .k{display:inline-flex;align-items:center;gap:7px}
+  .legend .sw{width:13px;height:13px;border-radius:4px;border:1px solid rgba(255,255,255,.2)}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:34px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--surface),rgba(14,16,18,.55));padding:20px;overflow:hidden}
+  .card h3{margin:0 0 4px;font-size:14px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+  .card .tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line-2);border-radius:5px;padding:3px 7px;color:var(--dim)}
+  .card p{margin:8px 0 0;color:var(--dim);font-size:13px}
+  .card.fix{border-color:rgba(90,209,154,.3)}
+  .card.fix .tag{border-color:rgba(90,209,154,.4);color:var(--good)}
+  .card.bug{border-color:rgba(255,107,107,.28)}
+  .card.bug .tag{border-color:rgba(255,107,107,.4);color:var(--bad)}
+
+  pre{margin:14px 0 0;background:#0c0e11;border:1px solid var(--line);border-radius:11px;padding:14px;overflow:auto;font-family:var(--mono);font-size:11.5px;line-height:1.6;color:#c6cbd2}
+  pre .add{color:var(--good)} pre .del{color:var(--bad)} pre .cm{color:#6b7178}
+  .files{margin-top:18px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .files b{color:var(--txt);font-weight:600}
+  h2{margin:46px 0 4px;font-size:19px;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:13.5px;margin:0 0 6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <span class="kicker"><span class="dot"></span>boring.notch · Pi</span>
+  <h1>Notch corner fix — peek &amp; Composio tab</h1>
+  <p class="lede">While the agent runs, the notch read as a <b>squared-up box</b> instead of a rounded
+  notch. This page renders the <b>real geometry</b> — the <code>NotchShape</code> silhouette, the
+  closed-state inset, and the aurora glow — so you can see exactly where the square came from and what
+  the fix changes. Flip <b>Before / After</b> and toggle <b>Agent running</b>.</p>
+
+  <!-- ───────────────────────── interactive stage ───────────────────────── -->
+  <div class="stage">
+    <div class="screen">
+      <div class="menubar"><span> Pi</span><span> File</span><span> Edit</span>
+        <span class="right"><span>100%</span><span>15:46</span></span></div>
+      <svg id="viz" width="760" height="300" viewBox="0 0 760 300"></svg>
+    </div>
+
+    <div class="controls">
+      <div class="seg" id="mode">
+        <button data-mode="before" class="on">Before · squared</button>
+        <button data-mode="after">After · rounded fix</button>
+      </div>
+      <div class="seg" id="view">
+        <button data-view="peek" class="on">Peek</button>
+        <button data-view="open">Composio tab (open)</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="running" checked> agent running</label>
+      <label class="toggle"><input type="checkbox" id="showguides"> show construction</label>
+      <div class="spacer"></div>
+      <span class="hint" id="readout">—</span>
+    </div>
+
+    <div class="legend">
+      <span class="k"><span class="sw" style="background:#000"></span>notch silhouette (NotchShape)</span>
+      <span class="k"><span class="sw" style="background:linear-gradient(90deg,#d83030,#7b4cff)"></span>aurora glow (only while running)</span>
+      <span class="k"><span class="sw" style="background:transparent;border-style:dashed"></span>closed inset / construction</span>
+    </div>
+  </div>
+
+  <!-- ───────────────────────── what changed ───────────────────────── -->
+  <div class="grid">
+    <div class="card bug">
+      <h3><span class="tag">before</span> the squared look</h3>
+      <p>The aurora is the peek's <code>.background()</code>, but <code>ContentView</code> insets all
+      closed content by <code>cornerRadiusInsets.closed.bottom</code> (14&nbsp;pt) horizontally. So the
+      glow floated <i>inside</i> the notch as its own rounded rect — clipped <code>top&nbsp;6 / bottom&nbsp;20</code>
+      — with near-square top corners. The notch's real rounded chin stayed black &amp; unlit. The aurora
+      only renders while running, which is why it looked fine at rest and boxy mid-run.</p>
+      <p>Open tab: with corner-radius scaling off, the chin was just <code>14&nbsp;pt</code> → square on a big panel.</p>
+    </div>
+    <div class="card fix">
+      <h3><span class="tag">after</span> the fix</h3>
+      <p>The aurora now <b>bleeds out</b> by <code>-cornerRadiusInsets.closed.bottom</code> so it reaches
+      the real notch edges, and it's clipped to the actual <code>NotchShape</code> chin (not a plain
+      rounded rect). The parent <code>NotchShape</code> trims the bleed → the color reads as the
+      <b>notch itself glowing</b>, rounded corners and all.</p>
+      <p>Open Pi tab now uses a <code>24&nbsp;pt</code> chin (matching the brand-palette mockup) regardless
+      of the corner-radius-scaling setting.</p>
+    </div>
+  </div>
+
+  <!-- ───────────────────────── the diff ───────────────────────── -->
+  <h2>The changes</h2>
+  <p class="sub">Two files. Geometry only — no behavior or palette changes.</p>
+
+  <div class="files"><b>PiPeekView.swift</b> — aurora bleeds to the notch edge &amp; clips to the chin</div>
+  <pre><span class="cm">// body — aurora background</span>
+<span class="del">- .background(aurora)</span>
+<span class="add">+ .background(aurora.padding(.horizontal, -cornerRadiusInsets.closed.bottom))</span>
+
+<span class="cm">// aurora — clip shape</span>
+<span class="del">- .clipShape(UnevenRoundedRectangle(</span>
+<span class="del">-     topLeadingRadius: 6, bottomLeadingRadius: 20,</span>
+<span class="del">-     bottomTrailingRadius: 20, topTrailingRadius: 6, style: .continuous))</span>
+<span class="add">+ .clipShape(NotchShape(</span>
+<span class="add">+     topCornerRadius: cornerRadiusInsets.closed.top,</span>
+<span class="add">+     bottomCornerRadius: 20))</span></pre>
+
+  <div class="files" style="margin-top:22px"><b>ContentView.swift</b> — open Pi tab keeps a soft 24pt chin</div>
+  <pre><span class="cm">// currentNotchShape — bottom radius when open</span>
+<span class="add">+ if vm.notchState == .open && coordinator.currentView == .pi {</span>
+<span class="add">+     openBottom = 24            // soft rounded panel, even with scaling off</span>
+<span class="add">+ } else if Defaults[.cornerRadiusScaling] {</span>
+<span class="add">+     openBottom = cornerRadiusInsets.opened.bottom</span>
+<span class="add">+ } else {</span>
+<span class="add">+     openBottom = cornerRadiusInsets.closed.bottom</span>
+<span class="add">+ }</span></pre>
+
+</div>
+
+<script>
+// ── NotchShape path, ported verbatim from NotchShape.swift ──────────────────
+function notchPath(x,y,w,h,topR,botR){
+  const minX=x,minY=y,maxX=x+w,maxY=y+h;
+  return [
+    `M ${minX} ${minY}`,
+    `Q ${minX+topR} ${minY} ${minX+topR} ${minY+topR}`,
+    `L ${minX+topR} ${maxY-botR}`,
+    `Q ${minX+topR} ${maxY} ${minX+topR+botR} ${maxY}`,
+    `L ${maxX-topR-botR} ${maxY}`,
+    `Q ${maxX-topR} ${maxY} ${maxX-topR} ${maxY-botR}`,
+    `L ${maxX-topR} ${minY+topR}`,
+    `Q ${maxX-topR} ${minY} ${maxX} ${minY}`,
+    `Z`
+  ].join(' ');
+}
+// rounded-rect (the OLD aurora clip) — top corners 6, bottom corners 20
+function roundRect(x,y,w,h,tl,tr,br,bl){
+  return [
+    `M ${x+tl} ${y}`,
+    `L ${x+w-tr} ${y}`, `Q ${x+w} ${y} ${x+w} ${y+tr}`,
+    `L ${x+w} ${y+h-br}`, `Q ${x+w} ${y+h} ${x+w-br} ${y+h}`,
+    `L ${x+bl} ${y+h}`, `Q ${x} ${y+h} ${x} ${y+h-bl}`,
+    `L ${x} ${y+tl}`, `Q ${x} ${y} ${x+tl} ${y}`, `Z`
+  ].join(' ');
+}
+
+const SCALE = 3;                 // px-per-pt, so a 14pt inset is clearly visible
+const state = { mode:'before', view:'peek', running:true, guides:false };
+const svg = document.getElementById('viz');
+const readout = document.getElementById('readout');
+const NS='http://www.w3.org/2000/svg';
+
+function el(tag,attrs){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+
+function render(){
+  svg.innerHTML='';
+  const W=760, cx=W/2;
+
+  // geometry in points → scaled
+  const isOpen = state.view==='open';
+  const topR = 6;
+  // notch (silhouette) dimensions
+  const notchWpt = isOpen ? 220 : 116;       // open panel wider; peek ~ wings
+  const notchHpt = isOpen ? 78  : 34;
+  const insetPt  = 14;                        // cornerRadiusInsets.closed.bottom (closed only)
+  const botR = state.mode==='before'
+      ? (isOpen ? 14 : 20)                    // before: open=14 (square), peek silhouette already 20
+      : (isOpen ? 24 : 20);                   // after:  open=24, peek 20
+
+  const w=notchWpt*SCALE, h=notchHpt*SCALE;
+  const x=cx-w/2, y=26;                       // hang from just under the menubar
+
+  // defs / clips
+  const defs=el('defs');
+  // aurora gradients (two brand blooms — red + violet, like a multi-color toolkit)
+  function bloom(id,color,fx,fy,r){
+    const g=el('radialGradient',{id,cx:fx,cy:fy,r,gradientUnits:'userSpaceOnUse'});
+    g.appendChild(el('stop',{offset:'0%','stop-color':color,'stop-opacity':'.95'}));
+    g.appendChild(el('stop',{offset:'62%','stop-color':color,'stop-opacity':'0'}));
+    defs.appendChild(g);
+  }
+
+  // ── notch silhouette path ──
+  const notchD = notchPath(x,y,w,h,topR,botR);
+
+  // ── aurora region ──
+  // BEFORE: inset by 14pt each side, clipped as a plain rounded rect (top6/bottom20)
+  // AFTER : bleeds to the full notch silhouette, clipped to NotchShape
+  let auroraD, auroraX, auroraW;
+  if(state.mode==='before' && !isOpen){
+    auroraX = x + insetPt*SCALE;
+    auroraW = w - 2*insetPt*SCALE;
+    auroraD = roundRect(auroraX, y, auroraW, h, 6*SCALE, 6*SCALE, 20*SCALE, 20*SCALE);
+  } else {
+    auroraX = x; auroraW = w;
+    auroraD = notchPath(x,y,w,h,topR, (isOpen? (state.mode==='before'?14:24):20));
+  }
+
+  const clip=el('clipPath',{id:'aClip'});
+  clip.appendChild(el('path',{d:auroraD}));
+  defs.appendChild(clip);
+  svg.appendChild(defs);
+
+  // bloom anchors inside the aurora region
+  const ax=auroraX, aw=auroraW;
+  bloom('b1','#d83030', ax+aw*0.12, y+h*0.30, h*0.95);
+  bloom('b2','#7b4cff', ax+aw*0.88, y+h*0.36, h*1.05);
+  bloom('b3','#2f7bff', ax+aw*0.78, y+h*0.82, h*0.70);
+
+  // 1) the notch silhouette (black)
+  svg.appendChild(el('path',{d:notchD, fill:'#000', stroke:'rgba(255,255,255,.07)', 'stroke-width':1}));
+
+  // 2) aurora glow group, clipped, only while running
+  const ag=el('g',{'clip-path':'url(#aClip)', opacity: state.running? '1':'0'});
+  ag.style.transition='opacity .4s var(--ease)';
+  // black base then additive-ish blooms (screen)
+  ag.appendChild(el('rect',{x:ax,y:y,width:aw,height:h,fill:'#000'}));
+  ['b1','b2','b3'].forEach(id=>{
+    const r=el('rect',{x:ax-40,y:y-40,width:aw+80,height:h+80,fill:`url(#${id})`});
+    r.setAttribute('style','mix-blend-mode:screen;filter:blur(5px)');
+    ag.appendChild(r);
+  });
+  svg.appendChild(ag);
+
+  // 2b) center camera-housing mask (peek only) — opaque black spacer
+  if(!isOpen){
+    const spacerW = 70*SCALE/ (1) ; // notch camera gap-ish
+    const sw = 64*SCALE; // closedNotchSize.width approx
+    svg.appendChild(el('rect',{x:cx-sw/2, y:y, width:sw, height:h, fill:'#000'}));
+  }
+
+  // 3) content hints (logo dot + wave) so it reads as the peek/tab
+  if(!isOpen){
+    svg.appendChild(el('rect',{x:x+18, y:y+h/2-9, width:18, height:18, rx:5, fill:'rgba(255,255,255,.9)'}));
+    for(let i=0;i<4;i++){
+      const bh=[10,16,8,13][i];
+      svg.appendChild(el('rect',{x:x+w-58+i*9, y:y+h/2-bh/2, width:3.2, height:bh, rx:2, fill:'rgba(255,255,255,.85)'}));
+    }
+  } else {
+    svg.appendChild(el('rect',{x:x+14,y:y+12,width:28,height:28,rx:7,fill:'rgba(255,255,255,.9)'}));
+    svg.appendChild(el('rect',{x:x+52,y:y+16,width:w-120,height:9,rx:4,fill:'rgba(255,255,255,.18)'}));
+    svg.appendChild(el('rect',{x:x+20,y:y+h-26,width:w-40,height:10,rx:5,fill:'rgba(255,255,255,.08)'}));
+  }
+
+  // 4) construction guides
+  if(state.guides){
+    // notch outline
+    svg.appendChild(el('path',{d:notchD, fill:'none', stroke:'var(--accent)', 'stroke-width':1.2, 'stroke-dasharray':'4 4', opacity:.9}));
+    if(state.mode==='before' && !isOpen){
+      // inset lines + aurora box
+      svg.appendChild(el('path',{d:auroraD, fill:'none', stroke:'#ff6b6b', 'stroke-width':1.4, 'stroke-dasharray':'2 3'}));
+      [x+insetPt*SCALE, x+w-insetPt*SCALE].forEach(gx=>{
+        svg.appendChild(el('line',{x1:gx,y1:y-10,x2:gx,y2:y+h+14,stroke:'rgba(255,107,107,.5)','stroke-width':1,'stroke-dasharray':'2 4'}));
+      });
+      svg.appendChild(el('text',{x:cx,y:y+h+30,fill:'#ff6b6b','font-size':11,'font-family':'monospace','text-anchor':'middle'},)).textContent='aurora inset 14pt · top corners 6pt → boxy';
+    } else {
+      svg.appendChild(el('text',{x:cx,y:y+h+30,fill:'var(--good)','font-size':11,'font-family':'monospace','text-anchor':'middle'},)).textContent='aurora = notch silhouette · edge-to-edge glow';
+    }
+  }
+
+  // readout
+  const insetTxt = (state.mode==='before' && !isOpen) ? 'inset 14pt, clip top6/bot20 (rounded rect)' : 'bleeds to edge, clip = NotchShape';
+  readout.textContent = `${isOpen?'open tab':'peek'} · chin ${botR}pt · aurora ${state.running? insetTxt : 'hidden (idle)'}`;
+}
+
+// wire controls
+document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{
+  state.mode=b.dataset.mode;
+  document.querySelectorAll('#mode button').forEach(x=>x.classList.toggle('on',x===b));
+  render();
+});
+document.querySelectorAll('#view button').forEach(b=>b.onclick=()=>{
+  state.view=b.dataset.view;
+  document.querySelectorAll('#view button').forEach(x=>x.classList.toggle('on',x===b));
+  render();
+});
+document.getElementById('running').onchange=e=>{state.running=e.target.checked;render();};
+document.getElementById('showguides').onchange=e=>{state.guides=e.target.checked;render();};
+render();
+</script>
+</body>
+</html>
