@@ -3,6 +3,8 @@
  * coding agent. Speaks newline-delimited JSON on stdin/stdout:
  *
  *   stdin   {"type":"prompt","text":"…"}   {"type":"abort"}   {"type":"set_model","id":"…"}
+ *           {"type":"list_connections"}   {"type":"reconnect","connectedAccountId":"ca_…"}
+ *           {"type":"set_default_aliases","map":{"gmail":"work"}}
  *   stdout  {"type":"status","word":"thinking"}
  *           {"type":"tool_forming","index":0,"tool":"GMAIL_SEND_EMAIL","toolkit":"gmail",
  *            "logo":"https://logos.composio.dev/api/gmail"}   // tool/toolkit/logo null until known
@@ -12,6 +14,12 @@
  *           {"type":"text_delta","delta":"Done — …"}
  *           {"type":"error","message":"…"}
  *           {"type":"done"}
+ *           // connection management (Composio v3 SDK):
+ *           {"type":"connections","items":[{"toolkit":"gmail","alias":"work",
+ *            "connectedAccountId":"ca_…","authConfigId":"ac_…","status":"ACTIVE"}]}
+ *           {"type":"connection_expired","toolkit":"gmail","alias":"work",
+ *            "connectedAccountId":"ca_…","userId":"…","status":"EXPIRED"}
+ *           {"type":"connection_link","url":"https://…","toolkit":"gmail"}
  *
  * It reuses the user's pi/composio CLI login by inheriting HOME (so ~/.pi and
  * ~/.composio resolve). The Composio × Pi extension is auto-loaded by pi from the
@@ -30,6 +38,10 @@ import {
     SessionManager,
     SettingsManager,
 } from "@earendil-works/pi-coding-agent";
+import { Composio } from "@composio/core";
+import { readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 /**
  * Appended to pi's system prompt. Prompts from the notch are one-shot commands
@@ -44,12 +56,12 @@ one-shot command, not the start of a conversation:
 - NEVER ask clarifying questions or present options — there is no back-and-forth. Pick the
   most reasonable interpretation and execute it fully.
 - Use your tools to complete the task end-to-end in this single turn.
-- For Composio tools: use only ACTIVE connected accounts, always pass \`account\` when an
-  alias/id is available, never use EXPIRED/INITIALIZING accounts, and if no ACTIVE
-  account exists call \`composio_manage_connections\`. If a connection URL is returned,
-  do NOT paste, mention, or describe the link — the host app automatically shows the
-  user a "Connect" button for it. Just say which app needs connecting (one short
-  sentence) and stop.
+- For Composio tools: use only ACTIVE connected accounts. When a default account is
+  listed for a toolkit below, pass that account; otherwise use the most recently
+  connected ACTIVE account. Never use EXPIRED/INITIALIZING accounts. If no ACTIVE account
+  exists for a toolkit, do NOT paste, mention, or describe any connection/authorization
+  URL — reconnection is handled outside this chat by the host app. Just say
+  "<app> needs reconnecting in Settings." (one short sentence) and stop.
 - Keep the final reply short: what was done and the key result. No "let me know if…"
   closers, no follow-up questions.
 `.trim();
@@ -118,32 +130,156 @@ interface FormingTool {
     toolkit: string | null;
 }
 
-type ToolContext = {
-    toolName?: string;
-    args?: any;
-};
+// ── Composio connection management ──────────────────────────────────────────
+// The in-notch "Connect" CTA is gone. Instead this background service tracks
+// connected-account health and surfaces re-auth out of band: it talks to the
+// Composio v3 SDK directly (the pi extension only exposes *tools*, not account
+// management). Everything here is best-effort — if no API key resolves, the
+// agent still runs and connection features simply stay dormant.
 
-function textFromToolResult(result: any): string {
-    const content = result?.content;
-    if (!Array.isArray(content)) return "";
-    return content
-        .map((item) => (item?.type === "text" && typeof item.text === "string" ? item.text : ""))
-        .filter(Boolean)
-        .join("\n");
+// Which Composio user the notch's connected accounts live under. The pi-composio
+// extension scopes accounts by user id; set COMPOSIO_USER_ID to match it.
+// TODO(boring.notch): confirm the exact user id the extension uses on the host.
+const COMPOSIO_USER_ID = process.env.COMPOSIO_USER_ID?.trim() || "default";
+
+// Account statuses that mean "unusable until the user re-authorizes".
+const REAUTH_STATUSES = new Set(["EXPIRED", "INACTIVE", "REVOKED", "FAILED"]);
+
+// Default account alias per toolkit slug, pushed from the host (set_default_aliases)
+// and folded into the system prompt so the agent always picks the right account.
+let defaultAliases: Record<string, string> = {};
+
+interface ConnectionItem {
+    toolkit: string;
+    alias: string | null;
+    connectedAccountId: string;
+    authConfigId: string | null;
+    status: string;
 }
 
-function firstHttpUrl(text: string): string | null {
-    const match = text.match(/https?:\/\/[^\s)\]}>"]+/);
-    return match?.[0] ?? null;
+// Last-seen accounts, so `reconnect` can resolve an authConfig without a second
+// round-trip and map a toolkit → its account.
+let lastConnections: ConnectionItem[] = [];
+
+function resolveComposioApiKey(): string | null {
+    const env = process.env.COMPOSIO_API_KEY?.trim();
+    if (env) return env;
+    // Fall back to the CLI's stored credentials (best-effort; layout varies by version).
+    for (const rel of ["user_data.json", "credentials.json"]) {
+        try {
+            const json = JSON.parse(readFileSync(join(homedir(), ".composio", rel), "utf8"));
+            const key = json?.api_key ?? json?.apiKey ?? json?.COMPOSIO_API_KEY;
+            if (typeof key === "string" && key) return key;
+        } catch {
+            /* not present — try next */
+        }
+    }
+    return null;
 }
 
-function connectionAppFromText(text: string, fallback?: string): string {
-    const match = text.match(/Connect\s+([A-Za-z0-9_-]+)\s*:/i);
-    return (match?.[1] ?? fallback ?? "Composio").toLowerCase();
+let composioClient: Composio | null | undefined; // undefined = not yet attempted
+function getComposio(): Composio | null {
+    if (composioClient !== undefined) return composioClient;
+    const apiKey = resolveComposioApiKey();
+    if (!apiKey) {
+        toErr("composio: no API key (set COMPOSIO_API_KEY) — connection management disabled");
+        composioClient = null;
+        return null;
+    }
+    try {
+        composioClient = new Composio({ apiKey });
+    } catch (e: any) {
+        toErr("composio: client init failed:", String(e?.message ?? e));
+        composioClient = null;
+    }
+    return composioClient;
 }
 
-function isConnectionText(text: string): boolean {
-    return /connect|connection|required|composio/i.test(text) && /https?:\/\//i.test(text);
+/** List the user's connected accounts, emit them, and flag any that need re-auth. */
+async function reconcileConnections(): Promise<void> {
+    const composio = getComposio();
+    if (!composio) return;
+    try {
+        const res = await composio.connectedAccounts.list({ userIds: [COMPOSIO_USER_ID] });
+        const items: ConnectionItem[] = (res.items ?? []).map((a: any) => ({
+            toolkit: String(a.toolkit?.slug ?? "").toLowerCase(),
+            alias: a.alias ?? null,
+            connectedAccountId: a.id,
+            authConfigId: a.authConfig?.id ?? null,
+            status: String(a.status ?? "").toUpperCase(),
+        }));
+        lastConnections = items;
+        emit({ type: "connections", items });
+        for (const it of items) {
+            if (REAUTH_STATUSES.has(it.status)) {
+                emit({
+                    type: "connection_expired",
+                    toolkit: it.toolkit,
+                    alias: it.alias ?? undefined,
+                    connectedAccountId: it.connectedAccountId,
+                    userId: COMPOSIO_USER_ID,
+                    status: it.status,
+                });
+            }
+        }
+    } catch (e: any) {
+        toErr("composio: list connections failed:", String(e?.message ?? e));
+    }
+}
+
+/** Kick off a hosted re-auth for a toolkit/account; emit the URL for the host to open. */
+async function reconnectAccount(opts: { connectedAccountId?: string; toolkit?: string }): Promise<void> {
+    const composio = getComposio();
+    if (!composio) return;
+    const match = lastConnections.find(
+        (c) =>
+            (opts.connectedAccountId && c.connectedAccountId === opts.connectedAccountId) ||
+            (opts.toolkit && c.toolkit === opts.toolkit.toLowerCase()),
+    );
+    if (!match?.authConfigId) {
+        toErr("composio: reconnect — no authConfig for", JSON.stringify(opts));
+        return;
+    }
+    try {
+        const request = await composio.connectedAccounts.link(COMPOSIO_USER_ID, match.authConfigId, {
+            alias: match.alias ?? undefined,
+        });
+        const url = (request as any).redirectUrl;
+        if (typeof url === "string" && url) {
+            emit({ type: "connection_link", url, toolkit: match.toolkit });
+        } else {
+            toErr("composio: reconnect — link returned no redirectUrl");
+        }
+    } catch (e: any) {
+        toErr("composio: reconnect failed:", String(e?.message ?? e));
+    }
+}
+
+// Watch connection health. The SDK trigger subscription is an *outbound* channel
+// (works from localhost, no public webhook URL), but trigger fires don't carry
+// expiry, so we use any event as a cheap nudge to re-reconcile and ALSO poll on an
+// interval + at startup as the reliable detector.
+async function startConnectionWatch(): Promise<void> {
+    await reconcileConnections();
+    const composio = getComposio();
+    if (composio) {
+        try {
+            await composio.triggers.subscribe(() => {
+                void reconcileConnections();
+            });
+        } catch (e: any) {
+            toErr("composio: trigger subscribe failed (polling still active):", String(e?.message ?? e));
+        }
+    }
+    setInterval(() => void reconcileConnections(), 5 * 60 * 1000);
+}
+
+/** Default-account guidance appended to the system prompt, or "" when none is set. */
+function defaultAliasesPromptBlock(): string {
+    const entries = Object.entries(defaultAliases).filter(([, alias]) => alias);
+    if (entries.length === 0) return "";
+    const lines = entries.map(([slug, alias]) => `  - ${slug}: account "${alias}"`).join("\n");
+    return `\n\n## Default Composio accounts\nWhen a tool belongs to one of these toolkits, use the listed account:\n${lines}`;
 }
 
 async function main(): Promise<void> {
@@ -158,8 +294,6 @@ async function main(): Promise<void> {
     let sessionPromise: Promise<any> | null = null;
     let unsubscribe: (() => void) | null = null;
     let idleTimer: ReturnType<typeof setTimeout> | null = null;
-    const toolContexts = new Map<string, ToolContext>();
-    const emittedConnectionUrls = new Set<string>();
 
     /** Create the session on first use (or after an idle reset); reuse it otherwise. */
     function ensureSession(): Promise<any> {
@@ -175,7 +309,10 @@ async function main(): Promise<void> {
                     cwd,
                     agentDir,
                     settingsManager,
-                    appendSystemPromptOverride: (base: string[]) => [...base, NOTCH_SYSTEM_PROMPT],
+                    appendSystemPromptOverride: (base: string[]) => [
+                        ...base,
+                        NOTCH_SYSTEM_PROMPT + defaultAliasesPromptBlock(),
+                    ],
                 });
                 await resourceLoader.reload();
 
@@ -260,32 +397,12 @@ async function main(): Promise<void> {
         return null;
     }
 
-    function emitVisibleToolConnection(result: any, context: ToolContext = {}): void {
-        const text = textFromToolResult(result);
-        if (!text || !isConnectionText(text)) return;
-        const url = firstHttpUrl(text);
-        if (!url || emittedConnectionUrls.has(url)) return;
-        emittedConnectionUrls.add(url);
-
-        const fallbackApp = context.args?.app ?? toolkitSlug(context.toolName ?? "composio");
-        const app = connectionAppFromText(text, fallbackApp);
-        const alias = typeof context.args?.alias === "string" ? context.args.alias : undefined;
-        emit({ type: "connection_required", app, url, alias });
-        // The host app surfaces this as a "Connect …" CTA capsule from the
-        // connection_required event above — do NOT also inject the link into the
-        // transcript. Doing so rendered the deeplink inline (and, with the model
-        // sometimes echoing it too, repeatedly), which is exactly the noise the CTA
-        // exists to replace.
-    }
-
     // Translate agent events → wire protocol. Named (not inline) so each fresh
     // session created by ensureSession() can re-subscribe the same handler.
     function handleAgentEvent(event: any): void {
         switch (event.type) {
             case "agent_start":
                 formingTools.clear();
-                toolContexts.clear();
-                emittedConnectionUrls.clear();
                 emit({ type: "agent_start" });
                 emitStatus("thinking");
                 break;
@@ -318,7 +435,6 @@ async function main(): Promise<void> {
                 break;
             }
             case "tool_execution_start": {
-                toolContexts.set(event.toolCallId, { toolName: event.toolName, args: event.args });
                 // Unwrap composio_execute_tool → the real app (Gmail, Calendar, …) so
                 // the notch shows that app's logo/color, not the generic Composio mark.
                 const displayTool = unwrapComposioAction(event.toolName, event.args) ?? event.toolName;
@@ -335,12 +451,7 @@ async function main(): Promise<void> {
                 });
                 break;
             }
-            case "tool_execution_update":
-                emitVisibleToolConnection(event.partialResult, toolContexts.get(event.toolCallId));
-                break;
             case "tool_execution_end":
-                emitVisibleToolConnection(event.result, toolContexts.get(event.toolCallId));
-                toolContexts.delete(event.toolCallId);
                 emit({ type: "tool_end", id: event.toolCallId, ok: !event.isError });
                 break;
             case "agent_end":
@@ -361,6 +472,10 @@ async function main(): Promise<void> {
         emit({ type: "done" });
         process.exit(1);
     }
+
+    // Begin watching connected-account health (reconcile + subscribe + poll). Best-effort
+    // and non-blocking: failures only disable connection features, never the agent.
+    void startConnectionWatch();
 
     async function handlePrompt(text: string): Promise<void> {
         disarmIdleReset(); // a prompt keeps the conversation alive
@@ -401,6 +516,26 @@ async function main(): Promise<void> {
             case "set_model":
                 // v1 inherits the model from pi config; explicit selection is a follow-up.
                 toErr("set_model requested but not implemented:", msg.id);
+                break;
+            case "list_connections":
+                void reconcileConnections();
+                break;
+            case "reconnect":
+                void reconnectAccount({
+                    connectedAccountId: typeof msg.connectedAccountId === "string" ? msg.connectedAccountId : undefined,
+                    toolkit: typeof msg.toolkit === "string" ? msg.toolkit : undefined,
+                });
+                break;
+            case "set_default_aliases":
+                if (msg.map && typeof msg.map === "object") {
+                    defaultAliases = Object.fromEntries(
+                        Object.entries(msg.map as Record<string, unknown>)
+                            .filter(([, v]) => typeof v === "string" && v)
+                            .map(([k, v]) => [k.toLowerCase(), v as string]),
+                    );
+                    // Rebuild on the next prompt so the system prompt carries the new defaults.
+                    teardownSession();
+                }
                 break;
             default:
                 toErr("unknown message:", JSON.stringify(msg));
