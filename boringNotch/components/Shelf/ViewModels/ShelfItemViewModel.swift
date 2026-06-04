@@ -366,7 +366,8 @@ final class ShelfItemViewModel: ObservableObject {
 
             let imageActions = NSMenuItem(title: "Image Actions", action: nil, keyEquivalent: "")
             let imageSubmenu = NSMenu()
-            let availableConversionFormats = imageURLs.count == 1
+            let hasSingleImageSelection = selectedItems.count == 1 && imageURLs.count == 1
+            let availableConversionFormats = hasSingleImageSelection
                 ? ImageProcessingService.shared.availableConversionFormats(for: imageURLs.first)
                 : []
 
