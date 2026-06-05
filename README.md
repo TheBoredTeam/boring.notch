@@ -161,22 +161,55 @@ brew install --cask boring-notch
 
 - **macOS 14 or later**: If you’re not on the latest macOS, we might need to send a search party.
 - **Xcode 16 or later**: This is where the magic happens, so make sure it’s up-to-date.
+- **[Bun](https://bun.sh)**: Required to build the Pi/Composio sidecar (`brew install bun`). Only needed for this fork's AI integration.
 
-### Installation
+### Steps
 
-1. **Clone the Repository**:
+1. **Clone the Repository** (this fork):
    ```bash
-   git clone https://github.com/TheBoredTeam/boring.notch.git
+   git clone https://github.com/tridha643/boring.notch.git
    cd boring.notch
    ```
 
-2. **Open the Project in Xcode**:
+2. **Build the Pi sidecar** — this fork embeds a self-contained `pi-sidecar` binary (the Composio/Pi integration) into the app at build time. Run this once after a fresh checkout, and again whenever `sidecar/index.ts` changes:
    ```bash
-   open boringNotch.xcodeproj
+   make sidecar
    ```
+   The binary (~69 MB) and its runtime assets are gitignored, so the Xcode build will fail to find them until you've run this.
 
-3. **Build and Run**:
-    - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
+3. **Build and run**, using one of:
+
+   - **Xcode** — open the project and press `Cmd + R`:
+     ```bash
+     open boringNotch.xcodeproj
+     ```
+
+   - **Recommended: `sign-and-install.sh`** — builds a Release, re-signs it with a *stable* Apple Development identity, and installs to `/Applications`. Use this if you rebuild often: ad-hoc signing makes macOS re-prompt for Accessibility / Screen Recording on every build, and a stable identity keeps those grants:
+     ```bash
+     scripts/sign-and-install.sh
+     ```
+     Run `scripts/sign-and-install.sh -h` for options (custom scheme, identity, skipping the TCC reset, etc.).
+
+### Composio / Pi setup (this fork)
+
+The Composio connections menu-bar app and the in-notch Pi assistant need a Composio API key. The sidecar resolves it in this order:
+
+1. The `COMPOSIO_API_KEY` environment variable, then
+2. `~/.composio/anonymous_user_data.json` (the `composio.api_key` field).
+
+For a GUI launch that survives reboots, write the key to the config file (the env-absent fallback):
+
+```bash
+mkdir -p ~/.composio
+echo '{"composio":{"api_key":"<your-key>"}}' > ~/.composio/anonymous_user_data.json
+```
+
+> [!NOTE]
+> An exported `COMPOSIO_API_KEY` in your shell profile **shadows** the config file. If the Pi tab shows `Invalid API key`, check for a stale export in `~/.zshrc` / `~/.zprofile`. You can validate a key with:
+> ```bash
+> curl -s -H "x-api-key: <your-key>" "https://backend.composio.dev/api/v3/toolkits?limit=1"
+> ```
+> (HTTP 200 = valid.)
 
 ## 🤝 Contributing
 
