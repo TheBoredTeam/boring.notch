@@ -43,8 +43,17 @@ struct PiAgentView: View {
                     .transition(Motion.transition(Motion.overlay, reduceMotion: reduceMotion))
             }
         }
-        .padding(.horizontal, 4)
+        // Tighten the side gutter for the Pi tab specifically. The notch panel already
+        // adds a shared 12pt horizontal inset (ContentView) that every tab inherits; a
+        // small negative pad here claws a bit of it back so Pi's content runs closer to
+        // the edges than Home/Shelf, without changing those tabs. Net side gutter ≈ 10pt.
+        .padding(.horizontal, -2)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // Palette-driven aurora behind the whole panel: invisible at rest (opacity 0
+        // when !isRunning), fades in while the agent runs, swells on tool calls. Sits
+        // behind header/activity/chips/answer. Lives ONLY here (expanded) — never in the
+        // collapsed peek. The parent NotchShape clip (ContentView) trims any blur bleed.
+        .background(PiAuroraView())
         // Rows appearing/leaving (chips, error) settle in with the shared item spring
         // instead of popping — the layout shift underneath them animates as one unit.
         .animation(Motion.resolved(Motion.shelfItemEnter, reduceMotion: reduceMotion), value: !pi.chips.isEmpty || pi.isForming)
@@ -305,22 +314,86 @@ struct PiAgentView: View {
 
     private var answer: some View {
         let shown = pi.transcript
-        // Trim before deciding emptiness: a connection-blocked turn often leaves only
-        // whitespace (the model wrote nothing but the stripped deeplink), which would
+        // Trim before deciding emptiness: a turn that produced only whitespace would
         // otherwise render as an invisible non-empty answer — a blank box with no
         // placeholder. Treating whitespace as empty surfaces the placeholder/guidance.
+        // (The transcript is rendered verbatim — no URL stripping — so links the user
+        // asked for render as tappable through PiInlineText / PiMarkdownView.)
         let isBlank = shown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        return ScrollViewReader { proxy in
+        return Group {
+            // Idle with nothing to show: a centered, branded empty state (mirrors the
+            // Shelf tab's "Drop files here") instead of a placeholder stranded in the
+            // box's top-left corner — so the panel reads as finished, not unfilled. The
+            // instant a turn starts (pi.isRunning), the scrolling transcript takes over.
+            if isBlank && !pi.isRunning {
+                emptyState
+            } else {
+                transcriptScroll(shown: shown)
+            }
+        }
+        // minHeight floors the viewport so the chrome rows can never starve it to zero;
+        // layoutPriority gives the flexible answer first claim on space over the fixed
+        // chrome rows.
+        .frame(maxWidth: .infinity, minHeight: Self.answerMinViewportHeight, maxHeight: .infinity, alignment: .topLeading)
+        .layoutPriority(1)
+        .padding(10)
+        // Empty → first content is a crossfade, not a hard swap.
+        .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: isBlank)
+        // Tapped links (the user-requested URLs that now render through PiMarkdownView /
+        // PiInlineText autolink) must open even though the notch is a non-activating
+        // borderless panel that can swallow the default environment openURL. Route them
+        // straight to NSWorkspace. Localized to the answer view.
+        .environment(\.openURL, OpenURLAction { url in
+            NSWorkspace.shared.open(url)
+            return .handled
+        })
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.white.opacity(0.04))
+        )
+        .onChange(of: transcriptContentHeight) { _, _ in reportDesiredHeight() }
+        .onChange(of: scrollViewportHeight) { _, _ in reportDesiredHeight() }
+    }
+
+    /// Resting empty state: the Composio mark over a single quiet line, centered in the
+    /// answer box. Same shape as ShelfView's empty state (icon + rounded medium text)
+    /// so the Pi tab sits next to Home/Shelf as a peer, not an unfinished pane.
+    private var emptyState: some View {
+        VStack(spacing: 9) {
+            Group {
+                if let composio = NSImage(named: "composio-mark") {
+                    let _ = (composio.isTemplate = true)
+                    Image(nsImage: composio)
+                        .resizable()
+                        .renderingMode(.template)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
+                } else {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 22))
+                }
+            }
+            .foregroundStyle(.white.opacity(0.45))
+
+            Text("Pi’s answers appear here")
+                .font(.system(.callout, design: .rounded))
+                .fontWeight(.medium)
+                .foregroundStyle(.gray)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Pi’s answers appear here")
+    }
+
+    /// The streamed/settled transcript with stick-to-bottom following. Shown once a turn
+    /// is running or any answer text exists.
+    private func transcriptScroll(shown: String) -> some View {
+        ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     Group {
-                        if isBlank {
-                            Text(placeholder)
-                                .font(.system(size: 12))
-                                .foregroundStyle(.gray)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .transition(.opacity)
-                        } else if pi.isRunning || !MDBlock.hasBlockStructure(shown) {
+                        if pi.isRunning || !MDBlock.hasBlockStructure(shown) {
                             // Streaming, or settled-but-plain prose: one inline Text.
                             // Never reflows mid-stream (the common case) and avoids
                             // per-delta re-parse of unclosed fences/lists.
@@ -334,8 +407,6 @@ struct PiAgentView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    // Placeholder → first content is a crossfade, not a hard swap.
-                    .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: isBlank)
                     // Smooth single inline→block crossfade once the run settles.
                     .animation(Motion.resolved(Motion.hover, reduceMotion: reduceMotion), value: pi.isRunning)
 
@@ -371,18 +442,6 @@ struct PiAgentView: View {
                 proxy.scrollTo("piTranscriptBottom", anchor: .bottom)
             }
         }
-        // minHeight floors the viewport so the chrome rows can never starve it to zero;
-        // layoutPriority gives the flexible answer first claim on space over the fixed
-        // chrome rows.
-        .frame(maxWidth: .infinity, minHeight: Self.answerMinViewportHeight, maxHeight: .infinity, alignment: .topLeading)
-        .layoutPriority(1)
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.white.opacity(0.04))
-        )
-        .onChange(of: transcriptContentHeight) { _, _ in reportDesiredHeight() }
-        .onChange(of: scrollViewportHeight) { _, _ in reportDesiredHeight() }
     }
 
     // MARK: Stick-to-bottom scroll tracking
@@ -437,11 +496,6 @@ struct PiAgentView: View {
                     transcriptScrollMinY = minY
                 }
         }
-    }
-
-    private var placeholder: String {
-        if pi.isRunning { return "" }
-        return "Pi’s answer will stream here."
     }
 
     private func errorRow(_ message: String) -> some View {

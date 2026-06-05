@@ -4,7 +4,10 @@
  *
  *   stdin   {"type":"prompt","text":"…"}   {"type":"abort"}   {"type":"set_model","id":"…"}
  *           {"type":"list_connections"}   {"type":"reconnect","connectedAccountId":"ca_…"}
- *           {"type":"set_default_aliases","map":{"gmail":"work"}}
+ *           {"type":"connect","toolkit":"gmail","alias":"work"}
+ *           {"type":"set_default","toolkit":"gmail","selector":"work"}  // "" → Automatic
+ *           {"type":"rename_connection","connectedAccountId":"ca_…","alias":"work"}  // "" → clear
+ *           {"type":"delete_connection","connectedAccountId":"ca_…"}
  *   stdout  {"type":"status","word":"thinking"}
  *           {"type":"tool_forming","index":0,"tool":"GMAIL_SEND_EMAIL","toolkit":"gmail",
  *            "logo":"https://logos.composio.dev/api/gmail"}   // tool/toolkit/logo null until known
@@ -16,7 +19,9 @@
  *           {"type":"done"}
  *           // connection management (Composio v3 SDK):
  *           {"type":"connections","items":[{"toolkit":"gmail","alias":"work",
- *            "connectedAccountId":"ca_…","authConfigId":"ac_…","status":"ACTIVE"}]}
+ *            "connectedAccountId":"ca_…","authConfigId":"ac_…","status":"ACTIVE",
+ *            "logo":"https://…"}],   // logo resolved from Composio toolkit metadata
+ *            "defaults":{"gmail":"work"}}   // defaults = file-sourced default account/toolkit
  *           {"type":"connection_expired","toolkit":"gmail","alias":"work",
  *            "connectedAccountId":"ca_…","userId":"…","status":"EXPIRED"}
  *           {"type":"connection_link","url":"https://…","toolkit":"gmail"}
@@ -39,9 +44,14 @@ import {
     SettingsManager,
 } from "@earendil-works/pi-coding-agent";
 import { Composio } from "@composio/core";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+
+// The pi agent directory (~/.pi/agent). Resolved once at module load so both the
+// session builder and the default-account config store can use it. (Previously
+// computed inside ensureSession(); hoisted so dispatch() can reach it.)
+const agentDir = getAgentDir();
 
 /**
  * Appended to pi's system prompt. Prompts from the notch are one-shot commands
@@ -56,12 +66,21 @@ one-shot command, not the start of a conversation:
 - NEVER ask clarifying questions or present options — there is no back-and-forth. Pick the
   most reasonable interpretation and execute it fully.
 - Use your tools to complete the task end-to-end in this single turn.
+- You have a remote workbench: a remote bash shell and remote workbench/sandbox tools.
+  Use them whenever they help — running commands, scripts, file/data work, fetching or
+  transforming things, or anything a shell does better than reasoning alone. Prefer the
+  remote bash / workbench over guessing; reach for them proactively when a task is
+  shell-shaped, and report the concrete result.
 - For Composio tools: use only ACTIVE connected accounts. When a default account is
   listed for a toolkit below, pass that account; otherwise use the most recently
-  connected ACTIVE account. Never use EXPIRED/INITIALIZING accounts. If no ACTIVE account
-  exists for a toolkit, do NOT paste, mention, or describe any connection/authorization
-  URL — reconnection is handled outside this chat by the host app. Just say
-  "<app> needs reconnecting in Settings." (one short sentence) and stop.
+  connected ACTIVE account. Never use EXPIRED/INITIALIZING accounts.
+- When the user explicitly asks for a link — a connection/authorization URL, a page or
+  resource URL, or any other link — provide it directly as ordinary markdown so it
+  renders as a tappable link. Never withhold a link the user asked for.
+- Do NOT spontaneously paste authorization URLs the user did not ask for. If a toolkit
+  has no ACTIVE account and the user did not request a connect link, do what you can and
+  briefly note "connect <app> from the Composio menu-bar app" (one short sentence) —
+  reconnection is handled out of band by the host app.
 - Keep the final reply short: what was done and the key result. No "let me know if…"
   closers, no follow-up questions.
 `.trim();
@@ -145,21 +164,110 @@ const COMPOSIO_USER_ID = process.env.COMPOSIO_USER_ID?.trim() || "default";
 // Account statuses that mean "unusable until the user re-authorizes".
 const REAUTH_STATUSES = new Set(["EXPIRED", "INACTIVE", "REVOKED", "FAILED"]);
 
-// Default account alias per toolkit slug, pushed from the host (set_default_aliases)
-// and folded into the system prompt so the agent always picks the right account.
-let defaultAliases: Record<string, string> = {};
+// ── Default-account config store ────────────────────────────────────────────
+// The single source of truth for "default account per toolkit" is the Composio×Pi
+// extension's own config file — the only store the agent's resolver actually reads
+// (`~/composio-x-pi/src/lib/account-resolver.ts` → `readStoredComposioConfig`). We
+// MIRROR that file's reader/writer here so the two writers never corrupt each other:
+// always read-merge-write (preserving `apiKey` and any other keys), write the
+// `defaultAccounts` map keyed by lowercased toolkit slug, mode 0o600 + trailing
+// newline. The system prompt is also sourced from this file, so UI and agent can
+// never drift. (Mirror of `~/composio-x-pi/src/config-store.ts`.)
+const composioConfigPath = join(agentDir, "extensions", "composio-x-pi.json");
+
+interface StoredComposioConfig {
+    apiKey?: string;
+    defaultAccounts?: Record<string, string>;
+    [key: string]: unknown;
+}
+
+/** Read the extension config raw, preserving every key (apiKey, …). `{}` if absent/bad. */
+function readStoredComposioConfig(): StoredComposioConfig {
+    try {
+        const parsed = JSON.parse(readFileSync(composioConfigPath, "utf8"));
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+        return parsed as StoredComposioConfig;
+    } catch {
+        return {};
+    }
+}
+
+/** The `defaultAccounts` map (lowercased slug → selector), sanitized; `{}` if none. */
+function readDefaultAccounts(): Record<string, string> {
+    const accounts = readStoredComposioConfig().defaultAccounts;
+    if (!accounts || typeof accounts !== "object") return {};
+    return Object.fromEntries(
+        Object.entries(accounts)
+            .filter(([k, v]) => k && typeof v === "string" && (v as string).trim())
+            .map(([k, v]) => [k.trim().toLowerCase(), (v as string).trim()]),
+    );
+}
+
+/**
+ * Set (or, with an empty selector, clear → "Automatic") the default account for a
+ * toolkit. Read-merge-write so `apiKey` and any unknown keys survive untouched —
+ * a blind overwrite would wipe the agent's stored key and break auth.
+ */
+function writeDefaultAccount(toolkit: string, selector: string): void {
+    const slug = toolkit.trim().toLowerCase();
+    if (!slug) return;
+    const current = readStoredComposioConfig();
+    const defaults: Record<string, string> = { ...(current.defaultAccounts ?? {}) };
+    const trimmed = selector.trim();
+    if (trimmed) {
+        defaults[slug] = trimmed;
+    } else {
+        delete defaults[slug];
+    }
+    const next: StoredComposioConfig = { ...current };
+    if (Object.keys(defaults).length > 0) {
+        next.defaultAccounts = defaults;
+    } else {
+        delete next.defaultAccounts;
+    }
+    try {
+        mkdirSync(dirname(composioConfigPath), { recursive: true });
+        writeFileSync(composioConfigPath, `${JSON.stringify(next, null, 2)}\n`, { mode: 0o600 });
+    } catch (e: any) {
+        toErr("composio: write default account failed:", String(e?.message ?? e));
+    }
+}
 
 interface ConnectionItem {
     toolkit: string;
     alias: string | null;
+    wordId: string | null; // Composio's human word id (selector fallback after alias)
     connectedAccountId: string;
     authConfigId: string | null;
     status: string;
+    logo: string | null; // resolved from Composio toolkit metadata (meta.logo)
 }
 
 // Last-seen accounts, so `reconnect` can resolve an authConfig without a second
 // round-trip and map a toolkit → its account.
 let lastConnections: ConnectionItem[] = [];
+
+// Toolkit logo URLs resolved from Composio metadata (`toolkits.get(slug).meta.logo`),
+// cached per slug so a reconcile doesn't refetch. `null` = looked up, none available.
+const toolkitLogoCache = new Map<string, string | null>();
+
+/** Resolve a toolkit's brand logo URL from Composio metadata (cached). */
+async function resolveToolkitLogo(slug: string): Promise<string | null> {
+    if (!slug) return null;
+    if (toolkitLogoCache.has(slug)) return toolkitLogoCache.get(slug) ?? null;
+    const composio = getComposio();
+    if (!composio) return null;
+    try {
+        const tk: any = await (composio as any).toolkits.get(slug);
+        const logo = typeof tk?.meta?.logo === "string" && tk.meta.logo ? tk.meta.logo : null;
+        toolkitLogoCache.set(slug, logo);
+        return logo;
+    } catch (e: any) {
+        toErr("composio: toolkit logo lookup failed for", slug, ":", String(e?.message ?? e));
+        toolkitLogoCache.set(slug, null); // don't hammer the API for a slug that errored
+        return null;
+    }
+}
 
 function resolveComposioApiKey(): string | null {
     const env = process.env.COMPOSIO_API_KEY?.trim();
@@ -174,6 +282,13 @@ function resolveComposioApiKey(): string | null {
             /* not present — try next */
         }
     }
+    // Last resort, and the most important one for GUI launches: the extension config
+    // file (~/.pi/agent/extensions/composio-x-pi.json) — the canonical store the agent
+    // itself resolves its key from. When launched from /Applications the sidecar does
+    // NOT inherit the shell's COMPOSIO_API_KEY export, so this is the only place the key
+    // is found; without it, connection management silently stays dormant (empty list).
+    const stored = readStoredComposioConfig().apiKey;
+    if (typeof stored === "string" && stored.trim()) return stored.trim();
     return null;
 }
 
@@ -204,12 +319,22 @@ async function reconcileConnections(): Promise<void> {
         const items: ConnectionItem[] = (res.items ?? []).map((a: any) => ({
             toolkit: String(a.toolkit?.slug ?? "").toLowerCase(),
             alias: a.alias ?? null,
+            wordId: a.wordId ?? null,
             connectedAccountId: a.id,
             authConfigId: a.authConfig?.id ?? null,
             status: String(a.status ?? "").toUpperCase(),
+            logo: null,
         }));
+        // Resolve each distinct toolkit's logo from Composio metadata (cached), then
+        // attach it so the menu-bar UI renders real brand marks instead of guessing a URL.
+        const slugs = [...new Set(items.map((i) => i.toolkit).filter(Boolean))];
+        const logoBySlug = new Map<string, string | null>();
+        await Promise.all(slugs.map(async (s) => logoBySlug.set(s, await resolveToolkitLogo(s))));
+        for (const it of items) it.logo = logoBySlug.get(it.toolkit) ?? null;
         lastConnections = items;
-        emit({ type: "connections", items });
+        // Ship the file-sourced defaults alongside the inventory so the Swift UI loads
+        // its ★ state from the same store the agent resolves from — never from UserDefaults.
+        emit({ type: "connections", items, defaults: readDefaultAccounts() });
         for (const it of items) {
             if (REAUTH_STATUSES.has(it.status)) {
                 emit({
@@ -243,6 +368,14 @@ async function reconnectAccount(opts: { connectedAccountId?: string; toolkit?: s
     try {
         const request = await composio.connectedAccounts.link(COMPOSIO_USER_ID, match.authConfigId, {
             alias: match.alias ?? undefined,
+            // The account we're re-authing still EXISTS under this auth config (it's
+            // EXPIRED/REVOKED/INACTIVE, not gone), so `link()` throws
+            // ComposioMultipleConnectedAccountsError without this flag — the same throw
+            // the connect path guards against. That silent throw is exactly why the
+            // Reconnect button did nothing: no redirectUrl, no `connection_link`, no
+            // browser. Allowing multiple lets re-auth proceed; completing the hosted flow
+            // refreshes the account and the next reconcile drops it from `reauthNeeded`.
+            allowMultiple: true,
         });
         const url = (request as any).redirectUrl;
         if (typeof url === "string" && url) {
@@ -252,6 +385,95 @@ async function reconnectAccount(opts: { connectedAccountId?: string; toolkit?: s
         }
     } catch (e: any) {
         toErr("composio: reconnect failed:", String(e?.message ?? e));
+    }
+}
+
+/**
+ * Set (or, with an empty string, clear) the human-readable alias for a connected
+ * account, then re-list so the UI relabels the row. The alias is what the menu-bar
+ * shows ("work"/"personal") and a valid default selector — accounts connected via the
+ * CLI or the agent arrive without one, so this is the path that actually labels them.
+ */
+async function renameAccount(connectedAccountId: string, alias: string): Promise<void> {
+    const composio = getComposio();
+    if (!composio) return;
+    try {
+        // Empty string is the documented "clear the alias" sentinel for `update`.
+        await (composio as any).connectedAccounts.update(connectedAccountId, { alias });
+    } catch (e: any) {
+        toErr("composio: rename connection failed:", String(e?.message ?? e));
+    }
+    void reconcileConnections();
+}
+
+/** Permanently disconnect a connected account, then re-list so the row disappears. */
+async function deleteAccount(connectedAccountId: string): Promise<void> {
+    const composio = getComposio();
+    if (!composio) return;
+    try {
+        await composio.connectedAccounts.delete(connectedAccountId);
+    } catch (e: any) {
+        toErr("composio: delete connection failed:", String(e?.message ?? e));
+    }
+    void reconcileConnections();
+}
+
+/**
+ * Authorize a NEW connected account for a toolkit, entirely out of band — the agent is
+ * never involved, so this cannot reintroduce the deeplink-in-transcript hang/duplicate
+ * bug. Emits `connection_link` for the host to open in the browser, then waits for the
+ * connection to complete and re-reconciles.
+ *
+ * Prefer attaching the requested alias via an existing auth config (`authConfigs.list`
+ * → `connectedAccounts.link`, the same proven call `reconnect` uses) so the new account
+ * can become a default by alias. Fall back to `toolkits.authorize`, which discovers or
+ * creates a Composio-managed auth config when none is listed yet.
+ */
+async function connectAccount(opts: { toolkit: string; alias?: string }): Promise<void> {
+    const composio = getComposio();
+    if (!composio) return;
+    const slug = opts.toolkit.trim().toLowerCase();
+    if (!slug) return;
+    const alias = opts.alias?.trim() || undefined;
+    try {
+        let request: any;
+        const configs: any = await (composio as any).authConfigs
+            .list({ toolkit: slug })
+            .catch(() => null);
+        const authConfigId: string | undefined = configs?.items?.[0]?.id;
+        if (authConfigId) {
+            // `allowMultiple: true` is essential for an explicit "Connect an app" action:
+            // without it `link()` throws ComposioMultipleConnectedAccountsError when an
+            // ACTIVE account already exists for this auth config, so adding a *second*
+            // account (e.g. a "work" alias alongside "personal") would silently fail.
+            request = await composio.connectedAccounts.link(COMPOSIO_USER_ID, authConfigId, {
+                alias,
+                allowMultiple: true,
+            });
+        } else {
+            // Fallback: no listed auth config yet. `toolkits.authorize` discovers/creates a
+            // Composio-managed one. It takes no alias param (the SDK has no alias setter on
+            // connectedAccounts), so this path connects without an alias — the common path
+            // above (an existing auth config) is where the requested alias is honored.
+            request = await (composio as any).toolkits.authorize(COMPOSIO_USER_ID, slug);
+        }
+        const url = request?.redirectUrl;
+        if (typeof url !== "string" || !url) {
+            toErr("composio: connect — no redirectUrl for", slug);
+            return;
+        }
+        emit({ type: "connection_link", url, toolkit: slug });
+        // Wait out of band for the user to finish; the 5-min poll covers an abandon.
+        if (typeof request.waitForConnection === "function") {
+            try {
+                await request.waitForConnection();
+            } catch {
+                /* user may not complete it now — reconcile/poll will catch up later */
+            }
+        }
+        void reconcileConnections();
+    } catch (e: any) {
+        toErr("composio: connect failed:", String(e?.message ?? e));
     }
 }
 
@@ -274,11 +496,15 @@ async function startConnectionWatch(): Promise<void> {
     setInterval(() => void reconcileConnections(), 5 * 60 * 1000);
 }
 
-/** Default-account guidance appended to the system prompt, or "" when none is set. */
-function defaultAliasesPromptBlock(): string {
-    const entries = Object.entries(defaultAliases).filter(([, alias]) => alias);
+/**
+ * Default-account guidance appended to the system prompt, or "" when none is set.
+ * Sourced from the extension config file (`readDefaultAccounts`) — the same store the
+ * agent's resolver reads — so the prompt and the resolver can never disagree.
+ */
+function defaultAccountsPromptBlock(): string {
+    const entries = Object.entries(readDefaultAccounts());
     if (entries.length === 0) return "";
-    const lines = entries.map(([slug, alias]) => `  - ${slug}: account "${alias}"`).join("\n");
+    const lines = entries.map(([slug, selector]) => `  - ${slug}: account "${selector}"`).join("\n");
     return `\n\n## Default Composio accounts\nWhen a tool belongs to one of these toolkits, use the listed account:\n${lines}`;
 }
 
@@ -303,7 +529,6 @@ async function main(): Promise<void> {
                 // notch's one-shot-command contract to the system prompt. The override
                 // form keeps any user APPEND_SYSTEM.md instead of shadowing it.
                 const cwd = process.cwd();
-                const agentDir = getAgentDir();
                 const settingsManager = SettingsManager.create(cwd, agentDir);
                 const resourceLoader = new DefaultResourceLoader({
                     cwd,
@@ -311,7 +536,7 @@ async function main(): Promise<void> {
                     settingsManager,
                     appendSystemPromptOverride: (base: string[]) => [
                         ...base,
-                        NOTCH_SYSTEM_PROMPT + defaultAliasesPromptBlock(),
+                        NOTCH_SYSTEM_PROMPT + defaultAccountsPromptBlock(),
                     ],
                 });
                 await resourceLoader.reload();
@@ -526,15 +751,37 @@ async function main(): Promise<void> {
                     toolkit: typeof msg.toolkit === "string" ? msg.toolkit : undefined,
                 });
                 break;
-            case "set_default_aliases":
-                if (msg.map && typeof msg.map === "object") {
-                    defaultAliases = Object.fromEntries(
-                        Object.entries(msg.map as Record<string, unknown>)
-                            .filter(([, v]) => typeof v === "string" && v)
-                            .map(([k, v]) => [k.toLowerCase(), v as string]),
-                    );
-                    // Rebuild on the next prompt so the system prompt carries the new defaults.
+            case "connect":
+                // Authorize a NEW account out of band (no agent involvement → no
+                // deeplink-in-transcript bug). Replies with `connection_link`.
+                if (typeof msg.toolkit === "string" && msg.toolkit.trim()) {
+                    void connectAccount({
+                        toolkit: msg.toolkit,
+                        alias: typeof msg.alias === "string" ? msg.alias : undefined,
+                    });
+                }
+                break;
+            case "rename_connection":
+                // { connectedAccountId, alias } — "" alias clears it. Re-lists after.
+                if (typeof msg.connectedAccountId === "string" && msg.connectedAccountId.trim()) {
+                    void renameAccount(msg.connectedAccountId, typeof msg.alias === "string" ? msg.alias : "");
+                }
+                break;
+            case "delete_connection":
+                // { connectedAccountId } — permanently disconnect, then re-list.
+                if (typeof msg.connectedAccountId === "string" && msg.connectedAccountId.trim()) {
+                    void deleteAccount(msg.connectedAccountId);
+                }
+                break;
+            case "set_default":
+                // { toolkit, selector } — "" selector clears the default → Automatic.
+                // Writes the extension config file (the agent's source of truth), then
+                // rebuilds the session so the next prompt carries the new defaults, and
+                // re-emits connections so the UI ★ reflects the file.
+                if (typeof msg.toolkit === "string") {
+                    writeDefaultAccount(msg.toolkit, typeof msg.selector === "string" ? msg.selector : "");
                     teardownSession();
+                    void reconcileConnections();
                 }
                 break;
             default:

@@ -27,6 +27,7 @@ struct PiEvent: Codable {
     let message: String?
     // Connection management (Composio v3 SDK) — see ComposioConnectionManager.
     let items: [PiConnectionItem]?   // "connections"
+    let defaults: [String: String]?  // "connections" — file-sourced default account per toolkit
     let alias: String?               // "connection_expired"
     let connectedAccountId: String?  // "connection_expired"
     let userId: String?              // "connection_expired"
@@ -38,9 +39,11 @@ struct PiEvent: Codable {
 struct PiConnectionItem: Codable, Equatable {
     let toolkit: String
     let alias: String?
+    let wordId: String?  // Composio human word id — selector fallback after alias
     let connectedAccountId: String
     let authConfigId: String?
     let status: String
+    let logo: String?   // resolved from Composio toolkit metadata (meta.logo)
 }
 
 /// A single tool invocation shown as a chip in the expanded Pi tab.
@@ -293,11 +296,37 @@ final class PiAgentManager: ObservableObject {
         writeOrQueue(msg)
     }
 
-    /// Push the per-toolkit default account aliases so the agent auto-selects the
-    /// right account. Sent on change and at launch.
-    func setDefaultAliases(_ map: [String: String]) {
+    /// Authorize a NEW account for a toolkit, out of band (no agent involvement). The
+    /// sidecar replies with a `connection_link` the caller opens in the browser — the
+    /// same clean path as `reconnect`, so it can never put an auth URL in the transcript.
+    func connect(toolkit: String, alias: String? = nil) {
         start()
-        writeOrQueue(["type": "set_default_aliases", "map": map])
+        var msg: [String: Any] = ["type": "connect", "toolkit": toolkit.lowercased()]
+        if let alias, !alias.isEmpty { msg["alias"] = alias }
+        writeOrQueue(msg)
+    }
+
+    /// Set (or, with an empty selector, clear → Automatic) the default account for a
+    /// toolkit. The sidecar writes it to the extension config file (the agent's source
+    /// of truth) and re-emits `connections` so the UI ★ reflects the file.
+    func setDefaultAccount(toolkit: String, selector: String) {
+        start()
+        writeOrQueue(["type": "set_default", "toolkit": toolkit.lowercased(), "selector": selector])
+    }
+
+    /// Set (or, with an empty alias, clear) the human-readable alias for a connected
+    /// account. The sidecar writes it through `connectedAccounts.update` and re-emits
+    /// `connections` so the row relabels.
+    func renameConnection(connectedAccountId: String, alias: String) {
+        start()
+        writeOrQueue(["type": "rename_connection", "connectedAccountId": connectedAccountId, "alias": alias])
+    }
+
+    /// Permanently disconnect a connected account. The sidecar deletes it and re-emits
+    /// `connections` so the row drops.
+    func deleteConnection(connectedAccountId: String) {
+        start()
+        writeOrQueue(["type": "delete_connection", "connectedAccountId": connectedAccountId])
     }
 
     private func writeOrQueue(_ object: [String: Any]) {
@@ -405,7 +434,7 @@ final class PiAgentManager: ObservableObject {
         // MARK: Connection management (forwarded to ComposioConnectionManager)
 
         case "connections":
-            ComposioConnectionManager.shared.applyConnections(event.items ?? [])
+            ComposioConnectionManager.shared.applyConnections(event.items ?? [], defaults: event.defaults)
 
         case "connection_expired":
             if let toolkit = event.toolkit, let id = event.connectedAccountId {
@@ -455,6 +484,18 @@ final class PiAgentManager: ObservableObject {
     // MARK: - Toolkit logos (cached like album art)
 
     private func loadLogo(from urlString: String, slug: String) {
+        // Special case: the generic Composio meta-ops (`composio_search_tools`,
+        // `composio_get_tool_schemas`) carry the slug "composio" and a CDN "composio"
+        // logo. That isn't a branded toolkit, so don't paint CDN art — clear the logo
+        // (and the brand palette) so the peek renders its bundled white-tinted Composio
+        // mark (PiAgentView.logo fallback) and the panel aurora stays neutral.
+        if slug == "composio" {
+            toolkitLogo = nil
+            toolkitAccent = nil
+            toolkitPalette = []
+            toolkitPaletteIsRaw = false
+            return
+        }
         let key = slug as NSString
         if let cached = logoMemoryCache.object(forKey: key) {
             // No raw SVG bytes on this path — derivePalette leans on `paletteCache`

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Composio × Pi — Menu Bar App + Notch Aurora · Aligned Plan</title>
+<style>
+  /* ───────────────────────────────────────────────────────────────────────────
+     Emil / animations.dev discipline applied throughout:
+       · custom ease-out curve, durations < 300ms on UI
+       · scale(0.97) on :active for press feedback
+       · origin-aware popover scale-in (from the menu-bar icon)
+       · traffic-light dots: ~150ms color transition, NO idle motion
+       · aurora: state-indication only, fades in on "executing", out on "done"
+       · prefers-reduced-motion: kills movement, keeps opacity/color
+     ─────────────────────────────────────────────────────────────────────────── */
+  :root{
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+    --green:#34c759; --yellow:#ffd60a; --red:#ff453a;
+    --ink:#0a0a0c; --panel:#141417; --hair:rgba(255,255,255,.08);
+    --txt:#f4f4f6; --txt-dim:rgba(244,244,246,.55); --txt-faint:rgba(244,244,246,.32);
+    --accent:#6c63ff;
+    font-synthesis:none; -webkit-font-smoothing:antialiased;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{
+    font-family:-apple-system,"SF Pro Text","SF Pro Display",system-ui,sans-serif;
+    color:var(--txt);
+    background:
+      radial-gradient(1200px 700px at 78% -8%, #1c1c28 0%, transparent 55%),
+      radial-gradient(900px 600px at 8% 108%, #181826 0%, transparent 50%),
+      #050507;
+    min-height:100vh; line-height:1.5; padding:40px 28px 96px;
+  }
+  .wrap{max-width:1120px; margin:0 auto}
+  header.page{margin-bottom:8px}
+  .kicker{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-faint); font-weight:600}
+  h1{font-size:30px; font-weight:700; letter-spacing:-.02em; margin:6px 0 6px; font-family:"SF Pro Display",-apple-system,sans-serif}
+  .sub{color:var(--txt-dim); font-size:15px; max-width:760px}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:34px}
+  @media (max-width:920px){ .grid{grid-template-columns:1fr} body{padding:28px 16px 72px} }
+
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+    border:1px solid var(--hair); border-radius:18px; padding:20px 20px 22px;
+    backdrop-filter:blur(8px);
+  }
+  .card h2{font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--txt-dim); font-weight:600; margin-bottom:14px; display:flex; align-items:center; gap:8px}
+  .card h2 .n{width:20px;height:20px;border-radius:6px;background:rgba(108,99,255,.18);color:#b9b4ff;display:grid;place-items:center;font-size:11px;font-weight:700}
+
+  /* ── Stage: a faux desktop strip to mount the menu bar + notch ───────────── */
+  .stage{grid-column:1/-1; position:relative; border-radius:20px; overflow:hidden;
+    border:1px solid var(--hair); min-height:520px;
+    background:
+      radial-gradient(1000px 460px at 70% -20%, #2a2740, transparent 60%),
+      radial-gradient(760px 520px at 12% 120%, #1d2b34, transparent 55%),
+      linear-gradient(180deg,#0b0b12,#070709);
+  }
+  /* macOS menu bar */
+  .menubar{height:30px; background:rgba(20,20,24,.55); backdrop-filter:blur(22px) saturate(150%);
+    border-bottom:1px solid rgba(255,255,255,.06); display:flex; align-items:center; justify-content:flex-end;
+    gap:18px; padding:0 16px; position:relative; z-index:6}
+  .menubar .mi{color:rgba(255,255,255,.82); font-size:13px; display:flex; align-items:center; gap:5px}
+  .menubar .mi svg{display:block}
+  /* the new dedicated Composio menu-bar icon (resting = QUIET) */
+  .mb-composio{position:relative; cursor:pointer; padding:3px; border-radius:7px; transition:background .15s ease, transform .12s var(--ease-out)}
+  .mb-composio:hover{background:rgba(255,255,255,.10)}
+  .mb-composio:active{transform:scale(.94)}
+  .mb-composio .reauth-dot{position:absolute; top:1px; right:1px; width:7px; height:7px; border-radius:50%;
+    background:var(--red); box-shadow:0 0 0 1.5px rgba(20,20,24,.9); opacity:0; transform:scale(.5);
+    transition:opacity .18s ease, transform .18s var(--ease-out)}
+  .mb-composio.needs .reauth-dot{opacity:1; transform:scale(1)}
+
+  /* ── The native-glass popover (the "menu bar app") ───────────────────────── */
+  .popover{position:absolute; top:36px; right:14px; width:308px; z-index:8;
+    transform-origin:top right;                         /* origin-aware: scales from the icon */
+    background:rgba(28,28,33,.62);
+    backdrop-filter:blur(40px) saturate(180%); -webkit-backdrop-filter:blur(40px) saturate(180%);
+    border:1px solid rgba(255,255,255,.12); border-radius:15px;
+    box-shadow:0 18px 50px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.10);
+    padding:11px 11px 12px; opacity:0; transform:scale(.96) translateY(-4px); pointer-events:none;
+    transition:opacity .2s var(--ease-out), transform .22s var(--ease-out);
+  }
+  .popover.open{opacity:1; transform:scale(1) translateY(0); pointer-events:auto}
+  .pop-head{display:flex; align-items:center; justify-content:space-between; padding:3px 6px 9px}
+  .pop-head .title{font-size:13px; font-weight:600; letter-spacing:-.01em}
+  .pop-head .count{font-size:11px; color:var(--txt-faint)}
+
+  .conn-group{margin-bottom:3px}
+  .conn-group .gh{font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--txt-faint);
+    padding:7px 8px 4px; display:flex; align-items:center; gap:7px}
+  .conn-group .gh img{width:13px;height:13px;border-radius:3px;opacity:.85}
+
+  .row{display:flex; align-items:center; gap:9px; padding:7px 8px; border-radius:9px; cursor:default;
+    transition:background .14s ease; position:relative}
+  .row:hover{background:rgba(255,255,255,.06)}
+  .dot{width:9px; height:9px; border-radius:50%; flex:none; transition:background .15s ease, box-shadow .15s ease}
+  .dot.green{background:var(--green); box-shadow:0 0 7px rgba(52,199,89,.55)}
+  .dot.yellow{background:var(--yellow); box-shadow:0 0 7px rgba(255,214,10,.5)}
+  .dot.red{background:var(--red); box-shadow:0 0 7px rgba(255,69,58,.55)}
+  .row .alias{font-size:13px; font-weight:500}
+  .row .status{font-size:11px; color:var(--txt-faint); margin-left:2px}
+  .row .spacer{flex:1}
+  /* default star — writes the authoritative config file */
+  .star{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;cursor:pointer;
+    color:var(--txt-faint); transition:color .15s ease, background .14s ease, transform .12s var(--ease-out)}
+  .star:hover{background:rgba(255,255,255,.08); color:var(--txt-dim)}
+  .star:active{transform:scale(.9)}
+  .star.on{color:#ffd60a}
+  .reconnect{font-size:11.5px; font-weight:600; color:#ff8a80; background:rgba(255,69,58,.14);
+    border:1px solid rgba(255,69,58,.28); padding:3px 9px; border-radius:7px; cursor:pointer;
+    transition:background .14s ease, transform .12s var(--ease-out)}
+  .reconnect:hover{background:rgba(255,69,58,.22)}
+  .reconnect:active{transform:scale(.96)}
+
+  .pop-sep{height:1px; background:var(--hair); margin:8px 4px}
+  .connect-cta{display:flex; align-items:center; gap:9px; padding:8px; border-radius:9px; cursor:pointer;
+    color:var(--txt-dim); font-size:13px; transition:background .14s ease, transform .12s var(--ease-out)}
+  .connect-cta:hover{background:rgba(255,255,255,.06); color:var(--txt)}
+  .connect-cta:active{transform:scale(.985)}
+  .connect-cta .plus{width:22px;height:22px;border-radius:6px;background:rgba(108,99,255,.18);color:#b9b4ff;
+    display:grid;place-items:center;font-size:15px;font-weight:500}
+  .connect-cta .hint{margin-left:auto;font-size:10.5px;color:var(--txt-faint)}
+
+  /* ── The notch (peek vs hover-expanded "Composio tab") ───────────────────── */
+  .notch-mount{position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:5; display:flex; flex-direction:column; align-items:center}
+  .notch{background:#000; border-radius:0 0 16px 16px; position:relative; overflow:hidden;
+    transition:width .42s var(--ease-out-quart), height .42s var(--ease-out-quart);
+    border:1px solid rgba(255,255,255,.05); border-top:none}
+  .notch.peek{width:188px; height:30px}
+  .notch.expanded{width:360px; height:188px}
+  .peek-row{position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 14px; z-index:3}
+  .peek-row img{width:17px;height:17px;border-radius:4px}
+  .eq{display:flex; gap:2px; align-items:flex-end; height:13px}
+  .eq i{width:2.5px;background:#bdbcff;border-radius:2px;height:5px}
+  .running .eq i{animation:eq .9s var(--ease-out) infinite alternate}
+  .eq i:nth-child(2){animation-delay:.12s}.eq i:nth-child(3){animation-delay:.24s}.eq i:nth-child(4){animation-delay:.36s}
+  @keyframes eq{to{height:13px}}
+
+  /* aurora — ONLY inside the expanded notch, ONLY while executing */
+  .aurora{position:absolute; inset:0; opacity:0; transition:opacity .25s var(--ease-out); z-index:1; pointer-events:none}
+  .aurora .blob{position:absolute; border-radius:50%; filter:blur(26px); mix-blend-mode:screen}
+  .aurora .b1{width:200px;height:160px; left:-30px; top:-40px; background:radial-gradient(circle,#ff4d4d,transparent 65%)}
+  .aurora .b2{width:220px;height:180px; right:-40px; top:-30px; background:radial-gradient(circle,#7a5cff,transparent 66%)}
+  .aurora .b3{width:240px;height:150px; left:40px; bottom:-60px; background:radial-gradient(circle,#3aa0ff,transparent 68%)}
+  .notch.expanded.executing .aurora{opacity:.85}
+  .notch.expanded.executing .b1{animation:drift1 6s ease-in-out infinite alternate}
+  .notch.expanded.executing .b2{animation:drift2 7s ease-in-out infinite alternate}
+  .notch.expanded.executing .b3{animation:drift3 8s ease-in-out infinite alternate}
+  @keyframes drift1{to{transform:translate(24px,18px) scale(1.1)}}
+  @keyframes drift2{to{transform:translate(-22px,20px) scale(1.08)}}
+  @keyframes drift3{to{transform:translate(18px,-16px) scale(1.12)}}
+
+  .expanded-body{position:absolute; inset:0; z-index:2; padding:14px 16px; opacity:0; transition:opacity .2s var(--ease-out) .06s}
+  .notch.expanded .expanded-body{opacity:1}
+  .notch.peek .expanded-body{display:none}
+  .xb-head{display:flex; align-items:center; gap:9px; margin-bottom:9px}
+  .xb-head img{width:24px;height:24px;border-radius:6px}
+  .xb-head .t{font-size:13px;font-weight:600}
+  .xb-head .s{font-size:11px;color:var(--txt-dim)}
+  .xb-line{height:7px;border-radius:4px;background:rgba(255,255,255,.10); margin:7px 0}
+  .xb-line.w1{width:86%}.xb-line.w2{width:64%}.xb-line.w3{width:74%}
+  .notch-label{margin-top:8px;font-size:11px;color:var(--txt-faint);letter-spacing:.02em}
+
+  /* controls */
+  .controls{grid-column:1/-1; display:flex; flex-wrap:wrap; gap:10px; margin-top:-4px}
+  .btn{font-size:13px;font-weight:550;color:var(--txt); background:rgba(255,255,255,.06);
+    border:1px solid var(--hair); padding:9px 14px; border-radius:10px; cursor:pointer;
+    transition:background .14s ease, transform .12s var(--ease-out), border-color .14s ease}
+  .btn:hover{background:rgba(255,255,255,.1)}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:rgba(108,99,255,.22); border-color:rgba(108,99,255,.4); color:#cfcbff}
+  .btn.primary:hover{background:rgba(108,99,255,.3)}
+  .btn .k{opacity:.5; font-size:11px; margin-left:6px}
+
+  /* legend + decisions */
+  ul.clean{list-style:none; display:flex; flex-direction:column; gap:11px}
+  ul.clean li{display:flex; gap:11px; font-size:13.5px; color:var(--txt-dim)}
+  ul.clean li b{color:var(--txt); font-weight:600}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:4px}
+  .legend .li{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--txt-dim)}
+  .pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.07);color:var(--txt-dim)}
+  code{font-family:"SF Mono",ui-monospace,monospace; font-size:12px; background:rgba(255,255,255,.07);
+    padding:1px 6px; border-radius:5px; color:#d9d6ff}
+  .flow{display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--txt-dim)}
+  .flow .step{display:flex;gap:10px;align-items:flex-start}
+  .flow .num{flex:none;width:18px;height:18px;border-radius:5px;background:rgba(255,255,255,.08);color:var(--txt-dim);display:grid;place-items:center;font-size:10px;font-weight:700;margin-top:1px}
+  .note{font-size:12px;color:var(--txt-faint);margin-top:14px;border-top:1px solid var(--hair);padding-top:12px}
+  .tag{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#8fe39a;background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.25);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition-duration:.001ms !important; animation:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <div class="kicker">boring.notch · Pi × Composio</div>
+    <h1>Connections menu-bar app + notch aurora <span class="tag">aligned plan</span></h1>
+    <p class="sub">One agent. Two surfaces, each matched to how often it's seen: a quiet native-glass <b>menu-bar app</b> for managing connections, and the <b>hover-expanded notch</b> where the aurora + toolkit branding stream while the agent works. Poke the controls below — every state is live.</p>
+  </header>
+
+  <div class="grid">
+
+    <!-- INTERACTIVE STAGE -->
+    <div class="stage" id="stage">
+      <!-- menu bar -->
+      <div class="menubar">
+        <span class="mi" title="other menu bar items" style="opacity:.6">􀙇</span>
+        <span class="mi" style="opacity:.6">100%</span>
+        <span class="mi" style="opacity:.6">Wed 9:41</span>
+        <!-- the new dedicated Composio icon -->
+        <div class="mb-composio" id="mbIcon" title="Composio connections">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="3.2" fill="#fff" fill-opacity=".92"/>
+            <circle cx="12" cy="12" r="8.4" stroke="#fff" stroke-opacity=".5" stroke-width="1.6"/>
+            <circle cx="12" cy="3.6" r="1.7" fill="#fff" fill-opacity=".92"/>
+          </svg>
+          <span class="reauth-dot"></span>
+        </div>
+      </div>
+
+      <!-- native-glass popover (the menu bar app) -->
+      <div class="popover" id="popover">
+        <div class="pop-head">
+          <span class="title">Composio Connections</span>
+          <span class="count" id="connCount">3 connected</span>
+        </div>
+
+        <div class="conn-group">
+          <div class="gh"><img src="https://logos.composio.dev/api/gmail" alt=""/>Gmail</div>
+          <div class="row" data-acct="gmail-personal">
+            <span class="dot green"></span>
+            <span class="alias">personal</span>
+            <span class="status" data-status>· active</span>
+            <span class="spacer"></span>
+            <span class="star on" title="Default account for Gmail — written to composio-x-pi.json">★</span>
+          </div>
+          <div class="row" data-acct="gmail-work">
+            <span class="dot green"></span>
+            <span class="alias">work</span>
+            <span class="status" data-status>· active</span>
+            <span class="spacer"></span>
+            <span class="star" title="Make default">☆</span>
+          </div>
+        </div>
+
+        <div class="conn-group">
+          <div class="gh"><img src="https://logos.composio.dev/api/github" alt=""/>GitHub</div>
+          <div class="row" data-acct="github-new">
+            <span class="dot green"></span>
+            <span class="alias">new</span>
+            <span class="status" data-status>· active</span>
+            <span class="spacer"></span>
+            <span class="star on" title="Default account for GitHub">★</span>
+          </div>
+        </div>
+
+        <div class="pop-sep"></div>
+        <div class="connect-cta" id="connectCta">
+          <span class="plus">+</span>
+          <span>Connect an app…</span>
+          <span class="hint">opens Pi in the notch</span>
+        </div>
+      </div>
+
+      <!-- notch -->
+      <div class="notch-mount">
+        <div class="notch peek running" id="notch">
+          <!-- aurora (expanded + executing only) -->
+          <div class="aurora">
+            <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+          </div>
+          <!-- collapsed peek = QUIET: logo + equalizer, no aurora -->
+          <div class="peek-row">
+            <img src="https://logos.composio.dev/api/gmail" alt=""/>
+            <div class="eq"><i></i><i></i><i></i><i></i></div>
+          </div>
+          <!-- expanded body = the "Composio tab" -->
+          <div class="expanded-body">
+            <div class="xb-head">
+              <img src="https://logos.composio.dev/api/gmail" alt=""/>
+              <div><div class="t">Sending email…</div><div class="s" id="auroraStatus">thinking</div></div>
+            </div>
+            <div class="xb-line w1"></div><div class="xb-line w2"></div><div class="xb-line w3"></div>
+          </div>
+        </div>
+        <div class="notch-label" id="notchLabel">collapsed peek · quiet</div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <button class="btn primary" id="btnPopover">Toggle menu-bar app</button>
+      <button class="btn" id="btnExpand">Hover-expand notch</button>
+      <button class="btn" id="btnExecute">Simulate agent executing</button>
+      <button class="btn" id="btnExpire">Expire Gmail “work”</button>
+      <button class="btn" id="btnReduce">Toggle reduced-motion preview</button>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="card" style="grid-column:1/-1">
+      <h2><span class="n">●</span> Status dots — glanceable, no idle motion</h2>
+      <div class="legend">
+        <div class="li"><span class="dot green"></span> <b style="color:var(--txt)">Green</b> — <code>ACTIVE</code> · ready to use</div>
+        <div class="li"><span class="dot yellow"></span> <b style="color:var(--txt)">Yellow</b> — <code>INITIALIZING</code> / <code>INITIATED</code> · pending your action</div>
+        <div class="li"><span class="dot red"></span> <b style="color:var(--txt)">Red</b> — <code>EXPIRED</code>/<code>FAILED</code>/<code>INACTIVE</code>/<code>REVOKED</code> · needs re-auth</div>
+      </div>
+      <div class="note">Dots transition color in ~150ms on state change and never animate at rest — you glance at these constantly, so motion here would be noise (Emil's frequency rule). A red dot also surfaces as a static badge on the resting menu-bar icon so you know to open it, without anything pulsing in your periphery.</div>
+    </div>
+
+    <!-- SURFACE MAP -->
+    <div class="card">
+      <h2><span class="n">A</span> Notch — hover-expanded “Composio tab”</h2>
+      <ul class="clean">
+        <li><b>Rich, deliberate.</b> Seen only when you hover to expand → richness is earned.</li>
+        <li><b>Aurora + toolkit photo</b> live here. Resurrected <code>glow</code>+<code>edgeBloom</code> from commit <code>93e3213</code>, fed by the still-live <code>toolkitPalette</code> pipeline.</li>
+        <li><b>Streams while executing</b> — fades in on <code>isRunning</code>, brighter on <code>toolCallActive</code>, out on <code>done</code>.</li>
+        <li><b>Collapsed peek stays quiet</b> — logo + equalizer only, exactly as <code>87d9fb5</code> set it. No aurora in your periphery.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">B</span> Menu-bar app — native macOS glass</h2>
+      <ul class="clean">
+        <li><b>Utility, always reachable.</b> A <code>.window</code>-style <code>MenuBarExtra</code> with native vibrancy / Liquid Glass.</li>
+        <li><b>Connections manager</b> — accounts grouped by toolkit, traffic-light dots, set-default ★, inline Reconnect on red.</li>
+        <li><b>No aurora here.</b> Clean and native; the delight lives in the notch.</li>
+        <li><b>Connect CTA</b> — no toolkit catalog. Reuses the agent's own <code>authorize()</code> capability; the rare new-app case hands off to Pi in the notch (a real key window built for input).</li>
+      </ul>
+    </div>
+
+    <!-- DECISIONS LOCKED -->
+    <div class="card" style="grid-column:1/-1">
+      <h2><span class="n">✓</span> Decisions locked</h2>
+      <ul class="clean">
+        <li><span class="pill">D1</span> <div><b>Default account = the extension's config file</b> <code>~/.pi/agent/extensions/composio-x-pi.json → defaultAccounts</code>. It's the <i>only</i> store the agent's <code>account-resolver.ts</code> actually reads — there is no Composio “set-default” API. The sidecar reads + writes it; the system prompt references it; the old UserDefaults + prompt-hint path is retired. UI and agent can no longer disagree.</div></li>
+        <li><span class="pill">D2</span> <div><b>One agent, two views.</b> <code>PiAgentManager.shared</code> is a singleton — both surfaces observe the same <code>@Published</code> state. No second process, no second session.</div></li>
+        <li><span class="pill">D3</span> <div><b>Surfaces split by frequency.</b> Notch hover-expand = aurora + branding (rich); menu-bar app = native glass connections list (quiet); collapsed peek = quiet.</div></li>
+        <li><span class="pill">D4</span> <div><b>Connect via the agent's capability</b>, not a catalog. <code>authorize(app)</code> → browser → <code>waitForConnection()</code>, mirroring the extension's own <code>composio_manage_connections</code>.</div></li>
+        <li><span class="pill">D5</span> <div><b>Expiry detection on localhost = SDK WebSocket</b> <code>triggers.subscribe()</code> (outbound, no public URL, no signature verification) + 5-min poll + reconcile-on-open. The HMAC <code>webhook-signature</code> path is Composio's <i>production/public</i> webhook channel — not needed for a local app, so we don't stand up a webhook server.</div></li>
+      </ul>
+    </div>
+
+    <!-- DATA FLOW -->
+    <div class="card" style="grid-column:1/-1">
+      <h2><span class="n">→</span> “Set default” data flow (why it's now real)</h2>
+      <div class="flow">
+        <div class="step"><span class="num">1</span><div>You tap ★ on Gmail “personal” in the menu-bar app.</div></div>
+        <div class="step"><span class="num">2</span><div>Swift sends <code>set_default { toolkit:"gmail", selector:"personal" }</code> over stdin to the sidecar.</div></div>
+        <div class="step"><span class="num">3</span><div>Sidecar writes <code>composio-x-pi.json → defaultAccounts.gmail = "personal"</code> (the authoritative file) and calls <code>connectedAccounts.update(id,{alias})</code> to confirm the server alias.</div></div>
+        <div class="step"><span class="num">4</span><div>Agent's <code>resolveAccount("gmail")</code> reads that same file → uses <code>personal</code>, deterministically. The system-prompt block, now sourced from the same file, agrees.</div></div>
+        <div class="step"><span class="num">5</span><div>Menu-bar app re-reads the file on open → ★ always reflects exactly what the agent will do.</div></div>
+      </div>
+      <div class="note">Today the UI writes UserDefaults → a system-prompt <i>hint</i> the resolver ignores, while the agent reads the config file — so they silently disagree. D1 collapses that into one source of truth.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const notch   = document.getElementById('notch');
+  const label   = document.getElementById('notchLabel');
+  const popover = document.getElementById('popover');
+  const mbIcon  = document.getElementById('mbIcon');
+  const auroraStatus = document.getElementById('auroraStatus');
+
+  function setLabel(){
+    const expanded = notch.classList.contains('expanded');
+    const exec = notch.classList.contains('executing');
+    label.textContent = expanded
+      ? (exec ? 'hover-expanded · aurora streaming while agent executes' : 'hover-expanded · quiet (agent idle)')
+      : 'collapsed peek · quiet';
+  }
+
+  document.getElementById('btnPopover').onclick = ()=>{
+    popover.classList.toggle('open');
+  };
+  mbIcon.onclick = ()=> popover.classList.toggle('open');
+
+  document.getElementById('btnExpand').onclick = ()=>{
+    notch.classList.toggle('expanded');
+    notch.classList.toggle('peek');
+    setLabel();
+  };
+
+  document.getElementById('btnExecute').onclick = ()=>{
+    const exec = notch.classList.toggle('executing');
+    notch.classList.toggle('running', exec);
+    // ensure expanded so the aurora is actually visible (it never shows on peek)
+    if(exec && notch.classList.contains('peek')){
+      notch.classList.remove('peek'); notch.classList.add('expanded');
+    }
+    auroraStatus.textContent = exec ? 'using Gmail · sending' : 'done';
+    setLabel();
+  };
+
+  // Expire the Gmail "work" account → dot red, status text, inline Reconnect, menu-bar badge
+  let expired = false;
+  document.getElementById('btnExpire').onclick = ()=>{
+    const row = document.querySelector('[data-acct="gmail-work"]');
+    const dot = row.querySelector('.dot');
+    const status = row.querySelector('[data-status]');
+    const star = row.querySelector('.star');
+    expired = !expired;
+    if(expired){
+      dot.classList.remove('green'); dot.classList.add('red');
+      status.textContent = '· expired';
+      star.style.display = 'none';
+      const rc = document.createElement('span');
+      rc.className = 'reconnect'; rc.textContent = 'Reconnect'; rc.id = 'rcBtn';
+      rc.onclick = ()=> document.getElementById('btnExpire').click();
+      row.appendChild(rc);
+      mbIcon.classList.add('needs');
+      if(!popover.classList.contains('open')) popover.classList.add('open');
+    } else {
+      dot.classList.remove('red'); dot.classList.add('green');
+      status.textContent = '· active';
+      star.style.display = '';
+      const rc = document.getElementById('rcBtn'); if(rc) rc.remove();
+      mbIcon.classList.remove('needs');
+    }
+  };
+
+  // default star toggle within a toolkit group (single default per toolkit)
+  document.querySelectorAll('.conn-group').forEach(group=>{
+    group.querySelectorAll('.star').forEach(star=>{
+      star.addEventListener('click', ()=>{
+        if(star.style.display === 'none') return;
+        group.querySelectorAll('.star').forEach(s=>{ s.classList.remove('on'); s.textContent='☆'; });
+        star.classList.add('on'); star.textContent='★';
+      });
+    });
+  });
+
+  document.getElementById('connectCta').onclick = ()=>{
+    // rare new-app case → hand off to the notch Pi (key window, built for input)
+    notch.classList.remove('peek'); notch.classList.add('expanded','executing','running');
+    auroraStatus.textContent = 'connect an app — ask Pi…';
+    setLabel();
+    popover.classList.remove('open');
+  };
+
+  document.getElementById('btnReduce').onclick = (e)=>{
+    document.documentElement.style.scrollBehavior='auto';
+    const on = document.body.toggleAttribute('data-reduce');
+    // emulate prefers-reduced-motion by killing transitions/animations inline
+    let style = document.getElementById('reduceStyle');
+    if(on){
+      style = document.createElement('style'); style.id='reduceStyle';
+      style.textContent = '*{transition-duration:.001ms !important; animation:none !important}';
+      document.head.appendChild(style);
+      e.target.textContent = 'Reduced-motion: ON';
+    } else if(style){ style.remove(); e.target.textContent = 'Toggle reduced-motion preview'; }
+  };
+
+  setLabel();
+</script>
+</body>
+</html>

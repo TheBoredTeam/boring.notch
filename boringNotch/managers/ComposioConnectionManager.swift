@@ -9,8 +9,9 @@
 //
 //  Wire path: PiAgentManager owns the sidecar process and decodes its events. It
 //  forwards `connections` / `connection_expired` / `connection_link` here, and this
-//  manager issues `list_connections` / `reconnect` / `set_default_aliases` back through
-//  PiAgentManager's stdin.
+//  manager issues `list_connections` / `reconnect` / `connect` / `set_default` back
+//  through PiAgentManager's stdin. The default-account map is owned by the sidecar
+//  (it writes the extension config file); this manager only mirrors it for the UI.
 //
 
 import AppKit
@@ -20,17 +21,39 @@ import Foundation
 final class ComposioConnectionManager: ObservableObject {
     static let shared = ComposioConnectionManager()
 
+    /// Traffic-light bucket for a connection's status: 🟢 healthy, 🟡 in progress,
+    /// 🔴 needs the user's attention (expired/failed/etc.).
+    enum StatusTier: Equatable {
+        case active    // 🟢 ACTIVE
+        case pending   // 🟡 INITIALIZING / INITIATED
+        case attention // 🔴 EXPIRED / FAILED / INACTIVE / REVOKED / unknown
+    }
+
     /// One connected account for a toolkit.
     struct Connection: Identifiable, Equatable {
         let alias: String?
+        let wordId: String?  // Composio human word id (selector fallback after alias)
         let connectedAccountId: String
         let authConfigId: String?
         let status: String   // ACTIVE | INITIALIZING | INACTIVE | FAILED | EXPIRED | REVOKED
+        let logo: String?    // toolkit brand logo URL (Composio metadata)
 
         var id: String { connectedAccountId }
+        /// Display/selector identity, in the order the user prefers: alias → wordId → id.
+        var displayName: String { alias ?? wordId ?? connectedAccountId }
+        /// What we write as the default selector (the agent resolver matches all three).
+        var selector: String { alias ?? wordId ?? connectedAccountId }
         /// Composio statuses that mean the account can't be used until re-authorized.
         var needsReauth: Bool {
             ["EXPIRED", "INACTIVE", "REVOKED", "FAILED"].contains(status.uppercased())
+        }
+        /// 3-way mapping driving the status dot color (see `StatusTier`).
+        var statusTier: StatusTier {
+            switch status.uppercased() {
+            case "ACTIVE": return .active
+            case "INITIALIZING", "INITIATED": return .pending
+            default: return .attention
+            }
         }
     }
 
@@ -46,24 +69,18 @@ final class ComposioConnectionManager: ObservableObject {
 
     /// Live inventory, grouped by toolkit slug (e.g. "gmail" → [work, personal]).
     @Published private(set) var connections: [String: [Connection]] = [:]
+    /// Toolkit slug → brand logo URL, resolved from Composio metadata by the sidecar.
+    @Published private(set) var toolkitLogos: [String: String] = [:]
     /// Accounts currently needing re-auth (expired/revoked/…). Surfaced in PiSettings.
     @Published private(set) var reauthNeeded: [ConnectionNeed] = []
 
-    /// Per-toolkit default account alias. The agent uses this to pick the right account
-    /// automatically (pushed to the sidecar, folded into its system prompt).
-    @Published var defaultAliases: [String: String] {
-        didSet {
-            guard defaultAliases != oldValue else { return }
-            UserDefaults.standard.set(defaultAliases, forKey: Self.defaultAliasesKey)
-            PiAgentManager.shared.setDefaultAliases(defaultAliases)
-        }
-    }
+    /// Per-toolkit default account selector (lowercased slug → alias/wordId/ca_ id). The
+    /// agent uses this to pick the right account automatically. The source of truth is the
+    /// extension config file the sidecar owns; this mirror is populated from the sidecar's
+    /// `connections` event `defaults` field (never UserDefaults), so UI and agent agree.
+    @Published private(set) var defaultAliases: [String: String] = [:]
 
-    private static let defaultAliasesKey = "pi.composio.defaultAliases"
-
-    private init() {
-        defaultAliases = (UserDefaults.standard.dictionary(forKey: Self.defaultAliasesKey) as? [String: String]) ?? [:]
-    }
+    private init() {}
 
     /// Sorted toolkit slugs that have at least one connected account.
     var toolkits: [String] { connections.keys.sorted() }
@@ -71,21 +88,33 @@ final class ComposioConnectionManager: ObservableObject {
     // MARK: - Inbound (called by PiAgentManager from sidecar events)
 
     /// Replace the inventory from a `connections` event and recompute re-auth needs.
-    func applyConnections(_ items: [PiConnectionItem]) {
+    /// `defaults` (when present) is the file-sourced default-account map — adopt it so the
+    /// UI ★ always reflects the agent's actual source of truth.
+    func applyConnections(_ items: [PiConnectionItem], defaults: [String: String]? = nil) {
+        if let defaults {
+            defaultAliases = Dictionary(uniqueKeysWithValues: defaults.map { ($0.key.lowercased(), $0.value) })
+        }
         var grouped: [String: [Connection]] = [:]
+        var logos: [String: String] = [:]
         for item in items {
             let slug = item.toolkit.lowercased()
             guard !slug.isEmpty else { continue }
             grouped[slug, default: []].append(
                 Connection(
                     alias: item.alias,
+                    wordId: item.wordId,
                     connectedAccountId: item.connectedAccountId,
                     authConfigId: item.authConfigId,
-                    status: item.status
+                    status: item.status,
+                    logo: item.logo
                 )
             )
+            if let logo = item.logo, !logo.isEmpty, logos[slug] == nil {
+                logos[slug] = logo
+            }
         }
         connections = grouped
+        toolkitLogos = logos
 
         // Rebuild reauthNeeded straight from the inventory so a now-healthy account
         // clears itself (a stale "live" event can't keep a resolved need pinned).
@@ -125,22 +154,52 @@ final class ComposioConnectionManager: ObservableObject {
         PiAgentManager.shared.reconnect(connectedAccountId: need.connectedAccountId, toolkit: need.toolkit)
     }
 
-    /// Set (or clear, with nil) the default account alias for a toolkit.
+    /// Set (or clear, with nil) the default account selector for a toolkit. Writes
+    /// through the sidecar to the extension config file (the agent's source of truth);
+    /// the resulting `connections` event reconciles `defaultAliases` back. The local
+    /// value is updated optimistically so the UI ★ flips immediately, before the round-trip.
     func setDefaultAlias(_ alias: String?, for toolkit: String) {
         let slug = toolkit.lowercased()
-        if let alias, !alias.isEmpty {
-            defaultAliases[slug] = alias
-        } else {
+        let selector = alias ?? ""
+        if selector.isEmpty {
             defaultAliases.removeValue(forKey: slug)
+        } else {
+            defaultAliases[slug] = selector
         }
+        PiAgentManager.shared.setDefaultAccount(toolkit: slug, selector: selector)
     }
 
-    /// Called by PiAgentManager once the sidecar process is up: push current defaults
-    /// and request the initial inventory.
-    func sidecarDidLaunch() {
-        if !defaultAliases.isEmpty {
-            PiAgentManager.shared.setDefaultAliases(defaultAliases)
+    /// Set (or, with an empty/whitespace alias, clear) the human-readable alias for an
+    /// account. Composio accounts connected via the CLI or the agent arrive without one,
+    /// so this is how the user labels them "work"/"personal" and gets them to show. The
+    /// sidecar persists it and re-emits `connections`, which relabels the row.
+    func renameConnection(_ connection: Connection, toolkit: String, alias: String) {
+        let trimmed = alias.trimmingCharacters(in: .whitespacesAndNewlines)
+        PiAgentManager.shared.renameConnection(connectedAccountId: connection.connectedAccountId, alias: trimmed)
+    }
+
+    /// Permanently disconnect an account. Optimistically drop it from the local inventory
+    /// so the row disappears immediately; the sidecar's re-list reconciles the truth.
+    func deleteConnection(_ connection: Connection, toolkit: String) {
+        let slug = toolkit.lowercased()
+        if var accounts = connections[slug] {
+            accounts.removeAll { $0.connectedAccountId == connection.connectedAccountId }
+            if accounts.isEmpty { connections.removeValue(forKey: slug) }
+            else { connections[slug] = accounts }
         }
+        reauthNeeded.removeAll { $0.connectedAccountId == connection.connectedAccountId }
+        PiAgentManager.shared.deleteConnection(connectedAccountId: connection.connectedAccountId)
+    }
+
+    /// Authorize a NEW account for a toolkit out of band; the sidecar replies with a
+    /// `connection_link` opened in the browser. No agent involvement, no transcript URL.
+    func connect(toolkit: String, alias: String? = nil) {
+        PiAgentManager.shared.connect(toolkit: toolkit, alias: alias)
+    }
+
+    /// Called by PiAgentManager once the sidecar process is up: request the initial
+    /// inventory. The sidecar owns default-account persistence, so nothing is pushed.
+    func sidecarDidLaunch() {
         PiAgentManager.shared.requestConnections()
     }
 }
