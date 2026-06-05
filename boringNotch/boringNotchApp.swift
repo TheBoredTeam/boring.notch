@@ -16,6 +16,7 @@ import SwiftUI
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Default(.menubarIcon) var showMenuBarIcon
+    @Default(.composioMenubarIcon) var showComposioMenubarIcon
     @Environment(\.openWindow) var openWindow
 
     let updaterController: SPUStandardUpdaterController
@@ -50,6 +51,18 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
+
+        // Composio connections — a second menu-bar item hosting the native-glass
+        // connections app. `.window` style is required to host arbitrary SwiftUI
+        // (`.menu` can't); on macOS 26 it renders as Liquid Glass automatically.
+        MenuBarExtra(
+            "Composio",
+            systemImage: "point.3.connected.trianglepath.dotted",
+            isInserted: $showComposioMenubarIcon
+        ) {
+            ComposioMenuBarView()
+        }
+        .menuBarExtraStyle(.window)
     }
 }
 

@@ -17,6 +17,8 @@
 		11FACE100000000000000105 /* PiShimmerText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE100000000000000104 /* PiShimmerText.swift */; };
 		11FACE1000000000000000F8 /* PiMarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000F7 /* PiMarkdownView.swift */; };
 		11FACE1000000000000000F6 /* PiSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE1000000000000000F5 /* PiSettings.swift */; };
+		11FACE100000000000000202 /* ComposioMenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE100000000000000201 /* ComposioMenuBarView.swift */; };
+		11FACE100000000000000212 /* PiAuroraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FACE100000000000000211 /* PiAuroraView.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -221,6 +223,8 @@
 		11FACE100000000000000104 /* PiShimmerText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiShimmerText.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000F7 /* PiMarkdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiMarkdownView.swift; sourceTree = "<group>"; };
 		11FACE1000000000000000F5 /* PiSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiSettings.swift; sourceTree = "<group>"; };
+		11FACE100000000000000201 /* ComposioMenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposioMenuBarView.swift; sourceTree = "<group>"; };
+		11FACE100000000000000211 /* PiAuroraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiAuroraView.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -431,9 +435,11 @@
 				11FACE1000000000000000C1 /* PiAgentView.swift */,
 				11FACE100000000000000102 /* NotchKeyboardFocus.swift */,
 				11FACE1000000000000000D1 /* PiPeekView.swift */,
+				11FACE100000000000000211 /* PiAuroraView.swift */,
 				11FACE1000000000000000E1 /* PiThinkingBarsView.swift */,
 				11FACE100000000000000104 /* PiShimmerText.swift */,
 				11FACE1000000000000000F7 /* PiMarkdownView.swift */,
+				11FACE100000000000000201 /* ComposioMenuBarView.swift */,
 			);
 			path = Pi;
 			sourceTree = "<group>";
@@ -1077,6 +1083,8 @@
 				11FACE1000000000000000E2 /* PiThinkingBarsView.swift in Sources */,
 				11FACE100000000000000105 /* PiShimmerText.swift in Sources */,
 				11FACE1000000000000000F8 /* PiMarkdownView.swift in Sources */,
+				11FACE100000000000000202 /* ComposioMenuBarView.swift in Sources */,
+				11FACE100000000000000212 /* PiAuroraView.swift in Sources */,
 				11FACE1000000000000000F6 /* PiSettings.swift in Sources */,
 				11FACE010000000000000001 /* TrashBucketView.swift in Sources */,
 				1113ABC62E80E27000EC13B2 /* ShelfPersistenceService.swift in Sources */,

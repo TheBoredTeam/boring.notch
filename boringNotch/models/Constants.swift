@@ -71,6 +71,13 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
+    // The Composio connections menu-bar app (a second MenuBarExtra) — quick access to
+    // connected accounts, defaults, and reconnect/connect, separate from the sparkle menu.
+    static let composioMenubarIcon = Key<Bool>("composioMenubarIcon", default: true)
+    // User-resizable Composio menu-bar popover dimensions (drag the corner grip); the
+    // height is the scrollable accounts region, not the whole popover.
+    static let composioMenubarWidth = Key<CGFloat>("composioMenubarWidth", default: 320)
+    static let composioMenubarContentHeight = Key<CGFloat>("composioMenubarContentHeight", default: 360)
     // Default to the preferred screen only — a notch on every display is busy and was
     // reported as distracting. Multi-display users can opt back in from Settings.
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)

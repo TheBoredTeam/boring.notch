@@ -145,7 +145,17 @@ struct ContentView: View {
                     // No `.animation(value: openPanelHeight)` here: BoringViewModel
                     // gates the height animation itself (streaming growth = spring,
                     // typing growth = instant, per the motion spec).
-                    .frame(height: vm.notchState == .open ? vm.openPanelHeight : nil)
+                    //
+                    // alignment: .top is load-bearing. `.frame(height:)` defaults to
+                    // .center, so whenever the panel's content is taller than
+                    // `openPanelHeight` — e.g. the Pi tab once tool chips appear and the
+                    // answer ScrollView is floored at its min viewport — the overflow
+                    // centers, shoving the whole panel UPWARD: the Home/Shelf/Pi header
+                    // clips off the top of the screen and the prompt field slides under
+                    // the hardware notch. Pinning the top makes any overflow grow
+                    // downward instead (where the answer already scrolls), so the header
+                    // stays put and the prompt never collides with the notch.
+                    .frame(height: vm.notchState == .open ? vm.openPanelHeight : nil, alignment: .top)
                     // Laid-out height probe: feeds vm.laidOutPanelHeight (a plain var,
                     // never re-renders) so the Pi tab's content measurement can use
                     // values from the same layout pass instead of the animation target.
