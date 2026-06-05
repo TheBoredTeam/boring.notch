@@ -45,11 +45,17 @@ class NetworkStatusViewModel: ObservableObject {
     }
 
     var preferredNotificationWidth: CGFloat {
+        textWidth + 76 + 16
+    }
+
+    var textWidth: CGFloat {
         switch state.status {
         case .connected:
-            return 700
-        case .disconnected, .requiresConnection:
-            return 760
+            return 190
+        case .disconnected:
+            return 235
+        case .requiresConnection:
+            return 210
         }
     }
 

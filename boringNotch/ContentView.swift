@@ -332,7 +332,8 @@ struct ContentView: View {
                             statusText: networkModel.statusText,
                             symbolName: networkModel.symbolName,
                             isConnected: networkModel.isConnected,
-                            centerWidth: max(220, vm.closedNotchSize.width - 36)
+                            textWidth: networkModel.textWidth,
+                            centerWidth: vm.closedNotchSize.width + 10
                         )
                         .frame(height: displayClosedNotchHeight, alignment: .center)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
