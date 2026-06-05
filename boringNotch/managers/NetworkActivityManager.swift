@@ -14,10 +14,6 @@ final class NetworkActivityManager {
         let status: Status
         let isConstrained: Bool
         let isExpensive: Bool
-
-        static func == (lhs: NetworkState, rhs: NetworkState) -> Bool {
-            lhs.status == rhs.status
-        }
     }
 
     enum NetworkEvent {

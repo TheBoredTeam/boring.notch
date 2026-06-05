@@ -1,9 +1,10 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 class NetworkStatusViewModel: ObservableObject {
 
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    private let coordinator = BoringViewCoordinator.shared
 
     @Published private(set) var state = NetworkActivityManager.NetworkState(
         status: .disconnected,
@@ -23,6 +24,12 @@ class NetworkStatusViewModel: ObservableObject {
     var statusText: String {
         switch state.status {
         case .connected:
+            if state.isConstrained {
+                return "Limited Wi-Fi"
+            }
+            if state.isExpensive {
+                return "Hotspot Connected"
+            }
             return "Wi-Fi Connected"
         case .disconnected:
             return "Wi-Fi Disconnected"
@@ -51,6 +58,12 @@ class NetworkStatusViewModel: ObservableObject {
     var textWidth: CGFloat {
         switch state.status {
         case .connected:
+            if state.isConstrained {
+                return 185
+            }
+            if state.isExpensive {
+                return 215
+            }
             return 190
         case .disconnected:
             return 235

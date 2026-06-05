@@ -89,13 +89,14 @@ struct ContentView: View {
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
-        if (coordinator.expandingView.type == .battery || coordinator.expandingView.type == .network)
-            && coordinator.expandingView.show
+        if coordinator.expandingView.type == .battery && coordinator.expandingView.show
+            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
+        {
+            chinWidth = 640
+        } else if coordinator.expandingView.type == .network && coordinator.expandingView.show
             && vm.notchState == .closed
         {
-            chinWidth = coordinator.expandingView.type == .network
-                ? networkModel.preferredNotificationWidth
-                : 640
+            chinWidth = networkModel.preferredNotificationWidth
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
