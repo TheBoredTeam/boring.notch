@@ -11,6 +11,15 @@ import IOKit
 import CoreGraphics
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
+    @objc func readClaudeCredentials(with reply: @escaping (String?, String?, String?) -> Void) {
+        let credentials = AICredentialReader.readClaudeCredentials()
+        reply(credentials.accessToken, credentials.status, credentials.message)
+    }
+
+    @objc func readCodexCredentials(with reply: @escaping (String?, String?, String?, String?) -> Void) {
+        let credentials = AICredentialReader.readCodexCredentials()
+        reply(credentials.accessToken, credentials.accountId, credentials.status, credentials.message)
+    }
     
     @objc func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void) {
         reply(AXIsProcessTrusted())

@@ -2202,6 +2202,9 @@
         }
       }
     },
+    "AI Quota" : {
+
+    },
     "All-day" : {
       "localizations" : {
         "ar" : {
@@ -12009,6 +12012,9 @@
         }
       }
     },
+    "Loading" : {
+
+    },
     "Lottie JSON URL" : {
       "localizations" : {
         "ar" : {
@@ -16910,6 +16916,9 @@
         }
       }
     },
+    "Refresh AI quota" : {
+
+    },
     "Release name" : {
       "localizations" : {
         "ar" : {
@@ -17710,6 +17719,9 @@
         }
       }
     },
+    "Reset time unavailable" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -17809,6 +17821,9 @@
           }
         }
       }
+    },
+    "Resets in %@" : {
+
     },
     "Restart" : {
       "extractionState" : "stale",
@@ -18711,6 +18726,9 @@
           }
         }
       }
+    },
+    "Show AI quota (Claude & Codex)" : {
+
     },
     "Show battery indicator" : {
       "localizations" : {
