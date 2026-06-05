@@ -112,7 +112,15 @@ Then open the app normally.
 You can also install using [Homebrew](https://brew.sh). The Homebrew installation automatically bypasses the macOS security warning described above.
 
 ```bash
-brew install --cask TheBoredTeam/boring-notch/boring-notch
+brew install --cask tridha643/boring-notch/boring-notch
+```
+
+This installs the build from this fork (includes the Composio / Pi integrations).
+Equivalently, tap first and then install:
+
+```bash
+brew tap tridha643/boring-notch
+brew install --cask boring-notch
 ```
 
 ## Usage
