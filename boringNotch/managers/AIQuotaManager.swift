@@ -257,11 +257,6 @@ private enum AIQuotaRequestError: Error {
     case api(String)
     case rateLimited(retryAfter: Int?)
 
-    var isTransient: Bool {
-        if case .rateLimited = self { return true }
-        return false
-    }
-
     func result(provider: AIProvider, fallbackStatus: CredentialStatus) -> AIQuotaResult {
         switch self {
         case .expired(let message):
