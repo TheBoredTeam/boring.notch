@@ -18,6 +18,7 @@ final class AIQuotaManager: ObservableObject {
 
     private var refreshTask: Task<Void, Never>?
     private var defaultsCancellable: AnyCancellable?
+    private var refreshPolicy = AIQuotaRefreshPolicy()
 
     private init() {
         defaultsCancellable = Defaults.publisher(.showAIQuota)
@@ -49,7 +50,7 @@ final class AIQuotaManager: ObservableObject {
 
             while !Task.isCancelled {
                 do {
-                    try await Task.sleep(for: .seconds(300))
+                    try await Task.sleep(for: .seconds(120))
                 } catch {
                     return
                 }
@@ -72,17 +73,42 @@ final class AIQuotaManager: ObservableObject {
         async let claude = fetchClaudeQuota()
         async let codex = fetchCodexQuota()
 
-        claudeQuota = await claude
-        codexQuota = await codex
+        let newClaude = await claude
+        let newCodex = await codex
+
+        if newClaude.success || claudeQuota == nil {
+            claudeQuota = newClaude
+        }
+        if newCodex.success || codexQuota == nil {
+            codexQuota = newCodex
+        }
         isLoading = false
     }
 
     func fetchClaudeQuota() async -> AIQuotaResult {
-        // Try reading from Keychain directly in the main app (GUI app can show auth prompt)
+        if !refreshPolicy.canRequest(.claude),
+           let message = refreshPolicy.blockMessage(for: .claude) {
+            print("[AIQuota] Claude: skipping usage fetch, \(message)")
+            return .unavailable(
+                provider: .claude,
+                status: .valid,
+                message: message
+            )
+        }
+
+        // Try XPC helper first (file-based, no password prompt)
+        let credentials = await XPCHelperClient.shared.readClaudeCredentials()
+        let credentialStatus = CredentialStatus(rawStatus: credentials.status)
+        print("[AIQuota] Claude credentials via XPC: status=\(credentials.status), hasToken=\(credentials.accessToken != nil), message=\(credentials.message ?? "nil")")
+
+        if let token = credentials.accessToken, !token.isEmpty {
+            return await fetchClaudeUsage(token: token, credentialStatus: credentialStatus)
+        }
+
+        // Fall back to Keychain (may trigger macOS password prompt on unsigned builds)
         let keychainToken = Self.readKeychainPasswordFromMainApp(service: "Claude Code-credentials")
         if let keychainToken, !keychainToken.isEmpty {
             print("[AIQuota] Claude: got token from main-app Keychain read")
-            // Parse the JSON to extract the actual access token
             if let data = keychainToken.data(using: .utf8),
                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let oauth = object["claudeAiOauth"] as? [String: Any] ?? object["claude.ai_oauth"] as? [String: Any],
@@ -91,20 +117,11 @@ final class AIQuotaManager: ObservableObject {
             }
         }
 
-        // Fall back to XPC helper (file-based reading)
-        let credentials = await XPCHelperClient.shared.readClaudeCredentials()
-        let credentialStatus = CredentialStatus(rawStatus: credentials.status)
-        print("[AIQuota] Claude credentials via XPC: status=\(credentials.status), hasToken=\(credentials.accessToken != nil), message=\(credentials.message ?? "nil")")
-
-        guard let token = credentials.accessToken, !token.isEmpty else {
-            return .unavailable(
-                provider: .claude,
-                status: credentialStatus,
-                message: credentials.message
-            )
-        }
-
-        return await fetchClaudeUsage(token: token, credentialStatus: credentialStatus)
+        return .unavailable(
+            provider: .claude,
+            status: credentialStatus,
+            message: credentials.message
+        )
     }
 
     private func fetchClaudeUsage(token: String, credentialStatus: CredentialStatus) async -> AIQuotaResult {
@@ -116,9 +133,28 @@ final class AIQuotaManager: ObservableObject {
 
         do {
             let data = try await data(for: request, provider: .claude)
-            return try AIQuotaParser.decodeClaudeQuota(from: data)
+            let result = try AIQuotaParser.decodeClaudeQuota(from: data)
+            refreshPolicy.recordSuccess(.claude)
+            return result
         } catch let error as AIQuotaRequestError {
-            return error.result(provider: .claude, fallbackStatus: credentialStatus)
+            switch error {
+            case .rateLimited(let retryAfter):
+                refreshPolicy.recordRateLimit(.claude, retryAfter: retryAfter)
+                return .unavailable(
+                    provider: .claude,
+                    status: credentialStatus,
+                    message: refreshPolicy.blockMessage(for: .claude) ?? "Rate limited. Will retry shortly."
+                )
+            case .expired:
+                refreshPolicy.recordAuthFailure(.claude)
+                return .unavailable(
+                    provider: .claude,
+                    status: .expired,
+                    message: refreshPolicy.blockMessage(for: .claude) ?? "Token expired. Re-login with CLI."
+                )
+            case .api:
+                return error.result(provider: .claude, fallbackStatus: credentialStatus)
+            }
         } catch {
             return .unavailable(
                 provider: .claude,
@@ -169,9 +205,16 @@ final class AIQuotaManager: ObservableObject {
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw AIQuotaRequestError.api("Invalid response")
             }
+            print("[AIQuota] \(provider.displayName): usage HTTP \(httpResponse.statusCode)")
 
             if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
                 throw AIQuotaRequestError.expired("Authentication failed. Re-login with \(provider.displayName) CLI.")
+            }
+
+            if httpResponse.statusCode == 429 {
+                let retryAfter = httpResponse.value(forHTTPHeaderField: "Retry-After")
+                    .flatMap(Int.init)
+                throw AIQuotaRequestError.rateLimited(retryAfter: retryAfter)
             }
 
             guard (200..<300).contains(httpResponse.statusCode) else {
@@ -212,6 +255,12 @@ final class AIQuotaManager: ObservableObject {
 private enum AIQuotaRequestError: Error {
     case expired(String)
     case api(String)
+    case rateLimited(retryAfter: Int?)
+
+    var isTransient: Bool {
+        if case .rateLimited = self { return true }
+        return false
+    }
 
     func result(provider: AIProvider, fallbackStatus: CredentialStatus) -> AIQuotaResult {
         switch self {
@@ -219,6 +268,8 @@ private enum AIQuotaRequestError: Error {
             return .unavailable(provider: provider, status: .expired, message: message)
         case .api(let message):
             return .unavailable(provider: provider, status: fallbackStatus, message: message)
+        case .rateLimited:
+            return .unavailable(provider: provider, status: fallbackStatus, message: "Rate limited. Will retry shortly.")
         }
     }
 }

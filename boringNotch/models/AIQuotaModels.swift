@@ -95,6 +95,52 @@ struct AIQuotaResult: Codable, Equatable {
     }
 }
 
+struct AIQuotaRefreshPolicy {
+    private static let defaultRateLimitBackoff: TimeInterval = 30 * 60
+    private static let authFailureBackoff: TimeInterval = 15 * 60
+
+    private var blockedUntil: [AIProvider: (date: Date, reason: BlockReason)] = [:]
+
+    enum BlockReason {
+        case rateLimited
+        case authFailed
+    }
+
+    func canRequest(_ provider: AIProvider, now: Date = Date()) -> Bool {
+        guard let entry = blockedUntil[provider] else {
+            return true
+        }
+        return now >= entry.date
+    }
+
+    mutating func recordRateLimit(_ provider: AIProvider, retryAfter: Int?, now: Date = Date()) {
+        let delay = TimeInterval(retryAfter ?? Int(Self.defaultRateLimitBackoff))
+        blockedUntil[provider] = (now.addingTimeInterval(max(delay, 1)), .rateLimited)
+    }
+
+    mutating func recordAuthFailure(_ provider: AIProvider, now: Date = Date()) {
+        blockedUntil[provider] = (now.addingTimeInterval(Self.authFailureBackoff), .authFailed)
+    }
+
+    mutating func recordSuccess(_ provider: AIProvider) {
+        blockedUntil[provider] = nil
+    }
+
+    func blockMessage(for provider: AIProvider, now: Date = Date()) -> String? {
+        guard let entry = blockedUntil[provider], entry.date > now else {
+            return nil
+        }
+
+        let minutes = max(1, Int(ceil(entry.date.timeIntervalSince(now) / 60)))
+        switch entry.reason {
+        case .rateLimited:
+            return "Rate limited. Will retry in \(minutes)m."
+        case .authFailed:
+            return "Token expired. Re-login with CLI. Retrying in \(minutes)m."
+        }
+    }
+}
+
 enum AIQuotaParser {
     static let knownClaudeTiers = [
         "five_hour",

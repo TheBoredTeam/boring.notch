@@ -80,7 +80,7 @@ struct QuotaCardView: View {
                         .foregroundStyle(.secondary)
                         .frame(width: 42, alignment: .leading)
                     QuotaProgressBar(utilization: tier.utilization)
-                    Text("\(Int(tier.utilization.rounded()))%")
+                    Text("\(Int(floor(tier.utilization)))%")
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white)
                         .monospacedDigit()
@@ -92,16 +92,25 @@ struct QuotaCardView: View {
 
     @ViewBuilder
     private func resetText(_ tiers: [QuotaTier]) -> some View {
-        if let nextReset = tiers.compactMap(\.resetsAt).filter({ $0 > Date() }).min() {
-            Text("Resets in \(relativeResetTime(nextReset))")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-        } else {
-            Text("Reset time unavailable")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+        VStack(alignment: .leading, spacing: 2) {
+            if let nextReset = tiers.compactMap(\.resetsAt).filter({ $0 > Date() }).min() {
+                Text("Resets in \(relativeResetTime(nextReset))")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            } else {
+                Text("Reset time unavailable")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            if let queriedAt = result?.queriedAt {
+                Text("Updated \(queriedAt, style: .relative) ago")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.quaternary)
+                    .lineLimit(1)
+            }
         }
     }
 

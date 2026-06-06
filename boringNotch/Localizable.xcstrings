@@ -22133,6 +22133,9 @@
         }
       }
     },
+    "Updated %@ ago" : {
+
+    },
     "Upgrade to Pro" : {
       "localizations" : {
         "ar" : {
