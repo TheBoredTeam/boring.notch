@@ -1390,6 +1390,9 @@ struct Appearance: View {
                 Defaults.Toggle(key: .showNotHumanFace) {
                     Text("Show cool face animation while inactive")
                 }
+                Defaults.Toggle(key: .showAIQuota) {
+                    Text("Show AI quota (Claude & Codex)")
+                }
             } header: {
                 HStack {
                     Text("Additional features")

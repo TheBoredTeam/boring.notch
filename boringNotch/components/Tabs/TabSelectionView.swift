@@ -5,29 +5,42 @@
 //  Created by Hugo Persson on 2024-08-25.
 //
 
+import Defaults
 import SwiftUI
 
 struct TabModel: Identifiable {
-    let id = UUID()
+    var id: NotchViews { view }
     let label: String
     let icon: String
     let view: NotchViews
 }
 
-let tabs = [
-    TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
-]
-
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Namespace var animation
+
+    private var tabs: [TabModel] {
+        var items = [TabModel(label: "Home", icon: "house.fill", view: .home)]
+        if Defaults[.boringShelf] {
+            items.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
+        }
+        if Defaults[.showAIQuota] {
+            items.append(TabModel(label: "AI", icon: "chart.bar.fill", view: .quota))
+        }
+        return items
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             ForEach(tabs) { tab in
                     TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view
+                        }
+                        if tab.view == .quota {
+                            Task {
+                                await AIQuotaManager.shared.fetchAll()
+                            }
                         }
                     }
                     .frame(height: 26)
