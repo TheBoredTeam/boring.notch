@@ -117,7 +117,7 @@ jobs:
           echo "head_ref=$(echo "$PR_DATA" | jq -r '.head_ref')" >> "$GITHUB_OUTPUT"
           echo "base_ref=$(echo "$PR_DATA" | jq -r '.base_ref')" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ steps.pr_info.outputs.head_ref }}
 
@@ -236,7 +236,7 @@ jobs:
       VERSION: ${{ needs.preparation.outputs.version }}
       IS_BETA: ${{ needs.preparation.outputs.is_beta }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ env.HEAD_REF }}
 
@@ -457,7 +457,7 @@ jobs:
           name: homebrew-cask-${{ env.VERSION }}
           path: boring-notch*.rb
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           repository: TheBoredTeam/homebrew-boring-notch
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
@@ -508,7 +508,7 @@ jobs:
           gh api "repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
             -f content="$REACTION" --silent
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
         with:
           ref: ${{ needs.preparation.outputs.head_ref }}
