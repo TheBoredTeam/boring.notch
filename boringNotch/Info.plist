@@ -2,6 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>Spotify Auth Callback</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>boringnotch</string>
+			</array>
+		</dict>
+	</array>
+	<key>SPOTIFY_CLIENT_ID</key>
+	<string>$(SPOTIFY_CLIENT_ID)</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

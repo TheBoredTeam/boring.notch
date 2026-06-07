@@ -600,6 +600,10 @@ struct Media: View {
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
     @Default(.enableLyrics) var enableLyrics
+    @Default(.spotifyAdDampenerEnabled) private var spotifyAdDampenerEnabled
+    @Default(.spotifyAdDampenerTargetVolume) private var spotifyAdDampenerTargetVolume
+    @Default(.spotifyAdDampenerManualCallSuppress) private var spotifyAdDampenerManualCallSuppress
+    @ObservedObject private var spotifyAdDampener = SpotifyAdDampenerManager.shared
 
     var body: some View {
         Form {
@@ -677,6 +681,67 @@ struct Media: View {
                 Text("Media playback live activity")
             }
             
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Spotify Ad Dampener")
+                                .font(.headline)
+                            Text(spotifyAdDampener.authStateText)
+                                .font(.caption)
+                                .foregroundStyle(spotifyAdDampener.canConnect ? Color.secondary : Color.red)
+                        }
+                        Spacer()
+                        if spotifyAdDampener.isDampened {
+                            Text("Active")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        }
+                    }
+
+                    Defaults.Toggle(key: .spotifyAdDampenerEnabled) {
+                        Text("Lower system volume during Spotify ads")
+                    }
+                    .disabled(!spotifyAdDampener.canConnect)
+
+                    HStack {
+                        Text("Dampened volume")
+                        Slider(value: $spotifyAdDampenerTargetVolume, in: 0...0.5, step: 0.01)
+                        Text("\(Int(spotifyAdDampenerTargetVolume * 100))%")
+                            .foregroundStyle(.secondary)
+                            .frame(width: 40, alignment: .trailing)
+                    }
+                    .disabled(!spotifyAdDampenerEnabled)
+
+                    Defaults.Toggle(key: .spotifyAdDampenerManualCallSuppress) {
+                        Text("Suppress while I am in a call")
+                    }
+
+                    Text("Status: \(spotifyAdDampener.statusText)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if let error = spotifyAdDampener.lastErrorText {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+
+                    HStack {
+                        Button("Connect Spotify") { spotifyAdDampener.connect() }
+                            .disabled(!spotifyAdDampener.canConnect)
+                        Button("Disconnect") { spotifyAdDampener.disconnect() }
+                        Button("Check Now") { spotifyAdDampener.refreshNow() }
+                            .disabled(!spotifyAdDampenerEnabled)
+                    }
+                }
+            } header: {
+                Text("Spotify Ad Dampener")
+            } footer: {
+                Text("Uses Spotify Web API as the source of truth. Tokens are stored in Keychain. Add SPOTIFY_CLIENT_ID and redirect URI boringnotch://spotify-auth/callback to enable connection.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section {
                 MusicSlotConfigurationView()
                 Defaults.Toggle(key: .enableLyrics) {

@@ -129,6 +129,12 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    static let spotifyAdDampenerEnabled = Key<Bool>("spotifyAdDampenerEnabled", default: false)
+    static let spotifyAdDampenerTargetVolume = Key<Double>("spotifyAdDampenerTargetVolume", default: 0.08)
+    static let spotifyAdDampenerManualCallSuppress = Key<Bool>("spotifyAdDampenerManualCallSuppress", default: false)
+    static let spotifyAdDampenerOwnedSessionID = Key<String?>("spotifyAdDampenerOwnedSessionID", default: nil)
+    static let spotifyAdDampenerOwnedSavedVolume = Key<Double?>("spotifyAdDampenerOwnedSavedVolume", default: nil)
+    static let spotifyAdDampenerOwnedStartedAt = Key<Date?>("spotifyAdDampenerOwnedStartedAt", default: nil)
     static let musicControlSlots = Key<[MusicControlButton]>(
         "musicControlSlots",
         default: MusicControlButton.defaultLayout

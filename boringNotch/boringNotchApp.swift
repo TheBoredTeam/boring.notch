@@ -26,6 +26,7 @@ struct DynamicNotchApp: App {
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
+        _ = SpotifyAdDampenerManager.shared
     }
 
     var body: some Scene {
@@ -72,6 +73,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            SpotifyAdDampenerManager.shared.handleCallbackURL(url)
+        }
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         NotificationCenter.default.removeObserver(self)
         if let observer = screenLockedObserver {
@@ -83,6 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        SpotifyAdDampenerManager.shared.stopAndRestore()
         cleanupDragDetectors()
         cleanupWindows()
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
