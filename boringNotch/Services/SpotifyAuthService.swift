@@ -44,7 +44,7 @@ final class SpotifyAuthService: ObservableObject {
             pendingState = stateToken
             let url = try PKCE.authorizationURL(
                 clientID: configuration.clientID,
-                redirectURI: SpotifyAuthConfiguration.redirectURI,
+                redirectURI: configuration.redirectURI,
                 scopes: SpotifyAuthConfiguration.scopes,
                 state: stateToken,
                 codeChallenge: pair.challenge
@@ -57,9 +57,9 @@ final class SpotifyAuthService: ObservableObject {
     }
 
     func handleCallbackURL(_ url: URL) {
-        guard url.scheme == SpotifyAuthConfiguration.callbackScheme,
-              url.host == SpotifyAuthConfiguration.callbackHost,
-              url.path == SpotifyAuthConfiguration.callbackPath else { return }
+        guard url.scheme == configuration.callbackScheme,
+              url.host == configuration.callbackHost,
+              url.path == configuration.callbackPath else { return }
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         if components?.queryItems?.first(where: { $0.name == "error" })?.value != nil {
             state = .error("Spotify authorization was cancelled or denied.")
@@ -107,7 +107,7 @@ final class SpotifyAuthService: ObservableObject {
             let token = try await requestToken(parameters: [
                 "grant_type": "authorization_code",
                 "code": code,
-                "redirect_uri": SpotifyAuthConfiguration.redirectURI,
+                "redirect_uri": configuration.redirectURI,
                 "client_id": configuration.clientID,
                 "code_verifier": verifier
             ], previousRefreshToken: nil)
