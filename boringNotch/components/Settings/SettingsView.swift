@@ -45,6 +45,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "KeepAwake") {
+                    Label("Keep Awake", systemImage: "cup.and.heat.waves")
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -83,6 +86,8 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "KeepAwake":
+                    KeepAwake()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -379,6 +384,69 @@ struct Charge: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Battery")
+    }
+}
+
+struct KeepAwake: View {
+    @Default(.caffeineEnabled) var caffeineEnabled
+    @Default(.caffeineLowBatteryCutoff) var caffeineThreshold
+    @Default(.caffeineSafetyTimeout) var caffeineTimeout
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .caffeineEnabled) {
+                    Text("Enable Keep Awake")
+                }
+                .onChange(of: caffeineEnabled) { _, newValue in
+                    if !newValue {
+                        CaffeineManager.shared.deactivate()
+                    }
+                }
+            } header: {
+                Text("Keep Awake")
+            } footer: {
+                Text("Shows a cup icon in the notch. Tap it to prevent the display from sleeping.")
+            }
+            if caffeineEnabled {
+                Section {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("Low battery cutoff")
+                            Spacer()
+                            Text("\(caffeineThreshold)%")
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                        }
+                        Slider(
+                            value: Binding(
+                                get: { Double(caffeineThreshold) },
+                                set: { caffeineThreshold = Int($0) }
+                            ),
+                            in: 5...50,
+                            step: 5
+                        )
+                    }
+                } header: {
+                    Text("Battery Safety")
+                } footer: {
+                    Text("Auto-disables when on battery and charge drops to this level.")
+                }
+                Section {
+                    Picker("Auto-disable after", selection: $caffeineTimeout) {
+                        ForEach(CaffeineTimeoutOption.allCases) { option in
+                            Text(option.label).tag(option)
+                        }
+                    }
+                } header: {
+                    Text("Safety Timeout")
+                } footer: {
+                    Text("Automatically disables Keep Awake after the selected duration. Recommended for desktop Macs left unattended.")
+                }
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Keep Awake")
     }
 }
 

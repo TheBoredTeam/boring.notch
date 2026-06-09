@@ -12,9 +12,12 @@ struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var caffeineManager = CaffeineManager.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+
     var body: some View {
         HStack(spacing: 0) {
+            // Left: tab selector
             HStack {
                 if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
                     TabSelectionView()
@@ -36,6 +39,7 @@ struct BoringHeader: View {
                     }
             }
 
+            // Right: camera · caffeine · settings · battery
             HStack(spacing: 4) {
                 if vm.notchState == .open {
                     if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
@@ -43,9 +47,7 @@ struct BoringHeader: View {
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
                         if Defaults[.showMirror] {
-                            Button(action: {
-                                vm.toggleCameraPreview()
-                            }) {
+                            Button(action: { vm.toggleCameraPreview() }) {
                                 Capsule()
                                     .fill(.black)
                                     .frame(width: 30, height: 30)
@@ -58,12 +60,29 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
+
+                        // Caffeine toggle — stays in place, filled icon + accent foreground when active
+                        if Defaults[.caffeineEnabled] {
+                            Button(action: { caffeineManager.toggle() }) {
+                                Capsule()
+                                    .fill(Color.black)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: caffeineManager.isActive ? "cup.and.heat.waves.fill" : "cup.and.heat.waves")
+                                            .foregroundColor(caffeineManager.isActive ? Color.effectiveAccent : .white)
+                                            .padding()
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .animation(.easeInOut(duration: 0.2), value: caffeineManager.isActive)
+                        }
+
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
                                 DispatchQueue.main.async {
                                     SettingsWindowController.shared.showWindow()
                                 }
-                                
                             }) {
                                 Capsule()
                                     .fill(.black)
@@ -77,6 +96,7 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
+
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(
                                 batteryWidth: 30,
