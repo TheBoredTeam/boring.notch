@@ -1,3 +1,10 @@
+//
+//  BatteryStatusViewModel.swift
+//  boringNotch
+//
+//  Modified by Maksymilian Wójcik on 2026-06-09.
+//
+
 import Cocoa
 import Defaults
 import Foundation
@@ -57,7 +64,9 @@ class BatteryStatusViewModel: ObservableObject {
             withAnimation {
                 self.isPluggedIn = isPluggedIn
                 self.statusText = isPluggedIn ? "Plugged In" : "Unplugged"
-                self.notifyImportanChangeStatus()
+                self.notifyImportanChangeStatus(
+                    type: (isPluggedIn && Defaults[.iosChargingAnimation]) ? .charging : .battery
+                )
             }
 
         case .batteryLevelChanged(let level):
@@ -78,7 +87,9 @@ class BatteryStatusViewModel: ObservableObject {
             print("🔌 Charging: \(isCharging ? "Yes" : "No")")
             print("maxCapacity: \(self.maxCapacity)")
             print("levelBattery: \(self.levelBattery)")
-            self.notifyImportanChangeStatus()
+            self.notifyImportanChangeStatus(
+                type: (isCharging && Defaults[.iosChargingAnimation]) ? .charging : .battery
+            )
             withAnimation {
                 self.isCharging = isCharging
                 self.statusText =
@@ -119,11 +130,13 @@ class BatteryStatusViewModel: ObservableObject {
     }
 
     /// Notifies important changes in the battery status with an optional delay
-    /// - Parameter delay: The delay before notifying the change, default is 0.0
-    private func notifyImportanChangeStatus(delay: Double = 0.0) {
+    /// - Parameters:
+    ///   - type: The expanding-view content type to present (`.battery` or `.charging`)
+    ///   - delay: The delay before notifying the change, default is 0.0
+    private func notifyImportanChangeStatus(type: SneakContentType = .battery, delay: Double = 0.0) {
         Task {
             try? await Task.sleep(for: .seconds(delay))
-            self.coordinator.toggleExpandingView(status: true, type: .battery)
+            self.coordinator.toggleExpandingView(status: true, type: type)
         }
     }
 

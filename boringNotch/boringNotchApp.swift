@@ -3,6 +3,7 @@
 //  boringNotchApp
 //
 //  Created by Harsh Vardhan  Goswami  on 02/08/24.
+//  Modified by Maksymilian Wójcik on 2026-06-09.
 //
 
 import AVFoundation
@@ -421,6 +422,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+
+        BluetoothActivityManager.shared.start()
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {

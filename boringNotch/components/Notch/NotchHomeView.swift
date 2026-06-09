@@ -4,6 +4,7 @@
 //
 //  Created by Hugo Persson on 2024-08-18.
 //  Modified by Harsh Vardhan Goswami & Richard Kunkli & Mustafa Ramadan
+//  Modified by Maksymilian Wójcik on 2026-06-09.
 //
 
 import Combine
@@ -439,26 +440,40 @@ struct NotchHomeView: View {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
-    private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+    private var anyHomeWidget: Bool {
+        Defaults[.homeShowCPUTemp] || Defaults[.homeShowWeather] || Defaults[.homeShowCPUUsage]
+            || Defaults[.homeShowRAMUsage] || Defaults[.homeShowDiskUsage] || Defaults[.homeShowClock]
+    }
 
-            if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
-                    }
-                    .environmentObject(vm)
-                    .transition(.opacity)
+    private var mainContent: some View {
+        VStack(spacing: 6) {
+            HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+                MusicPlayerView(albumArtNamespace: albumArtNamespace)
+
+                if Defaults[.showCalendar] {
+                    CalendarView()
+                        .frame(width: shouldShowCamera ? 170 : 215)
+                        .onHover { isHovering in
+                            vm.isHoveringCalendar = isHovering
+                        }
+                        .environmentObject(vm)
+                        .transition(.opacity)
+                }
+
+                if shouldShowCamera {
+                    CameraPreviewView(webcamManager: webcamManager)
+                        .scaledToFit()
+                        .opacity(vm.notchState == .closed ? 0 : 1)
+                        .blur(radius: vm.notchState == .closed ? 20 : 0)
+                        .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                }
             }
 
-            if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
-                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+            if anyHomeWidget {
+                Spacer(minLength: 0)
+                HomeWidgetsView()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.opacity)
             }
         }
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))

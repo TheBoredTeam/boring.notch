@@ -28,8 +28,10 @@ DerivedData/
 
 # Build output
 build/
+dist/
 *.app
 *.dSYM
+*.dmg
 
 # Temporary files
 *.swp

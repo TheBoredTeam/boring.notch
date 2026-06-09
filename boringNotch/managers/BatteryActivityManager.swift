@@ -1,3 +1,10 @@
+//
+//  BatteryActivityManager.swift
+//  boringNotch
+//
+//  Modified by Maksymilian Wójcik on 2026-06-09.
+//
+
 import Foundation
 import IOKit.ps
 
@@ -180,7 +187,8 @@ class BatteryActivityManager {
         isProcessingNotifications = true
         
         let event = notificationQueue.removeFirst()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+        // Small spacing keeps event ordering without a noticeable popup delay.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
             guard let self = self else { return }
             self.notifyObservers(event: event)
             self.isProcessingNotifications = false
