@@ -45,6 +45,10 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 | 🏠  | **Customizable Home**            | Pick small components (clock, weather, CPU temp, CPU / RAM / disk) to show on the Home tab.                |
 | 📐  | **Adaptive notch height**        | The open notch grows downward to fit widgets instead of squishing them.                                    |
 | ⚡  | **Snappier battery popups**      | Plug / unplug indicators appear instantly.                                                                 |
+| 🪫  | **Low battery alert**            | iOS-style red pulsing alert on the notch when the battery drops to 10% and again at 5%.                    |
+| 🎚️  | **Device batteries widget**      | Battery levels of connected Bluetooth devices (AirPods, mouse, keyboard) on the Widgets tab.               |
+| 🌦️  | **3-day weather forecast**       | Compact day/icon/max-min row under the current weather (same wttr.in request, no extra API).               |
+| 💱  | **Currency / crypto rates**      | Configurable pairs (e.g. `USD/PLN, BTC/USD`) from ECB (frankfurter.dev) and CoinGecko — no API keys.       |
 | 🛠️  | **Helper build fix**             | Restored the XPC helper compilation so Accessibility / HUD replacement work again.                         |
 
 Everything new lives under **Settings → Home** and **Settings → Widgets**.
@@ -54,11 +58,11 @@ Everything new lives under **Settings → Home** and **Settings → Widgets**.
 A full list of what this fork touches relative to upstream — useful if you'd like to cherry-pick any of it.
 
 <details>
-<summary><b>New files (13)</b></summary>
+<summary><b>New files (17)</b></summary>
 
 | File | What it does |
 | :--- | :--- |
-| `boringNotch/managers/BluetoothActivityManager.swift` | Watches IOBluetooth connect/disconnect notifications, reads device battery level, debounces duplicate events and skips nameless devices, then triggers the notch popup. |
+| `boringNotch/managers/BluetoothActivityManager.swift` | Watches IOBluetooth connect/disconnect notifications, reads device battery level, debounces duplicate events and skips nameless devices, then triggers the notch popup. Also exposes `BluetoothBatteryReader.allDevices()` (via `system_profiler SPBluetoothDataType`) for the device-batteries widget. |
 | `boringNotch/components/Live activities/BoringBluetoothPopup.swift` | The iOS-style "device connected" pill shown on the closed notch (device icon, name, battery). |
 | `boringNotch/components/Live activities/BoringChargingAnimation.swift` | iOS-style charging popup: pulsing bolt, battery percentage and time-to-full on the closed notch. |
 | `boringNotch/managers/AudioDeviceManager.swift` | CoreAudio wrapper: lists output devices, observes default-device changes, switches the system output device. |
@@ -66,11 +70,15 @@ A full list of what this fork touches relative to upstream — useful if you'd l
 | `boringNotch/managers/SystemMonitorManager.swift` | Samples CPU, RAM, disk and network usage on a configurable interval (Mach host APIs + `getifaddrs`). |
 | `boringNotch/managers/CPUTemperatureReader.swift` | In-process CPU temperature via private IOHID thermal-sensor APIs resolved with `dlsym` (averages on-die sensors). |
 | `boringNotch/components/Notch/SystemMonitorView.swift` | The system-monitor widget UI (CPU / RAM / disk / network / temperature rows). |
-| `boringNotch/managers/WeatherManager.swift` | Fetches current weather from [wttr.in](https://wttr.in) (no API key), with manual-city support and a configurable refresh interval. |
+| `boringNotch/managers/WeatherManager.swift` | Fetches current weather **and a 3-day forecast** from [wttr.in](https://wttr.in) (no API key), with manual-city support and a configurable refresh interval. |
 | `boringNotch/managers/LocationManager.swift` | IP-based auto-location (city lookup) for the weather widget. |
 | `boringNotch/components/Notch/WeatherWidgetView.swift` | The weather widget UI (condition icon, temperature, city). |
-| `boringNotch/components/Notch/WidgetsView.swift` | The new **Widgets** tab hosting the system monitor and weather widgets. |
+| `boringNotch/components/Notch/WidgetsView.swift` | The new **Widgets** tab hosting the system monitor, weather, device batteries and rates widgets (scrolls horizontally when more than two are enabled). |
 | `boringNotch/components/Notch/HomeWidgetsView.swift` | Row of small, individually-toggleable components (clock, weather, CPU temp, CPU / RAM / disk) under the music player on the Home tab. |
+| `boringNotch/components/Live activities/BoringLowBatteryAlert.swift` | iOS-style red pulsing low-battery alert shown on the closed notch at 10% / 5% (battery power only). |
+| `boringNotch/components/Notch/DeviceBatteriesView.swift` | Widgets-tab panel listing battery levels of connected Bluetooth devices (refreshes every 30 s off the main thread). |
+| `boringNotch/managers/RatesManager.swift` | Fetches configurable currency pairs from frankfurter.dev (ECB, no key) and crypto prices from CoinGecko (no key); refresh interval setting. |
+| `boringNotch/components/Notch/RatesWidgetView.swift` | Widgets-tab panel showing the configured fiat/crypto rates. |
 
 </details>
 
@@ -79,16 +87,16 @@ A full list of what this fork touches relative to upstream — useful if you'd l
 
 | File | What changed |
 | :--- | :--- |
-| `boringNotch/models/Constants.swift` | New `Defaults` keys for all fork features (charging animation, audio switcher, Bluetooth popup, system monitor, weather, Home components) + `WeatherUnit` enum. |
-| `boringNotch/components/Settings/SettingsView.swift` | New settings UI: Home-tab component toggles and a **Widgets** section (system monitor, weather, Bluetooth popup, charging animation, audio switcher). |
-| `boringNotch/ContentView.swift` | Renders the new closed-notch popups (charging, Bluetooth), routes the new `.widgets` tab, and adds adaptive open-notch height (`openNotchContentHeight`) so the notch grows downward for widget content instead of squishing it. |
-| `boringNotch/BoringViewCoordinator.swift` | New `SneakContentType` cases (`.bluetooth`, `.charging`, `.audioDevice`) and per-type popup durations (4 s for Bluetooth/charging). |
+| `boringNotch/models/Constants.swift` | New `Defaults` keys for all fork features (charging animation, audio switcher, Bluetooth popup, system monitor, weather + forecast, Home components, low-battery alerts, device batteries, disk popup, rates) + `WeatherUnit` enum. |
+| `boringNotch/components/Settings/SettingsView.swift` | New settings UI: Home-tab component toggles and a **Widgets** section (system monitor, weather + forecast, Bluetooth popup, charging animation, audio switcher, low-battery alert, disk popup, device batteries, rates pairs). |
+| `boringNotch/ContentView.swift` | Renders the new closed-notch popups (charging, Bluetooth, low battery), routes the new `.widgets` tab, and adds adaptive open-notch height (`openNotchContentHeight`) so the notch grows downward for widget content instead of squishing it. |
+| `boringNotch/BoringViewCoordinator.swift` | New `SneakContentType` cases (`.bluetooth`, `.charging`, `.audioDevice`, `.lowBattery`) and per-type popup durations (4 s Bluetooth/charging/low-battery). |
 | `boringNotch/enums/generic.swift` | Adds `.widgets` to `NotchViews`. |
-| `boringNotch/components/Tabs/TabSelectionView.swift` | Adds the **Widgets** tab; tabs are now filtered by settings (Shelf hidden when disabled, Widgets shown only when a widget is enabled). |
+| `boringNotch/components/Tabs/TabSelectionView.swift` | Adds the **Widgets** tab; tabs are now filtered by settings (Shelf hidden when disabled, Widgets shown only when a widget — monitor, weather, device batteries or rates — is enabled). |
 | `boringNotch/components/Notch/BoringHeader.swift` | Shows tabs when the Widgets tab is enabled (even without Shelf) and adds the audio-device menu button. |
 | `boringNotch/components/Notch/NotchHomeView.swift` | Wraps the Home layout in a `VStack` and appends `HomeWidgetsView` when any Home component is enabled. |
 | `boringNotch/sizing/matters.swift` | Replaces fixed `openNotchSize` height with `openNotchBaseHeight` (190) + `openNotchMaxHeight` (235); the window is created at max height and the visible shape scales to content. |
-| `boringNotch/models/BatteryStatusViewModel.swift` | Sends `.charging` (instead of `.battery`) popups when the iOS charging animation is enabled. |
+| `boringNotch/models/BatteryStatusViewModel.swift` | Sends `.charging` (instead of `.battery`) popups when the iOS charging animation is enabled. Adds the low-battery threshold logic (alert once at 10%, once at 5%, re-armed when charging). |
 | `boringNotch/managers/BatteryActivityManager.swift` | Reduces battery-event queue spacing from 1 s to 0.05 s so plug/unplug popups appear instantly. |
 | `boringNotch/boringNotchApp.swift` | Starts `BluetoothActivityManager` on launch. |
 | `BoringNotchXPCHelper/BoringNotchXPCHelper.swift` | Adds an IOHID-based CPU-temperature reader to the (unsandboxed) helper. |

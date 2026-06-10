@@ -142,8 +142,25 @@ final class BluetoothActivityManager: NSObject, ObservableObject {
     }
 }
 
-/// Reads Bluetooth-device battery levels from the IORegistry.
+/// A connected device with a readable battery level (for the Widgets-tab panel).
+struct DeviceBattery: Identifiable, Equatable {
+    let name: String
+    let address: String
+    let percent: Int
+
+    var id: String { address.isEmpty ? name : address }
+    var iconName: String {
+        BluetoothDeviceInfo(name: name, address: address, batteryPercent: percent,
+                            kind: BluetoothDeviceInfo.kind(forName: name)).iconName
+    }
+}
+
+/// Reads Bluetooth-device battery levels.
 enum BluetoothBatteryReader {
+    /// Fast, in-process IORegistry read — used for the connection popup.
+    /// Works for devices Apple exposes via AppleDeviceManagementHIDEventService;
+    /// returns nil for devices that only report battery over the Bluetooth daemon
+    /// (e.g. some AirPods), in which case the popup just shows a checkmark.
     static func batteryPercent(forAddress address: String) -> Int? {
         let target = normalize(address)
         guard !target.isEmpty else { return nil }
@@ -164,20 +181,81 @@ enum BluetoothBatteryReader {
             guard let addr = property(service, "DeviceAddress") as? String,
                 normalize(addr) == target
             else { continue }
-
-            if let combined = intProperty(service, "BatteryPercentCombined"), combined > 0 {
-                result = combined
-            } else if let single = intProperty(service, "BatteryPercent"), single > 0 {
-                result = single
-            } else {
-                let left = intProperty(service, "BatteryPercentLeft") ?? 0
-                let right = intProperty(service, "BatteryPercentRight") ?? 0
-                let values = [left, right].filter { $0 > 0 }
-                if !values.isEmpty { result = values.reduce(0, +) / values.count }
-            }
+            result = batteryPercent(of: service)
             if result != nil { break }
         }
         return result
+    }
+
+    /// All connected devices with a battery level, read from
+    /// `system_profiler SPBluetoothDataType` (the same source the macOS
+    /// Bluetooth menu uses — covers AirPods/headphones that the IORegistry
+    /// doesn't expose). Runs a subprocess, so call this off the main thread.
+    static func allDevices() -> [DeviceBattery] {
+        guard let json = runSystemProfiler(),
+            let root = json["SPBluetoothDataType"] as? [[String: Any]]
+        else { return [] }
+
+        var devices: [DeviceBattery] = []
+        for controller in root {
+            guard let connected = controller["device_connected"] as? [[String: Any]] else { continue }
+            for entry in connected {
+                for (name, value) in entry {
+                    guard let info = value as? [String: Any],
+                        let percent = batteryPercent(from: info)
+                    else { continue }
+                    let address = (info["device_address"] as? String) ?? ""
+                    devices.append(
+                        DeviceBattery(name: name.trimmingCharacters(in: .whitespaces),
+                                      address: address, percent: percent))
+                }
+            }
+        }
+        return devices.sorted { $0.name < $1.name }
+    }
+
+    private static func runSystemProfiler() -> [String: Any]? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
+        process.arguments = ["-json", "SPBluetoothDataType"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            return try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        } catch {
+            return nil
+        }
+    }
+
+    /// Battery from a system_profiler device dict. Values look like "94%".
+    /// For earbuds reports the lower of left/right (the limiting cell).
+    private static func batteryPercent(from info: [String: Any]) -> Int? {
+        func percent(_ key: String) -> Int? {
+            guard let raw = info[key] as? String else { return nil }
+            return Int(raw.replacingOccurrences(of: "%", with: "").trimmingCharacters(in: .whitespaces))
+        }
+        if let single = percent("device_batteryLevel") { return single }
+        let buds = [percent("device_batteryLevelLeft"), percent("device_batteryLevelRight")]
+            .compactMap { $0 }
+        if let lowest = buds.min() { return lowest }
+        return percent("device_batteryLevelCase")
+    }
+
+    private static func batteryPercent(of service: io_registry_entry_t) -> Int? {
+        if let combined = intProperty(service, "BatteryPercentCombined"), combined > 0 {
+            return combined
+        }
+        if let single = intProperty(service, "BatteryPercent"), single > 0 {
+            return single
+        }
+        let left = intProperty(service, "BatteryPercentLeft") ?? 0
+        let right = intProperty(service, "BatteryPercentRight") ?? 0
+        let values = [left, right].filter { $0 > 0 }
+        return values.isEmpty ? nil : values.reduce(0, +) / values.count
     }
 
     private static func intProperty(_ service: io_registry_entry_t, _ key: String) -> Int? {

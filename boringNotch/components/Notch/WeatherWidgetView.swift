@@ -12,6 +12,7 @@ import SwiftUI
 struct WeatherWidgetView: View {
     @ObservedObject var weather = WeatherManager.shared
     @Default(.weatherUnit) var unit
+    @Default(.weatherShowForecast) var showForecast
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -45,6 +46,25 @@ struct WeatherWidgetView: View {
                     Text(weather.statusMessage ?? "Loading…")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+            }
+
+            if showForecast && !weather.forecast.isEmpty {
+                HStack(spacing: 0) {
+                    ForEach(weather.forecast.prefix(3)) { day in
+                        VStack(spacing: 2) {
+                            Text(day.weekday)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            Image(systemName: day.symbolName)
+                                .font(.caption)
+                                .symbolRenderingMode(.multicolor)
+                            Text("\(day.maxTemp)°/\(day.minTemp)°")
+                                .font(.caption2.monospacedDigit())
+                                .foregroundStyle(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
                 }
             }
 

@@ -642,6 +642,8 @@ struct Widgets: View {
     @Default(.weatherUseLocation) var weatherUseLocation
     @Default(.weatherManualCity) var weatherManualCity
     @Default(.weatherUnit) var weatherUnit
+    @Default(.enableRatesWidget) var enableRatesWidget
+    @Default(.ratesPairs) var ratesPairs
 
     var body: some View {
         Form {
@@ -654,6 +656,9 @@ struct Widgets: View {
                 }
                 Defaults.Toggle(key: .enableBluetoothPopup) {
                     Text("Bluetooth connection popup")
+                }
+                Defaults.Toggle(key: .lowBatteryAlerts) {
+                    Text("Low battery alert (10% / 5%)")
                 }
             } header: {
                 Text("Devices")
@@ -696,10 +701,35 @@ struct Widgets: View {
                             Text(unit.rawValue).tag(unit)
                         }
                     }
+                    Defaults.Toggle(key: .weatherShowForecast) {
+                        Text("3-day forecast")
+                    }
                 }
                 .disabled(!enableWeatherWidget)
             } header: {
                 Text("Weather")
+            }
+
+            Section {
+                Defaults.Toggle(key: .enableDeviceBatteryWidget) {
+                    Text("Show device batteries")
+                }
+            } header: {
+                Text("Device Batteries")
+            } footer: {
+                Text("Battery levels of connected Bluetooth devices (AirPods, mouse, keyboard) on the Widgets tab.")
+            }
+
+            Section {
+                Defaults.Toggle(key: .enableRatesWidget) {
+                    Text("Show currency / crypto rates")
+                }
+                TextField("Pairs", text: $ratesPairs, prompt: Text("USD/PLN, EUR/PLN, BTC/USD"))
+                    .disabled(!enableRatesWidget)
+            } header: {
+                Text("Rates")
+            } footer: {
+                Text("Comma-separated pairs. Fiat (ECB daily rates): any ISO codes, e.g. USD/PLN. Crypto (CoinGecko): BTC, ETH, SOL, XRP, DOGE, ADA, LTC, BNB, DOT, AVAX as the first symbol.")
             }
         }
         .accentColor(.effectiveAccent)
@@ -712,6 +742,9 @@ struct Widgets: View {
         }
         .onChange(of: weatherUseLocation) {
             Task { await WeatherManager.shared.refresh() }
+        }
+        .onChange(of: ratesPairs) {
+            Task { await RatesManager.shared.refresh() }
         }
     }
 }

@@ -25,6 +25,7 @@ let tabs = [
 /// Whether the Widgets tab should be offered (any widget enabled).
 var widgetsTabEnabled: Bool {
     Defaults[.enableSystemMonitor] || Defaults[.enableWeatherWidget]
+        || Defaults[.enableDeviceBatteryWidget] || Defaults[.enableRatesWidget]
 }
 
 struct TabSelectionView: View {
@@ -32,6 +33,8 @@ struct TabSelectionView: View {
     @Default(.boringShelf) var boringShelf
     @Default(.enableSystemMonitor) var enableSystemMonitor
     @Default(.enableWeatherWidget) var enableWeatherWidget
+    @Default(.enableDeviceBatteryWidget) var enableDeviceBatteryWidget
+    @Default(.enableRatesWidget) var enableRatesWidget
     @Namespace var animation
 
     private var visibleTabs: [TabModel] {
@@ -39,7 +42,9 @@ struct TabSelectionView: View {
             switch tab.view {
             case .home: return true
             case .shelf: return boringShelf
-            case .widgets: return enableSystemMonitor || enableWeatherWidget
+            case .widgets:
+                return enableSystemMonitor || enableWeatherWidget
+                    || enableDeviceBatteryWidget || enableRatesWidget
             }
         }
     }

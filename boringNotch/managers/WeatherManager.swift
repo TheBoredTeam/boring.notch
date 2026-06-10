@@ -15,6 +15,20 @@ import Foundation
 
 struct WeatherError: Error { let message: String }
 
+struct DayForecast: Identifiable, Equatable {
+    let date: Date
+    let minTemp: Int
+    let maxTemp: Int
+    let symbolName: String
+
+    var id: Date { date }
+    var weekday: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: date)
+    }
+}
+
 @MainActor
 final class WeatherManager: ObservableObject {
     static let shared = WeatherManager()
@@ -23,6 +37,7 @@ final class WeatherManager: ObservableObject {
     @Published private(set) var conditionText: String = ""
     @Published private(set) var symbolName: String = "thermometer"
     @Published private(set) var locationName: String = ""
+    @Published private(set) var forecast: [DayForecast] = []
     @Published private(set) var statusMessage: String?
 
     private var timer: Timer?
@@ -102,6 +117,26 @@ final class WeatherManager: ObservableObject {
         } else if !location.isEmpty {
             locationName = location
         }
+
+        forecast = Self.forecast(from: decoded.weather ?? [], celsius: useCelsius)
+    }
+
+    private static func forecast(from days: [WttrResponse.Day], celsius: Bool) -> [DayForecast] {
+        let dateParser = DateFormatter()
+        dateParser.dateFormat = "yyyy-MM-dd"
+        return days.compactMap { day in
+            guard let date = dateParser.date(from: day.date),
+                let min = Int(celsius ? day.mintempC : day.mintempF),
+                let max = Int(celsius ? day.maxtempC : day.maxtempF)
+            else { return nil }
+            // Pick the condition around midday as the day's representative one.
+            let hourly = day.hourly ?? []
+            let midday = hourly.count > hourly.count / 2 ? hourly[hourly.count / 2] : hourly.first
+            let desc = midday?.weatherDesc.first?.value ?? ""
+            return DayForecast(
+                date: date, minTemp: min, maxTemp: max, symbolName: symbol(for: desc)
+            )
+        }
     }
 
     // MARK: - Decodable model (wttr.in j1 format — numbers come as strings)
@@ -116,8 +151,20 @@ final class WeatherManager: ObservableObject {
         struct Area: Decodable {
             let areaName: [Value]
         }
+        struct Hour: Decodable {
+            let weatherDesc: [Value]
+        }
+        struct Day: Decodable {
+            let date: String
+            let maxtempC: String
+            let maxtempF: String
+            let mintempC: String
+            let mintempF: String
+            let hourly: [Hour]?
+        }
         let current_condition: [Current]
         let nearest_area: [Area]?
+        let weather: [Day]?
     }
 
     // MARK: - Condition → SF Symbol (keyword based)

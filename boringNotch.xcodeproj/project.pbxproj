@@ -117,6 +117,10 @@
 		5AB149AC9860CBC1BB79444A /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442C4396AC6B74D441B7769E /* WeatherManager.swift */; };
 		819541468A7B1D81051F55A4 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922D4DABA1AEE9BDC73B484C /* LocationManager.swift */; };
 		96684BC99DA4CC4024907D2B /* BluetoothActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86B9413A9D38AEA3CB72E0EA /* BluetoothActivityManager.swift */; };
+		FEA70001C0DE000000000102 /* BoringLowBatteryAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA70001C0DE000000000101 /* BoringLowBatteryAlert.swift */; };
+		FEA70001C0DE000000000104 /* DeviceBatteriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA70001C0DE000000000103 /* DeviceBatteriesView.swift */; };
+		FEA70001C0DE00000000010A /* RatesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA70001C0DE000000000109 /* RatesManager.swift */; };
+		FEA70001C0DE00000000010C /* RatesWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA70001C0DE00000000010B /* RatesWidgetView.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
@@ -299,6 +303,10 @@
 		5E5B431693E149AC6F2F32AE /* BoringChargingAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BoringChargingAnimation.swift; path = "boringNotch/components/Live activities/BoringChargingAnimation.swift"; sourceTree = SOURCE_ROOT; };
 		605246B19FE516D6252D3C11 /* SystemMonitorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SystemMonitorManager.swift; path = boringNotch/managers/SystemMonitorManager.swift; sourceTree = SOURCE_ROOT; };
 		86B9413A9D38AEA3CB72E0EA /* BluetoothActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BluetoothActivityManager.swift; path = boringNotch/managers/BluetoothActivityManager.swift; sourceTree = SOURCE_ROOT; };
+		FEA70001C0DE000000000101 /* BoringLowBatteryAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BoringLowBatteryAlert.swift; path = "boringNotch/components/Live activities/BoringLowBatteryAlert.swift"; sourceTree = SOURCE_ROOT; };
+		FEA70001C0DE000000000103 /* DeviceBatteriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeviceBatteriesView.swift; path = boringNotch/components/Notch/DeviceBatteriesView.swift; sourceTree = SOURCE_ROOT; };
+		FEA70001C0DE000000000109 /* RatesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RatesManager.swift; path = boringNotch/managers/RatesManager.swift; sourceTree = SOURCE_ROOT; };
+		FEA70001C0DE00000000010B /* RatesWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RatesWidgetView.swift; path = boringNotch/components/Notch/RatesWidgetView.swift; sourceTree = SOURCE_ROOT; };
 		922D4DABA1AEE9BDC73B484C /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LocationManager.swift; path = boringNotch/managers/LocationManager.swift; sourceTree = SOURCE_ROOT; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
@@ -579,6 +587,10 @@
 				922D4DABA1AEE9BDC73B484C /* LocationManager.swift */,
 				442C4396AC6B74D441B7769E /* WeatherManager.swift */,
 				86B9413A9D38AEA3CB72E0EA /* BluetoothActivityManager.swift */,
+				FEA70001C0DE000000000101 /* BoringLowBatteryAlert.swift */,
+				FEA70001C0DE000000000103 /* DeviceBatteriesView.swift */,
+				FEA70001C0DE000000000109 /* RatesManager.swift */,
+				FEA70001C0DE00000000010B /* RatesWidgetView.swift */,
 				2195445E9A880A8C211300BD /* AudioDeviceMenu.swift */,
 				C38E4D1D9C466AEF19A4EE5E /* SystemMonitorView.swift */,
 				346B4E61A30342FD8055BD6D /* WidgetsView.swift */,
@@ -1051,6 +1063,10 @@
 				819541468A7B1D81051F55A4 /* LocationManager.swift in Sources */,
 				5AB149AC9860CBC1BB79444A /* WeatherManager.swift in Sources */,
 				96684BC99DA4CC4024907D2B /* BluetoothActivityManager.swift in Sources */,
+				FEA70001C0DE000000000102 /* BoringLowBatteryAlert.swift in Sources */,
+				FEA70001C0DE000000000104 /* DeviceBatteriesView.swift in Sources */,
+				FEA70001C0DE00000000010A /* RatesManager.swift in Sources */,
+				FEA70001C0DE00000000010C /* RatesWidgetView.swift in Sources */,
 				ECBE40479DAF874B294629F9 /* AudioDeviceMenu.swift in Sources */,
 				B6A4411ABCA29DE562B12845 /* SystemMonitorView.swift in Sources */,
 				E54643EE8979EE14294C670D /* WidgetsView.swift in Sources */,
@@ -1086,14 +1102,14 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 271;
+				CURRENT_PROJECT_VERSION = 274;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BoringNotchXPCHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 2.7.4;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1111,14 +1127,14 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 271;
+				CURRENT_PROJECT_VERSION = 274;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BoringNotchXPCHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 2.7.4;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1265,7 +1281,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 271;
+				CURRENT_PROJECT_VERSION = 274;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -1292,7 +1308,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 2.7.4;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1319,7 +1335,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 271;
+				CURRENT_PROJECT_VERSION = 274;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -1345,7 +1361,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 2.7.4;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

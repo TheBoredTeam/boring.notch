@@ -75,6 +75,10 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.enableBluetoothPopup]
         {
             chinWidth = 640
+        } else if coordinator.expandingView.type == .lowBattery && coordinator.expandingView.show
+            && vm.notchState == .closed && Defaults[.lowBatteryAlerts]
+        {
+            chinWidth = 640
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -325,6 +329,12 @@ struct ContentView: View {
                           && vm.notchState == .closed && Defaults[.enableBluetoothPopup],
                           let device = bluetoothManager.lastConnectedDevice {
                           BoringBluetoothPopup(device: device)
+                      } else if coordinator.expandingView.type == .lowBattery && coordinator.expandingView.show
+                          && vm.notchState == .closed && Defaults[.lowBatteryAlerts] {
+                          BoringLowBatteryAlert(
+                              levelBattery: batteryModel.levelBattery,
+                              isInLowPowerMode: batteryModel.isInLowPowerMode
+                          )
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)

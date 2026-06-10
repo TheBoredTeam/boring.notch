@@ -201,6 +201,17 @@ extension Defaults.Keys {
     // MARK: Bluetooth popup
     static let enableBluetoothPopup = Key<Bool>("enableBluetoothPopup", default: true)
 
+    // MARK: Low battery alert
+    static let lowBatteryAlerts = Key<Bool>("lowBatteryAlerts", default: true)
+
+    // MARK: Device batteries widget
+    static let enableDeviceBatteryWidget = Key<Bool>("enableDeviceBatteryWidget", default: true)
+
+    // MARK: Rates widget (currency / crypto)
+    static let enableRatesWidget = Key<Bool>("enableRatesWidget", default: false)
+    static let ratesPairs = Key<String>("ratesPairs", default: "USD/PLN, EUR/PLN, BTC/USD")
+    static let ratesUpdateInterval = Key<TimeInterval>("ratesUpdateInterval", default: 600.0)
+
     // MARK: System monitor widget
     static let enableSystemMonitor = Key<Bool>("enableSystemMonitor", default: true)
     static let monitorRefreshRate = Key<TimeInterval>("monitorRefreshRate", default: 2.0)
@@ -220,6 +231,7 @@ extension Defaults.Keys {
 
     // MARK: Weather widget
     static let enableWeatherWidget = Key<Bool>("enableWeatherWidget", default: true)
+    static let weatherShowForecast = Key<Bool>("weatherShowForecast", default: true)
     static let weatherUpdateInterval = Key<TimeInterval>("weatherUpdateInterval", default: 600.0)
     static let weatherUseLocation = Key<Bool>("weatherUseLocation", default: true)
     static let weatherManualCity = Key<String>("weatherManualCity", default: "")

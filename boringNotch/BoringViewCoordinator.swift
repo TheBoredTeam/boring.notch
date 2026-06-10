@@ -22,6 +22,7 @@ enum SneakContentType {
     case bluetooth
     case charging
     case audioDevice
+    case lowBattery
 }
 
 struct sneakPeek {
@@ -289,7 +290,7 @@ class BoringViewCoordinator: ObservableObject {
                 switch expandingView.type {
                 case .download:
                     duration = 2
-                case .bluetooth, .charging:
+                case .bluetooth, .charging, .lowBattery:
                     duration = 4
                 default:
                     duration = 3
