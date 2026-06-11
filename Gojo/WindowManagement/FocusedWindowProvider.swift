@@ -52,13 +52,16 @@ final class FocusedWindowProvider {
 
         let global = try await focusedWindow(promptIfNeeded: promptIfNeeded)
         if global.screen.displayUUID == notchScreen.displayUUID {
+            gojoDebug("resolve: global focus \(global.appName) on \(notchScreen.localizedName)")
             return global
         }
 
         if let onScreen = try await focusedWindowOnNotchScreen(notchScreen, promptIfNeeded: promptIfNeeded) {
+            gojoDebug("resolve: global \(global.appName) on \(global.screen.localizedName) ≠ notch \(notchScreen.localizedName) → top window \(onScreen.appName)")
             return onScreen
         }
 
+        gojoDebug("resolve: no window on \(notchScreen.localizedName) (global \(global.appName) on \(global.screen.localizedName)) → noFocusedWindowOnScreen")
         throw ProviderError.noFocusedWindowOnScreen
     }
 
@@ -66,16 +69,42 @@ final class FocusedWindowProvider {
         let authorized = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: promptIfNeeded)
         guard authorized else { throw ProviderError.permissionMissing }
 
-        if let helperWindow = await helperFocusedWindow(promptIfNeeded: promptIfNeeded) {
-            return helperWindow
-        }
-
+        // Resolve the target here, in the main app — NOT via the helper's
+        // focusedWindowSnapshot. The helper is an XPC service whose NSWorkspace
+        // frontmost-app state goes stale (no real app lifecycle), so it kept
+        // returning whichever app was frontmost around helper launch. Live
+        // workspace state lives in this process; the helper is only used for
+        // AX writes addressed by pid+windowID.
         guard let app = targetApplication() else {
             throw ProviderError.noFocusedWindow
         }
 
         rememberTargetApplicationIfNeeded(app)
 
+        // Main process holds no AX permission, so build the window from
+        // CGWindowList: the frontmost app's topmost on-screen window is its
+        // focused window for tiling purposes.
+        if let snapshot = topWindowSnapshots().first(where: { $0.pid == app.processIdentifier }),
+           !snapshot.bounds.isNull, snapshot.bounds.width > 0, snapshot.bounds.height > 0 {
+            let normalFrame = snapshot.bounds.gojoScreenFlipped
+            if let screen = NSScreen.screen(containing: normalFrame) ?? NSScreen.main ?? NSScreen.screens.first {
+                gojoDebug("resolve: live frontmost \(app.localizedName ?? "?") pid=\(app.processIdentifier) windowID=\(String(describing: snapshot.windowID)) on \(screen.localizedName)")
+                return FocusedWindow(
+                    element: nil,
+                    windowID: snapshot.windowID,
+                    pid: app.processIdentifier,
+                    appName: app.localizedName ?? "Focused app",
+                    bundleIdentifier: app.bundleIdentifier,
+                    title: nil,
+                    axFrame: snapshot.bounds,
+                    normalFrame: normalFrame,
+                    screen: screen
+                )
+            }
+        }
+
+        // Last-ditch AX fallback (only effective if the main app is ever
+        // granted Accessibility directly).
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
         let preferredWindowID = preferredTopWindowID(for: app.processIdentifier)
         let windowElement = bestWindowElement(for: appElement, preferredWindowID: preferredWindowID)
@@ -210,11 +239,18 @@ final class FocusedWindowProvider {
 
     func setFrame(_ normalFrame: CGRect, for window: FocusedWindow) async -> Bool {
         guard let element = window.element else {
-            return await XPCHelperClient.shared.setFocusedWindowFrame(normalFrame, windowID: window.windowID)
+            // Address the window by pid+windowID rather than letting the helper
+            // re-resolve "the focused window" — for fallback targets (top window
+            // on the notch's display) the frontmost app is a different window.
+            let ok = await XPCHelperClient.shared.setWindowFrame(normalFrame, pid: window.pid, windowID: window.windowID)
+            gojoDebug("setFrame[helper] \(window.appName) windowID=\(String(describing: window.windowID)) → \(ok ? "ok" : "FAILED") frame=\(normalFrame)")
+            return ok
         }
 
         let axFrame = normalFrame.gojoScreenFlipped
-        return setAXFrame(axFrame, for: element, pid: window.pid)
+        let ok = setAXFrame(axFrame, for: element, pid: window.pid)
+        gojoDebug("setFrame[direct] \(window.appName) → \(ok ? "ok" : "FAILED") axFrame=\(axFrame)")
+        return ok
     }
 
     private func focusedWindowOnNotchScreen(_ screen: NSScreen, promptIfNeeded: Bool) async throws -> FocusedWindow? {
@@ -234,68 +270,42 @@ final class FocusedWindowProvider {
         guard let snapshot = candidates.first,
               let app = NSRunningApplication(processIdentifier: snapshot.pid),
               isTargetApplication(app) else {
+            if let first = candidates.first {
+                gojoDebug("resolve: top candidate on \(screen.localizedName) rejected (pid=\(first.pid) \(first.ownerName ?? "?"))")
+            }
             return nil
         }
 
         rememberTargetApplicationIfNeeded(app)
 
-        let appElement = AXUIElementCreateApplication(app.processIdentifier)
-        guard let windowElement = bestWindowElement(for: appElement, preferredWindowID: snapshot.windowID),
-              isUsableWindow(windowElement) else {
-            return nil
-        }
-
-        guard let axFrame = frame(of: windowElement), !axFrame.isNull, axFrame.width > 0, axFrame.height > 0 else {
+        // Build the FocusedWindow purely from the CG snapshot — no AX reads.
+        // Only the XPC helper holds Accessibility permission; AX lookups from
+        // this (main) process always fail, which used to make this fallback a
+        // dead path for any window that wasn't already globally focused. With
+        // element: nil, setFrame routes through the helper using pid+windowID.
+        guard !snapshot.bounds.isNull, snapshot.bounds.width > 0, snapshot.bounds.height > 0 else {
             throw ProviderError.missingFrame
         }
 
-        let normalFrame = axFrame.gojoScreenFlipped
+        let normalFrame = snapshot.bounds.gojoScreenFlipped
         let windowScreen = NSScreen.screen(containing: normalFrame) ?? screen
 
         return FocusedWindow(
-            element: windowElement,
-            windowID: windowID(of: windowElement) ?? snapshot.windowID,
+            element: nil,
+            windowID: snapshot.windowID,
             pid: app.processIdentifier,
             appName: app.localizedName ?? snapshot.ownerName ?? "App",
             bundleIdentifier: app.bundleIdentifier,
-            title: copyString(windowElement, attribute: kAXTitleAttribute),
-            axFrame: axFrame,
+            title: nil,
+            axFrame: snapshot.bounds,
             normalFrame: normalFrame,
             screen: windowScreen
         )
     }
 
-    private func helperFocusedWindow(promptIfNeeded: Bool) async -> FocusedWindow? {
-        guard let snapshot = await XPCHelperClient.shared.focusedWindowSnapshot(promptIfNeeded: promptIfNeeded),
-              let pidNumber = snapshot["pid"] as? NSNumber,
-              let appName = snapshot["appName"] as? String,
-              let axFrame = rect(from: snapshot["axFrame"]),
-              let normalFrame = rect(from: snapshot["normalFrame"]) else {
-            return nil
-        }
-
-        let screen = NSScreen.screen(containing: normalFrame) ?? NSScreen.main ?? NSScreen.screens.first
-        guard let screen else { return nil }
-
-        return FocusedWindow(
-            element: nil,
-            windowID: (snapshot["windowID"] as? NSNumber).map { CGWindowID(truncating: $0) },
-            pid: pid_t(truncating: pidNumber),
-            appName: appName,
-            bundleIdentifier: snapshot["bundleIdentifier"] as? String,
-            title: snapshot["title"] as? String,
-            axFrame: axFrame,
-            normalFrame: normalFrame,
-            screen: screen
-        )
-    }
-
-    private func rect(from value: Any?) -> CGRect? {
-        if let dictionary = value as? NSDictionary {
-            return CGRect(dictionaryRepresentation: dictionary as CFDictionary)
-        }
-        return nil
-    }
+    // NOTE: do not resolve the focused window via the helper's
+    // focusedWindowSnapshot — the helper's NSWorkspace frontmost state is
+    // stale inside the XPC service (see focusedWindow(promptIfNeeded:)).
 
     private func targetApplication() -> NSRunningApplication? {
         let frontmost = NSWorkspace.shared.frontmostApplication

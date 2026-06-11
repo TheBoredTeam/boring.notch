@@ -158,12 +158,16 @@ final class WindowActionExecutor {
             state.setSuccess(action: action, window: refreshedWindow, constrained: constrained)
             await refreshWindowList(state: state, focusedWindow: refreshedWindow, screen: notchScreen)
         } catch FocusedWindowProvider.ProviderError.permissionMissing {
+            gojoDebug("executor: caught permissionMissing")
             state.setPermissionMissing()
         } catch FocusedWindowProvider.ProviderError.noFocusedWindowOnScreen {
+            gojoDebug("executor: caught noFocusedWindowOnScreen → setNoWindow")
             state.setNoWindow()
         } catch FocusedWindowProvider.ProviderError.noFocusedWindow {
+            gojoDebug("executor: caught noFocusedWindow → setNoWindow")
             state.setNoWindow()
         } catch {
+            gojoDebug("executor: caught \(error)")
             state.setFailure("Window unavailable", detail: "Focus a normal app window, then try again.")
         }
     }
@@ -258,7 +262,11 @@ final class WindowActionExecutor {
 @MainActor
 enum WindowPowerSession {
     static func contextForMouseLocation() -> (screenUUID: String?, state: WindowPowerState) {
-        guard let delegate = NSApp.delegate as? AppDelegate else {
+        // NSApp.delegate is SwiftUI's adaptor wrapper, not our AppDelegate — the
+        // direct cast always fails under @NSApplicationDelegateAdaptor. Use the
+        // explicit shared reference, keeping the cast as a belt-and-braces fallback.
+        guard let delegate = AppDelegate.shared ?? (NSApp.delegate as? AppDelegate) else {
+            gojoDebug("contextForMouseLocation: AppDelegate unavailable → global fallback")
             return (nil, WindowPowerState.shared)
         }
         let viewModel = delegate.viewModelForCurrentMouseLocation()

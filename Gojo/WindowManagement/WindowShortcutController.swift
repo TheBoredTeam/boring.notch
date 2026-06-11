@@ -1,5 +1,14 @@
+import AppKit
 import Foundation
 import KeyboardShortcuts
+import os.log
+
+/// Lightweight window-management diagnostics. Capture with:
+///   /usr/bin/log stream --predicate 'subsystem == "rohoswagger.gojo"' --style compact
+private let gojoMainDebugLog = OSLog(subsystem: "rohoswagger.gojo", category: "debug")
+func gojoDebug(_ message: String) {
+    os_log("%{public}@", log: gojoMainDebugLog, type: .default, "[GOJO-MAIN] " + message)
+}
 
 @MainActor
 final class WindowShortcutController {
@@ -24,6 +33,7 @@ final class WindowShortcutController {
     private static func execute(_ action: WindowAction) {
         Task { @MainActor in
             let context = WindowPowerSession.contextForMouseLocation()
+            gojoDebug("keybind \(action): mouse=\(NSEvent.mouseLocation) → screenUUID=\(context.screenUUID ?? "nil")")
             await WindowActionExecutor.shared.execute(
                 action,
                 screenUUID: context.screenUUID,

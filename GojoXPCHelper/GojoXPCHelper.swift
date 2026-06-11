@@ -10,6 +10,15 @@ import ApplicationServices
 import IOKit
 import CoreGraphics
 import AppKit
+import os.log
+
+/// Lightweight window-management diagnostics. Capture together with the main
+/// app's logs via:
+///   /usr/bin/log stream --predicate 'subsystem BEGINSWITH "rohoswagger.gojo"' --style compact
+private let gojoHelperDebugLog = OSLog(subsystem: "rohoswagger.gojo.helper", category: "debug")
+private func helperDebug(_ message: String) {
+    os_log("%{public}@", log: gojoHelperDebugLog, type: .default, "[GOJO-HELPER] " + message)
+}
 
 @_silgen_name("_AXUIElementGetWindow")
 private func _AXUIElementGetWindow(_ element: AXUIElement, _ identifier: UnsafeMutablePointer<CGWindowID>) -> AXError
@@ -94,6 +103,7 @@ class GojoXPCHelper: NSObject, GojoXPCHelperProtocol {
                   AXIsProcessTrusted(),
                   let frame = CGRect(dictionaryRepresentation: normalFrame as CFDictionary),
                   let app = self.targetApplication() else {
+                helperDebug("setFocusedWindowFrame: guard failed (untrusted, bad frame, or no target app)")
                 reply(false)
                 return
             }
@@ -103,11 +113,14 @@ class GojoXPCHelper: NSObject, GojoXPCHelperProtocol {
                 for: appElement,
                 preferredWindowID: windowID.map { CGWindowID(truncating: $0) }
             ) else {
+                helperDebug("setFocusedWindowFrame: no AX window for \(app.localizedName ?? "?") windowID=\(windowID.map(String.init(describing:)) ?? "nil")")
                 reply(false)
                 return
             }
 
-            reply(self.setAXFrame(frame.gojoHelperScreenFlipped, for: windowElement, pid: app.processIdentifier))
+            let result = self.setAXFrame(frame.gojoHelperScreenFlipped, for: windowElement, pid: app.processIdentifier)
+            helperDebug("setFocusedWindowFrame \(app.localizedName ?? "?") → \(result ? "ok" : "FAILED") frame=\(frame)")
+            reply(result)
         }
     }
 
@@ -116,6 +129,7 @@ class GojoXPCHelper: NSObject, GojoXPCHelperProtocol {
             guard let self,
                   AXIsProcessTrusted(),
                   let frame = CGRect(dictionaryRepresentation: normalFrame as CFDictionary) else {
+                helperDebug("setWindowFrame: guard failed (untrusted or bad frame)")
                 reply(false)
                 return
             }
@@ -125,10 +139,13 @@ class GojoXPCHelper: NSObject, GojoXPCHelperProtocol {
             let cgID = windowID.map { CGWindowID(truncating: $0) }
             guard let windowElement = self.windowElement(for: appElement, exactWindowID: cgID)
                 ?? self.bestWindowElement(for: appElement, preferredWindowID: cgID) else {
+                helperDebug("setWindowFrame: no AX window for pid=\(pidValue) windowID=\(cgID.map(String.init(describing:)) ?? "nil")")
                 reply(false)
                 return
             }
-            reply(self.setAXFrame(frame.gojoHelperScreenFlipped, for: windowElement, pid: pidValue))
+            let result = self.setAXFrame(frame.gojoHelperScreenFlipped, for: windowElement, pid: pidValue)
+            helperDebug("setWindowFrame pid=\(pidValue) windowID=\(cgID.map(String.init(describing:)) ?? "nil") → \(result ? "ok" : "FAILED") frame=\(frame)")
+            reply(result)
         }
     }
 
@@ -462,7 +479,14 @@ class GojoXPCHelper: NSObject, GojoXPCHelperProtocol {
             setBool(true, element: appElement, attribute: "AXEnhancedUserInterface")
         }
 
-        return firstSizeResult == .success && positionResult == .success && secondSizeResult == .success
+        let succeeded = firstSizeResult == .success && positionResult == .success && secondSizeResult == .success
+        if !succeeded {
+            // Per-attribute AX error codes (e.g. position=-25200 kAXErrorFailure on
+            // windows that refuse repositioning) — keep: this is the line that
+            // pinpoints why a move was rejected.
+            helperDebug("setAXFrame FAILED pid=\(pid) size1=\(firstSizeResult.rawValue) pos=\(positionResult.rawValue) size2=\(secondSizeResult.rawValue) enhancedUI=\(enhancedUIWasEnabled.map(String.init(describing:)) ?? "nil")")
+        }
+        return succeeded
     }
 
     private func copyElement(_ element: AXUIElement, attribute: String) -> AXUIElement? {

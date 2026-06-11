@@ -50,6 +50,12 @@ struct DynamicNotchApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    /// With @NSApplicationDelegateAdaptor, `NSApp.delegate` is a private SwiftUI
+    /// wrapper — `NSApp.delegate as? AppDelegate` fails. Anything that needs the
+    /// real delegate (e.g. WindowPowerSession routing for keyboard shortcuts)
+    /// must use this reference instead.
+    private(set) static weak var shared: AppDelegate?
+
     var statusItem: NSStatusItem?
     var windows: [String: NSWindow] = [:] // UUID -> NSWindow
     var viewModels: [String: GojoViewModel] = [:] // UUID -> GojoViewModel
@@ -281,6 +287,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        AppDelegate.shared = self
 
         NotificationCenter.default.addObserver(
             self,
