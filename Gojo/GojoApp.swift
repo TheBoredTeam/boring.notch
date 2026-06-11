@@ -16,6 +16,7 @@ import SwiftUI
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Default(.menubarIcon) var showMenuBarIcon
+    @Default(.fluxEnabled) var fluxEnabled
     @Environment(\.openWindow) var openWindow
 
     let updaterController: SPUStandardUpdaterController
@@ -37,6 +38,8 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)
+            Divider()
+            Toggle("Night Shift", isOn: $fluxEnabled)
             Divider()
             Button("Restart Gojo") {
                 ApplicationRelauncher.restart()
@@ -90,6 +93,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         MusicManager.shared.destroy()
         ClipboardStateViewModel.shared.stop()
+        FluxManager.shared.shutdown()
         cleanupDragDetectors()
         cleanupWindows()
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
@@ -452,6 +456,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupDragDetectors()
         ClipboardStateViewModel.shared.start()
+        FluxManager.shared.start()
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {

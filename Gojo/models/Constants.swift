@@ -195,6 +195,17 @@ extension Defaults.Keys {
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     
+    // MARK: Flux (night shift)
+    static let fluxEnabled = Key<Bool>("fluxEnabled", default: false)
+    static let fluxStartAtLogin = Key<Bool>("fluxStartAtLogin", default: false)
+    static let fluxShowInNotch = Key<Bool>("fluxShowInNotch", default: true)
+    static let fluxDayKelvin = Key<Double>("fluxDayKelvin", default: 6500)
+    static let fluxSunsetKelvin = Key<Double>("fluxSunsetKelvin", default: 3400)
+    static let fluxBedtimeKelvin = Key<Double>("fluxBedtimeKelvin", default: 2300)
+    static let fluxBedtimeMinutes = Key<Int>("fluxBedtimeMinutes", default: 23 * 60)
+    static let fluxWindDownMinutes = Key<Int>("fluxWindDownMinutes", default: 60)
+    static let fluxLocation = Key<FluxStoredLocation?>("fluxLocation", default: nil)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)

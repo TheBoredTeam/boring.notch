@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F1AC100000000000000000B8 /* FluxTemperatureEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1AC100000000000000000A8 /* FluxTemperatureEditor.swift */; };
+		F1AC100000000000000000B1 /* FluxColorMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1AC100000000000000000A1 /* FluxColorMath.swift */; };
+		F1AC100000000000000000B2 /* SolarCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1AC100000000000000000A2 /* SolarCalculator.swift */; };
+		F1AC100000000000000000B3 /* FluxSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1AC100000000000000000A3 /* FluxSchedule.swift */; };
+		F1AC100000000000000000B4 /* GammaController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1AC100000000000000000A4 /* GammaController.swift */; };
+		F1AC100000000000000000B5 /* FluxLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1AC100000000000000000A5 /* FluxLocationManager.swift */; };
+		F1AC100000000000000000B6 /* FluxManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1AC100000000000000000A6 /* FluxManager.swift */; };
+		F1AC100000000000000000B7 /* FluxSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1AC100000000000000000A7 /* FluxSettings.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -200,6 +208,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F1AC100000000000000000A8 /* FluxTemperatureEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxTemperatureEditor.swift; sourceTree = "<group>"; };
+		F1AC100000000000000000A1 /* FluxColorMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxColorMath.swift; sourceTree = "<group>"; };
+		F1AC100000000000000000A2 /* SolarCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolarCalculator.swift; sourceTree = "<group>"; };
+		F1AC100000000000000000A3 /* FluxSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxSchedule.swift; sourceTree = "<group>"; };
+		F1AC100000000000000000A4 /* GammaController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GammaController.swift; sourceTree = "<group>"; };
+		F1AC100000000000000000A5 /* FluxLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxLocationManager.swift; sourceTree = "<group>"; };
+		F1AC100000000000000000A6 /* FluxManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxManager.swift; sourceTree = "<group>"; };
+		F1AC100000000000000000A7 /* FluxSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxSettings.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -531,6 +547,7 @@
 				C2B000000000000000000002 /* Windows */,
 				149E0B982C737D26006418B1 /* Webcam */,
 				B18654312C6F45AE000B926A /* Live activities */,
+				F1AC1000000000000000000F /* Flux */,
 				B18654302C6F4590000B926A /* Settings */,
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
@@ -752,6 +769,21 @@
 				1471A8582C6281BD0058408D /* GojoWindow.swift */,
 			);
 			path = Notch;
+			sourceTree = "<group>";
+		};
+		F1AC1000000000000000000F /* Flux */ = {
+			isa = PBXGroup;
+			children = (
+				F1AC100000000000000000A1 /* FluxColorMath.swift */,
+				F1AC100000000000000000A2 /* SolarCalculator.swift */,
+				F1AC100000000000000000A3 /* FluxSchedule.swift */,
+				F1AC100000000000000000A4 /* GammaController.swift */,
+				F1AC100000000000000000A5 /* FluxLocationManager.swift */,
+				F1AC100000000000000000A6 /* FluxManager.swift */,
+				F1AC100000000000000000A7 /* FluxSettings.swift */,
+				F1AC100000000000000000A8 /* FluxTemperatureEditor.swift */,
+			);
+			path = Flux;
 			sourceTree = "<group>";
 		};
 		B18654302C6F4590000B926A /* Settings */ = {
@@ -1103,6 +1135,14 @@
 				B10F84A32C6C9596009F3026 /* TestView.swift in Sources */,
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
 				11C5E3162DFE88510065821E /* SettingsView.swift in Sources */,
+				F1AC100000000000000000B1 /* FluxColorMath.swift in Sources */,
+				F1AC100000000000000000B2 /* SolarCalculator.swift in Sources */,
+				F1AC100000000000000000B3 /* FluxSchedule.swift in Sources */,
+				F1AC100000000000000000B4 /* GammaController.swift in Sources */,
+				F1AC100000000000000000B5 /* FluxLocationManager.swift in Sources */,
+				F1AC100000000000000000B6 /* FluxManager.swift in Sources */,
+				F1AC100000000000000000B7 /* FluxSettings.swift in Sources */,
+				F1AC100000000000000000B8 /* FluxTemperatureEditor.swift in Sources */,
 				1153BD932D986E4300979FB0 /* AppleMusicController.swift in Sources */,
 				11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */,
 				110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */,

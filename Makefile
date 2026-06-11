@@ -1,4 +1,4 @@
-.PHONY: help build run stop restart smoke test-window test-window-ui test-window-focus release release-dry clean
+.PHONY: help build run stop restart smoke test-window test-window-ui test-window-focus test-flux release release-dry clean
 
 PROJECT := Gojo.xcodeproj
 SCHEME := Gojo
@@ -16,6 +16,7 @@ help:
 	@echo "  make test-window Run window management regression checks"
 	@echo "  make test-window-ui Run Windows tab UI regression checks"
 	@echo "  make test-window-focus Run focused-window provider regression checks"
+	@echo "  make test-flux   Run flux night shift regression checks"
 	@echo ""
 	@echo "Release:"
 	@echo "  make release VERSION=x.y.z      Cut a signed/notarized release (see RELEASING.md)"
@@ -76,6 +77,9 @@ test-window-ui:
 
 test-window-focus:
 	./tests/focused_window_provider_regression.sh
+
+test-flux:
+	./tests/flux_regression.sh
 
 clean:
 	rm -rf "$(DERIVED_DATA_PATH)"

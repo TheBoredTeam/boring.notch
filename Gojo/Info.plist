@@ -7,6 +7,10 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocationUsageDescription</key>
+	<string>Gojo uses your location to calculate local sunrise and sunset times for the night shift feature. It never leaves your Mac.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Gojo uses your location to calculate local sunrise and sunset times for the night shift feature. It never leaves your Mac.</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>

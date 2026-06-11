@@ -13,6 +13,8 @@ struct GojoHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = GojoViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+    @Default(.fluxEnabled) var fluxEnabled
+    @Default(.fluxShowInNotch) var fluxShowInNotch
     var body: some View {
         HStack(spacing: 0) {
             HStack {
@@ -53,6 +55,22 @@ struct GojoHeader: View {
                                     .overlay {
                                         Image(systemName: "web.camera")
                                             .foregroundColor(.white)
+                                            .padding()
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        if fluxShowInNotch {
+                            Button(action: {
+                                FluxManager.shared.toggle()
+                            }) {
+                                Capsule()
+                                    .fill(.black)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: fluxEnabled ? "moon.stars.fill" : "moon.stars")
+                                            .foregroundColor(fluxEnabled ? .orange : .white)
                                             .padding()
                                             .imageScale(.medium)
                                     }
