@@ -5,6 +5,7 @@
 //  Created by Hugo Persson on 2024-08-25.
 //
 
+import Defaults
 import SwiftUI
 
 struct TabModel: Identifiable {
@@ -14,13 +15,20 @@ struct TabModel: Identifiable {
     let view: NotchViews
 }
 
-let tabs = [
-    TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
-]
+var tabs: [TabModel] {
+    var items = [
+        TabModel(label: "Home", icon: "house.fill", view: .home),
+        TabModel(label: "Focus", icon: "timer", view: .pomodoro),
+    ]
+    if Defaults[.boringShelf] {
+        items.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
+    }
+    return items
+}
 
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.boringShelf) private var boringShelf
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {
@@ -47,6 +55,11 @@ struct TabSelectionView: View {
             }
         }
         .clipShape(Capsule())
+        .onChange(of: boringShelf) { _, isEnabled in
+            if !isEnabled, coordinator.currentView == .shelf {
+                coordinator.currentView = .home
+            }
+        }
     }
 }
 

@@ -16,7 +16,7 @@ struct BoringHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if shouldShowTabs {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -100,6 +100,10 @@ struct BoringHeader: View {
         }
         .foregroundColor(.gray)
         .environmentObject(vm)
+    }
+
+    private var shouldShowTabs: Bool {
+        vm.notchState == .open
     }
 
     func isHUDType(_ type: SneakContentType) -> Bool {

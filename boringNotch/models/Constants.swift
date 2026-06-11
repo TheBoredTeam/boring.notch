@@ -171,6 +171,14 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     
+    // MARK: Pomodoro
+    static let pomodoroDurationMinutes = Key<Int>("pomodoroDurationMinutes", default: 10)
+    static let pomodoroPlayAlarmSound = Key<Bool>("pomodoroPlayAlarmSound", default: true)
+    static let pomodoroAlarmSoundName = Key<String>(
+        "pomodoroAlarmSoundName",
+        default: SystemSoundPlayer.defaultSoundName
+    )
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)

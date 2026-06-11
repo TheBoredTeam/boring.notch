@@ -39,6 +39,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
                 }
+                NavigationLink(value: "Focus") {
+                    Label("Focus", systemImage: "timer")
+                }
                 NavigationLink(value: "HUD") {
                     Label("HUDs", systemImage: "dial.medium.fill")
                 }
@@ -79,6 +82,8 @@ struct SettingsView: View {
                     Media()
                 case "Calendar":
                     CalendarSettings()
+                case "Focus":
+                    PomodoroSettings()
                 case "HUD":
                     HUD()
                 case "Battery":
@@ -703,6 +708,61 @@ struct Media: View {
             return MediaControllerType.allCases.filter { $0 != .nowPlaying }
         } else {
             return MediaControllerType.allCases
+        }
+    }
+}
+
+struct PomodoroSettings: View {
+    @Default(.pomodoroPlayAlarmSound) private var playAlarmSound
+    @Default(.pomodoroAlarmSoundName) private var alarmSoundName
+    @State private var availableSounds: [String] = SystemSoundPlayer.availableSoundNames()
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .pomodoroPlayAlarmSound) {
+                    Text("Play sound when timer ends")
+                }
+            }
+
+            Section {
+                Picker("Alarm sound", selection: $alarmSoundName) {
+                    ForEach(availableSounds, id: \.self) { sound in
+                        Text(sound).tag(sound)
+                    }
+                }
+                .disabled(!playAlarmSound)
+
+                HStack {
+                    Button("Preview sound") {
+                        SystemSoundPlayer.play(soundName: alarmSoundName)
+                    }
+                    .disabled(!playAlarmSound)
+
+                    Spacer()
+
+                    Button("Open Sound Settings") {
+                        SystemSoundPlayer.openSoundSettings()
+                    }
+                }
+            } footer: {
+                Text(
+                    "Choose from macOS alert sounds. Sounds from System Settings → Sound appear here, including custom sounds saved to ~/Library/Sounds."
+                )
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Focus")
+        .onAppear {
+            refreshAvailableSounds()
+        }
+    }
+
+    private func refreshAvailableSounds() {
+        availableSounds = SystemSoundPlayer.availableSoundNames()
+        let resolved = SystemSoundPlayer.resolvedSoundName(alarmSoundName)
+        if resolved != alarmSoundName {
+            alarmSoundName = resolved
         }
     }
 }

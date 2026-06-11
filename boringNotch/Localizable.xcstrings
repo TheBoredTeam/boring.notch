@@ -901,6 +901,9 @@
         }
       }
     },
+    "%lld min" : {
+
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -2201,6 +2204,9 @@
           }
         }
       }
+    },
+    "Alarm sound" : {
+
     },
     "All-day" : {
       "localizations" : {
@@ -5001,6 +5007,9 @@
           }
         }
       }
+    },
+    "Choose from macOS alert sounds. Sounds from System Settings → Sound appear here, including custom sounds saved to ~/Library/Sounds." : {
+
     },
     "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately." : {
       "localizations" : {
@@ -7906,6 +7915,9 @@
         }
       }
     },
+    "Duration" : {
+
+    },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
       "localizations" : {
         "ar" : {
@@ -9607,6 +9619,9 @@
           }
         }
       }
+    },
+    "Focus" : {
+
     },
     "Full screen behavior" : {
       "localizations" : {
@@ -13709,6 +13724,9 @@
         }
       }
     },
+    "min" : {
+
+    },
     "Mirror" : {
       "localizations" : {
         "ar" : {
@@ -16010,6 +16028,9 @@
         }
       }
     },
+    "Open Sound Settings" : {
+
+    },
     "Option key behaviour" : {
       "localizations" : {
         "ar" : {
@@ -16210,6 +16231,9 @@
         }
       }
     },
+    "Play sound when timer ends" : {
+
+    },
     "Plugged In" : {
       "localizations" : {
         "ar" : {
@@ -16409,6 +16433,9 @@
           }
         }
       }
+    },
+    "Preview sound" : {
+
     },
     "Progress bar style" : {
       "localizations" : {
