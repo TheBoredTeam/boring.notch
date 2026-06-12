@@ -1,8 +1,27 @@
 import Foundation
 
+enum ClipboardItemKind: String, Codable {
+    case text
+    case image
+}
+
+struct ClipboardImagePayload: Codable, Equatable {
+    var fileName: String
+    var sha256: String
+    var pixelWidth: Int
+    var pixelHeight: Int
+    var byteCount: Int
+
+    var dimensionsLabel: String {
+        "\(pixelWidth) × \(pixelHeight)"
+    }
+}
+
 struct ClipboardItem: Identifiable, Codable, Equatable {
     let id: UUID
     var content: String
+    var kind: ClipboardItemKind
+    var image: ClipboardImagePayload?
     var firstCopiedAt: Date
     var lastCopiedAt: Date
     var copyCount: Int
@@ -14,6 +33,8 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
     init(
         id: UUID = UUID(),
         content: String,
+        kind: ClipboardItemKind = .text,
+        image: ClipboardImagePayload? = nil,
         firstCopiedAt: Date = Date(),
         lastCopiedAt: Date = Date(),
         copyCount: Int = 1,
@@ -24,6 +45,8 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
     ) {
         self.id = id
         self.content = content
+        self.kind = kind
+        self.image = image
         self.firstCopiedAt = firstCopiedAt
         self.lastCopiedAt = lastCopiedAt
         self.copyCount = copyCount
@@ -31,6 +54,22 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
         self.sourceBundleID = sourceBundleID
         self.isPinned = isPinned
         self.pinOrder = pinOrder
+    }
+
+    // History entries persisted before image support lack `kind`/`image`.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        content = try container.decode(String.self, forKey: .content)
+        kind = try container.decodeIfPresent(ClipboardItemKind.self, forKey: .kind) ?? .text
+        image = try container.decodeIfPresent(ClipboardImagePayload.self, forKey: .image)
+        firstCopiedAt = try container.decode(Date.self, forKey: .firstCopiedAt)
+        lastCopiedAt = try container.decode(Date.self, forKey: .lastCopiedAt)
+        copyCount = try container.decode(Int.self, forKey: .copyCount)
+        sourceAppName = try container.decodeIfPresent(String.self, forKey: .sourceAppName)
+        sourceBundleID = try container.decodeIfPresent(String.self, forKey: .sourceBundleID)
+        isPinned = try container.decode(Bool.self, forKey: .isPinned)
+        pinOrder = try container.decodeIfPresent(Int.self, forKey: .pinOrder)
     }
 
     var normalizedContent: String {
@@ -116,13 +155,21 @@ struct ClipboardCollection {
 
     mutating func registerCopy(
         content: String,
+        kind: ClipboardItemKind = .text,
+        image: ClipboardImagePayload? = nil,
         sourceAppName: String?,
         sourceBundleID: String?,
         at date: Date = Date()
     ) {
-        if let existingIndex = items.firstIndex(where: {
-            $0.content == content
-        }) {
+        let existingIndex: Int?
+        switch kind {
+        case .text:
+            existingIndex = items.firstIndex { $0.kind == .text && $0.content == content }
+        case .image:
+            existingIndex = items.firstIndex { $0.kind == .image && $0.image?.sha256 == image?.sha256 }
+        }
+
+        if let existingIndex {
             items[existingIndex].registerCopy(
                 sourceAppName: sourceAppName,
                 sourceBundleID: sourceBundleID,
@@ -132,6 +179,8 @@ struct ClipboardCollection {
             items.append(
                 ClipboardItem(
                     content: content,
+                    kind: kind,
+                    image: image,
                     firstCopiedAt: date,
                     lastCopiedAt: date,
                     sourceAppName: sourceAppName,

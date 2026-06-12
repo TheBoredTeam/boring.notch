@@ -65,6 +65,37 @@ struct ClipboardRegressionRunner {
         uiState.clearCopied(ifMatches: copiedID)
         assertCondition(uiState.copiedItemID == nil, "Copy feedback should clear when the matching row feedback expires")
 
+        var imageStore = ClipboardCollection(maxStoredItems: 10)
+        let payloadA = ClipboardImagePayload(fileName: "a.png", sha256: "hash-a", pixelWidth: 100, pixelHeight: 50, byteCount: 1234)
+        let payloadADuplicate = ClipboardImagePayload(fileName: "a2.png", sha256: "hash-a", pixelWidth: 100, pixelHeight: 50, byteCount: 1234)
+        let payloadB = ClipboardImagePayload(fileName: "b.png", sha256: "hash-b", pixelWidth: 64, pixelHeight: 64, byteCount: 999)
+
+        imageStore.registerCopy(content: "Image \(payloadA.dimensionsLabel)", kind: .image, image: payloadA, sourceAppName: "Shot", sourceBundleID: "shot", at: base)
+        imageStore.registerCopy(content: "Image \(payloadB.dimensionsLabel)", kind: .image, image: payloadB, sourceAppName: "Shot", sourceBundleID: "shot", at: base.addingTimeInterval(10))
+        assertCondition(imageStore.orderedItems.count == 2, "Distinct image hashes should create distinct entries")
+
+        imageStore.registerCopy(content: "Image \(payloadADuplicate.dimensionsLabel)", kind: .image, image: payloadADuplicate, sourceAppName: "Shot", sourceBundleID: "shot", at: base.addingTimeInterval(20))
+        assertCondition(imageStore.orderedItems.count == 2, "Same-hash image copies should dedupe")
+        let dedupedImage = imageStore.orderedItems.first(where: { $0.image?.sha256 == "hash-a" })!
+        assertCondition(dedupedImage.copyCount == 2, "Duplicate image copies should increment copy count")
+        assertCondition(dedupedImage.image?.fileName == "a.png", "Deduped image should keep the original stored file")
+
+        imageStore.registerCopy(content: "Image 100 × 50", sourceAppName: "Texter", sourceBundleID: "texter", at: base.addingTimeInterval(30))
+        assertCondition(imageStore.orderedItems.count == 3, "Text content matching an image label should not dedupe against the image")
+
+        let imageSearch = imageStore.filteredItems(matching: "image")
+        assertCondition(imageSearch.count == 3, "Image entries should be searchable by their generated label")
+
+        let legacyJSON = """
+        [{"id":"6F9619FF-8B86-D011-B42D-00C04FC964FF","content":"legacy","firstCopiedAt":"2026-01-01T00:00:00Z","lastCopiedAt":"2026-01-01T00:00:00Z","copyCount":1,"isPinned":false}]
+        """
+        let legacyDecoder = JSONDecoder()
+        legacyDecoder.dateDecodingStrategy = .iso8601
+        let legacyItems = try? legacyDecoder.decode([ClipboardItem].self, from: Data(legacyJSON.utf8))
+        assertCondition(legacyItems?.count == 1, "History entries persisted before image support should still decode")
+        assertCondition(legacyItems?.first?.kind == .text, "Legacy entries should default to the text kind")
+        assertCondition(legacyItems?.first?.image == nil, "Legacy entries should have no image payload")
+
         var limited = ClipboardCollection(maxStoredItems: 2)
         limited.registerCopy(content: "one", sourceAppName: nil, sourceBundleID: nil, at: base)
         limited.registerCopy(content: "two", sourceAppName: nil, sourceBundleID: nil, at: base.addingTimeInterval(10))

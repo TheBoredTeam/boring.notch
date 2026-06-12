@@ -153,8 +153,8 @@ struct ClipboardView: View {
                 .foregroundStyle(ClipboardTheme.secondaryText)
             Text(
                 clipboard.historyEnabled
-                ? "Copy text anywhere on macOS, then open Gojo to search and reuse it."
-                : "Enable it in Settings → Clipboard when you want Gojo to start storing copied text on this Mac."
+                ? "Copy text or images anywhere on macOS, then open Gojo to search and reuse them."
+                : "Enable it in Settings → Clipboard when you want Gojo to start storing copied content on this Mac."
             )
                 .font(.system(size: 11, weight: .regular, design: .rounded))
                 .foregroundStyle(ClipboardTheme.tertiaryText)
@@ -183,6 +183,16 @@ private struct ClipboardItemRow: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 6) {
+            if item.kind == .image, let payload = item.image {
+                ClipboardImageThumbnailView(payload: payload, maxPixelSize: 72)
+                    .frame(width: 28, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .stroke(ClipboardTheme.border, lineWidth: 1)
+                    )
+            }
+
             Text(item.previewLine.isEmpty ? item.normalizedContent : item.previewLine)
                 .font(.system(size: 11.5, weight: .medium, design: .rounded))
                 .foregroundStyle(.white)
@@ -280,6 +290,47 @@ private struct ClipboardItemRow: View {
                 )
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct ClipboardImageThumbnailView: View {
+    let payload: ClipboardImagePayload
+    let maxPixelSize: CGFloat
+    @State private var image: NSImage?
+
+    // Cache hits render on the first frame; only uncached thumbnails go
+    // through the async generation path.
+    private var resolvedImage: NSImage? {
+        image ?? ClipboardImageStore.shared.cachedThumbnail(named: payload.fileName, maxPixelSize: maxPixelSize)
+    }
+
+    var body: some View {
+        Group {
+            if let resolvedImage {
+                Image(nsImage: resolvedImage)
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+            } else {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Color.white.opacity(0.06))
+                    .overlay(
+                        Image(systemName: "photo")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(ClipboardTheme.tertiaryText)
+                    )
+            }
+        }
+        .task(id: "\(payload.fileName)#\(Int(maxPixelSize))") {
+            guard resolvedImage == nil else { return }
+            let fileName = payload.fileName
+            let size = maxPixelSize
+            let loaded = await Task.detached(priority: .utility) {
+                ClipboardImageStore.shared.thumbnail(named: fileName, maxPixelSize: size)
+            }.value
+            guard !Task.isCancelled, fileName == payload.fileName else { return }
+            image = loaded
+        }
     }
 }
 
@@ -483,15 +534,22 @@ private struct ClipboardHoverPreview: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: ClipboardPreviewLayout.sectionSpacing) {
-            ScrollView(.vertical, showsIndicators: true) {
-                Text(item.normalizedContent)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .lineSpacing(0.5)
-                    .padding(.bottom, 2)
+            if item.kind == .image, let payload = item.image {
+                ClipboardImageThumbnailView(payload: payload, maxPixelSize: ClipboardPreviewLayout.previewWidth * 2)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: ClipboardPreviewLayout.topContentHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            } else {
+                ScrollView(.vertical, showsIndicators: true) {
+                    Text(item.normalizedContent)
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .lineSpacing(0.5)
+                        .padding(.bottom, 2)
+                }
+                .frame(height: ClipboardPreviewLayout.topContentHeight, alignment: .top)
             }
-            .frame(height: ClipboardPreviewLayout.topContentHeight, alignment: .top)
 
             Rectangle()
                 .fill(Color.white.opacity(0.09))
@@ -516,6 +574,9 @@ private struct ClipboardHoverPreview: View {
                 HStack(spacing: 14) {
                     compactMetaInline(title: "Last copied", value: item.lastCopiedAt.formatted(date: .abbreviated, time: .shortened))
                     compactMetaInline(title: "Copies", value: "\(item.copyCount)")
+                    if let payload = item.image {
+                        compactMetaInline(title: "Size", value: "\(payload.dimensionsLabel) px")
+                    }
                     if item.isPinned {
                         compactMetaInline(title: "Pinned", value: "Yes")
                     }
