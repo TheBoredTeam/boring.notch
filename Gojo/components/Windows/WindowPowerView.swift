@@ -380,6 +380,16 @@ private struct IdentityRow: View {
                             .truncationMode(.tail)
                     }
                 }
+
+                // Errors get their own full-width line — squeezed next to the
+                // position label they truncate after a couple of words.
+                if state.statusKind == .error, !state.detail.isEmpty {
+                    Text(state.detail)
+                        .font(.system(size: 9.5, weight: .medium))
+                        .foregroundStyle(WindowsTabTheme.errorTint)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -406,7 +416,6 @@ private struct IdentityRow: View {
     private var secondaryDetail: String? {
         if let title = target?.title, !title.isEmpty { return title }
         if let title = state.windowTitle, !title.isEmpty { return title }
-        if state.statusKind == .error { return state.detail.isEmpty ? nil : state.detail }
         return nil
     }
 }

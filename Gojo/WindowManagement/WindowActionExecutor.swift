@@ -183,6 +183,7 @@ final class WindowActionExecutor {
         NSRunningApplication(processIdentifier: target.pid)?.activate(options: [])
 
         let success: Bool
+        var appliedFrame: CGRect?
         if action == .zoom {
             success = await XPCHelperClient.shared.performZoom(pid: target.pid, windowID: target.windowID)
         } else {
@@ -198,6 +199,7 @@ final class WindowActionExecutor {
                 pid: target.pid,
                 windowID: target.windowID
             )
+            appliedFrame = targetFrame
         }
 
         guard success else {
@@ -216,6 +218,29 @@ final class WindowActionExecutor {
         state.preview = WindowLayoutPreview(action: action)
         state.statusKind = .success
 
+        // Patch the target's stage-strip summary in place too: the identity row and
+        // chips read `target.currentAction`, and CGWindowList lags the AX move by a
+        // beat — an immediate re-enumeration would report the old position and the
+        // readout would stay stale until the next interaction.
+        if let index = state.windows.firstIndex(where: { $0.id == target.id }) {
+            let old = state.windows[index]
+            state.windows[index] = WindowSummary(
+                id: old.id,
+                pid: old.pid,
+                windowID: old.windowID,
+                appName: old.appName,
+                bundleIdentifier: old.bundleIdentifier,
+                icon: old.icon,
+                title: old.title,
+                normalFrame: appliedFrame ?? old.normalFrame,
+                currentAction: action.isFrameBased ? action : old.currentAction
+            )
+        }
+
+        // Give the window server a beat before reconciling, so the refreshed
+        // enumeration reflects the move instead of overwriting the patch above
+        // with the pre-move frame.
+        try? await Task.sleep(for: .milliseconds(250))
         await refreshWindowList(state: state, focusedWindow: nil, screen: notchScreen)
     }
 
