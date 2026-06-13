@@ -7,6 +7,7 @@
 import AppKit
 import Combine
 import Defaults
+import Observation
 import SwiftUI
 
 let defaultImage: NSImage = .init(
@@ -14,12 +15,12 @@ let defaultImage: NSImage = .init(
     accessibilityDescription: "Album Art"
 )!
 
-class MusicManager: ObservableObject {
+@Observable class MusicManager {
     // MARK: - Properties
     static let shared = MusicManager()
-    private var cancellables = Set<AnyCancellable>()
-    private var controllerCancellables = Set<AnyCancellable>()
-    private var debounceIdleTask: Task<Void, Never>?
+    @ObservationIgnored private var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored private var controllerCancellables = Set<AnyCancellable>()
+    @ObservationIgnored private var debounceIdleTask: Task<Void, Never>?
 
     // Helper to check if macOS has removed support for NowPlayingController
     public private(set) var isNowPlayingDeprecated: Bool = false
@@ -28,31 +29,31 @@ class MusicManager: ObservableObject {
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
 
-    // Published properties for UI
-    @Published var songTitle: String = "I'm Handsome"
-    @Published var artistName: String = "Me"
-    @Published var albumArt: NSImage = defaultImage
-    @Published var isPlaying = false
-    @Published var album: String = "Self Love"
-    @Published var isPlayerIdle: Bool = true
-    @Published var animations: BoringAnimations = .init()
-    @Published var avgColor: NSColor = .white
-    @Published var bundleIdentifier: String? = nil
-    @Published var songDuration: TimeInterval = 0
-    @Published var elapsedTime: TimeInterval = 0
-    @Published var timestampDate: Date = .init()
-    @Published var playbackRate: Double = 1
-    @Published var isShuffled: Bool = false
-    @Published var repeatMode: RepeatMode = .off
-    @Published var volume: Double = 0.5
-    @Published var volumeControlSupported: Bool = true
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @Published var usingAppIconForArtwork: Bool = false
-    @Published var currentLyrics: String = ""
-    @Published var isFetchingLyrics: Bool = false
-    @Published var syncedLyrics: [(time: Double, text: String)] = []
-    @Published var canFavoriteTrack: Bool = false
-    @Published var isFavoriteTrack: Bool = false
+    // UI-facing properties (observed by SwiftUI via @Observable)
+    var songTitle: String = "I'm Handsome"
+    var artistName: String = "Me"
+    var albumArt: NSImage = defaultImage
+    var isPlaying = false
+    var album: String = "Self Love"
+    var isPlayerIdle: Bool = true
+    var animations: BoringAnimations = .init()
+    var avgColor: NSColor = .white
+    var bundleIdentifier: String? = nil
+    var songDuration: TimeInterval = 0
+    var elapsedTime: TimeInterval = 0
+    var timestampDate: Date = .init()
+    var playbackRate: Double = 1
+    var isShuffled: Bool = false
+    var repeatMode: RepeatMode = .off
+    var volume: Double = 0.5
+    var volumeControlSupported: Bool = true
+    @ObservationIgnored let coordinator = BoringViewCoordinator.shared
+    var usingAppIconForArtwork: Bool = false
+    var currentLyrics: String = ""
+    var isFetchingLyrics: Bool = false
+    var syncedLyrics: [(time: Double, text: String)] = []
+    var canFavoriteTrack: Bool = false
+    var isFavoriteTrack: Bool = false
 
     private var artworkData: Data? = nil
 
@@ -62,11 +63,11 @@ class MusicManager: ObservableObject {
     private var lastArtworkAlbum: String = "Self Love"
     private var lastArtworkBundleIdentifier: String? = nil
 
-    @Published var isFlipping: Bool = false
-    private var flipWorkItem: DispatchWorkItem?
+    var isFlipping: Bool = false
+    @ObservationIgnored private var flipWorkItem: DispatchWorkItem?
 
-    @Published var isTransitioning: Bool = false
-    private var transitionWorkItem: DispatchWorkItem?
+    var isTransitioning: Bool = false
+    @ObservationIgnored private var transitionWorkItem: DispatchWorkItem?
 
     // MARK: - Initialization
     init() {
@@ -140,7 +141,14 @@ class MusicManager: ObservableObject {
                 .sink { [weak self] state in
                     guard let self = self,
                           self.activeController === controller else { return }
-                    self.updateFromPlaybackState(state)
+                    // .receive(on: DispatchQueue.main) guarantees main-thread delivery
+                    // at runtime, but doesn't satisfy Swift's static @MainActor check.
+                    // Wrap in Task @MainActor to make the isolation explicit.
+                    Task { @MainActor [weak self] in
+                        guard let self = self,
+                              self.activeController === controller else { return }
+                        self.updateFromPlaybackState(state)
+                    }
                 }
                 .store(in: &controllerCancellables)
         }
@@ -582,6 +590,7 @@ class MusicManager: ObservableObject {
         }
     }
 
+    @MainActor
     private func updateSneakPeek() {
         if isPlaying && Defaults[.enableSneakPeek] {
             if Defaults[.sneakPeekStyles] == .standard {

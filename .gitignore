@@ -53,3 +53,5 @@ build/
 *.xcarchive
 *.dSYM
 
+# Others
+graphify-out/

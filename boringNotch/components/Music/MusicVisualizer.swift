@@ -116,6 +116,11 @@ struct AudioSpectrumView: NSViewRepresentable {
     func updateNSView(_ nsView: AudioSpectrum, context: Context) {
         nsView.setPlaying(isPlaying)
     }
+
+    static func dismantleNSView(_ nsView: AudioSpectrum, coordinator: ()) {
+        // Stop the repeating animation timer so it doesn't outlive the view on the run loop.
+        nsView.setPlaying(false)
+    }
 }
 
 #Preview {

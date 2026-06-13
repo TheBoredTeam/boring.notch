@@ -25,10 +25,24 @@ final class VolumeManager: NSObject, ObservableObject {
     private var previousVolumeBeforeMute: Float32 = 0.2
     private var softwareMuted: Bool = false
 
+    // Registered CoreAudio property listeners, retained so they can be removed.
+    // Without this, AudioObjectAddPropertyListenerBlock registrations leak for the
+    // process lifetime and their blocks strongly capture self.
+    private struct AudioListenerRegistration {
+        let objectID: AudioObjectID
+        var address: AudioObjectPropertyAddress
+        let block: AudioObjectPropertyListenerBlock
+    }
+    private var audioListeners: [AudioListenerRegistration] = []
+
     private override init() {
         super.init()
         setupAudioListener()
         fetchCurrentVolume()
+    }
+
+    deinit {
+        removeAudioListeners()
     }
 
     var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
@@ -178,11 +192,7 @@ final class VolumeManager: NSObject, ObservableObject {
             mScope: kAudioObjectPropertyScopeGlobal,
             mElement: kAudioObjectPropertyElementMain
         )
-        AudioObjectAddPropertyListenerBlock(
-            AudioObjectID(kAudioObjectSystemObject), &defaultDevAddr, nil
-        ) { _, _ in
-            self.fetchCurrentVolume()
-        }
+        addAudioListener(objectID: AudioObjectID(kAudioObjectSystemObject), address: &defaultDevAddr)
 
         var masterAddr = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyVolumeScalar,
@@ -190,9 +200,7 @@ final class VolumeManager: NSObject, ObservableObject {
             mElement: kAudioObjectPropertyElementMain
         )
         if AudioObjectHasProperty(deviceID, &masterAddr) {
-            AudioObjectAddPropertyListenerBlock(deviceID, &masterAddr, nil) { _, _ in
-                self.fetchCurrentVolume()
-            }
+            addAudioListener(objectID: deviceID, address: &masterAddr)
         } else {
             for ch in [UInt32(1), UInt32(2)] {
                 var chAddr = AudioObjectPropertyAddress(
@@ -201,9 +209,7 @@ final class VolumeManager: NSObject, ObservableObject {
                     mElement: ch
                 )
                 if AudioObjectHasProperty(deviceID, &chAddr) {
-                    AudioObjectAddPropertyListenerBlock(deviceID, &chAddr, nil) { _, _ in
-                        self.fetchCurrentVolume()
-                    }
+                    addAudioListener(objectID: deviceID, address: &chAddr)
                 }
             }
         }
@@ -215,10 +221,26 @@ final class VolumeManager: NSObject, ObservableObject {
             mElement: kAudioObjectPropertyElementMain
         )
         if AudioObjectHasProperty(deviceID, &muteAddr) {
-            AudioObjectAddPropertyListenerBlock(deviceID, &muteAddr, nil) { _, _ in
-                self.fetchCurrentVolume()
-            }
+            addAudioListener(objectID: deviceID, address: &muteAddr)
         }
+    }
+
+    /// Registers a CoreAudio property listener and retains it so it can be removed later.
+    private func addAudioListener(objectID: AudioObjectID, address: inout AudioObjectPropertyAddress) {
+        let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+            self?.fetchCurrentVolume()
+        }
+        let status = AudioObjectAddPropertyListenerBlock(objectID, &address, nil, block)
+        guard status == noErr else { return }
+        audioListeners.append(AudioListenerRegistration(objectID: objectID, address: address, block: block))
+    }
+
+    private func removeAudioListeners() {
+        for var listener in audioListeners {
+            AudioObjectRemovePropertyListenerBlock(
+                listener.objectID, &listener.address, nil, listener.block)
+        }
+        audioListeners.removeAll()
     }
 
     private func readVolumeInternal() -> Float32? {
