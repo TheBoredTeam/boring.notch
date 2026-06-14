@@ -29,6 +29,9 @@ struct Appearance: View {
                 Defaults.Toggle(key: .settingsIconInNotch) {
                     Text("Show settings icon in notch")
                 }
+                Defaults.Toggle(key: .showCapsLockIndicator) {
+                    Text("Show caps lock indicator in notch")
+                }
 
             } header: {
                 Text("General")
