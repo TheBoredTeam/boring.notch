@@ -1368,7 +1368,7 @@ struct Appearance: View {
                 }
             } header: {
                 HStack(spacing: 0) {
-                    Text("Custom vizualizers (Lottie)")
+                    Text("Custom visualizers (Lottie)")
                     if !Defaults[.customVisualizers].isEmpty {
                         Text(" – \(Defaults[.customVisualizers].count)")
                             .foregroundStyle(.secondary)
