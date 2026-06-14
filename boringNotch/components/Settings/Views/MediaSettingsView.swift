@@ -15,6 +15,7 @@ struct Media: View {
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
+    @Default(.albumArtDisplayMode) var albumArtDisplayMode
 
     @Default(.enableLyrics) var enableLyrics
 
@@ -75,6 +76,11 @@ struct Media: View {
                             Text("\(Defaults[.waitInterval], specifier: "%.0f") seconds")
                                 .foregroundStyle(.secondary)
                         }
+                    }
+                }
+                Picker("Album art display", selection: $albumArtDisplayMode) {
+                    ForEach(AlbumArtDisplayMode.allCases) { mode in
+                        Text(mode.localizedString).tag(mode)
                     }
                 }
                 Picker(
