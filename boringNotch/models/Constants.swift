@@ -19,6 +19,25 @@ let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as
 let temporaryDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
 let spacing: CGFloat = 16
 
+struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
+    let UUID: UUID
+    var name: String
+    var url: URL
+    var speed: CGFloat = 1.0
+}
+
+struct BluetoothDeviceIconMapping: Codable, Hashable, Equatable, Defaults.Serializable {
+    let UUID: UUID
+    var deviceName: String
+    var sfSymbolName: String
+    
+    init(UUID: UUID = Foundation.UUID(), deviceName: String, sfSymbolName: String) {
+        self.UUID = UUID
+        self.deviceName = deviceName
+        self.sfSymbolName = sfSymbolName
+    }
+}
+
 enum CalendarSelectionState: Codable, Defaults.Serializable {
     case all
     case selected(Set<String>)
@@ -333,6 +352,11 @@ extension Defaults.Keys {
     static let hideNonNotchedFromMissionControl = Key<Bool>("hideNonNotchedFromMissionControl", default: true)
     // Normalize scroll/gesture direction so when macOS "Natural scrolling" is disabled, it doesn't invert gestures
     static let normalizeGestureDirection = Key<Bool>("normalizeGestureDirection", default: true)
+    
+    // MARK: Bluetooth
+    static let bluetoothDeviceIconMappings = Key<[BluetoothDeviceIconMapping]>("bluetoothDeviceIconMappings", default: [])
+    static let enableBluetoothSneakPeek = Key<Bool>("enableBluetoothSneakPeek", default: false)
+    static let bluetoothSneakPeekStyle = Key<SneakPeekStyle>("bluetoothSneakPeekStyle", default: .standard)
     
     // Helper to determine the default media controller based on NowPlaying deprecation status
     static var defaultMediaController: MediaControllerType {

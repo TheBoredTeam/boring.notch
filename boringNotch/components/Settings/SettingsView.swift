@@ -9,6 +9,10 @@ import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
+private enum SettingsSidebarLayout {
+    static let assetTabIconLength: CGFloat = 16
+}
+
 private enum SettingsTab: String, CaseIterable, Identifiable {
     case general
     case appearance
@@ -16,6 +20,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case calendar
     case osd
     case battery
+    case bluetooth
     case shelf
     case mirror
     case shortcuts
@@ -32,6 +37,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .calendar: "Calendar"
         case .osd: "OSD"
         case .battery: "Battery"
+        case .bluetooth: "Bluetooth"
         case .shelf: "Shelf"
         case .mirror: "Mirror"
         case .shortcuts: "Shortcuts"
@@ -48,11 +54,19 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .calendar: "calendar"
         case .osd: "dial.medium.fill"
         case .battery: "battery.100.bolt"
+        case .bluetooth: "circle"
         case .shelf: "books.vertical"
         case .mirror: "camera"
         case .shortcuts: "keyboard"
         case .advanced: "gearshape.2"
         case .about: "info.circle"
+        }
+    }
+    
+    var resourceImage: String? {
+        switch self {
+        case .bluetooth: return "bluetooth"
+        default: return nil
         }
     }
 }
@@ -71,8 +85,24 @@ struct SettingsView: View {
         NavigationSplitView {
             List(selection: $selectedTab) {
                 ForEach(SettingsTab.allCases) { tab in
-                    Label(tab.title, systemImage: tab.systemImage)
+                    if let assetImageName = tab.resourceImage {
+                        Label {
+                            Text(tab.title)
+                        } icon: {
+                            Image(assetImageName)
+                                .resizable()
+                                .renderingMode(.template)
+                                .aspectRatio(contentMode: .fit)
+                                .frame(
+                                    width: SettingsSidebarLayout.assetTabIconLength,
+                                    height: SettingsSidebarLayout.assetTabIconLength
+                                )
+                        }
                         .tag(tab)
+                    } else {
+                        Label(tab.title, systemImage: tab.systemImage)
+                            .tag(tab)
+                    }
                 }
             }
             .listStyle(SidebarListStyle())
@@ -94,6 +124,8 @@ struct SettingsView: View {
                     OSDSettings()
                 case .battery:
                     Charge()
+                case .bluetooth:
+                    BluetoothSettings()
                 case .shelf:
                     Shelf()
                 case .mirror:
@@ -135,3 +167,4 @@ struct SettingsView: View {
         }
     }
 }
+
