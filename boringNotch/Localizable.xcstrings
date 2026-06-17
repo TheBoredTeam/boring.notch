@@ -25574,6 +25574,50 @@
         }
       }
     },
+    "Week starts on" : {
+      "comment" : "Calendar setting: which weekday the week strip starts on",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week starts on"
+          }
+        }
+      }
+    },
+    "Monday" : {
+      "comment" : "Week starts on: Monday",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monday"
+          }
+        }
+      }
+    },
+    "Sunday" : {
+      "comment" : "Week starts on: Sunday",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunday"
+          }
+        }
+      }
+    },
+    "Weekly view" : {
+      "comment" : "Calendar setting: show one week at a time instead of the scrolling day dial",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly view"
+          }
+        }
+      }
+    },
     "Welcome" : {
       "localizations" : {
         "cs" : {
