@@ -14,12 +14,12 @@ struct PomodoroView: View {
     private let presets: [Int] = [15, 25, 45, 60]
 
     var body: some View {
-        HStack(alignment: .top, spacing: 24) {
+        HStack(alignment: .center, spacing: 24) {
             ringTimer
             rightPanel
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 
@@ -47,7 +47,7 @@ struct PomodoroView: View {
 
             VStack(spacing: 3) {
                 Text(timeString)
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundColor(.white)
                 Text(pomodoro.phase.label.uppercased())
@@ -56,7 +56,7 @@ struct PomodoroView: View {
                     .foregroundColor(phaseColor)
             }
         }
-        .frame(width: 148, height: 148)
+        .frame(width: 132, height: 132)
     }
 
     // MARK: - Right panel
