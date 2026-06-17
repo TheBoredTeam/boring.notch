@@ -14,12 +14,13 @@ struct PomodoroView: View {
     private let presets: [Int] = [15, 25, 45, 60]
 
     var body: some View {
-        HStack(alignment: .center, spacing: 24) {
+        HStack(alignment: .center, spacing: 22) {
             ringTimer
             rightPanel
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 
@@ -56,13 +57,13 @@ struct PomodoroView: View {
                     .foregroundColor(phaseColor)
             }
         }
-        .frame(width: 132, height: 132)
+        .frame(width: 124, height: 124)
     }
 
     // MARK: - Right panel
 
     private var rightPanel: some View {
-        VStack(alignment: .leading, spacing: 11) {
+        VStack(alignment: .leading, spacing: 9) {
             roundRow
             controls
             presetSection
@@ -70,7 +71,6 @@ struct PomodoroView: View {
             statsRow
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .padding(.vertical, 2)
     }
 
     // MARK: - Round indicator

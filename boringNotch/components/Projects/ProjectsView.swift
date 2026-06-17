@@ -32,24 +32,17 @@ struct ProjectsView: View {
             }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     // MARK: - Header
+    // Action buttons sit on the LEFT, clear of the camera/notch cutout; the
+    // label and running count sit on the right.
 
     private var header: some View {
-        HStack {
-            Text("PROJECTS")
-                .font(.system(size: 9, weight: .heavy))
-                .tracking(1.6)
-                .foregroundColor(.white.opacity(0.4))
-            if manager.runningIDs.count > 0 {
-                Text("\(manager.runningIDs.count) running")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(Color(red: 0.4, green: 0.85, blue: 0.6))
-            }
-            Spacer()
+        HStack(spacing: 8) {
             Button(action: addProject) {
                 HStack(spacing: 4) {
                     Image(systemName: "plus")
@@ -63,6 +56,34 @@ struct ProjectsView: View {
                 .background(Capsule().fill(Color.white.opacity(0.1)))
             }
             .buttonStyle(.plain)
+
+            if !manager.runningIDs.isEmpty {
+                Button(action: { manager.stopAll() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "stop.fill")
+                            .font(.system(size: 8, weight: .bold))
+                        Text("Stop All")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 9)
+                    .frame(height: 22)
+                    .background(Capsule().fill(Color(red: 1, green: 0.42, blue: 0.42)))
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer()
+
+            if !manager.runningIDs.isEmpty {
+                Text("\(manager.runningIDs.count) running")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(Color(red: 0.4, green: 0.85, blue: 0.6))
+            }
+            Text("PROJECTS")
+                .font(.system(size: 9, weight: .heavy))
+                .tracking(1.6)
+                .foregroundColor(.white.opacity(0.4))
         }
     }
 
