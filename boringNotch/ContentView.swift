@@ -462,18 +462,14 @@ struct ContentView: View {
 
             HStack {
                 if useMusicVisualizer {
-                    Rectangle()
-                        .fill(
-                            Defaults[.coloredSpectrogram]
-                                ? Color(nsColor: musicManager.avgColor).gradient
-                                : Color.gray.gradient
-                        )
-                        .frame(width: 50, alignment: .center)
-                        .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
-                        .mask {
-                            AudioSpectrumView(isPlaying: $musicManager.isPlaying)
-                                .frame(width: 16, height: 12)
-                        }
+                    CustomMusicVisualizer(
+                        isPlaying: musicManager.isPlaying,
+                        color: Defaults[.coloredSpectrogram]
+                            ? Color(nsColor: musicManager.avgColor)
+                            : Color.gray
+                    )
+                    .frame(width: 22, height: 13, alignment: .center)
+                    .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
                 } else {
                     LottieAnimationContainer()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

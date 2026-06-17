@@ -155,6 +155,7 @@
 		CA6DC1B51E2D887074C951EA /* ProjectsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F21D0137306D5CAA68009B0 /* ProjectsSettings.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 		FA262BA1D3C5A89C3C2638FF /* MemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81FF3E936C251918CD59C9DA /* MemoryView.swift */; };
+		FABC359A768C7093CC4ADFB9 /* CustomMusicVisualizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174561B3AF24DF42758193FF /* CustomMusicVisualizer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -288,6 +289,7 @@
 		14E9FEA92C70BF610062E83F /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
+		174561B3AF24DF42758193FF /* CustomMusicVisualizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomMusicVisualizer.swift; sourceTree = "<group>"; };
 		1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemView.swift; sourceTree = "<group>"; };
 		1F21D0137306D5CAA68009B0 /* ProjectsSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsSettings.swift; sourceTree = "<group>"; };
 		29F3F99672137267B53DD7B9 /* ProjectsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsView.swift; sourceTree = "<group>"; };
@@ -769,6 +771,7 @@
 			children = (
 				B19424082CD0FEFE003E5DC2 /* LottieAnimationView.swift */,
 				147163972C5D35B70068B555 /* MusicVisualizer.swift */,
+				174561B3AF24DF42758193FF /* CustomMusicVisualizer.swift */,
 			);
 			path = Music;
 			sourceTree = "<group>";
@@ -1114,6 +1117,7 @@
 				48EDDF82BC09FACAEC7441A6 /* ProjectsView.swift in Sources */,
 				CA6DC1B51E2D887074C951EA /* ProjectsSettings.swift in Sources */,
 				716B581F40693DCC4D0EF5F2 /* ProjectsManager.swift in Sources */,
+				FABC359A768C7093CC4ADFB9 /* CustomMusicVisualizer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
