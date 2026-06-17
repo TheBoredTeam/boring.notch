@@ -14,14 +14,13 @@ struct PomodoroView: View {
     private let presets: [Int] = [15, 25, 45, 60]
 
     var body: some View {
-        HStack(spacing: 26) {
+        HStack(alignment: .top, spacing: 24) {
             ringTimer
             rightPanel
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .transition(.opacity)
     }
 
     // MARK: - Ring
@@ -200,6 +199,64 @@ struct PomodoroView: View {
 
     private var timeString: String {
         let total = Int(pomodoro.timeRemaining)
+        let m = total / 60
+        let s = total % 60
+        return String(format: "%02d:%02d", m, s)
+    }
+}
+
+struct PomodoroLiveActivity: View {
+    @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var pomodoroManager = PomodoroManager.shared
+
+    var body: some View {
+        HStack {
+            // Left Side: Small Ring
+            ZStack {
+                Circle()
+                    .stroke(Color.white.opacity(0.1), lineWidth: 3)
+                Circle()
+                    .trim(from: 0, to: pomodoroManager.progress)
+                    .stroke(phaseColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.linear(duration: 0.5), value: pomodoroManager.progress)
+            }
+            .frame(
+                width: max(0, vm.effectiveClosedNotchHeight - 12),
+                height: max(0, vm.effectiveClosedNotchHeight - 12)
+            )
+
+            // Middle: Notch Space
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width + -cornerRadiusInsets.closed.top)
+
+            // Right Side: Timer Text
+            HStack {
+                Text(timeString)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundColor(phaseColor)
+            }
+            .frame(
+                width: max(0, vm.effectiveClosedNotchHeight - 12 + 20),
+                height: max(0, vm.effectiveClosedNotchHeight - 12),
+                alignment: .center
+            )
+        }
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+    }
+
+    private var phaseColor: Color {
+        switch pomodoroManager.phase {
+        case .work: return Color(red: 1, green: 0.42, blue: 0.42)
+        case .shortBreak: return Color(red: 0.4, green: 0.85, blue: 0.6)
+        case .longBreak: return Color(red: 0.42, green: 0.7, blue: 1)
+        }
+    }
+
+    private var timeString: String {
+        let total = Int(pomodoroManager.timeRemaining)
         let m = total / 60
         let s = total % 60
         return String(format: "%02d:%02d", m, s)

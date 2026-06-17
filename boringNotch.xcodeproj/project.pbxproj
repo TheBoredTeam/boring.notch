@@ -111,7 +111,12 @@
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
 		59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D8C23B2E589FAA00147B33 /* VolumeManager.swift */; };
+		5A7C6B113DC89869F71803E0 /* MemoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6988A981DDAD437841B7A71A /* MemoryManager.swift */; };
+		A1B2C3D4E5F67890 /* PortsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5067890 /* PortsManager.swift */; };
+		A1B2C3D4E5F67891 /* PortsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5067891 /* PortsView.swift */; };
+		71980B7B8371C3B2829C83E0 /* SystemSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCACB07F929AA59722446183 /* SystemSettingsView.swift */; };
 		893DF55748FD19AC3A0A89A3 /* FocusSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AB72EF17BBA3BB52FD9C93 /* FocusSettings.swift */; };
+		8C2D40FBB08E36EEAED679EA /* SystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */; };
 		981523F7EB0159C5136D74BE /* PomodoroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90E47CC6320420C9B243B732 /* PomodoroView.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
@@ -146,6 +151,7 @@
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		FA262BA1D3C5A89C3C2638FF /* MemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81FF3E936C251918CD59C9DA /* MemoryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -279,10 +285,15 @@
 		14E9FEA92C70BF610062E83F /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
+		1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemView.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5067890 /* PortsManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortsManager.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5067891 /* PortsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortsView.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
+		6988A981DDAD437841B7A71A /* MemoryManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryManager.swift; sourceTree = "<group>"; };
+		81FF3E936C251918CD59C9DA /* MemoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryView.swift; sourceTree = "<group>"; };
 		90E47CC6320420C9B243B732 /* PomodoroView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroView.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
@@ -313,6 +324,7 @@
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		DCACB07F929AA59722446183 /* SystemSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemSettingsView.swift; sourceTree = "<group>"; };
 		DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -531,6 +543,7 @@
 				507266DA2C908E2E00A2D00D /* HoverButton.swift */,
 				B1F747F82EC7E94000F841DB /* LottieView.swift */,
 				3C991EFD049A7D022000C730 /* Pomodoro */,
+				B890BF6CCF977277217EB3B1 /* System */,
 			);
 			path = components;
 			sourceTree = "<group>";
@@ -547,6 +560,8 @@
 				B1F0A0012E60000100000001 /* BrightnessManager.swift */,
 				59D8C23B2E589FAA00147B33 /* VolumeManager.swift */,
 				DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */,
+				6988A981DDAD437841B7A71A /* MemoryManager.swift */,
+				B1C2D3E4F5067890 /* PortsManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -794,6 +809,18 @@
 				B1C4489A2C97376A001F0858 /* TipStore.swift */,
 			);
 			path = Tips;
+			sourceTree = "<group>";
+		};
+		B890BF6CCF977277217EB3B1 /* System */ = {
+			isa = PBXGroup;
+			children = (
+				1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */,
+				B1C2D3E4F5067891 /* PortsView.swift */,
+				81FF3E936C251918CD59C9DA /* MemoryView.swift */,
+				DCACB07F929AA59722446183 /* SystemSettingsView.swift */,
+			);
+			name = System;
+			path = System;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1060,6 +1087,12 @@
 				2FB4B31162507C68195D6731 /* PomodoroManager.swift in Sources */,
 				981523F7EB0159C5136D74BE /* PomodoroView.swift in Sources */,
 				893DF55748FD19AC3A0A89A3 /* FocusSettings.swift in Sources */,
+				8C2D40FBB08E36EEAED679EA /* SystemView.swift in Sources */,
+				FA262BA1D3C5A89C3C2638FF /* MemoryView.swift in Sources */,
+				71980B7B8371C3B2829C83E0 /* SystemSettingsView.swift in Sources */,
+				5A7C6B113DC89869F71803E0 /* MemoryManager.swift in Sources */,
+				A1B2C3D4E5F67890 /* PortsManager.swift in Sources */,
+				A1B2C3D4E5F67891 /* PortsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
