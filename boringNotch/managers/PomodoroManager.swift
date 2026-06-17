@@ -43,6 +43,7 @@ class PomodoroManager: ObservableObject {
     @Published var todayFocusSeconds: Double = 0
 
     private var timer: Timer?
+    private var endDate: Date?
     private var cancellables = Set<AnyCancellable>()
 
     private init() {
@@ -90,19 +91,33 @@ class PomodoroManager: ObservableObject {
     }
 
     func start() {
+        guard !isRunning else { return }
         isRunning = true
         if phase == .work { setDND(true) }
-        let t = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+        // Anchor to wall-clock time so the countdown stays accurate regardless
+        // of how often (or how many times) the timer fires.
+        endDate = Date().addingTimeInterval(timeRemaining)
+        startTimer()
+    }
+
+    private func startTimer() {
+        timer?.invalidate()
+        let t = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in self?.tick() }
         }
         RunLoop.main.add(t, forMode: .common)
         timer = t
     }
 
-    func pause() {
-        isRunning = false
+    private func stopTimer() {
         timer?.invalidate()
         timer = nil
+        endDate = nil
+    }
+
+    func pause() {
+        isRunning = false
+        stopTimer()
         setDND(false)
     }
 
@@ -113,24 +128,30 @@ class PomodoroManager: ObservableObject {
 
     func skip() {
         pause()
-        advance()
+        // Manual skip doesn't credit focus time toward stats.
+        advance(credit: false)
     }
 
     private func tick() {
-        guard timeRemaining > 0 else {
-            advance()
+        guard let endDate else { return }
+        let remaining = endDate.timeIntervalSinceNow
+        if remaining <= 0 {
+            timeRemaining = 0
+            advance(credit: true)
             notify()
-            return
+        } else {
+            timeRemaining = remaining
         }
-        timeRemaining -= 1
     }
 
-    private func advance() {
+    private func advance(credit: Bool = true) {
         switch phase {
         case .work:
-            completedPomodoros += 1
-            recordCompletedPomodoro(focusSeconds: workDuration)
-            if completedPomodoros % cyclesBeforeLongBreak == 0 {
+            if credit {
+                completedPomodoros += 1
+                recordCompletedPomodoro(focusSeconds: workDuration)
+            }
+            if completedPomodoros % cyclesBeforeLongBreak == 0 && completedPomodoros > 0 {
                 phase = .longBreak
                 timeRemaining = longBreakDuration
             } else {
@@ -142,8 +163,7 @@ class PomodoroManager: ObservableObject {
             timeRemaining = workDuration
         }
         isRunning = false
-        timer?.invalidate()
-        timer = nil
+        stopTimer()
         setDND(false)
     }
 
