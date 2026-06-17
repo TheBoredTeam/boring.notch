@@ -359,6 +359,8 @@ struct ContentView: View {
                         PomodoroView()
                     case .system:
                         SystemView()
+                    case .projects:
+                        ProjectsView()
                     }
                 }
                 .transition(

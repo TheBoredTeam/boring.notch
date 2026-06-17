@@ -57,6 +57,9 @@ struct SettingsView: View {
                 NavigationLink(value: "System") {
                     Label("System", systemImage: "cpu")
                 }
+                NavigationLink(value: "Projects") {
+                    Label("Projects", systemImage: "hammer.fill")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -95,6 +98,8 @@ struct SettingsView: View {
                     FocusSettings()
                 case "System":
                     SystemSettingsView()
+                case "Projects":
+                    ProjectsSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":

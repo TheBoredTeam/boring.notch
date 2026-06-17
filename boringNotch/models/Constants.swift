@@ -185,6 +185,9 @@ extension Defaults.Keys {
     static let pomodoroAutoDND = Key<Bool>("pomodoroAutoDND", default: false)
     static let pomodoroStats = Key<[String: PomodoroDayStat]>("pomodoroStats", default: [:])
 
+    // MARK: Projects
+    static let projectRunConfigs = Key<[ProjectRunConfig]>("projectRunConfigs", default: [])
+
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
     

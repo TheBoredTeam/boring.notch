@@ -107,13 +107,13 @@
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		2FB4B31162507C68195D6731 /* PomodoroManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */; };
+		48EDDF82BC09FACAEC7441A6 /* ProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29F3F99672137267B53DD7B9 /* ProjectsView.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
 		59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D8C23B2E589FAA00147B33 /* VolumeManager.swift */; };
 		5A7C6B113DC89869F71803E0 /* MemoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6988A981DDAD437841B7A71A /* MemoryManager.swift */; };
-		A1B2C3D4E5F67890 /* PortsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5067890 /* PortsManager.swift */; };
-		A1B2C3D4E5F67891 /* PortsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5067891 /* PortsView.swift */; };
+		716B581F40693DCC4D0EF5F2 /* ProjectsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACB1BBBCA3E6F878AAFF79C /* ProjectsManager.swift */; };
 		71980B7B8371C3B2829C83E0 /* SystemSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCACB07F929AA59722446183 /* SystemSettingsView.swift */; };
 		893DF55748FD19AC3A0A89A3 /* FocusSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AB72EF17BBA3BB52FD9C93 /* FocusSettings.swift */; };
 		8C2D40FBB08E36EEAED679EA /* SystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */; };
@@ -123,6 +123,8 @@
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
 		9A987A102C73CA8D005CA465 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9A987A0F2C73CA8D005CA465 /* Collections */; };
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
+		A1B2C3D4E5F67890 /* PortsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5067890 /* PortsManager.swift */; };
+		A1B2C3D4E5F67891 /* PortsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5067891 /* PortsView.swift */; };
 		B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10348D82C74E56000475897 /* ConditionalModifier.swift */; };
 		B10F84A32C6C9596009F3026 /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10F84A22C6C9596009F3026 /* TestView.swift */; };
 		B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */; };
@@ -150,6 +152,7 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		CA6DC1B51E2D887074C951EA /* ProjectsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F21D0137306D5CAA68009B0 /* ProjectsSettings.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 		FA262BA1D3C5A89C3C2638FF /* MemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81FF3E936C251918CD59C9DA /* MemoryView.swift */; };
 /* End PBXBuildFile section */
@@ -286,8 +289,8 @@
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
 		1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemView.swift; sourceTree = "<group>"; };
-		B1C2D3E4F5067890 /* PortsManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortsManager.swift; sourceTree = "<group>"; };
-		B1C2D3E4F5067891 /* PortsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortsView.swift; sourceTree = "<group>"; };
+		1F21D0137306D5CAA68009B0 /* ProjectsSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsSettings.swift; sourceTree = "<group>"; };
+		29F3F99672137267B53DD7B9 /* ProjectsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsView.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
@@ -313,6 +316,8 @@
 		B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenMediaDetection.swift; sourceTree = "<group>"; };
 		B1B112902C6A572100093D8F /* EditPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPanelView.swift; sourceTree = "<group>"; };
 		B1B112922C6A577E00093D8F /* MouseTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MouseTracker.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5067890 /* PortsManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortsManager.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5067891 /* PortsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortsView.swift; sourceTree = "<group>"; };
 		B1C448952C9712C4001F0858 /* ActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionBar.swift; sourceTree = "<group>"; };
 		B1C448972C972CC4001F0858 /* ListItemPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListItemPopover.swift; sourceTree = "<group>"; };
 		B1C4489A2C97376A001F0858 /* TipStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipStore.swift; sourceTree = "<group>"; };
@@ -324,6 +329,7 @@
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		DACB1BBBCA3E6F878AAFF79C /* ProjectsManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsManager.swift; sourceTree = "<group>"; };
 		DCACB07F929AA59722446183 /* SystemSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemSettingsView.swift; sourceTree = "<group>"; };
 		DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
@@ -544,6 +550,7 @@
 				B1F747F82EC7E94000F841DB /* LottieView.swift */,
 				3C991EFD049A7D022000C730 /* Pomodoro */,
 				B890BF6CCF977277217EB3B1 /* System */,
+				76483B778576DFA4D3CB3CF3 /* Projects */,
 			);
 			path = components;
 			sourceTree = "<group>";
@@ -562,6 +569,7 @@
 				DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */,
 				6988A981DDAD437841B7A71A /* MemoryManager.swift */,
 				B1C2D3E4F5067890 /* PortsManager.swift */,
+				DACB1BBBCA3E6F878AAFF79C /* ProjectsManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -690,6 +698,16 @@
 			);
 			name = Pomodoro;
 			path = Pomodoro;
+			sourceTree = "<group>";
+		};
+		76483B778576DFA4D3CB3CF3 /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				29F3F99672137267B53DD7B9 /* ProjectsView.swift */,
+				1F21D0137306D5CAA68009B0 /* ProjectsSettings.swift */,
+			);
+			name = Projects;
+			path = Projects;
 			sourceTree = "<group>";
 		};
 		9A0887332C7AFF7E00C160EA /* Tabs */ = {
@@ -1093,6 +1111,9 @@
 				5A7C6B113DC89869F71803E0 /* MemoryManager.swift in Sources */,
 				A1B2C3D4E5F67890 /* PortsManager.swift in Sources */,
 				A1B2C3D4E5F67891 /* PortsView.swift in Sources */,
+				48EDDF82BC09FACAEC7441A6 /* ProjectsView.swift in Sources */,
+				CA6DC1B51E2D887074C951EA /* ProjectsSettings.swift in Sources */,
+				716B581F40693DCC4D0EF5F2 /* ProjectsManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
