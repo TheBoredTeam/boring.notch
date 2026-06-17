@@ -7,11 +7,22 @@ import Defaults
 import SwiftUI
 
 struct PomodoroView: View {
+    @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var pomodoro = PomodoroManager.shared
     @Default(.pomodoroWorkDuration) private var workMinutes
     @Default(.pomodoroCyclesBeforeLongBreak) private var cycles
 
     private let presets: [Int] = [15, 25, 45, 60]
+
+    // The open notch is a fixed height; subtract the tab-bar strip, the panel's
+    // bottom padding, and VStack spacing to get the height this page actually
+    // gets. Sizing the ring from this keeps the layout inside the notch on any
+    // Mac instead of relying on hard-coded numbers.
+    private var ringSize: CGFloat {
+        let header = max(24, vm.effectiveClosedNotchHeight)
+        let available = openNotchSize.height - header - 12 - 10 - 16 // bottom pad + spacing + own top/bottom pad
+        return max(88, min(116, available))
+    }
 
     var body: some View {
         HStack(alignment: .center, spacing: 22) {
@@ -20,14 +31,22 @@ struct PomodoroView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)
-        .padding(.bottom, 8)
+        .padding(.bottom, 6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .animation(.smooth(duration: 0.4), value: pomodoro.phase)
     }
 
     // MARK: - Ring
 
     private var ringTimer: some View {
         ZStack {
+            // Soft phase-colored glow behind the ring.
+            Circle()
+                .fill(phaseColor)
+                .blur(radius: 26)
+                .opacity(0.28)
+                .padding(10)
+
             Circle()
                 .stroke(Color.white.opacity(0.07), lineWidth: 9)
 
@@ -46,9 +65,9 @@ struct PomodoroView: View {
                 .shadow(color: phaseColor.opacity(0.45), radius: 5)
                 .animation(.linear(duration: 0.5), value: pomodoro.progress)
 
-            VStack(spacing: 3) {
+            VStack(spacing: 2) {
                 Text(timeString)
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .font(.system(size: ringSize * 0.24, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundColor(.white)
                 Text(pomodoro.phase.label.uppercased())
@@ -57,13 +76,14 @@ struct PomodoroView: View {
                     .foregroundColor(phaseColor)
             }
         }
-        .frame(width: 124, height: 124)
+        .frame(width: ringSize, height: ringSize)
+        .scaleEffect(pomodoro.phase == .work ? 1.0 : 1.02)
     }
 
     // MARK: - Right panel
 
     private var rightPanel: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: 7) {
             roundRow
             controls
             presetSection
@@ -101,7 +121,7 @@ struct PomodoroView: View {
                         .font(.system(size: 13, weight: .semibold))
                 }
                 .foregroundColor(.black)
-                .frame(height: 34)
+                .frame(height: 32)
                 .frame(maxWidth: .infinity)
                 .background(
                     Capsule().fill(phaseColor)
@@ -120,7 +140,7 @@ struct PomodoroView: View {
             Image(systemName: icon)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(.white.opacity(0.85))
-                .frame(width: 34, height: 34)
+                .frame(width: 32, height: 32)
                 .background(Circle().fill(Color.white.opacity(0.1)))
         }
         .buttonStyle(.plain)
@@ -129,15 +149,9 @@ struct PomodoroView: View {
     // MARK: - Custom time presets
 
     private var presetSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("FOCUS LENGTH")
-                .font(.system(size: 8.5, weight: .heavy))
-                .tracking(1.4)
-                .foregroundColor(.white.opacity(0.35))
-            HStack(spacing: 6) {
-                ForEach(presets, id: \.self) { minutes in
-                    presetChip(minutes)
-                }
+        HStack(spacing: 6) {
+            ForEach(presets, id: \.self) { minutes in
+                presetChip(minutes)
             }
         }
     }
@@ -265,6 +279,7 @@ struct PomodoroLiveActivity: View {
 
 #Preview {
     PomodoroView()
+        .environmentObject(BoringViewModel())
         .frame(width: 580, height: 160)
         .background(.black)
 }
