@@ -61,3 +61,31 @@ enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
         }
     }
 }
+
+enum WeekStartDay: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case system
+    case sunday
+    case monday  // extensible to other weekdays later
+
+    var id: String { rawValue }
+
+    /// Calendar.firstWeekday convention: 1 = Sunday … 7 = Saturday
+    var firstWeekday: Int {
+        switch self {
+        case .system: return Calendar.current.firstWeekday
+        case .sunday: return 1
+        case .monday: return 2
+        }
+    }
+
+    var localizedString: String {
+        switch self {
+        case .system:
+            return NSLocalizedString("System default", comment: "Week starts on: follow the system setting")
+        case .sunday:
+            return NSLocalizedString("Sunday", comment: "Week starts on: Sunday")
+        case .monday:
+            return NSLocalizedString("Monday", comment: "Week starts on: Monday")
+        }
+    }
+}

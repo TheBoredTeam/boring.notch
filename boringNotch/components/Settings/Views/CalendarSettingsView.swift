@@ -15,6 +15,8 @@ struct CalendarSettings: View {
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
+    @Default(.calendarWeekView) var calendarWeekView
+    @Default(.weekStartDay) var weekStartDay
 
     var body: some View {
         Form {
@@ -32,6 +34,16 @@ struct CalendarSettings: View {
             }
             Defaults.Toggle(key: .showFullEventTitles) {
                 Text("Always show full event titles")
+            }
+            Defaults.Toggle(key: .calendarWeekView) {
+                Text("Weekly view")
+            }
+            if calendarWeekView {
+                Picker("Week starts on", selection: $weekStartDay) {
+                    ForEach(WeekStartDay.allCases) { day in
+                        Text(day.localizedString).tag(day)
+                    }
+                }
             }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
