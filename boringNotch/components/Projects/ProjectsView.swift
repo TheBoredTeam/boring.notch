@@ -150,21 +150,30 @@ struct ProjectsView: View {
     // MARK: - Actions
 
     private func addProject() {
+        // The notch is an accessory-app overlay at .mainMenu + 3. To get an
+        // NSOpenPanel in front and focusable we must temporarily become a
+        // regular app and raise the panel above the notch window.
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.prompt = "Add Project"
         panel.message = "Choose a project folder (one with a Makefile)"
-        panel.level = .modalPanel
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        panel.level = .mainMenu + 4
+        let response = panel.runModal()
 
-        let new = ProjectRunConfig(
+        NSApp.setActivationPolicy(.accessory)
+        NSApp.deactivate()
+
+        guard response == .OK, let url = panel.url else { return }
+        configs.append(ProjectRunConfig(
             name: url.lastPathComponent,
             directory: url.path,
             command: "make"
-        )
-        configs.append(new)
+        ))
     }
 }
 

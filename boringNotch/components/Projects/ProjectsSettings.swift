@@ -90,12 +90,14 @@ struct ProjectsSettings: View {
     }
 
     private func pickDirectory(message: String) -> URL? {
+        NSApp.activate(ignoringOtherApps: true)
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.message = message
         panel.prompt = "Select"
+        panel.level = .mainMenu + 4
         return panel.runModal() == .OK ? panel.url : nil
     }
 }
