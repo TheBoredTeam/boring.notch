@@ -110,6 +110,19 @@ struct ProjectsView: View {
 
             Spacer(minLength: 6)
 
+            if running, let ports = manager.portsByProject[config.id], !ports.isEmpty {
+                HStack(spacing: 4) {
+                    ForEach(ports.prefix(2), id: \.self) { port in
+                        Text(":\(port)")
+                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                            .foregroundColor(Color(red: 0.4, green: 0.85, blue: 0.6))
+                            .padding(.horizontal, 7)
+                            .frame(height: 20)
+                            .background(Capsule().fill(Color(red: 0.4, green: 0.85, blue: 0.6).opacity(0.15)))
+                    }
+                }
+            }
+
             Button(action: { manager.toggle(config) }) {
                 HStack(spacing: 5) {
                     Image(systemName: running ? "stop.fill" : "play.fill")
