@@ -244,10 +244,13 @@ struct WheelPicker: View {
 struct WeekStripPicker: View {
     @Binding var selectedDate: Date
     @Default(.weekStartDay) private var weekStartDay
+    @State private var displayedWeekStart: Date = Date()
+    @State private var slideForward: Bool = true
     @State private var haptics: Bool = false
     @State private var scrollAccumulator: CGFloat = 0
     @State private var isHovering: Bool = false
     @State private var scrollMonitor: Any?
+    @Namespace private var selectionNamespace
 
     private let scrollThreshold: CGFloat = 2.0
 
@@ -258,24 +261,22 @@ struct WeekStripPicker: View {
         return calendar
     }
 
-    /// The seven days of the week containing `selectedDate`, starting on the chosen first weekday.
+    /// The seven days of the currently displayed week. Decoupled from `selectedDate` so the
+    /// highlight can walk across a fixed week before the week itself shifts.
     private var weekDays: [Date] {
-        let start = startOfWeek(for: selectedDate)
-        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: start) }
+        (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: displayedWeekStart) }
     }
 
     var body: some View {
         HStack(spacing: 2) {
             chevron(systemName: "chevron.left", direction: -1)
-            HStack(spacing: 0) {
-                ForEach(weekDays, id: \.self) { date in
-                    dateButton(date: date)
-                        .frame(maxWidth: .infinity)
-                }
-            }
+            weekRow
+                .frame(maxWidth: .infinity)
+                .clipped()
             chevron(systemName: "chevron.right", direction: 1)
         }
         .frame(height: 50)
+        .clipped()  // keep the week-flip slide inside the calendar column (no bleed into music)
         .padding(.horizontal, 2)
         .sensoryFeedback(.alignment, trigger: haptics)
         .onContinuousHover { phase in
@@ -287,12 +288,13 @@ struct WeekStripPicker: View {
             }
         }
         .onAppear {
-            // Local monitor so the scroll wheel pages whole weeks while hovering the calendar.
+            displayedWeekStart = startOfWeek(for: selectedDate)
+            // Local monitor so the scroll wheel steps the selection while hovering the calendar.
             if scrollMonitor == nil {
                 scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
                     guard isHovering else { return event }
                     if abs(event.deltaY) > abs(event.deltaX) && abs(event.deltaY) > 0.1 {
-                        navigateWeekByScrollWheel(deltaY: event.deltaY)
+                        navigateByScrollWheel(deltaY: event.deltaY)
                     }
                     return event
                 }
@@ -304,26 +306,67 @@ struct WeekStripPicker: View {
                 scrollMonitor = nil
             }
         }
+        .onChange(of: selectedDate) { _, newValue in
+            // Re-anchor the visible week only when the selection lands outside it (e.g. the notch
+            // reopening resets the date to today). Snap with no slide so it isn't jarring.
+            let windowEnd = calendar.date(byAdding: .day, value: 7, to: displayedWeekStart) ?? displayedWeekStart
+            let selDay = calendar.startOfDay(for: newValue)
+            if selDay < displayedWeekStart || selDay >= windowEnd {
+                withTransaction(Transaction(animation: nil)) {
+                    displayedWeekStart = startOfWeek(for: newValue)
+                }
+            }
+        }
+        .onChange(of: weekStartDay) { _, _ in
+            withTransaction(Transaction(animation: nil)) {
+                displayedWeekStart = startOfWeek(for: selectedDate)
+            }
+        }
+    }
+
+    /// The seven-day row. Re-keyed by the displayed week so a week change slides in
+    /// directionally; within a week the selection pill glides between days.
+    private var weekRow: some View {
+        HStack(spacing: 0) {
+            ForEach(weekDays, id: \.self) { date in
+                dateButton(date: date)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .id(displayedWeekStart)
+        .transition(.push(from: slideForward ? .trailing : .leading))
     }
 
     // MARK: - Navigation
 
-    /// Page the calendar by whole weeks based on vertical scroll wheel input.
-    private func navigateWeekByScrollWheel(deltaY: CGFloat) {
+    /// Step the selection one day per accumulated scroll threshold.
+    private func navigateByScrollWheel(deltaY: CGFloat) {
         scrollAccumulator += deltaY
 
         // Use a threshold to avoid overly sensitive scrolling.
         if abs(scrollAccumulator) >= scrollThreshold {
             let direction = scrollAccumulator > 0 ? -1 : 1  // Scroll up = back, scroll down = forward
             scrollAccumulator = 0
-            pageWeek(by: direction)
+            stepSelection(by: direction)
         }
     }
 
-    /// Move the selection (and therefore the displayed week) by `direction` weeks.
-    private func pageWeek(by direction: Int) {
-        guard let newDate = calendar.date(byAdding: .day, value: direction * 7, to: selectedDate) else { return }
+    /// Move the selection by one day; if it leaves the visible week, slide the week to follow.
+    /// Uses the same `withAnimation { }` the day dial uses — no bespoke animation.
+    private func stepSelection(by direction: Int) {
+        guard let newDate = calendar.date(byAdding: .day, value: direction, to: selectedDate) else { return }
+        let windowEnd = calendar.date(byAdding: .day, value: 7, to: displayedWeekStart) ?? displayedWeekStart
+        let selDay = calendar.startOfDay(for: newDate)
+        let crossesForward = selDay >= windowEnd
+        let crossesBackward = selDay < displayedWeekStart
+
         withAnimation {
+            if crossesForward || crossesBackward {
+                slideForward = crossesForward
+                displayedWeekStart = calendar.date(
+                    byAdding: .day, value: crossesForward ? 7 : -7, to: displayedWeekStart
+                ) ?? displayedWeekStart
+            }
             selectedDate = newDate
         }
         if Defaults[.enableHaptics] {
@@ -331,8 +374,24 @@ struct WeekStripPicker: View {
         }
     }
 
+    /// Chevrons page the visible week and carry the selection along (same weekday column).
+    private func pageWeek(by direction: Int) {
+        slideForward = direction > 0
+        let newStart = calendar.date(byAdding: .day, value: direction * 7, to: displayedWeekStart) ?? displayedWeekStart
+        let newSelection = calendar.date(byAdding: .day, value: direction * 7, to: selectedDate) ?? selectedDate
+        withAnimation {
+            displayedWeekStart = newStart
+            selectedDate = newSelection
+        }
+        if Defaults[.enableHaptics] {
+            haptics.toggle()
+        }
+    }
+
     private func selectDate(_ date: Date) {
-        selectedDate = date
+        withAnimation {
+            selectedDate = date
+        }
         if Defaults[.enableHaptics] {
             haptics.toggle()
         }
@@ -371,9 +430,15 @@ struct WeekStripPicker: View {
             }
             .padding(.vertical, 4)
             .frame(maxWidth: .infinity)
-            .background(isSelected ? Color.effectiveAccentBackground : Color.clear)
+            .background {
+                // Single highlight that glides between days within a week (matchedGeometry).
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.effectiveAccentBackground)
+                        .matchedGeometryEffect(id: "weekSelection-\(displayedWeekStart)", in: selectionNamespace)
+                }
+            }
             .contentShape(.rect)
-            .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
     }

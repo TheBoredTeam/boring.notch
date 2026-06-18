@@ -25585,24 +25585,13 @@
         }
       }
     },
-    "Monday" : {
-      "comment" : "Week starts on: Monday",
+    "System Setting" : {
+      "comment" : "Week starts on: follow the macOS system setting (shown with the resolved day in parentheses)",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Monday"
-          }
-        }
-      }
-    },
-    "Sunday" : {
-      "comment" : "Week starts on: Sunday",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sunday"
+            "value" : "System Setting"
           }
         }
       }
