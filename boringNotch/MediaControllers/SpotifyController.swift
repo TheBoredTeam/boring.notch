@@ -5,39 +5,60 @@
 //  Created by Alexander on 2025-03-29.
 //
 
-import Foundation
 import Combine
+import Foundation
 import SwiftUI
 
-class SpotifyController: MediaControllerProtocol {
+final class SpotifyController: MediaControllerProtocol, QueueProvidingMediaController, ObservableObject {
     func setFavorite(_ favorite: Bool) async {
-        //Placeholder
+        // Placeholder
     }
-    
-    // MARK: - Properties
+
+    // MARK: - Playback
     @Published private var playbackState: PlaybackState = PlaybackState(
         bundleIdentifier: "com.spotify.client"
     )
-    
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
 
-    var supportsVolumeControl: Bool {
-        return true
-    }
-
+    var supportsVolumeControl: Bool { true }
     var supportsFavorite: Bool { false }
 
-    private var notificationTask: Task<Void, Never>?
-    
-    // Constant for time between command and update
-    private let commandUpdateDelay: Duration = .milliseconds(25)
+    // MARK: - Queue
+    var queueSupported: Bool { SpotifyConfig.isConfigured }
 
+    @Published private(set) var queueAuthState: SpotifyQueueAuthState = .unauthenticated
+    @Published private(set) var queueItems: [SpotifyQueueItem] = []
+    @Published private(set) var isLoadingQueue: Bool = false
+    @Published private(set) var queueErrorMessage: String?
+
+    var queueAuthStatePublisher: AnyPublisher<SpotifyQueueAuthState, Never> {
+        $queueAuthState.eraseToAnyPublisher()
+    }
+
+    var queueItemsPublisher: AnyPublisher<[SpotifyQueueItem], Never> {
+        $queueItems.eraseToAnyPublisher()
+    }
+
+    var isLoadingQueuePublisher: AnyPublisher<Bool, Never> {
+        $isLoadingQueue.eraseToAnyPublisher()
+    }
+
+    var queueErrorPublisher: AnyPublisher<String?, Never> {
+        $queueErrorMessage.eraseToAnyPublisher()
+    }
+
+    private let spotifyAPI = SpotifyAPIClient()
+    private var notificationTask: Task<Void, Never>?
+    private let commandUpdateDelay: Duration = .milliseconds(25)
     private var lastArtworkURL: String?
+    private var currentArtworkURL: URL?
     private var artworkFetchTask: Task<Void, Never>?
-    
+
     init() {
+        Task { await syncQueueAuthState() }
         setupPlaybackStateChangeObserver()
         Task {
             if isActive() {
@@ -45,25 +66,202 @@ class SpotifyController: MediaControllerProtocol {
             }
         }
     }
-    
+
+    func syncQueueAuthState() async {
+        let authenticated = await SpotifyAuthManager.shared.isAuthenticated
+        await MainActor.run {
+            if authenticated {
+                queueAuthState = .authenticated
+            } else if SpotifyConfig.isConfigured {
+                queueAuthState = .unauthenticated
+            } else {
+                queueAuthState = .failed("Spotify client ID is not configured.")
+            }
+        }
+    }
+
     private func setupPlaybackStateChangeObserver() {
         notificationTask = Task { @Sendable [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.spotify.client.PlaybackStateChanged")
             )
-            
+
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
             }
         }
     }
-    
+
     deinit {
         notificationTask?.cancel()
         artworkFetchTask?.cancel()
     }
-    
-    // MARK: - Protocol Implementation
+
+    // MARK: - QueueProvidingMediaController
+    func connectQueue() async {
+        guard queueSupported else {
+            await MainActor.run {
+                queueAuthState = .failed("Spotify client ID is not configured.")
+            }
+            return
+        }
+
+        await MainActor.run {
+            queueAuthState = .authenticating
+            queueErrorMessage = nil
+        }
+
+        do {
+            try await SpotifyAuthManager.shared.beginAuthorization()
+            await MainActor.run {
+                queueAuthState = .authenticated
+                queueErrorMessage = nil
+            }
+            await refreshQueue()
+        } catch {
+            await MainActor.run {
+                queueAuthState = .failed(error.localizedDescription)
+                queueErrorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func disconnectQueue() {
+        Task {
+            await SpotifyAuthManager.shared.disconnect()
+            await MainActor.run {
+                queueAuthState = .unauthenticated
+                queueItems = []
+                queueErrorMessage = nil
+                isLoadingQueue = false
+            }
+        }
+    }
+
+    func refreshQueue() async {
+        guard queueSupported else { return }
+
+        await MainActor.run {
+            isLoadingQueue = true
+            queueErrorMessage = nil
+        }
+
+        do {
+            await updatePlaybackInfo()
+            let response = try await fetchQueueWithValidToken()
+            let items = response.toQueueItems().reconciledWithCurrentPlayback(
+                title: playbackState.title,
+                subtitle: playbackState.artist,
+                artworkURL: currentArtworkURL
+            )
+            await MainActor.run {
+                queueItems = items
+                queueAuthState = .authenticated
+                isLoadingQueue = false
+            }
+        } catch SpotifyAPIError.notAuthenticated {
+            await syncQueueAuthState()
+            let stillAuthenticated = await SpotifyAuthManager.shared.isAuthenticated
+            await MainActor.run {
+                isLoadingQueue = false
+                if stillAuthenticated {
+                    queueAuthState = .authenticated
+                    queueErrorMessage = "Could not load queue. Try playing a track in Spotify, then refresh."
+                } else {
+                    queueAuthState = .unauthenticated
+                    queueErrorMessage = nil
+                }
+            }
+        } catch SpotifyAPIError.noActiveDevice {
+            await MainActor.run {
+                queueAuthState = .authenticated
+                isLoadingQueue = false
+                queueErrorMessage = SpotifyAPIError.noActiveDevice.localizedDescription
+            }
+        } catch {
+            await MainActor.run {
+                isLoadingQueue = false
+                queueErrorMessage = error.localizedDescription
+                if case SpotifyAPIError.notConfigured = error {
+                    queueAuthState = .failed(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    func playQueueItem(_ item: SpotifyQueueItem) async {
+        guard item.canPlay else { return }
+
+        await MainActor.run {
+            queueErrorMessage = nil
+        }
+
+        guard let playbackRequest = await queuePlaybackRequest(for: item) else {
+            await MainActor.run {
+                queueErrorMessage = "Queue changed. Refresh and try again."
+            }
+            await refreshQueue()
+            return
+        }
+
+        do {
+            try await playQueueWithValidToken(
+                uris: playbackRequest.uris,
+                selectedIndex: playbackRequest.selectedIndex
+            )
+            try? await Task.sleep(for: commandUpdateDelay)
+            await updatePlaybackInfo()
+            await refreshQueue()
+        } catch SpotifyAPIError.notAuthenticated {
+            await syncQueueAuthState()
+            let stillAuthenticated = await SpotifyAuthManager.shared.isAuthenticated
+            await MainActor.run {
+                if stillAuthenticated {
+                    queueAuthState = .authenticated
+                    queueErrorMessage = "Could not play this track. Open Spotify and try again."
+                } else {
+                    queueAuthState = .unauthenticated
+                    queueErrorMessage = nil
+                }
+            }
+        } catch SpotifyAPIError.noActiveDevice {
+            await MainActor.run {
+                queueAuthState = .authenticated
+                queueErrorMessage = SpotifyAPIError.noActiveDevice.localizedDescription
+            }
+        } catch {
+            await MainActor.run {
+                queueAuthState = .authenticated
+                queueErrorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    @MainActor
+    private func queuePlaybackRequest(for item: SpotifyQueueItem) -> (uris: [String], selectedIndex: Int)? {
+        let entries: [(item: SpotifyQueueItem, uri: String)] = queueItems.compactMap { queueItem in
+            guard let uri = queueItem.uri, !uri.isEmpty else { return nil }
+            return (queueItem, uri)
+        }
+
+        guard let selectedIndex = entries.firstIndex(where: { $0.item.id == item.id }) else {
+            return nil
+        }
+
+        return (entries.map(\.uri), selectedIndex)
+    }
+
+    private func fetchQueueWithValidToken() async throws -> SpotifyQueueResponse {
+        let token = try await SpotifyAuthManager.shared.currentAccessToken()
+        return try await spotifyAPI.fetchQueue(accessToken: token)
+    }
+
+    private func playQueueWithValidToken(uris: [String], selectedIndex: Int) async throws {
+        let token = try await SpotifyAuthManager.shared.currentAccessToken()
+        try await spotifyAPI.play(uris: uris, selectedIndex: selectedIndex, accessToken: token)
+    }
+
+    // MARK: - MediaControllerProtocol
     func play() async { await executeCommand("play") }
     func pause() async { await executeCommand("pause") }
     func togglePlay() async { await executeCommand("playpause") }
@@ -71,19 +269,19 @@ class SpotifyController: MediaControllerProtocol {
     func previousTrack() async {
         await executeAndRefresh("previous track")
     }
-    
+
     func seek(to time: Double) async {
         await executeAndRefresh("set player position to \(time)")
     }
-    
+
     func toggleShuffle() async {
         await executeAndRefresh("set shuffling to not shuffling")
     }
-    
+
     func toggleRepeat() async {
         await executeAndRefresh("set repeating to not repeating")
     }
-    
+
     func setVolume(_ level: Double) async {
         let clampedLevel = max(0.0, min(1.0, level))
         let volumePercentage = Int(clampedLevel * 100)
@@ -91,26 +289,29 @@ class SpotifyController: MediaControllerProtocol {
         try? await Task.sleep(for: commandUpdateDelay)
         await updatePlaybackInfo()
     }
-    
+
     func isActive() -> Bool {
-        NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == playbackState.bundleIdentifier }
+        NSWorkspace.shared.runningApplications.contains {
+            $0.bundleIdentifier == playbackState.bundleIdentifier
+        }
     }
-    
+
     func updatePlaybackInfo() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
         guard descriptor.numberOfItems >= 10 else { return }
-        
+
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
         let currentTrack = descriptor.atIndex(2)?.stringValue ?? "Unknown"
         let currentTrackArtist = descriptor.atIndex(3)?.stringValue ?? "Unknown"
         let currentTrackAlbum = descriptor.atIndex(4)?.stringValue ?? "Unknown"
         let currentTime = descriptor.atIndex(5)?.doubleValue ?? 0
-        let duration = (descriptor.atIndex(6)?.doubleValue ?? 0)/1000
+        let duration = (descriptor.atIndex(6)?.doubleValue ?? 0) / 1000
         let isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
         let isRepeating = descriptor.atIndex(8)?.booleanValue ?? false
         let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
         let artworkURL = descriptor.atIndex(10)?.stringValue ?? ""
-        
+        currentArtworkURL = URL(string: artworkURL)
+
         var state = PlaybackState(
             bundleIdentifier: "com.spotify.client",
             isPlaying: isPlaying,
@@ -131,7 +332,12 @@ class SpotifyController: MediaControllerProtocol {
             state.artwork = existingArtwork
         }
 
-    playbackState = state
+        playbackState = state
+        queueItems = queueItems.reconciledWithCurrentPlayback(
+            title: state.title,
+            subtitle: state.artist,
+            artworkURL: currentArtworkURL
+        )
 
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
             guard artworkURL != lastArtworkURL || state.artwork == nil else { return }
@@ -159,9 +365,8 @@ class SpotifyController: MediaControllerProtocol {
             }
         }
     }
-    
-// MARK: - Private Methods
-    
+
+    // MARK: - Private Methods
     private func executeCommand(_ command: String) async {
         let script = "tell application \"Spotify\" to \(command)"
         try? await AppleScriptHelper.executeVoid(script)
@@ -172,7 +377,7 @@ class SpotifyController: MediaControllerProtocol {
         try? await Task.sleep(for: commandUpdateDelay)
         await updatePlaybackInfo()
     }
-    
+
     private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {
         let script = """
         tell application "Spotify"
@@ -194,8 +399,7 @@ class SpotifyController: MediaControllerProtocol {
             end try
         end tell
         """
-        
+
         return try await AppleScriptHelper.execute(script)
     }
-    
 }

@@ -109,6 +109,8 @@ struct Media: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            SpotifyQueueSettingsSection()
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Media")
@@ -120,6 +122,65 @@ struct Media: View {
             return MediaControllerType.allCases.filter { $0 != .nowPlaying }
         } else {
             return MediaControllerType.allCases
+        }
+    }
+}
+
+private struct SpotifyQueueSettingsSection: View {
+    @ObservedObject private var musicManager = MusicManager.shared
+
+    var body: some View {
+        Section {
+            HStack {
+                Text("Status")
+                Spacer()
+                Text(statusLabel)
+                    .foregroundStyle(.secondary)
+            }
+
+            if musicManager.queueSupported {
+                if musicManager.queueAuthState == .authenticated {
+                    Button("Disconnect Spotify Queue") {
+                        musicManager.disconnectSpotifyQueue()
+                    }
+                } else {
+                    Button("Connect Spotify Queue") {
+                        musicManager.connectSpotifyQueue()
+                    }
+                    .disabled(musicManager.queueAuthState == .authenticating)
+                }
+            } else {
+                Text("Set SPOTIFY_CLIENT_ID in the Xcode build settings or Info.plist.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Spotify Queue")
+        } footer: {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Queue uses the Spotify Web API. Playback controls still use AppleScript.")
+                Text("In the Spotify Developer Dashboard, add redirect URI: http://127.0.0.1:8765/callback.")
+                Text("Works with any music source while Spotify is playing. Add the Queue control in Media controls above.")
+                Text("Tap a track in the queue to play it. Reconnect Spotify if play from queue does not work (playback permission was added).")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    private var statusLabel: String {
+        if !musicManager.queueSupported {
+            return "Not configured"
+        }
+        switch musicManager.queueAuthState {
+        case .unauthenticated:
+            return "Not connected"
+        case .authenticating:
+            return "Connecting..."
+        case .authenticated:
+            return "Connected"
+        case .failed(let message):
+            return message
         }
     }
 }

@@ -11,10 +11,15 @@ struct HoverButton: View {
     var icon: String
     var iconColor: Color = .primary
     var scale: Image.Scale = .medium
+    var isActive: Bool = false
     var action: () -> Void
-    var contentTransition: ContentTransition = .symbolEffect;
+    var contentTransition: ContentTransition = .symbolEffect
     
     @State private var isHovering = false
+
+    private var showsHighlight: Bool {
+        isActive || isHovering
+    }
 
     var body: some View {
         let size = CGFloat(scale == .large ? 40 : 30)
@@ -26,7 +31,7 @@ struct HoverButton: View {
                 .frame(width: size, height: size)
                 .overlay {
                     Capsule()
-                        .fill(isHovering ? Color.gray.opacity(0.2) : .clear)
+                        .fill(showsHighlight ? Color.gray.opacity(0.2) : .clear)
                         .frame(width: size, height: size)
                         .overlay {
                             Image(systemName: icon)
