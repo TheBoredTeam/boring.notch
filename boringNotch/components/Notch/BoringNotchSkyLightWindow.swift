@@ -109,6 +109,11 @@ class BoringNotchSkyLightWindow: NSPanel {
     
     private var observers: Set<AnyCancellable> = []
     
-    override var canBecomeKey: Bool { false }
+    // Must be able to become key for macOS to route inter-application
+    // (Finder) drag sessions to this window — otherwise dragging a file over
+    // the notch does nothing and the Shelf can never receive a drop. Because
+    // this is a .nonactivatingPanel, becoming key does NOT activate the app or
+    // pull focus to the Dock; it only lets the panel receive the drag.
+    override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 }

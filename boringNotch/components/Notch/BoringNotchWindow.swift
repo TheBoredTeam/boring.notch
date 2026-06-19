@@ -40,10 +40,13 @@ class BoringNotchWindow: NSPanel {
         hasShadow = false
     }
     
+    // Eligible to become key so macOS routes Finder drag sessions here
+    // (required for Shelf drag-and-drop). As a .nonactivatingPanel this does
+    // not activate the app or steal Dock focus.
     override var canBecomeKey: Bool {
-        false
+        true
     }
-    
+
     override var canBecomeMain: Bool {
         false
     }
