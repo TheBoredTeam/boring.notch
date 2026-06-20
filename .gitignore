@@ -53,3 +53,35 @@ build/
 *.xcarchive
 *.dSYM
 
+# AI/model/evaluation local artifacts — do not commit generated weights, caches, or harness output
+*.gguf
+*.ggml
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.mlmodel
+*.mlpackage
+*.h5
+*.keras
+ai-models/
+model-artifacts/
+model-cache/
+models-cache/
+checkpoints/
+weights/
+loras/
+adapters/
+hf-cache/
+.hf-cache/
+.huggingface/
+.fallow/
+harness-artifacts/
+harness-results/
+eval-artifacts/
+eval-results/
+benchmark-results/
+artifacts/last-harness*.txt
+

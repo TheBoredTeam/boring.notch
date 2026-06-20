@@ -135,6 +135,8 @@ extension Defaults.Keys {
     static let spotifyAdDampenerOwnedSessionID = Key<String?>("spotifyAdDampenerOwnedSessionID", default: nil)
     static let spotifyAdDampenerOwnedSavedVolume = Key<Double?>("spotifyAdDampenerOwnedSavedVolume", default: nil)
     static let spotifyAdDampenerOwnedStartedAt = Key<Date?>("spotifyAdDampenerOwnedStartedAt", default: nil)
+    static let pomodoroWorkMinutes = Key<Int>("pomodoroWorkMinutes", default: 25)
+    static let pomodoroBreakMinutes = Key<Int>("pomodoroBreakMinutes", default: 5)
     static let musicControlSlots = Key<[MusicControlButton]>(
         "musicControlSlots",
         default: MusicControlButton.defaultLayout

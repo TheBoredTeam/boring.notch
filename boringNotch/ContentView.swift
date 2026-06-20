@@ -20,6 +20,7 @@ struct ContentView: View {
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var pomodoroTimer = PomodoroTimerModel.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
@@ -287,6 +288,10 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
+                      } else if pomodoroTimer.shouldShowClosedCountdown && !coordinator.expandingView.show && vm.notchState == .closed && !vm.hideOnClosed {
+                          PomodoroClosedCountdown(timer: pomodoroTimer)
+                              .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+                              .transition(.opacity.combined(with: .scale(scale: 0.94)))
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -349,6 +354,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .pomodoro:
+                        PomodoroView()
                     }
                 }
                 .transition(
@@ -362,6 +369,17 @@ struct ContentView: View {
             }
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+    }
+
+    @ViewBuilder
+    func PomodoroClosedCountdown(timer: PomodoroTimerModel) -> some View {
+        Text(timer.timeDisplay)
+            .font(.system(size: 15, weight: .semibold, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(.white.opacity(timer.isRunning ? 0.94 : 0.62))
+            .frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight, alignment: .center)
+            .contentTransition(.numericText())
+            .animation(.smooth(duration: 0.2), value: timer.timeDisplay)
     }
 
     @ViewBuilder
