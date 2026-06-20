@@ -190,6 +190,7 @@ extension Defaults.Keys {
 
     // MARK: Projects
     static let projectRunConfigs = Key<[ProjectRunConfig]>("projectRunConfigs", default: [])
+    static let projectsAutoOpenPort = Key<Bool>("projectsAutoOpenPort", default: false)
 
     // MARK: Quick Note → Obsidian
     // Folder that quick-capture daily files are written to. Defaults to the

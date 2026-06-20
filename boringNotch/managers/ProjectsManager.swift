@@ -8,6 +8,7 @@
 //  `make` don't survive.
 //
 
+import AppKit
 import Combine
 import Defaults
 import Foundation
@@ -30,8 +31,16 @@ final class ProjectsManager: ObservableObject {
     // Listening TCP ports detected for each running project's process tree.
     @Published private(set) var portsByProject: [UUID: [Int]] = [:]
 
+    // Captured stdout+stderr per project (capped).
+    @Published private(set) var logsByProject: [UUID: String] = [:]
+
     private var processes: [UUID: Process] = [:]
+    private var logPipes: [UUID: Pipe] = [:]
     private var portTimer: Timer?
+    private let logCharLimit = 16_000
+
+    // "id:port" pairs already auto-opened, so we open each port only once.
+    private var autoOpened: Set<String> = []
 
     private init() {}
 
@@ -50,18 +59,33 @@ final class ProjectsManager: ObservableObject {
             return
         }
 
+        let id = config.id
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/zsh")
         // Login shell so PATH/toolchains resolve like the user's terminal.
         process.arguments = ["-lc", "cd \(Self.shellQuote(config.directory)) && \(config.command)"]
         process.currentDirectoryURL = URL(fileURLWithPath: config.directory)
 
-        let id = config.id
+        // Capture stdout + stderr into a live, capped buffer for the log viewer.
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
+            let data = handle.availableData
+            guard !data.isEmpty, let chunk = String(data: data, encoding: .utf8) else { return }
+            Task { @MainActor in self?.appendLog(id, chunk) }
+        }
+
+        logsByProject[id] = ""
         process.terminationHandler = { [weak self] _ in
+            pipe.fileHandleForReading.readabilityHandler = nil
             Task { @MainActor in
+                self?.appendLog(id, "\n— process exited —\n")
                 self?.runningIDs.remove(id)
                 self?.processes[id] = nil
+                self?.logPipes[id] = nil
                 self?.portsByProject[id] = nil
+                self?.autoOpened = self?.autoOpened.filter { !$0.hasPrefix("\(id):") } ?? []
                 self?.stopPortPollingIfIdle()
             }
         }
@@ -69,11 +93,35 @@ final class ProjectsManager: ObservableObject {
         do {
             try process.run()
             processes[id] = process
+            logPipes[id] = pipe
             runningIDs.insert(id)
             startPortPolling()
         } catch {
             print("ProjectsManager: failed to launch \(config.name): \(error)")
+            appendLog(id, "Failed to launch: \(error.localizedDescription)\n")
         }
+    }
+
+    /// Stop then relaunch a project a moment later.
+    func restart(_ config: ProjectRunConfig) {
+        stop(config.id)
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_800_000_000)
+            run(config)
+        }
+    }
+
+    private func appendLog(_ id: UUID, _ chunk: String) {
+        var current = logsByProject[id] ?? ""
+        current += chunk
+        if current.count > logCharLimit {
+            current = String(current.suffix(logCharLimit))
+        }
+        logsByProject[id] = current
+    }
+
+    func clearLogs(_ id: UUID) {
+        logsByProject[id] = ""
     }
 
     func stop(_ id: UUID) {
@@ -110,6 +158,12 @@ final class ProjectsManager: ObservableObject {
         for id in runningIDs { stop(id) }
     }
 
+    /// Open http://localhost:<port> in the default browser.
+    func openPort(_ port: Int) {
+        guard let url = URL(string: "http://localhost:\(port)") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     // MARK: - Port detection
 
     private func startPortPolling() {
@@ -144,8 +198,15 @@ final class ProjectsManager: ObservableObject {
                 result[id] = Self.listeningPorts(forPIDs: pids)
             }
             await MainActor.run {
+                let autoOpen = Defaults[.projectsAutoOpenPort]
                 for (id, ports) in result where self.runningIDs.contains(id) {
                     self.portsByProject[id] = ports
+                    guard autoOpen, let first = ports.first else { continue }
+                    let key = "\(id):\(first)"
+                    if !self.autoOpened.contains(key) {
+                        self.autoOpened.insert(key)
+                        self.openPort(first)
+                    }
                 }
             }
         }
