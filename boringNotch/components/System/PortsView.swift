@@ -101,16 +101,29 @@ struct PortsView: View {
                     } else {
                         ForEach(filteredEntries) { entry in
                             HStack(spacing: 12) {
-                                // Port & Protocol
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("\(entry.port)")
-                                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
-                                    Text(entry.proto)
-                                        .font(.system(size: 8, weight: .bold, design: .rounded))
-                                        .foregroundColor(entry.proto == "TCP" ? .blue.opacity(0.8) : .purple.opacity(0.8))
+                                // Port & Protocol — tap the port to open it in the browser
+                                Button(action: { openPort(entry) }) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack(spacing: 3) {
+                                            Text("\(entry.port)")
+                                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                                .foregroundColor(entry.proto == "TCP" ? .white : .white.opacity(0.6))
+                                            if entry.proto == "TCP" {
+                                                Image(systemName: "arrow.up.right")
+                                                    .font(.system(size: 7, weight: .bold))
+                                                    .foregroundColor(.white.opacity(0.4))
+                                            }
+                                        }
+                                        Text(entry.proto)
+                                            .font(.system(size: 8, weight: .bold, design: .rounded))
+                                            .foregroundColor(entry.proto == "TCP" ? .blue.opacity(0.8) : .purple.opacity(0.8))
+                                    }
+                                    .frame(width: 45, alignment: .leading)
+                                    .contentShape(Rectangle())
                                 }
-                                .frame(width: 45, alignment: .leading)
+                                .buttonStyle(.plain)
+                                .disabled(entry.proto != "TCP")
+                                .help(entry.proto == "TCP" ? "Open http://localhost:\(entry.port)" : "")
                                 
                                 // Divider
                                 Rectangle()
@@ -232,6 +245,12 @@ struct PortsView: View {
         }
     }
     
+    private func openPort(_ entry: PortEntry) {
+        // Only TCP listeners are meaningfully browsable.
+        guard entry.proto == "TCP", let url = URL(string: "http://localhost:\(entry.port)") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     private func initiateStop(_ entry: PortEntry) {
         selectedProcess = entry
         // Keep the notch open while a confirmation alert is up — otherwise it
