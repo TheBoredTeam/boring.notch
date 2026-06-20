@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Harsh Vardhan  Goswami  on 05/08/24.
+//  Modified by Maksymilian Wójcik on 2026-06-09.
 //
 
 import Defaults
@@ -13,7 +14,13 @@ let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let shadowPadding: CGFloat = 20
-let openNotchSize: CGSize = .init(width: 640, height: 190)
+// Base (music/home) open height; the visible notch shape uses this by default.
+let openNotchBaseHeight: CGFloat = 190
+// Tallest open height (for the Widgets tab / Home with extra components). The
+// window is created at this height; the black notch shape scales down to the
+// content via `openNotchContentHeight`, leaving the rest transparent.
+let openNotchMaxHeight: CGFloat = 235
+let openNotchSize: CGSize = .init(width: 640, height: openNotchMaxHeight)
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 

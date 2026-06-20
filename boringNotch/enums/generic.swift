@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Harsh Vardhan  Goswami  on 04/08/24.
+//  Modified by Maksymilian Wójcik on 2026-06-09.
 //
 
 import Foundation
@@ -27,6 +28,7 @@ public enum NotchState {
 public enum NotchViews {
     case home
     case shelf
+    case widgets
 }
 
 enum SettingsEnum {

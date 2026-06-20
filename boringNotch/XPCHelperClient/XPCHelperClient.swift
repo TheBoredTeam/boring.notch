@@ -1,3 +1,10 @@
+//
+//  XPCHelperClient.swift
+//  boringNotch
+//
+//  Modified by Maksymilian Wójcik on 2026-06-09.
+//
+
 import Foundation
 import Cocoa
 import AsyncXPCConnection
@@ -239,6 +246,24 @@ final class XPCHelperClient: NSObject {
             }
         } catch {
             return false
+        }
+    }
+
+    // MARK: - CPU Temperature
+
+    nonisolated func currentCPUTemperature() async -> Double? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let result: NSNumber? = try await service.withContinuation { service, continuation in
+                service.currentCPUTemperature { value in
+                    continuation.resume(returning: value)
+                }
+            }
+            return result?.doubleValue
+        } catch {
+            return nil
         }
     }
 }

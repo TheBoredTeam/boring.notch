@@ -4,6 +4,7 @@
 //
 //  Created by Harsh Vardhan Goswami  on 02/08/24
 //  Modified by Richard Kunkli on 24/08/2024.
+//  Modified by Maksymilian Wójcik on 2026-06-09.
 //
 
 import AVFoundation
@@ -23,6 +24,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var bluetoothManager = BluetoothActivityManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -65,6 +67,18 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if coordinator.expandingView.type == .charging && coordinator.expandingView.show
+            && vm.notchState == .closed && Defaults[.iosChargingAnimation]
+        {
+            chinWidth = 640
+        } else if coordinator.expandingView.type == .bluetooth && coordinator.expandingView.show
+            && vm.notchState == .closed && Defaults[.enableBluetoothPopup]
+        {
+            chinWidth = 640
+        } else if coordinator.expandingView.type == .lowBattery && coordinator.expandingView.show
+            && vm.notchState == .closed && Defaults[.lowBatteryAlerts]
+        {
+            chinWidth = 640
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -78,6 +92,25 @@ struct ContentView: View {
         }
 
         return chinWidth
+    }
+
+    private var anyHomeWidgetEnabled: Bool {
+        Defaults[.homeShowCPUTemp] || Defaults[.homeShowWeather] || Defaults[.homeShowCPUUsage]
+            || Defaults[.homeShowRAMUsage] || Defaults[.homeShowDiskUsage] || Defaults[.homeShowClock]
+    }
+
+    // Visible open-notch height. The window is created at `openNotchMaxHeight`;
+    // the black notch shape scales to the active content so simple views stay
+    // compact while the Widgets tab / Home-with-components grow downward.
+    private var openNotchContentHeight: CGFloat {
+        switch coordinator.currentView {
+        case .widgets:
+            return openNotchMaxHeight
+        case .home:
+            return anyHomeWidgetEnabled ? 218 : openNotchBaseHeight
+        case .shelf:
+            return openNotchBaseHeight
+        }
     }
 
     var body: some View {
@@ -118,7 +151,7 @@ struct ContentView: View {
                     )
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .frame(height: vm.notchState == .open ? openNotchContentHeight : nil)
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
                         let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
@@ -257,7 +290,15 @@ struct ContentView: View {
                     .padding(.top, 40)
                     Spacer()
                 } else {
-                    if coordinator.expandingView.type == .battery && coordinator.expandingView.show
+                    if coordinator.expandingView.type == .charging && coordinator.expandingView.show
+                        && vm.notchState == .closed && Defaults[.iosChargingAnimation]
+                    {
+                        BoringChargingAnimation(
+                            levelBattery: batteryModel.levelBattery,
+                            isCharging: batteryModel.isCharging,
+                            timeToFullCharge: batteryModel.timeToFullCharge
+                        )
+                    } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {
                         HStack(spacing: 0) {
@@ -284,6 +325,16 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+                      } else if coordinator.expandingView.type == .bluetooth && coordinator.expandingView.show
+                          && vm.notchState == .closed && Defaults[.enableBluetoothPopup],
+                          let device = bluetoothManager.lastConnectedDevice {
+                          BoringBluetoothPopup(device: device)
+                      } else if coordinator.expandingView.type == .lowBattery && coordinator.expandingView.show
+                          && vm.notchState == .closed && Defaults[.lowBatteryAlerts] {
+                          BoringLowBatteryAlert(
+                              levelBattery: batteryModel.levelBattery,
+                              isInLowPowerMode: batteryModel.isInLowPowerMode
+                          )
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
@@ -349,6 +400,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .widgets:
+                        WidgetsView()
                     }
                 }
                 .transition(

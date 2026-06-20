@@ -3,6 +3,7 @@
 //  BoringNotchXPCHelper
 //
 //  Created by Alexander on 2025-11-16.
+//  Modified by Maksymilian Wójcik on 2026-06-09.
 //
 
 import Foundation
@@ -20,5 +21,7 @@ import Foundation
     func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void)
     func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void)
     func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
+    // CPU temperature via IOHID thermal sensors (sandbox-blocked, so read in the helper)
+    func currentCPUTemperature(with reply: @escaping (NSNumber?) -> Void)
 }
 

@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Richard Kunkli on 2024. 10. 17..
+//  Modified by Maksymilian Wójcik on 2026-06-09.
 //
 
 import SwiftUI
@@ -64,6 +65,14 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     case openSettings = "Open System Settings"
     case showHUD = "Show HUD"
     case none = "No Action"
+
+    var id: String { self.rawValue }
+}
+
+// Temperature unit for the weather widget
+enum WeatherUnit: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case celsius = "°C"
+    case fahrenheit = "°F"
 
     var id: String { self.rawValue }
 }
@@ -183,6 +192,51 @@ extension Defaults.Keys {
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     
+    // MARK: Charging animation
+    static let iosChargingAnimation = Key<Bool>("iosChargingAnimation", default: true)
+
+    // MARK: Audio device switcher
+    static let enableAudioDeviceSwitcher = Key<Bool>("enableAudioDeviceSwitcher", default: true)
+
+    // MARK: Bluetooth popup
+    static let enableBluetoothPopup = Key<Bool>("enableBluetoothPopup", default: true)
+
+    // MARK: Low battery alert
+    static let lowBatteryAlerts = Key<Bool>("lowBatteryAlerts", default: true)
+
+    // MARK: Device batteries widget
+    static let enableDeviceBatteryWidget = Key<Bool>("enableDeviceBatteryWidget", default: true)
+
+    // MARK: Rates widget (currency / crypto)
+    static let enableRatesWidget = Key<Bool>("enableRatesWidget", default: false)
+    static let ratesPairs = Key<String>("ratesPairs", default: "USD/PLN, EUR/PLN, BTC/USD")
+    static let ratesUpdateInterval = Key<TimeInterval>("ratesUpdateInterval", default: 600.0)
+
+    // MARK: System monitor widget
+    static let enableSystemMonitor = Key<Bool>("enableSystemMonitor", default: true)
+    static let monitorRefreshRate = Key<TimeInterval>("monitorRefreshRate", default: 2.0)
+    static let showCPUMonitor = Key<Bool>("showCPUMonitor", default: true)
+    static let showRAMMonitor = Key<Bool>("showRAMMonitor", default: true)
+    static let showNetworkMonitor = Key<Bool>("showNetworkMonitor", default: true)
+    static let showDiskMonitor = Key<Bool>("showDiskMonitor", default: true)
+    static let showTemperatureMonitor = Key<Bool>("showTemperatureMonitor", default: false)
+
+    // MARK: Home widgets (small components shown on the Home tab)
+    static let homeShowCPUTemp = Key<Bool>("homeShowCPUTemp", default: false)
+    static let homeShowWeather = Key<Bool>("homeShowWeather", default: false)
+    static let homeShowCPUUsage = Key<Bool>("homeShowCPUUsage", default: false)
+    static let homeShowRAMUsage = Key<Bool>("homeShowRAMUsage", default: false)
+    static let homeShowDiskUsage = Key<Bool>("homeShowDiskUsage", default: false)
+    static let homeShowClock = Key<Bool>("homeShowClock", default: false)
+
+    // MARK: Weather widget
+    static let enableWeatherWidget = Key<Bool>("enableWeatherWidget", default: true)
+    static let weatherShowForecast = Key<Bool>("weatherShowForecast", default: true)
+    static let weatherUpdateInterval = Key<TimeInterval>("weatherUpdateInterval", default: 600.0)
+    static let weatherUseLocation = Key<Bool>("weatherUseLocation", default: true)
+    static let weatherManualCity = Key<String>("weatherManualCity", default: "")
+    static let weatherUnit = Key<WeatherUnit>("weatherUnit", default: WeatherUnit.celsius)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)

@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Alexander on 2024-11-20.
+//  Modified by Maksymilian Wójcik on 2026-06-09.
 //
 
 import AppKit
@@ -18,6 +19,10 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case bluetooth
+    case charging
+    case audioDevice
+    case lowBattery
 }
 
 struct sneakPeek {
@@ -281,7 +286,15 @@ class BoringViewCoordinator: ObservableObject {
         didSet {
             if expandingView.show {
                 expandingViewTask?.cancel()
-                let duration: TimeInterval = (expandingView.type == .download ? 2 : 3)
+                let duration: TimeInterval
+                switch expandingView.type {
+                case .download:
+                    duration = 2
+                case .bluetooth, .charging, .lowBattery:
+                    duration = 4
+                default:
+                    duration = 3
+                }
                 let currentType = expandingView.type
                 expandingViewTask = Task { [weak self] in
                     try? await Task.sleep(for: .seconds(duration))

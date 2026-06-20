@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Richard Kunkli on 07/08/2024.
+//  Modified by Maksymilian Wójcik on 2026-06-09.
 //
 
 import AVFoundation
@@ -45,6 +46,12 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "Home") {
+                    Label("Home", systemImage: "house")
+                }
+                NavigationLink(value: "Widgets") {
+                    Label("Widgets", systemImage: "square.grid.2x2")
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -83,6 +90,10 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "Home":
+                    HomeSettings()
+                case "Widgets":
+                    Widgets()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -587,6 +598,153 @@ struct HUD: View {
             if let granted = notification.userInfo?["granted"] as? Bool {
                 accessibilityAuthorized = granted
             }
+        }
+    }
+}
+
+struct HomeSettings: View {
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .homeShowClock) {
+                    Label("Clock", systemImage: "clock")
+                }
+                Defaults.Toggle(key: .homeShowWeather) {
+                    Label("Weather", systemImage: "cloud.sun")
+                }
+                Defaults.Toggle(key: .homeShowCPUTemp) {
+                    Label("CPU temperature", systemImage: "thermometer.medium")
+                }
+                Defaults.Toggle(key: .homeShowCPUUsage) {
+                    Label("CPU usage", systemImage: "cpu")
+                }
+                Defaults.Toggle(key: .homeShowRAMUsage) {
+                    Label("Memory usage", systemImage: "memorychip")
+                }
+                Defaults.Toggle(key: .homeShowDiskUsage) {
+                    Label("Disk usage", systemImage: "internaldrive")
+                }
+            } header: {
+                Text("Components")
+            } footer: {
+                Text("Pick small widgets to show next to the player on the Home tab. Weather is configured in the Widgets tab. CPU temperature may be unavailable on some Macs.")
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Home")
+    }
+}
+
+struct Widgets: View {
+    @Default(.enableSystemMonitor) var enableSystemMonitor
+    @Default(.monitorRefreshRate) var monitorRefreshRate
+    @Default(.enableWeatherWidget) var enableWeatherWidget
+    @Default(.weatherUseLocation) var weatherUseLocation
+    @Default(.weatherManualCity) var weatherManualCity
+    @Default(.weatherUnit) var weatherUnit
+    @Default(.enableRatesWidget) var enableRatesWidget
+    @Default(.ratesPairs) var ratesPairs
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .iosChargingAnimation) {
+                    Text("iOS-style charging animation")
+                }
+                Defaults.Toggle(key: .enableAudioDeviceSwitcher) {
+                    Text("Audio output switcher in open notch")
+                }
+                Defaults.Toggle(key: .enableBluetoothPopup) {
+                    Text("Bluetooth connection popup")
+                }
+                Defaults.Toggle(key: .lowBatteryAlerts) {
+                    Text("Low battery alert (10% / 5%)")
+                }
+            } header: {
+                Text("Devices")
+            }
+
+            Section {
+                Defaults.Toggle(key: .enableSystemMonitor) {
+                    Text("Show system monitor")
+                }
+                Group {
+                    Defaults.Toggle(key: .showCPUMonitor) { Text("CPU usage") }
+                    Defaults.Toggle(key: .showRAMMonitor) { Text("Memory usage") }
+                    Defaults.Toggle(key: .showNetworkMonitor) { Text("Network throughput") }
+                    Defaults.Toggle(key: .showDiskMonitor) { Text("Disk usage") }
+                    Defaults.Toggle(key: .showTemperatureMonitor) { Text("CPU temperature") }
+                    Picker("Refresh interval", selection: $monitorRefreshRate) {
+                        Text("1s").tag(1.0)
+                        Text("2s").tag(2.0)
+                        Text("5s").tag(5.0)
+                    }
+                }
+                .disabled(!enableSystemMonitor)
+            } header: {
+                Text("System Monitor")
+            }
+
+            Section {
+                Defaults.Toggle(key: .enableWeatherWidget) {
+                    Text("Show weather")
+                }
+                Group {
+                    Defaults.Toggle(key: .weatherUseLocation) {
+                        Text("Use current location")
+                    }
+                    if !weatherUseLocation {
+                        TextField("City", text: $weatherManualCity)
+                    }
+                    Picker("Units", selection: $weatherUnit) {
+                        ForEach(WeatherUnit.allCases) { unit in
+                            Text(unit.rawValue).tag(unit)
+                        }
+                    }
+                    Defaults.Toggle(key: .weatherShowForecast) {
+                        Text("3-day forecast")
+                    }
+                }
+                .disabled(!enableWeatherWidget)
+            } header: {
+                Text("Weather")
+            }
+
+            Section {
+                Defaults.Toggle(key: .enableDeviceBatteryWidget) {
+                    Text("Show device batteries")
+                }
+            } header: {
+                Text("Device Batteries")
+            } footer: {
+                Text("Battery levels of connected Bluetooth devices (AirPods, mouse, keyboard) on the Widgets tab.")
+            }
+
+            Section {
+                Defaults.Toggle(key: .enableRatesWidget) {
+                    Text("Show currency / crypto rates")
+                }
+                TextField("Pairs", text: $ratesPairs, prompt: Text("USD/PLN, EUR/PLN, BTC/USD"))
+                    .disabled(!enableRatesWidget)
+            } header: {
+                Text("Rates")
+            } footer: {
+                Text("Comma-separated pairs. Fiat (ECB daily rates): any ISO codes, e.g. USD/PLN. Crypto (CoinGecko): BTC, ETH, SOL, XRP, DOGE, ADA, LTC, BNB, DOT, AVAX as the first symbol.")
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Widgets")
+        .onChange(of: weatherManualCity) {
+            Task { await WeatherManager.shared.refresh() }
+        }
+        .onChange(of: weatherUnit) {
+            Task { await WeatherManager.shared.refresh() }
+        }
+        .onChange(of: weatherUseLocation) {
+            Task { await WeatherManager.shared.refresh() }
+        }
+        .onChange(of: ratesPairs) {
+            Task { await RatesManager.shared.refresh() }
         }
     }
 }
