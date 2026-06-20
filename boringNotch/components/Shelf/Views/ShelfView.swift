@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import Defaults
 
 struct ShelfView: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -95,7 +96,7 @@ struct ShelfView: View {
             } else {
                 ScrollView(.horizontal) {
                     LazyHStack(spacing: spacing) {
-                        ForEach(tvm.items) { item in
+                        ForEach(Defaults[.reverseShelfOrdering] ? tvm.items.reversed() : tvm.items) { item in
                             ShelfItemView(item: item)
                                 .environmentObject(quickLookService)
                         }
