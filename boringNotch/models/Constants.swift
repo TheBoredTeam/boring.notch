@@ -184,6 +184,9 @@ extension Defaults.Keys {
     static let pomodoroCyclesBeforeLongBreak = Key<Int>("pomodoroCyclesBeforeLongBreak", default: 4)
     static let pomodoroAutoDND = Key<Bool>("pomodoroAutoDND", default: false)
     static let pomodoroStats = Key<[String: PomodoroDayStat]>("pomodoroStats", default: [:])
+    static let pomodoroCompletionSound = Key<Bool>("pomodoroCompletionSound", default: true)
+    static let pomodoroAmbientVolume = Key<Double>("pomodoroAmbientVolume", default: 0.6)
+    static let pomodoroAmbientSound = Key<String>("pomodoroAmbientSound", default: "")
 
     // MARK: Projects
     static let projectRunConfigs = Key<[ProjectRunConfig]>("projectRunConfigs", default: [])

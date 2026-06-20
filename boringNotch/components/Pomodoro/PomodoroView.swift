@@ -20,14 +20,19 @@ struct PomodoroView: View {
     // Mac instead of relying on hard-coded numbers.
     private var ringSize: CGFloat {
         let header = max(24, vm.effectiveClosedNotchHeight)
-        let available = openNotchSize.height - header - 12 - 10 - 16 // bottom pad + spacing + own top/bottom pad
-        return max(88, min(116, available))
+        // Reserve room for the ambient-sound strip (24) + VStack spacing (6) too.
+        let available = openNotchSize.height - header - 12 - 10 - 16 - 30
+        return max(80, min(100, available))
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 22) {
-            ringTimer
-            rightPanel
+        VStack(spacing: 6) {
+            HStack(alignment: .center, spacing: 20) {
+                ringTimer
+                rightPanel
+            }
+            AmbientSoundBar(accent: phaseColor)
+                .frame(height: 24)
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)
@@ -83,17 +88,16 @@ struct PomodoroView: View {
     // MARK: - Right panel
 
     private var rightPanel: some View {
-        VStack(alignment: .leading, spacing: 7) {
+        VStack(alignment: .leading, spacing: 6) {
             roundRow
             controls
             presetSection
             Spacer(minLength: 0)
-            statsRow
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
-    // MARK: - Round indicator
+    // MARK: - Round indicator + today's stats (single line to save height)
 
     private var roundRow: some View {
         HStack(spacing: 7) {
@@ -103,7 +107,15 @@ struct PomodoroView: View {
                     .frame(width: 7, height: 7)
             }
             Spacer()
-            Text("Round \(pomodoro.completedPomodoros / max(1, cycles) + 1)")
+            Image(systemName: "flame.fill")
+                .font(.system(size: 9))
+                .foregroundColor(phaseColor.opacity(0.8))
+            Text(focusTimeString(pomodoro.todayFocusSeconds))
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.white.opacity(0.7))
+            Text("·")
+                .foregroundColor(.white.opacity(0.3))
+            Text("\(pomodoro.todayPomodoros)")
                 .font(.system(size: 10, weight: .medium))
                 .foregroundColor(.white.opacity(0.45))
         }
@@ -174,25 +186,6 @@ struct PomodoroView: View {
     }
 
     // MARK: - Stats
-
-    private var statsRow: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "flame.fill")
-                .font(.system(size: 9))
-                .foregroundColor(phaseColor.opacity(0.8))
-            Text("Today")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(.white.opacity(0.4))
-            Text("\(focusTimeString(pomodoro.todayFocusSeconds))")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.white.opacity(0.7))
-            Text("·")
-                .foregroundColor(.white.opacity(0.3))
-            Text("\(pomodoro.todayPomodoros) sessions")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(.white.opacity(0.4))
-        }
-    }
 
     private func focusTimeString(_ seconds: Double) -> String {
         let total = Int(seconds)

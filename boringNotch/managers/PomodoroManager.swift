@@ -137,8 +137,12 @@ class PomodoroManager: ObservableObject {
         let remaining = endDate.timeIntervalSinceNow
         if remaining <= 0 {
             timeRemaining = 0
+            // Capture the phase that just elapsed BEFORE advancing, so the
+            // chime and notification describe what actually finished.
+            let finishedPhase = phase
             advance(credit: true)
-            notify()
+            playCompletionChime()
+            notify(finishedPhase: finishedPhase)
         } else {
             timeRemaining = remaining
         }
@@ -234,10 +238,20 @@ class PomodoroManager: ObservableObject {
         }
     }
 
+    // MARK: - Completion sound
+
+    /// Plays a short system chime the moment a phase ends. Independent of the
+    /// notification banner, so you hear it even if notifications are denied.
+    private func playCompletionChime() {
+        guard Defaults[.pomodoroCompletionSound] else { return }
+        // "Glass" is a clean, pleasant macOS system sound.
+        NSSound(named: "Glass")?.play()
+    }
+
     // MARK: - Notifications
 
-    private func notify() {
-        let isWork = phase == .work
+    private func notify(finishedPhase: PomodoroPhase) {
+        let finishedWork = finishedPhase == .work
         Task.detached {
             let center = UNUserNotificationCenter.current()
             let granted = await withCheckedContinuation { cont in
@@ -245,8 +259,8 @@ class PomodoroManager: ObservableObject {
             }
             guard granted else { return }
             let content = UNMutableNotificationContent()
-            content.title = isWork ? "Break time!" : "Back to work!"
-            content.body = isWork
+            content.title = finishedWork ? "Break time!" : "Back to work!"
+            content.body = finishedWork
                 ? "Great focus session. Take a break."
                 : "Break's over. Time to focus."
             content.sound = .default

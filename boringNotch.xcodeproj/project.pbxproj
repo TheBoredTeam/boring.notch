@@ -109,12 +109,14 @@
 		2FB4B31162507C68195D6731 /* PomodoroManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */; };
 		48EDDF82BC09FACAEC7441A6 /* ProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29F3F99672137267B53DD7B9 /* ProjectsView.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
+		559816E1AE419B1E1A7EE240 /* AmbientSoundBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6030A614BB0126A953F036 /* AmbientSoundBar.swift */; };
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
 		59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D8C23B2E589FAA00147B33 /* VolumeManager.swift */; };
 		5A7C6B113DC89869F71803E0 /* MemoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6988A981DDAD437841B7A71A /* MemoryManager.swift */; };
 		716B581F40693DCC4D0EF5F2 /* ProjectsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACB1BBBCA3E6F878AAFF79C /* ProjectsManager.swift */; };
 		71980B7B8371C3B2829C83E0 /* SystemSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCACB07F929AA59722446183 /* SystemSettingsView.swift */; };
+		764182446A7C8100307A414E /* AmbientSoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0BEBC5658B984D19C6039D /* AmbientSoundManager.swift */; };
 		893DF55748FD19AC3A0A89A3 /* FocusSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AB72EF17BBA3BB52FD9C93 /* FocusSettings.swift */; };
 		8C2D40FBB08E36EEAED679EA /* SystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */; };
 		981523F7EB0159C5136D74BE /* PomodoroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90E47CC6320420C9B243B732 /* PomodoroView.swift */; };
@@ -297,7 +299,9 @@
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
+		5D0BEBC5658B984D19C6039D /* AmbientSoundManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AmbientSoundManager.swift; sourceTree = "<group>"; };
 		6988A981DDAD437841B7A71A /* MemoryManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryManager.swift; sourceTree = "<group>"; };
+		6E6030A614BB0126A953F036 /* AmbientSoundBar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AmbientSoundBar.swift; sourceTree = "<group>"; };
 		81FF3E936C251918CD59C9DA /* MemoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryView.swift; sourceTree = "<group>"; };
 		90E47CC6320420C9B243B732 /* PomodoroView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroView.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
@@ -572,6 +576,7 @@
 				6988A981DDAD437841B7A71A /* MemoryManager.swift */,
 				B1C2D3E4F5067890 /* PortsManager.swift */,
 				DACB1BBBCA3E6F878AAFF79C /* ProjectsManager.swift */,
+				5D0BEBC5658B984D19C6039D /* AmbientSoundManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -697,6 +702,7 @@
 			children = (
 				90E47CC6320420C9B243B732 /* PomodoroView.swift */,
 				A6AB72EF17BBA3BB52FD9C93 /* FocusSettings.swift */,
+				6E6030A614BB0126A953F036 /* AmbientSoundBar.swift */,
 			);
 			name = Pomodoro;
 			path = Pomodoro;
@@ -1118,6 +1124,8 @@
 				CA6DC1B51E2D887074C951EA /* ProjectsSettings.swift in Sources */,
 				716B581F40693DCC4D0EF5F2 /* ProjectsManager.swift in Sources */,
 				FABC359A768C7093CC4ADFB9 /* CustomMusicVisualizer.swift in Sources */,
+				764182446A7C8100307A414E /* AmbientSoundManager.swift in Sources */,
+				559816E1AE419B1E1A7EE240 /* AmbientSoundBar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
