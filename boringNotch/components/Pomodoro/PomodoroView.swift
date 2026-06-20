@@ -44,41 +44,69 @@ struct PomodoroView: View {
     // MARK: - Ring
 
     private var ringTimer: some View {
-        ZStack {
-            // Soft phase-colored glow behind the ring.
-            Circle()
-                .fill(phaseColor)
-                .blur(radius: 26)
-                .opacity(0.28)
-                .padding(10)
+        let lineWidth: CGFloat = 9
+        let tipRadius = ringSize / 2 - lineWidth / 2
+        let tipAngle = Double(-90 + pomodoro.progress * 360) * .pi / 180
 
-            Circle()
-                .stroke(Color.white.opacity(0.07), lineWidth: 9)
+        return ZStack {
+            // Soft phase-colored glow that gently breathes while running.
+            TimelineView(.animation(paused: !pomodoro.isRunning)) { timeline in
+                let t = timeline.date.timeIntervalSinceReferenceDate
+                let pulse = pomodoro.isRunning ? (sin(t * 1.7) + 1) / 2 : 0.5
+                Circle()
+                    .fill(phaseColor)
+                    .blur(radius: 22 + CGFloat(pulse) * 10)
+                    .opacity(0.18 + pulse * 0.16)
+                    .padding(10)
+            }
 
+            // Track with a faint inner depth.
+            Circle()
+                .stroke(Color.white.opacity(0.06), lineWidth: lineWidth)
+            Circle()
+                .stroke(Color.black.opacity(0.25), lineWidth: 1)
+                .padding(lineWidth / 2)
+
+            // Progress arc.
             Circle()
                 .trim(from: 0, to: pomodoro.progress)
                 .stroke(
                     AngularGradient(
-                        gradient: Gradient(colors: [phaseColor.opacity(0.65), phaseColor]),
+                        gradient: Gradient(colors: [phaseColor.opacity(0.55), phaseColor]),
                         center: .center,
                         startAngle: .degrees(-90),
                         endAngle: .degrees(270)
                     ),
-                    style: StrokeStyle(lineWidth: 9, lineCap: .round)
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
                 .shadow(color: phaseColor.opacity(0.45), radius: 5)
                 .animation(.linear(duration: 0.5), value: pomodoro.progress)
 
-            VStack(spacing: 2) {
+            // Glowing dot riding the leading edge of the progress arc.
+            if pomodoro.progress > 0.001 {
+                Circle()
+                    .fill(.white)
+                    .frame(width: lineWidth - 2, height: lineWidth - 2)
+                    .shadow(color: phaseColor, radius: 5)
+                    .offset(x: cos(tipAngle) * tipRadius, y: sin(tipAngle) * tipRadius)
+                    .animation(.linear(duration: 0.5), value: pomodoro.progress)
+            }
+
+            VStack(spacing: 3) {
                 Text(timeString)
                     .font(.system(size: ringSize * 0.24, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundColor(.white)
+                    .contentTransition(.numericText(countsDown: true))
+                    .animation(.snappy(duration: 0.3), value: timeString)
                 Text(pomodoro.phase.label.uppercased())
-                    .font(.system(size: 9, weight: .heavy))
-                    .tracking(1.8)
+                    .font(.system(size: 8.5, weight: .heavy))
+                    .tracking(1.6)
                     .foregroundColor(phaseColor)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(phaseColor.opacity(0.12)))
             }
         }
         .frame(width: ringSize, height: ringSize)
@@ -124,23 +152,34 @@ struct PomodoroView: View {
     // MARK: - Controls
 
     private var controls: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             Button(action: { withAnimation(.snappy) { pomodoro.toggle() } }) {
                 HStack(spacing: 7) {
                     Image(systemName: pomodoro.isRunning ? "pause.fill" : "play.fill")
                         .font(.system(size: 14, weight: .bold))
+                        .contentTransition(.symbolEffect(.replace))
                     Text(pomodoro.isRunning ? "Pause" : "Start")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 13, weight: .bold))
                 }
                 .foregroundColor(.black)
                 .frame(height: 32)
                 .frame(maxWidth: .infinity)
                 .background(
-                    Capsule().fill(phaseColor)
-                        .shadow(color: phaseColor.opacity(0.4), radius: 4, y: 1)
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [phaseColor, phaseColor.opacity(0.78)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            Capsule().stroke(Color.white.opacity(0.25), lineWidth: 0.5)
+                        )
+                        .shadow(color: phaseColor.opacity(0.45), radius: 5, y: 1)
                 )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PressableStyle())
 
             circleButton("arrow.counterclockwise") { pomodoro.reset() }
             circleButton("forward.end.fill") { pomodoro.skip() }
@@ -150,12 +189,16 @@ struct PomodoroView: View {
     private func circleButton(_ icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 12.5, weight: .semibold))
                 .foregroundColor(.white.opacity(0.85))
                 .frame(width: 32, height: 32)
-                .background(Circle().fill(Color.white.opacity(0.1)))
+                .background(
+                    Circle()
+                        .fill(Color.white.opacity(0.1))
+                        .overlay(Circle().stroke(Color.white.opacity(0.08), lineWidth: 0.5))
+                )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableStyle())
     }
 
     // MARK: - Custom time presets
@@ -179,10 +222,14 @@ struct PomodoroView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 24)
                 .background(
-                    Capsule().fill(active ? phaseColor : Color.white.opacity(0.08))
+                    Capsule()
+                        .fill(active ? phaseColor : Color.white.opacity(0.08))
+                        .overlay(
+                            active ? Capsule().stroke(Color.white.opacity(0.25), lineWidth: 0.5) : nil
+                        )
                 )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableStyle())
     }
 
     // MARK: - Stats
@@ -209,6 +256,16 @@ struct PomodoroView: View {
         let m = total / 60
         let s = total % 60
         return String(format: "%02d:%02d", m, s)
+    }
+}
+
+/// Subtle tactile press feedback for the Pomodoro controls.
+private struct PressableStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.93 : 1.0)
+            .opacity(configuration.isPressed ? 0.85 : 1.0)
+            .animation(.snappy(duration: 0.15), value: configuration.isPressed)
     }
 }
 
