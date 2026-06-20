@@ -8,6 +8,7 @@ struct PortEntry: Identifiable, Equatable {
     let command: String
     let user: String
     let proto: String
+    var uptime: String = "" // how long the owning process has been running, e.g. "2h 14m"
 }
 
 @MainActor
@@ -40,9 +41,17 @@ class PortsManager: ObservableObject {
                 let data = pipe.fileHandleForReading.readDataToEndOfFile()
                 if let output = String(data: data, encoding: .utf8) {
                     let parsedEntries = Self.parseLsofOutput(output)
-                    
+
+                    // Enrich with process uptime (etime) in one ps call.
+                    let uptimes = Self.uptimes(forPIDs: Array(Set(parsedEntries.map { $0.pid })))
+                    let enrichedEntries = parsedEntries.map { entry -> PortEntry in
+                        var e = entry
+                        e.uptime = uptimes[entry.pid] ?? ""
+                        return e
+                    }
+
                     await MainActor.run {
-                        self?.entries = parsedEntries
+                        self?.entries = enrichedEntries
                         self?.isLoading = false
                     }
                 } else {
@@ -87,7 +96,56 @@ class PortsManager: ObservableObject {
         
         return parsed.sorted { $0.port < $1.port }
     }
-    
+
+    /// Maps PID → human-readable process uptime via `ps -o pid=,etime=`.
+    private nonisolated static func uptimes(forPIDs pids: [Int32]) -> [Int32: String] {
+        guard !pids.isEmpty else { return [:] }
+        let process = Process()
+        let pipe = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/bin/ps")
+        process.arguments = ["-o", "pid=,etime=", "-p", pids.map(String.init).joined(separator: ",")]
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            return [:]
+        }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        guard let out = String(data: data, encoding: .utf8) else { return [:] }
+
+        var result: [Int32: String] = [:]
+        for line in out.components(separatedBy: .newlines) {
+            let cols = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+            guard cols.count >= 2, let pid = Int32(cols[0]) else { continue }
+            result[pid] = humanizeEtime(cols[1])
+        }
+        return result
+    }
+
+    /// Converts ps etime ("[[DD-]hh:]mm:ss") to a compact string like "2d 3h", "1h 5m", "5m", "23s".
+    private nonisolated static func humanizeEtime(_ etime: String) -> String {
+        var days = 0
+        var rest = etime
+        if let dash = etime.firstIndex(of: "-") {
+            days = Int(etime[..<dash]) ?? 0
+            rest = String(etime[etime.index(after: dash)...])
+        }
+        let parts = rest.components(separatedBy: ":").map { Int($0) ?? 0 }
+        var h = 0, m = 0, s = 0
+        switch parts.count {
+        case 3: h = parts[0]; m = parts[1]; s = parts[2]
+        case 2: m = parts[0]; s = parts[1]
+        case 1: s = parts[0]
+        default: break
+        }
+        if days > 0 { return "\(days)d \(h)h" }
+        if h > 0 { return "\(h)h \(m)m" }
+        if m > 0 { return "\(m)m" }
+        return "\(s)s"
+    }
+
     enum StopResult {
         case success
         case survived

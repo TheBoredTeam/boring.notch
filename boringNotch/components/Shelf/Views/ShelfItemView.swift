@@ -223,10 +223,15 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         private var draggedURLs: [URL] = []
         private var draggedItems: [ShelfItem] = []
         
+        // The notch panel can become key (needed for Finder drag-and-drop), so
+        // the click that keys the window would otherwise be swallowed. Accept
+        // first mouse so a single click (incl. Cmd/Shift) selects immediately.
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
         override func rightMouseDown(with event: NSEvent) {
             onRightClick?(event, self)
         }
-        
+
         override func mouseDown(with event: NSEvent) {
             mouseDownEvent = event
             onClick?(event, self)

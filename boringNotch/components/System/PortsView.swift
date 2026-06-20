@@ -133,6 +133,17 @@ struct PortsView: View {
                                         Text(entry.user)
                                             .font(.system(size: 9, weight: .medium, design: .rounded))
                                             .foregroundColor(entry.user != NSUserName() ? .orange.opacity(0.8) : .white.opacity(0.5))
+                                        if !entry.uptime.isEmpty {
+                                            Text("•")
+                                                .font(.system(size: 9))
+                                                .foregroundColor(.white.opacity(0.3))
+                                            Image(systemName: "clock")
+                                                .font(.system(size: 8, weight: .semibold))
+                                                .foregroundColor(.white.opacity(0.45))
+                                            Text(entry.uptime)
+                                                .font(.system(size: 9, weight: .medium, design: .rounded))
+                                                .foregroundColor(.white.opacity(0.55))
+                                        }
                                     }
                                 }
                                 
@@ -169,6 +180,7 @@ struct PortsView: View {
         .onDisappear {
             timer?.invalidate()
             timer = nil
+            releaseNotchLock()
         }
         .alert(isPresented: Binding<Bool>(
             get: { showRootWarning || showConfirmStop || showForceKill },
@@ -188,7 +200,7 @@ struct PortsView: View {
                             showConfirmStop = true
                         }
                     },
-                    secondaryButton: .cancel()
+                    secondaryButton: .cancel(Text("Cancel")) { releaseNotchLock() }
                 )
             } else if showForceKill {
                 return Alert(
@@ -201,7 +213,7 @@ struct PortsView: View {
                             }
                         }
                     },
-                    secondaryButton: .cancel()
+                    secondaryButton: .cancel(Text("Cancel")) { releaseNotchLock() }
                 )
             } else {
                 return Alert(
@@ -214,7 +226,7 @@ struct PortsView: View {
                             }
                         }
                     },
-                    secondaryButton: .cancel()
+                    secondaryButton: .cancel(Text("Cancel")) { releaseNotchLock() }
                 )
             }
         }
@@ -222,21 +234,30 @@ struct PortsView: View {
     
     private func initiateStop(_ entry: PortEntry) {
         selectedProcess = entry
+        // Keep the notch open while a confirmation alert is up — otherwise it
+        // auto-closes on mouse-leave and tears down the alert before you confirm.
+        SharingStateManager.shared.preventNotchClose = true
         if entry.user != NSUserName() {
             showRootWarning = true
         } else {
             showConfirmStop = true
         }
     }
-    
+
+    private func releaseNotchLock() {
+        SharingStateManager.shared.preventNotchClose = false
+    }
+
     private func performStop(_ entry: PortEntry, force: Bool) async {
         let result = await manager.stopProcess(pid: entry.pid, force: force)
         switch result {
         case .success:
+            releaseNotchLock()
             manager.refresh()
         case .survived:
-            showForceKill = true
+            showForceKill = true // keep the notch locked for the follow-up prompt
         case .error(let error):
+            releaseNotchLock()
             print("Stop error: \(error.localizedDescription)")
         }
     }
