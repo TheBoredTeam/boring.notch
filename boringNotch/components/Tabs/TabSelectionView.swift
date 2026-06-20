@@ -20,7 +20,8 @@ let tabs = [
     TabModel(label: "Focus", icon: "timer", view: .pomodoro),
     TabModel(label: "System", icon: "cpu", view: .system),
     TabModel(label: "Projects", icon: "hammer.fill", view: .projects),
-    TabModel(label: "Note", icon: "square.and.pencil", view: .note)
+    TabModel(label: "Note", icon: "square.and.pencil", view: .note),
+    TabModel(label: "Launch", icon: "square.grid.2x2.fill", view: .launcher)
 ]
 
 struct TabSelectionView: View {

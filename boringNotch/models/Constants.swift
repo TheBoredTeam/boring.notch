@@ -192,6 +192,9 @@ extension Defaults.Keys {
     static let projectRunConfigs = Key<[ProjectRunConfig]>("projectRunConfigs", default: [])
     static let projectsAutoOpenPort = Key<Bool>("projectsAutoOpenPort", default: false)
 
+    // MARK: Quick Launcher
+    static let launcherItems = Key<[LauncherItem]>("launcherItems", default: [])
+
     // MARK: Quick Note → Obsidian
     // Folder that quick-capture daily files are written to. Defaults to the
     // vault's raw/inbox entry point so captures flow into the existing

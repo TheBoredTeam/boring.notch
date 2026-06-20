@@ -31,6 +31,7 @@ public enum NotchViews {
     case system
     case projects
     case note
+    case launcher
 }
 
 enum SettingsEnum {

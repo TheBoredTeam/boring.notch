@@ -119,6 +119,7 @@
 		716B581F40693DCC4D0EF5F2 /* ProjectsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACB1BBBCA3E6F878AAFF79C /* ProjectsManager.swift */; };
 		71980B7B8371C3B2829C83E0 /* SystemSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCACB07F929AA59722446183 /* SystemSettingsView.swift */; };
 		764182446A7C8100307A414E /* AmbientSoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0BEBC5658B984D19C6039D /* AmbientSoundManager.swift */; };
+		79D0CE63D2EEF76EE0A4C32F /* LauncherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8468BC5715DDC6233F92BAA8 /* LauncherView.swift */; };
 		893DF55748FD19AC3A0A89A3 /* FocusSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AB72EF17BBA3BB52FD9C93 /* FocusSettings.swift */; };
 		8C2D40FBB08E36EEAED679EA /* SystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */; };
 		981523F7EB0159C5136D74BE /* PomodoroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90E47CC6320420C9B243B732 /* PomodoroView.swift */; };
@@ -158,6 +159,7 @@
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		CA6DC1B51E2D887074C951EA /* ProjectsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F21D0137306D5CAA68009B0 /* ProjectsSettings.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		F3A353606F41904A5195B058 /* LauncherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221842D2476053817483FA51 /* LauncherManager.swift */; };
 		FA262BA1D3C5A89C3C2638FF /* MemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81FF3E936C251918CD59C9DA /* MemoryView.swift */; };
 		FABC359A768C7093CC4ADFB9 /* CustomMusicVisualizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174561B3AF24DF42758193FF /* CustomMusicVisualizer.swift */; };
 /* End PBXBuildFile section */
@@ -296,6 +298,7 @@
 		174561B3AF24DF42758193FF /* CustomMusicVisualizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomMusicVisualizer.swift; sourceTree = "<group>"; };
 		1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemView.swift; sourceTree = "<group>"; };
 		1F21D0137306D5CAA68009B0 /* ProjectsSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsSettings.swift; sourceTree = "<group>"; };
+		221842D2476053817483FA51 /* LauncherManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherManager.swift; sourceTree = "<group>"; };
 		29F3F99672137267B53DD7B9 /* ProjectsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsView.swift; sourceTree = "<group>"; };
 		43A41644C1C5B3ED1E6BE09E /* QuickNoteManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuickNoteManager.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
@@ -306,6 +309,7 @@
 		6988A981DDAD437841B7A71A /* MemoryManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryManager.swift; sourceTree = "<group>"; };
 		6E6030A614BB0126A953F036 /* AmbientSoundBar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AmbientSoundBar.swift; sourceTree = "<group>"; };
 		81FF3E936C251918CD59C9DA /* MemoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryView.swift; sourceTree = "<group>"; };
+		8468BC5715DDC6233F92BAA8 /* LauncherView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherView.swift; sourceTree = "<group>"; };
 		90E47CC6320420C9B243B732 /* PomodoroView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroView.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
@@ -562,6 +566,7 @@
 				B890BF6CCF977277217EB3B1 /* System */,
 				76483B778576DFA4D3CB3CF3 /* Projects */,
 				46AF0A8BCC99A801CD2CAF27 /* QuickNote */,
+				F7D267AB8FF583ED61EC112C /* Launcher */,
 			);
 			path = components;
 			sourceTree = "<group>";
@@ -583,6 +588,7 @@
 				DACB1BBBCA3E6F878AAFF79C /* ProjectsManager.swift */,
 				5D0BEBC5658B984D19C6039D /* AmbientSoundManager.swift */,
 				43A41644C1C5B3ED1E6BE09E /* QuickNoteManager.swift */,
+				221842D2476053817483FA51 /* LauncherManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -865,6 +871,15 @@
 			path = System;
 			sourceTree = "<group>";
 		};
+		F7D267AB8FF583ED61EC112C /* Launcher */ = {
+			isa = PBXGroup;
+			children = (
+				8468BC5715DDC6233F92BAA8 /* LauncherView.swift */,
+			);
+			name = Launcher;
+			path = Launcher;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1143,6 +1158,8 @@
 				559816E1AE419B1E1A7EE240 /* AmbientSoundBar.swift in Sources */,
 				37DF863212CF67FDB805E757 /* QuickNoteManager.swift in Sources */,
 				24BFD4D6B72D2493DADDE161 /* QuickNoteView.swift in Sources */,
+				F3A353606F41904A5195B058 /* LauncherManager.swift in Sources */,
+				79D0CE63D2EEF76EE0A4C32F /* LauncherView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

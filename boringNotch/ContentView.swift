@@ -363,6 +363,8 @@ struct ContentView: View {
                         ProjectsView()
                     case .note:
                         QuickNoteView()
+                    case .launcher:
+                        LauncherView()
                     }
                 }
                 .transition(
