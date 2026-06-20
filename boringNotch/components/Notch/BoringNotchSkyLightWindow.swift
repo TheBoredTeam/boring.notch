@@ -61,7 +61,13 @@ class BoringNotchSkyLightWindow: NSPanel {
         level = .mainMenu + 3
         hasShadow = false
         isReleasedWhenClosed = false
-        
+
+        // Become key only when a control actually needs it (e.g. routing a
+        // Finder drag session). Ordinary clicks reach the views WITHOUT the
+        // panel grabbing key focus, which restores Cmd/Shift multi-select in
+        // the Shelf while still letting the panel receive Finder drops.
+        becomesKeyOnlyIfNeeded = true
+
         // Force dark appearance regardless of system setting
         appearance = NSAppearance(named: .darkAqua)
         
