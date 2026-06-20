@@ -204,6 +204,77 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     }
 }
 
+enum UpdateChannel: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case stable
+    case beta
+    case dev
+
+    var id: String { rawValue }
+
+    static var bundled: UpdateChannel {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "BNUpdateChannel") as? String,
+              let channel = UpdateChannel(rawValue: value)
+        else {
+            return .stable
+        }
+        return channel
+    }
+
+    static var visibleCases: [UpdateChannel] {
+        // Dev nightlies are intentionally gated away from public stable/beta builds.
+        if bundled == .dev || Defaults[.updateChannel] == .dev {
+            return allCases
+        }
+        return [.stable, .beta]
+    }
+
+    static func applyBundledDefaultIfNeeded() {
+        guard !Defaults[.updateChannelUserSelected] else {
+            return
+        }
+        if let storedValue = UserDefaults.standard.object(forKey: "updateChannel") as? String,
+           let storedChannel = UpdateChannel(rawValue: storedValue),
+           storedChannel != .stable {
+            Defaults[.updateChannelUserSelected] = true
+            return
+        }
+        Defaults[.updateChannel] = bundled
+    }
+
+    var title: String {
+        switch self {
+        case .stable:
+            return NSLocalizedString("Stable", comment: "Update channel: stable")
+        case .beta:
+            return NSLocalizedString("Beta", comment: "Update channel: beta")
+        case .dev:
+            return NSLocalizedString("Nightly", comment: "Update channel: nightly")
+        }
+    }
+
+    var feedURLString: String {
+        switch self {
+        case .stable:
+            return "https://TheBoredTeam.github.io/boring.notch/appcast.xml"
+        case .beta:
+            return "https://TheBoredTeam.github.io/boring.notch/appcast.xml"
+        case .dev:
+            return "https://raw.githubusercontent.com/TheBoredTeam/boring.notch/dev/updater/appcast-dev.xml"
+        }
+    }
+
+    var allowedSparkleChannels: Set<String> {
+        switch self {
+        case .stable:
+            return []
+        case .beta:
+            return ["beta"]
+        case .dev:
+            return ["dev"]
+        }
+    }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
@@ -211,6 +282,8 @@ extension Defaults.Keys {
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
+    static let updateChannel = Key<UpdateChannel>("updateChannel", default: .stable)
+    static let updateChannelUserSelected = Key<Bool>("updateChannelUserSelected", default: false)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)

@@ -9,7 +9,7 @@ on:
         required: false
         type: string
       build_number:
-        required: false
+        required: true
         type: string
       xcode_version:
         required: false
@@ -19,6 +19,10 @@ on:
         required: false
         type: string
         default: "Apple Development"
+      update_channel:
+        required: false
+        type: string
+        default: "stable"
     secrets:
       BUILD_CERTIFICATE_BASE64:
         required: true
@@ -31,12 +35,13 @@ jobs:
   build:
     runs-on: macos-latest
     permissions:
-      contents: write
+      contents: read
     env:
       PROJECT_NAME: boringNotch
       EXPORT_METHOD: development
       VERSION_INPUT: ${{ inputs.version }}
       BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
+      UPDATE_CHANNEL: ${{ inputs.update_channel }}
       DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
       CODE_SIGN_IDENTITY: ${{ inputs.code_sign_identity }}
       XCODE_VERSION: ${{ inputs.xcode_version }}
@@ -44,6 +49,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.head_ref }}
+          persist-credentials: false
 
       - name: Resolve Swift packages
         run: xcodebuild -resolvePackageDependencies -project ${{ env.PROJECT_NAME }}.xcodeproj
@@ -77,38 +83,22 @@ jobs:
 
       - name: Set version and build number
         run: |
+          set -euo pipefail
           PBXPROJ="${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
           VERSION="${{ env.VERSION_INPUT }}"
           BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
           if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
-            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
-          else
-            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+            echo "::error::A reserved build number must be provided by the caller"
+            exit 1
           fi
-          if [[ -n "$VERSION" ]]; then
-            sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${VERSION}/g" "$PBXPROJ"
-          fi
-          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${BUILD_NUMBER}/g" "$PBXPROJ"
-
-      - name: Commit version changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
-          VERSION="${{ env.VERSION_INPUT }}"
-          BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
-          if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
-            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
-          else
-            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
-          fi
-          if [[ -n "$VERSION" ]]; then
-            COMMIT_MSG="Set version to v${VERSION} (build ${BUILD_NUMBER})"
-          else
-            COMMIT_MSG="Set build number to ${BUILD_NUMBER}"
-          fi
-          git commit -m "$COMMIT_MSG" || true
-          git push origin "HEAD:${{ inputs.head_ref }}" || true
+          BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+          UPDATE_CHANNEL="${{ env.UPDATE_CHANNEL }}"
+          python3 .github/scripts/stamp_version.py \
+            --pbxproj "$PBXPROJ" \
+            --version "$VERSION" \
+            --build-number "$BUILD_NUMBER" \
+            --info-plist "${PROJECT_NAME}/Info.plist" \
+            --update-channel "$UPDATE_CHANNEL"
 
       - name: Build and archive
         run: |
@@ -142,12 +132,6 @@ jobs:
             -archivePath "${{ env.PROJECT_NAME }}.xcarchive" \
             -exportPath Release \
             -exportOptionsPlist "$RUNNER_TEMP/export_options.plist"
-
-      - name: Verify generate_appcast exists
-        run: |
-          if [ ! -x Configuration/sparkle/generate_appcast ]; then
-            echo "::warning title=Missing generate_appcast::Configuration/sparkle/generate_appcast is not present or not executable; skipping appcast generation verification."
-          fi
 
       - name: Create DMG
         run: |
