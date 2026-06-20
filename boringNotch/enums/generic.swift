@@ -30,6 +30,7 @@ public enum NotchViews {
     case pomodoro
     case system
     case projects
+    case note
 }
 
 enum SettingsEnum {

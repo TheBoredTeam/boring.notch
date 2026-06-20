@@ -191,6 +191,16 @@ extension Defaults.Keys {
     // MARK: Projects
     static let projectRunConfigs = Key<[ProjectRunConfig]>("projectRunConfigs", default: [])
 
+    // MARK: Quick Note → Obsidian
+    // Folder that quick-capture daily files are written to. Defaults to the
+    // vault's raw/inbox entry point so captures flow into the existing
+    // "Ingest: raw/inbox/…" workflow.
+    static let quickNoteFolder = Key<String>(
+        "quickNoteFolder",
+        default: "\(NSHomeDirectory())/05_Vault/obsidian-vault/raw/inbox"
+    )
+    static let quickNoteFilePrefix = Key<String>("quickNoteFilePrefix", default: "capture")
+
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
     

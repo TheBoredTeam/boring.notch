@@ -106,7 +106,9 @@
 		14E9FEAA2C70BF610062E83F /* DownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEA92C70BF610062E83F /* DownloadView.swift */; };
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
+		24BFD4D6B72D2493DADDE161 /* QuickNoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC7ACE6AC895EE1313AD764C /* QuickNoteView.swift */; };
 		2FB4B31162507C68195D6731 /* PomodoroManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */; };
+		37DF863212CF67FDB805E757 /* QuickNoteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A41644C1C5B3ED1E6BE09E /* QuickNoteManager.swift */; };
 		48EDDF82BC09FACAEC7441A6 /* ProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29F3F99672137267B53DD7B9 /* ProjectsView.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
 		559816E1AE419B1E1A7EE240 /* AmbientSoundBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6030A614BB0126A953F036 /* AmbientSoundBar.swift */; };
@@ -295,6 +297,7 @@
 		1C3CF20F99E29508E4D0F0C6 /* SystemView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemView.swift; sourceTree = "<group>"; };
 		1F21D0137306D5CAA68009B0 /* ProjectsSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsSettings.swift; sourceTree = "<group>"; };
 		29F3F99672137267B53DD7B9 /* ProjectsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsView.swift; sourceTree = "<group>"; };
+		43A41644C1C5B3ED1E6BE09E /* QuickNoteManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuickNoteManager.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
@@ -339,6 +342,7 @@
 		DCACB07F929AA59722446183 /* SystemSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemSettingsView.swift; sourceTree = "<group>"; };
 		DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		FC7ACE6AC895EE1313AD764C /* QuickNoteView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuickNoteView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -557,6 +561,7 @@
 				3C991EFD049A7D022000C730 /* Pomodoro */,
 				B890BF6CCF977277217EB3B1 /* System */,
 				76483B778576DFA4D3CB3CF3 /* Projects */,
+				46AF0A8BCC99A801CD2CAF27 /* QuickNote */,
 			);
 			path = components;
 			sourceTree = "<group>";
@@ -577,6 +582,7 @@
 				B1C2D3E4F5067890 /* PortsManager.swift */,
 				DACB1BBBCA3E6F878AAFF79C /* ProjectsManager.swift */,
 				5D0BEBC5658B984D19C6039D /* AmbientSoundManager.swift */,
+				43A41644C1C5B3ED1E6BE09E /* QuickNoteManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -706,6 +712,15 @@
 			);
 			name = Pomodoro;
 			path = Pomodoro;
+			sourceTree = "<group>";
+		};
+		46AF0A8BCC99A801CD2CAF27 /* QuickNote */ = {
+			isa = PBXGroup;
+			children = (
+				FC7ACE6AC895EE1313AD764C /* QuickNoteView.swift */,
+			);
+			name = QuickNote;
+			path = QuickNote;
 			sourceTree = "<group>";
 		};
 		76483B778576DFA4D3CB3CF3 /* Projects */ = {
@@ -1126,6 +1141,8 @@
 				FABC359A768C7093CC4ADFB9 /* CustomMusicVisualizer.swift in Sources */,
 				764182446A7C8100307A414E /* AmbientSoundManager.swift in Sources */,
 				559816E1AE419B1E1A7EE240 /* AmbientSoundBar.swift in Sources */,
+				37DF863212CF67FDB805E757 /* QuickNoteManager.swift in Sources */,
+				24BFD4D6B72D2493DADDE161 /* QuickNoteView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

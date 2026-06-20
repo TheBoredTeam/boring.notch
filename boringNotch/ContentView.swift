@@ -361,6 +361,8 @@ struct ContentView: View {
                         SystemView()
                     case .projects:
                         ProjectsView()
+                    case .note:
+                        QuickNoteView()
                     }
                 }
                 .transition(
