@@ -103,7 +103,23 @@ struct ContentView: View {
                         : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                    .background(.black)
+                    .background {
+                        ZStack {
+                            Color.black
+                            // Optional accent-tinted background for the open notch.
+                            if Defaults[.notchTintedBackground] && vm.notchState == .open {
+                                LinearGradient(
+                                    colors: [
+                                        Color.effectiveAccent.opacity(0.28),
+                                        Color.effectiveAccent.opacity(0.06)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                                .transition(.opacity)
+                            }
+                        }
+                    }
                     .clipShape(currentNotchShape)
                     .overlay(alignment: .top) {
                         Rectangle()

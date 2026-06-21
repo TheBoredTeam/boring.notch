@@ -15,7 +15,7 @@ struct QuickNoteView: View {
     @State private var draft: String = ""
     @FocusState private var editorFocused: Bool
 
-    private let accent = Color(red: 0.55, green: 0.7, blue: 1.0)
+    private var accent: Color { .effectiveAccent }
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
