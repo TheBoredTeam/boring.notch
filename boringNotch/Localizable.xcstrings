@@ -701,6 +701,16 @@
         }
       }
     },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
     "%d%%" : {
       "localizations" : {
         "ar" : {
@@ -1300,6 +1310,9 @@
           }
         }
       }
+    },
+    "🍖 x%lld" : {
+
     },
     "About" : {
       "localizations" : {
@@ -5202,6 +5215,12 @@
         }
       }
     },
+    "Clear All" : {
+
+    },
+    "Clear Clipboard History" : {
+
+    },
     "Clear slot" : {
       "localizations" : {
         "ar" : {
@@ -5301,6 +5320,18 @@
           }
         }
       }
+    },
+    "Clicks: %lld" : {
+
+    },
+    "Clipboard History" : {
+
+    },
+    "Clipboard is empty" : {
+
+    },
+    "Clipboard Shelf" : {
+
     },
     "Close" : {
       "localizations" : {
@@ -7807,6 +7838,7 @@
       }
     },
     "Drop files here" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8305,6 +8337,9 @@
           }
         }
       }
+    },
+    "Enable clipboard tracking" : {
+
     },
     "Enable colored spectrograms" : {
       "extractionState" : "stale",
@@ -8907,6 +8942,9 @@
         }
       }
     },
+    "Enables automatic clipboard tracking. Pinned items are preserved when clearing history." : {
+
+    },
     "Enhance your experience with HUDs" : {
       "localizations" : {
         "ar" : {
@@ -9407,6 +9445,9 @@
           }
         }
       }
+    },
+    "Feed Cookie" : {
+
     },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
@@ -15010,6 +15051,9 @@
         }
       }
     },
+    "No results found" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -15409,6 +15453,9 @@
           }
         }
       }
+    },
+    "Notch Pet Details" : {
+
     },
     "Notch sizing" : {
       "localizations" : {
@@ -17710,6 +17757,9 @@
         }
       }
     },
+    "Reset Pet Interaction Statistics" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -18112,6 +18162,9 @@
         }
       }
     },
+    "Search clipboard..." : {
+
+    },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
         "ar" : {
@@ -18513,6 +18566,7 @@
       }
     },
     "Shelf" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19013,6 +19067,7 @@
       }
     },
     "Show cool face animation while inactive" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19611,6 +19666,9 @@
           }
         }
       }
+    },
+    "Show Notch Pet assistant while inactive" : {
+
     },
     "Show on all displays" : {
       "localizations" : {
@@ -23614,6 +23672,9 @@
           }
         }
       }
+    },
+    "z" : {
+
     }
   },
   "version" : "1.0"

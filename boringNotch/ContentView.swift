@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var clipboardManager = ClipboardManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -296,9 +297,17 @@ struct ContentView: View {
                            BoringHeader()
                                .frame(height: max(24, vm.effectiveClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
-                       } else {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
-                       }
+                        } else {
+                            HStack(spacing: 5) {
+                                Image(systemName: "doc.on.clipboard")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(.gray)
+                                Text("\(clipboardManager.items.count)")
+                                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
+                        }
 
                       if coordinator.sneakPeek.show {
                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
@@ -349,6 +358,9 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .pet:
+                        ExpandedPetPanelView()
+                            .environmentObject(vm)
                     }
                 }
                 .transition(
@@ -378,6 +390,12 @@ struct ContentView: View {
                     .fill(.black)
                     .frame(width: vm.closedNotchSize.width - 20)
                 MinimalFaceFeatures()
+                    .gesture(LongPressGesture(minimumDuration: 0.6).onEnded { _ in
+                        withAnimation(.spring(response: 0.38, dampingFraction: 0.8)) {
+                            vm.open()
+                            coordinator.currentView = .pet
+                        }
+                    })
             }
         }.frame(
             height: vm.effectiveClosedNotchHeight,
@@ -494,7 +512,7 @@ struct ContentView: View {
                 .contentShape(Rectangle())
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
             vm.dropEvent = true
-            ShelfStateViewModel.shared.load(providers)
+            ClipboardManager.shared.ingestDroppedProviders(providers)
             return true
         }
         } else {

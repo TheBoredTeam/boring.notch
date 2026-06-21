@@ -49,7 +49,7 @@ struct SettingsView: View {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
                 NavigationLink(value: "Shelf") {
-                    Label("Shelf", systemImage: "books.vertical")
+                    Label("Clipboard Shelf", systemImage: "doc.on.clipboard.fill")
                 }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
@@ -910,7 +910,7 @@ struct About: View {
 }
 
 struct Shelf: View {
-    
+    @ObservedObject var clipboardManager = ClipboardManager.shared
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
@@ -1012,9 +1012,26 @@ struct Shelf: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            
+            Section {
+                Toggle("Enable clipboard tracking", isOn: $clipboardManager.isTracking)
+                
+                Button(role: .destructive, action: {
+                    withAnimation {
+                        clipboardManager.clearAllNonPinned()
+                    }
+                }) {
+                    Text("Clear Clipboard History")
+                        .foregroundColor(.red)
+                }
+            } header: {
+                Text("Clipboard History")
+            } footer: {
+                Text("Enables automatic clipboard tracking. Pinned items are preserved when clearing history.")
+            }
         }
         .accentColor(.effectiveAccent)
-        .navigationTitle("Shelf")
+        .navigationTitle("Clipboard Shelf")
     }
 }
 
@@ -1388,7 +1405,22 @@ struct Appearance: View {
                         .tag(MirrorShapeEnum.rectangle)
                 }
                 Defaults.Toggle(key: .showNotHumanFace) {
-                    Text("Show cool face animation while inactive")
+                    Text("Show Notch Pet assistant while inactive")
+                }
+                
+                if Defaults[.showNotHumanFace] {
+                    Button(role: .destructive, action: {
+                        UserDefaults.standard.set(0, forKey: "pet_total_clicks")
+                        UserDefaults.standard.set(0, forKey: "pet_total_feeds")
+                        PetManager.shared.totalClicks = 0
+                        PetManager.shared.totalFeeds = 0
+                    }) {
+                        Text("Reset Pet Interaction Statistics")
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundColor(.red)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 20)
                 }
             } header: {
                 HStack {
