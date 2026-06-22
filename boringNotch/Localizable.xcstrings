@@ -25574,6 +25574,39 @@
         }
       }
     },
+    "Week starts on" : {
+      "comment" : "Calendar setting: which weekday the week strip starts on",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week starts on"
+          }
+        }
+      }
+    },
+    "System Setting" : {
+      "comment" : "Week starts on: follow the macOS system setting (shown with the resolved day in parentheses)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Setting"
+          }
+        }
+      }
+    },
+    "Weekly view" : {
+      "comment" : "Calendar setting: show one week at a time instead of the scrolling day dial",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly view"
+          }
+        }
+      }
+    },
     "Welcome" : {
       "localizations" : {
         "cs" : {
