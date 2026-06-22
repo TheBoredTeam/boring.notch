@@ -131,8 +131,8 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 
 ### Prerequisites
 
-- **macOS 14 or later**: If you’re not on the latest macOS, we might need to send a search party.
-- **Xcode 16 or later**: This is where the magic happens, so make sure it’s up-to-date.
+- **macOS 15.6 or later**
+- **Xcode 26 or later**
 
 ### Installation
 
