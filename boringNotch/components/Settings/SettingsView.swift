@@ -51,6 +51,15 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Focus") {
+                    Label("Focus", systemImage: "timer")
+                }
+                NavigationLink(value: "System") {
+                    Label("System", systemImage: "cpu")
+                }
+                NavigationLink(value: "Projects") {
+                    Label("Projects", systemImage: "hammer.fill")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +94,12 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Focus":
+                    FocusSettings()
+                case "System":
+                    SystemSettingsView()
+                case "Projects":
+                    ProjectsSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1556,7 +1571,23 @@ struct Advanced: View {
             .onAppear {
                 initializeAccentColorState()
             }
-            
+
+            Section {
+                Defaults.Toggle(key: .tabsMulticolor) {
+                    Text("Multicolor tab icons")
+                }
+                Defaults.Toggle(key: .notchTintedBackground) {
+                    Text("Tinted notch background")
+                }
+            } header: {
+                Text("Notch theme")
+            } footer: {
+                Text("Give each tab icon its own color, and tint the open notch background with your accent color.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
             Section {
                 Defaults.Toggle(key: .enableShadow) {
                     Text("Enable window shadow")

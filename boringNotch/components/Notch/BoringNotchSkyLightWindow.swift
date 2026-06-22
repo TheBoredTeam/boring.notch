@@ -61,7 +61,13 @@ class BoringNotchSkyLightWindow: NSPanel {
         level = .mainMenu + 3
         hasShadow = false
         isReleasedWhenClosed = false
-        
+
+        // Become key only when a control actually needs it (e.g. routing a
+        // Finder drag session). Ordinary clicks reach the views WITHOUT the
+        // panel grabbing key focus, which restores Cmd/Shift multi-select in
+        // the Shelf while still letting the panel receive Finder drops.
+        becomesKeyOnlyIfNeeded = true
+
         // Force dark appearance regardless of system setting
         appearance = NSAppearance(named: .darkAqua)
         
@@ -109,6 +115,11 @@ class BoringNotchSkyLightWindow: NSPanel {
     
     private var observers: Set<AnyCancellable> = []
     
-    override var canBecomeKey: Bool { false }
+    // Must be able to become key for macOS to route inter-application
+    // (Finder) drag sessions to this window — otherwise dragging a file over
+    // the notch does nothing and the Shelf can never receive a drop. Because
+    // this is a .nonactivatingPanel, becoming key does NOT activate the app or
+    // pull focus to the Dock; it only lets the panel receive the drag.
+    override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 }

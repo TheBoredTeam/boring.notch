@@ -22,6 +22,15 @@ final class ShelfSelectionModel: ObservableObject {
     // Anchor for shift-range selection
     private var lastAnchorID: UUID? = nil
 
+    // Timestamp of the most recent click that landed on an item. The shelf's
+    // background "tap empty space to deselect" gesture fires alongside item
+    // clicks (SwiftUI tap + AppKit mouseDown both register), which would wipe a
+    // fresh selection. The background gesture checks this to skip clearing when
+    // an item was just clicked.
+    var lastItemClickAt: Date = .distantPast
+    func noteItemClick() { lastItemClickAt = Date() }
+    var didJustClickItem: Bool { Date().timeIntervalSince(lastItemClickAt) < 0.25 }
+
     func isSelected(_ id: UUID) -> Bool { selectedIDs.contains(id) }
 
     var hasSelection: Bool { !selectedIDs.isEmpty }
