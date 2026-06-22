@@ -45,6 +45,9 @@ class PomodoroManager: ObservableObject {
     private var timer: Timer?
     private var endDate: Date?
     private var cancellables = Set<AnyCancellable>()
+    // Held so the chime isn't deallocated mid-playback (NSSound doesn't retain
+    // itself during async play()).
+    private var completionSound: NSSound?
 
     private init() {
         loadTodayStats()
@@ -240,12 +243,19 @@ class PomodoroManager: ObservableObject {
 
     // MARK: - Completion sound
 
-    /// Plays a short system chime the moment a phase ends. Independent of the
+    /// Plays a clear system chime the moment a phase ends. Independent of the
     /// notification banner, so you hear it even if notifications are denied.
     private func playCompletionChime() {
         guard Defaults[.pomodoroCompletionSound] else { return }
-        // "Glass" is a clean, pleasant macOS system sound.
-        NSSound(named: "Glass")?.play()
+        // Retain the sound — a fire-and-forget `NSSound(named:)?.play()` can be
+        // deallocated before it's audible. Fall back through a few stock sounds.
+        let sound = NSSound(named: "Glass")
+            ?? NSSound(named: "Hero")
+            ?? NSSound(named: "Funk")
+            ?? NSSound(named: "Ping")
+        sound?.volume = 1.0
+        completionSound = sound
+        sound?.play()
     }
 
     // MARK: - Notifications
