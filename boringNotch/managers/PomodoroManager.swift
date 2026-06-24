@@ -16,6 +16,7 @@ class PomodoroManager: ObservableObject {
     @Published var remainingSeconds: Int = 1500
     @Published var isRunning: Bool = false
     @Published var completedSessions: Int = 0
+    @Published var hasStarted: Bool = false
 
     private var timerCancellable: AnyCancellable?
     private var notificationRequested = false
@@ -73,6 +74,7 @@ class PomodoroManager: ObservableObject {
     }
 
     func start() {
+        hasStarted = true
         requestNotificationPermissionIfNeeded()
         startTimer()
     }
@@ -93,6 +95,7 @@ class PomodoroManager: ObservableObject {
     }
 
     func reset() {
+        hasStarted = false
         pause()
         phase = .focus
         remainingSeconds = Defaults[.pomodoroFocusDuration]

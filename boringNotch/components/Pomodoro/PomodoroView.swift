@@ -14,9 +14,7 @@ struct PomodoroView: View {
     @Default(.pomodoroSessionsBeforeLongBreak) var sessionsBeforeLongBreak
 
     var body: some View {
-        if !pomodoroManager.isRunning
-            && pomodoroManager.remainingSeconds == pomodoroManager.totalSeconds
-        {
+        if !pomodoroManager.hasStarted {
             idleView
         } else {
             activeView
