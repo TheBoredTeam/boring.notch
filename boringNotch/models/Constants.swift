@@ -179,6 +179,17 @@ extension Defaults.Keys {
     
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
+
+    // MARK: Pomodoro
+    static let pomodoroFocusDuration = Key<Int>("pomodoroFocusDuration", default: 1500)
+    static let pomodoroShortBreakDuration = Key<Int>("pomodoroShortBreakDuration", default: 300)
+    static let pomodoroLongBreakDuration = Key<Int>("pomodoroLongBreakDuration", default: 900)
+    static let pomodoroSessionsBeforeLongBreak = Key<Int>("pomodoroSessionsBeforeLongBreak", default: 4)
+    static let pomodoroAutoStartBreaks = Key<Bool>("pomodoroAutoStartBreaks", default: true)
+    static let pomodoroAutoStartFocus = Key<Bool>("pomodoroAutoStartFocus", default: false)
+    static let pomodoroNotificationSound = Key<PomodoroSound>("pomodoroNotificationSound", default: .chime)
+    static let pomodoroShowLiveActivity = Key<Bool>("pomodoroShowLiveActivity", default: true)
+    static let pomodoroShowInMenuBar = Key<Bool>("pomodoroShowInMenuBar", default: false)
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
