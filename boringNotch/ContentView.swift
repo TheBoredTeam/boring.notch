@@ -330,7 +330,7 @@ struct ContentView: View {
                        }
 
                       if coordinator.sneakPeek.show {
-                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
+                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && (coordinator.sneakPeek.type != .pomodoro) && !Defaults[.inlineHUD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: $coordinator.sneakPeek.type,
                                   value: $coordinator.sneakPeek.value,
@@ -358,6 +358,17 @@ struct ContentView: View {
                                       GeometryReader { geo in
                                           MarqueeText(.constant(musicManager.songTitle + " - " + musicManager.artistName),  textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, minDuration: 1, frameWidth: geo.size.width)
                                       }
+                                  }
+                                  .foregroundStyle(.gray)
+                                  .padding(.bottom, 10)
+                              }
+                          }
+                          else if coordinator.sneakPeek.type == .pomodoro {
+                              if vm.notchState == .closed && !vm.hideOnClosed {
+                                  HStack(alignment: .center) {
+                                      Image(systemName: PomodoroManager.shared.phaseIcon)
+                                      Text("\(PomodoroManager.shared.phaseLabel) — \(PomodoroManager.shared.formattedTime)")
+                                          .font(.caption)
                                   }
                                   .foregroundStyle(.gray)
                                   .padding(.bottom, 10)
