@@ -352,6 +352,7 @@ struct ContentView: View {
                   view
                       .fixedSize()
               }
+              .padding(.trailing, PomodoroManager.shared.isRunning && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.pomodoroShowLiveActivity] ? 64 : 0)
               .zIndex(2)
               .overlay(alignment: .trailing) {
                   if PomodoroManager.shared.isRunning
@@ -369,6 +370,7 @@ struct ContentView: View {
                       }
                       .padding(.horizontal, 6)
                       .padding(.vertical, 3)
+                      .background(Color.black)
                       .onTapGesture {
                           coordinator.currentView = .pomodoro
                           vm.open()
