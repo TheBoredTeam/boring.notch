@@ -31,7 +31,7 @@ jobs:
             xcode: "^26"
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Build
         uses: mxcl/xcodebuild@d3ee9b419c1be9a988086c58fe0988f32d99cfc5 # v3.6.0
@@ -43,3 +43,4 @@ jobs:
           verbosity: xcpretty
           upload-logs: always
           configuration: release
+
