@@ -284,35 +284,6 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
-                      } else if coordinator.expandingView.type == .pomodoro && coordinator.expandingView.show
-                          && vm.notchState == .closed && Defaults[.pomodoroShowLiveActivity]
-                      {
-                          HStack(spacing: 0) {
-                              HStack(spacing: 6) {
-                                  Image(systemName: PomodoroManager.shared.phaseIcon)
-                                      .font(.system(size: 12))
-                                  Text(PomodoroManager.shared.formattedTime)
-                                      .font(.system(size: 14, weight: .medium, design: .monospaced))
-                                      .foregroundStyle(.white)
-                                  ProgressView(value: PomodoroManager.shared.progress)
-                                      .tint(PomodoroManager.shared.phase == .focus ? .orange : .green)
-                                      .scaleEffect(x: 1, y: 0.8, anchor: .center)
-                                      .frame(width: 60)
-                              }
-
-                              Rectangle()
-                                  .fill(.black)
-                                  .frame(width: vm.closedNotchSize.width + 10)
-
-                              HStack {
-                                  Rectangle().fill(.clear).frame(width: 76)
-                              }
-                          }
-                          .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
-                          .onTapGesture {
-                              coordinator.currentView = .pomodoro
-                              vm.open()
-                          }
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
@@ -382,6 +353,28 @@ struct ContentView: View {
                       .fixedSize()
               }
               .zIndex(2)
+              .overlay(alignment: .trailing) {
+                  if PomodoroManager.shared.isRunning
+                      && vm.notchState == .closed
+                      && !vm.hideOnClosed
+                      && Defaults[.pomodoroShowLiveActivity]
+                  {
+                      HStack(spacing: 3) {
+                          Image(systemName: PomodoroManager.shared.phaseIcon)
+                              .font(.system(size: 9))
+                              .foregroundStyle(PomodoroManager.shared.phase == .focus ? Color.orange : PomodoroManager.shared.phase == .shortBreak ? Color.green : Color.blue)
+                          Text(PomodoroManager.shared.formattedTime)
+                              .font(.system(size: 10, weight: .medium, design: .monospaced))
+                              .foregroundStyle(.white)
+                      }
+                      .padding(.horizontal, 6)
+                      .padding(.vertical, 3)
+                      .onTapGesture {
+                          coordinator.currentView = .pomodoro
+                          vm.open()
+                      }
+                  }
+              }
             if vm.notchState == .open {
                 VStack {
                     switch coordinator.currentView {

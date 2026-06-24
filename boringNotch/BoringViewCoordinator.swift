@@ -56,7 +56,6 @@ class BoringViewCoordinator: ObservableObject {
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
     private var hudEnableTask: Task<Void, Never>?
-    private var cancellables = Set<AnyCancellable>()
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
@@ -162,24 +161,6 @@ class BoringViewCoordinator: ObservableObject {
                     }
                 }
             }
-
-        PomodoroManager.shared.$isRunning
-            .sink { [weak self] running in
-                guard let self = self else { return }
-                if running {
-                    self.toggleExpandingView(
-                        status: true,
-                        type: .pomodoro,
-                        value: 0
-                    )
-                } else {
-                    self.toggleExpandingView(
-                        status: false,
-                        type: .pomodoro
-                    )
-                }
-            }
-            .store(in: &cancellables)
 
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
