@@ -438,9 +438,9 @@ struct ContentView: View {
             let baseArtSize = displayClosedNotchHeight - 12
             let scaledArtSize: CGFloat = {
                 if let scale = cornerRadiusScaleFactor {
-                    return displayClosedNotchHeight - 12 * scale
+                    return max(0, displayClosedNotchHeight - 12 * scale)
                 }
-                return baseArtSize
+                return max(0, baseArtSize)
             }()
 
             let closedCornerRadius: CGFloat = {
@@ -464,51 +464,21 @@ struct ContentView: View {
                     height: scaledArtSize
                 )
 
+            let middleWidth = (coordinator.expandingView.show
+                && coordinator.expandingView.type == .music
+                && Defaults[.sneakPeekStyles] == .inline)
+                ? 380
+                : vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
+
             Rectangle()
                 .fill(.black)
-                .overlay(
-                    HStack(alignment: .top) {
-                        if coordinator.expandingView.show
-                            && coordinator.expandingView.type == .music
-                        {
-                            MarqueeText(
-                                musicManager.songTitle,
-                                color: Defaults[.coloredSpectrogram]
-                                    ? Color(nsColor: musicManager.avgColor) : Color.gray,
-                                delayDuration: 0.4,
-                                frameWidth: 100
-                            )
-                            .opacity(
-                                (coordinator.expandingView.show
-                                    && Defaults[.sneakPeekStyles] == .inline)
-                                    ? 1 : 0
-                            )
-                            Spacer(minLength: vm.closedNotchSize.width)
-                            // Song Artist
-                            Text(musicManager.artistName)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .foregroundStyle(
-                                    Defaults[.coloredSpectrogram]
-                                        ? Color(nsColor: musicManager.avgColor)
-                                        : Color.gray
-                                )
-                                .opacity(
-                                    (coordinator.expandingView.show
-                                        && coordinator.expandingView.type == .music
-                                        && Defaults[.sneakPeekStyles] == .inline)
-                                        ? 1 : 0
-                                )
-                        }
-                    }
-                )
-                .frame(
-                    width: (coordinator.expandingView.show
-                        && coordinator.expandingView.type == .music
-                        && Defaults[.sneakPeekStyles] == .inline)
-                        ? 380
-                        : vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
-                )
+                .overlay(alignment: .leading) {
+                    CompactMusicMetadata(width: middleWidth)
+                        .padding(.leading, 8)
+                        .padding(.trailing, 8)
+                        .allowsHitTesting(false)
+                }
+                .frame(width: middleWidth)
 
             HStack {
                 AudioSpectrumView(
@@ -536,6 +506,39 @@ struct ContentView: View {
             height: displayClosedNotchHeight,
             alignment: .center
         )
+    }
+
+    @ViewBuilder
+    private func CompactMusicMetadata(width: CGFloat) -> some View {
+        let horizontalPadding: CGFloat = 16
+        let metadataWidth = max(0, width - horizontalPadding)
+        let shouldShowText = metadataWidth > 0 && displayClosedNotchHeight >= 24
+
+        if shouldShowText {
+            VStack(alignment: .leading, spacing: 0) {
+                MarqueeText(
+                    musicManager.songTitle,
+                    font: .caption2,
+                    nsFont: .caption2,
+                    color: .white,
+                    delayDuration: 0.8,
+                    frameWidth: metadataWidth
+                )
+                MarqueeText(
+                    musicManager.artistName,
+                    font: .caption2,
+                    nsFont: .caption2,
+                    color: Defaults[.playerColorTinting]
+                        ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
+                        : .gray,
+                    delayDuration: 0.8,
+                    frameWidth: metadataWidth
+                )
+                .fontWeight(.medium)
+            }
+            .frame(width: metadataWidth, height: displayClosedNotchHeight, alignment: .center)
+            .clipped()
+        }
     }
 
     @ViewBuilder
