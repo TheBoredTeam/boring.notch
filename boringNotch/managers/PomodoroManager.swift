@@ -219,7 +219,7 @@ class PomodoroManager: ObservableObject {
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             if !granted {
-                Logger.log("Notification permission denied for Pomodoro", category: .warning)
+                print("Pomodoro: Notification permission denied")
             }
         }
     }

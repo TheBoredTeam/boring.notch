@@ -155,7 +155,13 @@ class BoringViewCoordinator: ObservableObject {
                                 await MediaKeyInterceptor.shared.start()
                             } else {
                                 Defaults[.hudReplacement] = false
-        }
+                            }
+                        }
+                    } else {
+                        MediaKeyInterceptor.shared.stop()
+                    }
+                }
+            }
 
         PomodoroManager.shared.$isRunning
             .sink { [weak self] running in
@@ -174,12 +180,6 @@ class BoringViewCoordinator: ObservableObject {
                 }
             }
             .store(in: &cancellables)
-    }
-                    } else {
-                        MediaKeyInterceptor.shared.stop()
-                    }
-                }
-            }
 
         Task { @MainActor in
             helloAnimationRunning = firstLaunch

@@ -1804,41 +1804,31 @@ func warningBadge(_ text: String, _ description: String) -> some View {
 }
 
 struct PomodoroSettings: View {
+    @Default(.pomodoroFocusDuration) var focusDuration
+    @Default(.pomodoroShortBreakDuration) var shortBreakDuration
+    @Default(.pomodoroLongBreakDuration) var longBreakDuration
+    @Default(.pomodoroSessionsBeforeLongBreak) var sessionsBeforeLongBreak
+    @Default(.pomodoroNotificationSound) var notificationSound
+
     var body: some View {
         Form {
             Section {
-                Defaults.Stepper(
-                    key: .pomodoroFocusDuration,
-                    in: 300...3600,
-                    step: 300
-                ) {
-                    Text("Focus: \((Defaults[.pomodoroFocusDuration] / 60).formatted()) minutes")
+                Stepper(value: $focusDuration, in: 300...3600, step: 300) {
+                    Text("Focus: \((focusDuration / 60).formatted()) minutes")
                 }
-                Defaults.Stepper(
-                    key: .pomodoroShortBreakDuration,
-                    in: 60...1800,
-                    step: 60
-                ) {
-                    Text("Short Break: \((Defaults[.pomodoroShortBreakDuration] / 60).formatted()) minutes")
+                Stepper(value: $shortBreakDuration, in: 60...1800, step: 60) {
+                    Text("Short Break: \((shortBreakDuration / 60).formatted()) minutes")
                 }
-                Defaults.Stepper(
-                    key: .pomodoroLongBreakDuration,
-                    in: 60...2700,
-                    step: 60
-                ) {
-                    Text("Long Break: \((Defaults[.pomodoroLongBreakDuration] / 60).formatted()) minutes")
+                Stepper(value: $longBreakDuration, in: 60...2700, step: 60) {
+                    Text("Long Break: \((longBreakDuration / 60).formatted()) minutes")
                 }
             } header: {
                 Text("Durations")
             }
 
             Section {
-                Defaults.Stepper(
-                    key: .pomodoroSessionsBeforeLongBreak,
-                    in: 1...10,
-                    step: 1
-                ) {
-                    Text("Sessions before Long Break: \(Defaults[.pomodoroSessionsBeforeLongBreak])")
+                Stepper(value: $sessionsBeforeLongBreak, in: 1...10, step: 1) {
+                    Text("Sessions before Long Break: \(sessionsBeforeLongBreak)")
                 }
             } header: {
                 Text("Cycles")
@@ -1856,7 +1846,7 @@ struct PomodoroSettings: View {
             }
 
             Section {
-                Picker(selection: Defaults.dynamic(key: .pomodoroNotificationSound)) {
+                Picker(selection: $notificationSound) {
                     ForEach(PomodoroSound.allCases, id: \.self) { sound in
                         Text(soundLabel(sound)).tag(sound)
                     }
