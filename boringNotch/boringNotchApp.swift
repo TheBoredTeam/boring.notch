@@ -29,7 +29,7 @@ struct DynamicNotchApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+        MenuBarExtra(isInserted: $showMenuBarIcon) {
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
@@ -45,6 +45,8 @@ struct DynamicNotchApp: App {
                 NSApplication.shared.terminate(self)
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
+        } label: {
+            PomodoroMenuBarLabel()
         }
     }
 }
@@ -594,6 +596,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
         onboardingWindowController?.window?.orderFrontRegardless()
+    }
+}
+
+struct PomodoroMenuBarLabel: View {
+    @ObservedObject var pomodoroManager = PomodoroManager.shared
+    @Default(.pomodoroShowInMenuBar) var showInMenuBar
+
+    var body: some View {
+        if pomodoroManager.isRunning && showInMenuBar {
+            Text(pomodoroManager.formattedTime)
+                .font(.system(size: 11, design: .monospaced))
+        } else {
+            Image(systemName: "sparkle")
+        }
     }
 }
 
