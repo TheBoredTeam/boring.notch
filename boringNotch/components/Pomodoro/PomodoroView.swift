@@ -14,30 +14,26 @@ struct PomodoroView: View {
     @Default(.pomodoroSessionsBeforeLongBreak) var sessionsBeforeLongBreak
 
     var body: some View {
-        VStack(spacing: 8) {
-            if !pomodoroManager.isRunning
-                && pomodoroManager.remainingSeconds == pomodoroManager.totalSeconds
-            {
-                idleView
-            } else {
-                activeView
-            }
+        if !pomodoroManager.isRunning
+            && pomodoroManager.remainingSeconds == pomodoroManager.totalSeconds
+        {
+            idleView
+        } else {
+            activeView
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
     }
 
     private var idleView: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             Image(systemName: "timer")
-                .font(.system(size: 24))
+                .font(.system(size: 22))
                 .foregroundStyle(.gray)
 
             Text("Pomodoro Timer")
                 .font(.headline)
                 .foregroundStyle(.white)
 
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 durationButton(
                     icon: "target", label: "Focus", value: focusDuration / 60)
                 durationButton(
@@ -52,15 +48,16 @@ struct PomodoroView: View {
                 Text("Start Focus")
                     .font(.headline)
                     .padding(.horizontal, 32)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 6)
                     .background(Capsule().fill(Color.white.opacity(0.15)))
             }
             .buttonStyle(PlainButtonStyle())
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var activeView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             HStack(spacing: 6) {
                 Image(systemName: pomodoroManager.phaseIcon)
                     .font(.system(size: 14))
@@ -70,14 +67,14 @@ struct PomodoroView: View {
             .foregroundStyle(phaseColor.opacity(0.8))
 
             Text(pomodoroManager.formattedTime)
-                .font(.system(size: 36, weight: .bold, design: .monospaced))
+                .font(.system(size: 28, weight: .bold, design: .monospaced))
                 .foregroundStyle(.white)
                 .opacity(pomodoroManager.isRunning ? 1 : 0.6)
 
             ProgressView(value: pomodoroManager.progress)
                 .tint(phaseColor)
                 .scaleEffect(x: 1, y: 1.5, anchor: .center)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 40)
 
             if pomodoroManager.phase == .focus {
                 Text(
@@ -107,7 +104,7 @@ struct PomodoroView: View {
                     pomodoroManager.reset()
                 }
             }
-            .padding(.top, 4)
+            .padding(.top, 2)
 
             HStack(spacing: 12) {
                 quickSetting(
@@ -136,9 +133,10 @@ struct PomodoroView: View {
                     longBreakDuration = val * 60
                 }
             }
-            .padding(.top, 4)
+            .padding(.top, 2)
             .opacity(0.6)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func durationButton(icon: String, label: String, value: Int)
