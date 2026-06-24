@@ -412,6 +412,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .pomodoroToggle) {
+            if PomodoroManager.shared.isRunning {
+                PomodoroManager.shared.pause()
+            } else {
+                PomodoroManager.shared.resume()
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .pomodoroSkip) {
+            PomodoroManager.shared.skip()
+        }
+
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
             let window = createBoringNotchWindow(

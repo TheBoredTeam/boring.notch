@@ -15,4 +15,6 @@ extension KeyboardShortcuts.Name {
     static let increaseBacklight = Self("increaseBacklight", default: .init(.f2, modifiers: [.command]))
     static let toggleSneakPeek = Self("toggleSneakPeek", default: .init(.h, modifiers: [.command, .shift]))
     static let toggleNotchOpen = Self("toggleNotchOpen", default: .init(.i, modifiers: [.command, .shift]))
+    static let pomodoroToggle = Self("pomodoroToggle", default: .init(.space, modifiers: [.command, .option]))
+    static let pomodoroSkip = Self("pomodoroSkip", default: .init(.rightArrow, modifiers: [.command]))
 }
