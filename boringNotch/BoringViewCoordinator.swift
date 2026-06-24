@@ -18,6 +18,7 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case pomodoro
 }
 
 struct sneakPeek {
@@ -55,6 +56,7 @@ class BoringViewCoordinator: ObservableObject {
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
     private var hudEnableTask: Task<Void, Never>?
+    private var cancellables = Set<AnyCancellable>()
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
     @AppStorage("showWhatsNew") var showWhatsNew: Bool = true
@@ -153,8 +155,26 @@ class BoringViewCoordinator: ObservableObject {
                                 await MediaKeyInterceptor.shared.start()
                             } else {
                                 Defaults[.hudReplacement] = false
-                            }
-                        }
+        }
+
+        PomodoroManager.shared.$isRunning
+            .sink { [weak self] running in
+                guard let self = self else { return }
+                if running {
+                    self.toggleExpandingView(
+                        status: true,
+                        type: .pomodoro,
+                        value: 0
+                    )
+                } else {
+                    self.toggleExpandingView(
+                        status: false,
+                        type: .pomodoro
+                    )
+                }
+            }
+            .store(in: &cancellables)
+    }
                     } else {
                         MediaKeyInterceptor.shared.stop()
                     }
@@ -210,7 +230,7 @@ class BoringViewCoordinator: ObservableObject {
         icon: String = ""
     ) {
         sneakPeekDuration = duration
-        if type != .music {
+        if type != .music && type != .pomodoro {
             // close()
             if !Defaults[.hudReplacement] {
                 return
