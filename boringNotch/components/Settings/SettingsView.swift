@@ -51,6 +51,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Pomodoro") {
+                    Label("Pomodoro", systemImage: "timer")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +88,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Pomodoro":
+                    PomodoroSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1796,4 +1801,92 @@ func warningBadge(_ text: String, _ description: String) -> some View {
 
 #Preview {
     HUD()
+}
+
+struct PomodoroSettings: View {
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Stepper(
+                    key: .pomodoroFocusDuration,
+                    in: 300...3600,
+                    step: 300
+                ) {
+                    Text("Focus: \((Defaults[.pomodoroFocusDuration] / 60).formatted()) minutes")
+                }
+                Defaults.Stepper(
+                    key: .pomodoroShortBreakDuration,
+                    in: 60...1800,
+                    step: 60
+                ) {
+                    Text("Short Break: \((Defaults[.pomodoroShortBreakDuration] / 60).formatted()) minutes")
+                }
+                Defaults.Stepper(
+                    key: .pomodoroLongBreakDuration,
+                    in: 60...2700,
+                    step: 60
+                ) {
+                    Text("Long Break: \((Defaults[.pomodoroLongBreakDuration] / 60).formatted()) minutes")
+                }
+            } header: {
+                Text("Durations")
+            }
+
+            Section {
+                Defaults.Stepper(
+                    key: .pomodoroSessionsBeforeLongBreak,
+                    in: 1...10,
+                    step: 1
+                ) {
+                    Text("Sessions before Long Break: \(Defaults[.pomodoroSessionsBeforeLongBreak])")
+                }
+            } header: {
+                Text("Cycles")
+            }
+
+            Section {
+                Defaults.Toggle(key: .pomodoroAutoStartBreaks) {
+                    Text("Auto-start breaks")
+                }
+                Defaults.Toggle(key: .pomodoroAutoStartFocus) {
+                    Text("Auto-start focus")
+                }
+            } header: {
+                Text("Auto-Start")
+            }
+
+            Section {
+                Picker(selection: Defaults.dynamic(key: .pomodoroNotificationSound)) {
+                    ForEach(PomodoroSound.allCases, id: \.self) { sound in
+                        Text(soundLabel(sound)).tag(sound)
+                    }
+                } label: {
+                    Text("Sound")
+                }
+            } header: {
+                Text("Notifications")
+            }
+
+            Section {
+                Defaults.Toggle(key: .pomodoroShowLiveActivity) {
+                    Text("Show countdown on closed notch")
+                }
+                Defaults.Toggle(key: .pomodoroShowInMenuBar) {
+                    Text("Show countdown in menu bar")
+                }
+            } header: {
+                Text("Display")
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Pomodoro")
+    }
+
+    private func soundLabel(_ sound: PomodoroSound) -> String {
+        switch sound {
+        case .chime: return "Chime"
+        case .bell: return "Bell"
+        case .silent: return "Silent"
+        }
+    }
 }
