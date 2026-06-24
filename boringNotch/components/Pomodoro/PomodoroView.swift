@@ -23,6 +23,8 @@ struct PomodoroView: View {
         }
     }
 
+    // MARK: - Idle
+
     private var idleView: some View {
         VStack(spacing: 8) {
             Image(systemName: "timer")
@@ -34,77 +36,15 @@ struct PomodoroView: View {
                 .foregroundStyle(.white)
 
             HStack(spacing: 12) {
-                durationButton(
+                durationPill(
                     icon: "target", label: "Focus", value: focusDuration / 60)
-                durationButton(
+                durationPill(
                     icon: "cup.and.saucer", label: "Break",
                     value: shortBreakDuration / 60)
-                durationButton(
+                durationPill(
                     icon: "cup.and.saucer.fill", label: "Long",
                     value: longBreakDuration / 60)
             }
-
-            Button(action: { pomodoroManager.start() }) {
-                Text("Start Focus")
-                    .font(.headline)
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.white.opacity(0.15)))
-            }
-            .buttonStyle(PlainButtonStyle())
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var activeView: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 6) {
-                Image(systemName: pomodoroManager.phaseIcon)
-                    .font(.system(size: 14))
-                Text(pomodoroManager.phaseLabel)
-                    .font(.subheadline.weight(.medium))
-            }
-            .foregroundStyle(phaseColor.opacity(0.8))
-
-            Text(pomodoroManager.formattedTime)
-                .font(.system(size: 28, weight: .bold, design: .monospaced))
-                .foregroundStyle(.white)
-                .opacity(pomodoroManager.isRunning ? 1 : 0.6)
-
-            ProgressView(value: pomodoroManager.progress)
-                .tint(phaseColor)
-                .scaleEffect(x: 1, y: 1.5, anchor: .center)
-                .padding(.horizontal, 40)
-
-            if pomodoroManager.phase == .focus {
-                Text(
-                    "Session \(pomodoroManager.completedSessions + 1) of \(sessionsBeforeLongBreak) until long break"
-                )
-                .font(.caption)
-                .foregroundStyle(.gray)
-            }
-
-            HStack(spacing: 20) {
-                controlButton(icon: "backward.end.fill", label: "Skip") {
-                    pomodoroManager.skip()
-                }
-
-                controlButton(
-                    icon: pomodoroManager.isRunning ? "pause.fill" : "play.fill",
-                    label: pomodoroManager.isRunning ? "Pause" : "Resume"
-                ) {
-                    if pomodoroManager.isRunning {
-                        pomodoroManager.pause()
-                    } else {
-                        pomodoroManager.resume()
-                    }
-                }
-
-                controlButton(icon: "arrow.counterclockwise", label: "Reset") {
-                    pomodoroManager.reset()
-                }
-            }
-            .padding(.top, 2)
 
             HStack(spacing: 12) {
                 quickSetting(
@@ -112,13 +52,7 @@ struct PomodoroView: View {
                     options: [15, 25, 30, 45, 60]
                 ) { val in
                     focusDuration = val * 60
-                    if case .focus = pomodoroManager.phase,
-                        !pomodoroManager.isRunning,
-                        pomodoroManager.remainingSeconds
-                            == pomodoroManager.totalSeconds
-                    {
-                        pomodoroManager.remainingSeconds = val * 60
-                    }
+                    pomodoroManager.remainingSeconds = val * 60
                 }
                 quickSetting(
                     icon: "cup.and.saucer", current: shortBreakDuration / 60,
@@ -133,13 +67,104 @@ struct PomodoroView: View {
                     longBreakDuration = val * 60
                 }
             }
-            .padding(.top, 2)
             .opacity(0.6)
+
+            Button(action: { pomodoroManager.start() }) {
+                Text("Start Focus")
+                    .font(.headline)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color.white.opacity(0.15)))
+            }
+            .buttonStyle(PlainButtonStyle())
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func durationButton(icon: String, label: String, value: Int)
+    // MARK: - Active
+
+    private var activeView: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            HStack(spacing: 6) {
+                Image(systemName: pomodoroManager.phaseIcon)
+                    .font(.system(size: 12))
+                Text(pomodoroManager.phaseLabel)
+                    .font(.caption.weight(.medium))
+            }
+            .foregroundStyle(phaseColor.opacity(0.7))
+
+            Text(pomodoroManager.formattedTime)
+                .font(.system(size: 32, weight: .bold, design: .monospaced))
+                .foregroundStyle(.white)
+                .opacity(pomodoroManager.isRunning ? 1 : 0.5)
+                .padding(.vertical, 6)
+
+            pomodoroProgress
+                .padding(.horizontal, 24)
+
+            if pomodoroManager.phase == .focus {
+                Text(
+                    "Session \(pomodoroManager.completedSessions + 1) of \(sessionsBeforeLongBreak)"
+                )
+                .font(.caption)
+                .foregroundStyle(.gray.opacity(0.6))
+                .padding(.top, 4)
+            }
+
+            Spacer()
+
+            HStack(spacing: 0) {
+                controlCapsule(icon: "backward.end.fill") {
+                    pomodoroManager.skip()
+                }
+
+                controlCapsule(
+                    icon: pomodoroManager.isRunning
+                        ? "pause.fill" : "play.fill"
+                ) {
+                    if pomodoroManager.isRunning {
+                        pomodoroManager.pause()
+                    } else {
+                        pomodoroManager.resume()
+                    }
+                }
+
+                controlCapsule(icon: "arrow.counterclockwise") {
+                    pomodoroManager.reset()
+                }
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Progress Bar
+
+    private var pomodoroProgress: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 2.5)
+                    .fill(phaseColor.opacity(0.15))
+                    .frame(height: 5)
+
+                RoundedRectangle(cornerRadius: 2.5)
+                    .fill(phaseColor)
+                    .frame(
+                        width: max(0, min(pomodoroManager.progress, 1))
+                            * geometry.size.width,
+                        height: 5
+                    )
+            }
+        }
+        .frame(height: 10)
+    }
+
+    // MARK: - Subviews
+
+    private func durationPill(icon: String, label: String, value: Int)
         -> some View
     {
         HStack(spacing: 4) {
@@ -154,20 +179,17 @@ struct PomodoroView: View {
         .background(Capsule().fill(Color.white.opacity(0.06)))
     }
 
-    private func controlButton(
-        icon: String, label: String, action: @escaping () -> Void
+    private func controlCapsule(
+        icon: String, action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                Text(label)
-                    .font(.caption2)
-            }
-            .foregroundStyle(.white.opacity(0.8))
-            .frame(width: 50, height: 36)
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .padding(.horizontal, 15)
+                .contentShape(Capsule())
         }
         .buttonStyle(PlainButtonStyle())
+        .foregroundStyle(.white.opacity(0.8))
     }
 
     private func quickSetting(
