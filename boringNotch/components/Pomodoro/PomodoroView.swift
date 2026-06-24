@@ -44,29 +44,6 @@ struct PomodoroView: View {
                     value: longBreakDuration / 60)
             }
 
-            HStack(spacing: 12) {
-                quickSetting(
-                    icon: "target", current: focusDuration / 60,
-                    options: [15, 25, 30, 45, 60]
-                ) { val in
-                    focusDuration = val * 60
-                    pomodoroManager.remainingSeconds = val * 60
-                }
-                quickSetting(
-                    icon: "cup.and.saucer", current: shortBreakDuration / 60,
-                    options: [3, 5, 10, 15]
-                ) { val in
-                    shortBreakDuration = val * 60
-                }
-                quickSetting(
-                    icon: "cup.and.saucer.fill", current: longBreakDuration / 60,
-                    options: [10, 15, 20, 30]
-                ) { val in
-                    longBreakDuration = val * 60
-                }
-            }
-            .opacity(0.6)
-
             Button(action: { pomodoroManager.start() }) {
                 Text("Start Focus")
                     .font(.headline)
@@ -188,29 +165,6 @@ struct PomodoroView: View {
         }
         .buttonStyle(PlainButtonStyle())
         .foregroundStyle(.white.opacity(0.8))
-    }
-
-    private func quickSetting(
-        icon: String, current: Int, options: [Int],
-        onChange: @escaping (Int) -> Void
-    ) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 8))
-            ForEach(options, id: \.self) { val in
-                Button(action: { onChange(val) }) {
-                    Text("\(val)")
-                        .font(
-                            .system(
-                                size: 9,
-                                weight: val == current ? .bold : .regular)
-                        )
-                        .foregroundStyle(
-                            val == current ? .white : .gray)
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
-        }
     }
 
     private var phaseColor: Color {
