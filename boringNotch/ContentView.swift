@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var pomodoroManager = PomodoroManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -245,6 +246,7 @@ struct ContentView: View {
     @ViewBuilder
     func NotchLayout() -> some View {
         VStack(alignment: .leading) {
+            ZStack(alignment: .trailing) {
             VStack(alignment: .leading) {
                 if coordinator.helloAnimationRunning {
                     Spacer()
@@ -337,8 +339,8 @@ struct ContentView: View {
                           else if coordinator.sneakPeek.type == .pomodoro {
                               if vm.notchState == .closed && !vm.hideOnClosed {
                                   HStack(alignment: .center) {
-                                      Image(systemName: PomodoroManager.shared.phaseIcon)
-                                      Text("\(PomodoroManager.shared.phaseLabel) — \(PomodoroManager.shared.formattedTime)")
+                                      Image(systemName: pomodoroManager.phaseIcon)
+                                      Text("\(pomodoroManager.phaseLabel) — \(pomodoroManager.formattedTime)")
                                           .font(.caption)
                                   }
                                   .foregroundStyle(.gray)
@@ -352,31 +354,30 @@ struct ContentView: View {
                   view
                       .fixedSize()
               }
-              .padding(.trailing, PomodoroManager.shared.isRunning && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.pomodoroShowLiveActivity] ? 64 : 0)
               .zIndex(2)
-              .overlay(alignment: .trailing) {
-                  if PomodoroManager.shared.isRunning
-                      && vm.notchState == .closed
-                      && !vm.hideOnClosed
-                      && Defaults[.pomodoroShowLiveActivity]
-                  {
-                      HStack(spacing: 3) {
-                          Image(systemName: PomodoroManager.shared.phaseIcon)
-                              .font(.system(size: 9))
-                              .foregroundStyle(PomodoroManager.shared.phase == .focus ? Color.orange : PomodoroManager.shared.phase == .shortBreak ? Color.green : Color.blue)
-                          Text(PomodoroManager.shared.formattedTime)
-                              .font(.system(size: 10, weight: .medium, design: .monospaced))
-                              .foregroundStyle(.white)
-                      }
-                      .padding(.horizontal, 6)
-                      .padding(.vertical, 3)
-                      .background(Color.black)
-                      .onTapGesture {
-                          coordinator.currentView = .pomodoro
-                          vm.open()
-                      }
+
+              if pomodoroManager.isRunning
+                  && vm.notchState == .closed
+                  && !vm.hideOnClosed
+                  && Defaults[.pomodoroShowLiveActivity]
+              {
+                  HStack(spacing: 3) {
+                      Image(systemName: pomodoroManager.phaseIcon)
+                          .font(.system(size: 9))
+                          .foregroundStyle(pomodoroManager.phase == .focus ? Color.orange : pomodoroManager.phase == .shortBreak ? Color.green : Color.blue)
+                      Text(pomodoroManager.formattedTime)
+                          .font(.system(size: 10, weight: .medium, design: .monospaced))
+                          .foregroundStyle(.white)
+                  }
+                  .padding(.horizontal, 6)
+                  .padding(.vertical, 3)
+                  .background(Color.black)
+                  .onTapGesture {
+                      coordinator.currentView = .pomodoro
+                      vm.open()
                   }
               }
+          }
             if vm.notchState == .open {
                 VStack {
                     switch coordinator.currentView {
