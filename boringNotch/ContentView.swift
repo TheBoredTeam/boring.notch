@@ -353,23 +353,23 @@ struct ContentView: View {
                   view
                       .fixedSize()
               }
-              .padding(.trailing, pomodoroManager.isRunning && vm.notchState == .closed && Defaults[.pomodoroShowLiveActivity] ? 64 : 0)
+              .padding(.trailing, pomodoroManager.isRunning && vm.notchState == .closed && Defaults[.pomodoroShowLiveActivity] ? 48 : 0)
               .zIndex(2)
-              .overlay(alignment: .trailing) {
+              .overlay(alignment: .topTrailing) {
                   if pomodoroManager.isRunning
                       && vm.notchState == .closed
                       && Defaults[.pomodoroShowLiveActivity]
                   {
-                      HStack(spacing: 3) {
+                      VStack(spacing: 1) {
                           Image(systemName: pomodoroManager.phaseIcon)
-                              .font(.system(size: 9))
+                              .font(.system(size: 8))
                               .foregroundStyle(pomodoroManager.phase == .focus ? Color.orange : pomodoroManager.phase == .shortBreak ? Color.green : Color.blue)
                           Text(pomodoroManager.formattedTime)
-                              .font(.system(size: 10, weight: .medium, design: .monospaced))
+                              .font(.system(size: 9, weight: .medium, design: .monospaced))
                               .foregroundStyle(.white)
                       }
-                      .padding(.horizontal, 6)
-                      .padding(.vertical, 3)
+                      .padding(.horizontal, 4)
+                      .padding(.vertical, 2)
                       .background(Color.black)
                       .onTapGesture {
                           coordinator.currentView = .pomodoro
