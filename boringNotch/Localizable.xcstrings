@@ -701,6 +701,16 @@
         }
       }
     },
+    "%@ — %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ — %2$@"
+          }
+        }
+      }
+    },
     "%d%%" : {
       "localizations" : {
         "ar" : {
@@ -1000,6 +1010,9 @@
           }
         }
       }
+    },
+    "%lldm" : {
+
     },
     "• Bug fixes" : {
       "localizations" : {
@@ -2902,6 +2915,15 @@
         }
       }
     },
+    "Auto-Start" : {
+
+    },
+    "Auto-start breaks" : {
+
+    },
+    "Auto-start focus" : {
+
+    },
     "Automatically check for updates" : {
       "localizations" : {
         "ar" : {
@@ -3803,6 +3825,7 @@
       }
     },
     "boring.notch" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7002,6 +7025,9 @@
         }
       }
     },
+    "Cycles" : {
+
+    },
     "Default" : {
       "localizations" : {
         "ar" : {
@@ -7404,6 +7430,9 @@
           }
         }
       }
+    },
+    "Display" : {
+
     },
     "Download" : {
       "localizations" : {
@@ -7905,6 +7934,9 @@
           }
         }
       }
+    },
+    "Durations" : {
+
     },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
       "localizations" : {
@@ -9607,6 +9639,9 @@
           }
         }
       }
+    },
+    "Focus: %@ minutes" : {
+
     },
     "Full screen behavior" : {
       "localizations" : {
@@ -12008,6 +12043,9 @@
           }
         }
       }
+    },
+    "Long Break: %@ minutes" : {
+
     },
     "Lottie JSON URL" : {
       "localizations" : {
@@ -15510,6 +15548,9 @@
         }
       }
     },
+    "Notifications" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -16309,6 +16350,12 @@
           }
         }
       }
+    },
+    "Pomodoro" : {
+
+    },
+    "Pomodoro Timer" : {
+
     },
     "Preferred display" : {
       "localizations" : {
@@ -18412,6 +18459,19 @@
         }
       }
     },
+    "Session %lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Session %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "Sessions before Long Break: %lld" : {
+
+    },
     "Settings" : {
       "localizations" : {
         "ar" : {
@@ -18611,6 +18671,9 @@
           }
         }
       }
+    },
+    "Short Break: %@ minutes" : {
+
     },
     "Shortcuts" : {
       "localizations" : {
@@ -19111,6 +19174,12 @@
           }
         }
       }
+    },
+    "Show countdown in menu bar" : {
+
+    },
+    "Show countdown on closed notch" : {
+
     },
     "Show HUD in open notch" : {
       "localizations" : {
@@ -20612,6 +20681,9 @@
         }
       }
     },
+    "Sound" : {
+
+    },
     "Speed" : {
       "localizations" : {
         "ar" : {
@@ -20811,6 +20883,9 @@
           }
         }
       }
+    },
+    "Start Focus" : {
+
     },
     "Stopped" : {
       "extractionState" : "stale",

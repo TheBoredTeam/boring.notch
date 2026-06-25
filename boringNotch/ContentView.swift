@@ -371,7 +371,6 @@ struct ContentView: View {
                       .padding(.horizontal, 4)
                       .padding(.vertical, 2)
                       .background(Color.black)
-                      .padding(.trailing, 8)
                       .onTapGesture {
                           coordinator.currentView = .pomodoro
                           vm.open()
