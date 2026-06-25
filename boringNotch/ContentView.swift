@@ -354,7 +354,7 @@ struct ContentView: View {
                       .fixedSize()
               }
               .zIndex(2)
-              .padding(.trailing, pomodoroManager.isRunning && vm.notchState == .closed && Defaults[.pomodoroShowLiveActivity] ? 48 : 0)
+              .padding(.trailing, pomodoroManager.isRunning && vm.notchState == .closed && Defaults[.pomodoroShowLiveActivity] ? (musicManager.isPlaying ? 48 : 64) : 0)
               .overlay(alignment: .topTrailing) {
                   if pomodoroManager.isRunning
                       && vm.notchState == .closed
