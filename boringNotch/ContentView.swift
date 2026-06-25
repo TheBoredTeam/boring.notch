@@ -66,22 +66,23 @@ struct ContentView: View {
         return max(0, baseClosedTop * scaleFactor)
     }
 
-    private var currentNotchShape: NotchShape {
+    private var currentBottomCornerRadius: CGFloat {
         // Scale bottom corner radius for closed notch shape when scaling is enabled.
         let baseClosedBottom = cornerRadiusInsets.closed.bottom
-        let bottomCorner: CGFloat
 
         if vm.notchState == .open {
-            bottomCorner = cornerRadiusInsets.opened.bottom
+            return cornerRadiusInsets.opened.bottom
         } else if let scaleFactor = cornerRadiusScaleFactor {
-            bottomCorner = max(0, baseClosedBottom * scaleFactor)
+            return max(0, baseClosedBottom * scaleFactor)
         } else {
-            bottomCorner = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
+            return displayClosedNotchHeight > 0 ? baseClosedBottom : 0
         }
+    }
 
-        return NotchShape(
+    private var currentNotchShape: NotchShape {
+        NotchShape(
             topCornerRadius: topCornerRadius,
-            bottomCornerRadius: bottomCorner
+            bottomCornerRadius: currentBottomCornerRadius
         )
     }
 
@@ -113,6 +114,17 @@ struct ContentView: View {
 
     private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
 
+    /// Whether the media progress bar should currently be shown. Gated on the
+    /// notch being in its idle state (closed and not hovered) so the bar fades
+    /// out before the notch expands and only returns once it has settled back.
+    private var isProgressBarVisible: Bool {
+        vm.notchState == .closed
+            && !isHovering
+            && !vm.hideOnClosed
+            && musicManager.isPlaying
+            && musicManager.songDuration > 0
+    }
+
     var body: some View {
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
@@ -138,6 +150,24 @@ struct ContentView: View {
                             .fill(.black)
                             .frame(height: 1)
                             .padding(.horizontal, topCornerRadius)
+                    }
+                    .overlay {
+                        if Defaults[.showMediaProgressBar] {
+                            MediaProgressBar(
+                                topCornerRadius: topCornerRadius,
+                                bottomCornerRadius: currentBottomCornerRadius
+                            )
+                            .allowsHitTesting(false)
+                            .opacity(isProgressBarVisible ? 1 : 0)
+                            // Fade out quickly (before the notch expands), and
+                            // fade back in only after the notch has settled.
+                            .animation(
+                                isProgressBarVisible
+                                    ? .easeOut(duration: 0.2).delay(0.5)
+                                    : .easeIn(duration: 0.12),
+                                value: isProgressBarVisible
+                            )
+                        }
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
