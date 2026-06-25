@@ -31,6 +31,7 @@ struct GeneralSettings: View {
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.enableOpeningAnimation) var enableOpeningAnimation
+    @Default(.enableUnlockAnimation) var enableUnlockAnimation
     @Default(.animationSpeedMultiplier) var animationSpeedMultiplier
 
     var body: some View {
@@ -265,6 +266,7 @@ struct GeneralSettings: View {
                     }
                 }
             }
+            Toggle("Lock animation on unlock", isOn: $enableUnlockAnimation)
         } header: {
             Text("Notch behavior")
         }

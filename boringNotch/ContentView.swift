@@ -181,6 +181,13 @@ struct ContentView: View {
                                 handlePreviousTrackGesture(translation: translation, phase: phase)
                             }
                     }
+                    .allowsHitTesting(!coordinator.screenLocked)   // lock screen: fully non-interactive
+                    .onChange(of: coordinator.screenLocked) { _, locked in
+                        // If the notch was open the instant the screen locked, snap it shut.
+                        if locked && vm.notchState == .open {
+                            withAnimation(animationSpring) { vm.close() }
+                        }
+                    }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
                             hoverTask?.cancel()
@@ -293,6 +300,13 @@ struct ContentView: View {
                     )
                     .padding(.top, 40)
                     Spacer()
+                } else if coordinator.screenLocked && !coordinator.unlockAnimationRunning {
+                    // Locked: only the padlock (left) + the non-private soundwave (right, when
+                    // playing). No album art / title / calendar / shelf, and non-interactive.
+                    lockedNotchContent(morphing: false)
+                } else if coordinator.unlockAnimationRunning {
+                    // The padlock morphs open in place; the soundwave continues; then back to normal.
+                    lockedNotchContent(morphing: true)
                 } else {
                     if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
@@ -348,7 +362,7 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
 
-                      if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
+                      if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && !coordinator.screenLocked {
                           if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
@@ -391,7 +405,7 @@ struct ContentView: View {
                       .fixedSize()
               }
               .zIndex(1)
-            if vm.notchState == .open {
+            if vm.notchState == .open && !coordinator.screenLocked {
                 VStack {
                     switch coordinator.currentView {
                     case .home:
@@ -415,6 +429,45 @@ struct ContentView: View {
             }
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+    }
+
+    /// Locked notch: the padlock sits in the LEFT chin (where album art would be — but the
+    /// art/title are private, so the lock replaces them); the non-private audio soundwave
+    /// stays in the RIGHT chin while music plays. The notch widens horizontally just enough.
+    @ViewBuilder
+    private func lockedNotchContent(morphing: Bool) -> some View {
+        let musicPlaying = musicManager.isPlaying || !musicManager.isPlayerIdle
+        HStack(spacing: 0) {
+            Group {
+                if morphing {
+                    UnlockAnimation(immediate: true, onFinish: {
+                        withAnimation(.smooth(duration: 0.4)) {
+                            coordinator.unlockAnimationRunning = false
+                        }
+                    })
+                } else {
+                    UnlockAnimation(autoPlay: false)
+                }
+            }
+            .frame(width: 30)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width + 20)   // physical-notch gap
+
+            if musicPlaying {
+                // Abstract soundwave only — reveals nothing about the track.
+                AudioSpectrumView(
+                    isPlaying: musicManager.isPlaying,
+                    tintColor: Defaults[.coloredSpectrogram]
+                        ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                        : Color.gray
+                )
+                .frame(width: 18, height: 12)
+                .frame(width: 30)
+            }
+        }
+        .frame(height: displayClosedNotchHeight, alignment: .center)
     }
 
     @ViewBuilder
@@ -540,7 +593,7 @@ struct ContentView: View {
 
     @ViewBuilder
     var dragDetector: some View {
-        if Defaults[.boringShelf] && vm.notchState == .closed {
+        if Defaults[.boringShelf] && vm.notchState == .closed && !coordinator.screenLocked {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
@@ -556,6 +609,7 @@ struct ContentView: View {
 
     @discardableResult
     private func doOpen() -> Bool {
+        guard !coordinator.screenLocked else { return false }
         var didOpen = false
         withAnimation(animationSpring) {
             didOpen = vm.open()
@@ -567,6 +621,7 @@ struct ContentView: View {
 
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
+        if coordinator.screenLocked { return }   // no hover-open on the lock screen
         hoverTask?.cancel()
         
         if hovering {
