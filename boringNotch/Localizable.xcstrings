@@ -94,7 +94,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "'Tocando agora' era a única opção em versões anteriores e funciona em todos os aplicativos de mídia."
+            "value" : "'Reproduzindo' era a única opção em versões anteriores e funciona em todos os aplicativos de mídia."
           }
         },
         "ru" : {
@@ -277,6 +277,12 @@
             "value" : "%.1fs"
           }
         },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1fs"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -324,6 +330,12 @@
     "%.1fx" : {
       "localizations" : {
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1fx"
+          }
+        },
+        "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%.1fx"
@@ -638,7 +650,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cor de destaque"
+            "value" : "Cor secundária"
           }
         },
         "ru" : {
@@ -820,7 +832,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acesso à Acessibilidade necessário"
+            "value" : "Permissões de Acessibilidade Necessárias"
           }
         },
         "ru" : {
@@ -1524,7 +1536,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permitir acesso"
+            "value" : "Permitir Acesso"
           }
         },
         "ru" : {
@@ -1754,7 +1766,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permitir mostrar guias"
+            "value" : "Sempre mostrar abas"
           }
         },
         "ru" : {
@@ -2238,6 +2250,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automatisch"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático"
           }
         },
         "ru" : {
@@ -3259,6 +3277,12 @@
     "Boring Notch can check for updates in the background. You can still check manually from the menu bar at any time." : {
       "comment" : "A description of the software update permission.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch kann im Hintergrund nach Updates suchen. Sie können jederzeit auch manuell über die Menüleiste nach Updates suchen."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3275,6 +3299,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch kan op de achtergrond controleren of er updates beschikbaar zijn. Je kunt dit op elk moment ook handmatig controleren via de menubalk."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Boring Notch pode verificar atualizações em segundo plano. Mesmo assim, você ainda pode verificar manualmente a partir da barra de menus a qualquer momento."
           }
         },
         "ru" : {
@@ -4112,6 +4142,12 @@
     },
     "Changing the app language requires restarting Boring Notch." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Ändern der App-Sprache erfordert einen Neustart von Boring Notch."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4128,6 +4164,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Om de taal van de app te wijzigen, moet je Boring Notch opnieuw opstarten."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "É preciso reiniciar o Boring Notch para alterar o idioma."
           }
         },
         "ru" : {
@@ -4458,6 +4500,12 @@
     },
     "Check for updates automatically" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch nach Updates suchen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4468,6 +4516,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Controleer automatisch op updates"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verificar atualizações automaticamente"
           }
         },
         "ru" : {
@@ -7533,6 +7587,12 @@
     "Download and install updates automatically" : {
       "comment" : "A checkbox that allows users to download and install updates automatically.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisches herunterladen und installieren von Updates"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7549,6 +7609,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Updates automatisch downloaden en installeren"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixar e instalar atualizações automaticamente"
           }
         },
         "ru" : {
@@ -11903,6 +11969,12 @@
     "Keep Boring Notch Updated" : {
       "comment" : "A title for a view that allows users to configure Boring Notch's update preferences.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Immer Boring Notch aktualisiert haben"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11913,6 +11985,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Houd Boring Notch up-to-date"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantenha o Boring Notch atualizado"
           }
         },
         "ru" : {
@@ -11930,7 +12008,21 @@
       }
     },
     "Keep newer shelf items in front" : {
-      "comment" : "A toggle that allows users to reverse the order of shelf items."
+      "comment" : "A toggle that allows users to reverse the order of shelf items.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuere Artikel im Regal vorne halten"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantenha itens da estante mais recentes na frente"
+          }
+        }
+      }
     },
     "Keyboard Source" : {
       "localizations" : {
@@ -11986,6 +12078,12 @@
     },
     "Language" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprache"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12002,6 +12100,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Taal"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma"
           }
         },
         "ru" : {
@@ -13127,6 +13231,12 @@
     "Max Capacity: Not Available" : {
       "comment" : "A label displayed when the maximum capacity of the battery is not available.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximale Kapazität: Nicht verfügbar"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17978,6 +18088,12 @@
     },
     "Real-time audio waveform" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Echtzeit-Audio-Wellenform"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17988,6 +18104,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Realtime audiogolfvorm"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visualização de onda de áudio em tempo real"
           }
         },
         "ru" : {
@@ -18707,6 +18829,12 @@
     },
     "Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erfordert macOS 14.2 oder neuer. Aktualisiere macOS, um die Echtzeit-Audiowellenform zu aktivieren."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18717,6 +18845,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vereist macOS 14.2 of hoger. Werk macOS bij om realtime audiogolfvorm in te schakelen."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requer macOS 14.2 ou posterior. Atualize o macOS para habilitar a visualização de onda de áudio em tempo real."
           }
         },
         "ru" : {
@@ -19066,6 +19200,12 @@
     },
     "Restart Now" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt neu starten"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19082,6 +19222,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nu herstarten"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar Agora"
           }
         },
         "ru" : {
@@ -19106,6 +19252,12 @@
     },
     "Restart to apply language" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neu starten, um die Sprache zu übernehmen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19122,6 +19274,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opnieuw opstarten om de taal toe te passen"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinicie para aplicar idioma"
           }
         },
         "ru" : {
@@ -22542,6 +22700,12 @@
     "slider_color_accent" : {
       "comment" : "Slider color option: accent color",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Akzentfarbe"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22558,6 +22722,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accentkleur"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cor secundária"
           }
         },
         "ru" : {
@@ -22931,6 +23101,12 @@
     "sneak_peek_inline" : {
       "comment" : "Sneak Peek style: Inline",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inline-Vorschau"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22947,6 +23123,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inline"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alinhado"
           }
         },
         "ru" : {
@@ -22966,6 +23148,12 @@
     "sneak_peek_standard" : {
       "comment" : "Sneak Peek style: Default",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22982,6 +23170,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Standaard"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padrão"
           }
         },
         "ru" : {
@@ -23563,6 +23757,12 @@
     "System default" : {
       "comment" : "Language picker option: follow the system app language",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systemstandard"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23579,6 +23779,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Systeemstandaard"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padrão do sistema"
           }
         },
         "ru" : {
@@ -23709,6 +23915,12 @@
     },
     "Time to Full Charge: %@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit bis zur vollständigen Aufladung: %@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23725,6 +23937,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tijd tot volledig opgeladen: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo até Carga Máxima: %@"
           }
         },
         "ru" : {
@@ -23744,6 +23962,12 @@
     "Time to Full Charge: Calculating..." : {
       "comment" : "A label that indicates that the time to full charge is being calculated.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit bis zur vollständigen Ladung: Wird berechnet..."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23754,6 +23978,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tijd tot volledig opgeladen: Berekenen..."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo até Carga Máxima: Calculando..."
           }
         },
         "ru" : {
@@ -23773,6 +24003,12 @@
     "Time Until Empty: %@" : {
       "comment" : "A label that shows the time remaining until the battery is empty.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit bis Leer: %@"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23788,7 +24024,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tempo até o vazio: %@"
+            "value" : "Tempo até acabar: %@"
           }
         },
         "ru" : {
@@ -23808,6 +24044,12 @@
     "Time Until Empty: Calculating..." : {
       "comment" : "A label that indicates that the time until the battery is empty is being calculated.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit bis leer: Wird berechnet..."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23818,6 +24060,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tijd tot leeg: Berekenen..."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo até acabar: Calculando..."
           }
         },
         "ru" : {
@@ -24944,6 +25192,12 @@
     },
     "Uses Accelerate FFT on the playing app's audio. Requires audio capture permission and uses slightly more CPU." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutzt Accelerate FFT für das Audio der aktiven App. Erfordert die Berechtigung zur Audioaufnahme und beansprucht etwas mehr CPU-Leistung."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24954,6 +25208,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gebruikt Accelerate FFT voor de audio van de afspeelapp. Hiervoor is toestemming voor audio-opname vereist en het verbruikt iets meer CPU-vermogen."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa Accelerate FFT no áudio do app. Requer permissão de captura de áudio e usa um pouco mais da CPU."
           }
         },
         "ru" : {
@@ -25577,6 +25837,12 @@
     "Week starts on" : {
       "comment" : "Calendar setting: which weekday the week strip starts on",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Woche beginnt am"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25588,6 +25854,12 @@
     "System Setting" : {
       "comment" : "Week starts on: follow the macOS system setting (shown with the resolved day in parentheses)",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systemeinstellung"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25599,6 +25871,12 @@
     "Weekly view" : {
       "comment" : "Calendar setting: show one week at a time instead of the scrolling day dial",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wochenansicht"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
