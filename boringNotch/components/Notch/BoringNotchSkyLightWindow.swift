@@ -11,23 +11,27 @@ import Defaults
 import Combine
 
 extension SkyLightOperator {
+    /// Remove the window from the SkyLight space.
+    ///
+    /// `delegateWindow` uses `SLSSpaceAddWindowsAndRemoveFromSpaces` (flag 7), which removes the
+    /// window from ALL its current spaces — including the app's high-level `notchSpace` CGSSpace —
+    /// and adds it to the SkyLight space. Undoing that here ONLY removes it from the SkyLight space;
+    /// the window is then in no space. The caller (`disableSkyLight`) immediately re-homes it into
+    /// `notchSpace` via `CGSSpace.reassert`, restoring the exact membership a fresh window has.
+    ///
+    /// We deliberately do NOT re-add the window to the active desktop space here: a normal-desktop
+    /// 640×210 transparent panel sits in the regular hit-test stack and swallows desktop clicks
+    /// across its margins. The high-level `notchSpace` is what isolates it from desktop hit-testing.
     func undelegateWindow(_ window: NSWindow) {
         typealias F_SLSRemoveWindowsFromSpaces = @convention(c) (Int32, CFArray, CFArray) -> Int32
-        
+
         let handler = dlopen("/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/SkyLight", RTLD_NOW)
-        guard let SLSRemoveWindowsFromSpaces = unsafeBitCast(
-            dlsym(handler, "SLSRemoveWindowsFromSpaces"),
-            to: F_SLSRemoveWindowsFromSpaces?.self
-        ) else {
-            return
+        let windowList = [window.windowNumber] as CFArray
+
+        if let SLSRemoveWindowsFromSpaces = unsafeBitCast(
+            dlsym(handler, "SLSRemoveWindowsFromSpaces"), to: F_SLSRemoveWindowsFromSpaces?.self) {
+            _ = SLSRemoveWindowsFromSpaces(connection, windowList, [space] as CFArray)
         }
-        
-        // Remove the window from the SkyLight space
-        _ = SLSRemoveWindowsFromSpaces(
-            connection,
-            [window.windowNumber] as CFArray,
-            [space] as CFArray
-        )
     }
 }
 
@@ -132,7 +136,14 @@ class BoringNotchSkyLightWindow: NSPanel {
     
     func disableSkyLight() {
         if isSkyLightEnabled {
+            // 1. Remove from the SkyLight space (window is now in no space).
             SkyLightOperator.shared.undelegateWindow(self)
+            // 2. Re-home into the app's high-level notchSpace — the exact CGS membership a fresh
+            //    window has. This is what stops the transparent margins from swallowing desktop
+            //    clicks after unlock. The notchSpace.windows Set still contains us (it was never
+            //    mutated on lock), so a plain insert would be a didSet no-op; reassert forces the
+            //    raw CGSAddWindowsToSpaces re-add. No window rebuild → no flash.
+            NotchSpaceManager.shared.notchSpace.reassert([self])
             isSkyLightEnabled = false
         }
     }

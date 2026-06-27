@@ -29,6 +29,21 @@ public final class CGSSpace {
         }
     }
 
+    /// Force-(re)add windows to THIS space at the window-server level, even when our
+    /// `windows` Set already lists them.
+    ///
+    /// SkyLight's `delegateWindow` evicts the window from this space out-of-band (its
+    /// `flag 7` removes the window from ALL current spaces), but no Swift code mutates the
+    /// `windows` Set, so `didSet` never re-fires and the window is never re-added. After
+    /// undelegating, call this to restore the window to this dedicated max-level space —
+    /// the exact CGS membership a freshly-built window has — so its transparent margins
+    /// stop swallowing desktop clicks. No window rebuild, so no flash.
+    public func reassert(_ windowsToReadd: Set<NSWindow>) {
+        CGSAddWindowsToSpaces(_CGSDefaultConnection(),
+                              windowsToReadd.map { $0.windowNumber } as NSArray,
+                              [self.identifier])
+    }
+
     /// Initialized `CGSSpace`s *MUST* be de-initialized upon app exit!
     public init(level: Int = 0) {
         let flag = 0x1 // this value MUST be 1, otherwise, Finder decides to draw desktop icons

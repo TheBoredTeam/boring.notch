@@ -197,6 +197,9 @@ class BoringViewModel: NSObject, ObservableObject {
     @discardableResult
     func open() -> Bool {
         guard !coordinator.firstLaunch else { return false }
+        // Never let the notch open while the screen is locked (privacy: no calendar/music/shelf
+        // on the lock screen). Neutralizes every open() caller — hover, tap, gesture, drag, shortcut.
+        guard !coordinator.screenLocked else { return false }
 
         self.notchSize = openNotchSize
         self.notchState = .open
