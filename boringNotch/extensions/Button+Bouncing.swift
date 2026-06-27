@@ -15,7 +15,7 @@ struct BouncingButtonStyle: ButtonStyle {
         configuration.label
             .padding(12)
             .background(
-                RoundedRectangle(cornerRadius: Defaults[.cornerRadiusScaling] ? 10 : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(Color(red: 20/255, green: 20/255, blue: 20/255))
                     .strokeBorder(.white.opacity(0.04), lineWidth: 1)
             )

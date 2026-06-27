@@ -231,6 +231,24 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         let diff = update.diff ?? false
 
         var newPlaybackState = PlaybackState(bundleIdentifier: playbackState.bundleIdentifier)
+        let resolvedBundleIdentifier = (
+            payload.parentApplicationBundleIdentifier ??
+            payload.bundleIdentifier ??
+            (diff ? self.playbackState.bundleIdentifier : "")
+        )
+        let captureBundleFallbackIdentifiers: [String]
+        if diff {
+            captureBundleFallbackIdentifiers =
+                resolvedBundleIdentifier != self.playbackState.bundleIdentifier
+                ? [resolvedBundleIdentifier]
+                : self.playbackState.effectiveAudioCaptureBundleIdentifiers
+        } else {
+            captureBundleFallbackIdentifiers = [resolvedBundleIdentifier]
+        }
+        let captureBundleIdentifiers = Self.audioCaptureBundleIdentifiers(
+            sourceBundleIdentifier: payload.bundleIdentifier,
+            fallbackBundleIdentifiers: captureBundleFallbackIdentifiers
+        )
         
         newPlaybackState.title = payload.title ?? (diff ? self.playbackState.title : "")
         newPlaybackState.artist = payload.artist ?? (diff ? self.playbackState.artist : "")
@@ -285,11 +303,8 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
 
         newPlaybackState.playbackRate = payload.playbackRate ?? (diff ? self.playbackState.playbackRate : 1.0)
         newPlaybackState.isPlaying = payload.playing ?? (diff ? self.playbackState.isPlaying : false)
-        newPlaybackState.bundleIdentifier = (
-            payload.parentApplicationBundleIdentifier ??
-            payload.bundleIdentifier ??
-            (diff ? self.playbackState.bundleIdentifier : "")
-        )
+        newPlaybackState.bundleIdentifier = resolvedBundleIdentifier
+        newPlaybackState.audioCaptureBundleIdentifiers = captureBundleIdentifiers
         
         newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
         
@@ -323,6 +338,16 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
          }
      }
     
+}
+
+private extension NowPlayingController {
+    static func audioCaptureBundleIdentifiers(
+        sourceBundleIdentifier: String?,
+        fallbackBundleIdentifiers: [String]
+    ) -> [String] {
+        let preferred = sourceBundleIdentifier.map { [$0] } ?? fallbackBundleIdentifiers
+        return preferred.normalizedBundleIdentifiers
+    }
 }
 
 struct NowPlayingUpdate: Codable {
