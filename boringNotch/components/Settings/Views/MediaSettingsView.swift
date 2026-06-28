@@ -109,6 +109,24 @@ struct Media: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            Section {
+                Defaults.Toggle(key: .enableParallaxTilt) {
+                    Text("3D parallax tilt on album art hover")
+                }
+                Defaults.Toggle(key: .enableFlipAnimation) {
+                    Text("Flip album art on track change")
+                }
+                Defaults.Toggle(key: .enableWavySlider) {
+                    Text("Animated wavy progress bar")
+                }
+            } header: {
+                Text("Media effects")
+            } footer: {
+                Text("Opt-in visual effects for the music player.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Media")
