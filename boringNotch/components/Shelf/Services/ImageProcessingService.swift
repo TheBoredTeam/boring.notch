@@ -14,42 +14,34 @@ import PDFKit
 import UniformTypeIdentifiers
 import ImageIO
 
+struct ImageConversionFormat: Hashable {
+    let displayName: String
+    let utType: UTType
+    let fileExtension: String
+    let supportsCompressionQuality: Bool
+}
+
 /// Options for image conversion
 struct ImageConversionOptions {
-    enum ImageFormat {
-        case png, jpeg, heic, tiff, bmp
-        
-        var utType: UTType {
-            switch self {
-            case .png: return .png
-            case .jpeg: return .jpeg
-            case .heic: return .heic
-            case .tiff: return .tiff
-            case .bmp: return .bmp
-            }
-        }
-        
-        var fileExtension: String {
-            switch self {
-            case .png: return "png"
-            case .jpeg: return "jpg"
-            case .heic: return "heic"
-            case .tiff: return "tiff"
-            case .bmp: return "bmp"
-            }
-        }
-    }
-    
-    let format: ImageFormat
+    let format: ImageConversionFormat
     let compressionQuality: Double // 0.0 to 1.0, only applies to JPEG/HEIC
     let maxDimension: CGFloat? // Max width or height, nil for no scaling
-    let removeMetadata: Bool
+    let preserveMetadata: Bool
 }
 
 /// Service for processing images (background removal, conversion, PDF creation)
 @MainActor
 final class ImageProcessingService {
     static let shared = ImageProcessingService()
+
+    private static let preferredFormats: [ImageConversionFormat] = [
+        .init(displayName: "PNG", utType: .png, fileExtension: "png", supportsCompressionQuality: false),
+        .init(displayName: "JPG", utType: .jpeg, fileExtension: "jpg", supportsCompressionQuality: true),
+        .init(displayName: "WEBP", utType: UTType("org.webmproject.webp") ?? UTType(importedAs: "org.webmproject.webp"), fileExtension: "webp", supportsCompressionQuality: true),
+        .init(displayName: "HEIC", utType: .heic, fileExtension: "heic", supportsCompressionQuality: true),
+        .init(displayName: "TIFF", utType: .tiff, fileExtension: "tiff", supportsCompressionQuality: false),
+        .init(displayName: "BMP", utType: .bmp, fileExtension: "bmp", supportsCompressionQuality: false),
+    ]
     
     private init() {}
     private let ciContext = CIContext(options: nil)
@@ -122,43 +114,52 @@ final class ImageProcessingService {
     }
     
     // MARK: - Convert Image
+
+    func availableConversionFormats(for url: URL? = nil) -> [ImageConversionFormat] {
+        let writableTypeIdentifiers = Set((CGImageDestinationCopyTypeIdentifiers() as? [String]) ?? [])
+        let sourceTypeIdentifier = url.flatMap {
+            try? $0.resourceValues(forKeys: [.contentTypeKey]).contentType?.identifier
+        }
+
+        return Self.preferredFormats.filter { format in
+            writableTypeIdentifiers.contains(format.utType.identifier) && format.utType.conforms(to: .image)
+        }.filter { format in
+            guard let sourceTypeIdentifier else { return true }
+            return format.utType.identifier != sourceTypeIdentifier
+        }
+    }
     
     /// Converts an image with specified options
     func convertImage(from url: URL, options: ImageConversionOptions) async throws -> URL? {
-        guard var inputImage = NSImage(contentsOf: url) else {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let sourceImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
             throw ImageProcessingError.invalidImage
         }
-        
+
+        var inputImage = NSImage(cgImage: sourceImage, size: .zero)
+
         // Scale image if needed
         if let maxDim = options.maxDimension {
             inputImage = scaleImage(inputImage, maxDimension: maxDim)
         }
-        
-        // Get image data based on format
-        let imageData: Data?
-        
-        if options.removeMetadata {
-            // Create new image without metadata
-            guard let cgImage = inputImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                throw ImageProcessingError.invalidImage
-            }
-            
-            let newImage = NSImage(cgImage: cgImage, size: inputImage.size)
-            imageData = try convertToFormat(newImage, format: options.format, quality: options.compressionQuality)
-        } else {
-            imageData = try convertToFormat(inputImage, format: options.format, quality: options.compressionQuality)
+
+        guard let outputImage = inputImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            throw ImageProcessingError.invalidImage
         }
-        
-        guard let data = imageData else {
-            throw ImageProcessingError.conversionFailed
-        }
-        
+
+        let imageData = try convertToFormat(
+            outputImage,
+            source: options.preserveMetadata ? source : nil,
+            format: options.format,
+            quality: options.compressionQuality
+        )
+
         // Create temporary file
         let originalName = url.deletingPathExtension().lastPathComponent
         let newName = "\(originalName)_converted.\(options.format.fileExtension)"
         
         guard let tempURL = await TemporaryFileStorageService.shared.createTempFile(
-            for: .data(data, suggestedName: newName)
+            for: .data(imageData, suggestedName: newName)
         ) else {
             throw ImageProcessingError.saveFailed
         }
@@ -166,40 +167,37 @@ final class ImageProcessingService {
         return tempURL
     }
     
-    private func convertToFormat(_ image: NSImage, format: ImageConversionOptions.ImageFormat, quality: Double) throws -> Data? {
-        guard let tiffData = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData) else {
-            return nil
+    private func convertToFormat(
+        _ image: CGImage,
+        source: CGImageSource?,
+        format: ImageConversionFormat,
+        quality: Double
+    ) throws -> Data {
+        let outputData = NSMutableData()
+
+        guard let destination = CGImageDestinationCreateWithData(
+            outputData,
+            format.utType.identifier as CFString,
+            1,
+            nil
+        ) else {
+            throw ImageProcessingError.conversionFailed
         }
-        
-        switch format {
-        case .png:
-            return bitmap.representation(using: .png, properties: [:])
-        case .jpeg:
-            let properties: [NSBitmapImageRep.PropertyKey: Any] = [
-                .compressionFactor: quality
-            ]
-            return bitmap.representation(using: .jpeg, properties: properties)
-        case .tiff:
-            let properties: [NSBitmapImageRep.PropertyKey: Any] = [
-                .compressionMethod: NSNumber(value: NSBitmapImageRep.TIFFCompression.lzw.rawValue)
-            ]
-            return bitmap.representation(using: .tiff, properties: properties)
-        case .bmp:
-            return bitmap.representation(using: .bmp, properties: [:])
-        case .heic:
-            // HEIC requires using CIContext
-            guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                return nil
-            }
-            let ciImage = CIImage(cgImage: cgImage)
-            let context = CIContext()
-            let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
-            let options: [CIImageRepresentationOption: Any] = [
-                CIImageRepresentationOption(rawValue: kCGImageDestinationLossyCompressionQuality as String): quality
-            ]
-            return context.heifRepresentation(of: ciImage, format: .RGBA8, colorSpace: colorSpace, options: options)
+
+        var properties = (source.flatMap { CGImageSourceCopyPropertiesAtIndex($0, 0, nil) as? [String: Any] }) ?? [:]
+        if format.supportsCompressionQuality {
+            properties[kCGImageDestinationLossyCompressionQuality as String] = quality
+        } else {
+            properties.removeValue(forKey: kCGImageDestinationLossyCompressionQuality as String)
         }
+
+        CGImageDestinationAddImage(destination, image, properties as CFDictionary)
+
+        guard CGImageDestinationFinalize(destination) else {
+            throw ImageProcessingError.conversionFailed
+        }
+
+        return outputData as Data
     }
     
     private func scaleImage(_ image: NSImage, maxDimension: CGFloat) -> NSImage {
