@@ -58,6 +58,7 @@ class BoringNotchSkyLightWindow: NSPanel {
         titlebarAppearsTransparent = true
         backgroundColor = .clear
         isMovable = false
+        becomesKeyOnlyIfNeeded = true
         level = .mainMenu + 3
         hasShadow = false
         isReleasedWhenClosed = false
@@ -146,6 +147,6 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
     
-    override var canBecomeKey: Bool { false }
-    override var canBecomeMain: Bool { false }
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
 }

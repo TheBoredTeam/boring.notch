@@ -15,11 +15,19 @@ struct TabButton: View {
     
     var body: some View {
         Button(action: onClick) {
-            Image(systemName: icon)
-                .padding(.horizontal, 15)
-                .contentShape(Capsule())
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .semibold))
+                Text(label)
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 26)
+            .contentShape(Capsule())
         }
         .buttonStyle(PlainButtonStyle())
+        .help(label)
     }
 }
 
