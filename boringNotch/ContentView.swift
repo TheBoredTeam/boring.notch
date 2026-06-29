@@ -387,6 +387,10 @@ struct ContentView: View {
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
+        let sideLength = max(0, vm.effectiveClosedNotchHeight - 12)
+        let visualizerWidth = max(0, sideLength + gestureProgress / 2)
+        let centerWidth = centerMusicLiveActivityWidth
+
         HStack {
             Image(nsImage: musicManager.albumArt)
                 .resizable()
@@ -397,56 +401,16 @@ struct ContentView: View {
                 )
                 .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                 .frame(
-                    width: max(0, vm.effectiveClosedNotchHeight - 12),
-                    height: max(0, vm.effectiveClosedNotchHeight - 12)
+                    width: sideLength,
+                    height: sideLength
                 )
 
             Rectangle()
                 .fill(.black)
                 .overlay(
-                    HStack(alignment: .top) {
-                        if coordinator.expandingView.show
-                            && coordinator.expandingView.type == .music
-                        {
-                            MarqueeText(
-                                .constant(musicManager.songTitle),
-                                textColor: Defaults[.coloredSpectrogram]
-                                    ? Color(nsColor: musicManager.avgColor) : Color.gray,
-                                minDuration: 0.4,
-                                frameWidth: 100
-                            )
-                            .opacity(
-                                (coordinator.expandingView.show
-                                    && Defaults[.sneakPeekStyles] == .inline)
-                                    ? 1 : 0
-                            )
-                            Spacer(minLength: vm.closedNotchSize.width)
-                            // Song Artist
-                            Text(musicManager.artistName)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .foregroundStyle(
-                                    Defaults[.coloredSpectrogram]
-                                        ? Color(nsColor: musicManager.avgColor)
-                                        : Color.gray
-                                )
-                                .opacity(
-                                    (coordinator.expandingView.show
-                                        && coordinator.expandingView.type == .music
-                                        && Defaults[.sneakPeekStyles] == .inline)
-                                        ? 1 : 0
-                                )
-                        }
-                    }
+                    closedMusicMetadataView(width: centerWidth, height: vm.effectiveClosedNotchHeight)
                 )
-                .frame(
-                    width: (coordinator.expandingView.show
-                        && coordinator.expandingView.type == .music
-                        && Defaults[.sneakPeekStyles] == .inline)
-                        ? 380
-                        : vm.closedNotchSize.width
-                            + -cornerRadiusInsets.closed.top
-                )
+                .frame(width: centerWidth)
 
             HStack {
                 if useMusicVisualizer {
@@ -468,15 +432,8 @@ struct ContentView: View {
                 }
             }
             .frame(
-                width: max(
-                    0,
-                    vm.effectiveClosedNotchHeight - 12
-                        + gestureProgress / 2
-                ),
-                height: max(
-                    0,
-                    vm.effectiveClosedNotchHeight - 12
-                ),
+                width: visualizerWidth,
+                height: sideLength,
                 alignment: .center
             )
         }
@@ -484,6 +441,57 @@ struct ContentView: View {
             height: vm.effectiveClosedNotchHeight,
             alignment: .center
         )
+    }
+
+    private var centerMusicLiveActivityWidth: CGFloat {
+        if coordinator.expandingView.show
+            && coordinator.expandingView.type == .music
+            && Defaults[.sneakPeekStyles] == .inline
+        {
+            return 380
+        }
+
+        return max(0, vm.closedNotchSize.width - cornerRadiusInsets.closed.top)
+    }
+
+    @ViewBuilder
+    private func closedMusicMetadataView(width: CGFloat, height: CGFloat) -> some View {
+        let horizontalPadding = min(12, max(4, height * 0.28))
+        let availableWidth = max(0, width - horizontalPadding * 2)
+        let titleSize = max(7, min(13, height * 0.36))
+        let artistSize = max(6, min(11, height * 0.28))
+        let artistColor = Defaults[.playerColorTinting]
+            ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
+            : Color.gray
+
+        if hasClosedMusicMetadata && availableWidth > 0 && height > 0 {
+            VStack(alignment: .leading, spacing: max(0, height * 0.03)) {
+                MarqueeText(
+                    $musicManager.songTitle,
+                    font: .system(size: titleSize, weight: .semibold, design: .rounded),
+                    nsFont: .headline,
+                    textColor: .white,
+                    frameWidth: availableWidth,
+                    textHeight: titleSize
+                )
+                .lineLimit(1)
+
+                Text(musicManager.artistName)
+                    .font(.system(size: artistSize, weight: .medium, design: .rounded))
+                    .foregroundStyle(artistColor)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(width: availableWidth, alignment: .leading)
+            }
+            .frame(width: availableWidth, height: height, alignment: .center)
+            .padding(.horizontal, horizontalPadding)
+            .clipped()
+        }
+    }
+
+    private var hasClosedMusicMetadata: Bool {
+        !musicManager.songTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !musicManager.artistName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     @ViewBuilder
