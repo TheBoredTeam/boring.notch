@@ -15,6 +15,9 @@ let batterySneakSize: CGSize = .init(width: 160, height: 1)
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
+let aiChatPanelDefaultSize: CGSize = .init(width: 980, height: 620)
+let aiChatPanelMinSize: CGSize = .init(width: 760, height: 360)
+let aiChatPanelMaxSize: CGSize = .init(width: 1_680, height: 900)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
 // Horizontal gap between closed-state live-activity content (album art / waveform)
@@ -39,6 +42,30 @@ enum MusicPlayerImageSizes {
     }
     
     return nil
+}
+
+@MainActor func clampedAIChatPanelSize(
+    width: CGFloat = Defaults[.aiChatPanelWidth],
+    height: CGFloat = Defaults[.aiChatPanelHeight],
+    screenUUID: String? = nil
+) -> CGSize {
+    let screen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
+    let visibleFrame = screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .init(x: 0, y: 0, width: 1_440, height: 900)
+    let maxWidth = min(aiChatPanelMaxSize.width, max(aiChatPanelMinSize.width, visibleFrame.width - 80))
+    let maxHeight = min(aiChatPanelMaxSize.height, max(aiChatPanelMinSize.height, visibleFrame.height - 80))
+
+    return .init(
+        width: min(max(width, aiChatPanelMinSize.width), maxWidth),
+        height: min(max(height, aiChatPanelMinSize.height), maxHeight)
+    )
+}
+
+@MainActor func openNotchSizeForView(_ view: NotchViews, screenUUID: String? = nil) -> CGSize {
+    view == .assistant ? clampedAIChatPanelSize(screenUUID: screenUUID) : openNotchSize
+}
+
+@MainActor func hostingWindowSize(for notchSize: CGSize) -> CGSize {
+    .init(width: notchSize.width, height: notchSize.height + shadowPadding)
 }
 
 @MainActor func getRealNotchHeight() -> CGFloat {
