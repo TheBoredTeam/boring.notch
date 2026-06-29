@@ -15,6 +15,10 @@
 	<false/>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>boring.notch analyzes audio from your music app to draw a real-time waveform in the notch. Audio is processed locally and never leaves your Mac.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Boring Notch uses your location to show local weather.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Boring Notch uses your location to show local weather.</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>

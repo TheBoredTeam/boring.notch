@@ -27,6 +27,7 @@ class BoringNotchWindow: NSPanel {
         titlebarAppearsTransparent = true
         backgroundColor = .clear
         isMovable = false
+        becomesKeyOnlyIfNeeded = true
         
         collectionBehavior = [
             .fullScreenAuxiliary,
@@ -41,10 +42,10 @@ class BoringNotchWindow: NSPanel {
     }
     
     override var canBecomeKey: Bool {
-        false
+        true
     }
     
     override var canBecomeMain: Bool {
-        false
+        true
     }
 }

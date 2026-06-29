@@ -31,16 +31,10 @@ class SettingsWindowController: NSWindowController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setUpdaterController(_ controller: SPUStandardUpdaterController) {
-        self.updaterController = controller
-        // Recreate the content view with the proper updater controller
-        setupWindow()
-    }
-    
     private func setupWindow() {
         guard let window = window else { return }
         
-        window.title = "Boring Notch Settings"
+        window.title = "Boring Notch设置"
         window.titlebarAppearsTransparent = false
         window.titleVisibility = .visible
         window.toolbarStyle = .unified
@@ -57,10 +51,7 @@ class SettingsWindowController: NSWindowController {
         window.isRestorable = true
         window.identifier = NSUserInterfaceItemIdentifier("BoringNotchSettingsWindow")
         
-        // Create the SwiftUI content
-        let settingsView = SettingsView(updaterController: updaterController)
-        let hostingView = NSHostingView(rootView: settingsView)
-        window.contentView = hostingView
+        refreshContentView()
         
         // Handle window closing
         window.delegate = self
@@ -91,6 +82,11 @@ class SettingsWindowController: NSWindowController {
             self?.window?.makeKeyAndOrderFront(nil)
         }
     }
+
+    func setUpdaterController(_ updaterController: SPUStandardUpdaterController) {
+        self.updaterController = updaterController
+        refreshContentView()
+    }
     
     override func close() {
         super.close()
@@ -102,6 +98,11 @@ class SettingsWindowController: NSWindowController {
         
         // Set app back to accessory mode immediately
         NSApp.setActivationPolicy(.accessory)
+    }
+
+    private func refreshContentView() {
+        guard let window else { return }
+        window.contentView = NSHostingView(rootView: SettingsView(updaterController: updaterController))
     }
 }
 
