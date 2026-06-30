@@ -6,6 +6,7 @@
 //
 import AppKit
 import Cocoa
+import Defaults
 import SwiftUI
 
 class AudioSpectrum: NSView {
@@ -16,29 +17,31 @@ class AudioSpectrum: NSView {
     private var animationTimer: Timer?
     
     override init(frame frameRect: NSRect) {
+        self.lastAppliedLevels = [Float](repeating: 0, count: AudioCaptureManager.barCount)
         super.init(frame: frameRect)
         wantsLayer = true
         setupBars()
     }
-    
+
     required init?(coder: NSCoder) {
+        self.lastAppliedLevels = [Float](repeating: 0, count: AudioCaptureManager.barCount)
         super.init(coder: coder)
         wantsLayer = true
         setupBars()
     }
 
-    private func setupBars() {
-        let barWidth: CGFloat = 2
-        let barCount = 4
-        let spacing: CGFloat = barWidth
-        let totalWidth = CGFloat(barCount) * (barWidth + spacing)
-        let totalHeight: CGFloat = 14
-        frame.size = CGSize(width: totalWidth, height: totalHeight)
+    deinit {
+        attachedManager?.clearLevelsConsumer(self)
+    }
 
-        for i in 0 ..< barCount {
-            let xPosition = CGFloat(i) * (barWidth + spacing)
-            let barLayer = CAShapeLayer()
-            barLayer.frame = CGRect(x: xPosition, y: 0, width: barWidth, height: totalHeight)
+    private func setupBars() {
+        let totalWidth = CGFloat(barCount) * barWidth + CGFloat(barCount - 1) * spacing
+        if frame.width < totalWidth {
+            frame.size = CGSize(width: totalWidth, height: totalHeight)
+        }
+        let scale = NSScreen.main?.backingScaleFactor ?? 2.0
+        for i in 0..<barCount {
+            let barLayer = CAGradientLayer()
             barLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             barLayer.position = CGPoint(x: xPosition + barWidth / 2, y: totalHeight / 2)
             barLayer.fillColor = tintColor.cgColor
@@ -52,56 +55,160 @@ class AudioSpectrum: NSView {
             barLayers.append(barLayer)
             barScales.append(0.35)
             layer?.addSublayer(barLayer)
+            barLayers.append(barLayer)
         }
     }
-    
-    private func startAnimating() {
-        guard animationTimer == nil else { return }
-        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
-            self?.updateBars()
-        }
-    }
-    
-    private func stopAnimating() {
-        animationTimer?.invalidate()
-        animationTimer = nil
-        resetBars()
-    }
-    
-    private func updateBars() {
-        for (i, barLayer) in barLayers.enumerated() {
-            let currentScale = barScales[i]
-            let targetScale = CGFloat.random(in: 0.35 ... 1.0)
-            barScales[i] = targetScale
-            let animation = CABasicAnimation(keyPath: "transform.scale.y")
-            animation.fromValue = currentScale
-            animation.toValue = targetScale
-            animation.duration = 0.3
-            animation.autoreverses = true
-            animation.fillMode = .forwards
-            animation.isRemovedOnCompletion = false
-            if #available(macOS 13.0, *) {
-                animation.preferredFrameRateRange = CAFrameRateRange(minimum: 24, maximum: 24, preferred: 24)
-            }
-            barLayer.add(animation, forKey: "scaleY")
-        }
-    }
-    
-    private func resetBars() {
-        for (i, barLayer) in barLayers.enumerated() {
-            barLayer.removeAllAnimations()
-            barLayer.transform = CATransform3DMakeScale(1, 0.35, 1)
-            barScales[i] = 0.35
-        }
-    }
-    
-    func setPlaying(_ playing: Bool) {
-        isPlaying = playing
-        if isPlaying {
-            startAnimating()
+
+    private func expandBars(animated: Bool) {
+        CATransaction.begin()
+        if animated {
+            CATransaction.setAnimationDuration(0.3)
+            CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeOut))
         } else {
-            stopAnimating()
+            CATransaction.setDisableActions(true)
         }
+        for (index, barLayer) in barLayers.enumerated() {
+            applyFrame(to: barLayer, at: index, height: totalHeight)
+            barLayer.transform = CATransform3DMakeScale(1.0, Self.idleBarScale, 1.0)
+        }
+        CATransaction.commit()
+    }
+
+    private func collapseBarsToDots() {
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(0.3)
+        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeOut))
+        for (index, barLayer) in barLayers.enumerated() {
+            barLayer.removeAnimation(forKey: Self.animationKey)
+            barLayer.transform = CATransform3DIdentity
+            applyFrame(to: barLayer, at: index, height: barWidth)
+        }
+        CATransaction.commit()
+    }
+
+    private func startRandomAnimating() {
+        for (index, barLayer) in barLayers.enumerated() {
+            animateBar(barLayer, delay: Double(index) * 0.08)
+        }
+    }
+
+    private func animateBar(_ barLayer: CAGradientLayer, delay: Double = 0) {
+        guard isPlaying else { return }
+        let animation = CAKeyframeAnimation(keyPath: "transform.scale.y")
+        var values: [CGFloat] = []
+        var keyTimes: [NSNumber] = []
+        let numSteps = 50
+        let startValue = CGFloat.random(in: 0.3...1.0)
+        for i in 0...numSteps {
+            if i == 0 || i == numSteps {
+                values.append(startValue)
+            } else {
+                values.append(CGFloat.random(in: 0.3...1.0))
+            }
+            keyTimes.append(NSNumber(value: Double(i) / Double(numSteps)))
+        }
+        animation.values = values
+        animation.keyTimes = keyTimes
+        animation.duration = 15
+        animation.repeatCount = .infinity
+        animation.calculationMode = .cubic
+        animation.beginTime = CACurrentMediaTime() + delay
+        if #available(macOS 12.0, *) {
+            animation.preferredFrameRateRange = CAFrameRateRange(minimum: 10, maximum: 30, preferred: 15)
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        barLayer.transform = CATransform3DMakeScale(1.0, startValue, 1.0)
+        CATransaction.commit()
+        barLayer.add(animation, forKey: Self.animationKey)
+    }
+
+    private func stopRandomAnimating() {
+        for barLayer in barLayers {
+            barLayer.removeAnimation(forKey: Self.animationKey)
+        }
+    }
+
+    func setPlaying(_ playing: Bool) {
+        guard isPlaying != playing else { return }
+        isPlaying = playing
+        if playing {
+            expandBars(animated: true)
+            if !useRealtime {
+                startRandomAnimating()
+            }
+        } else {
+            collapseBarsToDots()
+        }
+    }
+
+    func setUseRealtime(_ enabled: Bool) {
+        guard useRealtime != enabled else { return }
+        useRealtime = enabled
+        // Force the next incoming frame through the threshold guard.
+        for i in 0..<lastAppliedLevels.count { lastAppliedLevels[i] = -1 }
+        guard isPlaying else { return }
+        if enabled {
+            stopRandomAnimating()
+        } else {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            for barLayer in barLayers {
+                barLayer.transform = CATransform3DMakeScale(1.0, Self.idleBarScale, 1.0)
+            }
+            CATransaction.commit()
+            startRandomAnimating()
+        }
+    }
+
+    func attach(to manager: AudioCaptureManager) {
+        guard attachedManager !== manager else { return }
+        attachedManager?.clearLevelsConsumer(self)
+        attachedManager = manager
+        manager.setLevelsConsumer(self)
+    }
+
+    func syncCurrentLevels(from manager: AudioCaptureManager) {
+        guard attachedManager === manager,
+              let values = manager.latestLevelsSnapshot() else { return }
+        applyLevels(values)
+    }
+
+    func audioCaptureManager(_ manager: AudioCaptureManager, didProduceLevels values: [Float]) {
+        applyLevels(values)
+    }
+
+    private func applyLevels(_ values: [Float]) {
+        guard isPlaying, useRealtime, values.count == barCount else { return }
+        var maxDelta: Float = 0
+        for i in 0..<barCount {
+            let d = abs(values[i] - lastAppliedLevels[i])
+            if d > maxDelta { maxDelta = d }
+        }
+        guard maxDelta >= Self.levelChangeThreshold else { return }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for i in 0..<barCount {
+            let v = values[i]
+            lastAppliedLevels[i] = v
+            let clamped = max(Self.minBarScale, min(1.0, CGFloat(v)))
+            barLayers[i].transform = CATransform3DMakeScale(1.0, clamped, 1.0)
+        }
+        CATransaction.commit()
+    }
+
+    func setTintColor(_ color: NSColor) {
+        if let last = lastTintColor, last.isEqual(color) { return }
+        lastTintColor = color
+        tintColor = color
+        let colors = [color.withAlphaComponent(0.6).cgColor, color.cgColor]
+        barLayers.forEach { $0.colors = colors }
+    }
+
+    private func applyFrame(to barLayer: CALayer, at index: Int, height: CGFloat) {
+        let x = CGFloat(index) * (barWidth + spacing)
+        barLayer.bounds = CGRect(x: 0, y: 0, width: barWidth, height: height)
+        barLayer.position = CGPoint(x: x + barWidth / 2, y: totalHeight / 2)
     }
 
     func setTintColor(_ color: NSColor) {
@@ -129,19 +236,26 @@ struct AudioSpectrumView: NSViewRepresentable {
     
     func makeNSView(context: Context) -> AudioSpectrum {
         let spectrum = AudioSpectrum()
+        spectrum.setTintColor(NSColor(tintColor))
+        spectrum.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         spectrum.setPlaying(isPlaying)
         spectrum.setTintColor(NSColor(tintColor))
         return spectrum
     }
-    
+
     func updateNSView(_ nsView: AudioSpectrum, context: Context) {
+        nsView.setTintColor(NSColor(tintColor))
+        nsView.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         nsView.setPlaying(isPlaying)
         nsView.setTintColor(NSColor(tintColor))
     }
 }
 
 #Preview {
-    AudioSpectrumView(isPlaying: .constant(true))
-        .frame(width: 16, height: 20)
-        .padding()
+    ZStack {
+        Color.black
+        AudioSpectrumView(isPlaying: true, tintColor: .green)
+            .frame(width: 18, height: 14)
+    }
+    .padding()
 }

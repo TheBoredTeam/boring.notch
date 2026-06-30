@@ -53,7 +53,7 @@ final class VolumeManager: NSObject, ObservableObject {
     }
 
     @MainActor func toggleMuteAction() {
-        // Determine expected resulting state immediately and show HUD with that value
+        // Determine expected resulting state immediately and show OSD with that value
         let deviceID = systemOutputDeviceID()
         var willBeMuted = false
         var resultingVolume: Float32 = rawVolume
