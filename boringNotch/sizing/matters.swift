@@ -16,6 +16,14 @@ let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
+let liveActivityEdgeMargin: CGFloat = 4
+let closedCornerRadius: CGFloat = MusicPlayerImageSizes.cornerRadiusInset.closed
+
+enum StandardAnimations {
+    static let interactive = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
+    static let open = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
+    static let close = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
+}
 
 enum MusicPlayerImageSizes {
     static let cornerRadiusInset: (opened: CGFloat, closed: CGFloat) = (opened: 13.0, closed: 4.0)

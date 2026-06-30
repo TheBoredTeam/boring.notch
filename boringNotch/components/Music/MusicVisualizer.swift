@@ -12,6 +12,7 @@ class AudioSpectrum: NSView {
     private var barLayers: [CAShapeLayer] = []
     private var barScales: [CGFloat] = []
     private var isPlaying: Bool = true
+    private var tintColor: NSColor = .white
     private var animationTimer: Timer?
     
     override init(frame frameRect: NSRect) {
@@ -40,8 +41,8 @@ class AudioSpectrum: NSView {
             barLayer.frame = CGRect(x: xPosition, y: 0, width: barWidth, height: totalHeight)
             barLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             barLayer.position = CGPoint(x: xPosition + barWidth / 2, y: totalHeight / 2)
-            barLayer.fillColor = NSColor.white.cgColor
-            barLayer.backgroundColor = NSColor.white.cgColor
+            barLayer.fillColor = tintColor.cgColor
+            barLayer.backgroundColor = tintColor.cgColor
             barLayer.allowsGroupOpacity = false
             barLayer.masksToBounds = true
             let path = NSBezierPath(roundedRect: CGRect(x: 0, y: 0, width: barWidth, height: totalHeight),
@@ -102,19 +103,40 @@ class AudioSpectrum: NSView {
             stopAnimating()
         }
     }
+
+    func setTintColor(_ color: NSColor) {
+        tintColor = color
+        for layer in barLayers {
+            layer.fillColor = color.cgColor
+            layer.backgroundColor = color.cgColor
+        }
+    }
 }
 
 struct AudioSpectrumView: NSViewRepresentable {
-    @Binding var isPlaying: Bool
+    let isPlaying: Bool
+    let tintColor: Color
+
+    init(isPlaying: Binding<Bool>, tintColor: Color = .white) {
+        self.isPlaying = isPlaying.wrappedValue
+        self.tintColor = tintColor
+    }
+
+    init(isPlaying: Bool, tintColor: Color = .white) {
+        self.isPlaying = isPlaying
+        self.tintColor = tintColor
+    }
     
     func makeNSView(context: Context) -> AudioSpectrum {
         let spectrum = AudioSpectrum()
         spectrum.setPlaying(isPlaying)
+        spectrum.setTintColor(NSColor(tintColor))
         return spectrum
     }
     
     func updateNSView(_ nsView: AudioSpectrum, context: Context) {
         nsView.setPlaying(isPlaying)
+        nsView.setTintColor(NSColor(tintColor))
     }
 }
 
