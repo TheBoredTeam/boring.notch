@@ -64,24 +64,6 @@ final class PomodoroTimerModel: ObservableObject {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
-    var phaseTitle: String {
-        switch phase {
-        case .idle: return "Ready to focus"
-        case .work: return isRunning ? "Focus in progress" : "Focus paused"
-        case .breakTime: return isRunning ? "Break in motion" : "Break paused"
-        case .complete: return "Session complete"
-        }
-    }
-
-    var phaseSubtitle: String {
-        switch phase {
-        case .idle: return "Set a calm pace and start when you are ready."
-        case .work: return "One task. No context switching."
-        case .breakTime: return "Breathe, stretch, look away from the screen."
-        case .complete: return "Nice work. Start another round when ready."
-        }
-    }
-
     var closedNotchLabel: String {
         switch phase {
         case .idle: return "Pomodoro"
@@ -224,118 +206,92 @@ final class PomodoroTimerModel: ObservableObject {
 
 struct PomodoroView: View {
     @ObservedObject private var timer = PomodoroTimerModel.shared
-    @State private var glowPulse = false
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             timerDial
-                .frame(width: 118, height: 118)
+                .frame(width: 94, height: 94)
 
-            VStack(alignment: .leading, spacing: 10) {
-                header
-                settingsStrip
+            VStack(alignment: .leading, spacing: 8) {
+                statusLine
                 controls
+                durationControls
             }
-            .frame(width: 300, alignment: .leading)
+            .frame(width: 260, alignment: .leading)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(backgroundGlow)
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(.quaternary, lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         .padding(.horizontal, 10)
         .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
-                glowPulse = true
-            }
-        }
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Image(systemName: phaseIcon)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(timer.accent)
-                Text(timer.phaseTitle)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
-                Spacer(minLength: 0)
-                Text("#\(timer.completedFocusSessions + 1)")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.62))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.white.opacity(0.08), in: Capsule())
-            }
+    private var statusLine: some View {
+        HStack(spacing: 7) {
+            Image(systemName: phaseIcon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(timer.accent)
 
-            Text(timer.phaseSubtitle)
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(.white.opacity(0.52))
-                .lineLimit(1)
+            Text(compactPhaseTitle)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.primary)
+
+            Spacer(minLength: 0)
+
+            if timer.completedFocusSessions > 0 {
+                Label("\(timer.completedFocusSessions)", systemImage: "checkmark.circle.fill")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
     private var timerDial: some View {
         ZStack {
             Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [timer.accent.opacity(0.30), .black.opacity(0.35), .black.opacity(0.78)],
-                        center: .center,
-                        startRadius: 8,
-                        endRadius: 72
-                    )
-                )
-                .shadow(color: timer.accent.opacity(glowPulse && timer.isRunning ? 0.42 : 0.20), radius: glowPulse && timer.isRunning ? 22 : 12)
+                .fill(.thinMaterial)
 
             Circle()
-                .stroke(.white.opacity(0.09), lineWidth: 9)
+                .stroke(Color.primary.opacity(0.08), lineWidth: 7)
 
             Circle()
                 .trim(from: 0, to: max(timer.progress, timer.phase == .complete ? 1 : 0.018))
-                .stroke(
-                    AngularGradient(
-                        colors: [timer.accent.opacity(0.55), timer.accent, .white.opacity(0.92), timer.accent.opacity(0.55)],
-                        center: .center
-                    ),
-                    style: StrokeStyle(lineWidth: 9, lineCap: .round)
-                )
+                .stroke(timer.accent, style: StrokeStyle(lineWidth: 7, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(.smooth(duration: 0.35), value: timer.progress)
 
-            VStack(spacing: 2) {
-                Text(timer.timeDisplay)
-                    .font(.system(size: 31, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(.white)
-                Text(phaseLabel)
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .tracking(1.4)
-                    .foregroundStyle(timer.accent.opacity(0.88))
-            }
+            Text(timer.timeDisplay)
+                .font(.system(size: 25, weight: .semibold))
+                .monospacedDigit()
+                .foregroundStyle(.primary)
         }
     }
 
-    private var settingsStrip: some View {
-        HStack(spacing: 8) {
+    private var durationControls: some View {
+        HStack(spacing: 6) {
             minuteStepper(title: "Focus", value: timer.workMinutes, range: 1...180) { timer.setWorkMinutes($0) }
             minuteStepper(title: "Break", value: timer.breakMinutes, range: 1...60) { timer.setBreakMinutes($0) }
         }
     }
 
     private func minuteStepper(title: String, value: Int, range: ClosedRange<Int>, onChange: @escaping (Int) -> Void) -> some View {
-        HStack(spacing: 6) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text(title)
-                    .font(.system(size: 9, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.45))
-                Text("\(value)m")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.86))
-                    .monospacedDigit()
-            }
-            Spacer(minLength: 2)
+        HStack(spacing: 5) {
+            Text(title)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Text("\(value)m")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.primary)
+                .monospacedDigit()
+
+            Spacer(minLength: 0)
+
             Stepper("", value: Binding(
                 get: { value },
                 set: { onChange(min(max($0, range.lowerBound), range.upperBound)) }
@@ -343,13 +299,13 @@ struct PomodoroView: View {
             .labelsHidden()
             .controlSize(.mini)
         }
-        .padding(.leading, 10)
+        .padding(.leading, 8)
         .padding(.trailing, 4)
-        .padding(.vertical, 6)
-        .background(.white.opacity(0.075), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.vertical, 5)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(.white.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .stroke(.quaternary, lineWidth: 1)
         )
     }
 
@@ -357,45 +313,29 @@ struct PomodoroView: View {
         HStack(spacing: 8) {
             Button(action: timer.togglePrimaryAction) {
                 Label(timer.primaryButtonTitle, systemImage: timer.primaryButtonIcon)
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .frame(width: 112, height: 30)
-                    .foregroundStyle(.black.opacity(0.82))
-                    .background(timer.accent, in: Capsule())
+                    .frame(width: 112)
             }
-            .buttonStyle(.plain)
-            .shadow(color: timer.accent.opacity(0.34), radius: 10, y: 4)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .tint(timer.accent)
 
             Button(action: timer.skipPhase) {
                 Label(skipTitle, systemImage: "forward.end.fill")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .frame(width: 86, height: 30)
-                    .foregroundStyle(.white.opacity(0.82))
-                    .background(.white.opacity(0.08), in: Capsule())
+                    .labelStyle(.iconOnly)
+                    .frame(width: 28)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(skipTitle)
 
             Button(action: timer.resetToIdle) {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 12, weight: .bold))
-                    .frame(width: 32, height: 30)
-                    .foregroundStyle(.white.opacity(0.72))
-                    .background(.white.opacity(0.07), in: Circle())
+                Label("Reset", systemImage: "arrow.counterclockwise")
+                    .labelStyle(.iconOnly)
+                    .frame(width: 28)
             }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private var backgroundGlow: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .fill(.black.opacity(0.35))
-            LinearGradient(
-                colors: [timer.accent.opacity(0.20), .white.opacity(0.035), .clear],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .stroke(.white.opacity(0.08), lineWidth: 1)
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help("Reset")
         }
     }
 
@@ -408,12 +348,12 @@ struct PomodoroView: View {
         }
     }
 
-    private var phaseLabel: String {
+    private var compactPhaseTitle: String {
         switch timer.phase {
-        case .idle: return "READY"
-        case .work: return "FOCUS"
-        case .breakTime: return "BREAK"
-        case .complete: return "DONE"
+        case .idle: return "Pomodoro"
+        case .work: return timer.isRunning ? "Focus" : "Paused"
+        case .breakTime: return timer.isRunning ? "Break" : "Paused"
+        case .complete: return "Done"
         }
     }
 
@@ -429,5 +369,4 @@ struct PomodoroView: View {
 #Preview {
     PomodoroView()
         .frame(width: 470, height: 150)
-        .background(Color.black)
 }

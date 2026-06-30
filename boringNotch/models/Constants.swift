@@ -68,6 +68,13 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     var id: String { self.rawValue }
 }
 
+enum CursorScaleActivationMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case timed = "Timed"
+    case toggle = "Toggle"
+
+    var id: String { self.rawValue }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -178,6 +185,20 @@ extension Defaults.Keys {
     static let copyOnDrag = Key<Bool>("copyOnDrag", default: false)
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
+
+    // MARK: Clipboard
+    static let clipboardHistoryEnabled = Key<Bool>("clipboardHistoryEnabled", default: false)
+    static let clipboardHistoryCaptureImages = Key<Bool>("clipboardHistoryCaptureImages", default: true)
+    static let clipboardHistoryShowSourceApps = Key<Bool>("clipboardHistoryShowSourceApps", default: true)
+    static let clipboardHistoryPauseOnLock = Key<Bool>("clipboardHistoryPauseOnLock", default: true)
+    static let clipboardHistoryClearOnQuit = Key<Bool>("clipboardHistoryClearOnQuit", default: false)
+    static let clipboardHistoryMaxItems = Key<Int>("clipboardHistoryMaxItems", default: 100)
+    static let clipboardHistoryMaxStorageMB = Key<Int>("clipboardHistoryMaxStorageMB", default: 250)
+
+    // MARK: Cursor Scale
+    static let cursorScaleActivationMode = Key<CursorScaleActivationMode>("cursorScaleActivationMode", default: .timed)
+    static let cursorScaleDuration = Key<Double>("cursorScaleDuration", default: 3.0)
+    static let cursorScaleAmount = Key<Double>("cursorScaleAmount", default: 4.0)
     
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

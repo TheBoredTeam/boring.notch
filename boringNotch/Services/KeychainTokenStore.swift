@@ -4,7 +4,7 @@ import Security
 final class KeychainTokenStore {
     enum StoreError: Error { case unexpectedStatus(OSStatus) }
 
-    private let service = "theboringteam.boringnotch.spotify-ad-dampener"
+    private let service = MinitapBrand.keychainSpotifyService
     private let account = "spotify-oauth-token"
 
     func loadToken() throws -> SpotifyAuthToken? {

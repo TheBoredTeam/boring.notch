@@ -17,7 +17,7 @@ final class PKCETests: XCTestCase {
     func testBuildAuthorizationURLContainsRequiredSpotifyQueryItems() throws {
         let url = try PKCE.authorizationURL(
             clientID: "client id",
-            redirectURI: "boringnotch://spotify-auth/callback",
+            redirectURI: "minitap://spotify-auth/callback",
             scopes: ["user-read-playback-state", "user-read-currently-playing"],
             state: "state-123",
             codeChallenge: "challenge_abc"
@@ -29,7 +29,7 @@ final class PKCETests: XCTestCase {
         XCTAssertEqual(components.path, "/authorize")
         XCTAssertEqual(items["response_type"], "code")
         XCTAssertEqual(items["client_id"], "client id")
-        XCTAssertEqual(items["redirect_uri"], "boringnotch://spotify-auth/callback")
+        XCTAssertEqual(items["redirect_uri"], "minitap://spotify-auth/callback")
         XCTAssertEqual(items["scope"], "user-read-playback-state user-read-currently-playing")
         XCTAssertEqual(items["state"], "state-123")
         XCTAssertEqual(items["code_challenge_method"], "S256")

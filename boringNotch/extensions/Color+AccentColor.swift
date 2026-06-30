@@ -15,7 +15,7 @@ extension Color {
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
             return Color(nsColor: nsColor)
         }
-        return .accentColor
+        return MinitapBrand.Colors.accent
     }
     
     /// Returns a darker version of the accent color suitable for backgrounds
@@ -36,7 +36,7 @@ extension NSColor {
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
             return nsColor
         }
-        return NSColor.controlAccentColor
+        return MinitapBrand.Colors.nsAccent
     }
     
     /// Returns a darker version of the accent color as NSColor suitable for backgrounds
@@ -46,6 +46,6 @@ extension NSColor {
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
             return nsColor.withSystemEffect(.disabled)
         }
-        return NSColor.controlAccentColor.withAlphaComponent(0.25)
+        return MinitapBrand.Colors.nsAccent.withAlphaComponent(0.25)
     }
 }

@@ -21,6 +21,7 @@ struct DynamicNotchApp: App {
     let updaterController: SPUStandardUpdaterController
 
     init() {
+        MinitapBrand.Fonts.registerBundledFonts()
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
 
@@ -30,23 +31,11 @@ struct DynamicNotchApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
-            Button("Settings") {
-                DispatchQueue.main.async {
-                    SettingsWindowController.shared.showWindow()
-                }
-            }
-            .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-            CheckForUpdatesView(updater: updaterController.updater)
-            Divider()
-            Button("Restart Boring Notch") {
-                ApplicationRelauncher.restart()
-            }
-            Button("Quit", role: .destructive) {
-                NSApplication.shared.terminate(self)
-            }
-            .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
+        MenuBarExtra(MinitapBrand.appName, systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+            ClipboardHistoryPanelView(updater: updaterController.updater)
+                .environment(\.font, MinitapBrand.Fonts.body())
         }
+        .menuBarExtraStyle(.window)
     }
 }
 
@@ -91,6 +80,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         MusicManager.shared.destroy()
         SpotifyAdDampenerManager.shared.stopAndRestore()
+        CursorScaleController.shared.restore()
+        ClipboardHistoryStore.shared.flushPendingSaves()
+        if Defaults[.clipboardHistoryClearOnQuit] {
+            ClipboardHistoryStore.shared.clearAll()
+        }
         cleanupDragDetectors()
         cleanupWindows()
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
@@ -99,6 +93,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     func onScreenLocked(_ notification: Notification) {
         isScreenLocked = true
+        ClipboardHistoryViewModel.shared.setSystemPaused(true)
         if !Defaults[.showOnLockScreen] {
             cleanupWindows()
         } else {
@@ -109,6 +104,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     func onScreenUnlocked(_ notification: Notification) {
         isScreenLocked = false
+        ClipboardHistoryViewModel.shared.setSystemPaused(false)
         if !Defaults[.showOnLockScreen] {
             adjustWindowPosition(changeAlpha: true)
         } else {
@@ -288,6 +284,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Task { @MainActor in
+            ClipboardHistoryViewModel.shared.start()
+        }
 
         NotificationCenter.default.addObserver(
             self,
@@ -417,6 +416,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+
+        KeyboardShortcuts.onKeyDown(for: .clipboardHistoryPanel) {
+            Task { @MainActor in
+                ClipboardPanelController.shared.toggle()
+            }
+        }
+
+        CursorScaleController.shared.registerShortcut()
 
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm

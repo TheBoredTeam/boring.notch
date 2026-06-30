@@ -40,7 +40,7 @@ class SettingsWindowController: NSWindowController {
     private func setupWindow() {
         guard let window = window else { return }
         
-        window.title = "Boring Notch Settings"
+        window.title = MinitapBrand.settingsWindowTitle
         window.titlebarAppearsTransparent = false
         window.titleVisibility = .visible
         window.toolbarStyle = .unified
@@ -55,10 +55,11 @@ class SettingsWindowController: NSWindowController {
         
         // Configure window to be a standard document-style window
         window.isRestorable = true
-        window.identifier = NSUserInterfaceItemIdentifier("BoringNotchSettingsWindow")
+        window.identifier = NSUserInterfaceItemIdentifier(MinitapBrand.settingsWindowIdentifier)
         
         // Create the SwiftUI content
         let settingsView = SettingsView(updaterController: updaterController)
+            .environment(\.font, MinitapBrand.Fonts.body())
         let hostingView = NSHostingView(rootView: settingsView)
         window.contentView = hostingView
         

@@ -1,7 +1,7 @@
 import Foundation
 
 struct SpotifyAuthConfiguration {
-    static let defaultRedirectURI = "boringnotch://spotify-auth/callback"
+    static let defaultRedirectURI = MinitapBrand.spotifyRedirectURI
     static let scopes = ["user-read-playback-state", "user-read-currently-playing"]
 
     let clientID: String

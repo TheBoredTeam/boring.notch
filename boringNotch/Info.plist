@@ -9,7 +9,7 @@
 			<string>Spotify Auth Callback</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>boringnotch</string>
+				<string>minitap</string>
 			</array>
 		</dict>
 	</array>
@@ -27,7 +27,7 @@
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://TheBoredTeam.github.io/boring.notch/appcast.xml</string>
+	<string>https://www.minitap.ai/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>B1Y47t8C/v8ImurYA+9arEsuCrpxwJSviekiflMElbI=</string>
 	<key>UTImportedTypeDeclarations</key>
