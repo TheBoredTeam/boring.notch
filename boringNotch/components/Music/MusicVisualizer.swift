@@ -9,25 +9,13 @@ import Cocoa
 import Defaults
 import SwiftUI
 
-class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
-    private var barLayers: [CAGradientLayer] = []
-    private var isPlaying = false
-    private var useRealtime = false
-    private var tintColor: NSColor = .systemBlue
-    private var lastTintColor: NSColor?
-
-    private weak var attachedManager: AudioCaptureManager?
-    private var lastAppliedLevels: [Float]
-    private static let levelChangeThreshold: Float = 0.005
-    private static let minBarScale: CGFloat = 0.12
-    private static let idleBarScale: CGFloat = 0.3
-    private static let animationKey = "scaleAnimation"
-
-    private let barWidth: CGFloat = 2
-    private let barCount = AudioCaptureManager.barCount
-    private let spacing: CGFloat = 1
-    private let totalHeight: CGFloat = 14
-
+class AudioSpectrum: NSView {
+    private var barLayers: [CAShapeLayer] = []
+    private var barScales: [CGFloat] = []
+    private var isPlaying: Bool = true
+    private var tintColor: NSColor = .white
+    private var animationTimer: Timer?
+    
     override init(frame frameRect: NSRect) {
         self.lastAppliedLevels = [Float](repeating: 0, count: AudioCaptureManager.barCount)
         super.init(frame: frameRect)
@@ -55,13 +43,17 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
         for i in 0..<barCount {
             let barLayer = CAGradientLayer()
             barLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-            applyFrame(to: barLayer, at: i, height: barWidth)
-            barLayer.cornerRadius = barWidth / 2
-            barLayer.contentsScale = scale
-            barLayer.shouldRasterize = false
-            barLayer.startPoint = CGPoint(x: 0.5, y: 0)
-            barLayer.endPoint = CGPoint(x: 0.5, y: 1)
-            barLayer.colors = [tintColor.withAlphaComponent(0.6).cgColor, tintColor.cgColor]
+            barLayer.position = CGPoint(x: xPosition + barWidth / 2, y: totalHeight / 2)
+            barLayer.fillColor = tintColor.cgColor
+            barLayer.backgroundColor = tintColor.cgColor
+            barLayer.allowsGroupOpacity = false
+            barLayer.masksToBounds = true
+            let path = NSBezierPath(roundedRect: CGRect(x: 0, y: 0, width: barWidth, height: totalHeight),
+                                    xRadius: barWidth / 2,
+                                    yRadius: barWidth / 2)
+            barLayer.path = path.cgPath
+            barLayers.append(barLayer)
+            barScales.append(0.35)
             layer?.addSublayer(barLayer)
             barLayers.append(barLayer)
         }
@@ -218,21 +210,36 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
         barLayer.bounds = CGRect(x: 0, y: 0, width: barWidth, height: height)
         barLayer.position = CGPoint(x: x + barWidth / 2, y: totalHeight / 2)
     }
+
+    func setTintColor(_ color: NSColor) {
+        tintColor = color
+        for layer in barLayers {
+            layer.fillColor = color.cgColor
+            layer.backgroundColor = color.cgColor
+        }
+    }
 }
 
 struct AudioSpectrumView: NSViewRepresentable {
     let isPlaying: Bool
     let tintColor: Color
-    @Default(.realtimeAudioWaveform) var realtimeEnabled: Bool
-    @ObservedObject private var audioCapture = AudioCaptureManager.shared
 
+    init(isPlaying: Binding<Bool>, tintColor: Color = .white) {
+        self.isPlaying = isPlaying.wrappedValue
+        self.tintColor = tintColor
+    }
+
+    init(isPlaying: Bool, tintColor: Color = .white) {
+        self.isPlaying = isPlaying
+        self.tintColor = tintColor
+    }
+    
     func makeNSView(context: Context) -> AudioSpectrum {
         let spectrum = AudioSpectrum()
         spectrum.setTintColor(NSColor(tintColor))
         spectrum.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         spectrum.setPlaying(isPlaying)
-        spectrum.attach(to: audioCapture)
-        spectrum.syncCurrentLevels(from: audioCapture)
+        spectrum.setTintColor(NSColor(tintColor))
         return spectrum
     }
 
@@ -240,7 +247,7 @@ struct AudioSpectrumView: NSViewRepresentable {
         nsView.setTintColor(NSColor(tintColor))
         nsView.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         nsView.setPlaying(isPlaying)
-        nsView.syncCurrentLevels(from: audioCapture)
+        nsView.setTintColor(NSColor(tintColor))
     }
 }
 

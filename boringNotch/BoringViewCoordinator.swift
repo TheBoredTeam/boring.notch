@@ -414,4 +414,12 @@ class BoringViewCoordinator: ObservableObject {
     func showEmpty() {
         currentView = .home
     }
+
+    func shouldShowSneakPeek(on screenUUID: String?) -> Bool {
+        sneakPeek.show
+    }
+
+    func sneakPeekState(for screenUUID: String?) -> sneakPeek {
+        sneakPeek
+    }
 }
