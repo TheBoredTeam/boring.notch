@@ -21,6 +21,7 @@ class BatteryStatusViewModel: ObservableObject {
     @Published private(set) var isInitial: Bool = false
     @Published private(set) var timeToFullCharge: Int = 0
     @Published private(set) var timeToDischarge: Int = 0
+    @Published private(set) var maxAdapterWatts: Int = 0
     @Published private(set) var lastStatus: LastStatus = .plugged(false)
 
     enum LastStatus: Equatable {
@@ -129,6 +130,12 @@ class BatteryStatusViewModel: ObservableObject {
                 self.maxCapacity = capacity
             }
 
+        case .adapterWattageChanged(let watts):
+            print("🔌 Power adapter: \(watts)W")
+            withAnimation {
+                self.maxAdapterWatts = watts
+            }
+
         case .error(let description):
             print("⚠️ Error: \(description)")
         }
@@ -145,6 +152,7 @@ class BatteryStatusViewModel: ObservableObject {
             self.timeToFullCharge = batteryInfo.timeToFullCharge
             self.timeToDischarge = batteryInfo.timeToDischarge
             self.maxCapacity = batteryInfo.maxCapacity
+            self.maxAdapterWatts = batteryInfo.maxAdapterWatts
             self.lastStatus = .plugged(batteryInfo.isPluggedIn)
         }
     }

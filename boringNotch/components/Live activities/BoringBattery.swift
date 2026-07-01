@@ -94,6 +94,7 @@ struct BatteryMenuView: View {
     var timeToFullCharge: Int
     var timeToDischarge: Int
     var isInLowPowerMode: Bool
+    var maxAdapterWatts: Int = 0
     var onDismiss: () -> Void
     
     @ObservedObject private var bluetoothManager = BluetoothDeviceManager.shared
@@ -113,6 +114,20 @@ struct BatteryMenuView: View {
         formatter.unitsStyle = .abbreviated
         formatter.zeroFormattingBehavior = .dropAll
         return formatter.string(from: TimeInterval(timeToFullCharge * 60)) ?? ""
+    }
+
+    // Power status row ("Charging"/"Plugged In") with ": 140W" appended when the
+    // adapter wattage is known and enabled. Watts is a separate Text so the
+    // localized status key stays intact.
+    private func powerStatusLabel(_ title: LocalizedStringKey, icon: String) -> some View {
+        let suffix = (Defaults[.showChargingWattage] && maxAdapterWatts > 0) ? ": \(maxAdapterWatts)W" : ""
+        return Label {
+            Text(title) + Text(suffix)
+        } icon: {
+            Image(systemName: icon)
+        }
+        .font(.subheadline)
+        .fontWeight(.regular)
     }
 
     var body: some View {
@@ -144,14 +159,10 @@ struct BatteryMenuView: View {
                         .fontWeight(.regular)
                 }
                 if isCharging {
-                    Label("Charging", systemImage: "bolt.fill")
-                        .font(.subheadline)
-                        .fontWeight(.regular)
+                    powerStatusLabel("Charging", icon: "bolt.fill")
                 }
                 if isPluggedIn && !isCharging {
-                    Label("Plugged In", systemImage: "powerplug.fill")
-                        .font(.subheadline)
-                        .fontWeight(.regular)
+                    powerStatusLabel("Plugged In", icon: "powerplug.fill")
                 }
                 if isCharging && timeToFullCharge > 0 {
                     Label("Time to Full Charge: \(formattedTimeToFullCharge)", systemImage: "clock")
@@ -248,6 +259,7 @@ struct BoringBatteryView: View {
     var maxCapacity: Float?
     var timeToFullCharge: Int = 0
     var timeToDischarge: Int = 0
+    var maxAdapterWatts: Int = 0
     @State var isForNotification: Bool = false
     
     @State private var showPopupMenu: Bool = false
@@ -292,7 +304,8 @@ struct BoringBatteryView: View {
                 timeToFullCharge: timeToFullCharge,
                 timeToDischarge: timeToDischarge,
                 isInLowPowerMode: isInLowPowerMode,
-                onDismiss: { 
+                maxAdapterWatts: maxAdapterWatts,
+                onDismiss: {
                     showPopupMenu = false
                 }
             )
@@ -336,6 +349,7 @@ struct BoringBatteryView: View {
         maxCapacity: 100,
         timeToFullCharge: 10,
         timeToDischarge: 10,
+        maxAdapterWatts: 140,
         isForNotification: false
     ).frame(width: 200, height: 200)
 }

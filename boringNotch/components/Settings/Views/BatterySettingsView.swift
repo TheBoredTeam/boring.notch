@@ -28,6 +28,9 @@ struct Charge: View {
                 Defaults.Toggle(key: .showPowerStatusIcons) {
                     Text("Show power status icons")
                 }
+                Defaults.Toggle(key: .showChargingWattage) {
+                    Text("Show charging wattage")
+                }
             } header: {
                 Text("Battery Information")
             }
