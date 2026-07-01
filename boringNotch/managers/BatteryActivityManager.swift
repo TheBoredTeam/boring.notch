@@ -55,6 +55,7 @@ class BatteryActivityManager {
         case timeToFullChargeChanged(time: Int)
         case timeToDischargeChanged(time: Int)
         case maxCapacityChanged(capacity: Float?)
+        case adapterWattageChanged(watts: Int)
         case error(description: String)
     }
 
@@ -175,6 +176,12 @@ class BatteryActivityManager {
                 current: batteryInfo.maxCapacity,
                 eventGenerator: { .maxCapacityChanged(capacity: $0) }
             )
+
+            checkAndNotify(
+                previous: previousInfo.maxAdapterWatts,
+                current: batteryInfo.maxAdapterWatts,
+                eventGenerator: { .adapterWattageChanged(watts: $0) }
+            )
         } else {
             // First time notification
             enqueueNotification(.powerSourceChanged(isPluggedIn: batteryInfo.isPluggedIn))
@@ -184,6 +191,7 @@ class BatteryActivityManager {
             enqueueNotification(.timeToFullChargeChanged(time: batteryInfo.timeToFullCharge))
             enqueueNotification(.timeToDischargeChanged(time: batteryInfo.timeToDischarge))
             enqueueNotification(.maxCapacityChanged(capacity: batteryInfo.maxCapacity))
+            enqueueNotification(.adapterWattageChanged(watts: batteryInfo.maxAdapterWatts))
         }
 
         // Update previous battery info
@@ -282,6 +290,12 @@ class BatteryActivityManager {
                 batteryInfo.timeToDischarge = timeToDischarge
             }
 
+            // Rated adapter wattage; nil on battery or unreported, stays 0
+            if let adapterDetails = IOPSCopyExternalPowerAdapterDetails()?.takeRetainedValue() as? [String: Any],
+               let watts = adapterDetails[kIOPSPowerAdapterWattsKey as String] as? Int {
+                batteryInfo.maxAdapterWatts = watts
+            }
+
             return batteryInfo
             
         } catch BatteryError.powerSourceUnavailable {
@@ -378,4 +392,5 @@ struct BatteryInfo {
     var isInLowPowerMode: Bool
     var timeToFullCharge: Int
     var timeToDischarge: Int
+    var maxAdapterWatts: Int = 0
 }
