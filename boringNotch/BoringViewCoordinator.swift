@@ -52,6 +52,10 @@ class BoringViewCoordinator: ObservableObject {
 
     @Published var currentView: NotchViews = .home
     @Published var helloAnimationRunning: Bool = false
+    /// When true the notch window is hidden entirely (triple-click to hide;
+    /// drag down at the top-center, the menu-bar item, or ⌘⇧I bring it back).
+    /// Session-only, so a relaunch always restores it.
+    @Published var notchHidden: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
     private var hudEnableTask: Task<Void, Never>?

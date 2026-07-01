@@ -36,6 +36,9 @@ struct DynamicNotchApp: App {
                 }
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+            Button("Hide / Show Notch") {
+                BoringViewCoordinator.shared.notchHidden.toggle()
+            }
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Restart Boring Notch") {
@@ -67,6 +70,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
+    private var notchHiddenCancellable: AnyCancellable?
+    private var notchSizeCancellable: AnyCancellable?
+    private var revealMonitor: Any?
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -369,6 +375,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { [weak self] in
                 guard let self = self else { return }
 
+                // If the notch is hidden, the toggle shortcut brings it back.
+                if self.coordinator.notchHidden {
+                    await MainActor.run { self.coordinator.notchHidden = false }
+                    return
+                }
+
                 let mouseLocation = NSEvent.mouseLocation
 
                 var viewModel = self.vm
@@ -421,6 +433,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+        setupNotchControls()
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
@@ -471,6 +484,92 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.adjustWindowPosition()
                 self?.setupDragDetectors()
             }
+        }
+    }
+
+    // MARK: - Notch visibility & size
+
+    private func allNotchWindows() -> [NSWindow] {
+        windows.isEmpty ? [window].compactMap { $0 } : Array(windows.values)
+    }
+
+    private func allViewModels() -> [BoringViewModel] {
+        var models = Array(viewModels.values)
+        if window != nil { models.append(vm) }
+        return models
+    }
+
+    private func setupNotchControls() {
+        // Hide / reveal the notch window(s) when the coordinator flag flips.
+        notchHiddenCancellable = coordinator.$notchHidden
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] hidden in
+                self?.applyNotchVisibility(hidden)
+            }
+
+        // Live-resize the open notch when the size setting changes.
+        notchSizeCancellable = Publishers.Merge(
+            Defaults.publisher(.notchOpenHeight).map { _ in () },
+            Defaults.publisher(.notchOpenWidth).map { _ in () }
+        )
+        .receive(on: RunLoop.main)
+        .sink { [weak self] in
+            self?.applyNotchSize()
+        }
+    }
+
+    private func applyNotchVisibility(_ hidden: Bool) {
+        for w in allNotchWindows() {
+            w.ignoresMouseEvents = hidden
+            w.animator().alphaValue = hidden ? 0 : 1
+        }
+        if hidden { startRevealMonitor() } else { stopRevealMonitor() }
+    }
+
+    private func applyNotchSize() {
+        // Resize each window and re-anchor it to the top-center. Kept lightweight
+        // (no full adjustWindowPosition) so live edge-dragging stays smooth.
+        for w in allNotchWindows() {
+            w.setContentSize(windowSize)
+            let screen = w.screen
+                ?? NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
+                ?? NSScreen.main
+            if let screen {
+                positionWindow(w, on: screen)
+            }
+        }
+        for model in allViewModels() where model.notchState == .open {
+            model.notchSize = openNotchSize
+        }
+    }
+
+    private func startRevealMonitor() {
+        stopRevealMonitor()
+        // Global mouse-drag monitor (no Accessibility needed): dragging at the
+        // top-center — where the notch lives — brings it back.
+        revealMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged, .rightMouseDragged]) { [weak self] _ in
+            Task { @MainActor in self?.handleRevealDrag() }
+        }
+    }
+
+    private func stopRevealMonitor() {
+        if let revealMonitor {
+            NSEvent.removeMonitor(revealMonitor)
+            self.revealMonitor = nil
+        }
+    }
+
+    private func handleRevealDrag() {
+        guard coordinator.notchHidden else { return }
+        let location = NSEvent.mouseLocation
+        let screen = NSScreen.screen(withUUID: coordinator.selectedScreenUUID) ?? NSScreen.main
+        guard let frame = screen?.frame else { return }
+        let bandWidth = max(180, openNotchSize.width)
+        let nearTop = location.y >= frame.maxY - 14
+        let nearCenterX = abs(location.x - frame.midX) <= bandWidth / 2
+        if nearTop && nearCenterX {
+            coordinator.notchHidden = false
         }
     }
 

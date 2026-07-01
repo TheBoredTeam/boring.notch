@@ -51,6 +51,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Teleprompter") {
+                    Label("Teleprompter", systemImage: "text.viewfinder")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +88,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Teleprompter":
+                    TeleprompterSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -123,6 +128,11 @@ struct SettingsView: View {
         .id(accentColorUpdateTrigger)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AccentColorChanged"))) { _ in
             accentColorUpdateTrigger = UUID()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openSettingsTab)) { note in
+            if let tab = note.userInfo?["tab"] as? String {
+                selectedTab = tab
+            }
         }
     }
 }

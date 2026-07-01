@@ -27,6 +27,7 @@ public enum NotchState {
 public enum NotchViews {
     case home
     case shelf
+    case teleprompter
 }
 
 enum SettingsEnum {
@@ -37,6 +38,7 @@ enum SettingsEnum {
     case mediaPlayback
     case hud
     case shelf
+    case teleprompter
     case extensions
 }
 

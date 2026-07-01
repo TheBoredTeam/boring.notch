@@ -170,7 +170,19 @@ extension Defaults.Keys {
     static let copyOnDrag = Key<Bool>("copyOnDrag", default: false)
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
-    
+
+    // MARK: Teleprompter
+    static let enableTeleprompter = Key<Bool>("enableTeleprompter", default: true)
+    static let teleprompterText = Key<String>("teleprompterText", default: TeleprompterSampleScript.text)
+    static let teleprompterFontSize = Key<Double>("teleprompterFontSize", default: 22)
+    static let teleprompterMirror = Key<Bool>("teleprompterMirror", default: false)
+    static let teleprompterFollowVoice = Key<Bool>("teleprompterFollowVoice", default: true)
+    static let teleprompterArrowKeys = Key<Bool>("teleprompterArrowKeys", default: true)
+
+    // MARK: Notch size (open state) — adjustable so the teleprompter can show more
+    static let notchOpenHeight = Key<CGFloat>("notchOpenHeight", default: 190)
+    static let notchOpenWidth = Key<CGFloat>("notchOpenWidth", default: 640)
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)

@@ -131,6 +131,9 @@ struct ContentView: View {
                     .onHover { hovering in
                         handleHover(hovering)
                     }
+                    .onTapGesture(count: 3) {
+                        withAnimation(.smooth) { coordinator.notchHidden = true }
+                    }
                     .onTapGesture {
                         doOpen()
                     }
@@ -140,7 +143,7 @@ struct ContentView: View {
                                 handleDownGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures] && coordinator.currentView != .teleprompter) { view in
                         view
                             .panGesture(direction: .up) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
@@ -349,6 +352,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .teleprompter:
+                        TeleprompterView()
                     }
                 }
                 .transition(
