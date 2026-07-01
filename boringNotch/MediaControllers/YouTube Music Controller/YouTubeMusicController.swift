@@ -22,11 +22,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
         $playbackState.eraseToAnyPublisher()
     }
 
-    var supportsVolumeControl: Bool {
-        return true
-    }
-
-    var supportsFavorite: Bool { true }
+    var channelPolicy: MediaChannelPolicy { .allSupported }
 
     func setFavorite(_ favorite: Bool) async {
         do {
@@ -393,6 +389,8 @@ final class YouTubeMusicController: MediaControllerProtocol {
         updateTimer?.invalidate()
         updateTimer = nil
     }
+
+    func forceRefresh() async { await pollPlaybackState() }
 
     func pollPlaybackState() async {
         if !isActive() {

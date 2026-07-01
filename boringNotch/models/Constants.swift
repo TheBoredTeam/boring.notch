@@ -327,7 +327,10 @@ extension Defaults.Keys {
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
-    
+    /// When the chosen app-specific source isn't the audible source, fall back to the generic "Now Playing" source.
+    /// Opt-in; has no effect for `.nowPlaying` or when `NowPlaying` is deprecated on this macOS version.
+    static let fallbackToNowPlayingWhenInactive = Key<Bool>("fallbackToNowPlayingWhenInactive", default: false)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)

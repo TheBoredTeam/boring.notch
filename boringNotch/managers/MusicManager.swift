@@ -46,11 +46,10 @@ class MusicManager: ObservableObject {
     @Published var isShuffled: Bool = false
     @Published var repeatMode: RepeatMode = .off
     @Published var volume: Double = 0.5
-    @Published var volumeControlSupported: Bool = true
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
-    @Published var canFavoriteTrack: Bool = false
-    
+    @Published var channelPolicy: MediaChannelPolicy = .allSupported
+
     // Lyrics are now managed by LyricsService
     var lyricsService: LyricsService { LyricsService.shared }
     var currentLyrics: String { lyricsService.currentLyrics }
@@ -119,22 +118,35 @@ class MusicManager: ObservableObject {
             activeController = nil
         }
 
-        let newController: (any MediaControllerProtocol)?
+        let baseController: (any MediaControllerProtocol)?
 
         switch type {
         case .nowPlaying:
             // Only create NowPlayingController if not deprecated on this macOS version
             if !self.isNowPlayingDeprecated {
-                newController = NowPlayingController()
+                baseController = NowPlayingController()
             } else {
                 return nil
             }
         case .appleMusic:
-            newController = AppleMusicController()
+            baseController = AppleMusicController()
         case .spotify:
-            newController = SpotifyController()
+            baseController = SpotifyController()
         case .youtubeMusic:
-            newController = YouTubeMusicController()
+            baseController = YouTubeMusicController()
+        }
+
+        // Opt-in: wrap an app-specific source so it yields to generic Now Playing when it isn't
+        // the audible source. Never wrap `.nowPlaying` itself, and only when Now Playing is buildable.
+        let newController: (any MediaControllerProtocol)?
+        if let base = baseController,
+           type != .nowPlaying,
+           Defaults[.fallbackToNowPlayingWhenInactive],
+           !self.isNowPlayingDeprecated,
+           let nowPlaying = NowPlayingController() {
+            newController = FallbackMediaController(primary: base, nowPlaying: nowPlaying)
+        } else {
+            newController = baseController
         }
 
         // Set up state observation for the new controller
@@ -175,8 +187,8 @@ class MusicManager: ObservableObject {
 
         // Set new active controller
         activeController = controller
-        
-        self.canFavoriteTrack = controller.supportsFavorite
+
+        self.channelPolicy = controller.channelPolicy
 
         // Get current state from active controller
         forceUpdate()
@@ -277,8 +289,11 @@ class MusicManager: ObservableObject {
 
         if state.bundleIdentifier != self.bundleIdentifier {
             self.bundleIdentifier = state.bundleIdentifier
-            // Update volume control support from active controller
-            self.volumeControlSupported = activeController?.supportsVolumeControl ?? false
+        }
+
+        let newPolicy = activeController?.channelPolicy ?? .allSupported
+        if newPolicy != self.channelPolicy {
+            self.channelPolicy = newPolicy
         }
 
         let captureBundleIDs = state.effectiveAudioCaptureBundleIdentifiers
@@ -301,7 +316,7 @@ class MusicManager: ObservableObject {
     }
 
     func toggleFavoriteTrack() {
-        guard canFavoriteTrack else { return }
+        guard channelPolicy.favorite == .supported else { return }
         // Toggle based on current state
         setFavorite(!isFavoriteTrack)
     }
@@ -334,7 +349,7 @@ class MusicManager: ObservableObject {
     }
 
     func setFavorite(_ favorite: Bool) {
-        guard canFavoriteTrack else { return }
+        guard channelPolicy.favorite == .supported else { return }
         guard let controller = activeController else { return }
 
         Task { @MainActor in
@@ -499,6 +514,7 @@ class MusicManager: ObservableObject {
     }
 
     func seek(to position: TimeInterval) {
+        guard channelPolicy.seek == .supported else { return }
         Task {
             await activeController?.seek(to: position)
         }
@@ -509,6 +525,7 @@ class MusicManager: ObservableObject {
     }
     
     func setVolume(to level: Double) {
+        guard channelPolicy.volume == .supported else { return }
         if let controller = activeController {
             Task {
                 await controller.setVolume(level)
@@ -540,11 +557,7 @@ class MusicManager: ObservableObject {
         // Request immediate update from the active controller
         Task { [weak self] in
             if self?.activeController?.isActive() == true {
-                if let youtubeController = self?.activeController as? YouTubeMusicController {
-                    await youtubeController.pollPlaybackState()
-                } else {
-                    await self?.activeController?.updatePlaybackInfo()
-                }
+                await self?.activeController?.forceRefresh()
             }
         }
     }

@@ -202,32 +202,71 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
-            MusicSliderView(
-                sliderValue: $sliderValue,
-                duration: $musicManager.songDuration,
-                lastDragged: $lastDragged,
-                color: musicManager.avgColor,
-                dragging: $dragging,
-                currentDate: timeline.date,
-                timestampDate: musicManager.timestampDate,
-                elapsedTime: musicManager.elapsedTime,
-                playbackRate: musicManager.playbackRate,
-                isPlaying: musicManager.isPlaying
-            ) { newValue in
-                MusicManager.shared.seek(to: newValue)
+        // seek .hidden -> equal-height spacer (keeps layout stable); .disabled -> bar stays as a read-only position/time display (hit-testing off, greyed); .supported -> interactive scrubber.
+        Group {
+            if musicManager.channelPolicy.seek == .hidden {
+                Color.clear.frame(height: 36)
+            } else {
+                TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+                    MusicSliderView(
+                        sliderValue: $sliderValue,
+                        duration: $musicManager.songDuration,
+                        lastDragged: $lastDragged,
+                        color: musicManager.avgColor,
+                        dragging: $dragging,
+                        currentDate: timeline.date,
+                        timestampDate: musicManager.timestampDate,
+                        elapsedTime: musicManager.elapsedTime,
+                        playbackRate: musicManager.playbackRate,
+                        isPlaying: musicManager.isPlaying
+                    ) { newValue in
+                        MusicManager.shared.seek(to: newValue)
+                    }
+                    .padding(.top, 5)
+                    .frame(height: 36)
+                }
+                .allowsHitTesting(musicManager.channelPolicy.seek == .supported)
+                .opacity(musicManager.channelPolicy.seek == .supported ? 1 : 0.35)
             }
-            .padding(.top, 5)
-            .frame(height: 36)
+        }
+    }
+
+    private func channelSupport(for slot: MusicControlButton) -> ChannelSupport {
+        switch slot {
+        case .shuffle:                return musicManager.channelPolicy.shuffle
+        case .previous:               return musicManager.channelPolicy.previous
+        case .playPause:              return musicManager.channelPolicy.playPause
+        case .next:                   return musicManager.channelPolicy.next
+        case .repeatMode:             return musicManager.channelPolicy.repeatMode
+        case .volume:                 return musicManager.channelPolicy.volume
+        case .favorite:               return musicManager.channelPolicy.favorite
+        case .goBackward, .goForward: return musicManager.channelPolicy.seek
+        case .none:                   return .supported
         }
     }
 
     private var slotToolbar: some View {
         let slots = activeSlots
         return HStack(spacing: 6) {
-            ForEach(Array(slots.enumerated()), id: \.offset) { index, slot in
-                slotView(for: slot)
-                    .frame(alignment: .center)
+            ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
+                let support = channelSupport(for: slot)
+                Group {
+                    switch support {
+                    case .hidden:
+                        Color.clear.frame(height: 1)
+                    case .disabled, .supported:
+                        // Volume & Favorite render their own disabled visuals from channelPolicy; .none is an empty spacer that needs no gating.
+                        switch slot {
+                        case .volume, .favorite, .none:
+                            slotView(for: slot)
+                        default:
+                            slotView(for: slot)
+                                .disabled(support == .disabled)
+                                .opacity(support == .disabled ? 0.35 : 1)
+                        }
+                    }
+                }
+                .frame(alignment: .center)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -318,11 +357,12 @@ struct FavoriteControlButton: View {
     @ObservedObject var musicManager = MusicManager.shared
 
     var body: some View {
+        let enabled = musicManager.channelPolicy.favorite == .supported
         HoverButton(icon: iconName, iconColor: iconColor, scale: .medium) {
             MusicManager.shared.toggleFavoriteTrack()
         }
-        .disabled(!musicManager.canFavoriteTrack)
-        .opacity(musicManager.canFavoriteTrack ? 1 : 0.35)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.35)
     }
 
     private var iconName: String {
@@ -350,25 +390,27 @@ struct VolumeControlView: View {
     @State private var showVolumeSlider: Bool = false
     @State private var lastVolumeUpdateTime: Date = Date.distantPast
     private let volumeUpdateThrottle: TimeInterval = 0.1
-    
+
+    private var volumeSupported: Bool { musicManager.channelPolicy.volume == .supported }
+
     var body: some View {
         HStack(spacing: 4) {
             Button(action: {
-                if musicManager.volumeControlSupported {
+                if volumeSupported {
                     withAnimation(.easeInOut(duration: 0.12)) {
                         showVolumeSlider.toggle()
                     }
                 }
             }) {
-                Image(systemName: musicManager.volumeControlSupported ? AudioOutputRouteResolver.shared.volumeSymbol(for: CGFloat(volumeSliderValue)) : "speaker.slash")
+                Image(systemName: volumeSupported ? AudioOutputRouteResolver.shared.volumeSymbol(for: CGFloat(volumeSliderValue)) : "speaker.slash")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
+                    .foregroundColor(volumeSupported ? .white : .gray)
             }
             .buttonStyle(PlainButtonStyle())
-            .disabled(!musicManager.volumeControlSupported)
+            .disabled(!volumeSupported)
             .frame(width: 24)
 
-            if showVolumeSlider && musicManager.volumeControlSupported {
+            if showVolumeSlider && volumeSupported {
                 CustomSlider(
                     value: $volumeSliderValue,
                     range: 0.0...1.0,
@@ -396,8 +438,8 @@ struct VolumeControlView: View {
                 volumeSliderValue = volume
             }
         }
-        .onReceive(musicManager.$volumeControlSupported) { supported in
-            if !supported {
+        .onReceive(musicManager.$channelPolicy) { policy in
+            if policy.volume != .supported {
                 withAnimation(.easeInOut(duration: 0.2)) {
                     showVolumeSlider = false
                 }

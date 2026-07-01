@@ -11,6 +11,7 @@ import SwiftUI
 struct Media: View {
     @Default(.waitInterval) var waitInterval
     @Default(.mediaController) var mediaController
+    @Default(.fallbackToNowPlayingWhenInactive) var fallbackToNowPlaying
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
@@ -32,6 +33,19 @@ struct Media: View {
                         object: nil
                     )
                 }
+
+                Toggle(
+                    "Use Now Playing when the selected app isn't playing",
+                    isOn: $fallbackToNowPlaying
+                )
+                .disabled(mediaController == .nowPlaying || MusicManager.shared.isNowPlayingDeprecated)
+                .onChange(of: fallbackToNowPlaying) { _, _ in
+                    NotificationCenter.default.post(
+                        name: Notification.Name.mediaControllerChanged,
+                        object: nil
+                    )
+                }
+
             } header: {
                 Text("Media Source")
             } footer: {

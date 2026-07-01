@@ -13,7 +13,8 @@ struct MusicControllerSelectionView: View {
     let onContinue: () -> Void
 
     @Default(.mediaController) var mediaController
-    
+    @Default(.fallbackToNowPlayingWhenInactive) var fallbackToNowPlaying
+
     private var availableMediaControllers: [MediaControllerType] {
         if MusicManager.shared.isNowPlayingDeprecated {
             return MediaControllerType.allCases.filter { $0 != .nowPlaying }
@@ -51,10 +52,18 @@ struct MusicControllerSelectionView: View {
                 }
                 .padding()
             }
-            //Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
-            .scrollDisabled(availableMediaControllers.count <= 4)
+            // Always allow scrolling so the source list is never clipped. The old
+            // `count <= 4` heuristic truncated content in the fixed 400x600 window once the
+            // fallback toggle and the taller cards (e.g. YouTube Music) were added.
+            .scrollDisabled(false)
 
-//            Spacer()
+            Toggle(
+                "Use Now Playing when the selected app isn't playing",
+                isOn: $fallbackToNowPlaying
+            )
+            .disabled(selectedMediaController == .nowPlaying || MusicManager.shared.isNowPlayingDeprecated)
+            .padding(.horizontal)
+            .toggleStyle(.switch)
 
             Button("Continue", action: {
                 self.mediaController = self.selectedMediaController

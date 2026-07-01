@@ -23,14 +23,26 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         $playbackState.eraseToAnyPublisher()
     }
 
-    var supportsVolumeControl: Bool {
-        let bundleID = playbackState.bundleIdentifier
-        return bundleID == "com.apple.Music" || bundleID == "com.spotify.client"
-    }
-
-    var supportsFavorite: Bool {
-        let bundleID = playbackState.bundleIdentifier
-        return bundleID == "com.apple.Music"
+    /// What the generic Now Playing / MediaRemote pipeline can *reliably* drive for the current
+    /// underlying app — NOT that app's full native capability (the dedicated controllers advertise
+    /// that). Apple Music honours all MediaRemote commands. For Spotify via Now Playing, seek is
+    /// unreliable and shuffle/repeat aren't honoured, so they're disabled/hidden even though the
+    /// native SpotifyController supports them; volume works because it goes through AppleScript. Any
+    /// other app: only transport is assumed reliable, so volume is disabled too.
+    var channelPolicy: MediaChannelPolicy {
+        switch playbackState.bundleIdentifier {
+        case "com.apple.Music":
+            return .allSupported
+        default:
+            // Generic MediaRemote source: transport only; seek unreliable; shuffle/repeat not honoured.
+            var policy = MediaChannelPolicy(
+                playPause: .supported, previous: .supported, next: .supported, seek: .disabled,
+                shuffle: .hidden, repeatMode: .hidden, favorite: .disabled, volume: .disabled)
+            if playbackState.bundleIdentifier == "com.spotify.client" {
+                policy.volume = .supported  // Spotify exposes volume via AppleScript
+            }
+            return policy
+        }
     }
 
     func setFavorite(_ favorite: Bool) async {
