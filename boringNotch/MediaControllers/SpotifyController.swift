@@ -23,11 +23,10 @@ class SpotifyController: MediaControllerProtocol {
         $playbackState.eraseToAnyPublisher()
     }
 
-    var supportsVolumeControl: Bool {
-        return true
+    var channelPolicy: MediaChannelPolicy {
+        .init(playPause: .supported, previous: .supported, next: .supported, seek: .supported,
+              shuffle: .supported, repeatMode: .supported, favorite: .disabled, volume: .supported)
     }
-
-    var supportsFavorite: Bool { false }
 
     private var notificationTask: Task<Void, Never>?
     

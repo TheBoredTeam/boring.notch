@@ -20,13 +20,7 @@ class AppleMusicController: MediaControllerProtocol {
         $playbackState.eraseToAnyPublisher()
     }
 
-    var supportsVolumeControl: Bool {
-        return true
-    }
-
-    var supportsFavorite: Bool {
-        return true
-    }
+    var channelPolicy: MediaChannelPolicy { .allSupported }
 
     private var notificationTask: Task<Void, Never>?
     

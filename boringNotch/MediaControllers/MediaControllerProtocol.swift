@@ -11,8 +11,7 @@ import Combine
 
 protocol MediaControllerProtocol: ObservableObject {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> { get }
-    var supportsVolumeControl: Bool { get }
-    var supportsFavorite: Bool { get }
+    var channelPolicy: MediaChannelPolicy { get }
     
     func setFavorite(_ favorite: Bool) async
     func play() async
@@ -26,4 +25,12 @@ protocol MediaControllerProtocol: ObservableObject {
     func setVolume(_ level: Double) async
     func isActive() -> Bool
     func updatePlaybackInfo() async
+    func forceRefresh() async
+}
+
+extension MediaControllerProtocol {
+    /// Force an immediate state refresh. Defaults to `updatePlaybackInfo()`; a controller whose
+    /// `updatePlaybackInfo` doesn't refresh every field (e.g. YouTube Music's shuffle/repeat)
+    /// overrides this to poll fully.
+    func forceRefresh() async { await updatePlaybackInfo() }
 }
