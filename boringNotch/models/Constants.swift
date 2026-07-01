@@ -347,4 +347,17 @@ extension Defaults.Keys {
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
+
+    // MARK: Screen Time
+    static let screenTimeEnabled = Key<Bool>("screenTimeEnabled", default: true)
+    static let screenTimeResetHour = Key<Int>("screenTimeResetHour", default: 0)
+    static let screenTimeResetMinute = Key<Int>("screenTimeResetMinute", default: 0)
+    static let screenTimeRetentionDays = Key<Int>("screenTimeRetentionDays", default: 30)
+    static let screenTimeIgnoredApps = Key<[String]>("screenTimeIgnoredApps", default: [])
+    static let screenTimeCategoryOverrides = Key<[String: String]>("screenTimeCategoryOverrides", default: [:])
+    static let screenTimeCategoryColors = Key<[String: String]>("screenTimeCategoryColors", default: [:])
+    static let screenTimeStore = Key<UsageStore>("screenTimeStore", default: UsageStore())
 }
+
+// UsageStore is Codable; opt it into Defaults persistence via the Codable bridge.
+extension UsageStore: Defaults.Serializable {}
