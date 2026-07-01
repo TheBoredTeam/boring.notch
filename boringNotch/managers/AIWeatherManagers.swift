@@ -12,6 +12,7 @@ import Defaults
 import Foundation
 import PDFKit
 import UniformTypeIdentifiers
+import Vision
 
 struct AgentFileReadError: LocalizedError {
     let errorDescription: String?
@@ -41,6 +42,17 @@ func readAgentImportableFile(at url: URL) throws -> (content: String, byteCount:
         return ("[PDF text extracted]\n\(String(text.prefix(24_000)))", byteCount)
     }
 
+    if agentFileIsImage(url) {
+        guard byteCount <= 12_000_000 else {
+            throw AgentFileReadError("图片太大，当前限制 12 MB。")
+        }
+        let text = try extractAgentImageText(at: url)
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw AgentFileReadError("图片没有识别到文字；当前只支持图片 OCR，不做视觉理解。")
+        }
+        return ("[Image OCR text extracted]\n\(String(text.prefix(12_000)))", byteCount)
+    }
+
     let data = try Data(contentsOf: url)
     guard data.count <= 512_000 else {
         throw AgentFileReadError("文件太大，当前限制 500 KB。")
@@ -61,7 +73,7 @@ func agentAllowedImportTypes() -> [UTType] {
         "md", "markdown", "swift", "py", "js", "ts", "tsx", "jsx",
         "html", "css", "xml", "yaml", "yml", "java", "c", "cpp", "h"
     ].compactMap { UTType(filenameExtension: $0) }
-    return [.plainText, .utf8PlainText, .text, .json, .commaSeparatedText, .pdf] + extraTextTypes
+    return [.plainText, .utf8PlainText, .text, .json, .commaSeparatedText, .pdf, .image] + extraTextTypes
 }
 
 private func agentFileByteCount(at url: URL) throws -> Int {
@@ -71,6 +83,24 @@ private func agentFileByteCount(at url: URL) throws -> Int {
     }
     let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
     return attributes[.size] as? Int ?? 0
+}
+
+private func agentFileIsImage(_ url: URL) -> Bool {
+    guard let type = UTType(filenameExtension: url.pathExtension) else { return false }
+    return type.conforms(to: .image)
+}
+
+private func extractAgentImageText(at url: URL) throws -> String {
+    let request = VNRecognizeTextRequest()
+    request.recognitionLevel = .fast
+    request.usesLanguageCorrection = true
+
+    let handler = VNImageRequestHandler(url: url, options: [:])
+    try handler.perform([request])
+
+    return (request.results ?? [])
+        .compactMap { $0.topCandidates(1).first?.string }
+        .joined(separator: "\n")
 }
 
 struct AIChatMessage: Identifiable, Equatable, Codable {
@@ -414,6 +444,23 @@ private struct AgentPreparedRun {
     let systemContext: String
     let calendarContext: String?
     let route: AgentRoute
+}
+
+private struct AgentWebResult {
+    let title: String
+    let url: String
+    let snippet: String
+    let source: String
+}
+
+private struct GitHubTreeResponse: Decodable {
+    struct Item: Decodable {
+        let path: String
+        let type: String
+        let size: Int?
+    }
+
+    let tree: [Item]
 }
 
 private struct AgentRoute {
@@ -982,13 +1029,26 @@ private final class AgentOrchestrator {
             id: "knowledge",
             name: "本地知识库",
             typeTags: ["context"],
-            summary: "检索用户导入的study materials、作业要求、论文笔记和 Markdown 文档。",
+            summary: "检索用户导入的课程资料、作业要求、论文笔记和 Markdown 文档。",
             toolNames: ["knowledge.add_document", "knowledge.retrieve"],
             permission: "只读取用户显式导入的文件",
             riskLevel: "低",
-            discoveryKeywords: ["knowledge", "rag", "notes", "document", "知识库", "资料库", "study materials", "笔记", "文档"],
+            discoveryKeywords: ["knowledge", "rag", "notes", "document", "知识库", "资料库", "课程资料", "笔记", "文档"],
             manifestPreview: """
             {"id":"knowledge","type":["context"],"tools":["knowledge.add_document","knowledge.retrieve"],"permissions":{"read":"user-imported-only","write":"explicit-import"},"riskLevel":"low"}
+            """
+        ),
+        .init(
+            id: "web",
+            name: "联网检索",
+            typeTags: ["context"],
+            summary: "按需读取公开网页、URL 和 GitHub 仓库源码片段。",
+            toolNames: ["web.search", "web.fetch_url", "github.repo_context"],
+            permission: "只读公开网络；由设置开关控制",
+            riskLevel: "中",
+            discoveryKeywords: ["web", "search", "google", "github", "git", "repo", "url", "http", "联网", "搜索", "查一下", "网上", "仓库", "源码", "官网", "boring.notch", "hud"],
+            manifestPreview: """
+            {"id":"web","type":["context"],"tools":["web.search","web.fetch_url","github.repo_context"],"permissions":{"read":"settings-gated-public-web","write":"never"},"riskLevel":"medium"}
             """
         ),
         .init(
@@ -1379,6 +1439,23 @@ private final class AgentOrchestrator {
             )
         }
 
+        if selectedIDs.contains("web") {
+            if Defaults[.aiWebSearchEnabled] {
+                let webContext = await webSearchSummary(for: prompt)
+                contextBlocks.append("[web.search]\n\(webContext)")
+                steps.append(
+                    .init(
+                        title: "工具 web.search",
+                        detail: webContext.contains("未返回") || webContext.contains("失败") ? "联网检索未获得可用结果" : "已读取公开网络/GitHub 上下文",
+                        status: webContext.contains("未返回") || webContext.contains("失败") ? "fallback" : "done"
+                    )
+                )
+            } else {
+                contextBlocks.append("[web.search]\nDisabled in Settings > AI.")
+                steps.append(.init(title: "工具 web.search", detail: "用户设置已关闭", status: "skipped"))
+            }
+        }
+
         if selectedIDs.contains("calendar") {
             if Defaults[.aiCalendarContextEnabled] {
                 calendarContext = await CalendarManager.shared.aiScheduleContext()
@@ -1703,6 +1780,10 @@ private final class AgentOrchestrator {
             return .init(kind: .researchPlanning, confidence: 0.76)
         }
 
+        if wantsWebContext(for: prompt) {
+            return .init(kind: .researchPlanning, confidence: 0.72)
+        }
+
         let agentArchitecture = [
             "agent", "plugin", "plugins", "skill", "skills", "memory", "mcp",
             "智能体", "插件", "技能", "记忆", "长期记忆", "工作记忆", "短期记忆", "架构"
@@ -1755,13 +1836,16 @@ private final class AgentOrchestrator {
         }
 
         let hasProvidedFile = lowered.contains("[file:") || lowered.contains("本地文件上下文") || lowered.contains("上传")
-        let asksKnowledge = ["knowledge", "rag", "资料库", "知识库", "study materials", "笔记"].contains { lowered.contains($0) }
+        let asksKnowledge = ["knowledge", "rag", "资料库", "知识库", "课程资料", "笔记"].contains { lowered.contains($0) }
         let knowledgeEnabled = Defaults[.aiKnowledgeRetrievalEnabled]
         let hasKnowledgeHit = knowledgeEnabled && AgentKnowledgeStore.shared.hasRelevantContent(for: prompt)
+        let webEnabled = Defaults[.aiWebSearchEnabled]
+        let asksWeb = webEnabled && wantsWebContext(for: prompt)
         let selectedIDs = Set(
             routeIDs
                 + (hasProvidedFile ? ["shelf"] : [])
                 + (knowledgeEnabled && (asksKnowledge || hasKnowledgeHit) ? ["knowledge"] : [])
+                + (asksWeb ? ["web"] : [])
         )
 
         return plugins.map { plugin in
@@ -1838,6 +1922,388 @@ private final class AgentOrchestrator {
         }
 
         return "检测到动作型工具 \(writeTools.joined(separator: ", "))，但当前路由不自动执行，只用于说明能力边界。"
+    }
+
+    private func wantsWebContext(for prompt: String) -> Bool {
+        guard Defaults[.aiWebSearchEnabled] else { return false }
+
+        let lowered = prompt.lowercased()
+        if !extractHTTPURLs(from: prompt).isEmpty {
+            return true
+        }
+
+        if lowered.contains("github")
+            || lowered.contains("git ")
+            || lowered.contains(" git")
+            || lowered.contains("repo")
+            || lowered.contains("仓库")
+            || lowered.contains("源码")
+            || lowered.contains("boring.notch")
+        {
+            return true
+        }
+
+        let searchSignals = [
+            "联网", "网上", "搜索", "搜一下", "查一下", "帮我查", "去查", "官网",
+            "web search", "search web", "look up", "google", "browse"
+        ]
+        return searchSignals.contains(where: lowered.contains)
+    }
+
+    private func webSearchSummary(for prompt: String) async -> String {
+        var results: [AgentWebResult] = []
+
+        for url in extractHTTPURLs(from: prompt).prefix(3) {
+            if let result = await fetchURLResult(url) {
+                results.append(result)
+            }
+        }
+
+        if let slug = githubRepositorySlug(in: prompt) {
+            results.append(contentsOf: await githubRepositoryResults(slug: slug, prompt: prompt))
+        }
+
+        if results.isEmpty {
+            results.append(contentsOf: await duckDuckGoResults(for: prompt))
+        }
+
+        let uniqueResults = uniqueWebResults(results).prefix(6)
+        guard !uniqueResults.isEmpty else {
+            return "联网检索未返回可用结果。可能是网络受限、目标页面不可访问，或需要更具体的 URL/GitHub 仓库名。"
+        }
+
+        return uniqueResults.enumerated().map { index, result in
+            """
+            \(index + 1). \(result.title)
+            source: \(result.url)
+            type: \(result.source)
+            excerpt: \(result.snippet)
+            """
+        }.joined(separator: "\n\n")
+    }
+
+    private func githubRepositorySlug(in prompt: String) -> String? {
+        for url in extractHTTPURLs(from: prompt) where url.host?.lowercased().contains("github.com") == true {
+            let components = url.pathComponents.filter { $0 != "/" }
+            if components.count >= 2 {
+                return "\(components[0])/\(components[1])"
+            }
+        }
+
+        let lowered = prompt.lowercased()
+        if lowered.contains("boring.notch") {
+            return "TheBoredTeam/boring.notch"
+        }
+
+        guard lowered.contains("github") || lowered.contains("git") || lowered.contains("仓库") else {
+            return nil
+        }
+
+        let pattern = #"([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: prompt, range: NSRange(prompt.startIndex..., in: prompt)),
+              match.numberOfRanges >= 3,
+              let ownerRange = Range(match.range(at: 1), in: prompt),
+              let repoRange = Range(match.range(at: 2), in: prompt)
+        else {
+            return nil
+        }
+
+        return "\(prompt[ownerRange])/\(prompt[repoRange])"
+    }
+
+    private func githubRepositoryResults(slug: String, prompt: String) async -> [AgentWebResult] {
+        let terms = webSearchTerms(from: prompt, repoSlug: slug)
+
+        for branch in ["dev", "main", "master"] {
+            guard let tree = await githubTree(slug: slug, branch: branch) else { continue }
+
+            var results: [AgentWebResult] = []
+            for item in githubCandidates(from: tree, terms: terms).prefix(6) {
+                guard let rawURL = githubRawURL(slug: slug, branch: branch, path: item.path),
+                      let text = try? await fetchPublicText(from: rawURL)
+                else {
+                    continue
+                }
+
+                results.append(
+                    AgentWebResult(
+                        title: "\(slug): \(item.path)",
+                        url: "https://github.com/\(slug)/blob/\(branch)/\(item.path)",
+                        snippet: sourceSnippet(from: text, terms: terms),
+                        source: "github.repo_context"
+                    )
+                )
+            }
+
+            if !results.isEmpty {
+                return results
+            }
+        }
+
+        return []
+    }
+
+    private func githubTree(slug: String, branch: String) async -> [GitHubTreeResponse.Item]? {
+        guard let url = URL(string: "https://api.github.com/repos/\(slug)/git/trees/\(branch)?recursive=1"),
+              let data = try? await fetchPublicData(from: url),
+              let response = try? JSONDecoder().decode(GitHubTreeResponse.self, from: data)
+        else {
+            return nil
+        }
+
+        return response.tree
+    }
+
+    private func githubCandidates(from tree: [GitHubTreeResponse.Item], terms: [String]) -> [GitHubTreeResponse.Item] {
+        let usefulExtensions = ["swift", "md", "markdown", "json", "yml", "yaml", "plist", "xcstrings", "txt"]
+
+        let scored = tree.compactMap { item -> (GitHubTreeResponse.Item, Int)? in
+            guard item.type == "blob" else { return nil }
+            if let size = item.size, size > 180_000 { return nil }
+
+            let lowerPath = item.path.lowercased()
+            let pathExtension = URL(fileURLWithPath: lowerPath).pathExtension
+            guard usefulExtensions.contains(pathExtension) else { return nil }
+
+            var score = terms.filter { lowerPath.contains($0) }.count * 3
+            if lowerPath.contains("hud") { score += 3 }
+            if lowerPath.contains("notch") { score += 1 }
+            if lowerPath.contains("readme") { score += 1 }
+            return score > 0 ? (item, score) : nil
+        }
+
+        let sorted = scored.sorted { lhs, rhs in
+            if lhs.1 != rhs.1 { return lhs.1 > rhs.1 }
+            return lhs.0.path < rhs.0.path
+        }.map(\.0)
+
+        if !sorted.isEmpty {
+            return sorted
+        }
+
+        let fallbackPaths = [
+            "README.md",
+            "boringNotch/models/Constants.swift",
+            "boringNotch/BoringViewCoordinator.swift",
+            "boringNotch/ContentView.swift",
+            "boringNotch/observers/MediaKeyInterceptor.swift",
+            "boringNotch/components/Settings/Views/OSDSettingsView.swift",
+            "boringNotch/components/Settings/Views/AppearanceSettingsView.swift",
+            "boringNotch/components/Notch/BoringHeader.swift",
+            "boringNotch/components/Notch/NotchHomeView.swift",
+        ]
+        let fallbackSet = Set(fallbackPaths)
+        return tree
+            .filter { item in
+                item.type == "blob"
+                    && fallbackSet.contains(item.path)
+                    && (item.size ?? 0) <= 180_000
+            }
+            .sorted { lhs, rhs in
+                (fallbackPaths.firstIndex(of: lhs.path) ?? Int.max)
+                    < (fallbackPaths.firstIndex(of: rhs.path) ?? Int.max)
+            }
+    }
+
+    private func githubRawURL(slug: String, branch: String, path: String) -> URL? {
+        let encodedPath = path
+            .split(separator: "/")
+            .map { String($0).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String($0) }
+            .joined(separator: "/")
+        return URL(string: "https://raw.githubusercontent.com/\(slug)/\(branch)/\(encodedPath)")
+    }
+
+    private func duckDuckGoResults(for prompt: String) async -> [AgentWebResult] {
+        let query = prompt
+            .replacingOccurrences(of: "请联网检索", with: "")
+            .replacingOccurrences(of: "联网检索", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty,
+              let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "https://duckduckgo.com/html/?q=\(encoded)"),
+              let html = try? await fetchPublicText(from: url)
+        else {
+            return []
+        }
+
+        let pattern = #"<a[^>]*class="result__a"[^>]*href="([^"]+)"[^>]*>(.*?)</a>"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else {
+            return []
+        }
+
+        let matches = regex.matches(in: html, range: NSRange(html.startIndex..., in: html))
+        return matches.prefix(4).compactMap { match in
+            guard match.numberOfRanges >= 3,
+                  let hrefRange = Range(match.range(at: 1), in: html),
+                  let titleRange = Range(match.range(at: 2), in: html)
+            else {
+                return nil
+            }
+
+            let href = decodedDuckDuckGoURL(String(html[hrefRange]))
+            let title = htmlToPlainText(String(html[titleRange]))
+            guard !href.isEmpty, !title.isEmpty else { return nil }
+
+            return AgentWebResult(
+                title: title,
+                url: href,
+                snippet: "搜索结果标题命中。需要更精确内容时可提供 URL，或指定 GitHub 仓库名进行源码检索。",
+                source: "web.search"
+            )
+        }
+    }
+
+    private func fetchURLResult(_ url: URL) async -> AgentWebResult? {
+        guard let text = try? await fetchPublicText(from: url) else { return nil }
+        let title = webPageTitle(from: text) ?? url.host ?? url.absoluteString
+        return AgentWebResult(
+            title: title,
+            url: url.absoluteString,
+            snippet: String(htmlToPlainText(text).prefix(1_600)),
+            source: "web.fetch_url"
+        )
+    }
+
+    private func fetchPublicData(from url: URL) async throws -> Data {
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 12
+        request.setValue("BoringNotchAgent/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("application/vnd.github+json, text/html, text/plain;q=0.9, */*;q=0.8", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, !(200 ... 299).contains(httpResponse.statusCode) {
+            throw FeatureError("Network request failed with status \(httpResponse.statusCode).")
+        }
+        return data
+    }
+
+    private func fetchPublicText(from url: URL) async throws -> String {
+        let data = try await fetchPublicData(from: url)
+        let text = String(data: data, encoding: .utf8)
+            ?? String(data: data, encoding: .unicode)
+            ?? String(data: data, encoding: .isoLatin1)
+        guard let text else {
+            throw FeatureError("Unable to decode web response.")
+        }
+        return text
+    }
+
+    private func extractHTTPURLs(from text: String) -> [URL] {
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
+            return []
+        }
+
+        return detector.matches(in: text, range: NSRange(text.startIndex..., in: text))
+            .compactMap(\.url)
+            .filter { ["http", "https"].contains($0.scheme?.lowercased() ?? "") }
+    }
+
+    private func webSearchTerms(from prompt: String, repoSlug: String?) -> [String] {
+        let lower = prompt.lowercased()
+        var generic = Set([
+            "http", "https", "github", "com", "the", "and", "for", "with", "this", "that",
+            "please", "search", "look", "联网", "搜索", "查一下", "看看", "是什么", "什么",
+            "repo", "repository", "仓库", "源码", "项目"
+        ])
+
+        if let repoSlug {
+            repoSlug.lowercased().split(separator: "/").forEach { generic.insert(String($0)) }
+            repoSlug.lowercased().split(separator: ".").forEach { generic.insert(String($0)) }
+        }
+
+        var terms = lower
+            .split { !$0.isLetter && !$0.isNumber && $0 != "." && $0 != "_" && $0 != "-" }
+            .map(String.init)
+            .filter { $0.count >= 2 && $0.count <= 32 && !generic.contains($0) }
+
+        if lower.contains("hud"), !terms.contains("hud") {
+            terms.insert("hud", at: 0)
+        }
+        if lower.contains("boring.notch"), !terms.contains("boring.notch") {
+            terms.append("boring.notch")
+        }
+
+        var seen = Set<String>()
+        return terms.filter { seen.insert($0).inserted }.prefix(6).map { $0 }
+    }
+
+    private func sourceSnippet(from text: String, terms: [String]) -> String {
+        let lines = text.components(separatedBy: .newlines)
+        let loweredTerms = terms.map { $0.lowercased() }
+        let hitIndex = lines.firstIndex { line in
+            let lowerLine = line.lowercased()
+            return loweredTerms.contains(where: lowerLine.contains)
+        } ?? 0
+        let start = max(0, hitIndex - 4)
+        let end = min(lines.count, hitIndex + 10)
+        let snippet = lines[start..<end]
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return String((snippet.isEmpty ? text : snippet).prefix(1_800))
+    }
+
+    private func webPageTitle(from html: String) -> String? {
+        guard let regex = try? NSRegularExpression(pattern: #"<title[^>]*>(.*?)</title>"#, options: [.caseInsensitive, .dotMatchesLineSeparators]),
+              let match = regex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)),
+              match.numberOfRanges >= 2,
+              let range = Range(match.range(at: 1), in: html)
+        else {
+            return nil
+        }
+
+        return htmlToPlainText(String(html[range]))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func htmlToPlainText(_ html: String) -> String {
+        let withoutScripts = html.replacingOccurrences(
+            of: #"(?is)<(script|style).*?</\1>"#,
+            with: " ",
+            options: .regularExpression
+        )
+        let withoutTags = withoutScripts.replacingOccurrences(
+            of: #"(?s)<[^>]+>"#,
+            with: " ",
+            options: .regularExpression
+        )
+        let collapsed = withoutTags.replacingOccurrences(
+            of: #"\s+"#,
+            with: " ",
+            options: .regularExpression
+        )
+
+        guard let data = collapsed.data(using: .utf8),
+              let decoded = try? NSAttributedString(
+                data: data,
+                options: [
+                    .documentType: NSAttributedString.DocumentType.html,
+                    .characterEncoding: String.Encoding.utf8.rawValue,
+                ],
+                documentAttributes: nil
+              ).string
+        else {
+            return collapsed
+        }
+        return decoded
+    }
+
+    private func decodedDuckDuckGoURL(_ href: String) -> String {
+        let decoded = href.replacingOccurrences(of: "&amp;", with: "&")
+        if let components = URLComponents(string: decoded),
+           let uddg = components.queryItems?.first(where: { $0.name == "uddg" })?.value
+        {
+            return uddg
+        }
+        if decoded.hasPrefix("//") {
+            return "https:\(decoded)"
+        }
+        return decoded
+    }
+
+    private func uniqueWebResults(_ results: [AgentWebResult]) -> [AgentWebResult] {
+        var seen = Set<String>()
+        return results.filter { seen.insert($0.url).inserted }
     }
 
     private func weatherSummary() async -> String {
@@ -2061,6 +2527,7 @@ private final class AgentOrchestrator {
         回复规则：
         - 相关时使用已选择的工具上下文；如果上下文显示工具失败，不要声称工具成功。
         - 如果知识库命中资料，优先基于 knowledge.retrieve 的摘要和 excerpt 回答；没有命中时明确说明未检索到相关资料。
+        - 如果 web.search 提供了 source URL，回答网络/GitHub 问题时要基于这些 excerpt，并在句末列出来源 URL；如果 web.search 失败，不要假装已经联网。
         - 如果 Skills 已装载，按 workflow 输出过程型计划，不要只给泛泛建议。
         - 记忆上下文分为短期会话、工作记忆和长期记忆；长期记忆只代表检索命中的稳定信息，不要把普通聊天当成长期事实。
         - 日程或作业规划要给出具体步骤，并指出冲突或缺失信息。
@@ -2426,7 +2893,7 @@ final class AIChatManager: ObservableObject {
             对我们的实现启发：
             1. 插件负责“能拿到什么上下文/能做什么动作”，Skill 负责“这类任务应该按什么流程做”。
             2. Skill 的 description 应该写成触发条件，不只是说明文字，例如“当用户要求把作业要求拆成评分点、里程碑和日程计划时使用”。
-            3. 支持文件可以被延迟读取，适合study materials、评分标准模板、论文写作模板。
+            3. 支持文件可以被延迟读取，适合课程资料、评分标准模板、论文写作模板。
             4. 有副作用的技能不要自动运行，例如写日历、发消息、删除文件，应该用确认门控。
 
             Boring Notch可落地设计：
@@ -2459,11 +2926,11 @@ final class AIChatManager: ObservableObject {
             2. Tool Discovery：先根据用户任务选相关插件，不一次性把所有工具上下文塞给模型。
             3. Context Plugin 和 Action Plugin 分开：天气、知识库、日历读取属于 context；写日历、启动计时器属于 action。
             4. Permission Gate：读操作可以自动，写操作必须设置允许并由用户明确请求。
-            5. Trace Logger：记录本轮路由、命中插件、上下文准备和安全检查，方便product demonstration“智能体不是黑箱”。
+            5. Trace Logger：记录本轮路由、命中插件、上下文准备和安全检查，方便课程展示“智能体不是黑箱”。
 
             Boring Notch可以对齐的 MCP 分层：
             - Tools：weather.current、calendar.create_event、memory.save_preference。
-            - Resources：本地知识库文档、study materials、拖入文件、日历上下文。
+            - Resources：本地知识库文档、课程资料、拖入文件、日历上下文。
             - Prompts：/skills、/knowledge、作业拆解模板、天气决策模板。
 
             最小可演示架构：
@@ -2547,10 +3014,10 @@ final class AIChatManager: ObservableObject {
             """
         ),
         (
-            "GitHub 案例：Boring Notch Agent product demo 脚本",
-            "seed://boring-notch-agent-course-demo-script",
+            "GitHub 案例：Boring Notch Agent 课堂 demo 脚本",
+            "seed://danshen-agent-course-demo-script",
             """
-            # GitHub 案例：Boring Notch Agent product demo 脚本
+            # GitHub 案例：Boring Notch Agent 课堂 demo 脚本
 
             目标：展示Boring Notch不是普通聊天框，而是一个 macOS 桌面 Agent Host。
 
@@ -2785,6 +3252,7 @@ final class AIChatManager: ObservableObject {
         - If the user asks about today's plan, schedule, agenda, free time, meetings, or calendar, answer only from the provided calendar context.
         - If calendar context is missing, disabled, permission-denied, or empty, say that you cannot confirm local schedule from the calendar; do not fabricate events.
         - If a retrieved memory or knowledge-base excerpt is absent, state that no relevant local record was found.
+        - Do not claim you browsed the web unless [web.search] context is present. If web context is unavailable, say the local web tool did not retrieve usable results.
         - Keep answers concise unless the user asks for a detailed plan.
         """
     }

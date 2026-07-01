@@ -321,6 +321,8 @@ extension Defaults.Keys {
     static let aiChatPanelHeight = Key<CGFloat>("aiChatPanelHeight", default: aiChatPanelDefaultSize.height)
     static let aiKnowledgeRetrievalEnabled = Key<Bool>("aiKnowledgeRetrievalEnabled", default: true)
     static let aiKnowledgeRetrievalLimit = Key<Int>("aiKnowledgeRetrievalLimit", default: 3)
+    static let aiShowAgentTrace = Key<Bool>("aiShowAgentTrace", default: false)
+    static let aiWebSearchEnabled = Key<Bool>("aiWebSearchEnabled", default: true)
     static let weatherFeatureEnabled = Key<Bool>("weatherFeatureEnabled", default: true)
     static let weatherLocationMode = Key<WeatherLocationMode>(
         "weatherLocationMode",

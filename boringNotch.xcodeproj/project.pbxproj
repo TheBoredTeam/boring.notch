@@ -1241,16 +1241,16 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "蛋神";
-				INFOPLIST_KEY_CFBundleName = "蛋神";
+				INFOPLIST_KEY_CFBundleDisplayName = "Boring Notch";
+				INFOPLIST_KEY_CFBundleName = "Boring Notch";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "蛋神需要使用 AppleEvents 来控制音乐播放。";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "蛋神需要读取日历来显示你的日程事件。";
-				INFOPLIST_KEY_NSCameraUsageDescription = "蛋神需要使用摄像头来显示实时镜子预览。";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Boring Notch需要使用 AppleEvents 来控制音乐播放。";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Boring Notch需要读取日历来显示你的日程事件。";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Boring Notch需要使用摄像头来显示实时镜子预览。";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSRemindersUsageDescription = "蛋神需要读取提醒事项来显示你的待办提醒。";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "Boring Notch需要读取提醒事项来显示你的待办提醒。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1295,16 +1295,16 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "蛋神";
-				INFOPLIST_KEY_CFBundleName = "蛋神";
+				INFOPLIST_KEY_CFBundleDisplayName = "Boring Notch";
+				INFOPLIST_KEY_CFBundleName = "Boring Notch";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "蛋神需要使用 AppleEvents 来控制音乐播放。";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "蛋神需要读取日历来显示你的日程事件。";
-				INFOPLIST_KEY_NSCameraUsageDescription = "蛋神需要使用摄像头来显示实时镜子预览。";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Boring Notch需要使用 AppleEvents 来控制音乐播放。";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Boring Notch需要读取日历来显示你的日程事件。";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Boring Notch需要使用摄像头来显示实时镜子预览。";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSRemindersUsageDescription = "蛋神需要读取提醒事项来显示你的待办提醒。";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "Boring Notch需要读取提醒事项来显示你的待办提醒。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

@@ -114,6 +114,7 @@ private struct AgentSlashCommand: Identifiable {
 
 struct AIChatView: View {
     @Default(.aiChatEnabled) private var aiChatEnabled
+    @Default(.aiShowAgentTrace) private var aiShowAgentTrace
 
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject private var manager = AIChatManager.shared
@@ -136,7 +137,8 @@ struct AIChatView: View {
         .init(id: "/kb", title: "知识库", subtitle: "同 /knowledge，可输入 add 或 seed", symbolName: "books.vertical"),
         .init(id: "/remember", title: "记住", subtitle: "把一句稳定偏好写入长期记忆", symbolName: "plus.circle"),
         .init(id: "/forget", title: "遗忘", subtitle: "按关键词删除长期记忆，留空则清空", symbolName: "minus.circle"),
-        .init(id: "/file", title: "上传文件", subtitle: "把本地文本文件作为下一条消息上下文", symbolName: "paperclip"),
+        .init(id: "/file", title: "上传文件", subtitle: "支持文本、PDF 文本抽取和图片 OCR", symbolName: "paperclip"),
+        .init(id: "/web", title: "联网检索", subtitle: "搜索公开网页或 GitHub 仓库", symbolName: "globe"),
         .init(id: "/clear", title: "清空", subtitle: "清除当前会话消息和轨迹", symbolName: "trash"),
         .init(id: "/help", title: "帮助", subtitle: "生成命令、插件和 Skills 说明", symbolName: "questionmark.circle"),
     ]
@@ -164,7 +166,7 @@ struct AIChatView: View {
                         isComposerFocused = true
                     }
                 }
-                if let trace = manager.lastAgentTrace {
+                if aiShowAgentTrace, let trace = manager.lastAgentTrace {
                     AgentTracePanel(trace: trace, isExpanded: $showsTrace)
                         .layoutPriority(0)
                 }
@@ -628,6 +630,9 @@ struct AIChatView: View {
         case "/file":
             draft = ""
             openFilePicker(mode: .attach)
+        case "/web":
+            draft = argument.isEmpty ? "请联网检索：" : "请联网检索：\(argument)"
+            sendDraft()
         case "/knowledge", "/kb":
             if ["add", "import", "导入", "添加"].contains(argument.lowercased()) {
                 draft = ""
@@ -1075,7 +1080,7 @@ private struct AgentInventoryPanel: View {
             }
 
             if manager.knowledgeDocuments.isEmpty {
-                Text("还没有导入资料。使用 /knowledge add，或点击下面的“导入资料”按钮导入文本、Markdown、JSON、CSV 或 PDF。")
+                Text("还没有导入资料。使用 /knowledge add，或点击下面的“导入资料”按钮导入文本、Markdown、JSON、CSV、可抽取文本的 PDF 或带文字的图片。")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .padding(8)

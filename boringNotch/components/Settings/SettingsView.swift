@@ -1580,6 +1580,8 @@ struct Appearance: View {
 struct AISettings: View {
     @ObservedObject private var aiManager = AIChatManager.shared
     @State private var knowledgeImportError: String?
+    @State private var showPluginRegistry = false
+    @State private var showSkillRegistry = false
     private let knowledgeButtonColumns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
 
     @Default(.aiChatEnabled) var aiChatEnabled
@@ -1594,6 +1596,8 @@ struct AISettings: View {
     @Default(.aiChatPanelHeight) var aiChatPanelHeight
     @Default(.aiKnowledgeRetrievalEnabled) var aiKnowledgeRetrievalEnabled
     @Default(.aiKnowledgeRetrievalLimit) var aiKnowledgeRetrievalLimit
+    @Default(.aiShowAgentTrace) var aiShowAgentTrace
+    @Default(.aiWebSearchEnabled) var aiWebSearchEnabled
 
     var body: some View {
         Form {
@@ -1663,6 +1667,22 @@ struct AISettings: View {
             }
 
             Section {
+                Defaults.Toggle(key: .aiWebSearchEnabled) {
+                    Text("允许按需联网检索")
+                }
+                Defaults.Toggle(key: .aiShowAgentTrace) {
+                    Text("在聊天页显示智能体轨迹")
+                }
+            } header: {
+                Text("智能体工具")
+            } footer: {
+                Text("联网检索只在你明确要求搜索、打开 URL 或查看 GitHub 仓库时读取公开网页。轨迹默认隐藏，避免聊天页被插件调试信息占满。")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         Text("宽度")
@@ -1697,9 +1717,19 @@ struct AISettings: View {
             }
 
             Section {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(aiManager.availablePlugins) { plugin in
-                        AIPluginSettingsRow(plugin: plugin)
+                DisclosureGroup(isExpanded: $showPluginRegistry) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(aiManager.availablePlugins) { plugin in
+                            AIPluginSettingsRow(plugin: plugin)
+                        }
+                    }
+                    .padding(.top, 8)
+                } label: {
+                    HStack {
+                        Text("查看插件注册表")
+                        Spacer()
+                        Text("\(aiManager.availablePlugins.count) 个")
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .padding(.vertical, 4)
@@ -1773,7 +1803,7 @@ struct AISettings: View {
                     }
 
                     if aiManager.knowledgeDocuments.isEmpty {
-                        Text("还没有资料。可以导入 Markdown、文本、JSON、CSV 或可抽取文本的 PDF。")
+                        Text("还没有资料。可以导入 Markdown、文本、JSON、CSV、可抽取文本的 PDF 或带文字的图片。")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
@@ -1795,9 +1825,19 @@ struct AISettings: View {
             }
 
             Section {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(aiManager.availableSkills) { skill in
-                        AISkillSettingsRow(skill: skill)
+                DisclosureGroup(isExpanded: $showSkillRegistry) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(aiManager.availableSkills) { skill in
+                            AISkillSettingsRow(skill: skill)
+                        }
+                    }
+                    .padding(.top, 8)
+                } label: {
+                    HStack {
+                        Text("查看 Skills 清单")
+                        Spacer()
+                        Text("\(aiManager.availableSkills.count) 个")
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .padding(.vertical, 4)
