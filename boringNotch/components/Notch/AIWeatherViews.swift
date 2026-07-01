@@ -46,7 +46,63 @@ private let agentPanelAnimation = NotchPanelAnimation.spring
 private func prepareAgentOpenPanel(_ panel: NSOpenPanel) {
     NSApp.setActivationPolicy(.regular)
     NSApp.activate(ignoringOtherApps: true)
+    panel.hidesOnDeactivate = false
+    panel.isFloatingPanel = true
     panel.level = agentOpenPanelLevel
+    panel.collectionBehavior = [
+        .canJoinAllSpaces,
+        .fullScreenAuxiliary,
+        .transient,
+    ]
+}
+
+private func agentPanelHostWindow() -> NSWindow? {
+    if let keyWindow = NSApp.keyWindow, isAgentPanelHostWindow(keyWindow) {
+        return keyWindow
+    }
+
+    return NSApp.windows.first { window in
+        window.isVisible && isAgentPanelHostWindow(window)
+    }
+}
+
+private func isAgentPanelHostWindow(_ window: NSWindow) -> Bool {
+    window is BoringNotchWindow || window is BoringNotchSkyLightWindow
+}
+
+private func runAgentOpenPanel(_ panel: NSOpenPanel, completion: @escaping ([URL]) -> Void) {
+    prepareAgentOpenPanel(panel)
+
+    let finish: (NSApplication.ModalResponse) -> Void = { response in
+        DispatchQueue.main.async {
+            completion(response == .OK ? panel.urls : [])
+        }
+    }
+
+    if let hostWindow = agentPanelHostWindow() {
+        panel.level = NSWindow.Level(
+            rawValue: max(agentOpenPanelLevel.rawValue, hostWindow.level.rawValue + 4)
+        )
+        hostWindow.makeKeyAndOrderFront(nil)
+        hostWindow.orderFrontRegardless()
+
+        panel.beginSheetModal(for: hostWindow) { response in
+            finish(response)
+        }
+
+        DispatchQueue.main.async {
+            panel.level = NSWindow.Level(
+                rawValue: max(agentOpenPanelLevel.rawValue, hostWindow.level.rawValue + 4)
+            )
+            panel.orderFrontRegardless()
+            panel.makeKey()
+        }
+        return
+    }
+
+    panel.orderFrontRegardless()
+    panel.makeKeyAndOrderFront(nil)
+    finish(panel.runModal())
 }
 
 private struct AgentSlashCommand: Identifiable {
@@ -627,14 +683,19 @@ struct AIChatView: View {
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.allowedContentTypes = agentAllowedImportTypes()
-        prepareAgentOpenPanel(panel)
 
-        guard panel.runModal() == .OK else { return }
+        runAgentOpenPanel(panel) { urls in
+            importSelectedFiles(urls, mode: mode)
+        }
+    }
+
+    private func importSelectedFiles(_ urls: [URL], mode: AgentFileImportMode) {
+        guard !urls.isEmpty else { return }
 
         var importedKnowledgeTitles: [String] = []
         let maxFiles = mode == .knowledge ? 8 : 4
 
-        for url in panel.urls.prefix(maxFiles) {
+        for url in urls.prefix(maxFiles) {
             do {
                 let file = try readAgentImportableFile(at: url)
 
@@ -1079,12 +1140,17 @@ private struct AgentInventoryPanel: View {
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.allowedContentTypes = agentAllowedImportTypes()
-        prepareAgentOpenPanel(panel)
 
-        guard panel.runModal() == .OK else { return }
+        runAgentOpenPanel(panel) { urls in
+            importKnowledgeFiles(urls)
+        }
+    }
+
+    private func importKnowledgeFiles(_ urls: [URL]) {
+        guard !urls.isEmpty else { return }
 
         var imported: [String] = []
-        for url in panel.urls.prefix(8) {
+        for url in urls.prefix(8) {
             do {
                 let file = try readAgentImportableFile(at: url)
                 if let document = manager.addKnowledgeDocument(
