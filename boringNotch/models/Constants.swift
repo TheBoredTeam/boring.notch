@@ -18,6 +18,20 @@ let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as
 let temporaryDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
 let spacing: CGFloat = 16
 
+func defaultWeatherCityName() -> String {
+    let fallback = TimeZone.current.identifier
+        .split(separator: "/")
+        .last
+        .map(String.init)?
+        .replacingOccurrences(of: "_", with: " ")
+
+    if let fallback, !fallback.isEmpty {
+        return fallback
+    }
+
+    return "San Francisco"
+}
+
 struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
     let UUID: UUID
     var name: String
@@ -68,6 +82,124 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     var id: String { self.rawValue }
 }
 
+enum WeatherTemperatureUnit: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case celsius = "Celsius"
+    case fahrenheit = "Fahrenheit"
+
+    var id: String { self.rawValue }
+
+    var apiValue: String {
+        switch self {
+        case .celsius:
+            return "celsius"
+        case .fahrenheit:
+            return "fahrenheit"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .celsius:
+            return "°C"
+        case .fahrenheit:
+            return "°F"
+        }
+    }
+
+    var windSpeedAPIValue: String {
+        switch self {
+        case .celsius:
+            return "kmh"
+        case .fahrenheit:
+            return "mph"
+        }
+    }
+
+    var windSpeedLabel: String {
+        switch self {
+        case .celsius:
+            return "km/h"
+        case .fahrenheit:
+            return "mph"
+        }
+    }
+}
+
+enum WeatherLocationMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case automatic = "Automatic location"
+    case manualCity = "Manual city"
+
+    var id: String { self.rawValue }
+}
+
+struct QuickLaunchAppItem: Codable, Hashable, Equatable, Identifiable, Defaults.Serializable {
+    var name: String
+    var appPath: String
+    var bundleIdentifier: String
+
+    var id: String {
+        appPath.isEmpty ? bundleIdentifier : appPath
+    }
+
+    var displayName: String {
+        if !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return name
+        }
+
+        if !appPath.isEmpty {
+            return URL(fileURLWithPath: appPath).deletingPathExtension().lastPathComponent
+        }
+
+        return bundleIdentifier
+    }
+
+    init(name: String, appPath: String, bundleIdentifier: String = "") {
+        self.name = name
+        self.appPath = appPath
+        self.bundleIdentifier = bundleIdentifier
+    }
+
+    init?(appURL: URL) {
+        let standardizedURL = appURL.standardizedFileURL
+        guard standardizedURL.pathExtension == "app" else { return nil }
+
+        let bundle = Bundle(url: standardizedURL)
+        let resolvedName =
+            (bundle?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            ?? (bundle?.object(forInfoDictionaryKey: "CFBundleName") as? String)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            ?? standardizedURL.deletingPathExtension().lastPathComponent
+
+        self.init(
+            name: resolvedName,
+            appPath: standardizedURL.path,
+            bundleIdentifier: bundle?.bundleIdentifier ?? ""
+        )
+    }
+}
+
+enum PomodoroPhaseDefaults: String, Defaults.Serializable {
+    case focus
+    case shortBreak
+    case longBreak
+}
+
+func defaultQuickLaunchApps() -> [QuickLaunchAppItem] {
+    let candidatePaths = [
+        "/System/Applications/Safari.app",
+        "/System/Applications/Notes.app",
+        "/System/Applications/Calendar.app",
+        "/System/Applications/Music.app",
+    ]
+
+    return candidatePaths.compactMap { path in
+        let url = URL(fileURLWithPath: path)
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return QuickLaunchAppItem(appURL: url)
+    }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
@@ -116,6 +248,42 @@ extension Defaults.Keys {
     static let useMusicVisualizer = Key<Bool>("useMusicVisualizer", default: true)
     static let customVisualizers = Key<[CustomVisualizer]>("customVisualizers", default: [])
     static let selectedVisualizer = Key<CustomVisualizer?>("selectedVisualizer", default: nil)
+    static let aiChatEnabled = Key<Bool>("aiChatEnabled", default: true)
+    static let aiServiceBaseURL = Key<String>("aiServiceBaseURL", default: "https://api.openai.com")
+    static let aiServiceModel = Key<String>("aiServiceModel", default: "gpt-4o-mini")
+    static let aiServiceAPIKey = Key<String>("aiServiceAPIKey", default: "")
+    static let aiSystemPrompt = Key<String>(
+        "aiSystemPrompt",
+        default: "You are a concise assistant inside a macOS notch utility. Answer in the user's language. Use available local context when relevant, and clearly say when local context is unavailable instead of guessing."
+    )
+    static let aiTemperature = Key<Double>("aiTemperature", default: 0.35)
+    static let aiCalendarContextEnabled = Key<Bool>("aiCalendarContextEnabled", default: true)
+    static let aiCalendarWriteEnabled = Key<Bool>("aiCalendarWriteEnabled", default: true)
+    static let aiChatPanelWidth = Key<CGFloat>("aiChatPanelWidth", default: aiChatPanelDefaultSize.width)
+    static let aiChatPanelHeight = Key<CGFloat>("aiChatPanelHeight", default: aiChatPanelDefaultSize.height)
+    static let aiKnowledgeRetrievalEnabled = Key<Bool>("aiKnowledgeRetrievalEnabled", default: true)
+    static let aiKnowledgeRetrievalLimit = Key<Int>("aiKnowledgeRetrievalLimit", default: 3)
+    static let weatherFeatureEnabled = Key<Bool>("weatherFeatureEnabled", default: true)
+    static let weatherLocationMode = Key<WeatherLocationMode>(
+        "weatherLocationMode",
+        default: .automatic
+    )
+    static let weatherCity = Key<String>("weatherCity", default: defaultWeatherCityName())
+    static let weatherTemperatureUnit = Key<WeatherTemperatureUnit>(
+        "weatherTemperatureUnit",
+        default: .celsius
+    )
+    static let pomodoroEnabled = Key<Bool>("pomodoroEnabled", default: true)
+    static let pomodoroFocusMinutes = Key<Int>("pomodoroFocusMinutes", default: 25)
+    static let pomodoroShortBreakMinutes = Key<Int>("pomodoroShortBreakMinutes", default: 5)
+    static let pomodoroLongBreakMinutes = Key<Int>("pomodoroLongBreakMinutes", default: 15)
+    static let pomodoroLongBreakInterval = Key<Int>("pomodoroLongBreakInterval", default: 4)
+    static let pomodoroAutoStartNextPhase = Key<Bool>("pomodoroAutoStartNextPhase", default: false)
+    static let quickLaunchEnabled = Key<Bool>("quickLaunchEnabled", default: true)
+    static let quickLaunchApps = Key<[QuickLaunchAppItem]>(
+        "quickLaunchApps",
+        default: defaultQuickLaunchApps()
+    )
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)

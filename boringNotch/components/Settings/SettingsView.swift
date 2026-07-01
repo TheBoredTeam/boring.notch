@@ -6,23 +6,17 @@
 //
 
 import AVFoundation
+import AppKit
 import Defaults
 import EventKit
 import KeyboardShortcuts
 import LaunchAtLogin
-import Sparkle
 import SwiftUI
-import SwiftUIIntrospect
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @State private var selectedTab = "General"
     @State private var accentColorUpdateTrigger = UUID()
-
-    let updaterController: SPUStandardUpdaterController?
-
-    init(updaterController: SPUStandardUpdaterController? = nil) {
-        self.updaterController = updaterController
-    }
 
     var body: some View {
         NavigationSplitView {
@@ -36,8 +30,17 @@ struct SettingsView: View {
                 NavigationLink(value: "Media") {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
+                NavigationLink(value: "AI") {
+                    Label("AI", systemImage: "sparkles")
+                }
                 NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
+                }
+                NavigationLink(value: "Weather") {
+                    Label("Weather", systemImage: "cloud.sun")
+                }
+                NavigationLink(value: "Pomodoro") {
+                    Label("Pomodoro", systemImage: "timer")
                 }
                 NavigationLink(value: "HUD") {
                     Label("HUDs", systemImage: "dial.medium.fill")
@@ -77,8 +80,14 @@ struct SettingsView: View {
                     Appearance()
                 case "Media":
                     Media()
+                case "AI":
+                    AISettings()
                 case "Calendar":
                     CalendarSettings()
+                case "Weather":
+                    WeatherSettings()
+                case "Pomodoro":
+                    PomodoroSettings()
                 case "HUD":
                     HUD()
                 case "Battery":
@@ -92,15 +101,7 @@ struct SettingsView: View {
                 case "Advanced":
                     Advanced()
                 case "About":
-                    if let controller = updaterController {
-                        About(updaterController: controller)
-                    } else {
-                        // Fallback with a default controller
-                        About(
-                            updaterController: SPUStandardUpdaterController(
-                                startingUpdater: false, updaterDelegate: nil,
-                                userDriverDelegate: nil))
-                    }
+                    About()
                 default:
                     GeneralSettings()
                 }
@@ -134,6 +135,7 @@ struct GeneralSettings: View {
     }
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject private var quickLaunchManager = QuickLaunchManager.shared
 
     @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
@@ -143,6 +145,8 @@ struct GeneralSettings: View {
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
+    @Default(.quickLaunchEnabled) var quickLaunchEnabled
+    @Default(.quickLaunchApps) var quickLaunchApps
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
@@ -261,6 +265,8 @@ struct GeneralSettings: View {
 
             NotchBehaviour()
 
+            quickLaunchControls()
+
             gestureControls()
         }
         .toolbar {
@@ -345,6 +351,121 @@ struct GeneralSettings: View {
         } header: {
             Text("Notch behavior")
         }
+    }
+
+    @ViewBuilder
+    func quickLaunchControls() -> some View {
+        Section {
+            Defaults.Toggle(key: .quickLaunchEnabled) {
+                Text("Show quick launch on Home")
+            }
+
+            HStack {
+                Button("Add app") {
+                    pickQuickLaunchApp()
+                }
+                .disabled(quickLaunchApps.count >= 6)
+
+                if !quickLaunchApps.isEmpty {
+                    Button("Reset defaults") {
+                        quickLaunchApps = defaultQuickLaunchApps()
+                    }
+                }
+
+                Spacer()
+
+                Text("\(quickLaunchApps.count)/6")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            if quickLaunchApps.isEmpty {
+                Text("No apps selected yet.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(Array(quickLaunchApps.enumerated()), id: \.element.id) { index, item in
+                    HStack(spacing: 10) {
+                        AppIcon(for: item)
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.displayName)
+                                .lineLimit(1)
+                            Text(item.appPath)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+
+                        Spacer()
+
+                        Button("Open") {
+                            quickLaunchManager.open(item)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+
+                        Button("Replace") {
+                            pickQuickLaunchApp(replacing: index)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+
+                        Button {
+                            quickLaunchApps.remove(at: index)
+                        } label: {
+                            Image(systemName: "trash")
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            if let lastError = quickLaunchManager.lastError, !lastError.isEmpty {
+                Text(lastError)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Quick launch")
+        } footer: {
+            Text("These app icons are shown on the Home page. Click one in the notch to launch the app.")
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
+    }
+
+    private func pickQuickLaunchApp(replacing index: Int? = nil) {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.applicationBundle]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+
+        guard panel.runModal() == .OK,
+              let url = panel.url,
+              let selectedApp = QuickLaunchAppItem(appURL: url)
+        else {
+            return
+        }
+
+        var items = quickLaunchApps
+        if let index, items.indices.contains(index) {
+            items[index] = selectedApp
+        } else {
+            items.append(selectedApp)
+        }
+
+        var seen: Set<String> = []
+        quickLaunchApps = Array(
+            items.filter { seen.insert($0.id).inserted }
+                .prefix(6)
+        )
     }
 }
 
@@ -834,7 +955,6 @@ func lighterColor(from nsColor: NSColor, amount: CGFloat = 0.14) -> Color {
 
 struct About: View {
     @State private var showBuildNumber: Bool = false
-    let updaterController: SPUStandardUpdaterController
     @Environment(\.openWindow) var openWindow
     var body: some View {
         VStack {
@@ -865,7 +985,7 @@ struct About: View {
                     Text("Version info")
                 }
 
-                UpdaterSettingsView(updater: updaterController.updater)
+                UpdaterSettingsView()
 
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
@@ -903,7 +1023,7 @@ struct About: View {
             //                openWindow(id: "onboarding")
             //            }
             //            .controlSize(.extraLarge)
-            CheckForUpdatesView(updater: updaterController.updater)
+            CheckForUpdatesView()
         }
         .navigationTitle("About")
     }
@@ -1406,6 +1526,605 @@ struct Appearance: View {
         }
 
         return false
+    }
+}
+
+struct AISettings: View {
+    @ObservedObject private var aiManager = AIChatManager.shared
+    @State private var knowledgeImportError: String?
+    private let knowledgeButtonColumns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
+
+    @Default(.aiChatEnabled) var aiChatEnabled
+    @Default(.aiCalendarContextEnabled) var aiCalendarContextEnabled
+    @Default(.aiCalendarWriteEnabled) var aiCalendarWriteEnabled
+    @Default(.aiServiceBaseURL) var aiServiceBaseURL
+    @Default(.aiServiceModel) var aiServiceModel
+    @Default(.aiServiceAPIKey) var aiServiceAPIKey
+    @Default(.aiSystemPrompt) var aiSystemPrompt
+    @Default(.aiTemperature) var aiTemperature
+    @Default(.aiChatPanelWidth) var aiChatPanelWidth
+    @Default(.aiChatPanelHeight) var aiChatPanelHeight
+    @Default(.aiKnowledgeRetrievalEnabled) var aiKnowledgeRetrievalEnabled
+    @Default(.aiKnowledgeRetrievalLimit) var aiKnowledgeRetrievalLimit
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .aiChatEnabled) {
+                    Text("启用 AI 智能体")
+                }
+
+                TextField("Base URL", text: $aiServiceBaseURL)
+                    .textFieldStyle(.roundedBorder)
+                TextField("模型", text: $aiServiceModel)
+                    .textFieldStyle(.roundedBorder)
+                SecureField("API Key", text: $aiServiceAPIKey)
+                    .textFieldStyle(.roundedBorder)
+            } header: {
+                Text("OpenAI 兼容接口")
+            } footer: {
+                Text("支持 OpenAI 兼容的 chat completions 接口，例如 https://api.openai.com 或其他兼容网关。")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text("Temperature")
+                        Spacer()
+                        Text(aiTemperature, format: .number.precision(.fractionLength(2)))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Slider(value: $aiTemperature, in: 0 ... 1, step: 0.05)
+
+                    HStack {
+                        Text("更稳")
+                        Spacer()
+                        Text("更发散")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("模型输出控制")
+            } footer: {
+                Text("建议保持 0.2-0.4。日历写入会自动使用更保守的温度，避免编造或格式错误。")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                Defaults.Toggle(key: .aiCalendarContextEnabled) {
+                    Text("允许 AI 读取日历上下文")
+                }
+                Defaults.Toggle(key: .aiCalendarWriteEnabled) {
+                    Text("允许 AI 创建日历事件")
+                }
+            } header: {
+                Text("日历集成")
+            } footer: {
+                Text("智能体可以读取已选择日历以避开已有安排；只有当你明确要求写入日历且这里允许时，才会创建新事件。")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("宽度")
+                        Spacer()
+                        Text("\(Int(aiChatPanelWidth)) px")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $aiChatPanelWidth, in: aiChatPanelMinSize.width...aiChatPanelMaxSize.width, step: 10)
+
+                    HStack {
+                        Text("高度")
+                        Spacer()
+                        Text("\(Int(aiChatPanelHeight)) px")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $aiChatPanelHeight, in: aiChatPanelMinSize.height...aiChatPanelMaxSize.height, step: 10)
+
+                    Button("还原默认尺寸") {
+                        aiChatPanelWidth = aiChatPanelDefaultSize.width
+                        aiChatPanelHeight = aiChatPanelDefaultSize.height
+                    }
+                    .controlSize(.small)
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("AI 面板尺寸")
+            } footer: {
+                Text("也可以在 Notch AI 聊天页拖拽右侧、底部或右下角来直接调整尺寸。")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(aiManager.availablePlugins) { plugin in
+                        AIPluginSettingsRow(plugin: plugin)
+                    }
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("智能体插件")
+            } footer: {
+                Text("当前版本使用内置插件注册表，不执行第三方动态代码；每个插件都有工具、权限和风险等级。")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    Defaults.Toggle(key: .aiKnowledgeRetrievalEnabled) {
+                        Text("启用本地知识库检索")
+                    }
+
+                    Stepper(value: $aiKnowledgeRetrievalLimit, in: 1 ... 8) {
+                        HStack {
+                            Text("每次最多注入资料")
+                            Spacer()
+                            Text("Top-\(aiKnowledgeRetrievalLimit)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .disabled(!aiKnowledgeRetrievalEnabled)
+
+                    HStack {
+                        Text("资料数量")
+                        Spacer()
+                        Text("\(aiManager.knowledgeDocuments.count) 份")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    LazyVGrid(columns: knowledgeButtonColumns, alignment: .leading, spacing: 8) {
+                        Button("导入示例资料") {
+                            let count = aiManager.installStarterKnowledgeBase()
+                            knowledgeImportError = nil
+                            aiManager.appendLocalAssistantMessage("已导入 \(count) 份示例知识库资料。")
+                        }
+                        .controlSize(.small)
+
+                        Button("导入资料") {
+                            openKnowledgeImporter()
+                        }
+                        .controlSize(.small)
+
+                        Button("刷新") {
+                            aiManager.refreshKnowledgeDocuments()
+                        }
+                        .controlSize(.small)
+
+                        Button("定位文件") {
+                            aiManager.revealKnowledgeBaseFile()
+                        }
+                        .controlSize(.small)
+
+                        Button("清空") {
+                            aiManager.clearKnowledgeBase()
+                            knowledgeImportError = nil
+                        }
+                        .controlSize(.small)
+                        .foregroundStyle(.red)
+                    }
+
+                    if let knowledgeImportError {
+                        Label(knowledgeImportError, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+
+                    if aiManager.knowledgeDocuments.isEmpty {
+                        Text("还没有资料。可以导入 Markdown、文本、JSON、CSV 或可抽取文本的 PDF。")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(aiManager.knowledgeDocuments.prefix(5)) { document in
+                            AIKnowledgeSettingsRow(document: document) {
+                                aiManager.removeKnowledgeDocument(id: document.id)
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("本地知识库")
+            } footer: {
+                Text("知识库独立于聊天记录，资料存到本地 JSON；开启后 Agent 会按相关性检索少量片段注入上下文。")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(aiManager.availableSkills) { skill in
+                        AISkillSettingsRow(skill: skill)
+                    }
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("Skills 技能")
+            } footer: {
+                Text("Skills 是任务流程手册，会在对应任务路由时注入到模型上下文中。")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                TextField("系统提示词", text: $aiSystemPrompt)
+                    .textFieldStyle(.roundedBorder)
+            } header: {
+                Text("助手行为")
+            } footer: {
+                Text("这段提示词会被附加到 Notch 聊天页的每次请求之前。")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("AI")
+        .onAppear {
+            aiManager.refreshKnowledgeDocuments()
+        }
+    }
+
+    private func openKnowledgeImporter() {
+        knowledgeImportError = nil
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = agentAllowedImportTypes()
+
+        guard panel.runModal() == .OK else { return }
+
+        var imported: [String] = []
+        for url in panel.urls.prefix(8) {
+            do {
+                let file = try readAgentImportableFile(at: url)
+                if let document = aiManager.addKnowledgeDocument(
+                    name: url.lastPathComponent,
+                    path: url.path,
+                    content: file.content,
+                    byteCount: file.byteCount
+                ) {
+                    imported.append(document.title)
+                }
+            } catch {
+                knowledgeImportError = "\(url.lastPathComponent) 读取失败：\(error.localizedDescription)"
+            }
+        }
+
+        if !imported.isEmpty {
+            aiManager.appendLocalAssistantMessage("已导入知识库：\(imported.joined(separator: "、"))")
+        }
+    }
+}
+
+private struct AIPluginSettingsRow: View {
+    let plugin: AgentPluginDescriptor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(plugin.name)
+                        .font(.headline)
+                    Text(plugin.category)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text(plugin.riskLevel)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(plugin.riskLevel == "中" ? .orange : .green)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background((plugin.riskLevel == "中" ? Color.orange : Color.green).opacity(0.12))
+                    .clipShape(Capsule())
+            }
+
+            Text(plugin.summary)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 6) {
+                ForEach(plugin.typeTags, id: \.self) { tag in
+                    Text(tag)
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Color.effectiveAccent.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                Label(plugin.toolNames.joined(separator: ", "), systemImage: "wrench.and.screwdriver")
+                Spacer()
+                Label(plugin.permission, systemImage: "lock.shield")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+            Text(plugin.manifestPreview)
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+                .lineLimit(3)
+        }
+        .padding(12)
+        .background(.quaternary.opacity(0.35))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private struct AISkillSettingsRow: View {
+    let skill: AgentSkillDescriptor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(skill.name)
+                        .font(.headline)
+                    Text(skill.id)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text(skill.riskLevel)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(skill.riskLevel == "中" ? .orange : .green)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background((skill.riskLevel == "中" ? Color.orange : Color.green).opacity(0.12))
+                    .clipShape(Capsule())
+            }
+
+            Text(skill.summary)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text(skill.workflowSteps.joined(separator: " -> "))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text("触发词：\(skill.triggerKeywords.joined(separator: "、"))")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Label(skill.requiredTools.joined(separator: ", "), systemImage: "link")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text(skill.frontMatterPreview)
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+                .lineLimit(4)
+        }
+        .padding(12)
+        .background(.quaternary.opacity(0.35))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private struct AIKnowledgeSettingsRow: View {
+    let document: AgentKnowledgeDocument
+    let onRemove: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(document.title)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Text(document.sourcePath)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+
+                Spacer()
+
+                Button(role: .destructive, action: onRemove) {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+                .help("移出知识库")
+            }
+
+            Text(document.summary)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+
+            HStack(spacing: 8) {
+                Label(ByteCountFormatter.string(fromByteCount: Int64(document.byteCount), countStyle: .file), systemImage: "doc.text")
+                Label {
+                    Text(document.updatedAt, style: .relative)
+                } icon: {
+                    Image(systemName: "clock")
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .padding(12)
+        .background(.quaternary.opacity(0.35))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+struct WeatherSettings: View {
+    @ObservedObject private var weatherManager = WeatherManager.shared
+
+    @Default(.weatherFeatureEnabled) var weatherFeatureEnabled
+    @Default(.weatherLocationMode) var weatherLocationMode
+    @Default(.weatherCity) var weatherCity
+    @Default(.weatherTemperatureUnit) var weatherTemperatureUnit
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .weatherFeatureEnabled) {
+                    Text("Enable weather")
+                }
+
+                Picker("Source", selection: $weatherLocationMode) {
+                    ForEach(WeatherLocationMode.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+
+                if weatherLocationMode == .automatic {
+                    HStack {
+                        Text("Location access")
+                        Spacer()
+                        Text(weatherManager.locationAuthorizationDescription)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    HStack(spacing: 8) {
+                        if weatherManager.locationAuthorizationStatus == .notDetermined {
+                            Button("Allow location access") {
+                                Task {
+                                    await weatherManager.requestLocationAuthorization()
+                                }
+                            }
+                        } else if !weatherManager.locationServicesEnabled {
+                            Button("Open Location Settings") {
+                                weatherManager.openLocationSettings()
+                            }
+                        }
+
+                        if weatherManager.locationAuthorizationStatus == .denied
+                            || weatherManager.locationAuthorizationStatus == .restricted
+                        {
+                            Button("Open Location Settings") {
+                                weatherManager.openLocationSettings()
+                            }
+                        }
+                    }
+                } else {
+                    TextField("City", text: $weatherCity)
+                        .textFieldStyle(.roundedBorder)
+                }
+
+                Picker("Temperature unit", selection: $weatherTemperatureUnit) {
+                    ForEach(WeatherTemperatureUnit.allCases) { unit in
+                        Text(unit.rawValue).tag(unit)
+                    }
+                }
+            } header: {
+                Text("Forecast source")
+            } footer: {
+                Text("Weather uses Open-Meteo. Automatic mode uses your current location through macOS Location Services. Manual mode uses the city you enter here.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                Button("Refresh now") {
+                    Task {
+                        await WeatherManager.shared.refreshWeather(force: true)
+                    }
+                }
+                .disabled(!weatherFeatureEnabled)
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Weather")
+        .onAppear {
+            weatherManager.refreshLocationAccessState()
+        }
+        .onChange(of: weatherLocationMode) { _, newMode in
+            weatherManager.refreshLocationAccessState()
+
+            guard newMode == .automatic else { return }
+
+            Task {
+                if weatherManager.locationAuthorizationStatus == .notDetermined {
+                    await weatherManager.requestLocationAuthorization()
+                } else {
+                    await weatherManager.refreshWeather(force: true)
+                }
+            }
+        }
+    }
+}
+
+struct PomodoroSettings: View {
+    @Default(.pomodoroEnabled) var pomodoroEnabled
+    @Default(.pomodoroFocusMinutes) var pomodoroFocusMinutes
+    @Default(.pomodoroShortBreakMinutes) var pomodoroShortBreakMinutes
+    @Default(.pomodoroLongBreakMinutes) var pomodoroLongBreakMinutes
+    @Default(.pomodoroLongBreakInterval) var pomodoroLongBreakInterval
+    @Default(.pomodoroAutoStartNextPhase) var pomodoroAutoStartNextPhase
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .pomodoroEnabled) {
+                    Text("Enable Pomodoro timer")
+                }
+
+                Defaults.Toggle(key: .pomodoroAutoStartNextPhase) {
+                    Text("Auto-start next phase")
+                }
+                .disabled(!pomodoroEnabled)
+            } header: {
+                Text("Timer behavior")
+            } footer: {
+                Text("The Pomodoro timer runs locally inside the app. No external API is used.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                Stepper(value: $pomodoroFocusMinutes, in: 1 ... 120) {
+                    Text("Focus duration: \(pomodoroFocusMinutes) min")
+                }
+
+                Stepper(value: $pomodoroShortBreakMinutes, in: 1 ... 60) {
+                    Text("Short break: \(pomodoroShortBreakMinutes) min")
+                }
+
+                Stepper(value: $pomodoroLongBreakMinutes, in: 1 ... 90) {
+                    Text("Long break: \(pomodoroLongBreakMinutes) min")
+                }
+
+                Stepper(value: $pomodoroLongBreakInterval, in: 2 ... 8) {
+                    Text("Long break every \(pomodoroLongBreakInterval) focus sessions")
+                }
+            } header: {
+                Text("Durations")
+            } footer: {
+                Text("The notch tab lets you start, pause, skip, and reset the current cycle.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            .disabled(!pomodoroEnabled)
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Pomodoro")
     }
 }
 

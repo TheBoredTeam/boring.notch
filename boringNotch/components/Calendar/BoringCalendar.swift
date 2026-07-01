@@ -10,12 +10,12 @@ import SwiftUI
 
 struct Config: Equatable {
     //    var count: Int = 10  // 3 days past + today + 7 days future
-    var past: Int = 7
-    var future: Int = 14
+    var past: Int = 2
+    var future: Int = 6
     var steps: Int = 1  // Each step is one day
     var spacing: CGFloat = 0
     var showsText: Bool = true
-    var offset: Int = 2  // Number of dates to the left of the selected date
+    var offset: Int = 1  // Number of dates to the left of the selected date
 }
 
 struct WheelPicker: View {
@@ -184,32 +184,29 @@ struct CalendarView: View {
     @State private var selectedDate = Date()
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading) {
-                    Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                    Text(selectedDate.formatted(.dateTime.year()))
-                        .font(.title3)
-                        .fontWeight(.light)
-                        .foregroundColor(Color(white: 0.65))
-                }
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                Text(selectedDate.formatted(.dateTime.year()))
+                    .font(.subheadline)
+                    .foregroundColor(Color(white: 0.65))
+            }
 
-                ZStack(alignment: .top) {
-                    WheelPicker(selectedDate: $selectedDate, config: Config())
-                    HStack(alignment: .top) {
-                        LinearGradient(
-                            colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
-                        Spacer()
-                        LinearGradient(
-                            colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
-                    }
+            ZStack(alignment: .top) {
+                WheelPicker(selectedDate: $selectedDate, config: Config())
+                HStack(alignment: .top) {
+                    LinearGradient(
+                        colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 16)
+                    Spacer()
+                    LinearGradient(
+                        colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 16)
                 }
             }
 
@@ -223,8 +220,8 @@ struct CalendarView: View {
                 EventListView(events: calendarManager.events)
             }
         }
+        .frame(maxWidth: .infinity, minHeight: 190, maxHeight: 190, alignment: .topLeading)
         .listRowBackground(Color.clear)
-        .frame(height: 120)
         .onChange(of: selectedDate) {
             Task {
                 await calendarManager.updateCurrentDate(selectedDate)
@@ -249,7 +246,7 @@ struct EmptyEventsView: View {
     let selectedDate: Date
     
     var body: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: 6) {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.title)
                 .foregroundColor(Color(white: 0.65))
@@ -260,6 +257,7 @@ struct EmptyEventsView: View {
                 .font(.caption)
                 .foregroundColor(Color(white: 0.65))
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

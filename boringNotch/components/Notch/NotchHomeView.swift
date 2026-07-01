@@ -111,8 +111,6 @@ struct AlbumArtView: View {
 
 struct MusicControlsView: View {
     @ObservedObject var musicManager = MusicManager.shared
-        @EnvironmentObject var vm: BoringViewModel
-        @ObservedObject var webcamManager = WebcamManager.shared
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
@@ -227,14 +225,7 @@ struct MusicControlsView: View {
             MusicControlButton.maxSlotCount
         )
         let padded = slotConfig.padded(to: sanitizedLimit, filler: .none)
-        let result = Array(padded.prefix(sanitizedLimit))
-        // If calendar and camera are both visible alongside music, hide the edge slots
-        let shouldHideEdges = Defaults[.showCalendar] && Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
-        if shouldHideEdges && result.count >= 5 {
-            return Array(result.dropFirst().dropLast())
-        }
-
-        return result
+        return Array(padded.prefix(sanitizedLimit))
     }
 
     @ViewBuilder
@@ -425,6 +416,11 @@ struct NotchHomeView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
 
+    @Default(.pomodoroEnabled) private var pomodoroEnabled
+    @Default(.quickLaunchApps) private var quickLaunchApps
+    @Default(.quickLaunchEnabled) private var quickLaunchEnabled
+    @Default(.weatherFeatureEnabled) private var weatherFeatureEnabled
+
     var body: some View {
         Group {
             if !coordinator.firstLaunch {
@@ -440,30 +436,505 @@ struct NotchHomeView: View {
     }
 
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
-
-            if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
-                    }
-                    .environmentObject(vm)
-                    .transition(.opacity)
+        VStack(alignment: .leading, spacing: 14) {
+            if shouldShowUtilityRow {
+                utilityRow
             }
 
             if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
-                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                footerRow
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
+
+    private var shouldShowUtilityRow: Bool {
+        weatherFeatureEnabled || pomodoroEnabled || quickLaunchEnabled || Defaults[.showCalendar]
+    }
+
+    private var utilityRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            if weatherFeatureEnabled {
+                HomeWeatherCard()
+            }
+
+            if pomodoroEnabled {
+                HomePomodoroCard()
+            }
+
+            if quickLaunchEnabled {
+                QuickLaunchHomeCard(apps: quickLaunchApps)
+            }
+
+            if Defaults[.showCalendar] {
+                HomeCalendarPanel()
+                    .environmentObject(vm)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var footerRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            if shouldShowCamera {
+                HomeCameraPanel(webcamManager: webcamManager)
+                    .frame(width: 176)
+                    .environmentObject(vm)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+}
+
+private struct HomeCalendarPanel: View {
+    @EnvironmentObject var vm: BoringViewModel
+
+    var body: some View {
+        CalendarView()
+            .frame(maxWidth: .infinity)
+            .onHover { isHovering in
+                vm.isHoveringCalendar = isHovering
+            }
+            .frame(minHeight: 214, alignment: .topLeading)
+            .padding(12)
+            .background(Color.white.opacity(0.04))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private struct HomeCameraPanel: View {
+    @EnvironmentObject var vm: BoringViewModel
+    let webcamManager: WebcamManager
+
+    var body: some View {
+        CameraPreviewView(webcamManager: webcamManager)
+            .scaledToFit()
+            .padding(8)
+            .background(Color.white.opacity(0.04))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .opacity(vm.notchState == .closed ? 0 : 1)
+            .blur(radius: vm.notchState == .closed ? 20 : 0)
+            .animation(
+                .interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0),
+                value: webcamManager.cameraAvailable
+            )
+    }
+}
+
+private struct HomeWeatherCard: View {
+    @Default(.weatherCity) private var weatherCity
+    @Default(.weatherLocationMode) private var weatherLocationMode
+
+    @ObservedObject private var manager = WeatherManager.shared
+
+    var body: some View {
+        HomeWidgetCard(
+            title: "天气",
+            subtitle: subtitle
+        ) {
+            if let snapshot = manager.snapshot {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .center, spacing: 10) {
+                        HomeWeatherIcon(symbolName: snapshot.current.symbolName, size: 38)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                Text("\(Int(snapshot.current.temperature.rounded()))\(snapshot.current.unitSymbol)")
+                                    .font(.system(size: 26, weight: .semibold, design: .rounded))
+                                Text(snapshot.current.condition)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+
+                            if let high = snapshot.current.highTemperature, let low = snapshot.current.lowTemperature {
+                                Text("最高 \(Int(high.rounded()))\(snapshot.current.unitSymbol)  最低 \(Int(low.rounded()))\(snapshot.current.unitSymbol)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+
+                        Spacer(minLength: 0)
+                    }
+
+                    if !snapshot.hourly.isEmpty {
+                        HStack(spacing: 6) {
+                            ForEach(snapshot.hourly.prefix(3)) { entry in
+                                HomeWeatherHour(entry: entry)
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                    }
+
+                    HStack(spacing: 8) {
+                        compactMetric("体感", "\(Int(snapshot.current.feelsLike.rounded()))\(snapshot.current.unitSymbol)")
+                        compactMetric("湿度", "\(snapshot.current.humidity)%")
+                        compactMetric("风速", "\(Int(snapshot.current.windSpeed.rounded())) \(snapshot.current.windUnit)")
+                    }
+
+                    HStack(spacing: 8) {
+                        actionButton("刷新", systemImage: "arrow.clockwise") {
+                            Task {
+                                await manager.refreshWeather(force: true)
+                            }
+                        }
+
+                        if manager.locationAuthorizationStatus == .denied || manager.locationAuthorizationStatus == .restricted {
+                            actionButton("设置", systemImage: "location.slash") {
+                                manager.openLocationSettings()
+                            }
+                        }
+                    }
+                }
+            } else if manager.isRefreshing {
+                VStack(alignment: .leading, spacing: 8) {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("正在获取最新天气...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(manager.lastError ?? "天气暂时不可用。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    HStack(spacing: 8) {
+                        if weatherLocationMode == .automatic && manager.locationAuthorizationStatus == .notDetermined {
+                            actionButton("允许定位", systemImage: "location") {
+                                Task {
+                                    await manager.requestLocationAuthorization()
+                                }
+                            }
+                        } else if !manager.locationServicesEnabled {
+                            actionButton("设置", systemImage: "location.slash") {
+                                manager.openLocationSettings()
+                            }
+                        } else if weatherLocationMode == .automatic &&
+                            (manager.locationAuthorizationStatus == .denied || manager.locationAuthorizationStatus == .restricted)
+                        {
+                            actionButton("设置", systemImage: "location.slash") {
+                                manager.openLocationSettings()
+                            }
+                        } else {
+                            actionButton("刷新", systemImage: "arrow.clockwise") {
+                                Task {
+                                    await manager.refreshWeather(force: true)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .onAppear {
+            manager.refreshLocationAccessState()
+        }
+    }
+
+    private var subtitle: String {
+        if let locationName = manager.snapshot?.locationName, !locationName.isEmpty {
+            return shortLocationName(from: locationName)
+        }
+
+        if weatherLocationMode == .automatic {
+            return "当前位置"
+        }
+
+        let trimmedCity = weatherCity.trimmingCharacters(in: .whitespacesAndNewlines)
+        return shortLocationName(from: trimmedCity.isEmpty ? defaultWeatherCityName() : trimmedCity)
+    }
+
+    private func shortLocationName(from locationName: String) -> String {
+        locationName
+            .split(separator: ",")
+            .first
+            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+            .flatMap { $0.isEmpty ? nil : $0 }
+            ?? locationName
+    }
+}
+
+private struct HomeWeatherHour: View {
+    let entry: WeatherSnapshot.HourlyEntry
+
+    var body: some View {
+        VStack(spacing: 5) {
+            Text(entry.timeLabel)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            HomeWeatherIcon(symbolName: entry.symbolName, size: 24, cornerRadius: 6)
+            Text("\(Int(entry.temperature.rounded()))\(entry.unitSymbol)")
+                .font(.caption2.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, minHeight: 54)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private struct HomeWeatherIcon: View {
+    let symbolName: String
+    let size: CGFloat
+    var cornerRadius: CGFloat = 9
+
+    var body: some View {
+        let palette = homeWeatherSymbolPalette(for: symbolName)
+
+        Image(systemName: symbolName)
+            .symbolRenderingMode(.palette)
+            .font(.system(size: size * 0.58, weight: .semibold))
+            .foregroundStyle(palette.primary, palette.secondary)
+            .frame(width: size, height: size)
+            .background(
+                LinearGradient(
+                    colors: [
+                        palette.primary.opacity(0.22),
+                        palette.secondary.opacity(0.10)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+    }
+}
+
+private func homeWeatherSymbolPalette(for symbolName: String) -> (primary: Color, secondary: Color) {
+    if symbolName.contains("sun") {
+        return (.yellow, .orange)
+    }
+    if symbolName.contains("moon") {
+        return (.indigo, .cyan)
+    }
+    if symbolName.contains("bolt") {
+        return (.yellow, .purple)
+    }
+    if symbolName.contains("snow") {
+        return (.cyan, .blue)
+    }
+    if symbolName.contains("rain") || symbolName.contains("drizzle") {
+        return (.cyan, .blue)
+    }
+    if symbolName.contains("fog") {
+        return (.gray, .white.opacity(0.8))
+    }
+    return (.gray, .blue)
+}
+
+private struct HomePomodoroCard: View {
+    @ObservedObject private var manager = PomodoroManager.shared
+
+    var body: some View {
+        HomeWidgetCard(
+            title: "Pomodoro",
+            subtitle: manager.phase.rawValue
+        ) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(manager.formattedRemaining)
+                    .font(.system(size: 26, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+
+                ProgressView(value: manager.progress)
+                    .progressViewStyle(.linear)
+                    .tint(accentColor(for: manager.phase))
+
+                HStack(spacing: 8) {
+                    compactMetric("Next", manager.nextPhaseTitle)
+                    compactMetric("Session", manager.currentCycleIndexLabel)
+                    compactMetric("Done", "\(manager.completedFocusSessions)")
+                }
+
+                HStack(spacing: 8) {
+                    actionButton(
+                        manager.isRunning ? "Pause" : "Start",
+                        systemImage: manager.isRunning ? "pause.fill" : "play.fill",
+                        prominent: true,
+                        tint: accentColor(for: manager.phase)
+                    ) {
+                        manager.toggleRunning()
+                    }
+
+                    iconOnlyAction("forward.fill", help: "Skip phase") {
+                        manager.skipPhase()
+                    }
+
+                    iconOnlyAction("arrow.counterclockwise", help: "Reset phase") {
+                        manager.resetCurrentPhase()
+                    }
+                }
+            }
+        }
+    }
+
+    private func accentColor(for phase: PomodoroPhase) -> Color {
+        switch phase {
+        case .focus:
+            return .effectiveAccent
+        case .shortBreak:
+            return .green
+        case .longBreak:
+            return .orange
+        }
+    }
+}
+
+private struct QuickLaunchHomeCard: View {
+    @ObservedObject private var manager = QuickLaunchManager.shared
+
+    let apps: [QuickLaunchAppItem]
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+
+    var body: some View {
+        HomeWidgetCard(
+            title: "Quick launch",
+            subtitle: "Apps"
+        ) {
+            if apps.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Add apps in Settings > General.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    actionButton("Open settings", systemImage: "slider.horizontal.3") {
+                        SettingsWindowController.shared.showWindow()
+                    }
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    LazyVGrid(columns: columns, spacing: 8) {
+                        ForEach(Array(apps.prefix(6))) { item in
+                            Button {
+                                manager.open(item)
+                            } label: {
+                                VStack(spacing: 6) {
+                                    AppIcon(for: item)
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                    Text(item.displayName)
+                                        .font(.caption2)
+                                        .lineLimit(1)
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 8)
+                                .frame(maxWidth: .infinity)
+                                .background(Color.white.opacity(0.05))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    if let lastError = manager.lastError, !lastError.isEmpty {
+                        Text(lastError)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct HomeWidgetCard<Content: View>: View {
+    let title: String
+    let subtitle: String
+    let content: Content
+
+    init(title: String, subtitle: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.subtitle = subtitle
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(title)
+                    .font(.headline)
+                Spacer(minLength: 8)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            content
+        }
+        .frame(maxWidth: .infinity, minHeight: 214, alignment: .topLeading)
+        .padding(12)
+        .background(Color.white.opacity(0.04))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private func compactMetric(_ title: String, _ value: String) -> some View {
+    VStack(alignment: .leading, spacing: 3) {
+        Text(title)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.72)
+        Text(value)
+            .font(.caption.weight(.semibold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.82)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.horizontal, 8)
+    .padding(.vertical, 7)
+    .background(Color.white.opacity(0.05))
+    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+}
+
+private func actionButton(
+    _ title: String,
+    systemImage: String,
+    prominent: Bool = false,
+    tint: Color? = nil,
+    action: @escaping () -> Void
+) -> some View {
+    Group {
+        if prominent {
+            Button(action: action) {
+                Label(title, systemImage: systemImage)
+            }
+            .buttonStyle(.borderedProminent)
+        } else {
+            Button(action: action) {
+                Label(title, systemImage: systemImage)
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+    .tint(tint)
+    .controlSize(.small)
+}
+
+private func iconOnlyAction(_ systemImage: String, help: String, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+        Image(systemName: systemImage)
+            .frame(width: 22)
+    }
+    .buttonStyle(.bordered)
+    .controlSize(.small)
+    .help(help)
 }
 
 struct MusicSliderView: View {

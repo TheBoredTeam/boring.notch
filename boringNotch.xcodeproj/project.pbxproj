@@ -25,6 +25,11 @@
 		111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 111BEA5E2ED07A340079DD4E /* MacroVisionKit */; };
 		111BEA612ED09B1B0079DD4E /* NSScreen+UUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111BEA602ED09B1B0079DD4E /* NSScreen+UUID.swift */; };
 		111BEA6F2ED166E20079DD4E /* MacroVisionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 111BEA6E2ED166E20079DD4E /* MacroVisionKit */; };
+		C0D600012F00000100000001 /* AIWeatherManagers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D600022F00000100000001 /* AIWeatherManagers.swift */; };
+		C0D600032F00000100000001 /* AIWeatherViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D600042F00000100000001 /* AIWeatherViews.swift */; };
+		C0D600052F00000200000001 /* PomodoroDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D600062F00000200000001 /* PomodoroDashboardView.swift */; };
+		C0D600072F00000300000001 /* WeatherDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D600082F00000300000001 /* WeatherDashboardView.swift */; };
+		C0D600092F00000400000001 /* NotchPanelAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D6000A2F00000400000001 /* NotchPanelAnimation.swift */; };
 		112B0EB82E30DD0F00562D6C /* MediaRemoteAdapterTestClient in Resources */ = {isa = PBXBuildFile; fileRef = 112B0EB52E30DD0F00562D6C /* MediaRemoteAdapterTestClient */; };
 		112B0EB92E30DD0F00562D6C /* mediaremote-adapter.pl in Resources */ = {isa = PBXBuildFile; fileRef = 112B0EB32E30DD0F00562D6C /* mediaremote-adapter.pl */; };
 		112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */; };
@@ -93,7 +98,6 @@
 		14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 14CEF4192C5CAED400855D72 /* Assets.xcassets */; };
 		14CEF41D2C5CAED400855D72 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 14CEF41C2C5CAED400855D72 /* Preview Assets.xcassets */; };
 		14D0321A2C68F32E0096E6A1 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 14D032192C68F32E0096E6A1 /* LaunchAtLogin */; };
-		14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 14D0321C2C68F3350096E6A1 /* Sparkle */; };
 		14D570B92C5E98A20011E668 /* drop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570B82C5E98A20011E668 /* drop.swift */; };
 		14D570BC2C5E98EB0011E668 /* generic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570BB2C5E98EB0011E668 /* generic.swift */; };
 		14D570C02C5EA5870011E668 /* AnimatedFace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570BF2C5EA5870011E668 /* AnimatedFace.swift */; };
@@ -113,12 +117,10 @@
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
-		9A987A102C73CA8D005CA465 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9A987A0F2C73CA8D005CA465 /* Collections */; };
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
 		B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10348D82C74E56000475897 /* ConditionalModifier.swift */; };
 		B10F84A32C6C9596009F3026 /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10F84A22C6C9596009F3026 /* TestView.swift */; };
 		B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */; };
-		B1628B922CC260C0003D8DF3 /* SwiftUIIntrospect in Frameworks */ = {isa = PBXBuildFile; productRef = B1628B912CC260C0003D8DF3 /* SwiftUIIntrospect */; };
 		B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17266DE2C64DFA00031BA0D /* BundleInfos.swift */; };
 		B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B17266E02C6532560031BA0D /* Localizable.xcstrings */; };
 		B17266E32C65F7FB0031BA0D /* WhatsNewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17266E22C65F7FB0031BA0D /* WhatsNewView.swift */; };
@@ -195,6 +197,11 @@
 		1113ABCF2E80E6BB00EC13B2 /* ThumbnailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailService.swift; sourceTree = "<group>"; };
 		111BE9942ECF2DEF0079DD4E /* DragDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragDetector.swift; sourceTree = "<group>"; };
 		111BEA602ED09B1B0079DD4E /* NSScreen+UUID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSScreen+UUID.swift"; sourceTree = "<group>"; };
+		C0D600022F00000100000001 /* AIWeatherManagers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWeatherManagers.swift; sourceTree = "<group>"; };
+		C0D600042F00000100000001 /* AIWeatherViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWeatherViews.swift; sourceTree = "<group>"; };
+		C0D600062F00000200000001 /* PomodoroDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroDashboardView.swift; sourceTree = "<group>"; };
+		C0D600082F00000300000001 /* WeatherDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherDashboardView.swift; sourceTree = "<group>"; };
+		C0D6000A2F00000400000001 /* NotchPanelAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchPanelAnimation.swift; sourceTree = "<group>"; };
 		112B0EB32E30DD0F00562D6C /* mediaremote-adapter.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = "mediaremote-adapter.pl"; sourceTree = "<group>"; };
 		112B0EB52E30DD0F00562D6C /* MediaRemoteAdapterTestClient */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = MediaRemoteAdapterTestClient; sourceTree = "<group>"; };
 		112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaRemoteAdapter.framework; path = "mediaremote-adapter/MediaRemoteAdapter.framework"; sourceTree = "<group>"; };
@@ -339,10 +346,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
-				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
 				112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */,
-				14D0321D2C68F3350096E6A1 /* Sparkle in Frameworks */,
 				111BEA6F2ED166E20079DD4E /* MacroVisionKit in Frameworks */,
 				11F748732EC9DA9300F841DB /* Lottie in Frameworks */,
 				14D0321A2C68F32E0096E6A1 /* LaunchAtLogin in Frameworks */,
@@ -350,7 +355,6 @@
 				B18654392C6F4990000B926A /* KeyboardShortcuts in Frameworks */,
 				B19016222CC15B3D00E3F12E /* Defaults in Frameworks */,
 				111BE95D2ECD71E10079DD4E /* AsyncXPCConnection in Frameworks */,
-				B1628B922CC260C0003D8DF3 /* SwiftUIIntrospect in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -510,6 +514,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				C0D600022F00000100000001 /* AIWeatherManagers.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
@@ -611,6 +616,7 @@
 			children = (
 				14D570B82C5E98A20011E668 /* drop.swift */,
 				14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */,
+				C0D6000A2F00000400000001 /* NotchPanelAnimation.swift */,
 			);
 			path = animations;
 			sourceTree = "<group>";
@@ -704,6 +710,9 @@
 		B186542F2C6F455E000B926A /* Notch */ = {
 			isa = PBXGroup;
 			children = (
+				C0D600042F00000100000001 /* AIWeatherViews.swift */,
+				C0D600062F00000200000001 /* PomodoroDashboardView.swift */,
+				C0D600082F00000300000001 /* WeatherDashboardView.swift */,
 				1194E8862EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift */,
 				1160F8D72DD98230006FBB94 /* NotchShape.swift */,
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
@@ -803,11 +812,8 @@
 			name = boringNotch;
 			packageProductDependencies = (
 				14D032192C68F32E0096E6A1 /* LaunchAtLogin */,
-				14D0321C2C68F3350096E6A1 /* Sparkle */,
 				B18654382C6F4990000B926A /* KeyboardShortcuts */,
-				9A987A0F2C73CA8D005CA465 /* Collections */,
 				B19016212CC15B3D00E3F12E /* Defaults */,
-				B1628B912CC260C0003D8DF3 /* SwiftUIIntrospect */,
 				1194E8842EA57D23009C82D6 /* SkyLightWindow */,
 				11F748722EC9DA9300F841DB /* Lottie */,
 				111BE95C2ECD71E10079DD4E /* AsyncXPCConnection */,
@@ -849,12 +855,8 @@
 			mainGroup = 14CEF4092C5CAED200855D72;
 			packageReferences = (
 				14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
-				14D0321B2C68F3350096E6A1 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				B18654372C6F4990000B926A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
-				9A987A0E2C73CA8D005CA465 /* XCRemoteSwiftPackageReference "swift-collections" */,
-				9A987A112C73CAA1005CA465 /* XCRemoteSwiftPackageReference "Pow" */,
 				B19016202CC15B3D00E3F12E /* XCRemoteSwiftPackageReference "Defaults" */,
-				B1628B902CC260C0003D8DF3 /* XCRemoteSwiftPackageReference "swiftui-introspect" */,
 				1194E8832EA57D23009C82D6 /* XCRemoteSwiftPackageReference "SkyLightWindow" */,
 				11F748712EC9DA9300F841DB /* XCRemoteSwiftPackageReference "lottie-spm" */,
 				111BE95B2ECD71E10079DD4E /* XCRemoteSwiftPackageReference "AsyncXPCConnection" */,
@@ -905,6 +907,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0D600012F00000100000001 /* AIWeatherManagers.swift in Sources */,
+				C0D600032F00000100000001 /* AIWeatherViews.swift in Sources */,
+				C0D600052F00000200000001 /* PomodoroDashboardView.swift in Sources */,
+				C0D600072F00000300000001 /* WeatherDashboardView.swift in Sources */,
+				C0D600092F00000400000001 /* NotchPanelAnimation.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchHUD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
@@ -1234,15 +1241,16 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TheBoringNotch;
+				INFOPLIST_KEY_CFBundleDisplayName = "蛋神";
+				INFOPLIST_KEY_CFBundleName = "蛋神";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
-				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "蛋神需要使用 AppleEvents 来控制音乐播放。";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "蛋神需要读取日历来显示你的日程事件。";
+				INFOPLIST_KEY_NSCameraUsageDescription = "蛋神需要使用摄像头来显示实时镜子预览。";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "蛋神需要读取提醒事项来显示你的待办提醒。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1287,15 +1295,16 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TheBoringNotch;
+				INFOPLIST_KEY_CFBundleDisplayName = "蛋神";
+				INFOPLIST_KEY_CFBundleName = "蛋神";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
-				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "蛋神需要使用 AppleEvents 来控制音乐播放。";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "蛋神需要读取日历来显示你的日程事件。";
+				INFOPLIST_KEY_NSCameraUsageDescription = "蛋神需要使用摄像头来显示实时镜子预览。";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "蛋神需要读取提醒事项来显示你的待办提醒。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1388,38 +1397,6 @@
 				minimumVersion = 1.1.0;
 			};
 		};
-		14D0321B2C68F3350096E6A1 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle";
-			requirement = {
-				kind = exactVersion;
-				version = 2.9.1;
-			};
-		};
-		9A987A0E2C73CA8D005CA465 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-collections.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.1.2;
-			};
-		};
-		9A987A112C73CAA1005CA465 /* XCRemoteSwiftPackageReference "Pow" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/EmergeTools/Pow";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.4;
-			};
-		};
-		B1628B902CC260C0003D8DF3 /* XCRemoteSwiftPackageReference "swiftui-introspect" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/siteline/swiftui-introspect";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.3.0;
-			};
-		};
 		B18654372C6F4990000B926A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
@@ -1471,21 +1448,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
 			productName = LaunchAtLogin;
-		};
-		14D0321C2C68F3350096E6A1 /* Sparkle */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 14D0321B2C68F3350096E6A1 /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
-		};
-		9A987A0F2C73CA8D005CA465 /* Collections */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9A987A0E2C73CA8D005CA465 /* XCRemoteSwiftPackageReference "swift-collections" */;
-			productName = Collections;
-		};
-		B1628B912CC260C0003D8DF3 /* SwiftUIIntrospect */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B1628B902CC260C0003D8DF3 /* XCRemoteSwiftPackageReference "swiftui-introspect" */;
-			productName = SwiftUIIntrospect;
 		};
 		B18654382C6F4990000B926A /* KeyboardShortcuts */ = {
 			isa = XCSwiftPackageProductDependency;

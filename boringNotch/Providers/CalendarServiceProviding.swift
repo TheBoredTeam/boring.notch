@@ -14,6 +14,7 @@ protocol CalendarServiceProviding {
     func requestAccess(to type: EKEntityType) async throws -> Bool
     func calendars() async -> [CalendarModel]
     func events(from start: Date, to end: Date, calendars: [String]) async -> [EventModel]
+    func createEvents(_ drafts: [CalendarEventDraft], preferredCalendarIDs: [String]) async throws -> [CreatedCalendarEvent]
 }
 
 class CalendarService: CalendarServiceProviding {
@@ -114,6 +115,83 @@ class CalendarService: CalendarServiceProviding {
             try store.save(reminder, commit: true)
         } catch {
             print("Failed to update reminder completion: \(error)")
+        }
+    }
+
+    func createEvents(_ drafts: [CalendarEventDraft], preferredCalendarIDs: [String]) async throws -> [CreatedCalendarEvent] {
+        guard hasAccess(to: .event) else {
+            throw CalendarWriteError.accessDenied
+        }
+
+        guard let targetCalendar = writableCalendar(preferredCalendarIDs: preferredCalendarIDs) else {
+            throw CalendarWriteError.noWritableCalendar
+        }
+
+        var createdEvents: [CreatedCalendarEvent] = []
+        for draft in drafts {
+            let event = EKEvent(eventStore: store)
+            event.calendar = targetCalendar
+            event.title = draft.title
+            event.startDate = draft.start
+            event.endDate = max(draft.end, draft.start.addingTimeInterval(60 * 30))
+            event.notes = draft.notes
+            event.location = draft.location
+
+            try store.save(event, span: .thisEvent, commit: false)
+            createdEvents.append(
+                CreatedCalendarEvent(
+                    title: draft.title,
+                    start: event.startDate,
+                    end: event.endDate,
+                    calendarTitle: targetCalendar.title
+                )
+            )
+        }
+
+        try store.commit()
+        return createdEvents
+    }
+
+    private func writableCalendar(preferredCalendarIDs: [String]) -> EKCalendar? {
+        let eventCalendars = store.calendars(for: .event).filter(\.allowsContentModifications)
+
+        if let selected = eventCalendars.first(where: { preferredCalendarIDs.contains($0.calendarIdentifier) }) {
+            return selected
+        }
+
+        if let defaultCalendar = store.defaultCalendarForNewEvents, defaultCalendar.allowsContentModifications {
+            return defaultCalendar
+        }
+
+        return eventCalendars.first
+    }
+}
+
+struct CalendarEventDraft: Equatable {
+    let title: String
+    let start: Date
+    let end: Date
+    let notes: String?
+    let location: String?
+}
+
+struct CreatedCalendarEvent: Equatable {
+    let title: String
+    let start: Date
+    let end: Date
+    let calendarTitle: String
+}
+
+enum CalendarWriteError: LocalizedError {
+    case accessDenied
+    case noWritableCalendar
+
+    var errorDescription: String? {
+        switch self {
+        case .accessDenied:
+            return "Calendar access is not available. Enable it in Settings > Calendar."
+        case .noWritableCalendar:
+            return "No writable calendar is available for new events."
         }
     }
 }

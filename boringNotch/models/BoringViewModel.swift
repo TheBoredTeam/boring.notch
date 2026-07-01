@@ -31,6 +31,9 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
+    @Published var preventAutoClose: Bool = false
+    @Published var isResizingAssistantPanel: Bool = false
+    private var hoverAutoOpenSuppressedUntil: Date?
 
     @Published var screenUUID: String?
 
@@ -190,11 +193,79 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func open() {
-        self.notchSize = openNotchSize
+        let targetSize = openNotchSize(for: coordinator.currentView, screenUUID: screenUUID)
+        if notchState == .open
+            && abs(notchSize.width - targetSize.width) < 1
+            && abs(notchSize.height - targetSize.height) < 1
+        {
+            return
+        }
+
+        self.notchSize = targetSize
         self.notchState = .open
+        notifyPanelSizeChanged()
         
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
+    }
+
+    func updateOpenSizeForCurrentView() {
+        guard notchState == .open else { return }
+        self.notchSize = openNotchSize(for: coordinator.currentView, screenUUID: screenUUID)
+        notifyPanelSizeChanged()
+    }
+
+    func suppressHoverAutoOpen(for interval: TimeInterval = 1.0) {
+        hoverAutoOpenSuppressedUntil = Date().addingTimeInterval(interval)
+    }
+
+    func isHoverAutoOpenSuppressed(now: Date = Date()) -> Bool {
+        guard let suppressedUntil = hoverAutoOpenSuppressedUntil else { return false }
+        if suppressedUntil > now {
+            return true
+        }
+
+        hoverAutoOpenSuppressedUntil = nil
+        return false
+    }
+
+    func resizeAssistantPanel(to requestedSize: CGSize, persist: Bool = true) {
+        if !persist {
+            isResizingAssistantPanel = true
+        }
+
+        let nextSize = clampedAIChatPanelSize(
+            width: requestedSize.width,
+            height: requestedSize.height,
+            screenUUID: screenUUID
+        )
+        let changeThreshold: CGFloat = isResizingAssistantPanel ? 8 : 4
+        let widthChanged = abs(nextSize.width - notchSize.width) >= changeThreshold
+        let heightChanged = abs(nextSize.height - notchSize.height) >= changeThreshold
+
+        if persist {
+            Defaults[.aiChatPanelWidth] = nextSize.width
+            Defaults[.aiChatPanelHeight] = nextSize.height
+        }
+
+        guard notchState == .open, coordinator.currentView == .assistant else { return }
+        guard persist || widthChanged || heightChanged else { return }
+        self.notchSize = nextSize
+        notifyPanelSizeChanged()
+    }
+
+    func finishAssistantPanelResize() {
+        let finalSize = clampedAIChatPanelSize(
+            width: notchSize.width,
+            height: notchSize.height,
+            screenUUID: screenUUID
+        )
+        Defaults[.aiChatPanelWidth] = finalSize.width
+        Defaults[.aiChatPanelHeight] = finalSize.height
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+            self?.isResizingAssistantPanel = false
+        }
     }
 
     func close() {
@@ -205,6 +276,7 @@ class BoringViewModel: NSObject, ObservableObject {
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
+        notifyPanelSizeChanged()
         self.isBatteryPopoverActive = false
         self.coordinator.sneakPeek.show = false
         self.edgeAutoOpenActive = false
@@ -216,6 +288,10 @@ class BoringViewModel: NSObject, ObservableObject {
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home
         }
+    }
+
+    private func notifyPanelSizeChanged() {
+        NotificationCenter.default.post(name: .notchPanelSizeChanged, object: screenUUID)
     }
 
     func closeHello() {

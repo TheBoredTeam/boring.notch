@@ -9,7 +9,6 @@ import AVFoundation
 import Combine
 import Defaults
 import KeyboardShortcuts
-import Sparkle
 import SwiftUI
 
 @main
@@ -18,30 +17,20 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
 
-    let updaterController: SPUStandardUpdaterController
-
-    init() {
-        updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-
-        // Initialize the settings window controller with the updater controller
-        SettingsWindowController.shared.setUpdaterController(updaterController)
-    }
-
     var body: some Scene {
-        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
-            Button("Settings") {
+        MenuBarExtra("Boring Notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+            Button("设置") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
                 }
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-            CheckForUpdatesView(updater: updaterController.updater)
+            CheckForUpdatesView()
             Divider()
-            Button("Restart Boring Notch") {
+            Button("重启Boring Notch") {
                 ApplicationRelauncher.restart()
             }
-            Button("Quit", role: .destructive) {
+            Button("退出", role: .destructive) {
                 NSApplication.shared.terminate(self)
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
@@ -67,6 +56,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
+    private var pendingFrameRefreshTask: Task<Void, Never>?
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -232,7 +222,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
-        let rect = NSRect(x: 0, y: 0, width: windowSize.width, height: windowSize.height)
+        let initialSize = hostingWindowSize(for: viewModel.notchSize)
+        let rect = NSRect(x: 0, y: 0, width: initialSize.width, height: initialSize.height)
         let styleMask: NSWindow.StyleMask = [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow]
         
         let window = BoringNotchSkyLightWindow(contentRect: rect, styleMask: styleMask, backing: .buffered, defer: false)
@@ -265,18 +256,75 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor
-    private func positionWindow(_ window: NSWindow, on screen: NSScreen, changeAlpha: Bool = false) {
+    private func positionWindow(
+        _ window: NSWindow,
+        on screen: NSScreen,
+        notchSize: CGSize,
+        changeAlpha: Bool = false
+    ) {
         if changeAlpha {
             window.alphaValue = 0
         }
 
         let screenFrame = screen.frame
-        window.setFrameOrigin(
-            NSPoint(
-                x: screenFrame.origin.x + (screenFrame.width / 2) - window.frame.width / 2,
-                y: screenFrame.origin.y + screenFrame.height - window.frame.height
-            ))
+        let targetSize = hostingWindowSize(for: notchSize)
+        let targetFrame = NSRect(
+            x: screenFrame.origin.x + (screenFrame.width / 2) - targetSize.width / 2,
+            y: screenFrame.origin.y + screenFrame.height - targetSize.height,
+            width: targetSize.width,
+            height: targetSize.height
+        )
+        window.setFrame(targetFrame, display: true)
         window.alphaValue = 1
+    }
+
+    @MainActor
+    private func refreshWindowFrames(changeAlpha: Bool = false) {
+        if Defaults[.showOnAllDisplays] {
+            for (uuid, window) in windows {
+                guard
+                    let screen = NSScreen.screen(withUUID: uuid),
+                    let viewModel = viewModels[uuid]
+                else { continue }
+
+                positionWindow(
+                    window,
+                    on: screen,
+                    notchSize: viewModel.notchSize,
+                    changeAlpha: changeAlpha
+                )
+            }
+        } else if let window {
+            let screen = window.screen
+                ?? NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
+                ?? NSScreen.main
+
+            if let screen {
+                positionWindow(
+                    window,
+                    on: screen,
+                    notchSize: vm.notchSize,
+                    changeAlpha: changeAlpha
+                )
+            }
+        }
+    }
+
+    @MainActor
+    private func scheduleWindowFrameRefresh() {
+        let isResizingAssistantPanel = vm.isResizingAssistantPanel || viewModels.values.contains { $0.isResizingAssistantPanel }
+        guard isResizingAssistantPanel else {
+            pendingFrameRefreshTask?.cancel()
+            refreshWindowFrames()
+            return
+        }
+
+        pendingFrameRefreshTask?.cancel()
+        pendingFrameRefreshTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(24))
+            guard !Task.isCancelled else { return }
+            refreshWindowFrames()
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -303,6 +351,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 self?.adjustWindowPosition()
                 self?.setupDragDetectors()
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.notchPanelSizeChanged, object: nil, queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.scheduleWindowFrameRefresh()
             }
         }
 
@@ -501,11 +557,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
 
                 if let window = windows[uuid], let viewModel = viewModels[uuid] {
-                    positionWindow(window, on: screen, changeAlpha: changeAlpha)
-
                     if viewModel.notchState == .closed {
                         viewModel.close()
+                    } else {
+                        viewModel.updateOpenSizeForCurrentView()
                     }
+
+                    positionWindow(window, on: screen, notchSize: viewModel.notchSize, changeAlpha: changeAlpha)
                 }
             }
         } else {
@@ -526,18 +584,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             vm.screenUUID = selectedScreen.displayUUID
-            vm.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
+            if vm.notchState == .closed {
+                vm.close()
+            } else {
+                vm.updateOpenSizeForCurrentView()
+            }
 
             if window == nil {
                 window = createBoringNotchWindow(for: selectedScreen, with: vm)
             }
 
             if let window = window {
-                positionWindow(window, on: selectedScreen, changeAlpha: changeAlpha)
-
-                if vm.notchState == .closed {
-                    vm.close()
-                }
+                positionWindow(window, on: selectedScreen, notchSize: vm.notchSize, changeAlpha: changeAlpha)
             }
         }
     }
@@ -600,6 +658,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 extension Notification.Name {
     static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
     static let notchHeightChanged = Notification.Name("NotchHeightChanged")
+    static let notchPanelSizeChanged = Notification.Name("notchPanelSizeChanged")
     static let showOnAllDisplaysChanged = Notification.Name("showOnAllDisplaysChanged")
     static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
     static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")

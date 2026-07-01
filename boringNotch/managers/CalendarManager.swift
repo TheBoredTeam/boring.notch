@@ -66,7 +66,6 @@ class CalendarManager: ObservableObject {
     func checkCalendarAuthorization() async {
         let status = EKEventStore.authorizationStatus(for: .event)
         DispatchQueue.main.async {
-            print("📅 Current calendar authorization status: \(status)")
             self.calendarAuthorizationStatus = status
         }
 
@@ -85,25 +84,23 @@ class CalendarManager: ObservableObject {
                     calendars: selectedCalendars.map { $0.id })
             }
         case .restricted, .denied:
-            NSLog("Calendar access denied or restricted")
+            break
         case .fullAccess:
-            NSLog("Full access")
             await reloadCalendarAndReminderLists()
             events = await calendarService.events(
                 from: currentWeekStartDate,
                 to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!,
                 calendars: selectedCalendars.map { $0.id })
         case .writeOnly:
-            NSLog("Write only")
+            break
         @unknown default:
-            print("Unknown authorization status")
+            break
         }
     }
     
     func checkReminderAuthorization() async {
         let status = EKEventStore.authorizationStatus(for: .reminder)
         DispatchQueue.main.async {
-            print("📅 Current reminder authorization status: \(status)")
             self.reminderAuthorizationStatus = status
         }
 
@@ -118,14 +115,13 @@ class CalendarManager: ObservableObject {
                 await reloadCalendarAndReminderLists()
             }
         case .restricted, .denied:
-            NSLog("Reminder access denied or restricted")
+            break
         case .fullAccess:
-            NSLog("Full access")
             await reloadCalendarAndReminderLists()
         case .writeOnly:
-            NSLog("Write only")
+            break
         @unknown default:
-            print("Unknown authorization status")
+            break
         }
     }
         
@@ -200,5 +196,99 @@ class CalendarManager: ObservableObject {
             from: currentWeekStartDate,
             to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!,
             calendars: selectedCalendars.map { $0.id })
+    }
+
+    func ensureCalendarAccessIfNeeded() async -> Bool {
+        let status = EKEventStore.authorizationStatus(for: .event)
+        calendarAuthorizationStatus = status
+
+        if status == .notDetermined {
+            await checkCalendarAuthorization()
+        } else if status == .fullAccess {
+            await reloadCalendarAndReminderLists()
+        }
+
+        return calendarAuthorizationStatus == .fullAccess
+    }
+
+    func aiScheduleContext(daysAhead: Int = 7, limit: Int = 18) async -> String? {
+        guard Defaults[.aiCalendarContextEnabled] else { return nil }
+        guard await ensureCalendarAccessIfNeeded() else { return nil }
+
+        await reloadCalendarAndReminderLists()
+        updateSelectedCalendars()
+
+        let start = Date()
+        let end = Calendar.current.date(byAdding: .day, value: daysAhead, to: start) ?? start
+        let calendarIDs = selectedCalendars.map { $0.id }
+        let fetchedEvents = await calendarService.events(from: start, to: end, calendars: calendarIDs)
+
+        let relevantEvents = fetchedEvents
+            .filter { event in
+                if event.type.isReminder,
+                   case let .reminder(completed) = event.type,
+                   completed && Defaults[.hideCompletedReminders]
+                {
+                    return false
+                }
+                return true
+            }
+            .prefix(limit)
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+
+        let lines = relevantEvents.map { event in
+            let timeRange: String
+            if event.isAllDay {
+                timeRange = "\(formatter.string(from: event.start)) (all day)"
+            } else {
+                timeRange = "\(formatter.string(from: event.start)) - \(formatter.string(from: event.end))"
+            }
+
+            let typeLabel: String
+            switch event.type {
+            case .birthday:
+                typeLabel = "birthday"
+            case .reminder:
+                typeLabel = "reminder"
+            case .event:
+                typeLabel = "event"
+            }
+
+            return "- [\(typeLabel)] \(timeRange) | \(event.title) | calendar: \(event.calendar.title)"
+        }
+
+        if lines.isEmpty {
+            return "No scheduled calendar events were found in the next \(daysAhead) days."
+        }
+
+        return """
+        Calendar events in the next \(daysAhead) days:
+        \(lines.joined(separator: "\n"))
+        """
+    }
+
+    func createAIPlannedEvents(_ drafts: [CalendarEventDraft]) async throws -> [CreatedCalendarEvent] {
+        guard Defaults[.aiCalendarWriteEnabled] else {
+            throw CalendarWriteError.accessDenied
+        }
+
+        guard await ensureCalendarAccessIfNeeded() else {
+            throw CalendarWriteError.accessDenied
+        }
+
+        await reloadCalendarAndReminderLists()
+        updateSelectedCalendars()
+
+        let preferredEventCalendarIDs = selectedCalendars
+            .filter { !$0.isReminder && !$0.isSubscribed }
+            .map(\.id)
+
+        let created = try await calendarService.createEvents(drafts, preferredCalendarIDs: preferredEventCalendarIDs)
+        await updateEvents()
+        return created
     }
 }

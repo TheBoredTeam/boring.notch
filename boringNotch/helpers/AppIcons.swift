@@ -59,3 +59,35 @@ func AppIconAsNSImage(for bundleID: String) -> NSImage? {
     return nil
 }
 
+func AppIcon(forFilePath path: String) -> Image {
+    let workspace = NSWorkspace.shared
+    let standardizedPath = URL(fileURLWithPath: path).standardizedFileURL.path
+
+    if FileManager.default.fileExists(atPath: standardizedPath) {
+        let appIcon = workspace.icon(forFile: standardizedPath)
+        return Image(nsImage: appIcon)
+    }
+
+    return Image(nsImage: workspace.icon(for: .applicationBundle))
+}
+
+func AppIconAsNSImage(forFilePath path: String) -> NSImage? {
+    let standardizedPath = URL(fileURLWithPath: path).standardizedFileURL.path
+    guard FileManager.default.fileExists(atPath: standardizedPath) else { return nil }
+
+    let appIcon = NSWorkspace.shared.icon(forFile: standardizedPath)
+    appIcon.size = NSSize(width: 256, height: 256)
+    return appIcon
+}
+
+func AppIcon(for item: QuickLaunchAppItem) -> Image {
+    if !item.appPath.isEmpty {
+        return AppIcon(forFilePath: item.appPath)
+    }
+
+    if !item.bundleIdentifier.isEmpty {
+        return AppIcon(for: item.bundleIdentifier)
+    }
+
+    return Image(nsImage: NSWorkspace.shared.icon(for: .applicationBundle))
+}

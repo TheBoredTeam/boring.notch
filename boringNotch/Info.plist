@@ -7,6 +7,10 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocationUsageDescription</key>
+	<string>Boring Notch需要使用你的位置来显示本地天气。</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Boring Notch需要使用你的位置来显示本地天气。</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>
