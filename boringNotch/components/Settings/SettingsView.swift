@@ -135,7 +135,6 @@ struct GeneralSettings: View {
     }
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @ObservedObject private var quickLaunchManager = QuickLaunchManager.shared
 
     @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
@@ -145,8 +144,6 @@ struct GeneralSettings: View {
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
-    @Default(.quickLaunchEnabled) var quickLaunchEnabled
-    @Default(.quickLaunchApps) var quickLaunchApps
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
@@ -265,8 +262,6 @@ struct GeneralSettings: View {
 
             NotchBehaviour()
 
-            quickLaunchControls()
-
             gestureControls()
         }
         .toolbar {
@@ -353,120 +348,6 @@ struct GeneralSettings: View {
         }
     }
 
-    @ViewBuilder
-    func quickLaunchControls() -> some View {
-        Section {
-            Defaults.Toggle(key: .quickLaunchEnabled) {
-                Text("Show quick launch on Home")
-            }
-
-            HStack {
-                Button("Add app") {
-                    pickQuickLaunchApp()
-                }
-                .disabled(quickLaunchApps.count >= 6)
-
-                if !quickLaunchApps.isEmpty {
-                    Button("Reset defaults") {
-                        quickLaunchApps = defaultQuickLaunchApps()
-                    }
-                }
-
-                Spacer()
-
-                Text("\(quickLaunchApps.count)/6")
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
-            }
-
-            if quickLaunchApps.isEmpty {
-                Text("No apps selected yet.")
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(Array(quickLaunchApps.enumerated()), id: \.element.id) { index, item in
-                    HStack(spacing: 10) {
-                        AppIcon(for: item)
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                            .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.displayName)
-                                .lineLimit(1)
-                            Text(item.appPath)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-
-                        Spacer()
-
-                        Button("Open") {
-                            quickLaunchManager.open(item)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-
-                        Button("Replace") {
-                            pickQuickLaunchApp(replacing: index)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-
-                        Button {
-                            quickLaunchApps.remove(at: index)
-                        } label: {
-                            Image(systemName: "trash")
-                        }
-                        .buttonStyle(.borderless)
-                        .foregroundStyle(.secondary)
-                    }
-                }
-            }
-
-            if let lastError = quickLaunchManager.lastError, !lastError.isEmpty {
-                Text(lastError)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        } header: {
-            Text("Quick launch")
-        } footer: {
-            Text("These app icons are shown on the Home page. Click one in the notch to launch the app.")
-                .multilineTextAlignment(.trailing)
-                .foregroundStyle(.secondary)
-                .font(.caption)
-        }
-    }
-
-    private func pickQuickLaunchApp(replacing index: Int? = nil) {
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = false
-        panel.canChooseFiles = true
-        panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [.applicationBundle]
-        panel.directoryURL = URL(fileURLWithPath: "/Applications")
-
-        guard panel.runModal() == .OK,
-              let url = panel.url,
-              let selectedApp = QuickLaunchAppItem(appURL: url)
-        else {
-            return
-        }
-
-        var items = quickLaunchApps
-        if let index, items.indices.contains(index) {
-            items[index] = selectedApp
-        } else {
-            items.append(selectedApp)
-        }
-
-        var seen: Set<String> = []
-        quickLaunchApps = Array(
-            items.filter { seen.insert($0.id).inserted }
-                .prefix(6)
-        )
-    }
 }
 
 struct Charge: View {
@@ -1279,11 +1160,15 @@ struct Shelf: View {
 
 struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject private var quickLaunchManager = QuickLaunchManager.shared
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.homeWidgetSlots) var homeWidgetSlots
+    @Default(.quickLaunchEnabled) var quickLaunchEnabled
+    @Default(.quickLaunchApps) var quickLaunchApps
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1303,6 +1188,9 @@ struct Appearance: View {
             } header: {
                 Text("General")
             }
+
+            homeLayoutControls()
+            quickLaunchControls()
 
             Section {
                 Defaults.Toggle(key: .coloredSpectrogram) {
@@ -1518,6 +1406,166 @@ struct Appearance: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Appearance")
+    }
+
+    @ViewBuilder
+    func homeLayoutControls() -> some View {
+        Section {
+            ForEach(0..<4, id: \.self) { index in
+                Picker("Slot \(index + 1)", selection: homeWidgetBinding(for: index)) {
+                    ForEach(HomeWidgetKind.allCases) { widget in
+                        Label(widget.displayName, systemImage: widget.systemImage)
+                            .tag(widget)
+                    }
+                }
+            }
+
+            HStack {
+                Button("Reset Home layout") {
+                    homeWidgetSlots = defaultHomeWidgetSlots()
+                }
+
+                Button("Hide all") {
+                    homeWidgetSlots = Array(repeating: .hidden, count: 4)
+                }
+                .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Home layout")
+        } footer: {
+            Text("Home uses four fixed slots. Pick what each slot shows, or choose Hidden to keep the space empty without changing the row layout.")
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
+    }
+
+    private func homeWidgetBinding(for index: Int) -> Binding<HomeWidgetKind> {
+        Binding(
+            get: {
+                normalizedHomeWidgetSlots(homeWidgetSlots)[index]
+            },
+            set: { newValue in
+                var slots = normalizedHomeWidgetSlots(homeWidgetSlots)
+                slots[index] = newValue
+                homeWidgetSlots = slots
+            }
+        )
+    }
+
+    @ViewBuilder
+    func quickLaunchControls() -> some View {
+        Section {
+            Defaults.Toggle(key: .quickLaunchEnabled) {
+                Text("Show quick launch on Home")
+            }
+
+            HStack {
+                Button("Add app") {
+                    pickQuickLaunchApp()
+                }
+                .disabled(quickLaunchApps.count >= 6)
+
+                if !quickLaunchApps.isEmpty {
+                    Button("Reset defaults") {
+                        quickLaunchApps = defaultQuickLaunchApps()
+                    }
+                }
+
+                Spacer()
+
+                Text("\(quickLaunchApps.count)/6")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            if quickLaunchApps.isEmpty {
+                Text("No apps selected yet.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(Array(quickLaunchApps.enumerated()), id: \.element.id) { index, item in
+                    HStack(spacing: 10) {
+                        AppIcon(for: item)
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.displayName)
+                                .lineLimit(1)
+                            Text(item.appPath)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+
+                        Spacer()
+
+                        Button("Open") {
+                            quickLaunchManager.open(item)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+
+                        Button("Replace") {
+                            pickQuickLaunchApp(replacing: index)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+
+                        Button {
+                            quickLaunchApps.remove(at: index)
+                        } label: {
+                            Image(systemName: "trash")
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            if let lastError = quickLaunchManager.lastError, !lastError.isEmpty {
+                Text(lastError)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Quick launch")
+        } footer: {
+            Text("These app icons are shown on the Home page. Use Home layout above to choose where this widget appears.")
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
+    }
+
+    private func pickQuickLaunchApp(replacing index: Int? = nil) {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.applicationBundle]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+
+        guard panel.runModal() == .OK,
+              let url = panel.url,
+              let selectedApp = QuickLaunchAppItem(appURL: url)
+        else {
+            return
+        }
+
+        var items = quickLaunchApps
+        if let index, items.indices.contains(index) {
+            items[index] = selectedApp
+        } else {
+            items.append(selectedApp)
+        }
+
+        var seen: Set<String> = []
+        quickLaunchApps = Array(
+            items.filter { seen.insert($0.id).inserted }
+                .prefix(6)
+        )
     }
 
     func checkVideoInput() -> Bool {

@@ -185,6 +185,51 @@ enum PomodoroPhaseDefaults: String, Defaults.Serializable {
     case longBreak
 }
 
+enum HomeWidgetKind: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case weather
+    case pomodoro
+    case quickLaunch
+    case calendar
+    case media
+    case hidden
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .weather:
+            return "Weather"
+        case .pomodoro:
+            return "Pomodoro"
+        case .quickLaunch:
+            return "Quick launch"
+        case .calendar:
+            return "Calendar"
+        case .media:
+            return "Media controls"
+        case .hidden:
+            return "Hidden"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .weather:
+            return "cloud.sun"
+        case .pomodoro:
+            return "timer"
+        case .quickLaunch:
+            return "square.grid.2x2"
+        case .calendar:
+            return "calendar"
+        case .media:
+            return "music.note"
+        case .hidden:
+            return "eye.slash"
+        }
+    }
+}
+
 func defaultQuickLaunchApps() -> [QuickLaunchAppItem] {
     let candidatePaths = [
         "/System/Applications/Safari.app",
@@ -198,6 +243,19 @@ func defaultQuickLaunchApps() -> [QuickLaunchAppItem] {
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         return QuickLaunchAppItem(appURL: url)
     }
+}
+
+func defaultHomeWidgetSlots() -> [HomeWidgetKind] {
+    [.weather, .pomodoro, .quickLaunch, .calendar]
+}
+
+func normalizedHomeWidgetSlots(_ slots: [HomeWidgetKind]) -> [HomeWidgetKind] {
+    let maxSlots = 4
+    var normalized = Array(slots.prefix(maxSlots))
+    if normalized.count < maxSlots {
+        normalized.append(contentsOf: Array(repeating: .hidden, count: maxSlots - normalized.count))
+    }
+    return normalized
 }
 
 extension Defaults.Keys {
@@ -283,6 +341,10 @@ extension Defaults.Keys {
     static let quickLaunchApps = Key<[QuickLaunchAppItem]>(
         "quickLaunchApps",
         default: defaultQuickLaunchApps()
+    )
+    static let homeWidgetSlots = Key<[HomeWidgetKind]>(
+        "homeWidgetSlots",
+        default: defaultHomeWidgetSlots()
     )
     
     // MARK: Gestures

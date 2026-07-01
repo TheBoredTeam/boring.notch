@@ -10,6 +10,8 @@ import Combine
 import Defaults
 import SwiftUI
 
+private let homeWidgetCardHeight: CGFloat = 214
+
 // MARK: - Music Player Components
 
 struct MusicPlayerView: View {
@@ -420,6 +422,7 @@ struct NotchHomeView: View {
     @Default(.quickLaunchApps) private var quickLaunchApps
     @Default(.quickLaunchEnabled) private var quickLaunchEnabled
     @Default(.weatherFeatureEnabled) private var weatherFeatureEnabled
+    @Default(.homeWidgetSlots) private var homeWidgetSlots
 
     var body: some View {
         Group {
@@ -451,29 +454,58 @@ struct NotchHomeView: View {
     }
 
     private var shouldShowUtilityRow: Bool {
-        weatherFeatureEnabled || pomodoroEnabled || quickLaunchEnabled || Defaults[.showCalendar]
+        homeSlots.contains { $0 != .hidden }
+    }
+
+    private var homeSlots: [HomeWidgetKind] {
+        normalizedHomeWidgetSlots(homeWidgetSlots)
     }
 
     private var utilityRow: some View {
         HStack(alignment: .top, spacing: 12) {
-            if weatherFeatureEnabled {
-                HomeWeatherCard()
-            }
-
-            if pomodoroEnabled {
-                HomePomodoroCard()
-            }
-
-            if quickLaunchEnabled {
-                QuickLaunchHomeCard(apps: quickLaunchApps)
-            }
-
-            if Defaults[.showCalendar] {
-                HomeCalendarPanel()
-                    .environmentObject(vm)
+            ForEach(Array(homeSlots.enumerated()), id: \.offset) { index, widget in
+                homeWidget(for: widget, slotNumber: index + 1)
+                    .frame(maxWidth: .infinity)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private func homeWidget(for widget: HomeWidgetKind, slotNumber: Int) -> some View {
+        switch widget {
+        case .weather:
+            if weatherFeatureEnabled {
+                HomeWeatherCard()
+            } else {
+                HomeDisabledWidgetCard(title: "天气", subtitle: "Weather", message: "在 Weather 设置中开启。")
+            }
+        case .pomodoro:
+            if pomodoroEnabled {
+                HomePomodoroCard()
+            } else {
+                HomeDisabledWidgetCard(title: "Pomodoro", subtitle: "Focus", message: "在 Pomodoro 设置中开启。")
+            }
+        case .quickLaunch:
+            if quickLaunchEnabled {
+                QuickLaunchHomeCard(apps: quickLaunchApps)
+            } else {
+                HomeDisabledWidgetCard(title: "Quick launch", subtitle: "Apps", message: "在 Appearance 设置中开启。")
+            }
+        case .calendar:
+            if Defaults[.showCalendar] {
+                HomeCalendarPanel()
+                    .environmentObject(vm)
+            } else {
+                HomeDisabledWidgetCard(title: "日历", subtitle: "Calendar", message: "在 Calendar 设置中开启。")
+            }
+        case .media:
+            HomeMediaCard()
+        case .hidden:
+            Color.clear
+                .frame(maxWidth: .infinity, minHeight: homeWidgetCardHeight, maxHeight: homeWidgetCardHeight)
+                .accessibilityHidden(true)
+        }
     }
 
     private var footerRow: some View {
@@ -497,10 +529,37 @@ private struct HomeCalendarPanel: View {
             .onHover { isHovering in
                 vm.isHoveringCalendar = isHovering
             }
-            .frame(minHeight: 214, alignment: .topLeading)
+            .frame(height: homeWidgetCardHeight, alignment: .topLeading)
             .padding(12)
             .background(Color.white.opacity(0.04))
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .clipped()
+    }
+}
+
+private struct HomeDisabledWidgetCard: View {
+    let title: String
+    let subtitle: String
+    let message: String
+
+    var body: some View {
+        HomeWidgetCard(title: title, subtitle: subtitle) {
+            VStack(alignment: .leading, spacing: 10) {
+                Image(systemName: "eye.slash")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 44, height: 44)
+                    .background(Color.white.opacity(0.05))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: 0)
+            }
+        }
     }
 }
 
@@ -852,6 +911,130 @@ private struct QuickLaunchHomeCard: View {
     }
 }
 
+private struct HomeMediaCard: View {
+    @ObservedObject private var musicManager = MusicManager.shared
+    @State private var sliderValue: Double = 0
+    @State private var dragging = false
+    @State private var lastDragged = Date.distantPast
+
+    var body: some View {
+        HomeWidgetCard(
+            title: "Media",
+            subtitle: musicManager.isPlaying ? "Playing" : "Controls"
+        ) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .center, spacing: 10) {
+                    mediaArtwork
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(musicManager.songTitle.isEmpty ? "Not playing" : musicManager.songTitle)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                        Text(musicManager.artistName.isEmpty ? activeSourceLabel : musicManager.artistName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
+
+                    Spacer(minLength: 0)
+                }
+
+                TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+                    MusicSliderView(
+                        sliderValue: $sliderValue,
+                        duration: $musicManager.songDuration,
+                        lastDragged: $lastDragged,
+                        color: musicManager.avgColor,
+                        dragging: $dragging,
+                        currentDate: timeline.date,
+                        timestampDate: musicManager.timestampDate,
+                        elapsedTime: musicManager.elapsedTime,
+                        playbackRate: musicManager.playbackRate,
+                        isPlaying: musicManager.isPlaying
+                    ) { newValue in
+                        MusicManager.shared.seek(to: newValue)
+                    }
+                }
+                .frame(height: 26)
+
+                HStack(spacing: 8) {
+                    mediaButton("backward.fill") {
+                        MusicManager.shared.previousTrack()
+                    }
+                    mediaButton(musicManager.isPlaying ? "pause.fill" : "play.fill", prominent: true) {
+                        MusicManager.shared.togglePlay()
+                    }
+                    mediaButton("forward.fill") {
+                        MusicManager.shared.nextTrack()
+                    }
+                    mediaButton("music.note") {
+                        MusicManager.shared.openMusicApp()
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+
+                if Defaults[.enableLyrics], musicManager.isPlaying {
+                    Text(currentLyricLine)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+        }
+    }
+
+    private var mediaArtwork: some View {
+        ZStack(alignment: .bottomTrailing) {
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .aspectRatio(1, contentMode: .fill)
+                .frame(width: 52, height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay {
+                    if !musicManager.isPlaying {
+                        Color.black.opacity(0.42)
+                    }
+                }
+
+            if !musicManager.usingAppIconForArtwork {
+                AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 18, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                    .offset(x: 4, y: 4)
+            }
+        }
+        .frame(width: 52, height: 52)
+    }
+
+    private var activeSourceLabel: String {
+        Defaults[.mediaController].rawValue
+    }
+
+    private var currentLyricLine: String {
+        let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "Lyrics enabled" : trimmed.replacingOccurrences(of: "\n", with: " ")
+    }
+
+    private func mediaButton(
+        _ systemImage: String,
+        prominent: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: prominent ? 16 : 13, weight: .semibold))
+                .frame(width: prominent ? 44 : 36, height: 32)
+                .background(Color.white.opacity(prominent ? 0.12 : 0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 private struct HomeWidgetCard<Content: View>: View {
     let title: String
     let subtitle: String
@@ -877,10 +1060,11 @@ private struct HomeWidgetCard<Content: View>: View {
 
             content
         }
-        .frame(maxWidth: .infinity, minHeight: 214, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: homeWidgetCardHeight, maxHeight: homeWidgetCardHeight, alignment: .topLeading)
         .padding(12)
         .background(Color.white.opacity(0.04))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .clipped()
     }
 }
 
