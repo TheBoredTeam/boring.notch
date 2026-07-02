@@ -416,6 +416,30 @@ struct VolumeControlView: View {
         }
     }
 }
+struct ExpandedHomeView:View{
+    var body: some View {
+        VStack{
+            Spacer()
+            Spacer()
+            Text(Date.now, format: .dateTime.hour().minute())
+                .font(.largeTitle)
+                .bold()
+                .frame(maxWidth: .infinity,alignment: .center)
+                .foregroundStyle(Color.white)
+            HStack{
+                Text(Date.now, format: .dateTime.weekday(.wide).month(.wide).day())
+                    .font(.title3)
+                
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, -10)
+            Spacer()
+            Spacer()
+            
+        }
+        
+    }
+}
 
 // MARK: - Main View
 
@@ -424,6 +448,7 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var musicManager = MusicManager.shared
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
@@ -437,15 +462,19 @@ struct NotchHomeView: View {
     private var shouldShowCamera: Bool {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
-
+    
     private var mainContent: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(
-                albumArtNamespace: albumArtNamespace,
-                horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                isHoveringMusicArea: $isHoveringMusicArea
-            )
-
+            if(musicManager.isPlaying){
+                MusicPlayerView(
+                    albumArtNamespace: albumArtNamespace,
+                    horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                    isHoveringMusicArea: $isHoveringMusicArea
+                )
+            }else{
+                ExpandedHomeView()
+            }
+            
             if Defaults[.showCalendar] {
                 CalendarView()
                     .frame(width: shouldShowCamera ? 170 : 215)
