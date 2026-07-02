@@ -16,6 +16,7 @@
 import AppKit
 import Combine
 import Foundation
+import ImageIO
 import SwiftUI
 
 class KasetController: MediaControllerProtocol {
@@ -38,7 +39,9 @@ class KasetController: MediaControllerProtocol {
     private var notificationTask: Task<Void, Never>?
     private var pollTimer: Timer?
     private var artworkFetchTask: Task<Void, Never>?
-    private var lastArtworkURL: String?
+    /// Identity (videoId, else artworkURL) of the track whose cover is loaded or in flight — so
+    /// repeated polls don't refetch. Reset on track change / failure so the cover can (re)load.
+    private var lastArtworkKey: String?
 
     // MARK: - Initialization
     init() {
@@ -182,44 +185,94 @@ class KasetController: MediaControllerProtocol {
             // (forever if the fetch fails). Clearing lets it settle immediately (app icon shows
             // until the real cover loads); fetchArtworkIfNeeded repopulates below.
             state.artwork = nil
-            lastArtworkURL = nil
+            lastArtworkKey = nil
         }
 
         if state != playbackState {
             playbackState = state
         }
 
-        fetchArtworkIfNeeded(urlString: track?["artworkURL"] as? String)
+        fetchArtworkIfNeeded(
+            artworkURL: track?["artworkURL"] as? String,
+            videoId: track?["videoId"] as? String
+        )
     }
 
     @MainActor
-    private func fetchArtworkIfNeeded(urlString: String?) {
-        guard let urlString, !urlString.isEmpty, urlString != lastArtworkURL,
-              let url = URL(string: urlString) else { return }
-        // Mark this URL as in-flight so repeated polls don't restart a healthy fetch.
-        lastArtworkURL = urlString
+    private func fetchArtworkIfNeeded(artworkURL: String?, videoId: String?) {
+        // Kaset's `get player info` usually reports a useless artworkURL (the YouTube Music
+        // homepage), but always gives a videoId. Derive the cover from YouTube's thumbnail
+        // endpoint in that case; prefer a real image artworkURL when Kaset does provide one.
+        let key = videoId ?? artworkURL
+        guard let key, !key.isEmpty, key != lastArtworkKey else { return }
+        let candidates = Self.artworkCandidateURLs(artworkURL: artworkURL, videoId: videoId)
+        guard !candidates.isEmpty else { return }
+        // Mark in-flight so repeated polls don't restart a healthy fetch.
+        lastArtworkKey = key
         artworkFetchTask?.cancel()
         artworkFetchTask = Task { [weak self] in
-            let data = try? await ImageService.shared.fetchImageData(from: url)
-            if Task.isCancelled { return }
+            for url in candidates {
+                if Task.isCancelled { return }
+                guard let data = try? await ImageService.shared.fetchImageData(from: url),
+                      let square = Self.squareJPEGData(from: data) else { continue }
+                if Task.isCancelled { return }
+                await MainActor.run { [weak self] in
+                    guard let self, self.lastArtworkKey == key else { return }
+                    self.playbackState.artwork = square
+                }
+                return
+            }
+            // No candidate produced a valid image — forget the key so the next poll retries
+            // instead of sticking on the app-icon fallback.
             await MainActor.run { [weak self] in
-                guard let self, self.lastArtworkURL == urlString else { return }
-                if let data, NSImage(data: data) != nil {
-                    self.playbackState.artwork = data
-                } else {
-                    // Fetch failed, or the bytes weren't an image (Kaset occasionally reports a
-                    // bogus artworkURL, e.g. the YouTube Music homepage, which returns HTML).
-                    // Forget the URL so the next poll retries instead of sticking on a blank cover.
-                    self.lastArtworkURL = nil
+                guard let self, self.lastArtworkKey == key else { return }
+                self.lastArtworkKey = nil
+            }
+        }
+    }
+
+    /// Ordered cover URLs to try: a genuine image artworkURL first (Kaset rarely provides one),
+    /// then YouTube thumbnails derived from the videoId. The homepage/app-internal URL Kaset
+    /// usually reports is filtered out.
+    private static func artworkCandidateURLs(artworkURL: String?, videoId: String?) -> [URL] {
+        var urls: [URL] = []
+        if let artworkURL, !artworkURL.isEmpty,
+           let url = URL(string: artworkURL),
+           let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+           let host = url.host, host != "music.youtube.com" {
+            urls.append(url)
+        }
+        if let videoId, !videoId.isEmpty {
+            for name in ["maxresdefault", "hqdefault"] {
+                if let url = URL(string: "https://i.ytimg.com/vi/\(videoId)/\(name).jpg") {
+                    urls.append(url)
                 }
             }
         }
+        return urls
+    }
+
+    /// Decode `data`, center-crop to a square, and re-encode as JPEG. Returns nil if the bytes
+    /// aren't a decodable image (doubles as validation). YouTube thumbnails are 16:9/4:3; the
+    /// notch shows cover art with `.fit`, so a square keeps it from rendering as a wide strip.
+    private static func squareJPEGData(from data: Data) -> Data? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
+        let width = cgImage.width, height = cgImage.height
+        guard width > 0, height > 0 else { return nil }
+        let side = min(width, height)
+        let cropRect = CGRect(
+            x: (width - side) / 2, y: (height - side) / 2, width: side, height: side
+        )
+        guard let cropped = cgImage.cropping(to: cropRect) else { return nil }
+        let rep = NSBitmapImageRep(cgImage: cropped)
+        return rep.representation(using: .jpeg, properties: [.compressionFactor: 0.9])
     }
 
     @MainActor
     private func resetPlaybackState() {
         artworkFetchTask?.cancel()
-        lastArtworkURL = nil
+        lastArtworkKey = nil
         let cleared = PlaybackState(bundleIdentifier: KasetController.bundleIdentifier, isPlaying: false)
         if cleared != playbackState {
             playbackState = cleared
