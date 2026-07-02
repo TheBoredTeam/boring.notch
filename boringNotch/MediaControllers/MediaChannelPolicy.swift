@@ -3,16 +3,19 @@
 //  boringNotch
 //
 //  Per-connector, per-channel gating: each media source declares, for every control channel,
-//  whether it is reliably supported, present-but-unavailable, or not worth showing.
+//  whether it is reliably supported or present-but-unavailable.
 //
 
 import Foundation
 
 /// How a single media-control channel should be surfaced for the active source.
+///
+/// Two states only: unsupported controls are shown greyed-out and non-interactive, never removed
+/// from the toolbar. A uniform treatment keeps the toolbar layout stable and avoids the confusing
+/// mix of "some controls missing, some greyed" that a third `hidden` state produced.
 enum ChannelSupport {
     case supported   // works reliably -> normal, interactive
     case disabled    // exists but unreliable/unsupported -> shown greyed, non-interactive
-    case hidden      // not worth showing -> removed from the toolbar
 }
 
 /// Per-channel gating policy a connector advertises. Every channel is declared explicitly so

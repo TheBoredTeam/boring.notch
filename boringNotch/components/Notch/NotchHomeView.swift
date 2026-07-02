@@ -202,33 +202,27 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        // seek .hidden -> equal-height spacer (keeps layout stable); .disabled -> bar stays as a read-only position/time display (hit-testing off, greyed); .supported -> interactive scrubber.
-        Group {
-            if musicManager.channelPolicy.seek == .hidden {
-                Color.clear.frame(height: 36)
-            } else {
-                TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
-                    MusicSliderView(
-                        sliderValue: $sliderValue,
-                        duration: $musicManager.songDuration,
-                        lastDragged: $lastDragged,
-                        color: musicManager.avgColor,
-                        dragging: $dragging,
-                        currentDate: timeline.date,
-                        timestampDate: musicManager.timestampDate,
-                        elapsedTime: musicManager.elapsedTime,
-                        playbackRate: musicManager.playbackRate,
-                        isPlaying: musicManager.isPlaying
-                    ) { newValue in
-                        MusicManager.shared.seek(to: newValue)
-                    }
-                    .padding(.top, 5)
-                    .frame(height: 36)
-                }
-                .allowsHitTesting(musicManager.channelPolicy.seek == .supported)
-                .opacity(musicManager.channelPolicy.seek == .supported ? 1 : 0.35)
+        // seek .disabled -> bar stays as a read-only position/time display (hit-testing off, greyed); .supported -> interactive scrubber.
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+            MusicSliderView(
+                sliderValue: $sliderValue,
+                duration: $musicManager.songDuration,
+                lastDragged: $lastDragged,
+                color: musicManager.avgColor,
+                dragging: $dragging,
+                currentDate: timeline.date,
+                timestampDate: musicManager.timestampDate,
+                elapsedTime: musicManager.elapsedTime,
+                playbackRate: musicManager.playbackRate,
+                isPlaying: musicManager.isPlaying
+            ) { newValue in
+                MusicManager.shared.seek(to: newValue)
             }
+            .padding(.top, 5)
+            .frame(height: 36)
         }
+        .allowsHitTesting(musicManager.channelPolicy.seek == .supported)
+        .opacity(musicManager.channelPolicy.seek == .supported ? 1 : 0.35)
     }
 
     private func channelSupport(for slot: MusicControlButton) -> ChannelSupport {
@@ -251,19 +245,14 @@ struct MusicControlsView: View {
             ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
                 let support = channelSupport(for: slot)
                 Group {
-                    switch support {
-                    case .hidden:
-                        Color.clear.frame(height: 1)
-                    case .disabled, .supported:
-                        // Volume & Favorite render their own disabled visuals from channelPolicy; .none is an empty spacer that needs no gating.
-                        switch slot {
-                        case .volume, .favorite, .none:
-                            slotView(for: slot)
-                        default:
-                            slotView(for: slot)
-                                .disabled(support == .disabled)
-                                .opacity(support == .disabled ? 0.35 : 1)
-                        }
+                    // Volume & Favorite render their own disabled visuals from channelPolicy; .none is an empty spacer that needs no gating.
+                    switch slot {
+                    case .volume, .favorite, .none:
+                        slotView(for: slot)
+                    default:
+                        slotView(for: slot)
+                            .disabled(support == .disabled)
+                            .opacity(support == .disabled ? 0.35 : 1)
                     }
                 }
                 .frame(alignment: .center)

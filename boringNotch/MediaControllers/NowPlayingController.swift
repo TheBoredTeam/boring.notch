@@ -23,27 +23,14 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         $playbackState.eraseToAnyPublisher()
     }
 
-    /// What the generic Now Playing / MediaRemote pipeline can *reliably* drive for the current
-    /// underlying app — NOT that app's full native capability (the dedicated controllers advertise
-    /// that). Apple Music honours all MediaRemote commands. For Spotify via Now Playing, seek is
-    /// unreliable and shuffle/repeat aren't honoured, so they're disabled/hidden even though the
-    /// native SpotifyController supports them; volume works because it goes through AppleScript. Any
-    /// other app: only transport is assumed reliable, so volume is disabled too.
-    var channelPolicy: MediaChannelPolicy {
-        switch playbackState.bundleIdentifier {
-        case "com.apple.Music":
-            return .allSupported
-        default:
-            // Generic MediaRemote source: transport only; seek unreliable; shuffle/repeat not honoured.
-            var policy = MediaChannelPolicy(
-                playPause: .supported, previous: .supported, next: .supported, seek: .disabled,
-                shuffle: .hidden, repeatMode: .hidden, favorite: .disabled, volume: .disabled)
-            if playbackState.bundleIdentifier == "com.spotify.client" {
-                policy.volume = .supported  // Spotify exposes volume via AppleScript
-            }
-            return policy
-        }
-    }
+    /// Now Playing surfaces every control as interactive, regardless of the underlying app.
+    ///
+    /// It drives the generic MediaRemote pipeline, whose set-commands (seek/shuffle/repeat) and the
+    /// AppleScript-based volume/favorite paths are honoured reliably only by Apple Music (volume also
+    /// by Spotify). For other apps some of these may no-op while the button flips optimistically. We
+    /// accept that rather than gating per-app: per-bundle gating here produced an inconsistent,
+    /// confusing toolbar (some controls greyed, some missing) for little practical gain.
+    var channelPolicy: MediaChannelPolicy { .allSupported }
 
     func setFavorite(_ favorite: Bool) async {
         let bundleID = playbackState.bundleIdentifier
