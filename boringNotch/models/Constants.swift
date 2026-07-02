@@ -147,6 +147,69 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     }
 }
 
+/// One entry in the ordered media-source priority list: which source, and whether it participates.
+/// Array order == priority (earlier wins). `Now Playing` is kept last by convention (see `canonicalOrder`).
+struct MediaSourceEntry: Codable, Defaults.Serializable, Hashable, Identifiable {
+    let type: MediaControllerType
+    var isEnabled: Bool
+    var id: MediaControllerType { type }
+
+    init(type: MediaControllerType, isEnabled: Bool) {
+        self.type = type
+        self.isEnabled = isEnabled
+    }
+
+    // Hand-coded so we don't require `MediaControllerType` itself to be `Codable` (it's a
+    // RawRepresentable `Defaults.Serializable`, and adding `Codable` there risks a bridge ambiguity).
+    // Coding via the raw value also tolerates unknown/removed cases on downgrade (defaults to nil -> skip).
+    private enum CodingKeys: String, CodingKey { case type, isEnabled }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let raw = try container.decode(String.self, forKey: .type)
+        guard let parsed = MediaControllerType(rawValue: raw) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .type, in: container,
+                debugDescription: "Unknown MediaControllerType raw value: \(raw)")
+        }
+        self.type = parsed
+        self.isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type.rawValue, forKey: .type)
+        try container.encode(isEnabled, forKey: .isEnabled)
+    }
+}
+
+extension MediaSourceEntry {
+    /// App-specific sources first (in enum order), generic `Now Playing` pinned last.
+    static var canonicalOrder: [MediaControllerType] {
+        MediaControllerType.allCases.filter { $0 != .nowPlaying } + [.nowPlaying]
+    }
+
+    /// Default list: every source present with a single source enabled — `Now Playing` normally, or
+    /// the default app (`Apple Music`) when Now Playing is unavailable on this macOS version, so the
+    /// visible list is never left all-off.
+    static func defaultList(isNowPlayingDeprecated: Bool) -> [MediaSourceEntry] {
+        let enabledType: MediaControllerType = isNowPlayingDeprecated ? .appleMusic : .nowPlaying
+        return canonicalOrder.map { MediaSourceEntry(type: $0, isEnabled: $0 == enabledType) }
+    }
+
+    /// Default list for a system where Now Playing is available (used as the stored-key default).
+    static var defaultList: [MediaSourceEntry] { defaultList(isNowPlayingDeprecated: false) }
+}
+
+extension Array where Element == MediaSourceEntry {
+    /// Enabled sources in priority order, with `Now Playing` forced last and duplicates removed.
+    var enabledTypesInPriority: [MediaControllerType] {
+        let ordered = filter { $0.type != .nowPlaying } + filter { $0.type == .nowPlaying }
+        var seen = Set<MediaControllerType>()
+        return ordered.filter { $0.isEnabled && seen.insert($0.type).inserted }.map { $0.type }
+    }
+}
+
 // Sneak peek styles for selection in settings
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     case standard
@@ -330,6 +393,12 @@ extension Defaults.Keys {
     /// When the chosen app-specific source isn't the audible source, fall back to the generic "Now Playing" source.
     /// Opt-in; has no effect for `.nowPlaying` or when `NowPlaying` is deprecated on this macOS version.
     static let fallbackToNowPlayingWhenInactive = Key<Bool>("fallbackToNowPlayingWhenInactive", default: false)
+
+    /// Ordered, per-entry-toggleable media-source priority list. Supersedes `mediaController` +
+    /// `fallbackToNowPlayingWhenInactive` (kept read-only for one-time migration). Array order == priority.
+    static let mediaSourcePriority = Key<[MediaSourceEntry]>("mediaSourcePriority", default: MediaSourceEntry.defaultList)
+    /// Set once after the old single-source prefs are migrated into `mediaSourcePriority`.
+    static let didMigrateMediaSourcePriority = Key<Bool>("didMigrateMediaSourcePriority", default: false)
 
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
