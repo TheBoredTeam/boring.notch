@@ -13,6 +13,7 @@
 //  `com.sertacozercan.Kaset.playerInfo` distributed notification.
 //
 
+import AppKit
 import Combine
 import Foundation
 import SwiftUI
@@ -152,10 +153,20 @@ class KasetController: MediaControllerProtocol {
         var state = playbackState
 
         let track = object["currentTrack"] as? [String: Any]
+        let newTitle = (track?["name"] as? String) ?? "Not Playing"
+        let newArtist = (track?["artist"] as? String) ?? ""
+        let newAlbum = (track?["album"] as? String) ?? ""
+        // A new track is starting if any identity field changed. `state` is copied from the
+        // previous `playbackState`, so without this we'd carry the OLD track's cover into the
+        // new track's published state.
+        let trackChanged = newTitle != playbackState.title
+            || newArtist != playbackState.artist
+            || newAlbum != playbackState.album
+
         state.isPlaying = (object["isPlaying"] as? Bool) ?? false
-        state.title = (track?["name"] as? String) ?? "Not Playing"
-        state.artist = (track?["artist"] as? String) ?? ""
-        state.album = (track?["album"] as? String) ?? ""
+        state.title = newTitle
+        state.artist = newArtist
+        state.album = newAlbum
         state.currentTime = Self.double(object["position"]) ?? 0
         state.duration = Self.double(object["duration"]) ?? Self.double(track?["duration"]) ?? 0
         state.isShuffled = (object["shuffling"] as? Bool) ?? false
@@ -163,6 +174,16 @@ class KasetController: MediaControllerProtocol {
         if let volume = Self.double(object["volume"]) { state.volume = volume / 100.0 }
         state.isFavorite = (object["likeStatus"] as? String) == "liked"
         state.lastUpdated = Date()
+
+        if trackChanged {
+            // Don't publish the previous track's cover under the new track. MusicManager gates
+            // its "content changed" bookkeeping on the artwork, so a stale non-nil cover makes it
+            // re-fire the sneak peek and flip animation on every 2s poll until fresh art arrives
+            // (forever if the fetch fails). Clearing lets it settle immediately (app icon shows
+            // until the real cover loads); fetchArtworkIfNeeded repopulates below.
+            state.artwork = nil
+            lastArtworkURL = nil
+        }
 
         if state != playbackState {
             playbackState = state
@@ -175,12 +196,22 @@ class KasetController: MediaControllerProtocol {
     private func fetchArtworkIfNeeded(urlString: String?) {
         guard let urlString, !urlString.isEmpty, urlString != lastArtworkURL,
               let url = URL(string: urlString) else { return }
+        // Mark this URL as in-flight so repeated polls don't restart a healthy fetch.
         lastArtworkURL = urlString
         artworkFetchTask?.cancel()
         artworkFetchTask = Task { [weak self] in
-            guard let data = try? await ImageService.shared.fetchImageData(from: url) else { return }
+            let data = try? await ImageService.shared.fetchImageData(from: url)
+            if Task.isCancelled { return }
             await MainActor.run { [weak self] in
-                self?.playbackState.artwork = data
+                guard let self, self.lastArtworkURL == urlString else { return }
+                if let data, NSImage(data: data) != nil {
+                    self.playbackState.artwork = data
+                } else {
+                    // Fetch failed, or the bytes weren't an image (Kaset occasionally reports a
+                    // bogus artworkURL, e.g. the YouTube Music homepage, which returns HTML).
+                    // Forget the URL so the next poll retries instead of sticking on a blank cover.
+                    self.lastArtworkURL = nil
+                }
             }
         }
     }
