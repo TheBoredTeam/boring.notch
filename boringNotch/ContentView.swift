@@ -314,11 +314,12 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineHUD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
-                          InlineHUD(
-                              type: $coordinator.sneakPeek.type,
-                              value: $coordinator.sneakPeek.value,
-                              icon: $coordinator.sneakPeek.icon,
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
+                          InlineOSD(
+                              type: coordinator.binding(for: vm.screenUUID).type,
+                              value: coordinator.binding(for: vm.screenUUID).value,
+                              icon: coordinator.binding(for: vm.screenUUID).icon,
+                              accent: coordinator.binding(for: vm.screenUUID).accent,
                               hoverAnimation: $isHovering,
                               gestureProgress: $gestureProgress
                           )
@@ -340,11 +341,12 @@ struct ContentView: View {
                        }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
+                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
-                                  eventType: $coordinator.sneakPeek.type,
-                                  value: $coordinator.sneakPeek.value,
-                                  icon: $coordinator.sneakPeek.icon,
+                                  eventType: coordinator.binding(for: vm.screenUUID).type,
+                                  value: coordinator.binding(for: vm.screenUUID).value,
+                                  icon: coordinator.binding(for: vm.screenUUID).icon,
+                                  accent: coordinator.binding(for: vm.screenUUID).accent,
                                   sendEventBack: { newVal in
                                       switch coordinator.sneakPeekState(for: vm.screenUUID).type {
                                       case .volume:
@@ -385,7 +387,7 @@ struct ContentView: View {
                 VStack {
                     switch coordinator.currentView {
                     case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        NotchHomeView(albumArtNamespace: albumArtNamespace, horizontalMediaGestureFeedback: horizontalMediaGestureFeedback, isHoveringMusicArea: $isHoveringMusicArea)
                     case .shelf:
                         ShelfView()
                     }
