@@ -31,7 +31,6 @@ class MusicManager: ObservableObject {
     // Published properties for UI
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
-    @Published var noSongPresented: Bool = true
     @Published var albumArt: NSImage = defaultImage
     @Published var isPlaying = false
     @Published var album: String = "Self Love"
