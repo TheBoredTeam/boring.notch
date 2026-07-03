@@ -465,16 +465,17 @@ struct NotchHomeView: View {
     
     private var mainContent: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            if(musicManager.isPlaying){
-                MusicPlayerView(
-                    albumArtNamespace: albumArtNamespace,
-                    horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                    isHoveringMusicArea: $isHoveringMusicArea
-                )
-            }else{
-                ExpandedHomeView()
+            VStack{
+                if(coordinator.currentTab == .player){
+                    MusicPlayerView(
+                        albumArtNamespace: albumArtNamespace,
+                        horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                        isHoveringMusicArea: $isHoveringMusicArea
+                    )
+                }else{
+                    ExpandedHomeView()
+                }
             }
-            
             if Defaults[.showCalendar] {
                 CalendarView()
                     .frame(width: shouldShowCamera ? 170 : 215)
