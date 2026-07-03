@@ -26,7 +26,7 @@ struct TabSelectionView: View {
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Namespace var animation
-
+    
     var body: some View {
         ZStack(alignment: .leading) {
 
@@ -52,12 +52,13 @@ struct TabSelectionView: View {
 
             HStack(spacing: 0) {
                 ForEach(tabs) { tab in
+                    let selected=tab.homeTab != .none
+                    ? (coordinator.currentTab == tab.homeTab)
+                    : (coordinator.currentView == tab.view)
                     TabButton(
                         label: tab.label,
                         icon: tab.icon,
-                        selected: tab.homeTab != .none
-                            ? (coordinator.currentTab == tab.homeTab)
-                            : (coordinator.currentView == tab.view)
+                        selected: selected
                     ) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view
@@ -67,11 +68,10 @@ struct TabSelectionView: View {
                         }
                     }
                     .frame(height: 26)
-                    .foregroundStyle(tab.view == coordinator.currentView ? .white : .gray)
+                    .foregroundStyle(selected ? .white : .gray)
                     .background {
-                        if (tab.homeTab != .none
-                            ? (coordinator.currentTab == tab.homeTab)
-                            : (coordinator.currentView == tab.view)) {
+                        
+                        if (selected) {
 
                             Capsule()
                                 .fill(Color(nsColor: .secondarySystemFill))

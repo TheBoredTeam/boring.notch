@@ -421,14 +421,18 @@ struct ExpandedHomeView:View{
         VStack{
             Spacer()
             Spacer()
-            Text(Date.now, format: .dateTime.hour().minute())
-                .font(.largeTitle)
-                .bold()
-                .frame(maxWidth: .infinity,alignment: .center)
-                .foregroundStyle(Color.white)
+            TimelineView(.periodic(from: .now, by: 1.0)) { context in
+                Text(Date.now, format: .dateTime.hour().minute())
+                    .font(.largeTitle)
+                    .bold()
+                    .frame(maxWidth: .infinity,alignment: .center)
+                    .foregroundStyle(Color.white)
+            }
             HStack{
-                Text(Date.now, format: .dateTime.weekday(.wide).month(.wide).day())
-                    .font(.title3)
+                TimelineView(.periodic(from: .now, by: 60)) { context in
+                    Text(Date.now, format: .dateTime.weekday(.wide).month(.wide).day())
+                        .font(.title3)
+                }
                 
             }
             .fixedSize(horizontal: false, vertical: true)
