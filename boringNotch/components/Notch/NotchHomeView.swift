@@ -22,8 +22,6 @@ struct MusicPlayerView: View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5 * (vm.notchSize.height / 190))
             MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback)
-                .drawingGroup()
-                .compositingGroup()
         }
         .contentShape(Rectangle())
         .onHover { hovering in
@@ -129,6 +127,8 @@ struct MusicControlsView: View {
     var body: some View {
         VStack(alignment: .leading) {
             songInfoAndSlider
+                .drawingGroup()
+                .compositingGroup()
             slotToolbar
         }
         .buttonStyle(PlainButtonStyle())
@@ -223,10 +223,21 @@ struct MusicControlsView: View {
     }
 
     private var slotToolbar: some View {
-        let slots = activeSlots
+        // Keyed by the control's own identity (not array offset) so that
+        // reordering/resetting the layout *moves* a slot's view instead of
+        // destroying and recreating it. This matters especially for .share,
+        // whose Menu is an AppKit-backed view already known to be fragile
+        // around teardown/recreation (see git history for prior Menu geometry
+        // fixes) -- offset-keying would tear it down and rebuild it every time
+        // its position changes, e.g. on "Reset to Defaults". Real controls are
+        // enforced unique across the array by the slot-editor's drag logic, so
+        // only `.none` filler slots (which can repeat) need an index suffix.
+        let slots = activeSlots.enumerated().map { index, slot in
+            (id: slot == .none ? "none-\(index)" : slot.rawValue, slot: slot)
+        }
         return HStack(spacing: 6) {
-            ForEach(Array(slots.enumerated()), id: \.offset) { index, slot in
-                slotView(for: slot)
+            ForEach(slots, id: \.id) { item in
+                slotView(for: item.slot)
                     .frame(alignment: .center)
             }
         }
@@ -288,6 +299,8 @@ struct MusicControlsView: View {
             HoverButton(icon: "goforward.15", scale: .medium) {
                 MusicManager.shared.skip(seconds: 15)
             }
+        case .share:
+            ShareButtonOverlay()
         case .none:
             Color.clear.frame(height: 1)
         }

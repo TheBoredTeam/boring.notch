@@ -17,6 +17,7 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
     case favorite
     case goBackward
     case goForward
+    case share
     case none
 
     var id: String { rawValue }
@@ -39,6 +40,7 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
         .next,
         .repeatMode,
         .favorite,
+        .share,
         .volume,
         .goBackward,
         .goForward
@@ -64,6 +66,8 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
             return "Backward 15s"
         case .goForward:
             return "Forward 15s"
+        case .share:
+            return "Share"
         case .none:
             return "Empty slot"
         }
@@ -89,6 +93,8 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
             return "gobackward.15"
         case .goForward:
             return "goforward.15"
+        case .share:
+            return "link"
         case .none:
             return ""
         }
