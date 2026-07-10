@@ -68,6 +68,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     private var process: Process?
     private var pipeHandler: JSONLinesPipeHandler?
     private var streamTask: Task<Void, Never>?
+    private let timestampFormatter = ISO8601DateFormatter()
 
     // MARK: - Initialization
     init?() {
@@ -198,7 +199,9 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         }
         
         process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
-        process.arguments = [scriptURL.path, frameworkPath, "stream"]
+        // Coalesce bursts before they cross the process boundary and invalidate
+        // SwiftUI. Playback position is extrapolated locally between updates.
+        process.arguments = [scriptURL.path, frameworkPath, "stream", "--debounce=200"]
         
         let pipeHandler = JSONLinesPipeHandler()
         process.standardOutput = await pipeHandler.getPipe()
@@ -275,7 +278,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         }
 
         if let dateString = payload.timestamp,
-           let date = ISO8601DateFormatter().date(from: dateString) {
+           let date = timestampFormatter.date(from: dateString) {
             newPlaybackState.lastUpdated = date
         } else if !diff {
             newPlaybackState.lastUpdated = Date()
@@ -351,6 +354,7 @@ actor JSONLinesPipeHandler {
     private let pipe: Pipe
     private let fileHandle: FileHandle
     private var buffer = ""
+    private let decoder = JSONDecoder()
     
     init() {
         self.pipe = Pipe()
@@ -396,7 +400,7 @@ actor JSONLinesPipeHandler {
             return
         }
         do {
-            let decodedObject = try JSONDecoder().decode(T.self, from: data)
+            let decodedObject = try decoder.decode(T.self, from: data)
             await onLine(decodedObject)
         } catch {
             // Ignore lines that can't be decoded

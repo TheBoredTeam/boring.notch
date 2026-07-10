@@ -18,12 +18,58 @@ class AudioSpectrum: NSView {
         super.init(frame: frameRect)
         wantsLayer = true
         setupBars()
+        setupLifecycleObservers()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         wantsLayer = true
         setupBars()
+        setupLifecycleObservers()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        animationTimer?.invalidate()
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        refreshAnimationState()
+    }
+
+    private func setupLifecycleObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(lifecycleStateChanged),
+            name: NSWindow.didChangeOcclusionStateNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(lifecycleStateChanged),
+            name: NSApplication.didChangeOcclusionStateNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(lifecycleStateChanged),
+            name: Notification.Name.NSProcessInfoPowerStateDidChange,
+            object: nil
+        )
+    }
+
+    @objc private func lifecycleStateChanged() {
+        refreshAnimationState()
+    }
+
+    private func refreshAnimationState() {
+        let isVisible = window?.occlusionState.contains(.visible) == true && !NSApp.isHidden
+        if isPlaying && isVisible && !ProcessInfo.processInfo.isLowPowerModeEnabled {
+            startAnimating()
+        } else {
+            stopAnimating()
+        }
     }
 
     private func setupBars() {
@@ -56,9 +102,11 @@ class AudioSpectrum: NSView {
     
     private func startAnimating() {
         guard animationTimer == nil else { return }
-        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
+        let timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
             self?.updateBars()
         }
+        timer.tolerance = 0.1
+        animationTimer = timer
     }
     
     private func stopAnimating() {
@@ -75,7 +123,7 @@ class AudioSpectrum: NSView {
             let animation = CABasicAnimation(keyPath: "transform.scale.y")
             animation.fromValue = currentScale
             animation.toValue = targetScale
-            animation.duration = 0.3
+            animation.duration = 0.4
             animation.autoreverses = true
             animation.fillMode = .forwards
             animation.isRemovedOnCompletion = false
@@ -96,11 +144,7 @@ class AudioSpectrum: NSView {
     
     func setPlaying(_ playing: Bool) {
         isPlaying = playing
-        if isPlaying {
-            startAnimating()
-        } else {
-            stopAnimating()
-        }
+        refreshAnimationState()
     }
 }
 

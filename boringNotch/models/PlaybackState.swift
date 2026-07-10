@@ -28,6 +28,10 @@ struct PlaybackState {
     var artwork: Data?
     var volume: Double = 0.5
     var isFavorite: Bool = false
+
+    var artworkSignature: UInt64? {
+        artwork?.boringNotchSampledSignature
+    }
 }
 
 extension PlaybackState: Equatable {
@@ -41,7 +45,26 @@ extension PlaybackState: Equatable {
             && lhs.duration == rhs.duration
             && lhs.isShuffled == rhs.isShuffled
             && lhs.repeatMode == rhs.repeatMode
-            && lhs.artwork == rhs.artwork
+            && lhs.artworkSignature == rhs.artworkSignature
             && lhs.isFavorite == rhs.isFavorite
+    }
+}
+
+extension Data {
+    /// A constant-cost identity for large artwork blobs. It deliberately samples
+    /// the payload because this is used for UI change detection, not integrity.
+    var boringNotchSampledSignature: UInt64 {
+        var hash: UInt64 = 14_695_981_039_346_656_037
+        hash ^= UInt64(count)
+        hash = hash &* 1_099_511_628_211
+
+        guard !isEmpty else { return hash }
+        let sampleCount = Swift.min(count, 32)
+        for sample in 0..<sampleCount {
+            let offset = sampleCount == 1 ? 0 : sample * (count - 1) / (sampleCount - 1)
+            hash ^= UInt64(self[index(startIndex, offsetBy: offset)])
+            hash = hash &* 1_099_511_628_211
+        }
+        return hash
     }
 }

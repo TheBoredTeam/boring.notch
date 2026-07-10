@@ -20,6 +20,8 @@ class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var controllerCancellables = Set<AnyCancellable>()
     private var debounceIdleTask: Task<Void, Never>?
+    private var lastPlaybackUpdateAt = Date.distantPast
+    private var lastForcedUpdateAt = Date.distantPast
 
     // Helper to check if macOS has removed support for NowPlayingController
     public private(set) var isNowPlayingDeprecated: Bool = false
@@ -55,6 +57,7 @@ class MusicManager: ObservableObject {
     @Published var isFavoriteTrack: Bool = false
 
     private var artworkData: Data? = nil
+    private var artworkSignature: UInt64? = nil
 
     // Store last values at the time artwork was changed
     private var lastArtworkTitle: String = "I'm Handsome"
@@ -181,6 +184,7 @@ class MusicManager: ObservableObject {
     // MARK: - Update Methods
     @MainActor
     private func updateFromPlaybackState(_ state: PlaybackState) {
+        lastPlaybackUpdateAt = Date()
         // Check for playback state changes (playing/paused)
         if state.isPlaying != self.isPlaying {
             NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
@@ -201,7 +205,9 @@ class MusicManager: ObservableObject {
         let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
 
         // Check for artwork changes
-        let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
+        let incomingArtworkSignature = state.artworkSignature
+        let artworkChanged = incomingArtworkSignature != nil
+            && incomingArtworkSignature != artworkSignature
         let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged || bundleChanged
 
         // Handle artwork and visual transitions for changed content
@@ -218,6 +224,7 @@ class MusicManager: ObservableObject {
                 }
             }
             self.artworkData = state.artwork
+            self.artworkSignature = incomingArtworkSignature
 
             if artworkChanged || state.artwork == nil {
                 // Update last artwork change values
@@ -288,7 +295,9 @@ class MusicManager: ObservableObject {
             self.volume = state.volume
         }
         
-        self.timestampDate = state.lastUpdated
+        if state.lastUpdated != timestampDate {
+            timestampDate = state.lastUpdated
+        }
     }
 
     func toggleFavoriteTrack() {
@@ -680,6 +689,7 @@ class MusicManager: ObservableObject {
     }
 
     func forceUpdate() {
+        lastForcedUpdateAt = Date()
         // Request immediate update from the active controller
         Task { [weak self] in
             if self?.activeController?.isActive() == true {
@@ -690,6 +700,15 @@ class MusicManager: ObservableObject {
                 }
             }
         }
+    }
+
+    /// Refresh controllers that require polling only when their state may be stale.
+    /// Push-driven controllers remain responsive without doing work on every hover-open.
+    func forceUpdateIfStale(maxAge: TimeInterval = 3) {
+        let now = Date()
+        guard now.timeIntervalSince(lastPlaybackUpdateAt) >= maxAge,
+              now.timeIntervalSince(lastForcedUpdateAt) >= maxAge else { return }
+        forceUpdate()
     }
     
     

@@ -30,6 +30,7 @@ class SpotifyController: MediaControllerProtocol {
     var supportsFavorite: Bool { false }
 
     private var notificationTask: Task<Void, Never>?
+    private var debouncedUpdateTask: Task<Void, Never>?
     
     // Constant for time between command and update
     private let commandUpdateDelay: Duration = .milliseconds(25)
@@ -53,13 +54,23 @@ class SpotifyController: MediaControllerProtocol {
             )
             
             for await _ in notifications {
-                await self?.updatePlaybackInfo()
+                self?.scheduleDebouncedUpdate()
             }
+        }
+    }
+
+    private func scheduleDebouncedUpdate() {
+        debouncedUpdateTask?.cancel()
+        debouncedUpdateTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(200))
+            guard !Task.isCancelled else { return }
+            await self?.updatePlaybackInfo()
         }
     }
     
     deinit {
         notificationTask?.cancel()
+        debouncedUpdateTask?.cancel()
         artworkFetchTask?.cancel()
     }
     

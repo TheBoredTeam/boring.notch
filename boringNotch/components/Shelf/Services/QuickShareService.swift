@@ -25,17 +25,16 @@ class QuickShareService: ObservableObject {
     // Hold security-scoped URLs during sharing
     private var sharingAccessingURLs: [URL] = []
     private var lifecycleDelegate: SharingLifecycleDelegate?
-   
-    init() {
-        Task {
-            await discoverAvailableProviders()
-        }
-    }
+    private var isDiscoveringProviders = false
     
     // MARK: - Provider Discovery
     
     @MainActor
     func discoverAvailableProviders() async {
+        guard availableProviders.isEmpty, !isDiscoveringProviders else { return }
+        isDiscoveringProviders = true
+        defer { isDiscoveringProviders = false }
+
         let finder = ShareServiceFinder()
 
         // Use simple test items without creating actual temp files

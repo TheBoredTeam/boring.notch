@@ -193,8 +193,9 @@ class BoringViewModel: NSObject, ObservableObject {
         self.notchSize = openNotchSize
         self.notchState = .open
         
-        // Force music information update when notch is opened
-        MusicManager.shared.forceUpdate()
+        // Event-driven controllers are normally fresh already. Avoid launching
+        // AppleScript/HTTP refreshes on every hover-open.
+        MusicManager.shared.forceUpdateIfStale()
     }
 
     func close() {
