@@ -38,7 +38,8 @@ struct TodoView: View {
                 .onHover { vm.isHoveringTodos = $0 }
             }
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 14)
+        .padding(.top, 2)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }

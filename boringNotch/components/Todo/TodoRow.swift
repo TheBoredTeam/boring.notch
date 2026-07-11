@@ -5,6 +5,7 @@
 //  Created by Sidharth Sangelia on 11/07/26.
 //
 
+
 import SwiftUI
 
 struct TodoRow: View {
@@ -23,18 +24,19 @@ struct TodoRow: View {
             }
 
             if isEditing {
-                TextField("", text: $editingTitle, onCommit: commitEdit)
+                TextField("", text: $editingTitle)
                     .textFieldStyle(.plain)
                     .font(.callout)
                     .foregroundColor(.white)
                     .focused($isFocused)
+                    .onSubmit(commitEdit)
                     .onExitCommand(perform: cancelEdit)
                     .onAppear { isFocused = true }
             } else {
                 Text(todo.title)
                     .font(.callout)
                     .foregroundColor(.white)
-                    .strikethrough(todo.completed, color: Color(white: 0.65))
+                    .strikethrough(todo.completed, color: Color(white: 0.55))
                     .opacity(todo.completed ? 0.4 : 1.0)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -46,12 +48,12 @@ struct TodoRow: View {
             if isHovering && !isEditing {
                 Button(action: { store.delete(todo) }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(Color(white: 0.65))
+                        .foregroundColor(Color(white: 0.55))
                 }
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 3)
         .onHover { isHovering = $0 }
     }
 
@@ -70,8 +72,8 @@ struct TodoRow: View {
     }
 }
 
-/// Same ring-checkbox look as the calendar's ReminderToggle, kept local
-/// since todos don't share a calendar color.
+/// Subtle, monochrome ring — matches the neutral checkbox look used across
+/// native macOS utilities rather than pulling in the bright system accent.
 private struct TodoCheckbox: View {
     let isOn: Bool
     let action: () -> Void
@@ -80,16 +82,17 @@ private struct TodoCheckbox: View {
         Button(action: action) {
             ZStack {
                 Circle()
-                    .strokeBorder(Color.effectiveAccent, lineWidth: 2)
+                    .strokeBorder(Color.white.opacity(isOn ? 0.85 : 0.4), lineWidth: 1.5)
                     .frame(width: 14, height: 14)
                 if isOn {
                     Circle()
-                        .fill(Color.effectiveAccent)
-                        .frame(width: 8, height: 8)
+                        .fill(Color.white.opacity(0.85))
+                        .frame(width: 7, height: 7)
                 }
+                // Invisible fill widens the tap target beyond the thin ring.
                 Circle()
                     .fill(Color.black.opacity(0.001))
-                    .frame(width: 14, height: 14)
+                    .frame(width: 20, height: 20)
             }
         }
         .buttonStyle(PlainButtonStyle())

@@ -7,7 +7,7 @@
 
 //  Return creates a todo and clears the field. That's the whole feature.
 
-
+import AppKit
 import SwiftUI
 
 struct AddTodoField: View {
@@ -19,19 +19,32 @@ struct AddTodoField: View {
         HStack(spacing: 8) {
             Image(systemName: "plus")
                 .font(.caption)
-                .foregroundColor(Color(white: 0.65))
+                .foregroundColor(Color.white.opacity(0.4))
 
-            TextField("New Todo", text: $newTitle, onCommit: addTodo)
+            TextField("Add a todo…", text: $newTitle)
                 .textFieldStyle(.plain)
                 .font(.callout)
                 .foregroundColor(.white)
                 .focused($isFocused)
+                .onSubmit(addTodo)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 3)
+        .onAppear {
+            // Make the panel key so typing works immediately, without
+            // requiring an extra click first.
+            NSApp.windows
+                .first(where: { $0 is BoringNotchSkyLightWindow })?
+                .makeKey()
+            isFocused = true
+        }
     }
 
     private func addTodo() {
-        store.add(newTitle)
-        newTitle = ""
+        let title = newTitle
+        store.add(title)
+        DispatchQueue.main.async {
+            newTitle = ""
+            isFocused = true
+        }
     }
 }
