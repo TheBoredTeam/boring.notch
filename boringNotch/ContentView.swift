@@ -402,6 +402,9 @@ struct ContentView: View {
                         )
                     case .shelf:
                         ShelfView()
+                        
+                    case .todos:
+                        TodoView()
                     }
                 }
                 .transition(
