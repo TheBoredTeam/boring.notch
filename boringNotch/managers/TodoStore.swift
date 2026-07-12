@@ -5,6 +5,8 @@
 //  Created by Sidharth Sangelia on 11/07/26.
 //
 
+
+import Defaults
 import Foundation
 import SwiftUI
 
@@ -18,7 +20,6 @@ final class TodoStore: ObservableObject {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private var pendingRemovals: [UUID: Task<Void, Never>] = [:]
-    private let completedRemovalDelay: Duration = .seconds(1.5)
 
     private init() {
         let fm = FileManager.default
@@ -80,8 +81,9 @@ final class TodoStore: ObservableObject {
 
     private func scheduleRemoval(for id: UUID) {
         pendingRemovals[id]?.cancel()
-        pendingRemovals[id] = Task { [weak self, completedRemovalDelay] in
-            try? await Task.sleep(for: completedRemovalDelay)
+        let delaySeconds = Defaults[.todosAutoRemoveDelay]
+        pendingRemovals[id] = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(delaySeconds))
             guard !Task.isCancelled else { return }
             self?.removeIfStillCompleted(id)
         }
