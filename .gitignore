@@ -47,9 +47,10 @@ build/
 *.xcscheme
 *.xcodeproj/xcuserdata
 *.xcodeproj/project.xcuserdata
+!*.xcodeproj/xcshareddata/xcschemes/*.xcscheme
+!*.xcworkspace/xcshareddata/xcschemes/*.xcscheme
 
 # Build artifacts
 *.ipa
 *.xcarchive
 *.dSYM
-
