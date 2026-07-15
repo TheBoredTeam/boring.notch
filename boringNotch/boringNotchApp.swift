@@ -2,7 +2,7 @@
 //  boringNotchApp.swift
 //  boringNotchApp
 //
-//  Created by Harsh Vardhan  Goswami  on 02/08/24.
+//  Created by Harsh Vardhan Goswami on 02/08/24.
 //
 
 import AVFoundation
