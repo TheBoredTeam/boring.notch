@@ -116,6 +116,7 @@ struct BoringHeader: View {
                                 levelBattery: batteryModel.levelBattery,
                                 maxCapacity: batteryModel.maxCapacity,
                                 timeToFullCharge: batteryModel.timeToFullCharge,
+                                timeToDischarge: batteryModel.timeToDischarge,
                                 isForNotification: false
                             )
                         }

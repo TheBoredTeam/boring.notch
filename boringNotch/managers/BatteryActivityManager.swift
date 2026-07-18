@@ -1,4 +1,5 @@
 import Foundation
+import IOKit
 import IOKit.ps
 
 /// Manages and monitors battery status changes on the device
@@ -8,11 +9,12 @@ class BatteryActivityManager {
     static let shared = BatteryActivityManager()
 
     var onBatteryLevelChange: ((Float) -> Void)?
-    var onMaxCapacityChange: ((Float) -> Void)?
+    var onMaxCapacityChange: ((Float?) -> Void)?
     var onPowerModeChange: ((Bool) -> Void)?
     var onPowerSourceChange: ((Bool) -> Void)?
     var onChargingChange: ((Bool) -> Void)?
     var onTimeToFullChargeChange: ((Int) -> Void)?
+    var onTimeToDischargeChange: ((Int) -> Void)?
 
     private var batterySource: CFRunLoopSource?
     private var observers: [(BatteryEvent) -> Void] = []
@@ -51,7 +53,8 @@ class BatteryActivityManager {
         case lowPowerModeChanged(isEnabled: Bool)
         case isChargingChanged(isCharging: Bool)
         case timeToFullChargeChanged(time: Int)
-        case maxCapacityChanged(capacity: Float)
+        case timeToDischargeChanged(time: Int)
+        case maxCapacityChanged(capacity: Float?)
         case error(description: String)
     }
 
@@ -65,9 +68,10 @@ class BatteryActivityManager {
         isPluggedIn: false,
         isCharging: false,
         currentCapacity: 0,
-        maxCapacity: 0,
+        maxCapacity: nil,
         isInLowPowerMode: false,
-        timeToFullCharge: 0
+        timeToFullCharge: 0,
+        timeToDischarge: 0
     )
 
     private init() {
@@ -159,7 +163,13 @@ class BatteryActivityManager {
                 current: batteryInfo.timeToFullCharge,
                 eventGenerator: { .timeToFullChargeChanged(time: $0) }
             )
-            
+
+            checkAndNotify(
+                previous: previousInfo.timeToDischarge,
+                current: batteryInfo.timeToDischarge,
+                eventGenerator: { .timeToDischargeChanged(time: $0) }
+            )
+
             checkAndNotify(
                 previous: previousInfo.maxCapacity,
                 current: batteryInfo.maxCapacity,
@@ -172,6 +182,7 @@ class BatteryActivityManager {
             enqueueNotification(.isChargingChanged(isCharging: batteryInfo.isCharging))
             enqueueNotification(.lowPowerModeChanged(isEnabled: batteryInfo.isInLowPowerMode))
             enqueueNotification(.timeToFullChargeChanged(time: batteryInfo.timeToFullCharge))
+            enqueueNotification(.timeToDischargeChanged(time: batteryInfo.timeToDischarge))
             enqueueNotification(.maxCapacityChanged(capacity: batteryInfo.maxCapacity))
         }
 
@@ -186,6 +197,7 @@ class BatteryActivityManager {
             self.onChargingChange?(batteryInfo.isCharging)
             self.onPowerModeChange?(batteryInfo.isInLowPowerMode)
             self.onTimeToFullChargeChange?(batteryInfo.timeToFullCharge)
+            self.onTimeToDischargeChange?(batteryInfo.timeToDischarge)
             self.onMaxCapacityChange?(batteryInfo.maxCapacity)
         }
     }
@@ -208,9 +220,10 @@ class BatteryActivityManager {
                 isPluggedIn: false,
                 isCharging: false,
                 currentCapacity: 0,
-                maxCapacity: 0,
+                maxCapacity: nil,
                 isInLowPowerMode: false,
-                timeToFullCharge: 0
+                timeToFullCharge: 0,
+                timeToDischarge: 0
             )
         }
         return batteryInfo
@@ -241,10 +254,6 @@ class BatteryActivityManager {
                 throw BatteryError.batteryParameterMissing("Current capacity")
             }
             
-            guard let maxCapacity = description[kIOPSMaxCapacityKey] as? Float else {
-                throw BatteryError.batteryParameterMissing("Max capacity")
-            }
-            
             guard let isCharging = description["Is Charging"] as? Bool else {
                 throw BatteryError.batteryParameterMissing("Charging state")
             }
@@ -258,16 +267,21 @@ class BatteryActivityManager {
                 isPluggedIn: powerSource == kIOPSACPowerValue,
                 isCharging: isCharging,
                 currentCapacity: currentCapacity,
-                maxCapacity: maxCapacity,
+                maxCapacity: getBatteryHealthCapacity(),
                 isInLowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled,
-                timeToFullCharge: 0
+                timeToFullCharge: 0,
+                timeToDischarge: 0
             )
-            
+
             // Optional parameters
             if let timeToFullCharge = description[kIOPSTimeToFullChargeKey] as? Int {
                 batteryInfo.timeToFullCharge = timeToFullCharge
             }
-            
+
+            if let timeToDischarge = description[kIOPSTimeToEmptyKey] as? Int {
+                batteryInfo.timeToDischarge = timeToDischarge
+            }
+
             return batteryInfo
             
         } catch BatteryError.powerSourceUnavailable {
@@ -283,6 +297,43 @@ class BatteryActivityManager {
             print("⚠️ Error: Unexpected error getting battery info - \(error.localizedDescription)")
             return defaultBatteryInfo
         }
+    }
+
+    /// Reads the user-visible battery health capacity from the smart battery registry.
+    private func getBatteryHealthCapacity() -> Float? {
+        let batteryService = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleSmartBattery"))
+        guard batteryService != IO_OBJECT_NULL else { return nil }
+        defer { IOObjectRelease(batteryService) }
+
+        var properties: Unmanaged<CFMutableDictionary>?
+        guard IORegistryEntryCreateCFProperties(batteryService, &properties, kCFAllocatorDefault, 0) == KERN_SUCCESS,
+              let batteryProperties = properties?.takeRetainedValue() as? [String: Any],
+              let designCapacity = capacityValue(in: batteryProperties, forKey: "DesignCapacity"),
+              designCapacity > 0,
+              let fullChargeCapacity = capacityValue(in: batteryProperties, forKey: "NominalChargeCapacity")
+                ?? capacityValue(in: batteryProperties, forKey: "AppleRawMaxCapacity"),
+              fullChargeCapacity > 0 else {
+            return nil
+        }
+
+        let healthPercentage = (fullChargeCapacity / designCapacity) * 100
+        return min(max((healthPercentage / 5).rounded() * 5, 0), 100)
+    }
+
+    private func capacityValue(in properties: [String: Any], forKey key: String) -> Float? {
+        if let number = properties[key] as? NSNumber {
+            return number.floatValue
+        }
+        if let value = properties[key] as? Float {
+            return value
+        }
+        if let value = properties[key] as? Double {
+            return Float(value)
+        }
+        if let value = properties[key] as? Int {
+            return Float(value)
+        }
+        return nil
     }
     
     /// Adds an observer to listen to battery changes
@@ -323,7 +374,8 @@ struct BatteryInfo {
     var isPluggedIn: Bool
     var isCharging: Bool
     var currentCapacity: Float
-    var maxCapacity: Float
+    var maxCapacity: Float?
     var isInLowPowerMode: Bool
     var timeToFullCharge: Int
+    var timeToDischarge: Int
 }

@@ -87,6 +87,76 @@ enum PomodoroPhaseAlertMode: String, CaseIterable, Identifiable, Defaults.Serial
     }
 }
 
+struct AppLanguage: RawRepresentable, Hashable, Identifiable, Defaults.Serializable {
+    static let system = AppLanguage(rawValue: "system")
+
+    var id: String { rawValue }
+    let rawValue: String
+
+    init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    static var allCases: [AppLanguage] {
+        let languages = Bundle.main.localizations
+            .filter(isSelectableLocalization)
+            .map(AppLanguage.init(rawValue:))
+            .sorted { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
+
+        return [.system] + languages
+    }
+
+    var displayName: String {
+        if self == .system {
+            return NSLocalizedString(
+                "System default",
+                comment: "Language picker option: follow the system app language"
+            )
+        }
+
+        let displayName = nativeLocale.localizedString(forIdentifier: rawValue) ?? rawValue
+        return displayName.capitalized(with: nativeLocale)
+    }
+
+    private var nativeLocale: Locale {
+        Locale(identifier: rawValue)
+    }
+
+    private static func isSelectableLocalization(_ identifier: String) -> Bool {
+        guard identifier != "Base" else { return false }
+        guard let url = Bundle.main.url(
+            forResource: "Localizable",
+            withExtension: "strings",
+            subdirectory: nil,
+            localization: identifier
+        ) else {
+            return false
+        }
+
+        guard
+            let data = try? Data(contentsOf: url),
+            let strings = try? PropertyListSerialization.propertyList(
+                from: data,
+                options: [],
+                format: nil
+            ) as? [String: String]
+        else {
+            return false
+        }
+
+        return strings.values.contains { !$0.isEmpty }
+    }
+
+    func applyAppleLanguagesOverride() {
+        if self == .system {
+            UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+        } else {
+            UserDefaults.standard.set([rawValue], forKey: "AppleLanguages")
+        }
+        UserDefaults.standard.synchronize()
+    }
+}
+
 // Define notification names at file scope
 extension Notification.Name {
     // MARK: - Media
@@ -193,6 +263,7 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
 
 extension Defaults.Keys {
     // MARK: General
+    static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
@@ -242,11 +313,13 @@ extension Defaults.Keys {
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
+    static let enableHorizontalMediaGestures = Key<Bool>("enableHorizontalMediaGestures", default: false)
     static let closeGestureEnabled = Key<Bool>("closeGestureEnabled", default: true)
     static let gestureSensitivity = Key<CGFloat>("gestureSensitivity", default: 200.0)
     
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
+    static let realtimeAudioWaveform = Key<Bool>("realtimeAudioWaveform", default: false)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
@@ -314,12 +387,15 @@ extension Defaults.Keys {
     static let copyOnDrag = Key<Bool>("copyOnDrag", default: false)
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
+    static let reverseShelfOrdering = Key<Bool>("reverseShelfOrdering", default: false)
     
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
     static let showFullEventTitles = Key<Bool>("showFullEventTitles", default: false)
     static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: true)
+    static let calendarWeekView = Key<Bool>("calendarWeekView", default: false)
+    static let weekStartDay = Key<WeekStartDay>("weekStartDay", default: .system)
     
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)

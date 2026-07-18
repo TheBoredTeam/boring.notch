@@ -20,7 +20,7 @@ struct FileShareView: View {
     @State private var isProcessing = false
     
     private var selectedProvider: QuickShareProvider {
-        quickShare.availableProviders.first(where: { $0.id == quickShareProvider }) ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
+        quickShare.availableProviders.first(where: { $0.id == quickShareProvider }) ?? .systemShareMenu
     }
 
     var body: some View {

@@ -18,11 +18,15 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
 
+    private let sparkleUpdaterDelegate: BoringSparkleUpdaterDelegate
     let updaterController: SPUStandardUpdaterController
 
     init() {
+        let sparkleUpdaterDelegate = BoringSparkleUpdaterDelegate()
+        self.sparkleUpdaterDelegate = sparkleUpdaterDelegate
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            startingUpdater: true, updaterDelegate: sparkleUpdaterDelegate, userDriverDelegate: nil)
+        SoftwareUpdateStore.updater = updaterController.updater
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
@@ -46,6 +50,18 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
+    }
+}
+
+@MainActor
+enum SoftwareUpdateStore {
+    static var updater: SPUUpdater?
+}
+
+@MainActor
+final class BoringSparkleUpdaterDelegate: NSObject, SPUUpdaterDelegate {
+    func updaterShouldPromptForPermissionToCheck(forUpdates updater: SPUUpdater) -> Bool {
+        false
     }
 }
 
@@ -236,14 +252,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleDragEntersNotchRegion(onScreen screen: NSScreen) {
+        guard Defaults[.boringShelf] else { return }
         guard let uuid = screen.displayUUID else { return }
         
         if Defaults[.showOnAllDisplays], let viewModel = viewModels[uuid] {
-            viewModel.open()
-            coordinator.currentView = .shelf
+            if viewModel.open() {
+                coordinator.currentView = .shelf
+            }
         } else if !Defaults[.showOnAllDisplays], let windowScreen = window?.screen, screen == windowScreen {
-            vm.open()
-            coordinator.currentView = .shelf
+            if vm.open() {
+                coordinator.currentView = .shelf
+            }
         }
     }
 
@@ -431,9 +450,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 switch viewModel.notchState {
                 case .closed:
+                    var didOpen = false
                     await MainActor.run {
-                        viewModel.open()
+                        didOpen = viewModel.open()
                     }
+                    guard didOpen else { return }
 
                     let task = Task { [weak viewModel] in
                         do {
@@ -626,9 +647,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.title = "Onboarding"
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
+            window.level = .floating
             window.contentView = NSHostingView(
                 rootView: OnboardingView(
                     step: step,
+                    updater: SoftwareUpdateStore.updater,
                     onFinish: {
                         window.orderOut(nil)
 //                        NSApp.setActivationPolicy(.accessory)
@@ -648,6 +671,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 //        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+        onboardingWindowController?.window?.level = .floating
         onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
         onboardingWindowController?.window?.orderFrontRegardless()
     }

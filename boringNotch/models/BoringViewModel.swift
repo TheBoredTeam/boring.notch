@@ -138,7 +138,7 @@ class BoringViewModel: NSObject, ObservableObject {
             return
         }
 
-        switch webcamManager.authorizationStatus {
+        switch webcamManager.refreshAuthorizationStatus() {
         case .authorized:
             if webcamManager.isSessionRunning {
                 webcamManager.stopSession()
@@ -194,12 +194,17 @@ class BoringViewModel: NSObject, ObservableObject {
         return false
     }
 
-    func open() {
+    @discardableResult
+    func open() -> Bool {
+        guard !coordinator.firstLaunch else { return false }
+
         self.notchSize = openNotchSize
         self.notchState = .open
         
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
+
+        return true
     }
 
     func close() {
@@ -218,7 +223,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+        if Defaults[.boringShelf] && !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
             coordinator.currentView = .shelf
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home

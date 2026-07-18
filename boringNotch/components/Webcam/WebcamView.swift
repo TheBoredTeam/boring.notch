@@ -60,7 +60,7 @@ struct CameraPreviewView: View {
             return // Prevent multiple authorization requests
         }
         
-        switch webcamManager.authorizationStatus {
+        switch webcamManager.refreshAuthorizationStatus() {
         case .authorized:
             if webcamManager.isSessionRunning {
                 webcamManager.stopSession()

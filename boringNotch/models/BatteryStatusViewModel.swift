@@ -14,18 +14,19 @@ class BatteryStatusViewModel: ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     @Published private(set) var levelBattery: Float = 0.0
-    @Published private(set) var maxCapacity: Float = 0.0
+    @Published private(set) var maxCapacity: Float?
     @Published private(set) var isPluggedIn: Bool = false
     @Published private(set) var isCharging: Bool = false
     @Published private(set) var isInLowPowerMode: Bool = false
     @Published private(set) var isInitial: Bool = false
     @Published private(set) var timeToFullCharge: Int = 0
+    @Published private(set) var timeToDischarge: Int = 0
     @Published private(set) var lastStatus: LastStatus = .plugged(false)
 
     enum LastStatus: Equatable {
         case plugged(Bool)
         case lowPower(Bool)
-        case charging(isCharging: Bool, level: Float, maxCapacity: Float)
+        case charging(isCharging: Bool, level: Float)
     }
 
     var statusText: LocalizedStringKey {
@@ -35,11 +36,11 @@ class BatteryStatusViewModel: ObservableObject {
         case .lowPower(let enabled):
             let key = enabled ? "Low Power: On" : "Low Power: Off"
             return LocalizedStringKey(key)
-        case .charging(let isCharging, let level, let max):
+        case .charging(let isCharging, let level):
             if isCharging {
                 return LocalizedStringKey("Charging battery")
             }
-            if level < max {
+            if level < 100 {
                 return LocalizedStringKey("Not charging")
             }
             return LocalizedStringKey("Full charge")
@@ -102,14 +103,12 @@ class BatteryStatusViewModel: ObservableObject {
 
         case .isChargingChanged(let isCharging):
             print("🔌 Charging: \(isCharging ? "Yes" : "No")")
-            print("maxCapacity: \(self.maxCapacity)")
+            print("maxCapacity: \(self.maxCapacity.map { "\($0)" } ?? "Unavailable")")
             print("levelBattery: \(self.levelBattery)")
             self.notifyImportanChangeStatus()
             withAnimation {
                 self.isCharging = isCharging
-                self.lastStatus = .charging(isCharging: isCharging,
-                                             level: self.levelBattery,
-                                             maxCapacity: self.maxCapacity)
+                self.lastStatus = .charging(isCharging: isCharging, level: self.levelBattery)
             }
 
         case .timeToFullChargeChanged(let time):
@@ -118,8 +117,14 @@ class BatteryStatusViewModel: ObservableObject {
                 self.timeToFullCharge = time
             }
 
+        case .timeToDischargeChanged(let time):
+            print("🕒 Time until empty: \(time) minutes")
+            withAnimation {
+                self.timeToDischarge = time
+            }
+
         case .maxCapacityChanged(let capacity):
-            print("🔋 Max capacity: \(capacity)")
+            print("🔋 Max capacity: \(capacity.map { "\($0)" } ?? "Unavailable")")
             withAnimation {
                 self.maxCapacity = capacity
             }
@@ -138,6 +143,7 @@ class BatteryStatusViewModel: ObservableObject {
             self.isCharging = batteryInfo.isCharging
             self.isInLowPowerMode = batteryInfo.isInLowPowerMode
             self.timeToFullCharge = batteryInfo.timeToFullCharge
+            self.timeToDischarge = batteryInfo.timeToDischarge
             self.maxCapacity = batteryInfo.maxCapacity
             self.lastStatus = .plugged(batteryInfo.isPluggedIn)
         }
