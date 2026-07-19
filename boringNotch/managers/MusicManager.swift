@@ -28,6 +28,12 @@ class MusicManager: ObservableObject {
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
 
+    /// Whether the current source is reachable right now. Settings uses this to show
+    /// live connection state for sources that depend on an external component.
+    var isActiveControllerLive: Bool {
+        activeController?.isActive() ?? false
+    }
+
     // Published properties for UI
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
@@ -135,6 +141,8 @@ class MusicManager: ObservableObject {
             newController = SpotifyController()
         case .youtubeMusic:
             newController = YouTubeMusicController()
+        case .youtubeMusicPWA:
+            newController = YouTubeMusicPWAController()
         }
 
         // Set up state observation for the new controller

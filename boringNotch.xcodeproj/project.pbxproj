@@ -38,6 +38,10 @@
 		1153BD982D9881F900979FB0 /* AppleScriptHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */; };
 		1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD992D98824300979FB0 /* SpotifyController.swift */; };
 		1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */; };
+		BN1D6E0000000000000000B1 /* BrowserBridgeProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BN1D6E0000000000000000A1 /* BrowserBridgeProtocol.swift */; };
+		BN1D6E0000000000000000B2 /* BrowserBridgeServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BN1D6E0000000000000000A2 /* BrowserBridgeServer.swift */; };
+		BN1D6E0000000000000000B3 /* YouTubeMusicPWAController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BN1D6E0000000000000000A3 /* YouTubeMusicPWAController.swift */; };
+		BN1D6E0000000000000000B4 /* BrowserBridgeSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BN1D6E0000000000000000A4 /* BrowserBridgeSettingsSection.swift */; };
 		1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */; };
 		115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */; };
 		1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1160F8D72DD98230006FBB94 /* NotchShape.swift */; };
@@ -223,6 +227,10 @@
 		1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptHelper.swift; sourceTree = "<group>"; };
 		1153BD992D98824300979FB0 /* SpotifyController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyController.swift; sourceTree = "<group>"; };
 		1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingController.swift; sourceTree = "<group>"; };
+		BN1D6E0000000000000000A1 /* BrowserBridgeProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserBridgeProtocol.swift; sourceTree = "<group>"; };
+		BN1D6E0000000000000000A2 /* BrowserBridgeServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserBridgeServer.swift; sourceTree = "<group>"; };
+		BN1D6E0000000000000000A3 /* YouTubeMusicPWAController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicPWAController.swift; sourceTree = "<group>"; };
+		BN1D6E0000000000000000A4 /* BrowserBridgeSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserBridgeSettingsSection.swift; sourceTree = "<group>"; };
 		1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicController.swift; sourceTree = "<group>"; };
 		115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenNotchOSD.swift; sourceTree = "<group>"; };
 		1160F8D72DD98230006FBB94 /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
@@ -442,6 +450,16 @@
 			path = "mediaremote-adapter";
 			sourceTree = "<group>";
 		};
+		BN1D6E0000000000000000A0 /* YouTube Music PWA Controller */ = {
+			isa = PBXGroup;
+			children = (
+				BN1D6E0000000000000000A1 /* BrowserBridgeProtocol.swift */,
+				BN1D6E0000000000000000A2 /* BrowserBridgeServer.swift */,
+				BN1D6E0000000000000000A3 /* YouTubeMusicPWAController.swift */,
+			);
+			path = "YouTube Music PWA Controller";
+			sourceTree = "<group>";
+		};
 		1132E5232E78D6DA0068732D /* YouTube Music Controller */ = {
 			isa = PBXGroup;
 			children = (
@@ -457,6 +475,7 @@
 			isa = PBXGroup;
 			children = (
 				1132E5232E78D6DA0068732D /* YouTube Music Controller */,
+				BN1D6E0000000000000000A0 /* YouTube Music PWA Controller */,
 				1153BD8D2D986B1F00979FB0 /* MediaControllerProtocol.swift */,
 				1153BD922D986E4300979FB0 /* AppleMusicController.swift */,
 				1153BD992D98824300979FB0 /* SpotifyController.swift */,
@@ -533,6 +552,7 @@
 				11DB266C2EDD0CDF001EA0CF /* GeneralSettingsView.swift */,
 				11DB266D2EDD0CDF001EA0CF /* OSDSettingsView.swift */,
 				11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */,
+				BN1D6E0000000000000000A4 /* BrowserBridgeSettingsSection.swift */,
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
 				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
@@ -1019,6 +1039,10 @@
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
 				11EFCD702E8E92D600D0B974 /* ShelfItemViewModel.swift in Sources */,
 				1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */,
+				BN1D6E0000000000000000B1 /* BrowserBridgeProtocol.swift in Sources */,
+				BN1D6E0000000000000000B2 /* BrowserBridgeServer.swift in Sources */,
+				BN1D6E0000000000000000B3 /* YouTubeMusicPWAController.swift in Sources */,
+				BN1D6E0000000000000000B4 /* BrowserBridgeSettingsSection.swift in Sources */,
 				1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */,
 				1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */,
 				118EBE292E946B3F00D54B5A /* ShareServiceFinder.swift in Sources */,
