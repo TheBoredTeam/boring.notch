@@ -12,14 +12,11 @@
  * they reach a client.
  */
 
-const token = process.argv[2];
-const port = Number(process.argv[3] || 26539);
+const port = Number(process.argv[2] || 26539);
 
-if (!token) {
-  console.error('usage: node test/bridge-sim.mjs <pairing-token> [port]');
-  console.error('the token is in Boring Notch -> Settings -> Media -> Browser Extension');
-  process.exit(2);
-}
+// The app authorises callers by their WebSocket Origin, and Node's WebSocket client does
+// not send one, so this simulator is refused by a stock build on purpose. To use it,
+// temporarily allow a test origin in BrowserBridgeHandshake.isAllowedOrigin.
 
 const state = {
   hasTrack: true,
@@ -44,7 +41,6 @@ ws.addEventListener('open', () => {
   console.log(`connected to 127.0.0.1:${port}`);
   send({
     type: 'hello',
-    token,
     client: 'bridge-sim',
     extensionId: 'bridge-sim',
     extensionVersion: '1.0.0',
@@ -68,9 +64,6 @@ ws.addEventListener('message', (event) => {
 
     case 'error':
       console.error(`rejected: ${msg.reason}`);
-      if (msg.reason === 'unauthorized') {
-        console.error('copy the current token from Boring Notch and try again');
-      }
       break;
 
     case 'command':

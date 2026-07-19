@@ -165,3 +165,24 @@ section {
   margin: 0;
   font-weight: 600;
 }
+
+.hint--lead {
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+details#advanced {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+details#advanced summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+a {
+  color: var(--accent);
+}

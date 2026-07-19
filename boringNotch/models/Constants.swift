@@ -333,11 +333,9 @@ extension Defaults.Keys {
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
 
     // MARK: Browser Bridge (YouTube Music web player)
+    // No shared secret: the bridge authorises callers by their WebSocket Origin, so the
+    // extension pairs itself with nothing for the user to configure.
     static let browserBridgePort = Key<Int>("browserBridgePort", default: Int(BrowserBridgeConfiguration.defaultPort))
-    // Empty until first use. Read it through `BrowserBridgePairing.token`, which mints and
-    // persists a value on demand — a random default here would be regenerated every launch
-    // and would silently break an already-paired extension.
-    static let browserBridgeToken = Key<String>("browserBridgeToken", default: "")
     
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)

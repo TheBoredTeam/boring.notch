@@ -43,15 +43,12 @@ final class YouTubeMusicPWAController: MediaControllerProtocol, @unchecked Senda
 
     // MARK: - Lifecycle
 
-    init(
-        port: UInt16 = UInt16(clamping: Defaults[.browserBridgePort]),
-        token: String = BrowserBridgePairing.token
-    ) {
+    init(port: UInt16 = UInt16(clamping: Defaults[.browserBridgePort])) {
         let configuration = BrowserBridgeConfiguration(
             port: port,
             clientTimeout: BrowserBridgeConfiguration.default.clientTimeout
         )
-        self.server = BrowserBridgeServer(configuration: configuration, token: token)
+        self.server = BrowserBridgeServer(configuration: configuration)
         self.liveness = server.livenessProbe
 
         Task { [weak self] in
@@ -112,6 +109,11 @@ final class YouTubeMusicPWAController: MediaControllerProtocol, @unchecked Senda
 
     func setFavorite(_ favorite: Bool) async {
         await server.send(.setFavorite, value: favorite ? 1 : 0)
+    }
+
+    /// Identifier of the connected extension, surfaced in Settings.
+    var connectedExtensionIdentifier: String? {
+        get async { await server.connectedExtensionIdentifier }
     }
 
     /// True while a browser extension is connected and sending keepalives.

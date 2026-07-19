@@ -62,7 +62,6 @@ struct BrowserBridgeTrackState: Decodable, Sendable {
 struct BrowserBridgeInboundMessage: Decodable, Sendable {
     let v: Int?
     let type: BrowserBridgeInboundType
-    let token: String?
     let client: String?
     let extensionId: String?
     let extensionVersion: String?

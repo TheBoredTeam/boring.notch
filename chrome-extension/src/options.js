@@ -1,10 +1,7 @@
 'use strict';
 
-const DEFAULT_PORT = 26539;
-
 const $ = (id) => document.getElementById(id);
 const form = $('form');
-const tokenInput = $('token');
 const portInput = $('port');
 const enabledInput = $('enabled');
 const statusEl = $('status');
@@ -27,7 +24,7 @@ function renderStatus(status) {
     text = status.error;
   } else if (status.connected) {
     classes.push('status--warn');
-    text = 'Connected — waiting for Boring Notch to accept the token…';
+    text = 'Connecting…';
   } else {
     classes.push('status--warn');
     text = 'Not connected. Is Boring Notch running with “YouTube Music (Browser)” selected?';
@@ -60,19 +57,18 @@ async function refresh() {
 }
 
 async function load() {
-  const stored = await chrome.storage.local.get(['port', 'token', 'enabled']);
-  tokenInput.value = stored.token || '';
-  portInput.value = Number(stored.port) || DEFAULT_PORT;
+  const stored = await chrome.storage.local.get(['port', 'enabled']);
+  portInput.value = stored.port ? String(stored.port) : '';
   enabledInput.checked = stored.enabled !== false;
   await refresh();
 }
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const port = Number(portInput.value) || DEFAULT_PORT;
+  const raw = portInput.value.trim();
   await chrome.storage.local.set({
-    token: tokenInput.value.trim(),
-    port,
+    // Blank means "discover it", so store 0 rather than a bogus port.
+    port: raw ? Number(raw) : 0,
     enabled: enabledInput.checked,
   });
   savedEl.hidden = false;

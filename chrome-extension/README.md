@@ -15,7 +15,7 @@ YouTube Music tab or PWA window
   ├── src/content.js   isolated       relays page <-> service worker
   └── src/background.js service worker WebSocket client, 20s keepalive
         │
-        │  ws://127.0.0.1:26539   loopback only, token authenticated
+        │  ws://127.0.0.1:26539   loopback only, Origin authorised
         ▼
   Boring Notch  (BrowserBridgeServer -> YouTubeMusicPWAController)
 ```
@@ -27,40 +27,73 @@ the "YouTube Music (Browser)" source is selected.
 ## Install
 
 1. In Boring Notch, open **Settings → Media** and set **Music Source** to
-   **YouTube Music (Browser)**. A **Browser Extension** section appears with a pairing
-   token — leave it open.
-2. Go to `chrome://extensions` and turn on **Developer mode**.
-3. Click **Load unpacked** and choose this `chrome-extension` folder.
-4. Open the extension's options (click its toolbar icon), paste the pairing token, and
-   press **Save**.
-5. Open `music.youtube.com` and play something. The status in both the extension options
-   and the Boring Notch settings pane should go green.
+   **YouTube Music (Browser)**.
+2. Install the extension.
+3. Open `music.youtube.com` and play something.
+
+That's it — there is nothing to pair, no token to copy, and no port to enter. The
+extension finds Boring Notch and authorises itself automatically (see
+[Security](#security)).
+
+Until the extension is on the Chrome Web Store, step 2 is: `chrome://extensions` →
+**Developer mode** on → **Load unpacked** → choose this `chrome-extension` folder.
 
 Works in any Chromium browser with MV3 support — Chrome, Brave, Edge, Arc, Vivaldi —
 including YouTube Music installed as a PWA/app window.
+
+> If a YouTube Music tab was already open when you installed the extension, reload it.
+> Content scripts are only injected into pages loaded after the extension.
+
+## Releasing
+
+```bash
+./package.sh          # -> dist/boringnotch-ytmusic-<version>.zip
+```
+
+Bump `version` in `manifest.json`, run the script, and upload the zip in the
+[Web Store developer console](https://chrome.google.com/webstore/devconsole). There is no
+build step and no dependencies — the reviewed source and the shipped source are identical.
+
+The app does not need to know the published extension ID: authorisation is by origin
+*scheme*, so a Web Store build, a locally loaded build, and a build in Brave or Edge all
+work without any configuration change.
 
 ## Permissions, and why each is needed
 
 | Permission | Why |
 |---|---|
-| `storage` | remembers the pairing token and port |
+| `storage` | remembers which port worked last, and the enable toggle |
 | `alarms` | revives the service worker if Chrome shuts it down mid-playback |
 | `https://music.youtube.com/*` | the only site the extension reads or controls |
 
 There is no `tabs` permission and no `<all_urls>`. The extension talks to exactly one
 host and one loopback port, and sends nothing anywhere else.
 
-## Security model
+## Security
 
-Loopback is reachable by any process on the machine — including any web page the user has
-open — so binding to `127.0.0.1` is not by itself an access control. What actually gates
-the bridge is a 128-bit token that Boring Notch generates and the user pastes in here.
+Loopback is reachable by every process on the machine — including any web page the user has
+open — so binding to `127.0.0.1` is not by itself an access control.
 
-- A connection that does not present the correct token in its `hello` is rejected and
-  closed, and never becomes the active client.
-- An unauthenticated connection cannot disconnect an already-paired extension.
-- Unauthenticated connections are capped so they cannot accumulate.
-- Regenerating the token in Boring Notch immediately invalidates the old pairing.
+What gates the bridge is the **`Origin` header of the WebSocket handshake**. The browser
+sets it and page script cannot override it:
+
+| Caller | `Origin` sent | Result |
+|---|---|---|
+| this extension | `chrome-extension://<id>` | accepted |
+| any website | `https://…` | **403 at the handshake** |
+| `curl`, a script | none | **403 at the handshake** |
+
+This is why there is no pairing token: the check that keeps websites out needs nothing from
+the user. It's also why the app speaks RFC 6455 itself rather than using
+`NWProtocolWebSocket`, whose server API does not expose the handshake headers.
+
+Additionally:
+
+- A connection that fails the origin check never becomes the active client, so it cannot
+  disconnect a working extension.
+- Unauthorised connections are capped so they cannot accumulate.
+- A native process on the machine could forge `Origin` — but it could already synthesise
+  media keys, so this grants it nothing it did not already have.
 
 ## Reading YouTube Music's state
 
@@ -88,7 +121,7 @@ Every message carries `v: 1`. JSON text frames.
 **Extension → Boring Notch**
 
 ```jsonc
-{ "v":1, "type":"hello", "token":"<pairing token>", "client":"chrome-extension",
+{ "v":1, "type":"hello", "client":"chrome-extension",
   "extensionId":"…", "extensionVersion":"1.0.0", "source":"youtube-music" }
 
 { "v":1, "type":"state", "state": {
@@ -119,28 +152,33 @@ not "zero".
 
 ## Testing without a browser
 
-`test/bridge-sim.mjs` impersonates the extension so the Boring Notch side can be
-exercised on its own. Node 22+, no dependencies:
+`test/bridge-sim.mjs` impersonates the extension so the Boring Notch side can be exercised
+on its own. Node 22+, no dependencies:
 
 ```bash
-node test/bridge-sim.mjs <pairing-token> [port]
+node test/bridge-sim.mjs [port]
 ```
 
-It connects, sends a fake now-playing state, and prints any commands the app sends back —
-so you can select the source in Boring Notch and click the notch controls to confirm they
-reach a client. Type `help` for the interactive commands.
+It sends a fake now-playing state and prints any commands the app sends back, so you can
+select the source in Boring Notch and click the notch controls to confirm they reach a
+client. Type `help` for interactive commands.
+
+Note that Node's WebSocket client sends no `Origin`, so a stock build refuses it by design.
+To use the simulator, temporarily allow a test origin in
+`BrowserBridgeHandshake.isAllowedOrigin`.
 
 ## Troubleshooting
 
 **Status stays "Not connected"** — Boring Notch must be running with **YouTube Music
 (Browser)** selected; the listener only exists while that source is active.
 
-**"Pairing token rejected"** — the token was regenerated in Boring Notch. Copy the current
-one and save again.
+**Nothing happens on a tab that was already open** — reload it. Content scripts are only
+injected into pages loaded after the extension.
 
 **Nothing updates after Chrome has been idle** — MV3 shuts service workers down after 30s
 idle. The 20s keepalive normally prevents this, and an alarm plus the next page event
 revives it. Reloading the YouTube Music tab always recovers.
 
-**Port already in use** — change the port in Boring Notch's settings and enter the same
-value here.
+**Port already in use** — the extension tries 26539, 26540 and 26541 in turn, so a single
+conflict resolves itself. If you set a non-standard port in Boring Notch, enter the same
+value under **Advanced** in the extension's options.

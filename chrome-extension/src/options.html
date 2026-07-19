@@ -15,42 +15,40 @@
         <span id="status-text">Checking…</span>
       </div>
 
-      <form id="form">
-        <label for="token">Pairing token</label>
-        <input
-          id="token"
-          name="token"
-          type="text"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder="Paste from Boring Notch → Settings → Media"
-        />
-        <p class="hint">
-          In Boring Notch, choose <strong>YouTube Music (Browser)</strong> as the music source, then copy the
-          pairing token shown underneath it.
-        </p>
-
-        <label for="port">Port</label>
-        <input id="port" name="port" type="number" min="1024" max="65535" />
-        <p class="hint">Only change this if you changed the port in Boring Notch. Default is 26539.</p>
-
-        <div class="row">
-          <input id="enabled" name="enabled" type="checkbox" />
-          <label for="enabled" class="inline">Enable the bridge</label>
-        </div>
-
-        <div class="actions">
-          <button type="submit" id="save">Save</button>
-          <button type="button" id="reconnect" class="secondary">Reconnect</button>
-        </div>
-        <p id="saved" class="saved" hidden>Saved.</p>
-      </form>
+      <p class="hint hint--lead">
+        There is nothing to set up. Make sure Boring Notch is running with
+        <strong>YouTube Music (Browser)</strong> selected as its music source, then open
+        <a href="https://music.youtube.com" target="_blank" rel="noreferrer">music.youtube.com</a>.
+      </p>
 
       <section id="now-playing" hidden>
         <h2>Now playing</h2>
         <p id="np-title"></p>
         <p id="np-artist" class="sub"></p>
       </section>
+
+      <details id="advanced">
+        <summary>Advanced</summary>
+        <form id="form">
+          <div class="row">
+            <input id="enabled" name="enabled" type="checkbox" />
+            <label for="enabled" class="inline">Enable the bridge</label>
+          </div>
+
+          <label for="port">Port override</label>
+          <input id="port" name="port" type="number" min="1024" max="65535" placeholder="Automatic" />
+          <p class="hint">
+            Leave blank unless you changed the port in Boring Notch. The extension finds the
+            port on its own.
+          </p>
+
+          <div class="actions">
+            <button type="submit" id="save">Save</button>
+            <button type="button" id="reconnect" class="secondary">Reconnect</button>
+          </div>
+          <p id="saved" class="saved" hidden>Saved.</p>
+        </form>
+      </details>
     </main>
     <script src="options.js"></script>
   </body>

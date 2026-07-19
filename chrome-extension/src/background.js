@@ -12,6 +12,9 @@
 
 const PROTOCOL_VERSION = 1;
 const DEFAULT_PORT = 26539;
+// Boring Notch falls back to these if the default port is taken, so try each in turn
+// rather than making the user find and type a number.
+const CANDIDATE_PORTS = [26539, 26540, 26541];
 const KEEPALIVE_MS = 20_000;
 const ALARM_NAME = 'bn-bridge-keepalive';
 const RECONNECT_MIN_MS = 1_000;
@@ -22,18 +25,27 @@ let keepaliveTimer = null;
 let reconnectTimer = null;
 let reconnectDelay = RECONNECT_MIN_MS;
 let lastTabId = null;
+let portIndex = 0;
 let lastState = null;
 let status = { connected: false, authenticated: false, error: null };
 
 // ---------------------------------------------------------------- config
 
 async function getConfig() {
-  const stored = await chrome.storage.local.get(['port', 'token', 'enabled']);
+  const stored = await chrome.storage.local.get(['port', 'enabled', 'lastGoodPort']);
   return {
-    port: Number(stored.port) || DEFAULT_PORT,
-    token: typeof stored.token === 'string' ? stored.token.trim() : '',
+    // An explicit port always wins; otherwise start from whichever port worked last.
+    port: Number(stored.port) || 0,
+    lastGoodPort: Number(stored.lastGoodPort) || 0,
     enabled: stored.enabled !== false,
   };
+}
+
+/** Ports to try, most-likely first, without repeats. */
+function portsToTry({ port, lastGoodPort }) {
+  if (port) return [port];
+  const ordered = [lastGoodPort, ...CANDIDATE_PORTS].filter(Boolean);
+  return [...new Set(ordered)];
 }
 
 async function setStatus(patch) {
@@ -87,18 +99,10 @@ function scheduleReconnect() {
 }
 
 async function connect() {
-  const { port, token, enabled } = await getConfig();
+  const config = await getConfig();
 
-  if (!enabled) {
+  if (!config.enabled) {
     await setStatus({ connected: false, authenticated: false, error: null });
-    return;
-  }
-  if (!token) {
-    await setStatus({
-      connected: false,
-      authenticated: false,
-      error: 'No pairing token set. Open the extension options and paste the token from Boring Notch.',
-    });
     return;
   }
   if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
@@ -107,11 +111,15 @@ async function connect() {
 
   clearTimers();
 
+  const candidates = portsToTry(config);
+  const port = candidates[portIndex % candidates.length];
+
   let ws;
   try {
     ws = new WebSocket(`ws://127.0.0.1:${port}`);
   } catch (err) {
     await setStatus({ connected: false, authenticated: false, error: String(err) });
+    portIndex += 1;
     scheduleReconnect();
     return;
   }
@@ -120,11 +128,12 @@ async function connect() {
   ws.addEventListener('open', async () => {
     if (socket !== ws) return;
     reconnectDelay = RECONNECT_MIN_MS;
+    portIndex = 0;
+    await chrome.storage.local.set({ lastGoodPort: port });
     await setStatus({ connected: true, authenticated: false, error: null });
 
     send({
       type: 'hello',
-      token,
       client: 'chrome-extension',
       extensionId: chrome.runtime.id,
       extensionVersion: chrome.runtime.getManifest().version,
@@ -164,7 +173,7 @@ async function connect() {
         await setStatus({
           connected: true,
           authenticated: false,
-          error: msg.reason === 'unauthorized' ? 'Pairing token rejected by Boring Notch.' : String(msg.reason || 'error'),
+          error: String(msg.reason || 'error'),
         });
         break;
       default:
@@ -176,6 +185,8 @@ async function connect() {
     if (socket !== ws) return;
     socket = null;
     clearTimers();
+    // Nothing here? Try the next candidate port on the following attempt.
+    if (!status.authenticated) portIndex += 1;
     await setStatus({ connected: false, authenticated: false });
     scheduleReconnect();
   });
@@ -183,7 +194,7 @@ async function connect() {
   ws.addEventListener('error', () => {
     // 'close' always follows; reconnect is handled there.
     if (socket !== ws) return;
-    void setStatus({ error: `Could not reach Boring Notch on 127.0.0.1:${port}.` });
+    void setStatus({ error: 'Boring Notch is not reachable. Is it running with “YouTube Music (Browser)” selected?' });
   });
 }
 
@@ -291,7 +302,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
-  if (changes.port || changes.token || changes.enabled) {
+  if (changes.port || changes.enabled) {
     disconnect();
     reconnectDelay = RECONNECT_MIN_MS;
     void connect();

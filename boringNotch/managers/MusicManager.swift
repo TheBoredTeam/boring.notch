@@ -34,6 +34,15 @@ class MusicManager: ObservableObject {
         activeController?.isActive() ?? false
     }
 
+    /// Identifier of the browser extension driving playback, when that is the active
+    /// source. Nil for every other source.
+    var connectedBrowserExtensionIdentifier: String? {
+        get async {
+            guard let controller = activeController as? YouTubeMusicPWAController else { return nil }
+            return await controller.connectedExtensionIdentifier
+        }
+    }
+
     // Published properties for UI
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
