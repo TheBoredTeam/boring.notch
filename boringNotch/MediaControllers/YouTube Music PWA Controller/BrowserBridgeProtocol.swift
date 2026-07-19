@@ -6,9 +6,7 @@
 //  the YouTube Music web player. Both ends must agree on `browserBridgeProtocolVersion`.
 //
 
-import Defaults
 import Foundation
-import Security
 
 /// Bumped only on a breaking change to the message shapes below.
 let browserBridgeProtocolVersion = 1
@@ -26,39 +24,6 @@ struct BrowserBridgeConfiguration: Sendable {
         port: defaultPort,
         clientTimeout: 45
     )
-}
-
-// MARK: - Pairing
-
-/// The shared secret that authorises a browser extension.
-///
-/// The listener is bound to loopback, but loopback is still reachable by any local
-/// process — including any web page the user has open — so possession of this token is
-/// what actually grants control. It is minted once and then persisted, because
-/// regenerating it would silently unpair an already-configured extension.
-enum BrowserBridgePairing {
-    static var token: String {
-        let existing = Defaults[.browserBridgeToken]
-        if !existing.isEmpty { return existing }
-        let fresh = generateToken()
-        Defaults[.browserBridgeToken] = fresh
-        return fresh
-    }
-
-    @discardableResult
-    static func regenerateToken() -> String {
-        let fresh = generateToken()
-        Defaults[.browserBridgeToken] = fresh
-        return fresh
-    }
-
-    private static func generateToken() -> String {
-        var bytes = [UInt8](repeating: 0, count: 16)
-        if SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) != errSecSuccess {
-            bytes = (0..<16).map { _ in UInt8.random(in: UInt8.min...UInt8.max) }
-        }
-        return bytes.map { String(format: "%02x", $0) }.joined()
-    }
 }
 
 // MARK: - Extension -> App

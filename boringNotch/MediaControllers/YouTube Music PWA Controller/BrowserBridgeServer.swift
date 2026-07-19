@@ -38,7 +38,14 @@ actor BrowserBridgeServer {
     private let configuration: BrowserBridgeConfiguration
     private let token: String
     private var listener: NWListener?
+    /// The authenticated client, if any.
     private var client: ClientConnection?
+    /// Connections that have arrived but not yet proved they know the token. They are
+    /// kept separate so an unauthenticated peer cannot displace a working extension.
+    private var pending: [ClientConnection] = []
+
+    /// Bounds how many unauthenticated sockets we will hold open at once.
+    private static let maxPendingConnections = 8
 
     private let queue = DispatchQueue(label: "boringnotch.browserbridge", qos: .userInitiated)
     private static let logger = Logger(subsystem: "theboringteam.boringnotch", category: "BrowserBridge")
@@ -135,19 +142,22 @@ actor BrowserBridgeServer {
     // MARK: - Client handling
 
     private func accept(_ connection: NWConnection) {
-        // One browser at a time; a new connection replaces the old one so that reloading
-        // the extension doesn't leave a dead socket holding the slot.
-        disconnectClient()
+        // Arrivals start out unauthenticated. Crucially they do NOT displace the current
+        // client yet — otherwise any local process could kick the real extension off
+        // simply by opening a socket.
+        let incoming = ClientConnection(connection: connection)
 
-        let newClient = ClientConnection(connection: connection)
-        client = newClient
+        if pending.count >= Self.maxPendingConnections, let oldest = pending.first {
+            close(oldest)
+        }
+        pending.append(incoming)
 
         connection.stateUpdateHandler = { [weak self] state in
             switch state {
             case .ready:
-                Task { await self?.receive(on: newClient) }
+                Task { await self?.receive(on: incoming) }
             case .failed, .cancelled:
-                Task { await self?.handleDisconnect(of: newClient) }
+                Task { await self?.handleDisconnect(of: incoming) }
             default:
                 break
             }
@@ -156,15 +166,39 @@ actor BrowserBridgeServer {
         connection.start(queue: queue)
     }
 
+    /// Tears a connection down without reporting it as a client disconnect.
+    private func close(_ connection: ClientConnection) {
+        connection.suppressDisconnectCallback = true
+        connection.connection.stateUpdateHandler = nil
+        connection.connection.cancel()
+        pending.removeAll { $0 === connection }
+        if client === connection { client = nil }
+    }
+
     private func disconnectClient() {
-        guard let current = client else { return }
-        current.suppressDisconnectCallback = true
-        current.connection.stateUpdateHandler = nil
-        current.connection.cancel()
-        if client === current { client = nil }
+        if let current = client { close(current) }
+        for connection in pending { close(connection) }
+        pending.removeAll()
+    }
+
+    /// Called once a connection presents the right token. Only here does it become the
+    /// active client, replacing whatever was there before.
+    private func promote(_ connection: ClientConnection) {
+        pending.removeAll { $0 === connection }
+
+        if let previous = client, previous !== connection {
+            close(previous)
+        }
+
+        connection.isAuthenticated = true
+        client = connection
+        liveness.markAlive()
     }
 
     private func handleDisconnect(of connection: ClientConnection) {
+        pending.removeAll { $0 === connection }
+
+        // A pending connection dropping is not a client disconnect.
         guard client === connection else { return }
         client = nil
         liveness.clear()
@@ -173,8 +207,12 @@ actor BrowserBridgeServer {
         }
     }
 
+    private func isKnown(_ connection: ClientConnection) -> Bool {
+        client === connection || pending.contains { $0 === connection }
+    }
+
     private func receive(on connection: ClientConnection) {
-        guard client === connection else { return }
+        guard isKnown(connection) else { return }
 
         connection.connection.receiveMessage { [weak self] data, context, _, error in
             guard let self else { return }
@@ -201,7 +239,7 @@ actor BrowserBridgeServer {
     }
 
     private func handle(_ data: Data, from connection: ClientConnection) {
-        guard client === connection else { return }
+        guard isKnown(connection) else { return }
 
         guard let message = try? decoder.decode(BrowserBridgeInboundMessage.self, from: data) else {
             Self.logger.debug("Browser bridge received an undecodable message")
@@ -210,43 +248,41 @@ actor BrowserBridgeServer {
 
         switch message.type {
         case .hello:
-            // Constant-time-ish comparison isn't warranted here (a local attacker has far
-            // better options), but an exact match is required.
+            // An exact match is required. Constant-time comparison isn't warranted: a
+            // local attacker able to time this already has far better options.
             guard let provided = message.token, !provided.isEmpty, provided == token else {
                 Self.logger.error("Browser bridge rejected a client with an invalid token")
                 send(.error("unauthorized"), on: connection)
-                // Give the frame a moment to flush before tearing the socket down.
+                // Let the frame flush, then drop it. The active client is untouched.
                 queue.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-                    Task { await self?.forceDisconnect(connection) }
+                    Task { await self?.close(connection) }
                 }
                 return
             }
-            connection.isAuthenticated = true
-            liveness.markAlive()
+            promote(connection)
             Self.logger.info("Browser bridge client authenticated")
             send(.welcome(), on: connection)
             onConnectionChange?(true)
 
         case .ping:
-            guard connection.isAuthenticated else { return }
+            guard connection.isAuthenticated, client === connection else { return }
             liveness.markAlive()
             send(.pong(), on: connection)
 
         case .state:
-            guard connection.isAuthenticated, let state = message.state else { return }
+            guard connection.isAuthenticated, client === connection,
+                  let state = message.state else { return }
             liveness.markAlive()
             onState?(state)
 
         case .bye:
-            forceDisconnect(connection)
+            let wasClient = client === connection
+            close(connection)
+            if wasClient {
+                liveness.clear()
+                onConnectionChange?(false)
+            }
         }
-    }
-
-    private func forceDisconnect(_ connection: ClientConnection) {
-        guard client === connection else { return }
-        disconnectClient()
-        liveness.clear()
-        onConnectionChange?(false)
     }
 
     // MARK: - Sending
