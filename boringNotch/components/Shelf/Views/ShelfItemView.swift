@@ -245,7 +245,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             var draggingItems: [NSDraggingItem] = []
 
             for dragItem in itemsToDrag {
-                if let pasteboardWriter = createPasteboardItem(for: dragItem) {
+                if let pasteboardWriter = pasteboardWriter(for: dragItem) {
                     let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardWriter)
 
                     // Use the drag preview image - generated on demand
@@ -267,7 +267,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             beginDraggingSession(with: draggingItems, event: event, source: self)
         }
         
-        private func createPasteboardItem(for item: ShelfItem) -> NSPasteboardWriting? {
+        private func pasteboardWriter(for item: ShelfItem) -> (any NSPasteboardWriting)? {
             switch item.kind {
             case .file:
                 guard let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) else {
@@ -282,9 +282,6 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
                     NSLog("🔐 Started security-scoped access for drag: \(url.path)")
                 }
 
-                // Write the URL object itself (not a string) so file-aware receivers,
-                // such as WhatsApp, see a real file promise instead of falling back
-                // to the plain-text path.
                 return url as NSURL
 
             case .text(let string):
