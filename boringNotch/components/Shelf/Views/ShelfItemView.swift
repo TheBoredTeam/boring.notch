@@ -245,8 +245,8 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             var draggingItems: [NSDraggingItem] = []
 
             for dragItem in itemsToDrag {
-                if let pasteboardItem = createPasteboardItem(for: dragItem) {
-                    let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardItem)
+                if let pasteboardWriter = createPasteboardItem(for: dragItem) {
+                    let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardWriter)
 
                     // Use the drag preview image - generated on demand
                     let image = getDragPreview?() ?? dragItem.icon
@@ -267,31 +267,33 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             beginDraggingSession(with: draggingItems, event: event, source: self)
         }
         
-        private func createPasteboardItem(for item: ShelfItem) -> NSPasteboardItem? {
-            let pasteboardItem = NSPasteboardItem()
-
+        private func createPasteboardItem(for item: ShelfItem) -> NSPasteboardWriting? {
             switch item.kind {
             case .file:
                 guard let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) else {
-                    pasteboardItem.setString(item.displayName, forType: .string)
-                    return pasteboardItem
+                    let fallback = NSPasteboardItem()
+                    fallback.setString(item.displayName, forType: .string)
+                    return fallback
                 }
-                
+
                 // Start accessing security-scoped resource and keep it active during drag
                 if url.startAccessingSecurityScopedResource() {
                     draggedURLs.append(url)
                     NSLog("🔐 Started security-scoped access for drag: \(url.path)")
                 }
-                
-                pasteboardItem.setString(url.absoluteString, forType: .fileURL)
-                pasteboardItem.setString(url.path, forType: .string)
-                return pasteboardItem
+
+                // Write the URL object itself (not a string) so file-aware receivers,
+                // such as WhatsApp, see a real file promise instead of falling back
+                // to the plain-text path.
+                return url as NSURL
 
             case .text(let string):
+                let pasteboardItem = NSPasteboardItem()
                 pasteboardItem.setString(string, forType: .string)
                 return pasteboardItem
 
             case .link(let url):
+                let pasteboardItem = NSPasteboardItem()
                 pasteboardItem.setString(url.absoluteString, forType: .URL)
                 pasteboardItem.setString(url.absoluteString, forType: .string)
                 return pasteboardItem
