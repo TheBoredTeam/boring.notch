@@ -16,7 +16,11 @@ struct BoringHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if NotchTabBar.shouldShowTabBar(
+                    boringShelf: Defaults[.boringShelf],
+                    shelfHasItems: !tvm.isEmpty,
+                    alwaysShowTabs: coordinator.alwaysShowTabs
+                ) {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -47,6 +51,27 @@ struct BoringHeader: View {
                         )
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
+                        if Defaults[.showPomodoroPanel] {
+                            Button(action: {
+                                withAnimation(.smooth) {
+                                    coordinator.showPomodoroInHome.toggle()
+                                    if coordinator.currentView != .home {
+                                        coordinator.currentView = .home
+                                    }
+                                }
+                            }) {
+                                Capsule()
+                                    .fill(.black)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: "timer")
+                                            .foregroundColor(.white)
+                                            .padding()
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
                         if Defaults[.showMirror] {
                             Button(action: {
                                 vm.toggleCameraPreview()

@@ -424,29 +424,50 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var pomodoroTimer = PomodoroTimerViewModel.shared
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
 
     var body: some View {
-        mainContent
-            // simplified: use a straightforward opacity transition
-            .transition(.opacity)
+        Group {
+            if !coordinator.firstLaunch {
+                mainContent
+            }
+        }
+        .transition(.opacity)
     }
 
     private var shouldShowCamera: Bool {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
+    private var shouldShowRightPanel: Bool {
+        showPomodoroWidget || Defaults[.showCalendar]
+    }
+
+    private var showPomodoroWidget: Bool {
+        pomodoroTimer.shouldShowPanelInHome(
+            panelEnabled: Defaults[.showPomodoroPanel],
+            isSelectedInHome: coordinator.showPomodoroInHome
+        )
+    }
+
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+        HStack(alignment: .top, spacing: (shouldShowCamera && shouldShowRightPanel) ? 10 : 15) {
             MusicPlayerView(
                 albumArtNamespace: albumArtNamespace,
                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                 isHoveringMusicArea: $isHoveringMusicArea
             )
 
-            if Defaults[.showCalendar] {
+
+            if showPomodoroWidget {
+                PomodoroPanelView()
+                    .frame(width: shouldShowCamera ? 170 : 215, height: 130)
+                    .environmentObject(vm)
+                    .transition(.opacity)
+            } else if Defaults[.showCalendar] {
                 CalendarView()
                     .frame(width: shouldShowCamera ? 170 : 215)
                     .onHover { isHovering in

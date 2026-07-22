@@ -84,6 +84,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
     private var observers: [Any] = []
+    private var workspaceObservers: [Any] = []
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -112,6 +113,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         observers.forEach { NotificationCenter.default.removeObserver($0) }
         observers.removeAll()
+        workspaceObservers.forEach { NSWorkspace.shared.notificationCenter.removeObserver($0) }
+        workspaceObservers.removeAll()
     }
 
     @MainActor
@@ -319,6 +322,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
+
+        let workspaceNC = NSWorkspace.shared.notificationCenter
+        workspaceObservers.append(workspaceNC.addObserver(
+            forName: NSWorkspace.willSleepNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in
+                PomodoroTimerViewModel.shared.pause()
+            }
+        })
+        workspaceObservers.append(workspaceNC.addObserver(
+            forName: NSWorkspace.screensDidSleepNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in
+                PomodoroTimerViewModel.shared.pause()
+            }
+        })
 
         observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.selectedScreenChanged, object: nil, queue: nil
