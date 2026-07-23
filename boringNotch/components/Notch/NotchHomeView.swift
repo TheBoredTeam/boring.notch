@@ -23,7 +23,6 @@ struct MusicPlayerView: View {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5 * (vm.notchSize.height / 190))
             MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback)
                 .drawingGroup()
-                .compositingGroup()
         }
         .contentShape(Rectangle())
         .onHover { hovering in
@@ -158,7 +157,12 @@ struct MusicControlsView: View {
             )
             .fontWeight(.medium)
             if Defaults[.enableLyrics] {
-                TimelineView(.animation(minimumInterval: 0.25)) { timeline in
+                TimelineView(
+                    .animation(
+                        minimumInterval: 0.25,
+                        paused: musicManager.playbackRate <= 0
+                    )
+                ) { timeline in
                     let currentElapsed: Double = {
                         guard musicManager.isPlaying else { return musicManager.elapsedTime }
                         let delta = timeline.date.timeIntervalSince(musicManager.timestampDate)
@@ -202,7 +206,12 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+        TimelineView(
+            .animation(
+                minimumInterval: 0.1,
+                paused: musicManager.playbackRate <= 0
+            )
+        ) { timeline in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
@@ -212,8 +221,7 @@ struct MusicControlsView: View {
                 currentDate: timeline.date,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
-                playbackRate: musicManager.playbackRate,
-                isPlaying: musicManager.isPlaying
+                playbackUpdatesPaused: musicManager.playbackRate <= 0
             ) { newValue in
                 MusicManager.shared.seek(to: newValue)
             }
@@ -422,8 +430,6 @@ struct VolumeControlView: View {
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager = WebcamManager.shared
-    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
@@ -477,8 +483,7 @@ struct MusicSliderView: View {
     let currentDate: Date
     let timestampDate: Date
     let elapsedTime: Double
-    let playbackRate: Double
-    let isPlaying: Bool
+    let playbackUpdatesPaused: Bool
     var onValueChange: (Double) -> Void
 
 
@@ -508,10 +513,18 @@ struct MusicSliderView: View {
             )
             .font(.caption)
         }
-        .onChange(of: currentDate) {
-           guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
-            sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: currentDate)
+        .onChange(of: currentDate, initial: true) { _, date in
+            updateSlider(at: date)
         }
+        .onChange(of: elapsedTime) { _, _ in
+            guard playbackUpdatesPaused else { return }
+            updateSlider(at: currentDate)
+        }
+    }
+
+    private func updateSlider(at date: Date) {
+        guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
+        sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: date)
     }
 
     func timeString(from seconds: Double) -> String {
