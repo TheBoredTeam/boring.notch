@@ -3,6 +3,7 @@
 //  boringNotch
 //
 
+import AppKit
 import Defaults
 import SwiftUI
 
@@ -179,7 +180,10 @@ struct PomodoroSettingsView: View {
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(.secondary)
                             .frame(width: 145, alignment: .leading)
-                        TextField("", value: $longBreakInterval, formatter: NumberFormatter())
+                        TextField("", value: Binding(
+                            get: { max(1, longBreakInterval) },
+                            set: { longBreakInterval = max(1, $0) }
+                        ), formatter: NumberFormatter())
                             .labelsHidden()
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 60)
@@ -194,7 +198,10 @@ struct PomodoroSettingsView: View {
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(.secondary)
                             .frame(width: 145, alignment: .leading)
-                        TextField("", value: $targetSessions, formatter: NumberFormatter())
+                        TextField("", value: Binding(
+                            get: { max(1, targetSessions) },
+                            set: { targetSessions = max(1, $0) }
+                        ), formatter: NumberFormatter())
                             .labelsHidden()
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 60)

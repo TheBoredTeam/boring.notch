@@ -212,7 +212,7 @@ public class PomodoroManager: NSObject, ObservableObject, UNUserNotificationCent
     }
 
     private func advanceToNextPhase(didCompleteCurrent: Bool) {
-        let longBreakInterval = Defaults[.pomodoroLongBreakInterval]
+        let longBreakInterval = max(1, Defaults[.pomodoroLongBreakInterval])
 
         if phase == .work {
             if completedSessionsCount > 0 && (completedSessionsCount % longBreakInterval == 0) {
@@ -248,7 +248,6 @@ public class PomodoroManager: NSObject, ObservableObject, UNUserNotificationCent
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
-        content.sound = UNNotificationSound.default
 
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
@@ -266,6 +265,6 @@ public class PomodoroManager: NSObject, ObservableObject, UNUserNotificationCent
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         // Force notifications to show as visual banner alerts even if app is focused
-        completionHandler([.banner, .sound])
+        completionHandler([.banner])
     }
 }
