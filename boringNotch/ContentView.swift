@@ -7,6 +7,7 @@
 //
 
 import AVFoundation
+import AppKit
 import Combine
 import Defaults
 import KeyboardShortcuts
@@ -20,9 +21,9 @@ struct ContentView: View {
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
-    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -44,76 +45,144 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
-    // MARK: - Corner Radius Scaling
-    private var cornerRadiusScaleFactor: CGFloat? {
-        guard Defaults[.cornerRadiusScaling] else { return nil }
-        let effectiveHeight = displayClosedNotchHeight
-        guard effectiveHeight > 0 else { return nil }
-        return effectiveHeight / 38.0
-    }
-    
-    private var topCornerRadius: CGFloat {
-        // If the notch is open, return the opened radius.
-        if vm.notchState == .open {
-            return cornerRadiusInsets.opened.top
-        }
+    private func topCornerRadius(for snapshot: ClosedNotchRenderSnapshot?) -> CGFloat {
+        guard let snapshot else { return cornerRadiusInsets.opened.top }
 
-        // For the closed notch, scale if enabled
         let baseClosedTop = cornerRadiusInsets.closed.top
-        guard let scaleFactor = cornerRadiusScaleFactor else {
-            return displayClosedNotchHeight > 0 ? baseClosedTop : 0
+        guard let scaleFactor = snapshot.cornerRadiusScaleFactor else {
+            return snapshot.displayHeight > 0 ? baseClosedTop : 0
         }
         return max(0, baseClosedTop * scaleFactor)
     }
 
-    private var currentNotchShape: NotchShape {
-        // Scale bottom corner radius for closed notch shape when scaling is enabled.
+    private func currentNotchShape(for snapshot: ClosedNotchRenderSnapshot?) -> NotchShape {
+        guard let snapshot else {
+            return NotchShape(
+                topCornerRadius: cornerRadiusInsets.opened.top,
+                bottomCornerRadius: cornerRadiusInsets.opened.bottom
+            )
+        }
+
         let baseClosedBottom = cornerRadiusInsets.closed.bottom
         let bottomCorner: CGFloat
 
-        if vm.notchState == .open {
-            bottomCorner = cornerRadiusInsets.opened.bottom
-        } else if let scaleFactor = cornerRadiusScaleFactor {
+        if let scaleFactor = snapshot.cornerRadiusScaleFactor {
             bottomCorner = max(0, baseClosedBottom * scaleFactor)
         } else {
-            bottomCorner = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
+            bottomCorner = snapshot.displayHeight > 0 ? baseClosedBottom : 0
         }
 
         return NotchShape(
-            topCornerRadius: topCornerRadius,
+            topCornerRadius: topCornerRadius(for: snapshot),
             bottomCornerRadius: bottomCorner
         )
-    }
-
-    private var computedChinWidth: CGFloat {
-        var chinWidth: CGFloat = vm.closedNotchSize.width
-
-        if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-        {
-            chinWidth = 640
-        } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-            && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
-            && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
-        }
-
-        return chinWidth
     }
 
     // If the closed notch height is 0 (any display/setting), display a 10pt nearly-invisible notch
     // instead of fully hiding it. This preserves layout while avoiding visual artifacts.
     private var isNotchHeightZero: Bool { vm.effectiveClosedNotchHeight == 0 }
+    private var displayClosedNotchHeight: CGFloat {
+        isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight
+    }
 
-    private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
+    private func makeClosedNotchSnapshot() -> ClosedNotchRenderSnapshot {
+        let displayHeight = displayClosedNotchHeight
+        let cornerScale: CGFloat? = Defaults[.cornerRadiusScaling] && displayHeight > 0
+            ? displayHeight / 38
+            : nil
+        let albumArtWidth = max(0, displayHeight - 12 * (cornerScale ?? 1))
+        let spectrumWidth = max(0, displayHeight - 12 + gestureProgress / 2)
+        let sneakPeek = coordinator.sneakPeekState(for: vm.screenUUID)
+        let sneakPeekVisible = coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+        let renderData = ClosedNotchRenderData(
+            music: .init(
+                albumArt: musicManager.albumArt,
+                title: musicManager.songTitle,
+                artist: musicManager.artistName,
+                tintColor: musicManager.avgColor,
+                isPlaying: musicManager.isPlaying
+            ),
+            battery: .init(
+                statusTextKey: batteryModel.statusTextKey,
+                level: batteryModel.levelBattery,
+                isCharging: batteryModel.isCharging,
+                isInLowPowerMode: batteryModel.isInLowPowerMode,
+                isPluggedIn: batteryModel.isPluggedIn,
+                maxAdapterWatts: batteryModel.maxAdapterWatts
+            ),
+            osd: coordinator.binding(for: vm.screenUUID)
+        )
+        let musicExpanded = coordinator.expandingView.show
+            && coordinator.expandingView.type == .music
+            && Defaults[.sneakPeekStyles] == .inline
+        let inlineSideWidth = max(0, 100 - (isHovering ? 0 : 12) + gestureProgress / 2)
+        let faceTrailingWidth = 20 + 30 * min(1, displayHeight / 30)
+        let batteryNotificationVisible = coordinator.expandingView.type == .battery
+            && coordinator.expandingView.show
+            && Defaults[.showPowerStatusNotifications]
+
+        let supplemental: ClosedNotchSupplementalPresentation?
+        if sneakPeekVisible,
+           sneakPeek.type != .music,
+           sneakPeek.type != .battery,
+           !Defaults[.inlineOSD] {
+            supplemental = .systemOSD
+        } else if sneakPeekVisible,
+                  sneakPeek.type == .music,
+                  !vm.hideOnClosed,
+                  Defaults[.sneakPeekStyles] == .standard {
+            supplemental = .music
+        } else {
+            supplemental = nil
+        }
+
+        let presentationInput = ClosedNotchPresentationInput(
+            closedNotchWidth: vm.closedNotchSize.width,
+            height: displayHeight,
+            idleHeight: vm.hasNotch ? displayHeight : 11,
+            inlineOSDHeight: displayHeight + (isHovering ? 8 : 0),
+            inlineSideWidth: inlineSideWidth,
+            albumArtWidth: albumArtWidth,
+            spectrumWidth: spectrumWidth,
+            expandedMusicCenterWidth: 380,
+            idleFaceTrailingWidth: faceTrailingWidth,
+            batteryLeadingWidth: batteryNotificationVisible
+                ? renderData.battery.leadingWidth
+                : 0,
+            batteryNotificationVisible: batteryNotificationVisible,
+            inlineOSDVisible: sneakPeekVisible
+                && Defaults[.inlineOSD]
+                && sneakPeek.type != .music
+                && sneakPeek.type != .battery,
+            musicVisible: (!coordinator.expandingView.show
+                || coordinator.expandingView.type == .music)
+                && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+                && coordinator.musicLiveActivityEnabled
+                && !vm.hideOnClosed,
+            idleFaceVisible: !coordinator.expandingView.show
+                && !musicManager.isPlaying
+                && musicManager.isPlayerIdle
+                && Defaults[.showNotHumanFace]
+                && !vm.hideOnClosed,
+            musicExpanded: musicExpanded,
+            supplemental: supplemental
+        )
+
+        return ClosedNotchRenderSnapshot(
+            presentationInput: presentationInput,
+            renderData: renderData,
+            displayHeight: displayHeight,
+            cornerRadiusScaleFactor: cornerScale,
+            albumArtWidth: albumArtWidth,
+            spectrumWidth: spectrumWidth
+        )
+    }
 
     var body: some View {
+        let closedSnapshot: ClosedNotchRenderSnapshot? = vm.notchState == .closed
+            ? makeClosedNotchSnapshot()
+            : nil
+
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
             guard gestureProgress != 0 else { return 1.0 }
@@ -123,21 +192,22 @@ struct ContentView: View {
         
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                let mainLayout = NotchLayout()
+                let mainLayout = NotchLayout(closedSnapshot: closedSnapshot)
                     .frame(alignment: .top)
                     .padding(
                         .horizontal,
-                        vm.notchState == .open ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
+                        closedSnapshot?.presentation.metrics.horizontalChromeInset
+                            ?? cornerRadiusInsets.opened.top
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                     .background(.black)
-                    .clipShape(currentNotchShape)
+                    .clipShape(currentNotchShape(for: closedSnapshot))
                           .overlay(alignment: .top) {
-                              displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
+                              closedSnapshot?.displayHeight.isZero == true ? nil
                         : Rectangle()
                             .fill(.black)
                             .frame(height: 1)
-                            .padding(.horizontal, topCornerRadius)
+                            .padding(.horizontal, topCornerRadius(for: closedSnapshot))
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
@@ -233,7 +303,11 @@ struct ContentView: View {
                 if vm.chinHeight > 0 {
                     Rectangle()
                         .fill(Color.black.opacity(0.01))
-                        .frame(width: computedChinWidth, height: vm.chinHeight)
+                        .frame(
+                            width: closedSnapshot?.presentation.metrics.totalWidth
+                                ?? vm.closedNotchSize.width,
+                            height: vm.chinHeight
+                        )
                 }
             }
         }
@@ -280,7 +354,7 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    func NotchLayout() -> some View {
+    func NotchLayout(closedSnapshot: ClosedNotchRenderSnapshot?) -> some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
                 if coordinator.helloAnimationRunning {
@@ -294,249 +368,34 @@ struct ContentView: View {
                     .padding(.top, 40)
                     Spacer()
                 } else {
-                    if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-                        && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-                    {
-                        HStack(spacing: 0) {
-                            HStack {
-                                Text(batteryModel.statusText)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.white)
-                            }
-
-                            Rectangle()
-                                .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 10)
-
-                            HStack {
-                                BoringBatteryView(
-                                    batteryWidth: 30,
-                                    isCharging: batteryModel.isCharging,
-                                    isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                    isPluggedIn: batteryModel.isPluggedIn,
-                                    levelBattery: batteryModel.levelBattery,
-                                    maxAdapterWatts: batteryModel.maxAdapterWatts,
-                                    isForNotification: true
-                                )
-                            }
-                            .frame(width: 76, alignment: .trailing)
-                        }
-                        .frame(height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
-                          InlineOSD(
-                              type: coordinator.binding(for: vm.screenUUID).type,
-                              value: coordinator.binding(for: vm.screenUUID).value,
-                              icon: coordinator.binding(for: vm.screenUUID).icon,
-                              accent: coordinator.binding(for: vm.screenUUID).accent,
-                              hoverAnimation: $isHovering,
-                              gestureProgress: $gestureProgress
-                          )
-                              .transition(.opacity)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          MusicLiveActivity()
-                              .frame(alignment: .center)
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
-                          BoringFaceAnimation()
-                       } else if vm.notchState == .open {
-                           BoringHeader()
-                               .frame(height: max(24, displayClosedNotchHeight))
-                               .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
-                       }
-                        // New case to enable compact notch on external displays
-                        else if !vm.hasNotch {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
-                       } else {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
-                       }
-
-                      if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
-                              SystemEventIndicatorModifier(
-                                  eventType: coordinator.binding(for: vm.screenUUID).type,
-                                  value: coordinator.binding(for: vm.screenUUID).value,
-                                  icon: coordinator.binding(for: vm.screenUUID).icon,
-                                  accent: coordinator.binding(for: vm.screenUUID).accent,
-                                  sendEventBack: { newVal in
-                                      switch coordinator.sneakPeekState(for: vm.screenUUID).type {
-                                      case .volume:
-                                          VolumeManager.shared.setAbsolute(Float32(newVal))
-                                      case .brightness:
-                                          BrightnessManager.shared.setAbsolute(value: Float32(newVal))
-                                      default:
-                                          break
-                                      }
-                                  }
-                              )
-                              .padding(.bottom, 10)
-                              .padding(.leading, 4)
-                              .padding(.trailing, 8)
-                          }
-                          // Old sneak peek music
-                          else if coordinator.sneakPeekState(for: vm.screenUUID).type == .music {
-                              if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
-                                  HStack(alignment: .center) {
-                                      Image(systemName: "music.note")
-                                      GeometryReader { geo in
-                                          MarqueeText(musicManager.songTitle + " - " + musicManager.artistName,  color: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, delayDuration: 1.0, frameWidth: geo.size.width)
-                                      }
-                                  }
-                                  .foregroundStyle(.gray)
-                                  .padding(.bottom, 10)
-                              }
-                          }
-                      }
-                  }
-              }
-              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
-                  view
-                      .fixedSize()
-              }
-              .zIndex(1)
-            if vm.notchState == .open {
-                VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(
-                            albumArtNamespace: albumArtNamespace,
-                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                            isHoveringMusicArea: $isHoveringMusicArea
+                    if let closedSnapshot {
+                        ClosedNotchRenderer(
+                            snapshot: closedSnapshot,
+                            albumArtNamespace: albumArtNamespace
                         )
-                    case .shelf:
-                        ShelfView()
+                    } else {
+                        BoringHeader()
+                            .frame(height: max(24, displayClosedNotchHeight))
+                            .opacity(
+                                gestureProgress == 0
+                                    ? 1
+                                    : 1 - min(abs(gestureProgress) * 0.1, 0.3)
+                            )
                     }
                 }
-                .transition(
-                    .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
+            }
+            .zIndex(1)
+
+            if vm.notchState == .open {
+                OpenNotchContentView(
+                    albumArtNamespace: albumArtNamespace,
+                    horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                    isHoveringMusicArea: $isHoveringMusicArea,
+                    gestureProgress: gestureProgress
                 )
-                .zIndex(1)
-                .allowsHitTesting(vm.notchState == .open)
-                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
-    }
-
-    @ViewBuilder
-    func BoringFaceAnimation() -> some View {
-        HStack {
-            Rectangle()
-                .fill(.black)
-                .frame(width: vm.closedNotchSize.width + 20)
-            let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
-            MinimalFaceFeatures(height: 24.0 * faceScale, width: 30.0 * faceScale)
-        }.frame(
-            height: displayClosedNotchHeight,
-            alignment: .center
-        )
-    }
-
-    @ViewBuilder
-    func MusicLiveActivity() -> some View {
-        HStack(spacing: 0) {
-            // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
-            let baseArtSize = displayClosedNotchHeight - 12
-            let scaledArtSize: CGFloat = {
-                if let scale = cornerRadiusScaleFactor {
-                    return displayClosedNotchHeight - 12 * scale
-                }
-                return baseArtSize
-            }()
-
-            let closedCornerRadius: CGFloat = {
-                let base = MusicPlayerImageSizes.cornerRadiusInset.closed
-                if let scale = cornerRadiusScaleFactor {
-                    return max(0, base * scale)
-                }
-                return base
-            }()
-
-            Image(nsImage: musicManager.albumArt)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .clipShape(
-                    RoundedRectangle(
-                        cornerRadius: closedCornerRadius)
-                )
-                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                .frame(
-                    width: scaledArtSize,
-                    height: scaledArtSize
-                )
-
-            Rectangle()
-                .fill(.black)
-                .overlay(
-                    HStack(alignment: .top) {
-                        if coordinator.expandingView.show
-                            && coordinator.expandingView.type == .music
-                        {
-                            MarqueeText(
-                                musicManager.songTitle,
-                                color: Defaults[.coloredSpectrogram]
-                                    ? Color(nsColor: musicManager.avgColor) : Color.gray,
-                                delayDuration: 0.4,
-                                frameWidth: 100
-                            )
-                            .opacity(
-                                (coordinator.expandingView.show
-                                    && Defaults[.sneakPeekStyles] == .inline)
-                                    ? 1 : 0
-                            )
-                            Spacer(minLength: vm.closedNotchSize.width)
-                            // Song Artist
-                            Text(musicManager.artistName)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .foregroundStyle(
-                                    Defaults[.coloredSpectrogram]
-                                        ? Color(nsColor: musicManager.avgColor)
-                                        : Color.gray
-                                )
-                                .opacity(
-                                    (coordinator.expandingView.show
-                                        && coordinator.expandingView.type == .music
-                                        && Defaults[.sneakPeekStyles] == .inline)
-                                        ? 1 : 0
-                                )
-                        }
-                    }
-                )
-                .frame(
-                    width: (coordinator.expandingView.show
-                        && coordinator.expandingView.type == .music
-                        && Defaults[.sneakPeekStyles] == .inline)
-                        ? 380
-                        : vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
-                )
-
-            HStack {
-                AudioSpectrumView(
-                    isPlaying: musicManager.isPlaying,
-                    tintColor: Defaults[.coloredSpectrogram]
-                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
-                    : Color.gray
-                )
-                .frame(width: 18, height: 12)
-            }
-            .frame(
-                width: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                        + gestureProgress / 2
-                ),
-                height: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                ),
-                alignment: .center
-            )
-        }
-        .frame(
-            height: displayClosedNotchHeight,
-            alignment: .center
-        )
     }
 
     @ViewBuilder
