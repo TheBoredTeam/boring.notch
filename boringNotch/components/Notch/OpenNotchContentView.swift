@@ -11,7 +11,7 @@ struct OpenNotchContentView: View {
 
     var body: some View {
         VStack {
-            switch coordinator.currentView {
+            switch selectedDestination {
             case .home:
                 NotchHomeView(
                     albumArtNamespace: albumArtNamespace,
@@ -20,6 +20,8 @@ struct OpenNotchContentView: View {
                 )
             case .shelf:
                 ShelfView()
+            case nil:
+                EmptyView()
             }
         }
         .transition(
@@ -30,5 +32,12 @@ struct OpenNotchContentView: View {
         .zIndex(1)
         .allowsHitTesting(vm.notchState == .open)
         .opacity(gestureProgress == 0 ? 1 : 1 - min(abs(gestureProgress) * 0.1, 0.3))
+    }
+
+    private var selectedDestination: NotchViews? {
+        let availableDestinations = NotchDestinationDescriptor.availableBuiltIn
+        return availableDestinations.first {
+            $0.destination == coordinator.currentView
+        }?.destination ?? availableDestinations.first?.destination
     }
 }

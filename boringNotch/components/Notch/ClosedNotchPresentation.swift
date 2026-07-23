@@ -6,6 +6,38 @@ enum ClosedNotchPresentation: Equatable {
     case music
     case idleFace
     case idle
+
+    var priority: ClosedNotchPresentationPriority {
+        switch self {
+        case .batteryNotification: .critical
+        case .inlineOSD: .system
+        case .music: .activity
+        case .idleFace: .ambient
+        case .idle: .idle
+        }
+    }
+}
+
+enum ClosedNotchPresentationPriority: Int, Comparable {
+    case idle
+    case ambient
+    case activity
+    case system
+    case critical
+
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+}
+
+struct ClosedNotchPresentationCandidate: Equatable {
+    let presentation: ClosedNotchPresentation
+    let isVisible: Bool
+
+    init(_ presentation: ClosedNotchPresentation, isVisible: Bool) {
+        self.presentation = presentation
+        self.isVisible = isVisible
+    }
 }
 
 enum ClosedNotchSupplementalPresentation: Equatable {
@@ -42,10 +74,7 @@ struct ClosedNotchPresentationInput: Equatable {
     let expandedMusicCenterWidth: CGFloat
     let idleFaceTrailingWidth: CGFloat
     let batteryLeadingWidth: CGFloat
-    let batteryNotificationVisible: Bool
-    let inlineOSDVisible: Bool
-    let musicVisible: Bool
-    let idleFaceVisible: Bool
+    let candidates: [ClosedNotchPresentationCandidate]
     let musicExpanded: Bool
     let supplemental: ClosedNotchSupplementalPresentation?
 }
@@ -59,19 +88,15 @@ struct ClosedNotchPresentationState: Equatable {
 
 enum ClosedNotchPresentationResolver {
     static func resolve(_ input: ClosedNotchPresentationInput) -> ClosedNotchPresentationState {
-        let primary: ClosedNotchPresentation
+        let primary = input.candidates.reduce(nil as ClosedNotchPresentationCandidate?) {
+            selected, candidate in
+            guard candidate.isVisible else { return selected }
+            guard let selected else { return candidate }
 
-        if input.batteryNotificationVisible {
-            primary = .batteryNotification
-        } else if input.inlineOSDVisible {
-            primary = .inlineOSD
-        } else if input.musicVisible {
-            primary = .music
-        } else if input.idleFaceVisible {
-            primary = .idleFace
-        } else {
-            primary = .idle
-        }
+            return candidate.presentation.priority > selected.presentation.priority
+                ? candidate
+                : selected
+        }?.presentation ?? .idle
 
         let layout: (
             leadingWidth: CGFloat,

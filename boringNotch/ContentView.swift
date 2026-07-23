@@ -17,13 +17,12 @@ import SwiftUIIntrospect
 @MainActor
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var webcamManager = WebcamManager.shared
-
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @ObservedObject var musicManager = MusicManager.shared
-    @ObservedObject var brightnessManager = BrightnessManager.shared
-    @ObservedObject var volumeManager = VolumeManager.shared
-    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+
+    private let musicManager = MusicManager.shared
+    private let batteryModel = BatteryStatusViewModel.shared
+
+    @State private var closedSnapshotRevision = 0
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -86,6 +85,7 @@ struct ContentView: View {
     }
 
     private func makeClosedNotchSnapshot() -> ClosedNotchRenderSnapshot {
+        _ = closedSnapshotRevision
         let displayHeight = displayClosedNotchHeight
         let cornerScale: CGFloat? = Defaults[.cornerRadiusScaling] && displayHeight > 0
             ? displayHeight / 38
@@ -120,6 +120,20 @@ struct ContentView: View {
         let batteryNotificationVisible = coordinator.expandingView.type == .battery
             && coordinator.expandingView.show
             && Defaults[.showPowerStatusNotifications]
+        let inlineOSDVisible = sneakPeekVisible
+            && Defaults[.inlineOSD]
+            && sneakPeek.type != .music
+            && sneakPeek.type != .battery
+        let musicVisible = (!coordinator.expandingView.show
+            || coordinator.expandingView.type == .music)
+            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && coordinator.musicLiveActivityEnabled
+            && !vm.hideOnClosed
+        let idleFaceVisible = !coordinator.expandingView.show
+            && !musicManager.isPlaying
+            && musicManager.isPlayerIdle
+            && Defaults[.showNotHumanFace]
+            && !vm.hideOnClosed
 
         let supplemental: ClosedNotchSupplementalPresentation?
         if sneakPeekVisible,
@@ -149,21 +163,13 @@ struct ContentView: View {
             batteryLeadingWidth: batteryNotificationVisible
                 ? renderData.battery.leadingWidth
                 : 0,
-            batteryNotificationVisible: batteryNotificationVisible,
-            inlineOSDVisible: sneakPeekVisible
-                && Defaults[.inlineOSD]
-                && sneakPeek.type != .music
-                && sneakPeek.type != .battery,
-            musicVisible: (!coordinator.expandingView.show
-                || coordinator.expandingView.type == .music)
-                && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-                && coordinator.musicLiveActivityEnabled
-                && !vm.hideOnClosed,
-            idleFaceVisible: !coordinator.expandingView.show
-                && !musicManager.isPlaying
-                && musicManager.isPlayerIdle
-                && Defaults[.showNotHumanFace]
-                && !vm.hideOnClosed,
+            candidates: [
+                .init(.batteryNotification, isVisible: batteryNotificationVisible),
+                .init(.inlineOSD, isVisible: inlineOSDVisible),
+                .init(.music, isVisible: musicVisible),
+                .init(.idleFace, isVisible: idleFaceVisible),
+                .init(.idle, isVisible: true)
+            ],
             musicExpanded: musicExpanded,
             supplemental: supplemental
         )
@@ -324,6 +330,12 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onReceive(musicManager.objectWillChange) { _ in
+            invalidateClosedSnapshot()
+        }
+        .onReceive(batteryModel.objectWillChange) { _ in
+            invalidateClosedSnapshot()
+        }
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -351,6 +363,11 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    private func invalidateClosedSnapshot() {
+        guard vm.notchState == .closed else { return }
+        closedSnapshotRevision &+= 1
     }
 
     @ViewBuilder
