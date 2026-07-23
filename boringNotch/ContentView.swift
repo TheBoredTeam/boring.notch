@@ -281,7 +281,7 @@ struct ContentView: View {
 
     @ViewBuilder
     func NotchLayout() -> some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading) {
                 if coordinator.helloAnimationRunning {
                     Spacer()
@@ -403,6 +403,8 @@ struct ContentView: View {
                         )
                     case .shelf:
                         ShelfView()
+                    case .pomodoro:
+                        PomodoroView()
                     }
                 }
                 .transition(
@@ -415,6 +417,7 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
+        .frame(maxHeight: vm.notchState == .open ? .infinity : nil, alignment: .top)
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
     }
 
