@@ -6,18 +6,15 @@
 //  Modified by Richard Kunkli on 24/08/2024.
 //
 
-import AVFoundation
 import AppKit
 import Combine
 import Defaults
-import KeyboardShortcuts
 import SwiftUI
-import SwiftUIIntrospect
 
 @MainActor
 struct ContentView: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @EnvironmentObject private var vm: BoringViewModel
+    @ObservedObject private var coordinator = BoringViewCoordinator.shared
 
     private let musicManager = MusicManager.shared
     private let batteryModel = BatteryStatusViewModel.shared
@@ -34,9 +31,9 @@ struct ContentView: View {
 
     @State private var haptics: Bool = false
 
-    @Namespace var albumArtNamespace
+    @Namespace private var albumArtNamespace
 
-    @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.showNotHumanFace) private var showNotHumanFace
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -45,35 +42,13 @@ struct ContentView: View {
     private let zeroHeightHoverPadding: CGFloat = 10
 
     private func topCornerRadius(for snapshot: ClosedNotchRenderSnapshot?) -> CGFloat {
-        guard let snapshot else { return cornerRadiusInsets.opened.top }
-
-        let baseClosedTop = cornerRadiusInsets.closed.top
-        guard let scaleFactor = snapshot.cornerRadiusScaleFactor else {
-            return snapshot.displayHeight > 0 ? baseClosedTop : 0
-        }
-        return max(0, baseClosedTop * scaleFactor)
+        snapshot?.topCornerRadius ?? cornerRadiusInsets.opened.top
     }
 
     private func currentNotchShape(for snapshot: ClosedNotchRenderSnapshot?) -> NotchShape {
-        guard let snapshot else {
-            return NotchShape(
-                topCornerRadius: cornerRadiusInsets.opened.top,
-                bottomCornerRadius: cornerRadiusInsets.opened.bottom
-            )
-        }
-
-        let baseClosedBottom = cornerRadiusInsets.closed.bottom
-        let bottomCorner: CGFloat
-
-        if let scaleFactor = snapshot.cornerRadiusScaleFactor {
-            bottomCorner = max(0, baseClosedBottom * scaleFactor)
-        } else {
-            bottomCorner = snapshot.displayHeight > 0 ? baseClosedBottom : 0
-        }
-
-        return NotchShape(
-            topCornerRadius: topCornerRadius(for: snapshot),
-            bottomCornerRadius: bottomCorner
+        snapshot?.notchShape ?? NotchShape(
+            topCornerRadius: cornerRadiusInsets.opened.top,
+            bottomCornerRadius: cornerRadiusInsets.opened.bottom
         )
     }
 
@@ -84,16 +59,15 @@ struct ContentView: View {
         isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight
     }
 
+    private var gestureScale: CGFloat {
+        guard gestureProgress != 0 else { return 1 }
+        return max(0.6, 1 + gestureProgress * 0.01)
+    }
+
     private func makeClosedNotchSnapshot() -> ClosedNotchRenderSnapshot {
         _ = closedSnapshotRevision
         let displayHeight = displayClosedNotchHeight
-        let cornerScale: CGFloat? = Defaults[.cornerRadiusScaling] && displayHeight > 0
-            ? displayHeight / 38
-            : nil
-        let albumArtWidth = max(0, displayHeight - 12 * (cornerScale ?? 1))
-        let spectrumWidth = max(0, displayHeight - 12 + gestureProgress / 2)
         let sneakPeek = coordinator.sneakPeekState(for: vm.screenUUID)
-        let sneakPeekVisible = coordinator.shouldShowSneakPeek(on: vm.screenUUID)
         let renderData = ClosedNotchRenderData(
             music: .init(
                 albumArt: musicManager.albumArt,
@@ -112,93 +86,39 @@ struct ContentView: View {
             ),
             osd: coordinator.binding(for: vm.screenUUID)
         )
-        let musicExpanded = coordinator.expandingView.show
-            && coordinator.expandingView.type == .music
-            && Defaults[.sneakPeekStyles] == .inline
-        let inlineSideWidth = max(0, 100 - (isHovering ? 0 : 12) + gestureProgress / 2)
-        let faceTrailingWidth = 20 + 30 * min(1, displayHeight / 30)
-        let batteryNotificationVisible = coordinator.expandingView.type == .battery
-            && coordinator.expandingView.show
-            && Defaults[.showPowerStatusNotifications]
-        let inlineOSDVisible = sneakPeekVisible
-            && Defaults[.inlineOSD]
-            && sneakPeek.type != .music
-            && sneakPeek.type != .battery
-        let musicVisible = (!coordinator.expandingView.show
-            || coordinator.expandingView.type == .music)
-            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled
-            && !vm.hideOnClosed
-        let idleFaceVisible = !coordinator.expandingView.show
-            && !musicManager.isPlaying
-            && musicManager.isPlayerIdle
-            && Defaults[.showNotHumanFace]
-            && !vm.hideOnClosed
 
-        let supplemental: ClosedNotchSupplementalPresentation?
-        if sneakPeekVisible,
-           sneakPeek.type != .music,
-           sneakPeek.type != .battery,
-           !Defaults[.inlineOSD] {
-            supplemental = .systemOSD
-        } else if sneakPeekVisible,
-                  sneakPeek.type == .music,
-                  !vm.hideOnClosed,
-                  Defaults[.sneakPeekStyles] == .standard {
-            supplemental = .music
-        } else {
-            supplemental = nil
-        }
-
-        let presentationInput = ClosedNotchPresentationInput(
+        let context = ClosedNotchSnapshotContext(
             closedNotchWidth: vm.closedNotchSize.width,
-            height: displayHeight,
+            displayHeight: displayHeight,
             idleHeight: vm.hasNotch ? displayHeight : 11,
-            inlineOSDHeight: displayHeight + (isHovering ? 8 : 0),
-            inlineSideWidth: inlineSideWidth,
-            albumArtWidth: albumArtWidth,
-            spectrumWidth: spectrumWidth,
-            expandedMusicCenterWidth: 380,
-            idleFaceTrailingWidth: faceTrailingWidth,
-            batteryLeadingWidth: batteryNotificationVisible
-                ? renderData.battery.leadingWidth
-                : 0,
-            candidates: [
-                .init(.batteryNotification, isVisible: batteryNotificationVisible),
-                .init(.inlineOSD, isVisible: inlineOSDVisible),
-                .init(.music, isVisible: musicVisible),
-                .init(.idleFace, isVisible: idleFaceVisible),
-                .init(.idle, isVisible: true)
-            ],
-            musicExpanded: musicExpanded,
-            supplemental: supplemental
+            isHovering: isHovering,
+            gestureProgress: gestureProgress,
+            hideOnClosed: vm.hideOnClosed,
+            showIdleFace: showNotHumanFace,
+            musicLiveActivityEnabled: coordinator.musicLiveActivityEnabled,
+            musicPlayerIdle: musicManager.isPlayerIdle,
+            expandingViewVisible: coordinator.expandingView.show,
+            expandingViewType: coordinator.expandingView.type,
+            sneakPeek: sneakPeek,
+            sneakPeekVisible: coordinator.shouldShowSneakPeek(on: vm.screenUUID),
+            cornerRadiusScalingEnabled: Defaults[.cornerRadiusScaling],
+            inlineOSDEnabled: Defaults[.inlineOSD],
+            powerStatusNotificationsEnabled: Defaults[.showPowerStatusNotifications],
+            sneakPeekStyle: Defaults[.sneakPeekStyles],
+            renderData: renderData
         )
 
-        return ClosedNotchRenderSnapshot(
-            presentationInput: presentationInput,
-            renderData: renderData,
-            displayHeight: displayHeight,
-            cornerRadiusScaleFactor: cornerScale,
-            albumArtWidth: albumArtWidth,
-            spectrumWidth: spectrumWidth
-        )
+        return ClosedNotchRenderSnapshot(context: context)
     }
 
     var body: some View {
         let closedSnapshot: ClosedNotchRenderSnapshot? = vm.notchState == .closed
             ? makeClosedNotchSnapshot()
             : nil
-
-        // Calculate scale based on gesture progress only
-        let gestureScale: CGFloat = {
-            guard gestureProgress != 0 else { return 1.0 }
-            let scaleFactor = 1.0 + gestureProgress * 0.01
-            return max(0.6, scaleFactor)
-        }()
         
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                let mainLayout = NotchLayout(closedSnapshot: closedSnapshot)
+                let mainLayout = notchLayout(closedSnapshot: closedSnapshot)
                     .frame(alignment: .top)
                     .padding(
                         .horizontal,
@@ -208,27 +128,28 @@ struct ContentView: View {
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                     .background(.black)
                     .clipShape(currentNotchShape(for: closedSnapshot))
-                          .overlay(alignment: .top) {
-                              closedSnapshot?.displayHeight.isZero == true ? nil
-                        : Rectangle()
-                            .fill(.black)
-                            .frame(height: 1)
-                            .padding(.horizontal, topCornerRadius(for: closedSnapshot))
+                    .overlay(alignment: .top) {
+                        closedSnapshot?.displayHeight.isZero == true ? nil
+                            : Rectangle()
+                                .fill(.black)
+                                .frame(height: 1)
+                                .padding(.horizontal, topCornerRadius(for: closedSnapshot))
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
                             ? .black.opacity(0.7) : .clear, radius: 6
                     )
-                    // Removed conditional bottom padding when using custom 0 notch to keep layout stable
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
-                    .conditionalModifier(true) { view in
-                        return view
-                            .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
-                            .animation(.smooth, value: gestureProgress)
-                    }
+                    .animation(
+                        vm.notchState == .open
+                            ? StandardAnimations.open
+                            : StandardAnimations.close,
+                        value: vm.notchState
+                    )
+                    .animation(.smooth, value: gestureProgress)
                     .contentShape(Rectangle())
                     .onHover { hovering in
                         handleHover(hovering)
@@ -259,16 +180,7 @@ struct ContentView: View {
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
+                            scheduleAutomaticClose()
                         }
                     }
                     .onChange(of: vm.notchState) { _, newState in
@@ -280,16 +192,7 @@ struct ContentView: View {
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
+                            scheduleAutomaticClose()
                         }
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
@@ -300,11 +203,6 @@ struct ContentView: View {
                             }
                         }
                         .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-                        //                    Button("Edit") { // Doesnt work....
-                        //                        let dn = DynamicNotch(content: EditPanelView())
-                        //                        dn.toggle()
-                        //                    }
-                        //                    .keyboardShortcut("E", modifiers: .command)
                     }
                 if vm.chinHeight > 0 {
                     Rectangle()
@@ -371,7 +269,7 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    func NotchLayout(closedSnapshot: ClosedNotchRenderSnapshot?) -> some View {
+    private func notchLayout(closedSnapshot: ClosedNotchRenderSnapshot?) -> some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
                 if coordinator.helloAnimationRunning {
@@ -384,21 +282,19 @@ struct ContentView: View {
                     )
                     .padding(.top, 40)
                     Spacer()
+                } else if let closedSnapshot {
+                    ClosedNotchRenderer(
+                        snapshot: closedSnapshot,
+                        albumArtNamespace: albumArtNamespace
+                    )
                 } else {
-                    if let closedSnapshot {
-                        ClosedNotchRenderer(
-                            snapshot: closedSnapshot,
-                            albumArtNamespace: albumArtNamespace
+                    BoringHeader()
+                        .frame(height: max(24, displayClosedNotchHeight))
+                        .opacity(
+                            gestureProgress == 0
+                                ? 1
+                                : 1 - min(abs(gestureProgress) * 0.1, 0.3)
                         )
-                    } else {
-                        BoringHeader()
-                            .frame(height: max(24, displayClosedNotchHeight))
-                            .opacity(
-                                gestureProgress == 0
-                                    ? 1
-                                    : 1 - min(abs(gestureProgress) * 0.1, 0.3)
-                            )
-                    }
                 }
             }
             .zIndex(1)
@@ -416,16 +312,19 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    var dragDetector: some View {
+    private var dragDetector: some View {
         if Defaults[.boringShelf] && vm.notchState == .closed {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-            vm.dropEvent = true
-            ShelfStateViewModel.shared.load(providers)
-            return true
-        }
+                .onDrop(
+                    of: [.fileURL, .url, .utf8PlainText, .plainText, .data],
+                    isTargeted: $vm.dragDetectorTargeting
+                ) { providers in
+                    vm.dropEvent = true
+                    ShelfStateViewModel.shared.load(providers)
+                    return true
+                }
         } else {
             EmptyView()
         }
@@ -472,19 +371,31 @@ struct ContentView: View {
                 }
             }
         } else {
-            hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(100))
-                guard !Task.isCancelled else { return }
-                
-                await MainActor.run {
-                    withAnimation(animationSpring) {
-                        self.isHovering = false
-                    }
-                    
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                        self.vm.close()
-                    }
+            scheduleAutomaticClose(clearingHover: true)
+        }
+    }
+
+    private var canAutomaticallyClose: Bool {
+        vm.notchState == .open
+            && !isHovering
+            && !vm.isBatteryPopoverActive
+            && !SharingStateManager.shared.preventNotchClose
+    }
+
+    private func scheduleAutomaticClose(clearingHover: Bool = false) {
+        hoverTask?.cancel()
+        hoverTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(100))
+            guard !Task.isCancelled else { return }
+
+            if clearingHover {
+                withAnimation(animationSpring) {
+                    isHovering = false
                 }
+            }
+
+            if canAutomaticallyClose {
+                vm.close()
             }
         }
     }
@@ -624,9 +535,8 @@ struct ContentView: View {
     }
 }
 
-struct FullScreenDropDelegate: DropDelegate {
+private struct GeneralDropTargetDelegate: DropDelegate {
     @Binding var isTargeted: Bool
-    let onDrop: () -> Void
 
     func dropEntered(info _: DropInfo) {
         isTargeted = true
@@ -636,31 +546,12 @@ struct FullScreenDropDelegate: DropDelegate {
         isTargeted = false
     }
 
+    func dropUpdated(info _: DropInfo) -> DropProposal? {
+        DropProposal(operation: .cancel)
+    }
+
     func performDrop(info _: DropInfo) -> Bool {
-        isTargeted = false
-        onDrop()
-        return true
-    }
-
-}
-
-struct GeneralDropTargetDelegate: DropDelegate {
-    @Binding var isTargeted: Bool
-
-    func dropEntered(info: DropInfo) {
-        isTargeted = true
-    }
-
-    func dropExited(info: DropInfo) {
-        isTargeted = false
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        return DropProposal(operation: .cancel)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        return false
+        false
     }
 }
 
