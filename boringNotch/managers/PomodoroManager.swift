@@ -32,7 +32,7 @@ public enum PomodoroState: String, Codable {
 }
 
 @MainActor
-public class PomodoroManager: ObservableObject {
+public class PomodoroManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
     public static let shared = PomodoroManager()
 
     @Published public var phase: PomodoroPhase = .work {
@@ -49,9 +49,11 @@ public class PomodoroManager: ObservableObject {
 
     private var timerCancellable: AnyCancellable?
 
-    private init() {
+    private override init() {
+        super.init()
         self.timeRemaining = targetDuration(for: .work)
         setupNotificationPermissions()
+        UNUserNotificationCenter.current().delegate = self
     }
 
     public var targetDuration: TimeInterval {
@@ -255,5 +257,15 @@ public class PomodoroManager: ObservableObject {
         )
 
         UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
+    }
+
+    // MARK: - UNUserNotificationCenterDelegate
+    nonisolated public func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        // Force notifications to show as visual banner alerts even if app is focused
+        completionHandler([.banner, .sound])
     }
 }
