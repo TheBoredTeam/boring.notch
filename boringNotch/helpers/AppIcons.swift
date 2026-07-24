@@ -39,8 +39,13 @@ struct AppIcons {
 func normalizeBundleIdentifier(_ bundleID: String) -> String {
     let lower = bundleID.lowercased()
     
+    // Handle Safari Technology Preview rendering helper processes
+    if lower.hasPrefix("com.apple.safaritechnologypreview.") {
+        return "com.apple.SafariTechnologyPreview"
+    }
+    
     // Handle WebKit / Safari rendering helper processes
-    if lower.contains("safari") || lower.contains("webkit") {
+    if lower.hasPrefix("com.apple.webkit.") || lower.hasPrefix("com.apple.safari.") {
         return "com.apple.Safari"
     }
     
