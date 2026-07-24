@@ -36,10 +36,29 @@ struct AppIcons {
     
 }
 
+func normalizeBundleIdentifier(_ bundleID: String) -> String {
+    let lower = bundleID.lowercased()
+    
+    // Handle WebKit / Safari rendering helper processes
+    if lower.contains("safari") || lower.contains("webkit") {
+        return "com.apple.Safari"
+    }
+    
+    // General rule for Chromium/Electron helper processes
+    // e.g., "com.google.Chrome.helper" -> "com.google.Chrome"
+    let components = bundleID.components(separatedBy: ".")
+    if let helperIndex = components.firstIndex(where: { $0.lowercased() == "helper" }) {
+        return components[0..<helperIndex].joined(separator: ".")
+    }
+    
+    return bundleID
+}
+
 func AppIcon(for bundleID: String) -> Image {
     let workspace = NSWorkspace.shared
+    let normalizedID = normalizeBundleIdentifier(bundleID)
     
-    if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
+    if let appURL = workspace.urlForApplication(withBundleIdentifier: normalizedID) {
         let appIcon = workspace.icon(forFile: appURL.path)
         return Image(nsImage: appIcon)
     }
@@ -50,8 +69,9 @@ func AppIcon(for bundleID: String) -> Image {
 
 func AppIconAsNSImage(for bundleID: String) -> NSImage? {
     let workspace = NSWorkspace.shared
+    let normalizedID = normalizeBundleIdentifier(bundleID)
     
-    if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
+    if let appURL = workspace.urlForApplication(withBundleIdentifier: normalizedID) {
         let appIcon = workspace.icon(forFile: appURL.path)
         appIcon.size = NSSize(width: 256, height: 256)
         return appIcon
