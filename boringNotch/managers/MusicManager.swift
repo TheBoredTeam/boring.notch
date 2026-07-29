@@ -236,6 +236,9 @@ class MusicManager: ObservableObject {
                 if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
                     self.usingAppIconForArtwork = true
                     self.updateAlbumArt(newAlbumArt: appIconImage)
+                } else {
+                    self.usingAppIconForArtwork = false
+                    self.updateAlbumArt(newAlbumArt: defaultImage)
                 }
             }
             self.artworkData = state.artwork
