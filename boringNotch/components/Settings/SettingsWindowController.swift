@@ -10,10 +10,11 @@ import SwiftUI
 import Defaults
 import Sparkle
 
-class SettingsWindowController: NSWindowController {
+class SettingsWindowController: NSWindowController, ObservableObject {
     static let shared = SettingsWindowController()
     private var updaterController: SPUStandardUpdaterController?
-    
+    @Published var selectedTab: SettingsTab = .general
+
     private init() {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 700, height: 600),
@@ -58,7 +59,7 @@ class SettingsWindowController: NSWindowController {
         window.identifier = NSUserInterfaceItemIdentifier("BoringNotchSettingsWindow")
         
         // Create the SwiftUI content
-        let settingsView = SettingsView(updaterController: updaterController)
+        let settingsView = SettingsView(windowController: self, updaterController: updaterController)
         let hostingView = NSHostingView(rootView: settingsView)
         window.contentView = hostingView
         
@@ -66,7 +67,8 @@ class SettingsWindowController: NSWindowController {
         window.delegate = self
     }
     
-    func showWindow() {
+    func showWindow(selectedTab: SettingsTab = .general) {
+        self.selectedTab = selectedTab
         // Set app to regular mode first
         NSApp.setActivationPolicy(.regular)
         
@@ -92,11 +94,7 @@ class SettingsWindowController: NSWindowController {
         }
     }
     
-    override func close() {
-        super.close()
-        relinquishFocus()
-    }
-    
+
     private func relinquishFocus() {
         window?.orderOut(nil)
         
@@ -115,8 +113,7 @@ extension SettingsWindowController: NSWindowDelegate {
     }
     
     func windowDidBecomeKey(_ notification: Notification) {
-        // Ensure app is in regular mode when window becomes key
-        NSApp.setActivationPolicy(.regular)
+        // Window is now key — activation policy already set in showWindow()
     }
     
     func windowDidResignKey(_ notification: Notification) {

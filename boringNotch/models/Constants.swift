@@ -279,6 +279,20 @@ extension Defaults.Keys {
     
     // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
+    
+    // MARK: Pomodoro
+    static let pomodoroWorkDuration = Key<TimeInterval>("pomodoroWorkDuration", default: 25 * 60)
+    static let pomodoroShortBreakDuration = Key<TimeInterval>("pomodoroShortBreakDuration", default: 5 * 60)
+    static let pomodoroLongBreakDuration = Key<TimeInterval>("pomodoroLongBreakDuration", default: 15 * 60)
+    static let pomodoroLongBreakInterval = Key<Int>("pomodoroLongBreakInterval", default: 4)
+    static let pomodoroWorkName = Key<String>("pomodoroWorkName", default: "Work")
+    static let pomodoroShortBreakName = Key<String>("pomodoroShortBreakName", default: "Short Break")
+    static let pomodoroLongBreakName = Key<String>("pomodoroLongBreakName", default: "Long Break")
+    static let pomodoroTargetSessions = Key<Int>("pomodoroTargetSessions", default: 8)
+    static let pomodoroSoundName = Key<String>("pomodoroSoundName", default: "Glass")
+    static let pomodoroAutoStartBreaks = Key<Bool>("pomodoroAutoStartBreaks", default: false)
+    static let pomodoroAutoStartWork = Key<Bool>("pomodoroAutoStartWork", default: false)
+    static let pomodoroSoundEnabled = Key<Bool>("pomodoroSoundEnabled", default: true)
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
     static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)

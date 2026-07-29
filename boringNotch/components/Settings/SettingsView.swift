@@ -9,7 +9,7 @@ import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
-private enum SettingsTab: String, CaseIterable, Identifiable {
+enum SettingsTab: String, CaseIterable, Identifiable {
     case general
     case appearance
     case media
@@ -18,6 +18,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case battery
     case shelf
     case mirror
+    case pomodoro
     case shortcuts
     case advanced
     case about
@@ -34,6 +35,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .battery: "Battery"
         case .shelf: "Shelf"
         case .mirror: "Mirror"
+        case .pomodoro: "Pomodoro"
         case .shortcuts: "Shortcuts"
         case .advanced: "Advanced"
         case .about: "About"
@@ -50,6 +52,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .battery: "battery.100.bolt"
         case .shelf: "books.vertical"
         case .mirror: "camera"
+        case .pomodoro: "timer"
         case .shortcuts: "keyboard"
         case .advanced: "gearshape.2"
         case .about: "info.circle"
@@ -58,18 +61,19 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
 }
 
 struct SettingsView: View {
-    @State private var selectedTab: SettingsTab = .general
+    @ObservedObject var windowController: SettingsWindowController
     @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
 
-    init(updaterController: SPUStandardUpdaterController? = nil) {
+    init(windowController: SettingsWindowController = .shared, updaterController: SPUStandardUpdaterController? = nil) {
+        self.windowController = windowController
         self.updaterController = updaterController
     }
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedTab) {
+            List(selection: $windowController.selectedTab) {
                 ForEach(SettingsTab.allCases) { tab in
                     Label(tab.title, systemImage: tab.systemImage)
                         .tag(tab)
@@ -81,7 +85,7 @@ struct SettingsView: View {
             .navigationSplitViewColumnWidth(200)
         } detail: {
             Group {
-                switch selectedTab {
+                switch windowController.selectedTab {
                 case .general:
                     GeneralSettings()
                 case .appearance:
@@ -98,6 +102,8 @@ struct SettingsView: View {
                     Shelf()
                 case .mirror:
                     MirrorSettings()
+                case .pomodoro:
+                    PomodoroSettingsView()
                 case .shortcuts:
                     Shortcuts()
                 case .advanced:
@@ -106,7 +112,6 @@ struct SettingsView: View {
                     if let controller = updaterController {
                         About(updaterController: controller)
                     } else {
-                        // Fallback with a default controller
                         About(
                             updaterController: SPUStandardUpdaterController(
                                 startingUpdater: false, updaterDelegate: nil,
