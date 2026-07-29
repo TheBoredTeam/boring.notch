@@ -80,7 +80,7 @@ final class MediaKeyInterceptor {
 
         let mask = CGEventMask(1 << kSystemDefinedEventType.rawValue)
         eventTap = CGEvent.tapCreate(
-            tap: .cghidEventTap,
+            tap: .cgSessionEventTap,
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: mask,
