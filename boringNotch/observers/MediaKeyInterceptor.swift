@@ -207,9 +207,22 @@ final class MediaKeyInterceptor {
             }
         }
 
+        if isVolumeKey(keyType), !VolumeManager.shared.canControlVolume {
+            return Unmanaged.passUnretained(cgEvent)
+        }
+
         // Handle normal key press
         handleKeyPress(keyType: keyType, option: option, shift: shift, command: command)
         return nil
+    }
+
+    private func isVolumeKey(_ keyType: NXKeyType) -> Bool {
+        switch keyType {
+        case .soundUp, .soundDown, .mute:
+            return true
+        default:
+            return false
+        }
     }
 
     private func handleOptionAction(for keyType: NXKeyType, command: Bool) -> Bool {
