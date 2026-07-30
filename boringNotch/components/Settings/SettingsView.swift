@@ -1164,6 +1164,9 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.realtimeAudioSpectrum) var realtimeAudioSpectrum
+    @Default(.dynamicSpectrumSensitivity) var dynamicSpectrumSensitivity
+    @ObservedObject private var spectrum = AudioSpectrumManager.shared
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1188,6 +1191,9 @@ struct Appearance: View {
                 Defaults.Toggle(key: .coloredSpectrogram) {
                     Text("Colored spectrogram")
                 }
+                Toggle("Real-time audio spectrum", isOn: $realtimeAudioSpectrum)
+                Toggle("Dynamic sensitivity", isOn: $dynamicSpectrumSensitivity)
+                    .disabled(!realtimeAudioSpectrum)
                 Defaults
                     .Toggle("Player tinting", key: .playerColorTinting)
                 Defaults.Toggle(key: .lightingEffect) {
@@ -1200,6 +1206,23 @@ struct Appearance: View {
                 }
             } header: {
                 Text("Media")
+            } footer: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(
+                        "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+                    )
+                    .foregroundStyle(.secondary)
+                    Text(
+                        "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+                    )
+                    .foregroundStyle(.secondary)
+                    if realtimeAudioSpectrum, let error = spectrum.lastErrorDescription {
+                        Text(error)
+                            .foregroundStyle(.orange)
+                    }
+                }
+                .font(.caption)
+                .fixedSize(horizontal: false, vertical: true)
             }
 
             Section {

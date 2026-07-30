@@ -23614,6 +23614,406 @@
           }
         }
       }
+    },
+    "Real-time audio spectrum" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Real-time audio spectrum"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时音频频谱"
+          }
+        }
+      }
+    },
+    "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "The spectrum bars follow the audio that is actually playing instead of animating at random. macOS asks for permission to record system audio the first time this runs; nothing is recorded or stored."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "频谱条会跟随实际播放的声音，而不是随机跳动。首次启用时 macOS 会请求录制系统音频的权限；音频不会被录制或保存。"
+          }
+        }
+      }
+    },
+    "Dynamic sensitivity" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动态灵敏度"
+          }
+        }
+      }
+    },
+    "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dynamic sensitivity eases the bars back down while a loud, heavily compressed passage is playing, so they keep moving instead of all standing at full height."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "遇到响度高、动态压缩重的段落时，动态灵敏度会自动回落条形高度，让它们保持起伏，而不是全部直立顶满。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

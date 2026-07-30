@@ -4,122 +4,137 @@
 //
 //  Created by Harsh Vardhan  Goswami  on 02/08/24.
 //
-import AppKit
-import Cocoa
+import Defaults
 import SwiftUI
 
-class AudioSpectrum: NSView {
-    private var barLayers: [CAShapeLayer] = []
-    private var barScales: [CGFloat] = []
-    private var isPlaying: Bool = true
-    private var animationTimer: Timer?
-    
-    override init(frame frameRect: NSRect) {
-        super.init(frame: frameRect)
-        wantsLayer = true
-        setupBars()
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        wantsLayer = true
-        setupBars()
-    }
-
-    private func setupBars() {
-        let barWidth: CGFloat = 2
-        let barCount = 4
-        let spacing: CGFloat = barWidth
-        let totalWidth = CGFloat(barCount) * (barWidth + spacing)
-        let totalHeight: CGFloat = 14
-        frame.size = CGSize(width: totalWidth, height: totalHeight)
-
-        for i in 0 ..< barCount {
-            let xPosition = CGFloat(i) * (barWidth + spacing)
-            let barLayer = CAShapeLayer()
-            barLayer.frame = CGRect(x: xPosition, y: 0, width: barWidth, height: totalHeight)
-            barLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-            barLayer.position = CGPoint(x: xPosition + barWidth / 2, y: totalHeight / 2)
-            barLayer.fillColor = NSColor.white.cgColor
-            barLayer.backgroundColor = NSColor.white.cgColor
-            barLayer.allowsGroupOpacity = false
-            barLayer.masksToBounds = true
-            let path = NSBezierPath(roundedRect: CGRect(x: 0, y: 0, width: barWidth, height: totalHeight),
-                                    xRadius: barWidth / 2,
-                                    yRadius: barWidth / 2)
-            barLayer.path = path.cgPath
-            barLayers.append(barLayer)
-            barScales.append(0.35)
-            layer?.addSublayer(barLayer)
-        }
-    }
-    
-    private func startAnimating() {
-        guard animationTimer == nil else { return }
-        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
-            self?.updateBars()
-        }
-    }
-    
-    private func stopAnimating() {
-        animationTimer?.invalidate()
-        animationTimer = nil
-        resetBars()
-    }
-    
-    private func updateBars() {
-        for (i, barLayer) in barLayers.enumerated() {
-            let currentScale = barScales[i]
-            let targetScale = CGFloat.random(in: 0.35 ... 1.0)
-            barScales[i] = targetScale
-            let animation = CABasicAnimation(keyPath: "transform.scale.y")
-            animation.fromValue = currentScale
-            animation.toValue = targetScale
-            animation.duration = 0.3
-            animation.autoreverses = true
-            animation.fillMode = .forwards
-            animation.isRemovedOnCompletion = false
-            if #available(macOS 13.0, *) {
-                animation.preferredFrameRateRange = CAFrameRateRange(minimum: 24, maximum: 24, preferred: 24)
-            }
-            barLayer.add(animation, forKey: "scaleY")
-        }
-    }
-    
-    private func resetBars() {
-        for (i, barLayer) in barLayers.enumerated() {
-            barLayer.removeAllAnimations()
-            barLayer.transform = CATransform3DMakeScale(1, 0.35, 1)
-            barScales[i] = 0.35
-        }
-    }
-    
-    func setPlaying(_ playing: Bool) {
-        isPlaying = playing
-        if isPlaying {
-            startAnimating()
-        } else {
-            stopAnimating()
-        }
-    }
-}
-
-struct AudioSpectrumView: NSViewRepresentable {
+/// The four bars shown next to the album art while music plays.
+///
+/// The bars follow the real output spectrum whenever the system audio tap is
+/// running (see `AudioSpectrumManager`); otherwise they fall back to the
+/// original random dance, so the notch never looks dead.
+///
+/// Each bar is a `Capsule`, which keeps the rounded caps at every height. The
+/// previous implementation drew a rounded `CAShapeLayer` path but also set an
+/// opaque `backgroundColor` on the same layer, so the square layer rect was
+/// what actually showed up — and animating `transform.scale.y` flattened any
+/// corner radius along with the bar.
+struct AudioSpectrumView: View {
     @Binding var isPlaying: Bool
-    
-    func makeNSView(context: Context) -> AudioSpectrum {
-        let spectrum = AudioSpectrum()
-        spectrum.setPlaying(isPlaying)
-        return spectrum
+
+    @ObservedObject private var spectrum = AudioSpectrumManager.shared
+    @Default(.realtimeAudioSpectrum) private var realtimeSpectrumEnabled
+    @Environment(\.displayScale) private var displayScale
+
+    /// Identifies this visualiser to the shared tap; stable for the view's life.
+    @State private var token = UUID()
+    @State private var fallbackLevels: [CGFloat] = .init(
+        repeating: 0, count: audioSpectrumBandCount
+    )
+    @State private var fallbackTask: Task<Void, Never>?
+
+    private static let fallbackInterval: Duration = .milliseconds(300)
+
+    private var usesRealAudio: Bool { realtimeSpectrumEnabled && spectrum.isLive }
+
+    private var levels: [CGFloat] { usesRealAudio ? spectrum.levels : fallbackLevels }
+
+    private var animation: Animation {
+        usesRealAudio ? .linear(duration: 1.0 / 30.0) : .easeInOut(duration: 0.3)
     }
-    
-    func updateNSView(_ nsView: AudioSpectrum, context: Context) {
-        nsView.setPlaying(isPlaying)
+
+    var body: some View {
+        GeometryReader { proxy in
+            // Bar widths are snapped to whole device pixels. At these sizes a
+            // fractional width lands each capsule on a different subpixel
+            // offset, and the anti-aliasing makes the bars look like they have
+            // different thicknesses.
+            let bars = CGFloat(audioSpectrumBandCount)
+            let raw = proxy.size.width / (bars * 2 - 1)
+            let barWidth = snapped(raw, minimum: 1)
+            let gap = snapped(
+                (proxy.size.width - barWidth * bars) / max(1, bars - 1), minimum: 1
+            )
+
+            HStack(alignment: .center, spacing: gap) {
+                ForEach(0 ..< audioSpectrumBandCount, id: \.self) { index in
+                    Capsule(style: .continuous)
+                        .fill(Color.white)
+                        .frame(
+                            width: barWidth,
+                            height: barHeight(
+                                for: index,
+                                barWidth: barWidth,
+                                maxHeight: proxy.size.height
+                            )
+                        )
+                }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .center)
+            .animation(animation, value: levels)
+        }
+        .onAppear { synchronize() }
+        .onDisappear {
+            stopFallback()
+            spectrum.deactivate(token)
+        }
+        .onChange(of: isPlaying) { _, _ in synchronize() }
+        .onChange(of: realtimeSpectrumEnabled) { _, _ in synchronize() }
+        .onChange(of: spectrum.isLive) { _, _ in synchronize() }
+    }
+
+    /// Rounds a length to a whole device pixel.
+    private func snapped(_ value: CGFloat, minimum: CGFloat) -> CGFloat {
+        let scale = max(1, displayScale)
+        return max(minimum / scale, (value * scale).rounded() / scale)
+    }
+
+    /// At rest a bar is a dot; at full level it fills the frame.
+    private func barHeight(for index: Int, barWidth: CGFloat, maxHeight: CGFloat) -> CGFloat {
+        guard maxHeight > barWidth else { return max(0, maxHeight) }
+        let level = index < levels.count ? min(max(levels[index], 0), 1) : 0
+        return snapped(barWidth + (maxHeight - barWidth) * level, minimum: 1)
+    }
+
+    // MARK: - Sources
+
+    private func synchronize() {
+        if isPlaying && realtimeSpectrumEnabled {
+            spectrum.activate(token)
+        } else {
+            spectrum.deactivate(token)
+        }
+
+        if isPlaying && !usesRealAudio {
+            startFallback()
+        } else {
+            stopFallback()
+        }
+    }
+
+    private func startFallback() {
+        guard fallbackTask == nil else { return }
+        fallbackTask = Task { @MainActor in
+            while !Task.isCancelled {
+                fallbackLevels = (0 ..< audioSpectrumBandCount).map { _ in
+                    CGFloat.random(in: 0.2 ... 1.0)
+                }
+                try? await Task.sleep(for: Self.fallbackInterval)
+            }
+        }
+    }
+
+    private func stopFallback() {
+        fallbackTask?.cancel()
+        fallbackTask = nil
+        if fallbackLevels.contains(where: { $0 != 0 }) {
+            fallbackLevels = .init(repeating: 0, count: audioSpectrumBandCount)
+        }
     }
 }
 
 #Preview {
     AudioSpectrumView(isPlaying: .constant(true))
-        .frame(width: 16, height: 20)
+        .frame(width: 16, height: 12)
         .padding()
+        .background(.black)
 }

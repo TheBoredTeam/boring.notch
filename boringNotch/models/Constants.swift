@@ -124,6 +124,13 @@ extension Defaults.Keys {
     
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
+    /// Drive the visualiser bars from a system audio tap instead of random values.
+    static let realtimeAudioSpectrum = Key<Bool>("realtimeAudioSpectrum", default: false)
+    /// Pull the visualiser's sensitivity back while the music is loud, so the
+    /// bars keep moving instead of all sitting at full height.
+    static let dynamicSpectrumSensitivity = Key<Bool>(
+        "dynamicSpectrumSensitivity", default: true
+    )
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let waitInterval = Key<Double>("waitInterval", default: 3)

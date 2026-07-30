@@ -459,8 +459,12 @@ struct ContentView: View {
                         .frame(width: 50, alignment: .center)
                         .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
                         .mask {
+                            // Full slot width so six thin bars fit; height held
+                            // back to ~70% so peaks have room without the bars
+                            // towering over the album art.
+                            let slot = max(0, vm.effectiveClosedNotchHeight - 12)
                             AudioSpectrumView(isPlaying: $musicManager.isPlaying)
-                                .frame(width: 16, height: 12)
+                                .frame(width: slot, height: slot * 0.7)
                         }
                 } else {
                     LottieAnimationContainer()
