@@ -35,6 +35,9 @@ struct CalendarSettings: View {
             Defaults.Toggle(key: .showFullEventTitles) {
                 Text("Always show full event titles")
             }
+            Defaults.Toggle(key: .joinMeetingOnEventTap) {
+                Text("Join meeting when tapping an event")
+            }
             Defaults.Toggle(key: .calendarWeekView) {
                 Text("Weekly view")
             }
