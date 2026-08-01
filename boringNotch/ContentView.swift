@@ -403,6 +403,8 @@ struct ContentView: View {
                         )
                     case .shelf:
                         ShelfView()
+                    case .systemActivity:
+                        SystemActivityView()
                     }
                 }
                 .transition(

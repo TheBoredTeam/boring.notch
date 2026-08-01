@@ -7,6 +7,18 @@
 
 import Foundation
 
+struct BNSystemMetricPayload: Codable, Sendable {
+    let cpuUserTicks: UInt32
+    let cpuSystemTicks: UInt32
+    let cpuIdleTicks: UInt32
+    let cpuNiceTicks: UInt32
+    let gpuUsagePercent: Double?
+    let memoryUsedBytes: UInt64
+    let memoryTotalBytes: UInt64
+    let cpuTemperatureCelsius: Double?
+    let thermalState: Int
+}
+
 /// The protocol that this service will vend as its API. This protocol will also need to be visible to the process hosting the service.
 @objc protocol BoringNotchXPCHelperLunarListener {
     func lunarEventDidUpdate(_ event: BNLunarBrightnessEvent)
@@ -39,6 +51,7 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
 }
 
 @objc protocol BoringNotchXPCHelperProtocol {
+    func systemMetrics(with reply: @escaping (Data) -> Void)
     func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void)
     func requestAccessibilityAuthorization()
     func ensureAccessibilityAuthorization(_ promptIfNeeded: Bool, with reply: @escaping (Bool) -> Void)

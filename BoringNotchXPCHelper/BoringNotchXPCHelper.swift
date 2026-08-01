@@ -7,6 +7,7 @@
 
 import AppKit
 import ApplicationServices
+import Darwin
 import IOKit
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
@@ -27,6 +28,13 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     override init() {
         super.init()
+    }
+
+    // MARK: - System Metrics
+
+    @objc func systemMetrics(with reply: @escaping (Data) -> Void) {
+        let metrics = SystemMetricSampler.sample()
+        reply((try? JSONEncoder().encode(metrics)) ?? Data())
     }
 
     deinit {
@@ -417,6 +425,103 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             }
             return nil
         }()
+    }
+}
+
+// MARK: - System Metrics
+
+private enum SystemMetricSampler {
+    static func sample() -> BNSystemMetricPayload {
+        let cpu = cpuTicks()
+        let memory = memoryUsage()
+
+        return BNSystemMetricPayload(
+            cpuUserTicks: cpu.user,
+            cpuSystemTicks: cpu.system,
+            cpuIdleTicks: cpu.idle,
+            cpuNiceTicks: cpu.nice,
+            gpuUsagePercent: gpuUsagePercent(),
+            memoryUsedBytes: memory.used,
+            memoryTotalBytes: memory.total,
+            cpuTemperatureCelsius: SMCReadOnly.shared.averageCPUTemperature(),
+            thermalState: ProcessInfo.processInfo.thermalState.rawValue
+        )
+    }
+
+    private static func cpuTicks() -> (user: UInt32, system: UInt32, idle: UInt32, nice: UInt32) {
+        var info = host_cpu_load_info()
+        var count = mach_msg_type_number_t(
+            MemoryLayout<host_cpu_load_info_data_t>.size / MemoryLayout<integer_t>.size
+        )
+        let result = withUnsafeMutablePointer(to: &info) { pointer in
+            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
+                host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, rebound, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return (0, 0, 0, 0) }
+        return (
+            info.cpu_ticks.0,
+            info.cpu_ticks.1,
+            info.cpu_ticks.2,
+            info.cpu_ticks.3
+        )
+    }
+
+    private static func memoryUsage() -> (used: UInt64, total: UInt64) {
+        let total = ProcessInfo.processInfo.physicalMemory
+        var info = vm_statistics64()
+        var count = mach_msg_type_number_t(
+            MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size
+        )
+        let result = withUnsafeMutablePointer(to: &info) { pointer in
+            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
+                host_statistics64(mach_host_self(), HOST_VM_INFO64, rebound, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return (0, total) }
+
+        let pageSize = UInt64(vm_page_size)
+        let occupiedPages = UInt64(info.active_count)
+            + UInt64(info.inactive_count)
+            + UInt64(info.speculative_count)
+            + UInt64(info.wire_count)
+            + UInt64(info.compressor_page_count)
+        let reclaimablePages = UInt64(info.purgeable_count) + UInt64(info.external_page_count)
+        let usedPages = occupiedPages >= reclaimablePages
+            ? occupiedPages - reclaimablePages
+            : 0
+        return (min(usedPages * pageSize, total), total)
+    }
+
+    private static func gpuUsagePercent() -> Double? {
+        var iterator: io_iterator_t = 0
+        let result = IORegistryCreateIterator(
+            kIOMainPortDefault,
+            kIOServicePlane,
+            IOOptionBits(kIORegistryIterateRecursively),
+            &iterator
+        )
+        guard result == KERN_SUCCESS else { return nil }
+        defer { IOObjectRelease(iterator) }
+
+        var values: [Double] = []
+
+        while case let entry = IOIteratorNext(iterator), entry != 0 {
+            defer { IOObjectRelease(entry) }
+
+            guard
+                let statistics = IORegistryEntryCreateCFProperty(
+                    entry,
+                    "PerformanceStatistics" as CFString,
+                    kCFAllocatorDefault,
+                    0
+                )?.takeRetainedValue() as? [String: Any],
+                let usage = statistics["Device Utilization %"] as? NSNumber
+            else { continue }
+            values.append(usage.doubleValue)
+        }
+
+        return values.max().map { min(max($0, 0), 100) }
     }
 }
 
