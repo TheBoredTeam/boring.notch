@@ -495,10 +495,9 @@ private enum SystemMetricSampler {
 
     private static func gpuUsagePercent() -> Double? {
         var iterator: io_iterator_t = 0
-        let result = IORegistryCreateIterator(
+        let result = IOServiceGetMatchingServices(
             kIOMainPortDefault,
-            kIOServicePlane,
-            IOOptionBits(kIORegistryIterateRecursively),
+            IOServiceMatching("IOAccelerator"),
             &iterator
         )
         guard result == KERN_SUCCESS else { return nil }
@@ -517,6 +516,7 @@ private enum SystemMetricSampler {
                     0
                 )?.takeRetainedValue() as? [String: Any],
                 let usage = statistics["Device Utilization %"] as? NSNumber
+                    ?? statistics["GPU Activity(%)"] as? NSNumber
             else { continue }
             values.append(usage.doubleValue)
         }
