@@ -6147,6 +6147,9 @@
         }
       }
     },
+    "Copy Meeting Link" : {
+
+    },
     "Copy items on drag" : {
       "localizations" : {
         "de" : {
@@ -11900,6 +11903,12 @@
         }
       }
     },
+    "Join %@ meeting" : {
+
+    },
+    "Join meeting when tapping an event" : {
+
+    },
     "Keep Boring Notch Updated" : {
       "comment" : "A title for a view that allows users to configure Boring Notch's update preferences.",
       "localizations" : {
@@ -16243,6 +16252,9 @@
           }
         }
       }
+    },
+    "Open in Calendar" : {
+
     },
     "Open notch on hover" : {
       "localizations" : {
