@@ -3,57 +3,102 @@
 //  boringNotch
 //
 
+import Defaults
 import SwiftUI
 
 struct SystemActivityView: View {
     @ObservedObject private var monitor = SystemActivityMonitor.shared
+    @Default(.systemActivityEnabled) private var systemActivityEnabled
+    @Default(.showCPUActivityGauge) private var showCPUGauge
+    @Default(.showGPUActivityGauge) private var showGPUGauge
+    @Default(.showMemoryActivityGauge) private var showMemoryGauge
+    @Default(.showCPUTemperatureGauge) private var showTemperatureGauge
 
     private var sample: SystemActivitySample { monitor.sample }
 
     var body: some View {
-        HStack(spacing: 8) {
-            MetricGaugeCard(
-                title: "CPU",
-                symbol: "cpu",
-                value: sample.cpuUsagePercent,
-                valueText: percentage(sample.cpuUsagePercent),
-                detail: "Total usage",
-                color: .blue
-            )
+        Group {
+            if requestedMetrics.isEmpty {
+                VStack(spacing: 6) {
+                    Image(systemName: "gauge")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                    Text("No system gauges selected")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    Text("Choose gauges in System Activity settings.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    if showCPUGauge {
+                        MetricGaugeCard(
+                            title: "CPU",
+                            symbol: "cpu",
+                            value: sample.cpuUsagePercent,
+                            valueText: percentage(sample.cpuUsagePercent),
+                            detail: "Total usage",
+                            color: .blue
+                        )
+                    }
 
-            MetricGaugeCard(
-                title: "GPU",
-                symbol: "rectangle.3.group",
-                value: sample.gpuUsagePercent,
-                valueText: percentage(sample.gpuUsagePercent),
-                detail: "Device usage",
-                color: .purple
-            )
+                    if showGPUGauge {
+                        MetricGaugeCard(
+                            title: "GPU",
+                            symbol: "rectangle.3.group",
+                            value: sample.gpuUsagePercent,
+                            valueText: percentage(sample.gpuUsagePercent),
+                            detail: "Device usage",
+                            color: .purple
+                        )
+                    }
 
-            MetricGaugeCard(
-                title: "Memory",
-                symbol: "memorychip",
-                value: sample.memoryUsagePercent,
-                valueText: percentage(sample.memoryUsagePercent),
-                detail: memoryDetail,
-                color: .orange
-            )
+                    if showMemoryGauge {
+                        MetricGaugeCard(
+                            title: "Memory",
+                            symbol: "memorychip",
+                            value: sample.memoryUsagePercent,
+                            valueText: percentage(sample.memoryUsagePercent),
+                            detail: memoryDetail,
+                            color: .orange
+                        )
+                    }
 
-            MetricGaugeCard(
-                title: "CPU temp",
-                symbol: "thermometer.medium",
-                value: sample.cpuTemperatureCelsius,
-                valueText: temperatureText,
-                detail: sample.thermalStateLabel,
-                color: temperatureColor,
-                scaleMaximum: 100
-            )
+                    if showTemperatureGauge {
+                        MetricGaugeCard(
+                            title: "CPU temp",
+                            symbol: "thermometer.medium",
+                            value: sample.cpuTemperatureCelsius,
+                            valueText: temperatureText,
+                            detail: sample.thermalStateLabel,
+                            color: temperatureColor,
+                            scaleMaximum: 100
+                        )
+                    }
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 4)
         .padding(.bottom, 2)
-        .onAppear { monitor.start() }
+        .onAppear { updateMonitoring() }
+        .onChange(of: requestedMetrics.rawValue) { _, _ in updateMonitoring() }
         .onDisappear { monitor.stop() }
+    }
+
+    private var requestedMetrics: BNSystemMetricSelection {
+        guard systemActivityEnabled else { return [] }
+
+        var selection: BNSystemMetricSelection = []
+        if showCPUGauge { selection.insert(.cpu) }
+        if showGPUGauge { selection.insert(.gpu) }
+        if showMemoryGauge { selection.insert(.memory) }
+        if showTemperatureGauge { selection.insert(.cpuTemperature) }
+        return selection
+    }
+
+    private func updateMonitoring() {
+        monitor.start(requesting: requestedMetrics)
     }
 
     private func percentage(_ value: Double?) -> String {
@@ -117,7 +162,7 @@ private struct MetricGaugeCard: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minWidth: 112, maxWidth: 148, maxHeight: .infinity)
         .padding(.vertical, 5)
         .background(Color.white.opacity(0.045), in: RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .ignore)

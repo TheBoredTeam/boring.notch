@@ -32,8 +32,10 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     // MARK: - System Metrics
 
-    @objc func systemMetrics(with reply: @escaping (Data) -> Void) {
-        let metrics = SystemMetricSampler.sample()
+    @objc func systemMetrics(_ requestedMetrics: Int, with reply: @escaping (Data) -> Void) {
+        let metrics = SystemMetricSampler.sample(
+            requesting: BNSystemMetricSelection(rawValue: requestedMetrics)
+        )
         reply((try? JSONEncoder().encode(metrics)) ?? Data())
     }
 
@@ -431,20 +433,26 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 // MARK: - System Metrics
 
 private enum SystemMetricSampler {
-    static func sample() -> BNSystemMetricPayload {
-        let cpu = cpuTicks()
-        let memory = memoryUsage()
+    static func sample(requesting selection: BNSystemMetricSelection) -> BNSystemMetricPayload {
+        let cpu: (user: UInt32, system: UInt32, idle: UInt32, nice: UInt32) =
+            selection.contains(.cpu) ? cpuTicks() : (0, 0, 0, 0)
+        let memory: (used: UInt64, total: UInt64) =
+            selection.contains(.memory) ? memoryUsage() : (0, 0)
 
         return BNSystemMetricPayload(
             cpuUserTicks: cpu.user,
             cpuSystemTicks: cpu.system,
             cpuIdleTicks: cpu.idle,
             cpuNiceTicks: cpu.nice,
-            gpuUsagePercent: gpuUsagePercent(),
+            gpuUsagePercent: selection.contains(.gpu) ? gpuUsagePercent() : nil,
             memoryUsedBytes: memory.used,
             memoryTotalBytes: memory.total,
-            cpuTemperatureCelsius: SMCReadOnly.shared.averageCPUTemperature(),
-            thermalState: ProcessInfo.processInfo.thermalState.rawValue
+            cpuTemperatureCelsius: selection.contains(.cpuTemperature)
+                ? SMCReadOnly.shared.averageCPUTemperature()
+                : nil,
+            thermalState: selection.contains(.cpuTemperature)
+                ? ProcessInfo.processInfo.thermalState.rawValue
+                : -1
         )
     }
 

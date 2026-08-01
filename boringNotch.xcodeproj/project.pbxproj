@@ -158,6 +158,7 @@
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		C0D3A0013100000100000001 /* SystemActivityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D3A0033100000100000003 /* SystemActivityMonitor.swift */; };
 		C0D3A0023100000100000002 /* SystemActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D3A0043100000100000004 /* SystemActivityView.swift */; };
+		C0D3A0053100000100000005 /* SystemActivitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D3A0063100000100000006 /* SystemActivitySettingsView.swift */; };
 		F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
@@ -341,6 +342,7 @@
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		C0D3A0033100000100000003 /* SystemActivityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemActivityMonitor.swift; sourceTree = "<group>"; };
 		C0D3A0043100000100000004 /* SystemActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemActivityView.swift; sourceTree = "<group>"; };
+		C0D3A0063100000100000006 /* SystemActivitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemActivitySettingsView.swift; sourceTree = "<group>"; };
 		F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -540,6 +542,7 @@
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
 				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
+				C0D3A0063100000100000006 /* SystemActivitySettingsView.swift */,
 				64FA50FA2F4D6F9E00008A28 /* WebcamSettingsView.swift */,
 			);
 			path = Views;
@@ -998,6 +1001,7 @@
 			files = (
 				C0D3A0013100000100000001 /* SystemActivityMonitor.swift in Sources */,
 				C0D3A0023100000100000002 /* SystemActivityView.swift in Sources */,
+				C0D3A0053100000100000005 /* SystemActivitySettingsView.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,

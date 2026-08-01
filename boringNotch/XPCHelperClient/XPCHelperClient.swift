@@ -127,13 +127,15 @@ final class XPCHelperClient: NSObject {
 
     // MARK: - System Metrics
 
-    nonisolated func systemMetrics() async -> BNSystemMetricPayload? {
+    nonisolated func systemMetrics(
+        requesting selection: BNSystemMetricSelection
+    ) async -> BNSystemMetricPayload? {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
             }
             let data: Data = try await service.withContinuation { service, continuation in
-                service.systemMetrics { data in
+                service.systemMetrics(selection.rawValue) { data in
                     continuation.resume(returning: data)
                 }
             }

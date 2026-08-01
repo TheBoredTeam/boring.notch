@@ -7,6 +7,15 @@
 
 import Foundation
 
+struct BNSystemMetricSelection: OptionSet, Sendable {
+    let rawValue: Int
+
+    static let cpu = BNSystemMetricSelection(rawValue: 1 << 0)
+    static let gpu = BNSystemMetricSelection(rawValue: 1 << 1)
+    static let memory = BNSystemMetricSelection(rawValue: 1 << 2)
+    static let cpuTemperature = BNSystemMetricSelection(rawValue: 1 << 3)
+}
+
 struct BNSystemMetricPayload: Codable, Sendable {
     let cpuUserTicks: UInt32
     let cpuSystemTicks: UInt32
@@ -51,7 +60,7 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
 }
 
 @objc protocol BoringNotchXPCHelperProtocol {
-    func systemMetrics(with reply: @escaping (Data) -> Void)
+    func systemMetrics(_ requestedMetrics: Int, with reply: @escaping (Data) -> Void)
     func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void)
     func requestAccessibilityAuthorization()
     func ensureAccessibilityAuthorization(_ promptIfNeeded: Bool, with reply: @escaping (Bool) -> Void)

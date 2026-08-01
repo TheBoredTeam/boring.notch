@@ -24,10 +24,15 @@ let tabs = [
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.boringShelf) private var boringShelf
+    @Default(.systemActivityEnabled) private var systemActivityEnabled
     @Namespace var animation
 
     private var visibleTabs: [TabModel] {
-        tabs.filter { boringShelf || $0.view != .shelf }
+        tabs.filter { tab in
+            if tab.view == .shelf { return boringShelf }
+            if tab.view == .systemActivity { return systemActivityEnabled }
+            return true
+        }
     }
 
     var body: some View {

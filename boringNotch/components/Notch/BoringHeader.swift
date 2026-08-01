@@ -13,14 +13,15 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+    @Default(.systemActivityEnabled) private var systemActivityEnabled
     var body: some View {
         HStack(spacing: 0) {
             HStack {
                 if coordinator.alwaysShowTabs
                     || (Defaults[.boringShelf] && !tvm.isEmpty)
-                    || coordinator.currentView == .systemActivity {
+                    || (systemActivityEnabled && coordinator.currentView == .systemActivity) {
                     TabSelectionView()
-                } else if vm.notchState == .open {
+                } else if vm.notchState == .open && systemActivityEnabled {
                     Button {
                         withAnimation(.smooth) {
                             coordinator.currentView = .systemActivity
@@ -121,6 +122,12 @@ struct BoringHeader: View {
         }
         .foregroundColor(.gray)
         .environmentObject(vm)
+        .onChange(of: systemActivityEnabled) { _, enabled in
+            guard !enabled, coordinator.currentView == .systemActivity else { return }
+            withAnimation(.smooth) {
+                coordinator.currentView = .home
+            }
+        }
     }
 
     func isOSDType(_ type: SneakContentType) -> Bool {

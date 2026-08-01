@@ -52,22 +52,31 @@ final class SystemActivityMonitor: ObservableObject {
     @Published private(set) var sample = SystemActivitySample.empty
     @Published private(set) var isLoading = false
 
+    private var selection: BNSystemMetricSelection = []
     private var previousCPUTicks: CPUTickSnapshot?
     private var refreshTask: Task<Void, Never>?
 
     private init() {}
 
-    func start() {
-        guard refreshTask == nil else { return }
+    func start(requesting newSelection: BNSystemMetricSelection) {
+        guard !newSelection.isEmpty else {
+            stop()
+            return
+        }
+        guard refreshTask == nil || selection != newSelection else { return }
 
+        stop()
+
+        selection = newSelection
         previousCPUTicks = nil
-        isLoading = sample.memoryTotalBytes == 0
+        isLoading = true
+        let initialDelay = newSelection.contains(.cpu) ? 1.0 : 2.0
 
         refreshTask = Task { [weak self] in
             await self?.refresh()
 
-            // Total CPU usage needs two tick samples.
-            try? await Task.sleep(for: .seconds(1))
+            // Total CPU usage needs two tick samples; other metrics use the regular interval.
+            try? await Task.sleep(for: .seconds(initialDelay))
 
             while !Task.isCancelled {
                 await self?.refresh()
@@ -79,12 +88,17 @@ final class SystemActivityMonitor: ObservableObject {
     func stop() {
         refreshTask?.cancel()
         refreshTask = nil
+        selection = []
         previousCPUTicks = nil
         isLoading = false
     }
 
     private func refresh() async {
-        guard let metrics = await XPCHelperClient.shared.systemMetrics() else {
+        let requestedMetrics = selection
+        guard !requestedMetrics.isEmpty else { return }
+        guard let metrics = await XPCHelperClient.shared.systemMetrics(
+            requesting: requestedMetrics
+        ) else {
             isLoading = false
             return
         }
@@ -98,14 +112,16 @@ final class SystemActivityMonitor: ObservableObject {
         )
 
         sample = SystemActivitySample(
-            cpuUsagePercent: cpuUsage(current: currentTicks, previous: previousCPUTicks),
+            cpuUsagePercent: requestedMetrics.contains(.cpu)
+                ? cpuUsage(current: currentTicks, previous: previousCPUTicks)
+                : nil,
             gpuUsagePercent: metrics.gpuUsagePercent,
             memoryUsedBytes: metrics.memoryUsedBytes,
             memoryTotalBytes: metrics.memoryTotalBytes,
             cpuTemperatureCelsius: metrics.cpuTemperatureCelsius,
             thermalState: metrics.thermalState
         )
-        previousCPUTicks = currentTicks
+        previousCPUTicks = requestedMetrics.contains(.cpu) ? currentTicks : nil
         isLoading = false
     }
 

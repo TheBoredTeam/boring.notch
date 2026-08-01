@@ -253,6 +253,13 @@ extension Defaults.Keys {
         default: SliderColorEnum.white
     )
     static let playerColorTinting = Key<Bool>("playerColorTinting", default: true)
+
+    // MARK: System Activity
+    static let systemActivityEnabled = Key<Bool>("systemActivityEnabled", default: true)
+    static let showCPUActivityGauge = Key<Bool>("showCPUActivityGauge", default: true)
+    static let showGPUActivityGauge = Key<Bool>("showGPUActivityGauge", default: true)
+    static let showMemoryActivityGauge = Key<Bool>("showMemoryActivityGauge", default: true)
+    static let showCPUTemperatureGauge = Key<Bool>("showCPUTemperatureGauge", default: true)
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
