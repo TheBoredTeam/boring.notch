@@ -8,6 +8,7 @@ import Defaults
 import SwiftUI
 
 struct SystemActivityView: View {
+    @Binding var isHoveringProcessList: Bool
     @ObservedObject private var monitor = SystemActivityMonitor.shared
     @Default(.systemActivityEnabled) private var systemActivityEnabled
     @Default(.showCPUActivityGauge) private var showCPUGauge
@@ -45,6 +46,8 @@ struct SystemActivityView: View {
                         processes: monitor.processes,
                         isLoading: monitor.isProcessListLoading
                     )
+                    .onHover { isHoveringProcessList = $0 }
+                    .onDisappear { isHoveringProcessList = false }
                     .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
             } else {
@@ -64,7 +67,10 @@ struct SystemActivityView: View {
             else { return }
             self.selectedProcessMetric = nil
         }
-        .onDisappear { monitor.stop() }
+        .onDisappear {
+            isHoveringProcessList = false
+            monitor.stop()
+        }
     }
 
     @ViewBuilder
@@ -513,7 +519,7 @@ private struct ArcGauge: View {
 }
 
 #Preview {
-    SystemActivityView()
+    SystemActivityView(isHoveringProcessList: .constant(false))
         .frame(width: 600, height: 125)
         .padding()
         .background(.black)

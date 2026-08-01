@@ -31,6 +31,7 @@ struct ContentView: View {
     @State private var horizontalMediaGestureTriggered = false
     @State private var horizontalMediaGestureFeedback: CGFloat = .zero
     @State private var isHoveringMusicArea = false
+    @State private var isHoveringProcessList = false
 
     @State private var haptics: Bool = false
 
@@ -404,7 +405,7 @@ struct ContentView: View {
                     case .shelf:
                         ShelfView()
                     case .systemActivity:
-                        SystemActivityView()
+                        SystemActivityView(isHoveringProcessList: $isHoveringProcessList)
                     }
                 }
                 .transition(
@@ -641,6 +642,14 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
+        guard !isHoveringProcessList else {
+            if gestureProgress != .zero {
+                withAnimation(animationSpring) {
+                    gestureProgress = .zero
+                }
+            }
+            return
+        }
         guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
 
         withAnimation(animationSpring) {
