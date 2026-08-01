@@ -437,7 +437,10 @@ private enum SystemMetricSampler {
         let cpu: (user: UInt32, system: UInt32, idle: UInt32, nice: UInt32) =
             selection.contains(.cpu) ? cpuTicks() : (0, 0, 0, 0)
         let memory: (used: UInt64, total: UInt64) =
-            selection.contains(.memory) ? memoryUsage() : (0, 0)
+            selection.contains(.memory) || selection.contains(.memoryProcesses)
+                ? memoryUsage()
+                : (0, 0)
+        let processes = processMetrics(requesting: selection)
 
         return BNSystemMetricPayload(
             cpuUserTicks: cpu.user,
@@ -452,8 +455,180 @@ private enum SystemMetricSampler {
                 : nil,
             thermalState: selection.contains(.cpuTemperature)
                 ? ProcessInfo.processInfo.thermalState.rawValue
-                : -1
+                : -1,
+            sampleUptimeNanoseconds: DispatchTime.now().uptimeNanoseconds,
+            processes: processes
         )
+    }
+
+    private struct ProcessSnapshot {
+        let pid: Int32
+        let name: String
+        let executablePath: String?
+        let cpuUsagePercent: Double
+        let memoryBytes: UInt64
+    }
+
+    private struct GPUProcessSnapshot {
+        var name: String
+        var accumulatedTimeNanoseconds: UInt64
+    }
+
+    private static func processMetrics(
+        requesting selection: BNSystemMetricSelection
+    ) -> [BNProcessMetricPayload] {
+        let wantsCPU = selection.contains(.cpuProcesses)
+        let wantsGPU = selection.contains(.gpuProcesses)
+        let wantsMemory = selection.contains(.memoryProcesses)
+        guard wantsCPU || wantsGPU || wantsMemory else { return [] }
+
+        // `ps` can see system-owned processes that libproc hides from an ordinary user,
+        // including WindowServer. It is only launched while a process list is visible.
+        let processSnapshots = psProcessSnapshots()
+        let snapshotsByPID = Dictionary(
+            uniqueKeysWithValues: processSnapshots.map { ($0.pid, $0) }
+        )
+        let gpuSnapshots = wantsGPU ? gpuProcessSnapshots() : [:]
+        let processIDs: Set<Int32> = wantsCPU || wantsMemory
+            ? Set(snapshotsByPID.keys).union(gpuSnapshots.keys)
+            : Set(gpuSnapshots.keys)
+
+        return processIDs.compactMap { pid in
+            let process = snapshotsByPID[pid]
+            let gpu = gpuSnapshots[pid]
+            guard process != nil || gpu != nil else { return nil }
+
+            return BNProcessMetricPayload(
+                pid: pid,
+                name: process?.name ?? gpu?.name ?? "Process \(pid)",
+                executablePath: process?.executablePath,
+                cpuUsagePercent: wantsCPU ? process?.cpuUsagePercent : nil,
+                gpuTimeNanoseconds: wantsGPU ? gpu?.accumulatedTimeNanoseconds : nil,
+                memoryBytes: wantsMemory ? process?.memoryBytes : nil
+            )
+        }
+    }
+
+    private static func psProcessSnapshots() -> [ProcessSnapshot] {
+        let process = Process()
+        let output = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/bin/ps")
+        process.arguments = ["-axo", "pid=,pcpu=,rss=,comm="]
+        process.standardOutput = output
+        process.standardError = FileHandle.nullDevice
+        var environment = ProcessInfo.processInfo.environment
+        environment["LC_ALL"] = "C"
+        process.environment = environment
+
+        do {
+            try process.run()
+            let data = output.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            guard process.terminationStatus == 0,
+                  let text = String(data: data, encoding: .utf8)
+            else { return [] }
+
+            return text.split(whereSeparator: \.isNewline).compactMap { line in
+                let fields = line.split(
+                    maxSplits: 3,
+                    omittingEmptySubsequences: true,
+                    whereSeparator: \.isWhitespace
+                )
+                guard fields.count == 4,
+                      let pid = Int32(fields[0]),
+                      pid > 0,
+                      let cpu = Double(fields[1]),
+                      let residentKilobytes = UInt64(fields[2])
+                else { return nil }
+
+                let executablePath = String(fields[3])
+                let executableName = URL(fileURLWithPath: executablePath).lastPathComponent
+                let memoryBytes = residentKilobytes.multipliedReportingOverflow(by: 1_024)
+
+                return ProcessSnapshot(
+                    pid: pid,
+                    name: executableName.isEmpty ? "Process \(pid)" : executableName,
+                    executablePath: executablePath.hasPrefix("/") ? executablePath : nil,
+                    cpuUsagePercent: max(cpu, 0),
+                    memoryBytes: memoryBytes.overflow ? UInt64.max : memoryBytes.partialValue
+                )
+            }
+        } catch {
+            return []
+        }
+    }
+
+    private static func gpuProcessSnapshots() -> [Int32: GPUProcessSnapshot] {
+        var iterator: io_iterator_t = 0
+        let result = IORegistryCreateIterator(
+            kIOMainPortDefault,
+            kIOServicePlane,
+            IOOptionBits(kIORegistryIterateRecursively),
+            &iterator
+        )
+        guard result == KERN_SUCCESS else { return [:] }
+        defer { IOObjectRelease(iterator) }
+
+        var snapshots: [Int32: GPUProcessSnapshot] = [:]
+
+        while case let entry = IOIteratorNext(iterator), entry != 0 {
+            defer { IOObjectRelease(entry) }
+
+            guard
+                let creator = IORegistryEntryCreateCFProperty(
+                    entry,
+                    "IOUserClientCreator" as CFString,
+                    kCFAllocatorDefault,
+                    0
+                )?.takeRetainedValue() as? String,
+                let identity = parseGPUCreator(creator),
+                let appUsage = IORegistryEntryCreateCFProperty(
+                    entry,
+                    "AppUsage" as CFString,
+                    kCFAllocatorDefault,
+                    0
+                )?.takeRetainedValue() as? [[String: Any]]
+            else { continue }
+
+            let accumulatedTime = appUsage.reduce(UInt64.zero) { total, usage in
+                guard let value = usage["accumulatedGPUTime"] as? NSNumber else { return total }
+                let addition = total.addingReportingOverflow(value.uint64Value)
+                return addition.overflow ? UInt64.max : addition.partialValue
+            }
+            guard accumulatedTime > 0 else { continue }
+
+            if let current = snapshots[identity.pid] {
+                let addition = current.accumulatedTimeNanoseconds
+                    .addingReportingOverflow(accumulatedTime)
+                snapshots[identity.pid] = GPUProcessSnapshot(
+                    name: current.name,
+                    accumulatedTimeNanoseconds: addition.overflow
+                        ? UInt64.max
+                        : addition.partialValue
+                )
+            } else {
+                snapshots[identity.pid] = GPUProcessSnapshot(
+                    name: identity.name,
+                    accumulatedTimeNanoseconds: accumulatedTime
+                )
+            }
+        }
+
+        return snapshots
+    }
+
+    private static func parseGPUCreator(_ creator: String) -> (pid: Int32, name: String)? {
+        let fields = creator.split(separator: ",", maxSplits: 1)
+        guard let pidField = fields.first,
+              pidField.hasPrefix("pid "),
+              let pid = Int32(pidField.dropFirst(4)),
+              pid > 0
+        else { return nil }
+
+        let name = fields.count > 1
+            ? fields[1].trimmingCharacters(in: .whitespaces)
+            : "Process \(pid)"
+        return (pid, name.isEmpty ? "Process \(pid)" : name)
     }
 
     private static func cpuTicks() -> (user: UInt32, system: UInt32, idle: UInt32, nice: UInt32) {

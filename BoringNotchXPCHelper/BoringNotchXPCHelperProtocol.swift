@@ -14,6 +14,18 @@ struct BNSystemMetricSelection: OptionSet, Sendable {
     static let gpu = BNSystemMetricSelection(rawValue: 1 << 1)
     static let memory = BNSystemMetricSelection(rawValue: 1 << 2)
     static let cpuTemperature = BNSystemMetricSelection(rawValue: 1 << 3)
+    static let cpuProcesses = BNSystemMetricSelection(rawValue: 1 << 4)
+    static let gpuProcesses = BNSystemMetricSelection(rawValue: 1 << 5)
+    static let memoryProcesses = BNSystemMetricSelection(rawValue: 1 << 6)
+}
+
+struct BNProcessMetricPayload: Codable, Sendable {
+    let pid: Int32
+    let name: String
+    let executablePath: String?
+    let cpuUsagePercent: Double?
+    let gpuTimeNanoseconds: UInt64?
+    let memoryBytes: UInt64?
 }
 
 struct BNSystemMetricPayload: Codable, Sendable {
@@ -26,6 +38,8 @@ struct BNSystemMetricPayload: Codable, Sendable {
     let memoryTotalBytes: UInt64
     let cpuTemperatureCelsius: Double?
     let thermalState: Int
+    let sampleUptimeNanoseconds: UInt64
+    let processes: [BNProcessMetricPayload]
 }
 
 /// The protocol that this service will vend as its API. This protocol will also need to be visible to the process hosting the service.

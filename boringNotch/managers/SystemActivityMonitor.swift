@@ -38,6 +38,30 @@ struct SystemActivitySample: Sendable {
     }
 }
 
+enum SystemActivityProcessMetric: String, Sendable {
+    case cpu
+    case gpu
+    case memory
+
+    var processSelection: BNSystemMetricSelection {
+        switch self {
+        case .cpu: .cpuProcesses
+        case .gpu: .gpuProcesses
+        case .memory: .memoryProcesses
+        }
+    }
+}
+
+struct SystemActivityProcess: Identifiable, Sendable {
+    let pid: Int32
+    let name: String
+    let executablePath: String?
+    let usagePercent: Double
+    let memoryBytes: UInt64?
+
+    var id: Int32 { pid }
+}
+
 private struct CPUTickSnapshot: Sendable {
     let user: UInt32
     let system: UInt32
@@ -50,10 +74,14 @@ final class SystemActivityMonitor: ObservableObject {
     static let shared = SystemActivityMonitor()
 
     @Published private(set) var sample = SystemActivitySample.empty
+    @Published private(set) var processes: [SystemActivityProcess] = []
     @Published private(set) var isLoading = false
+    @Published private(set) var isProcessListLoading = false
 
     private var selection: BNSystemMetricSelection = []
     private var previousCPUTicks: CPUTickSnapshot?
+    private var previousGPUProcessTimes: [Int32: UInt64] = [:]
+    private var previousGPUUptimeNanoseconds: UInt64?
     private var refreshTask: Task<Void, Never>?
 
     private init() {}
@@ -65,17 +93,26 @@ final class SystemActivityMonitor: ObservableObject {
         }
         guard refreshTask == nil || selection != newSelection else { return }
 
-        stop()
+        let keepsCPUBaseline = selection.contains(.cpu) && newSelection.contains(.cpu)
+        let existingCPUTicks = keepsCPUBaseline ? previousCPUTicks : nil
+        refreshTask?.cancel()
+        refreshTask = nil
 
         selection = newSelection
-        previousCPUTicks = nil
+        previousCPUTicks = existingCPUTicks
+        previousGPUProcessTimes = [:]
+        previousGPUUptimeNanoseconds = nil
+        processes = []
         isLoading = true
-        let initialDelay = newSelection.contains(.cpu) ? 1.0 : 2.0
+        isProcessListLoading = processMetric(for: newSelection) != nil
+        let needsFollowUpSample = newSelection.contains(.cpu)
+            || newSelection.contains(.gpuProcesses)
+        let initialDelay = needsFollowUpSample ? 1.0 : 2.0
 
         refreshTask = Task { [weak self] in
             await self?.refresh()
 
-            // Total CPU usage needs two tick samples; other metrics use the regular interval.
+            // Total CPU and per-process GPU usage need two counter samples.
             try? await Task.sleep(for: .seconds(initialDelay))
 
             while !Task.isCancelled {
@@ -90,7 +127,11 @@ final class SystemActivityMonitor: ObservableObject {
         refreshTask = nil
         selection = []
         previousCPUTicks = nil
+        previousGPUProcessTimes = [:]
+        previousGPUUptimeNanoseconds = nil
+        processes = []
         isLoading = false
+        isProcessListLoading = false
     }
 
     private func refresh() async {
@@ -100,6 +141,7 @@ final class SystemActivityMonitor: ObservableObject {
             requesting: requestedMetrics
         ) else {
             isLoading = false
+            isProcessListLoading = false
             return
         }
         guard !Task.isCancelled else { return }
@@ -122,7 +164,106 @@ final class SystemActivityMonitor: ObservableObject {
             thermalState: metrics.thermalState
         )
         previousCPUTicks = requestedMetrics.contains(.cpu) ? currentTicks : nil
+        updateProcesses(from: metrics, requesting: requestedMetrics)
         isLoading = false
+    }
+
+    private func updateProcesses(
+        from metrics: BNSystemMetricPayload,
+        requesting requestedMetrics: BNSystemMetricSelection
+    ) {
+        guard let metric = processMetric(for: requestedMetrics) else {
+            processes = []
+            isProcessListLoading = false
+            return
+        }
+
+        switch metric {
+        case .cpu:
+            processes = metrics.processes.compactMap { process in
+                guard let usage = process.cpuUsagePercent else { return nil }
+                return SystemActivityProcess(
+                    pid: process.pid,
+                    name: process.name,
+                    executablePath: process.executablePath,
+                    usagePercent: usage,
+                    memoryBytes: nil
+                )
+            }
+            .sorted(by: processUsageSort)
+            isProcessListLoading = false
+
+        case .memory:
+            let totalMemory = metrics.memoryTotalBytes
+            processes = metrics.processes.compactMap { process in
+                guard let memoryBytes = process.memoryBytes, totalMemory > 0 else { return nil }
+                return SystemActivityProcess(
+                    pid: process.pid,
+                    name: process.name,
+                    executablePath: process.executablePath,
+                    usagePercent: Double(memoryBytes) / Double(totalMemory) * 100,
+                    memoryBytes: memoryBytes
+                )
+            }
+            .sorted(by: processUsageSort)
+            isProcessListLoading = false
+
+        case .gpu:
+            let currentTimes = Dictionary(
+                uniqueKeysWithValues: metrics.processes.compactMap { process in
+                    process.gpuTimeNanoseconds.map { (process.pid, $0) }
+                }
+            )
+            defer {
+                previousGPUProcessTimes = currentTimes
+                previousGPUUptimeNanoseconds = metrics.sampleUptimeNanoseconds
+            }
+
+            guard let previousUptime = previousGPUUptimeNanoseconds,
+                  metrics.sampleUptimeNanoseconds > previousUptime
+            else {
+                processes = []
+                isProcessListLoading = true
+                return
+            }
+
+            let elapsed = Double(metrics.sampleUptimeNanoseconds - previousUptime)
+            processes = metrics.processes.compactMap { process in
+                guard let current = process.gpuTimeNanoseconds,
+                      let previous = previousGPUProcessTimes[process.pid]
+                else { return nil }
+                let delta = current >= previous ? current - previous : 0
+                let usage = min(max(Double(delta) / elapsed * 100, 0), 100)
+                return SystemActivityProcess(
+                    pid: process.pid,
+                    name: process.name,
+                    executablePath: process.executablePath,
+                    usagePercent: usage,
+                    memoryBytes: nil
+                )
+            }
+            .sorted(by: processUsageSort)
+            isProcessListLoading = false
+        }
+    }
+
+    private func processMetric(
+        for selection: BNSystemMetricSelection
+    ) -> SystemActivityProcessMetric? {
+        if selection.contains(.cpuProcesses) { return .cpu }
+        if selection.contains(.gpuProcesses) { return .gpu }
+        if selection.contains(.memoryProcesses) { return .memory }
+        return nil
+    }
+
+    private func processUsageSort(
+        _ lhs: SystemActivityProcess,
+        _ rhs: SystemActivityProcess
+    ) -> Bool {
+        if lhs.usagePercent == rhs.usagePercent {
+            return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+        }
+        return lhs.usagePercent > rhs.usagePercent
     }
 
     private func cpuUsage(current: CPUTickSnapshot, previous: CPUTickSnapshot?) -> Double? {
