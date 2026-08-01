@@ -125,6 +125,9 @@ struct MusicControlsView: View {
     @State private var lastDragged: Date = .distantPast
     @Default(.musicControlSlots) private var slotConfig
     @Default(.musicControlSlotLimit) private var slotLimit
+    @Default(.showCalendar) private var showCalendar
+    @Default(.showSystemActivityInMainCard) private var showSystemActivityInMainCard
+    @Default(.systemActivityEnabled) private var systemActivityEnabled
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -240,8 +243,11 @@ struct MusicControlsView: View {
         )
         let padded = slotConfig.padded(to: sanitizedLimit, filler: .none)
         let result = Array(padded.prefix(sanitizedLimit))
-        // If calendar and camera are both visible alongside music, hide the edge slots
-        let shouldHideEdges = Defaults[.showCalendar] && Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
+        // If a secondary card and camera are both visible alongside music, hide the edge slots.
+        let hasSecondaryCard = showCalendar
+            || (systemActivityEnabled && showSystemActivityInMainCard)
+        let shouldHideEdges = hasSecondaryCard && Defaults[.showMirror]
+            && webcamManager.cameraAvailable && vm.isCameraExpanded
         if shouldHideEdges && result.count >= 5 {
             return Array(result.dropFirst().dropLast())
         }
@@ -424,6 +430,9 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.showCalendar) private var showCalendar
+    @Default(.showSystemActivityInMainCard) private var showSystemActivityInMainCard
+    @Default(.systemActivityEnabled) private var systemActivityEnabled
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
@@ -437,21 +446,33 @@ struct NotchHomeView: View {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
+    private var shouldShowSystemActivityCard: Bool {
+        systemActivityEnabled && showSystemActivityInMainCard && !showCalendar
+    }
+
+    private var hasSecondaryCard: Bool {
+        showCalendar || shouldShowSystemActivityCard
+    }
+
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+        HStack(alignment: .top, spacing: (shouldShowCamera && hasSecondaryCard) ? 10 : 15) {
             MusicPlayerView(
                 albumArtNamespace: albumArtNamespace,
                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                 isHoveringMusicArea: $isHoveringMusicArea
             )
 
-            if Defaults[.showCalendar] {
+            if showCalendar {
                 CalendarView()
                     .frame(width: shouldShowCamera ? 170 : 215)
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
                     .environmentObject(vm)
+                    .transition(.opacity)
+            } else if shouldShowSystemActivityCard {
+                SystemActivityMainCardView()
+                    .frame(width: shouldShowCamera ? 170 : 215)
                     .transition(.opacity)
             }
 

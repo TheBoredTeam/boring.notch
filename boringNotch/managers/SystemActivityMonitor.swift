@@ -52,6 +52,11 @@ enum SystemActivityProcessMetric: String, Sendable {
     }
 }
 
+enum SystemActivityMonitorClient: Hashable, Sendable {
+    case systemTab
+    case mainCard
+}
+
 struct SystemActivityProcess: Identifiable, Sendable {
     let pid: Int32
     let name: String
@@ -79,6 +84,7 @@ final class SystemActivityMonitor: ObservableObject {
     @Published private(set) var isProcessListLoading = false
 
     private var selection: BNSystemMetricSelection = []
+    private var clientSelections: [SystemActivityMonitorClient: BNSystemMetricSelection] = [:]
     private var previousCPUTicks: CPUTickSnapshot?
     private var previousGPUProcessTimes: [Int32: UInt64] = [:]
     private var previousGPUUptimeNanoseconds: UInt64?
@@ -86,9 +92,35 @@ final class SystemActivityMonitor: ObservableObject {
 
     private init() {}
 
-    func start(requesting newSelection: BNSystemMetricSelection) {
+    func start(
+        requesting newSelection: BNSystemMetricSelection,
+        for client: SystemActivityMonitorClient
+    ) {
+        if newSelection.isEmpty {
+            clientSelections.removeValue(forKey: client)
+        } else {
+            clientSelections[client] = newSelection
+        }
+        updateSelection()
+    }
+
+    func stop(for client: SystemActivityMonitorClient) {
+        clientSelections.removeValue(forKey: client)
+        updateSelection()
+    }
+
+    private func updateSelection() {
+        let combinedSelection = clientSelections.values.reduce(
+            into: BNSystemMetricSelection()
+        ) { result, requestedSelection in
+            result.formUnion(requestedSelection)
+        }
+        restart(requesting: combinedSelection)
+    }
+
+    private func restart(requesting newSelection: BNSystemMetricSelection) {
         guard !newSelection.isEmpty else {
-            stop()
+            stopMonitoring()
             return
         }
         guard refreshTask == nil || selection != newSelection else { return }
@@ -122,7 +154,7 @@ final class SystemActivityMonitor: ObservableObject {
         }
     }
 
-    func stop() {
+    private func stopMonitoring() {
         refreshTask?.cancel()
         refreshTask = nil
         selection = []

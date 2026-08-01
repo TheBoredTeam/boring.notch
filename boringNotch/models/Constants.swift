@@ -256,6 +256,10 @@ extension Defaults.Keys {
 
     // MARK: System Activity
     static let systemActivityEnabled = Key<Bool>("systemActivityEnabled", default: true)
+    static let showSystemActivityInMainCard = Key<Bool>(
+        "showSystemActivityInMainCard",
+        default: false
+    )
     static let showCPUActivityGauge = Key<Bool>("showCPUActivityGauge", default: true)
     static let showGPUActivityGauge = Key<Bool>("showGPUActivityGauge", default: true)
     static let showMemoryActivityGauge = Key<Bool>("showMemoryActivityGauge", default: true)

@@ -8,6 +8,8 @@ import SwiftUI
 
 struct SystemActivitySettings: View {
     @Default(.systemActivityEnabled) private var systemActivityEnabled
+    @Default(.showSystemActivityInMainCard) private var showInMainCard
+    @Default(.showCalendar) private var showCalendar
 
     var body: some View {
         Form {
@@ -20,6 +22,22 @@ struct SystemActivitySettings: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+
+                Defaults.Toggle(key: .showSystemActivityInMainCard) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Show in main card")
+                        if showCalendar {
+                            Text("Turn off Show calendar in Calendar settings first.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Shows compact gauges beside the media controls.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .disabled(!systemActivityEnabled || showCalendar)
             } header: {
                 Text("General")
             }
@@ -40,12 +58,17 @@ struct SystemActivitySettings: View {
             } header: {
                 Text("Visible gauges")
             } footer: {
-                Text("Only enabled gauges are sampled while the System tab is visible.")
+                Text("Only enabled gauges are sampled while a System Activity view is visible.")
             }
             .disabled(!systemActivityEnabled)
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("System Activity")
+        .onChange(of: systemActivityEnabled) { _, enabled in
+            if !enabled {
+                showInMainCard = false
+            }
+        }
     }
 }
 
