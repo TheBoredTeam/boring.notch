@@ -18,23 +18,10 @@ struct BoringHeader: View {
         HStack(spacing: 0) {
             HStack {
                 if coordinator.alwaysShowTabs
-                    || (Defaults[.boringShelf] && !tvm.isEmpty)
-                    || (systemActivityEnabled && coordinator.currentView == .systemActivity) {
+                    || (Defaults[.boringShelf] && !tvm.isEmpty) {
                     TabSelectionView()
-                } else if vm.notchState == .open && systemActivityEnabled {
-                    Button {
-                        withAnimation(.smooth) {
-                            coordinator.currentView = .systemActivity
-                        }
-                    } label: {
-                        Image(systemName: "chart.bar.xaxis")
-                            .padding(.horizontal, 15)
-                            .frame(height: 26)
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.gray)
-                    .help("System activity")
+                } else if vm.notchState == .open {
+                    EmptyView()
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
