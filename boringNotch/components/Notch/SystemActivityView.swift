@@ -86,6 +86,7 @@ struct SystemActivityView: View {
             } label: {
                 MetricGaugeCard(
                     title: gauge.title,
+                    compactTitle: gauge.compactTitle,
                     symbol: gauge.symbol,
                     value: gauge.value,
                     valueText: gauge.valueText,
@@ -104,6 +105,7 @@ struct SystemActivityView: View {
         } else {
             MetricGaugeCard(
                 title: gauge.title,
+                compactTitle: gauge.compactTitle,
                 symbol: gauge.symbol,
                 value: gauge.value,
                 valueText: gauge.valueText,
@@ -245,14 +247,6 @@ private struct CompactMetricGauge: View {
         return min(max(value / gauge.scaleMaximum, 0), 1)
     }
 
-    private var compactTitle: String {
-        switch gauge.id {
-        case "memory": "MEM"
-        case "temperature": "TEMP"
-        default: gauge.title.uppercased()
-        }
-    }
-
     var body: some View {
         ZStack(alignment: .bottom) {
             ArcGauge(
@@ -267,7 +261,7 @@ private struct CompactMetricGauge: View {
                 Image(systemName: gauge.symbol)
                     .font(.system(size: 8, weight: .semibold))
 
-                Text(compactTitle)
+                Text(gauge.compactTitle)
                     .font(.system(size: 8, weight: .semibold, design: .rounded))
             }
             .foregroundStyle(.secondary)
@@ -387,10 +381,19 @@ private struct ActivityGaugeConfiguration: Identifiable {
     let color: Color
     let processMetric: SystemActivityProcessMetric?
     var scaleMaximum: Double = 100
+
+    var compactTitle: String {
+        switch id {
+        case "memory": "MEM"
+        case "temperature": "TEMP"
+        default: title.uppercased()
+        }
+    }
 }
 
 private struct MetricGaugeCard: View {
     let title: String
+    let compactTitle: String
     let symbol: String
     let value: Double?
     let valueText: String
@@ -407,13 +410,26 @@ private struct MetricGaugeCard: View {
 
     var body: some View {
         VStack(spacing: 3) {
-            Label(title, systemImage: symbol)
-                .font(.system(size: 10, weight: .semibold, design: .rounded))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+            ZStack(alignment: .bottom) {
+                ArcGauge(
+                    progress: progress,
+                    valueText: valueText,
+                    color: color,
+                    lineWidth: 8,
+                    valueFontSize: 16
+                )
 
-            ArcGauge(progress: progress, valueText: valueText, color: color)
-                .frame(width: 66, height: 66)
+                HStack(spacing: 4) {
+                    Image(systemName: symbol)
+                        .font(.system(size: 9, weight: .semibold))
+
+                    Text(compactTitle)
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                }
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 1)
+            }
+            .frame(width: 78, height: 78)
 
             Text(detail)
                 .font(.system(size: 8, weight: .medium, design: .rounded))
@@ -423,7 +439,6 @@ private struct MetricGaugeCard: View {
         }
         .frame(minWidth: 112, maxWidth: 148, maxHeight: .infinity)
         .padding(.vertical, 5)
-        .background(Color.white.opacity(0.045), in: RoundedRectangle(cornerRadius: 12))
         .overlay(alignment: .topTrailing) {
             if showsDisclosure {
                 Image(systemName: isSelected ? "chevron.left" : "chevron.right")
