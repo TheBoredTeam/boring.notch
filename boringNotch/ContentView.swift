@@ -316,6 +316,7 @@ struct ContentView: View {
                                     isInLowPowerMode: batteryModel.isInLowPowerMode,
                                     isPluggedIn: batteryModel.isPluggedIn,
                                     levelBattery: batteryModel.levelBattery,
+                                    maxAdapterWatts: batteryModel.maxAdapterWatts,
                                     isForNotification: true
                                 )
                             }

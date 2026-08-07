@@ -95,6 +95,7 @@ struct BoringHeader: View {
                                 maxCapacity: batteryModel.maxCapacity,
                                 timeToFullCharge: batteryModel.timeToFullCharge,
                                 timeToDischarge: batteryModel.timeToDischarge,
+                                maxAdapterWatts: batteryModel.maxAdapterWatts,
                                 isForNotification: false
                             )
                         }

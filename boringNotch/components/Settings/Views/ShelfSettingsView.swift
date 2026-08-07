@@ -43,6 +43,9 @@ struct Shelf: View {
                 Defaults.Toggle(key: .autoRemoveShelfItems) {
                     Text("Remove from shelf after dragging")
                 }
+                Defaults.Toggle(key: .reverseShelfOrdering) {
+                    Text("Keep newer shelf items in front")
+                }
 
             } header: {
                 HStack {
