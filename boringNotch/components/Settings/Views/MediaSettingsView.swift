@@ -105,7 +105,7 @@ struct Media: View {
             } header: {
                 Text("Media controls")
             }  footer: {
-                Text("Customize which controls appear in the music player. Volume expands when active.")
+                Text("Customize which controls appear in the music player. Volume expands when active. The Share control sends the song's title, artist, and album to Apple's iTunes Search API and to Odesli (song.link) to generate a shareable link.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
