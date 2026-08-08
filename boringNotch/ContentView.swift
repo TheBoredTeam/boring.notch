@@ -432,6 +432,150 @@ struct ContentView: View {
         )
     }
 
+    // Whether the current lyric should occupy the closed live-activity strip:
+    // opt-in, playing, synced lyrics available, and no inline sneak peek active
+    // (a track-change sneak peek takes priority over the lyric).
+    private var shouldShowClosedNotchLyric: Bool {
+        Defaults[.showLyricsInClosedNotch]
+            && musicManager.isPlaying
+            && !LyricsService.shared.syncedLyrics.isEmpty
+            && !(coordinator.expandingView.show && coordinator.expandingView.type == .music)
+    }
+
+    private var inlineSneakPeekActive: Bool {
+        coordinator.expandingView.show
+            && coordinator.expandingView.type == .music
+            && Defaults[.sneakPeekStyles] == .inline
+    }
+
+    private let nonNotchLyricWidth: CGFloat = 200
+
+    // Split a lyric line at the word boundary that best balances the two halves
+    // by RENDERED WIDTH (not word count), so the symmetric flanks waste as
+    // little edge space as possible. Never cuts a word.
+    private func splitLyricForNotch(_ text: String) -> (left: String, right: String) {
+        let words = text.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
+        guard words.count > 1 else { return (text, "") }
+        let font = NSFont.preferredFont(forTextStyle: .caption1)
+        let attrs: [NSAttributedString.Key: Any] = [.font: font]
+        func width(_ s: String) -> CGFloat { (s as NSString).size(withAttributes: attrs).width }
+        var bestIndex = 1
+        var bestDiff = CGFloat.greatestFiniteMagnitude
+        for index in 1..<words.count {
+            let left = words[..<index].joined(separator: " ")
+            let right = words[index...].joined(separator: " ")
+            let diff = abs(width(left) - width(right))
+            if diff < bestDiff {
+                bestDiff = diff
+                bestIndex = index
+            }
+        }
+        return (words[..<bestIndex].joined(separator: " "),
+                words[bestIndex...].joined(separator: " "))
+    }
+
+    // Measured width so the notch grows to fit both halves at full font size
+    // (no shrinking): left half + notch gap + right half + padding.
+    private func notchedLyricStripWidth(for text: String) -> CGFloat {
+        let halves = splitLyricForNotch(text)
+        let font = NSFont.preferredFont(forTextStyle: .caption1)
+        let attrs: [NSAttributedString.Key: Any] = [.font: font]
+        let leftW = (halves.left as NSString).size(withAttributes: attrs).width
+        let rightW = (halves.right as NSString).size(withAttributes: attrs).width
+        // Symmetric flanks (widest half on both sides) keep the gap centered on
+        // the camera regardless of how unevenly the line splits.
+        return 2 * lyricFlankWidth(leftW: leftW, rightW: rightW) + vm.closedNotchSize.width + 16
+    }
+
+    // Both flanks use the width of the widest half (+ cushion for measure drift)
+    // so the notch gap stays centered on the camera.
+    private func lyricFlankWidth(leftW: CGFloat, rightW: CGFloat) -> CGFloat {
+        ceil(max(leftW, rightW)) + 4
+    }
+
+    private func measuredLyricFlankWidth(for halves: (left: String, right: String)) -> CGFloat {
+        let font = NSFont.preferredFont(forTextStyle: .caption1)
+        let attrs: [NSAttributedString.Key: Any] = [.font: font]
+        let leftW = (halves.left as NSString).size(withAttributes: attrs).width
+        let rightW = (halves.right as NSString).size(withAttributes: attrs).width
+        return lyricFlankWidth(leftW: leftW, rightW: rightW)
+    }
+
+    // Width of the closed live-activity strip when its size isn't lyric-driven
+    // (the notched lyric case sizes itself inside a TimelineView instead).
+    private var liveActivityStripWidth: CGFloat {
+        if inlineSneakPeekActive { return 380 }
+        // +20 = the lyric's horizontal padding (10 per side) so the text keeps
+        // its full width while clearing the album art and visualizer.
+        if shouldShowClosedNotchLyric && !vm.hasNotch { return nonNotchLyricWidth + 20 }
+        return vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
+    }
+
+    // The current lyric line for the closed notch, styled to sit on the black
+    // strip. Rendered inline within MusicLiveActivity: on non-notch displays it
+    // fills the strip directly; on notched displays the strip widens (sneak-peek
+    // style) so the text isn't hidden under the camera.
+    @ViewBuilder
+    private func inlineClosedNotchLyric(frameWidth: CGFloat) -> some View {
+        TimelineView(.animation(minimumInterval: 0.25)) { timeline in
+            let delta = timeline.date.timeIntervalSince(musicManager.timestampDate)
+            let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
+            let currentElapsed = min(max(progressed, 0), musicManager.songDuration)
+            let context = LyricsService.shared.lyricLineContext(at: currentElapsed)
+            if !context.text.isEmpty {
+                let isPersian = context.text.unicodeScalars.contains { $0.value >= 0x0600 && $0.value <= 0x06FF }
+                let lyricFont: Font = isPersian
+                    ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .caption1).pointSize)
+                    : .caption
+                let lyricColor: Color = Defaults[.coloredSpectrogram]
+                    ? Color(nsColor: musicManager.avgColor) : .gray
+                if vm.hasNotch {
+                    // Notched: the camera hides the middle of the strip. Split the
+                    // line at a word boundary and flank the notch with the two
+                    // halves (like the sneak peek does with title/artist). Font
+                    // scales down to fit so no word is ever cut.
+                    let halves = splitLyricForNotch(context.text)
+                    let flankWidth = measuredLyricFlankWidth(for: halves)
+                    HStack(spacing: 0) {
+                        // Symmetric flanks with inner alignment: each half hugs the
+                        // notch edge and grows outward, keeping the gap centered on
+                        // the camera even when the halves differ in length.
+                        Text(halves.left)
+                            .font(lyricFont)
+                            .foregroundStyle(lyricColor)
+                            .lineLimit(1)
+                            .frame(width: flankWidth, alignment: .trailing)
+                        Spacer().frame(width: vm.closedNotchSize.width)
+                        Text(halves.right)
+                            .font(lyricFont)
+                            .foregroundStyle(lyricColor)
+                            .lineLimit(1)
+                            .frame(width: flankWidth, alignment: .leading)
+                    }
+                    .padding(.horizontal, 8)
+                    .id(context.startTime)
+                    .transition(.opacity)
+                } else {
+                    // Non-notch: no camera in the way — reveal-tail scroll fitted to
+                    // the line's time window reads best.
+                    let displayDuration = context.endTime.map { max($0 - currentElapsed, 0) }
+                    TimedLyricText(
+                        context.text,
+                        font: lyricFont,
+                        nsFont: .caption1,
+                        color: lyricColor,
+                        displayDuration: displayDuration,
+                        animationID: context.startTime,
+                        frameWidth: frameWidth
+                    )
+                    .lineLimit(1)
+                    .padding(.horizontal, 10)  // breathing room from the album art / visualizer
+                    .transition(.opacity)
+                }
+            }
+        }
+    }
+
     @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack(spacing: 0) {
@@ -465,7 +609,7 @@ struct ContentView: View {
                     height: scaledArtSize
                 )
 
-            Rectangle()
+            let stripCore = Rectangle()
                 .fill(.black)
                 .overlay(
                     HStack(alignment: .top) {
@@ -500,16 +644,33 @@ struct ContentView: View {
                                         && Defaults[.sneakPeekStyles] == .inline)
                                         ? 1 : 0
                                 )
+                        } else if shouldShowClosedNotchLyric {
+                            inlineClosedNotchLyric(frameWidth: nonNotchLyricWidth)
                         }
                     }
                 )
-                .frame(
-                    width: (coordinator.expandingView.show
-                        && coordinator.expandingView.type == .music
-                        && Defaults[.sneakPeekStyles] == .inline)
-                        ? 380
-                        : vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
-                )
+
+            if shouldShowClosedNotchLyric && vm.hasNotch {
+                // The strip must resize as the lyric line changes, so its width is
+                // driven by the same clock that advances the lyric (the outer body
+                // doesn't re-render per line). Width changes once per line, so the
+                // smooth animation settles between lines.
+                TimelineView(.animation(minimumInterval: 0.25)) { timeline in
+                    let delta = timeline.date.timeIntervalSince(musicManager.timestampDate)
+                    let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
+                    let elapsed = min(max(progressed, 0), musicManager.songDuration)
+                    let context = LyricsService.shared.lyricLineContext(at: elapsed)
+                    let width = context.text.isEmpty
+                        ? vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
+                        : notchedLyricStripWidth(for: context.text)
+                    stripCore
+                        .frame(width: width)
+                        .animation(.smooth, value: width)
+                }
+            } else {
+                stripCore
+                    .frame(width: liveActivityStripWidth)
+            }
 
             HStack {
                 AudioSpectrumView(

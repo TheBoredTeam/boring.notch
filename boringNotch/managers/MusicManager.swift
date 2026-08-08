@@ -81,6 +81,22 @@ class MusicManager: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // Re-fetch lyrics for the current track when either lyrics toggle is
+        // switched on, so enabling it takes effect immediately instead of only
+        // on the next track change. (options: [] skips the initial value.)
+        Defaults.publisher(keys: .enableLyrics, .showLyricsInClosedNotch, options: [])
+            .sink { [weak self] in
+                guard let self else { return }
+                Task { @MainActor in
+                    self.fetchLyricsIfAvailable(
+                        bundleIdentifier: self.bundleIdentifier,
+                        title: self.songTitle,
+                        artist: self.artistName
+                    )
+                }
+            }
+            .store(in: &cancellables)
+
         // Initialize deprecation check asynchronously
         Task { @MainActor in
             do {
@@ -354,7 +370,7 @@ class MusicManager: ObservableObject {
 
     // MARK: - Lyrics
     private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String) {
-        guard Defaults[.enableLyrics], !title.isEmpty else {
+        guard Defaults[.enableLyrics] || Defaults[.showLyricsInClosedNotch], !title.isEmpty else {
             Task { @MainActor in
                 lyricsService.clearLyrics()
             }

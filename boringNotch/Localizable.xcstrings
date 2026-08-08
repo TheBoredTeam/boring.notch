@@ -21164,6 +21164,9 @@
         }
       }
     },
+    "Show current lyric below the closed notch" : {
+
+    },
     "Show lyrics below artist name" : {
       "localizations" : {
         "de" : {
@@ -23707,6 +23710,17 @@
         }
       }
     },
+    "System Setting" : {
+      "comment" : "Week starts on: follow the macOS system setting",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Setting"
+          }
+        }
+      }
+    },
     "Time to Full Charge: %@" : {
       "localizations" : {
         "en" : {
@@ -25581,17 +25595,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Week starts on"
-          }
-        }
-      }
-    },
-    "System Setting" : {
-      "comment" : "Week starts on: follow the macOS system setting (shown with the resolved day in parentheses)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System Setting"
           }
         }
       }

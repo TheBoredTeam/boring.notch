@@ -102,6 +102,12 @@ struct Media: View {
                         customBadge(text: "Beta")
                     }
                 }
+                Defaults.Toggle(key: .showLyricsInClosedNotch) {
+                    HStack {
+                        Text("Show current lyric below the closed notch")
+                        customBadge(text: "Beta")
+                    }
+                }
             } header: {
                 Text("Media controls")
             }  footer: {
