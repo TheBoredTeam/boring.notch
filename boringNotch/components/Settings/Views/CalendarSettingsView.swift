@@ -81,7 +81,7 @@ struct CalendarSettings: View {
                 )
                 .disabled(!dailyPlanningManager.preferences.eveningReviewEnabled)
 
-                Text("Sessions open in the notch and stay there until you finish them. Times are stored on this Mac.")
+                Text("Sessions notify you in the notch, open when you hover, and stay until you finish. Times are stored on this Mac.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

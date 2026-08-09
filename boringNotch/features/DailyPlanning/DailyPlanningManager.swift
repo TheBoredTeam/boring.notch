@@ -24,17 +24,32 @@ enum DailyPlanningContentState: Equatable {
     case failure(String)
 }
 
+enum DailyReminderTransitionPhase: Equatable {
+    case animatingControl
+    case hidden
+    case revealed
+}
+
+struct DailyReminderTransition: Equatable {
+    let sessionID: String
+    let targetCompletion: Bool
+    var phase: DailyReminderTransitionPhase
+}
+
 @MainActor
 final class DailyPlanningManager: ObservableObject {
     static let shared = DailyPlanningManager()
 
     @Published private(set) var preferences: DailyWorkflowPreferences
+    @Published private(set) var pendingSession: DailyWorkflowSession?
     @Published private(set) var activeSession: DailyWorkflowSession?
     @Published private(set) var contentState: DailyPlanningContentState = .idle
     @Published private(set) var isFinishingSession = false
     @Published private(set) var updatingReminderIDs: Set<String> = []
+    @Published private(set) var reminderTransitions: [String: DailyReminderTransition] = [:]
 
     var isPresenting: Bool { activeSession != nil }
+    var isAwaitingPresentation: Bool { pendingSession != nil }
 
     private let store: DailyWorkflowPreferencesStore
     private let calendarService: CalendarServiceProviding
@@ -74,8 +89,10 @@ final class DailyPlanningManager: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                guard self?.activeSession != nil else { return }
-                await self?.reloadActiveSession(showLoadingIndicator: false)
+                guard let self, self.activeSession != nil, self.updatingReminderIDs.isEmpty else {
+                    return
+                }
+                await self.reloadActiveSession(showLoadingIndicator: false)
             }
         }
         evaluate()
@@ -84,6 +101,32 @@ final class DailyPlanningManager: ObservableObject {
     func presentActiveSessionIfNeeded() {
         guard activeSession != nil else { return }
         NotificationCenter.default.post(name: .dailyWorkflowNeedsPresentation, object: nil)
+    }
+
+    @discardableResult
+    func activatePendingSession(at date: Date = Date()) -> Bool {
+        guard activeSession == nil, pendingSession != nil else { return false }
+
+        guard let kind = DailyWorkflowSchedule.dueWorkflow(
+            at: date,
+            preferences: preferences,
+            completionState: completionState,
+            calendar: .current
+        ) else {
+            self.pendingSession = nil
+            evaluate(at: date)
+            return false
+        }
+
+        self.pendingSession = nil
+        activeSession = DailyWorkflowSession(kind: kind, date: date)
+        contentState = .loading
+        NotificationCenter.default.post(name: .dailyWorkflowNeedsPresentation, object: nil)
+
+        Task { [weak self] in
+            await self?.reloadActiveSession()
+        }
+        return true
     }
 
     func setEnabled(_ isEnabled: Bool, for kind: DailyWorkflowKind) {
@@ -153,19 +196,94 @@ final class DailyPlanningManager: ObservableObject {
         evaluate()
     }
 
-    func setReminderCompleted(reminderID: String, completed: Bool) async {
-        guard activeSession != nil,
+    func setReminderCompleted(
+        reminderID: String,
+        completed: Bool,
+        animateSectionTransfer: Bool
+    ) async {
+        guard let session = activeSession,
             !isFinishingSession,
             !updatingReminderIDs.contains(reminderID)
         else {
             return
         }
 
+        let sessionID = session.id
         updatingReminderIDs.insert(reminderID)
-        updateReminderCompletionLocally(reminderID: reminderID, completed: completed)
-        await calendarService.setReminderCompleted(reminderID: reminderID, completed: completed)
-        await reloadActiveSession(showLoadingIndicator: false)
-        updatingReminderIDs.remove(reminderID)
+        reminderTransitions[reminderID] = DailyReminderTransition(
+            sessionID: sessionID,
+            targetCompletion: completed,
+            phase: .animatingControl
+        )
+
+        let saveTask = Task { [calendarService] in
+            await calendarService.setReminderCompleted(
+                reminderID: reminderID,
+                completed: completed
+            )
+        }
+
+        do {
+            try await Task.sleep(for: .milliseconds(420))
+
+            guard activeSession?.id == sessionID else {
+                await saveTask.value
+                clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
+                return
+            }
+
+            if animateSectionTransfer {
+                withAnimation(.easeOut(duration: 0.18)) {
+                    setReminderTransitionPhase(
+                        .hidden,
+                        reminderID: reminderID,
+                        sessionID: sessionID
+                    )
+                }
+
+                try await Task.sleep(for: .milliseconds(180))
+                guard activeSession?.id == sessionID else {
+                    await saveTask.value
+                    clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
+                    return
+                }
+
+                updateReminderCompletionLocally(
+                    reminderID: reminderID,
+                    completed: completed,
+                    animated: false
+                )
+
+                withAnimation(.easeIn(duration: 0.18)) {
+                    setReminderTransitionPhase(
+                        .revealed,
+                        reminderID: reminderID,
+                        sessionID: sessionID
+                    )
+                }
+
+                try await Task.sleep(for: .milliseconds(180))
+            } else {
+                updateReminderCompletionLocally(
+                    reminderID: reminderID,
+                    completed: completed
+                )
+            }
+        } catch is CancellationError {
+            await saveTask.value
+            clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
+            await reconcileReminderUpdatesIfNeeded(for: sessionID)
+            return
+        } catch {
+            await saveTask.value
+            clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
+            await reconcileReminderUpdatesIfNeeded(for: sessionID)
+            return
+        }
+
+        await saveTask.value
+        clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
+        await reconcileReminderUpdatesIfNeeded(for: sessionID)
     }
 
     func reloadActiveSession(showLoadingIndicator: Bool = true) async {
@@ -219,7 +337,11 @@ final class DailyPlanningManager: ObservableObject {
             ))
     }
 
-    private func updateReminderCompletionLocally(reminderID: String, completed: Bool) {
+    private func updateReminderCompletionLocally(
+        reminderID: String,
+        completed: Bool,
+        animated: Bool = true
+    ) {
         guard let session = activeSession, case .loaded(let sections) = contentState else { return }
 
         let updatedItems = sections.all.map { item in
@@ -233,8 +355,8 @@ final class DailyPlanningManager: ObservableObject {
             )
         }
 
-        withAnimation(.easeInOut(duration: 0.15)) {
-            contentState = .loaded(
+        let update = {
+            self.contentState = .loaded(
                 DailyReminderSections(
                     items: updatedItems,
                     sessionDate: session.date,
@@ -242,6 +364,39 @@ final class DailyPlanningManager: ObservableObject {
                 )
             )
         }
+
+        if animated {
+            withAnimation(.easeInOut(duration: 0.22), update)
+        } else {
+            update()
+        }
+    }
+
+    private func setReminderTransitionPhase(
+        _ phase: DailyReminderTransitionPhase,
+        reminderID: String,
+        sessionID: String
+    ) {
+        guard var transition = reminderTransitions[reminderID],
+            transition.sessionID == sessionID
+        else {
+            return
+        }
+
+        transition.phase = phase
+        reminderTransitions[reminderID] = transition
+    }
+
+    private func clearReminderTransition(reminderID: String, sessionID: String) {
+        if reminderTransitions[reminderID]?.sessionID == sessionID {
+            reminderTransitions.removeValue(forKey: reminderID)
+        }
+        updatingReminderIDs.remove(reminderID)
+    }
+
+    private func reconcileReminderUpdatesIfNeeded(for sessionID: String) async {
+        guard updatingReminderIDs.isEmpty, activeSession?.id == sessionID else { return }
+        await reloadActiveSession(showLoadingIndicator: false)
     }
 
     private func updatePreferences(_ update: (inout DailyWorkflowPreferences) -> Void) {
@@ -281,16 +436,21 @@ final class DailyPlanningManager: ObservableObject {
             return
         }
 
-        if let kind = DailyWorkflowSchedule.dueWorkflow(
+        let dueKind = DailyWorkflowSchedule.dueWorkflow(
             at: date,
             preferences: preferences,
             completionState: completionState,
             calendar: .current
-        ) {
-            activeSession = DailyWorkflowSession(kind: kind, date: date)
-            contentState = .loading
-            NotificationCenter.default.post(name: .dailyWorkflowNeedsPresentation, object: nil)
-            await reloadActiveSession()
+        )
+
+        if let pendingSession {
+            guard dueKind != pendingSession.kind else { return }
+            self.pendingSession = nil
+        }
+
+        if let kind = dueKind {
+            pendingSession = DailyWorkflowSession(kind: kind, date: date)
+            contentState = .idle
             return
         }
 

@@ -59,6 +59,10 @@ struct ContentView: View {
             return cornerRadiusInsets.opened.top
         }
 
+        if dailyPlanningManager.isAwaitingPresentation {
+            return 12
+        }
+
         // For the closed notch, scale if enabled
         let baseClosedTop = cornerRadiusInsets.closed.top
         guard let scaleFactor = cornerRadiusScaleFactor else {
@@ -74,6 +78,8 @@ struct ContentView: View {
 
         if vm.notchState == .open {
             bottomCorner = cornerRadiusInsets.opened.bottom
+        } else if dailyPlanningManager.isAwaitingPresentation {
+            bottomCorner = 12
         } else if let scaleFactor = cornerRadiusScaleFactor {
             bottomCorner = max(0, baseClosedBottom * scaleFactor)
         } else {
@@ -89,7 +95,9 @@ struct ContentView: View {
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
-        if coordinator.expandingView.type == .battery && coordinator.expandingView.show
+        if dailyPlanningManager.isAwaitingPresentation && vm.notchState == .closed {
+            chinWidth += 246
+        } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
@@ -145,7 +153,10 @@ struct ContentView: View {
                             ? .black.opacity(0.7) : .clear, radius: 6
                     )
                     // Removed conditional bottom padding when using custom 0 notch to keep layout stable
-                    .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
+                    .opacity(
+                        (isNotchHeightZero && vm.notchState == .closed
+                            && !dailyPlanningManager.isAwaitingPresentation) ? 0.01 : 1
+                    )
                 
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
@@ -284,7 +295,16 @@ struct ContentView: View {
     func NotchLayout() -> some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
-                if coordinator.helloAnimationRunning {
+                if let session = dailyPlanningManager.pendingSession,
+                    vm.notchState == .closed
+                {
+                    DailyWorkflowNotificationView(
+                        session: session,
+                        notchWidth: vm.hasNotch ? vm.closedNotchSize.width + 10 : 0,
+                        height: max(32, displayClosedNotchHeight)
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.94)))
+                } else if coordinator.helloAnimationRunning {
                     Spacer()
                     HelloAnimation(onFinish: {
                         vm.closeHello()
@@ -567,6 +587,12 @@ struct ContentView: View {
     private func doOpen() -> Bool {
         var didOpen = false
         withAnimation(animationSpring) {
+            if dailyPlanningManager.isAwaitingPresentation, let screenUUID = vm.screenUUID {
+                coordinator.selectedScreenUUID = screenUUID
+            }
+            if dailyPlanningManager.activatePendingSession() {
+                coordinator.currentView = .dailyPlanning
+            }
             didOpen = vm.open()
         }
         return didOpen
@@ -587,9 +613,12 @@ struct ContentView: View {
                 haptics.toggle()
             }
             
+            let hasPendingWorkflow = dailyPlanningManager.isAwaitingPresentation
             guard vm.notchState == .closed,
-                  !coordinator.shouldShowSneakPeek(on: vm.screenUUID),
-                  Defaults[.openNotchOnHover] else { return }
+                hasPendingWorkflow
+                    || (!coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+                        && Defaults[.openNotchOnHover])
+            else { return }
             
             hoverTask = Task {
                 try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
@@ -597,8 +626,10 @@ struct ContentView: View {
                 
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
-                          self.isHovering,
-                          !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID) else { return }
+                        self.isHovering,
+                        self.dailyPlanningManager.isAwaitingPresentation
+                            || !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID)
+                    else { return }
                     
                     self.doOpen()
                 }
