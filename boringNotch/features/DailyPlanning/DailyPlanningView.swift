@@ -156,6 +156,7 @@ struct DailyPlanningView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .scrollIndicators(.never)
     }
 
 }
