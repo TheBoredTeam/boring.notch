@@ -6,6 +6,7 @@
 //
 
 import Defaults
+import Foundation
 
 enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.Serializable {
     case shuffle
@@ -44,28 +45,52 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
         .goForward
     ]
 
-    var label: String {
+    /// Localised display name for the slot palette in
+    /// ``MusicSlotConfigurationView``.  Uses ``NSLocalizedString`` so the
+    /// label round-trips through ``Localizable.xcstrings`` (and therefore
+    /// Crowdin) instead of being emitted as raw English. (#1090)
+    var localizedString: String {
         switch self {
         case .shuffle:
-            return "Shuffle"
+            return NSLocalizedString(
+                "music_control_shuffle",
+                comment: "Music control button label: Shuffle")
         case .previous:
-            return "Previous"
+            return NSLocalizedString(
+                "music_control_previous",
+                comment: "Music control button label: Previous track")
         case .playPause:
-            return "Play/Pause"
+            return NSLocalizedString(
+                "music_control_play_pause",
+                comment: "Music control button label: Play/Pause")
         case .next:
-            return "Next"
+            return NSLocalizedString(
+                "music_control_next",
+                comment: "Music control button label: Next track")
         case .repeatMode:
-            return "Repeat"
+            return NSLocalizedString(
+                "music_control_repeat",
+                comment: "Music control button label: Repeat mode")
         case .volume:
-            return "Volume"
+            return NSLocalizedString(
+                "music_control_volume",
+                comment: "Music control button label: Volume")
         case .favorite:
-            return "Favorite"
+            return NSLocalizedString(
+                "music_control_favorite",
+                comment: "Music control button label: Favorite (heart) current track")
         case .goBackward:
-            return "Backward 15s"
+            return NSLocalizedString(
+                "music_control_go_backward_15",
+                comment: "Music control button label: Seek backward 15 seconds")
         case .goForward:
-            return "Forward 15s"
+            return NSLocalizedString(
+                "music_control_go_forward_15",
+                comment: "Music control button label: Seek forward 15 seconds")
         case .none:
-            return "Empty slot"
+            return NSLocalizedString(
+                "music_control_empty_slot",
+                comment: "Music control button label: Empty slot placeholder")
         }
     }
 

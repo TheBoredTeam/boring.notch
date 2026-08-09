@@ -149,7 +149,7 @@ struct MusicSlotConfigurationView: View {
                                     }
                                 }
 
-                                Text(control.label)
+                                Text(control.localizedString)
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                     .frame(width: 60)
