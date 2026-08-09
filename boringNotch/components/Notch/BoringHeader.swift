@@ -12,11 +12,14 @@ struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var dailyPlanningManager = DailyPlanningManager.shared
     @StateObject var tvm = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if dailyPlanningManager.isPresenting {
+                    EmptyView()
+                } else if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()

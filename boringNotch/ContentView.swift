@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var dailyPlanningManager = DailyPlanningManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -338,9 +339,14 @@ struct ContentView: View {
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
-                           BoringHeader()
-                               .frame(height: max(24, displayClosedNotchHeight))
-                               .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                           if dailyPlanningManager.isPresenting || dailyPlanningManager.isFinishingSession {
+                               Color.clear
+                                   .frame(height: max(24, displayClosedNotchHeight))
+                           } else {
+                               BoringHeader()
+                                   .frame(height: max(24, displayClosedNotchHeight))
+                                   .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                           }
                        }
                         // New case to enable compact notch on external displays
                         else if !vm.hasNotch {
@@ -403,6 +409,8 @@ struct ContentView: View {
                         )
                     case .shelf:
                         ShelfView()
+                    case .dailyPlanning:
+                        DailyPlanningView()
                     }
                 }
                 .transition(
