@@ -3800,7 +3800,8 @@
             "value" : "Boring Notch"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "boring.notch" : {
       "localizations" : {
@@ -3900,7 +3901,8 @@
             "value" : "boring.notch"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Calendar" : {
       "localizations" : {
@@ -10206,7 +10208,8 @@
             "value" : "GitHub"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Got it!" : {
       "localizations" : {
@@ -11406,7 +11409,8 @@
             "value" : "https://github.com/pear-devs/pear-desktop"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "HUD style" : {
       "localizations" : {
@@ -16608,7 +16612,8 @@
             "value" : "Quick Share"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Quick Share Service" : {
       "localizations" : {
