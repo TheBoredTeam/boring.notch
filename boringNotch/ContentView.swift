@@ -201,7 +201,7 @@ struct ContentView: View {
                         handleHover(hovering)
                     }
                     .onTapGesture {
-                        doOpen()
+                        doOpen(activatingPendingWorkflow: true)
                     }
                     .conditionalModifier(Defaults[.enableGestures]) { view in
                         view
@@ -338,7 +338,9 @@ struct ContentView: View {
                     .padding(.top, 40)
                     Spacer()
                 } else {
-                    if isShowingPowerNotification {
+                    if coordinator.expandingView.type == .battery && coordinator.expandingView.show
+                        && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
+                    {
                         HStack(spacing: 0) {
                             HStack {
                                 Text(batteryModel.statusText)
@@ -618,14 +620,17 @@ struct ContentView: View {
     }
 
     @discardableResult
-    private func doOpen() -> Bool {
+    private func doOpen(activatingPendingWorkflow: Bool = false) -> Bool {
         var didOpen = false
         withAnimation(animationSpring) {
-            if dailyPlanningManager.isAwaitingPresentation, let screenUUID = vm.screenUUID {
+            if activatingPendingWorkflow,
+                isShowingPendingWorkflowNotification,
+                let screenUUID = vm.screenUUID
+            {
                 coordinator.selectedScreenUUID = screenUUID
-            }
-            if dailyPlanningManager.activatePendingSession() {
-                coordinator.currentView = .dailyPlanning
+                if dailyPlanningManager.activatePendingSession() {
+                    coordinator.currentView = .dailyPlanning
+                }
             }
             didOpen = vm.open()
         }
@@ -647,7 +652,7 @@ struct ContentView: View {
                 haptics.toggle()
             }
             
-            let hasPendingWorkflow = dailyPlanningManager.isAwaitingPresentation
+            let hasPendingWorkflow = isShowingPendingWorkflowNotification
             guard vm.notchState == .closed,
                 hasPendingWorkflow
                     || (!coordinator.shouldShowSneakPeek(on: vm.screenUUID)
@@ -661,11 +666,11 @@ struct ContentView: View {
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                         self.isHovering,
-                        self.dailyPlanningManager.isAwaitingPresentation
+                        self.isShowingPendingWorkflowNotification
                             || !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID)
                     else { return }
                     
-                    self.doOpen()
+                    self.doOpen(activatingPendingWorkflow: true)
                 }
             }
         } else {
@@ -712,7 +717,7 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 gestureProgress = .zero
             }
-            doOpen()
+            doOpen(activatingPendingWorkflow: true)
         }
     }
 
