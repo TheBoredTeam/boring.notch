@@ -483,6 +483,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // make sure OSD subsystems are in the right state now that initial
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
+        
+        // Initialize bluetooth manager so headphone battery is tracked
+        BluetoothManager.shared.initializeBluetooth()
     }
 
     func playWelcomeSound() {

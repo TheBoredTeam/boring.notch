@@ -83,6 +83,9 @@ struct BoringHeader: View {
                             .buttonStyle(PlainButtonStyle())
                         }
                         if Defaults[.showBatteryIndicator] {
+                            BoringBluetoothBatteryView(
+                                batteryWidth: 30
+                            )
                             BoringBatteryView(
                                 batteryWidth: 30,
                                 isCharging: batteryModel.isCharging,

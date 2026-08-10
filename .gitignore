@@ -25,6 +25,7 @@ Carthage/Build/
 
 # Derived data
 DerivedData/
+.derivedData/
 
 # Build output
 build/

@@ -288,6 +288,7 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
+    
     nonisolated func adjustScreenBrightness(by value: Float) async -> Bool {
         do {
             let service = await MainActor.run {
@@ -300,6 +301,22 @@ final class XPCHelperClient: NSObject {
             }
         } catch {
             return false
+        }
+    }
+    
+    // MARK: - Bluetooth Device Info
+    nonisolated func getBluetoothDeviceMinorClass(with deviceName: String) async -> String? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.getBluetoothDeviceMinorClass(with: deviceName) { minorClass in
+                    continuation.resume(returning: minorClass)
+                }
+            }
+        } catch {
+            return nil
         }
     }
 
