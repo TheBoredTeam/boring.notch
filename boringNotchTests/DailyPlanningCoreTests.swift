@@ -290,4 +290,45 @@ final class DailyPlanningCoreTests: XCTestCase {
         calendar: calendar
       ))
   }
+
+  func testPendingPromptShowsWhenNoTransientIndicatorIsVisible() {
+    XCTAssertTrue(
+      DailyWorkflowPresentationPolicy.shouldShowPendingPrompt(
+        hasPendingSession: true,
+        isNotchClosed: true,
+        isClosedOSDVisible: false,
+        isPowerNotificationVisible: false,
+        isGreetingAnimationVisible: false
+      ))
+  }
+
+  func testOSDAndPowerNotificationsTakePriorityOverPendingPrompt() {
+    XCTAssertFalse(
+      DailyWorkflowPresentationPolicy.shouldShowPendingPrompt(
+        hasPendingSession: true,
+        isNotchClosed: true,
+        isClosedOSDVisible: true,
+        isPowerNotificationVisible: false,
+        isGreetingAnimationVisible: false
+      ))
+    XCTAssertFalse(
+      DailyWorkflowPresentationPolicy.shouldShowPendingPrompt(
+        hasPendingSession: true,
+        isNotchClosed: true,
+        isClosedOSDVisible: false,
+        isPowerNotificationVisible: true,
+        isGreetingAnimationVisible: false
+      ))
+  }
+
+  func testGreetingAnimationTakesPriorityOverPendingPrompt() {
+    XCTAssertFalse(
+      DailyWorkflowPresentationPolicy.shouldShowPendingPrompt(
+        hasPendingSession: true,
+        isNotchClosed: true,
+        isClosedOSDVisible: false,
+        isPowerNotificationVisible: false,
+        isGreetingAnimationVisible: true
+      ))
+  }
 }

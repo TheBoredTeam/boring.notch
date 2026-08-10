@@ -59,7 +59,7 @@ struct ContentView: View {
             return cornerRadiusInsets.opened.top
         }
 
-        if dailyPlanningManager.isAwaitingPresentation {
+        if isShowingPendingWorkflowNotification {
             return 12
         }
 
@@ -78,7 +78,7 @@ struct ContentView: View {
 
         if vm.notchState == .open {
             bottomCorner = cornerRadiusInsets.opened.bottom
-        } else if dailyPlanningManager.isAwaitingPresentation {
+        } else if isShowingPendingWorkflowNotification {
             bottomCorner = 12
         } else if let scaleFactor = cornerRadiusScaleFactor {
             bottomCorner = max(0, baseClosedBottom * scaleFactor)
@@ -95,7 +95,7 @@ struct ContentView: View {
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
-        if dailyPlanningManager.isAwaitingPresentation && vm.notchState == .closed {
+        if isShowingPendingWorkflowNotification {
             chinWidth += 246
         } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
@@ -122,6 +122,35 @@ struct ContentView: View {
 
     private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
 
+    private var isShowingPendingWorkflowNotification: Bool {
+        DailyWorkflowPresentationPolicy.shouldShowPendingPrompt(
+            hasPendingSession: dailyPlanningManager.isAwaitingPresentation,
+            isNotchClosed: vm.notchState == .closed,
+            isClosedOSDVisible: isShowingClosedNotchOSD,
+            isPowerNotificationVisible: isShowingPowerNotification,
+            isGreetingAnimationVisible: coordinator.helloAnimationRunning
+        )
+    }
+
+    private var isShowingClosedNotchOSD: Bool {
+        guard
+            vm.notchState == .closed,
+            coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+        else {
+            return false
+        }
+
+        let type = coordinator.sneakPeekState(for: vm.screenUUID).type
+        return type != .music && type != .battery
+    }
+
+    private var isShowingPowerNotification: Bool {
+        coordinator.expandingView.type == .battery
+            && coordinator.expandingView.show
+            && vm.notchState == .closed
+            && Defaults[.showPowerStatusNotifications]
+    }
+
     var body: some View {
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
@@ -136,17 +165,19 @@ struct ContentView: View {
                     .frame(alignment: .top)
                     .padding(
                         .horizontal,
-                        vm.notchState == .open ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
+                        vm.notchState == .open
+                            ? cornerRadiusInsets.opened.top
+                            : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                     .background(.black)
                     .clipShape(currentNotchShape)
-                          .overlay(alignment: .top) {
-                              displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
-                        : Rectangle()
-                            .fill(.black)
-                            .frame(height: 1)
-                            .padding(.horizontal, topCornerRadius)
+                    .overlay(alignment: .top) {
+                        displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
+                            : Rectangle()
+                                .fill(.black)
+                                .frame(height: 1)
+                                .padding(.horizontal, topCornerRadius)
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
@@ -248,6 +279,7 @@ struct ContentView: View {
                         .frame(width: computedChinWidth, height: vm.chinHeight)
                 }
             }
+            .animation(StandardAnimations.open, value: isShowingPendingWorkflowNotification)
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
@@ -295,16 +327,7 @@ struct ContentView: View {
     func NotchLayout() -> some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
-                if let session = dailyPlanningManager.pendingSession,
-                    vm.notchState == .closed
-                {
-                    DailyWorkflowNotificationView(
-                        session: session,
-                        notchWidth: vm.hasNotch ? vm.closedNotchSize.width + 10 : 0,
-                        height: max(32, displayClosedNotchHeight)
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.94)))
-                } else if coordinator.helloAnimationRunning {
+                if coordinator.helloAnimationRunning {
                     Spacer()
                     HelloAnimation(onFinish: {
                         vm.closeHello()
@@ -315,9 +338,7 @@ struct ContentView: View {
                     .padding(.top, 40)
                     Spacer()
                 } else {
-                    if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-                        && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-                    {
+                    if isShowingPowerNotification {
                         HStack(spacing: 0) {
                             HStack {
                                 Text(batteryModel.statusText)
@@ -353,6 +374,19 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
+                      } else if let session = dailyPlanningManager.pendingSession,
+                          isShowingPendingWorkflowNotification
+                      {
+                          DailyWorkflowNotificationView(
+                              session: session,
+                              notchWidth: vm.hasNotch ? vm.closedNotchSize.width + 10 : 0,
+                              height: max(32, displayClosedNotchHeight)
+                          )
+                          .transition(
+                              .opacity
+                                  .combined(with: .scale(scale: 0.94, anchor: .top))
+                                  .combined(with: .move(edge: .top))
+                          )
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -644,7 +678,12 @@ struct ContentView: View {
                         self.isHovering = false
                     }
                     
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open,
+                        !self.vm.isBatteryPopoverActive,
+                        !SharingStateManager.shared.preventNotchClose,
+                        !self.dailyPlanningManager.isFinishingSession
+                    {
+                        self.dailyPlanningManager.returnActiveSessionToPrompt()
                         self.vm.close()
                     }
                 }

@@ -177,6 +177,22 @@ enum DailyWorkflowSchedule {
     }
 }
 
+enum DailyWorkflowPresentationPolicy {
+    static func shouldShowPendingPrompt(
+        hasPendingSession: Bool,
+        isNotchClosed: Bool,
+        isClosedOSDVisible: Bool,
+        isPowerNotificationVisible: Bool,
+        isGreetingAnimationVisible: Bool
+    ) -> Bool {
+        hasPendingSession
+            && isNotchClosed
+            && !isClosedOSDVisible
+            && !isPowerNotificationVisible
+            && !isGreetingAnimationVisible
+    }
+}
+
 final class DailyWorkflowPreferencesStore {
     private enum Key {
         static let preferences = "dailyWorkflow.preferences.v1"
