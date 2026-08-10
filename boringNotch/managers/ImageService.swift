@@ -14,6 +14,7 @@ public protocol ImageServiceProtocol {
 
 public final class ImageService: ImageServiceProtocol {
     public static let shared = ImageService()
+    private static let maximumImageSize = 20 * 1024 * 1024
 
     private let session: URLSession
 
@@ -40,10 +41,20 @@ public final class ImageService: ImageServiceProtocol {
     }
 
     public func fetchImageData(from url: URL) async throws -> Data {
-        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
+        guard url.scheme?.lowercased() == "https" else {
             throw URLError(.unsupportedURL)
         }
-        let (data, _) = try await session.data(from: url)
+
+        let (data, response) = try await session.data(from: url)
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200..<300).contains(httpResponse.statusCode),
+              httpResponse.mimeType?.lowercased().hasPrefix("image/") == true,
+              httpResponse.expectedContentLength <= Int64(Self.maximumImageSize),
+              data.count <= Self.maximumImageSize
+        else {
+            throw URLError(.badServerResponse)
+        }
+
         return data
     }
 }

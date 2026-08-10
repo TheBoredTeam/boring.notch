@@ -35,7 +35,7 @@ struct ShelfDropService {
     private static func processProvider(_ provider: NSItemProvider) async -> ShelfItem? {
         if let actualFileURL = await provider.extractFileURL() {
             if let bookmark = createBookmark(for: actualFileURL) {
-                return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
+                return ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
             }
             return nil
         }
@@ -43,29 +43,29 @@ struct ShelfDropService {
         if let url = await provider.extractURL() {
             if url.isFileURL {
                 if let bookmark = createBookmark(for: url) {
-                    return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
+                    return ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
                 }
             } else {
-                return await ShelfItem(kind: .link(url: url), isTemporary: false)
+                return ShelfItem(kind: .link(url: url), isTemporary: false)
             }
             return nil
         }
         
         if let text = await provider.extractText() {
-            return await ShelfItem(kind: .text(string: text), isTemporary: false)
+            return ShelfItem(kind: .text(string: text), isTemporary: false)
         }
         
         if let data = await provider.loadData() {
             if let tempDataURL = await TemporaryFileStorageService.shared.createTempFile(for: .data(data, suggestedName: provider.suggestedName)),
                let bookmark = createBookmark(for: tempDataURL) {
-                return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: true)
+                return ShelfItem(kind: .file(bookmark: bookmark), isTemporary: true)
             }
             return nil
         }
         
         if let fileURL = await provider.extractItem() {
             if let bookmark = createBookmark(for: fileURL) {
-                return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
+                return ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
             }
         }
         
@@ -76,4 +76,3 @@ struct ShelfDropService {
         return (try? Bookmark(url: url))?.data
     }
 }
-

@@ -8,7 +8,7 @@
 import Foundation
 import AppKit
 
-struct Bookmark: Sendable, Equatable, Codable {
+nonisolated struct Bookmark: Sendable, Equatable, Codable {
     let data: Data
 
     init(data: Data) {

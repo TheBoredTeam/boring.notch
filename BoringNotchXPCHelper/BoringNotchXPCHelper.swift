@@ -59,7 +59,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     @objc func requestAccessibilityAuthorization() {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
         AXIsProcessTrustedWithOptions(options)
     }
 
@@ -73,14 +73,16 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             requestAccessibilityAuthorization()
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            reply(AXIsProcessTrusted())
-        }
+        // Keep the reply on the XPC invocation's executor. Capturing an Objective-C
+        // reply block in a global queue is not Sendable under Swift 6.
+        Thread.sleep(forTimeInterval: 0.5)
+        reply(AXIsProcessTrusted())
     }
     
-    private class KeyboardBrightnessClient {
+    private final class KeyboardBrightnessClient: @unchecked Sendable {
         private static let keyboardID: UInt64 = 1
         private var clientInstance: NSObject?
+        private let lock = NSLock()
         private let getSelector = NSSelectorFromString("brightnessForKeyboard:")
         private let setSelector = NSSelectorFromString("setBrightness:forKeyboard:")
 
@@ -103,6 +105,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         var isAvailable: Bool { clientInstance != nil }
 
         func currentBrightness() -> Float? {
+            lock.lock()
+            defer { lock.unlock() }
             guard let clientInstance,
                   let fn: BrightnessGetter = methodIMP(on: clientInstance, selector: getSelector, as: BrightnessGetter.self)
             else { return nil }
@@ -110,6 +114,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
 
         func setBrightness(_ value: Float) -> Bool {
+            lock.lock()
+            defer { lock.unlock() }
             guard let clientInstance,
                   let fn: BrightnessSetter = methodIMP(on: clientInstance, selector: setSelector, as: BrightnessSetter.self)
             else { return false }
@@ -407,7 +413,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     // MARK: - Helper handle for private framework
     private enum DisplayServicesHandle {
-        static let handle: UnsafeMutableRawPointer? = {
+        nonisolated(unsafe) static let handle: UnsafeMutableRawPointer? = {
             let paths = [
                 "/System/Library/PrivateFrameworks/DisplayServices.framework/DisplayServices",
                 "/System/Library/PrivateFrameworks/DisplayServices.framework/Versions/Current/DisplayServices"

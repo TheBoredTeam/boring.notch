@@ -18,6 +18,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case battery
     case shelf
     case mirror
+    case glances
     case shortcuts
     case advanced
     case about
@@ -34,6 +35,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .battery: "Battery"
         case .shelf: "Shelf"
         case .mirror: "Mirror"
+        case .glances: "Glances"
         case .shortcuts: "Shortcuts"
         case .advanced: "Advanced"
         case .about: "About"
@@ -50,6 +52,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .battery: "battery.100.bolt"
         case .shelf: "books.vertical"
         case .mirror: "camera"
+        case .glances: "rectangle.3.group"
         case .shortcuts: "keyboard"
         case .advanced: "gearshape.2"
         case .about: "info.circle"
@@ -73,6 +76,7 @@ struct SettingsView: View {
                 ForEach(SettingsTab.allCases) { tab in
                     Label(tab.title, systemImage: tab.systemImage)
                         .tag(tab)
+                        .accessibilityIdentifier("settings-\(tab.rawValue)-navigation")
                 }
             }
             .listStyle(SidebarListStyle())
@@ -98,6 +102,8 @@ struct SettingsView: View {
                     Shelf()
                 case .mirror:
                     MirrorSettings()
+                case .glances:
+                    ProductivitySettingsView()
                 case .shortcuts:
                     Shortcuts()
                 case .advanced:

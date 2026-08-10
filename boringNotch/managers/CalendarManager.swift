@@ -6,7 +6,7 @@
 //
 
 import Defaults
-import EventKit
+@preconcurrency import EventKit
 import SwiftUI
 
 // MARK: - CalendarManager
@@ -33,12 +33,6 @@ class CalendarManager: ObservableObject {
         setupEventStoreChangedObserver()
         Task {
             await reloadCalendarAndReminderLists()
-        }
-    }
-
-    deinit {
-        if let observer = eventStoreChangedObserver {
-            NotificationCenter.default.removeObserver(observer)
         }
     }
 
@@ -191,6 +185,20 @@ class CalendarManager: ObservableObject {
             calendars: calendarIDs
         )
         self.events = eventsResult
+    }
+
+    func upcomingEvents(from start: Date = Date(), to end: Date) async -> [EventModel] {
+        if allCalendars.isEmpty {
+            await reloadCalendarAndReminderLists()
+        }
+        updateSelectedCalendars()
+        return await calendarService.events(
+            from: start,
+            to: end,
+            calendars: selectedCalendars.map(\.id)
+        )
+        .filter { $0.type.isEvent && !$0.isAllDay && $0.end > start }
+        .sorted { $0.start < $1.start }
     }
     
     func setReminderCompleted(reminderID: String, completed: Bool) async {

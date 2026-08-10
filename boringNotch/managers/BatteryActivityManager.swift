@@ -376,11 +376,6 @@ class BatteryActivityManager {
         }
     }
     
-    deinit {
-        stopMonitoring()
-        NotificationCenter.default.removeObserver(self)
-    }
-    
 }
 
 /// Struct to hold battery information

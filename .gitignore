@@ -25,6 +25,8 @@ Carthage/Build/
 
 # Derived data
 DerivedData/
+.codex-derived-data/
+.codex-source-packages/
 
 # Build output
 build/
@@ -42,14 +44,23 @@ build/
 *.vscode/
 *.idea/
 
+# Local secrets and signing material
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.mobileprovision
+
 # User-specific files
 *.xcuserdatad/
 *.xcscheme
 *.xcodeproj/xcuserdata
 *.xcodeproj/project.xcuserdata
+!boringNotch.xcodeproj/xcshareddata/xcschemes/boringNotch.xcscheme
 
 # Build artifacts
 *.ipa
 *.xcarchive
 *.dSYM
-

@@ -1,9 +1,10 @@
 import Foundation
 import Cocoa
-import AsyncXPCConnection
+@preconcurrency import AsyncXPCConnection
 
+@MainActor
 final class XPCHelperClient: NSObject {
-    nonisolated static let shared = XPCHelperClient()
+    static let shared = XPCHelperClient()
     
     private let serviceName = "theboringteam.boringnotch.BoringNotchXPCHelper"
     
@@ -13,11 +14,6 @@ final class XPCHelperClient: NSObject {
     private var monitoringTask: Task<Void, Never>?
     private var lunarListener: BoringNotchXPCHelperLunarListener?
     private var hasLunarListener: Bool = false
-    
-    deinit {
-        connection?.invalidate()
-        stopMonitoringAccessibilityAuthorization()
-    }
     
     // MARK: - Connection Management (Main Actor Isolated)
     
@@ -100,10 +96,10 @@ final class XPCHelperClient: NSObject {
     }
 
     // MARK: - Monitoring
-    nonisolated func startMonitoringAccessibilityAuthorization(every interval: TimeInterval = 3.0) {
+    func startMonitoringAccessibilityAuthorization(every interval: TimeInterval = 3.0) {
         // Ensure only one monitor exists
         stopMonitoringAccessibilityAuthorization()
-        monitoringTask = Task.detached { [weak self] in
+        monitoringTask = Task { [weak self] in
             guard let self = self else { return }
             while !Task.isCancelled {
                 // Call the helper method periodically which will notify on change
@@ -115,7 +111,7 @@ final class XPCHelperClient: NSObject {
         }
     }
 
-    nonisolated func stopMonitoringAccessibilityAuthorization() {
+    func stopMonitoringAccessibilityAuthorization() {
         monitoringTask?.cancel()
         monitoringTask = nil
     }
@@ -127,7 +123,7 @@ final class XPCHelperClient: NSObject {
     
     // MARK: - Accessibility
     
-    nonisolated func requestAccessibilityAuthorization() {
+    func requestAccessibilityAuthorization() {
         Task {
             let service = await MainActor.run {
                 ensureRemoteService()
@@ -138,7 +134,7 @@ final class XPCHelperClient: NSObject {
         }
     }
     
-    nonisolated func isAccessibilityAuthorized() async -> Bool {
+    func isAccessibilityAuthorized() async -> Bool {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
@@ -157,7 +153,7 @@ final class XPCHelperClient: NSObject {
         }
     }
     
-    nonisolated func ensureAccessibilityAuthorization(promptIfNeeded: Bool) async -> Bool {
+    func ensureAccessibilityAuthorization(promptIfNeeded: Bool) async -> Bool {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
@@ -178,7 +174,7 @@ final class XPCHelperClient: NSObject {
     
     // MARK: - Keyboard Brightness
     
-    nonisolated func isKeyboardBrightnessAvailable() async -> Bool {
+    func isKeyboardBrightnessAvailable() async -> Bool {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
@@ -193,7 +189,7 @@ final class XPCHelperClient: NSObject {
         }
     }
     
-    nonisolated func currentKeyboardBrightness() async -> Float? {
+    func currentKeyboardBrightness() async -> Float? {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
@@ -209,7 +205,7 @@ final class XPCHelperClient: NSObject {
         }
     }
     
-    nonisolated func setKeyboardBrightness(_ value: Float) async -> Bool {
+    func setKeyboardBrightness(_ value: Float) async -> Bool {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
@@ -226,7 +222,7 @@ final class XPCHelperClient: NSObject {
     
     // MARK: - Screen Brightness
     
-    nonisolated func isScreenBrightnessAvailable() async -> Bool {
+    func isScreenBrightnessAvailable() async -> Bool {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
@@ -241,7 +237,7 @@ final class XPCHelperClient: NSObject {
         }
     }
     
-    nonisolated func currentScreenBrightness() async -> Float? {
+    func currentScreenBrightness() async -> Float? {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
@@ -274,7 +270,7 @@ final class XPCHelperClient: NSObject {
         }
     }
     
-    nonisolated func setScreenBrightness(_ value: Float) async -> Bool {
+    func setScreenBrightness(_ value: Float) async -> Bool {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
@@ -366,4 +362,3 @@ final class XPCHelperClient: NSObject {
         }
     }
 }
-

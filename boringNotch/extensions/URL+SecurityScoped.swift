@@ -11,7 +11,7 @@ import AppKit
 // MARK: - Error Types
 
 extension URL {
-    func accessSecurityScopedResource<Value>(accessor: (URL) throws -> Value) rethrows -> Value {
+    nonisolated func accessSecurityScopedResource<Value>(accessor: (URL) throws -> Value) rethrows -> Value {
         let didStartAccessing = startAccessingSecurityScopedResource()
         defer { 
             if didStartAccessing { 
@@ -22,7 +22,10 @@ extension URL {
     }
     
     /// Async version of accessSecurityScopedResource
-    func accessSecurityScopedResource<Value>(accessor: (URL) async throws -> Value) async rethrows -> Value {
+    func accessSecurityScopedResource<Value>(
+        isolation: isolated (any Actor)? = #isolation,
+        accessor: (URL) async throws -> Value
+    ) async rethrows -> Value {
         let didStartAccessing = startAccessingSecurityScopedResource()
         defer { 
             if didStartAccessing { 
@@ -34,7 +37,10 @@ extension URL {
 }
 
 extension [URL] {
-    func accessSecurityScopedResources<Value>(accessor: ([URL]) async throws -> Value) async rethrows -> Value {
+    func accessSecurityScopedResources<Value>(
+        isolation: isolated (any Actor)? = #isolation,
+        accessor: ([URL]) async throws -> Value
+    ) async rethrows -> Value {
         let didStart = self.map { $0.startAccessingSecurityScopedResource() }
         
         defer {
@@ -46,4 +52,3 @@ extension [URL] {
         return try await accessor(self)
     }
 }
-
