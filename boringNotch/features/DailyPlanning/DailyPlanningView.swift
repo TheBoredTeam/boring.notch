@@ -6,7 +6,10 @@ struct DailyPlanningView: View {
 
     var body: some View {
         ZStack {
-            if !manager.isFinishingSession {
+            if manager.isFinishingSession {
+                DailyWorkflowCompletionView(kind: sessionKind)
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+            } else {
                 VStack(spacing: 8) {
                     header
                     content
@@ -21,7 +24,7 @@ struct DailyPlanningView: View {
         .task(id: manager.isFinishingSession) {
             guard manager.isFinishingSession else { return }
 
-            try? await Task.sleep(nanoseconds: 200_000_000)
+            try? await Task.sleep(for: .seconds(2))
             guard !Task.isCancelled else { return }
             manager.finalizeActiveSession()
         }
@@ -100,7 +103,7 @@ struct DailyPlanningView: View {
     }
 
     private var sessionKind: DailyWorkflowKind {
-        manager.activeSession?.kind ?? .morningPlanning
+        manager.activeSession?.kind ?? manager.finishingSession?.kind ?? .morningPlanning
     }
 
     private func eveningSections(_ sections: DailyReminderSections) -> some View {
@@ -161,61 +164,228 @@ struct DailyPlanningView: View {
 
 }
 
+private struct DailyWorkflowCompletionView: View {
+    let kind: DailyWorkflowKind
+
+    @State private var isVisible = false
+
+    @State private var copy: DailyWorkflowCompletionCopy
+
+    init(kind: DailyWorkflowKind) {
+        self.kind = kind
+        _copy = State(initialValue: DailyWorkflowCompletionCopy.random(for: kind))
+    }
+
+    private var glowColors: [Color] {
+        kind == .morningPlanning
+            ? [.orange.opacity(0.72), .yellow.opacity(0.28), .clear]
+            : [.indigo.opacity(0.72), .purple.opacity(0.28), .clear]
+    }
+
+    var body: some View {
+        VStack(spacing: 7) {
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: glowColors,
+                            center: .center,
+                            startRadius: 3,
+                            endRadius: 42
+                        )
+                    )
+                    .frame(width: 84, height: 84)
+                    .scaleEffect(isVisible ? 1 : 0.35)
+                    .opacity(isVisible ? 1 : 0)
+
+                DailyWorkflowSunMoonTransition(kind: kind)
+                    .frame(width: 42, height: 42)
+                    .scaleEffect(isVisible ? 1 : 0.45)
+                    .rotationEffect(.degrees(isVisible ? 0 : -18))
+            }
+
+            VStack(spacing: 2) {
+                Text(copy.title)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                Text(copy.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .opacity(isVisible ? 1 : 0)
+            .offset(y: isVisible ? 0 : 6)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                isVisible = true
+            }
+        }
+    }
+}
+
+private struct DailyWorkflowCompletionCopy {
+    let title: String
+    let subtitle: String
+
+    static func random(for kind: DailyWorkflowKind) -> Self {
+        let choices = kind == .morningPlanning ? morningChoices : eveningChoices
+        return choices.randomElement() ?? choices[0]
+    }
+
+    private static let morningChoices: [Self] = [
+        .init(title: String(localized: "A clear start."), subtitle: String(localized: "One good thing at a time.")),
+        .init(title: String(localized: "You’re underway."), subtitle: String(localized: "Ready when you are.")),
+        .init(title: String(localized: "A fresh page."), subtitle: String(localized: "Make space for what matters.")),
+        .init(title: String(localized: "Day, unlocked."), subtitle: String(localized: "Start with what feels important.")),
+        .init(title: String(localized: "A thoughtful start."), subtitle: String(localized: "Small steps count.")),
+        .init(title: String(localized: "You’ve got this."), subtitle: String(localized: "Your time has a direction.")),
+        .init(title: String(localized: "Plans in place."), subtitle: String(localized: "Leave room for the unexpected.")),
+        .init(title: String(localized: "Start gently."), subtitle: String(localized: "There’s no need to rush.")),
+        .init(title: String(localized: "Good morning."), subtitle: String(localized: "Make today yours.")),
+        .init(title: String(localized: "Onward."), subtitle: String(localized: "Begin with intention."))
+    ]
+
+    private static let eveningChoices: [Self] = [
+        .init(title: String(localized: "Day reviewed."), subtitle: String(localized: "That’s enough for today.")),
+        .init(title: String(localized: "A gentle close."), subtitle: String(localized: "Leave the rest for tomorrow.")),
+        .init(title: String(localized: "You made it through."), subtitle: String(localized: "Let the day settle.")),
+        .init(title: String(localized: "Day, complete."), subtitle: String(localized: "Rest is part of the work.")),
+        .init(title: String(localized: "Time to unwind."), subtitle: String(localized: "You showed up for today.")),
+        .init(title: String(localized: "That’s a wrap."), subtitle: String(localized: "Tomorrow can wait.")),
+        .init(title: String(localized: "A day well held."), subtitle: String(localized: "Take a breath—you’re done.")),
+        .init(title: String(localized: "Close the loop."), subtitle: String(localized: "Let tonight be yours.")),
+        .init(title: String(localized: "Well done today."), subtitle: String(localized: "The rest can be quiet.")),
+        .init(title: String(localized: "Until tomorrow."), subtitle: String(localized: "You’ve done enough."))
+    ]
+}
+
+private struct DailyWorkflowSunMoonTransition: View {
+    let kind: DailyWorkflowKind
+
+    @State private var hasTransitioned = false
+
+    private var isSun: Bool {
+        kind == .morningPlanning ? hasTransitioned : !hasTransitioned
+    }
+
+    private var sunColor: Color { .yellow.opacity(0.96) }
+
+    var body: some View {
+        ZStack {
+            ForEach(0..<8, id: \.self) { index in
+                Capsule()
+                    .fill(sunColor)
+                    .frame(width: 2, height: 7)
+                    .offset(y: -18)
+                    .rotationEffect(.degrees(Double(index) * 45))
+                    .scaleEffect(isSun ? 1 : 0, anchor: .bottom)
+                    .opacity(isSun ? 1 : 0)
+                    .animation(
+                        .easeOut(duration: 0.4).delay(Double(index) * 0.035),
+                        value: isSun
+                    )
+            }
+
+            ZStack {
+                Circle()
+                    .fill(isSun ? sunColor : .white.opacity(0.9))
+
+                Circle()
+                    .fill(.black)
+                    .offset(x: isSun ? 34 : 10, y: -4)
+            }
+            .frame(width: 30, height: 30)
+            .clipShape(Circle())
+            .scaleEffect(isSun ? 0.7 : 1)
+            .rotationEffect(.degrees(isSun ? 90 : 40))
+            .animation(.spring(response: 0.64, dampingFraction: 0.65), value: isSun)
+        }
+        .onAppear {
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(80))
+                guard !Task.isCancelled else { return }
+                hasTransitioned = true
+            }
+        }
+    }
+}
+
 struct DailyWorkflowNotificationView: View {
     let session: DailyWorkflowSession
     let notchWidth: CGFloat
     let height: CGFloat
 
+    private let promptWidth: CGFloat = 236
+    private let promptContentOffset: CGFloat = 5
     private let bellCycleDuration = 2.4
     private let bellRingDuration = 0.9
     private let pulseDuration = 1.2
 
+    @ViewBuilder
     var body: some View {
-        HStack(spacing: 0) {
-            Color.black
-                .frame(width: notchWidth)
+        if notchWidth > 0 {
+            VStack(spacing: 0) {
+                Color.clear
+                    .frame(width: notchWidth, height: height)
 
-            TimelineView(.animation(minimumInterval: 1.0 / 24.0)) { timeline in
-                let elapsed = timeline.date.timeIntervalSinceReferenceDate
-                let ringTime = elapsed.truncatingRemainder(dividingBy: bellCycleDuration)
-                let pulse = elapsed.truncatingRemainder(dividingBy: pulseDuration) / pulseDuration
-
-                HStack(spacing: 8) {
-                    Image(systemName: "bell.fill")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .rotationEffect(
-                            .degrees(bellAngle(at: ringTime)),
-                            anchor: .top
-                        )
-                        .frame(width: 20, height: 28)
-
-                    Text(session.kind.notificationTitle)
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .lineLimit(1)
-
-                    ZStack {
-                        Circle()
-                            .stroke(Color.green.opacity(1 - pulse), lineWidth: 1.25)
-                            .frame(width: 6, height: 6)
-                            .scaleEffect(1 + pulse * 2.2)
-
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 6, height: 6)
-                            .shadow(color: Color.green.opacity(0.65), radius: 4)
-                    }
-                    .frame(width: 22, height: 28)
-                }
-                .padding(.horizontal, 12)
-                .frame(width: 236, height: height, alignment: .leading)
+                prompt(
+                    leadingInset: 12 + promptContentOffset,
+                    trailingInset: 12 - promptContentOffset
+                )
+                    .frame(width: promptWidth, height: height, alignment: .leading)
             }
+            .contentShape(Rectangle())
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(session.kind.notificationAccessibilityLabel)
+        } else {
+            prompt(
+                leadingInset: 12 + promptContentOffset,
+                trailingInset: 12 - promptContentOffset
+            )
+                .frame(width: promptWidth, height: height, alignment: .leading)
+                .contentShape(Rectangle())
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(session.kind.notificationAccessibilityLabel)
         }
-        .frame(height: height)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(session.kind.notificationAccessibilityLabel)
+    }
+
+    private func prompt(leadingInset: CGFloat = 12, trailingInset: CGFloat = 12) -> some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 24.0)) { timeline in
+            let elapsed = timeline.date.timeIntervalSinceReferenceDate
+            let ringTime = elapsed.truncatingRemainder(dividingBy: bellCycleDuration)
+            let pulse = elapsed.truncatingRemainder(dividingBy: pulseDuration) / pulseDuration
+
+            HStack(spacing: 8) {
+                Image(systemName: "bell.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .rotationEffect(
+                        .degrees(bellAngle(at: ringTime)),
+                        anchor: .top
+                    )
+                    .frame(width: 20, height: 28)
+
+                Text(session.kind.notificationTitle)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .lineLimit(1)
+
+                ZStack {
+                    Circle()
+                        .stroke(Color.green.opacity(1 - pulse), lineWidth: 1.25)
+                        .frame(width: 6, height: 6)
+                        .scaleEffect(1 + pulse * 2.2)
+
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 6, height: 6)
+                        .shadow(color: Color.green.opacity(0.65), radius: 4)
+                }
+                .frame(width: 22, height: 28)
+            }
+            .padding(.leading, leadingInset)
+            .padding(.trailing, trailingInset)
+        }
     }
 
     private func bellAngle(at elapsed: TimeInterval) -> Double {
@@ -463,6 +633,56 @@ private extension DailyWorkflowKind {
         case .eveningReview:
             String(localized: "Evening review is ready. Hover to open.")
         }
+    }
+}
+
+struct DailyPlanningSettingsSection: View {
+    @ObservedObject private var manager = DailyPlanningManager.shared
+
+    var body: some View {
+        Section(header: Text("Daily Planning & Review")) {
+            Toggle(
+                "Morning planning",
+                isOn: enabledBinding(for: .morningPlanning)
+            )
+            DatePicker(
+                "Planning time",
+                selection: timeBinding(for: .morningPlanning),
+                displayedComponents: .hourAndMinute
+            )
+            .disabled(!manager.preferences.morningPlanningEnabled)
+
+            Toggle(
+                "Evening review",
+                isOn: enabledBinding(for: .eveningReview)
+            )
+            DatePicker(
+                "Review time",
+                selection: timeBinding(for: .eveningReview),
+                displayedComponents: .hourAndMinute
+            )
+            .disabled(!manager.preferences.eveningReviewEnabled)
+
+            Text(
+                "Sessions notify you in the notch, open when you hover, and stay until you finish. Times are stored on this Mac."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    private func enabledBinding(for kind: DailyWorkflowKind) -> Binding<Bool> {
+        Binding(
+            get: { manager.preferences.isEnabled(kind) },
+            set: { manager.setEnabled($0, for: kind) }
+        )
+    }
+
+    private func timeBinding(for kind: DailyWorkflowKind) -> Binding<Date> {
+        Binding(
+            get: { manager.configuredTime(for: kind) },
+            set: { manager.setTime($0, for: kind) }
+        )
     }
 }
 

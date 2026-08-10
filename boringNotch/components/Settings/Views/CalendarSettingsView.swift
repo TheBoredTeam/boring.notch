@@ -11,7 +11,6 @@ import SwiftUI
 
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
-    @ObservedObject private var dailyPlanningManager = DailyPlanningManager.shared
     @Default(.showCalendar) var showCalendar: Bool
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
@@ -46,45 +45,7 @@ struct CalendarSettings: View {
                     }
                 }
             }
-            Section(header: Text("Daily Planning & Review")) {
-                Toggle(
-                    "Morning planning",
-                    isOn: Binding(
-                        get: { dailyPlanningManager.preferences.morningPlanningEnabled },
-                        set: { dailyPlanningManager.setEnabled($0, for: .morningPlanning) }
-                    )
-                )
-                DatePicker(
-                    "Planning time",
-                    selection: Binding(
-                        get: { dailyPlanningManager.configuredTime(for: .morningPlanning) },
-                        set: { dailyPlanningManager.setTime($0, for: .morningPlanning) }
-                    ),
-                    displayedComponents: .hourAndMinute
-                )
-                .disabled(!dailyPlanningManager.preferences.morningPlanningEnabled)
-
-                Toggle(
-                    "Evening review",
-                    isOn: Binding(
-                        get: { dailyPlanningManager.preferences.eveningReviewEnabled },
-                        set: { dailyPlanningManager.setEnabled($0, for: .eveningReview) }
-                    )
-                )
-                DatePicker(
-                    "Review time",
-                    selection: Binding(
-                        get: { dailyPlanningManager.configuredTime(for: .eveningReview) },
-                        set: { dailyPlanningManager.setTime($0, for: .eveningReview) }
-                    ),
-                    displayedComponents: .hourAndMinute
-                )
-                .disabled(!dailyPlanningManager.preferences.eveningReviewEnabled)
-
-                Text("Sessions notify you in the notch, open when you hover, and stay until you finish. Times are stored on this Mac.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            DailyPlanningSettingsSection()
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
                     Text("Calendar access is denied. Please enable it in System Settings.")
