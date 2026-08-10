@@ -1,11 +1,5 @@
-import EventKit
+import Combine
 import Foundation
-import SwiftUI
-
-extension Notification.Name {
-    static let dailyWorkflowNeedsPresentation = Notification.Name("DailyWorkflowNeedsPresentation")
-    static let dailyWorkflowDidFinish = Notification.Name("DailyWorkflowDidFinish")
-}
 
 struct DailyWorkflowSession: Equatable, Identifiable {
     let kind: DailyWorkflowKind
@@ -43,16 +37,20 @@ final class DailyPlanningManager: ObservableObject {
     @Published private(set) var preferences: DailyWorkflowPreferences
     @Published private(set) var pendingSession: DailyWorkflowSession?
     @Published private(set) var activeSession: DailyWorkflowSession?
+    @Published private(set) var finishingSession: DailyWorkflowSession?
     @Published private(set) var contentState: DailyPlanningContentState = .idle
-    @Published private(set) var isFinishingSession = false
     @Published private(set) var updatingReminderIDs: Set<String> = []
     @Published private(set) var reminderTransitions: [String: DailyReminderTransition] = [:]
 
     var isPresenting: Bool { activeSession != nil }
     var isAwaitingPresentation: Bool { pendingSession != nil }
+    var isFinishingSession: Bool { finishingSession != nil }
+
+    var onNeedsPresentation: (() -> Void)?
+    var onDidFinish: (() -> Void)?
 
     private let store: DailyWorkflowPreferencesStore
-    private let calendarService: CalendarServiceProviding
+    private let reminderService: DailyReminderProviding
     private var completionState: DailyWorkflowCompletionState
     private var timer: Timer?
     private var evaluationTask: Task<Void, Never>?
@@ -61,10 +59,10 @@ final class DailyPlanningManager: ObservableObject {
 
     init(
         store: DailyWorkflowPreferencesStore = DailyWorkflowPreferencesStore(),
-        calendarService: CalendarServiceProviding = CalendarService()
+        reminderService: DailyReminderProviding? = nil
     ) {
         self.store = store
-        self.calendarService = calendarService
+        self.reminderService = reminderService ?? EventKitDailyReminderService()
         preferences = store.loadPreferences()
         completionState = store.loadCompletionState()
     }
@@ -84,7 +82,7 @@ final class DailyPlanningManager: ObservableObject {
         }
         hasStarted = true
         eventStoreObserver = NotificationCenter.default.addObserver(
-            forName: .EKEventStoreChanged,
+            forName: reminderService.changeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
@@ -100,33 +98,32 @@ final class DailyPlanningManager: ObservableObject {
 
     func presentActiveSessionIfNeeded() {
         guard activeSession != nil else { return }
-        NotificationCenter.default.post(name: .dailyWorkflowNeedsPresentation, object: nil)
+        onNeedsPresentation?()
     }
 
     @discardableResult
-    func activatePendingSession(at date: Date = Date()) -> Bool {
-        guard activeSession == nil, pendingSession != nil else { return false }
-
-        guard let kind = DailyWorkflowSchedule.dueWorkflow(
-            at: date,
-            preferences: preferences,
-            completionState: completionState,
-            calendar: .current
-        ) else {
-            self.pendingSession = nil
-            evaluate(at: date)
-            return false
-        }
+    func activatePendingSession() -> Bool {
+        guard activeSession == nil, let pendingSession else { return false }
 
         self.pendingSession = nil
-        activeSession = DailyWorkflowSession(kind: kind, date: date)
+        activeSession = pendingSession
         contentState = .loading
-        NotificationCenter.default.post(name: .dailyWorkflowNeedsPresentation, object: nil)
+        onNeedsPresentation?()
 
         Task { [weak self] in
             await self?.reloadActiveSession()
         }
         return true
+    }
+
+    func returnActiveSessionToPrompt() {
+        guard let activeSession, !isFinishingSession else { return }
+
+        pendingSession = activeSession
+        self.activeSession = nil
+        contentState = .idle
+        updatingReminderIDs.removeAll()
+        reminderTransitions.removeAll()
     }
 
     func setEnabled(_ isEnabled: Bool, for kind: DailyWorkflowKind) {
@@ -165,12 +162,12 @@ final class DailyPlanningManager: ObservableObject {
     }
 
     func beginFinishingActiveSession() {
-        guard activeSession != nil, !isFinishingSession else { return }
-        isFinishingSession = true
+        guard let activeSession, finishingSession == nil else { return }
+        finishingSession = activeSession
     }
 
     func finalizeActiveSession() {
-        guard let session = activeSession else { return }
+        guard let session = finishingSession, activeSession == session else { return }
 
         var updatedCompletion = completionState
         updatedCompletion.markCompleted(session.kind, on: session.date, calendar: .current)
@@ -179,20 +176,20 @@ final class DailyPlanningManager: ObservableObject {
             try store.saveCompletionState(updatedCompletion)
         } catch {
             contentState = .failure("Your completion could not be saved. Please try again.")
-            isFinishingSession = false
+            finishingSession = nil
             return
         }
 
         completionState = updatedCompletion
         activeSession = nil
         contentState = .idle
-        NotificationCenter.default.post(name: .dailyWorkflowDidFinish, object: nil)
+        onDidFinish?()
     }
 
     func completeFinishingSession() {
-        guard isFinishingSession else { return }
+        guard finishingSession != nil else { return }
 
-        isFinishingSession = false
+        finishingSession = nil
         evaluate()
     }
 
@@ -216,51 +213,47 @@ final class DailyPlanningManager: ObservableObject {
             phase: .animatingControl
         )
 
-        let saveTask = Task { [calendarService] in
-            await calendarService.setReminderCompleted(
-                reminderID: reminderID,
-                completed: completed
-            )
+        do {
+            try await reminderService.setCompleted(completed, reminderID: reminderID)
+        } catch {
+            clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
+            if activeSession?.id == sessionID {
+                contentState = .failure("The reminder could not be updated. Please try again.")
+            }
+            return
         }
 
         do {
             try await Task.sleep(for: .milliseconds(420))
 
             guard activeSession?.id == sessionID else {
-                await saveTask.value
                 clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
                 return
             }
 
             if animateSectionTransfer {
-                withAnimation(.easeOut(duration: 0.18)) {
-                    setReminderTransitionPhase(
-                        .hidden,
-                        reminderID: reminderID,
-                        sessionID: sessionID
-                    )
-                }
+                setReminderTransitionPhase(
+                    .hidden,
+                    reminderID: reminderID,
+                    sessionID: sessionID
+                )
 
                 try await Task.sleep(for: .milliseconds(180))
                 guard activeSession?.id == sessionID else {
-                    await saveTask.value
                     clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
                     return
                 }
 
                 updateReminderCompletionLocally(
                     reminderID: reminderID,
-                    completed: completed,
-                    animated: false
+                    completed: completed
                 )
 
-                withAnimation(.easeIn(duration: 0.18)) {
-                    setReminderTransitionPhase(
-                        .revealed,
-                        reminderID: reminderID,
-                        sessionID: sessionID
-                    )
-                }
+                setReminderTransitionPhase(
+                    .revealed,
+                    reminderID: reminderID,
+                    sessionID: sessionID
+                )
 
                 try await Task.sleep(for: .milliseconds(180))
             } else {
@@ -270,18 +263,15 @@ final class DailyPlanningManager: ObservableObject {
                 )
             }
         } catch is CancellationError {
-            await saveTask.value
             clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
             await reconcileReminderUpdatesIfNeeded(for: sessionID)
             return
         } catch {
-            await saveTask.value
             clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
             await reconcileReminderUpdatesIfNeeded(for: sessionID)
             return
         }
 
-        await saveTask.value
         clearReminderTransition(reminderID: reminderID, sessionID: sessionID)
         await reconcileReminderUpdatesIfNeeded(for: sessionID)
     }
@@ -292,16 +282,13 @@ final class DailyPlanningManager: ObservableObject {
             contentState = .loading
         }
 
-        let status = EKEventStore.authorizationStatus(for: .reminder)
         let hasAccess: Bool
-        switch status {
+        switch reminderService.authorization {
         case .notDetermined:
-            hasAccess = (try? await calendarService.requestAccess(to: .reminder)) == true
-        case .fullAccess, .authorized:
+            hasAccess = (try? await reminderService.requestAccess()) == true
+        case .authorized:
             hasAccess = true
-        case .denied, .restricted, .writeOnly:
-            hasAccess = false
-        @unknown default:
+        case .denied:
             hasAccess = false
         }
 
@@ -316,19 +303,9 @@ final class DailyPlanningManager: ObservableObject {
             return
         }
 
-        let events = await calendarService.reminders(from: interval.start, to: interval.end)
+        let items = await reminderService.reminders(from: interval.start, to: interval.end)
         guard activeSession == session else { return }
 
-        let items = events.compactMap { event -> DailyReminderItem? in
-            guard case .reminder(let isCompleted) = event.type else { return nil }
-            return DailyReminderItem(
-                id: event.id,
-                title: event.title,
-                dueDate: event.start,
-                isCompleted: isCompleted,
-                listTitle: event.calendar.title
-            )
-        }
         contentState = .loaded(
             DailyReminderSections(
                 items: items,
@@ -339,8 +316,7 @@ final class DailyPlanningManager: ObservableObject {
 
     private func updateReminderCompletionLocally(
         reminderID: String,
-        completed: Bool,
-        animated: Bool = true
+        completed: Bool
     ) {
         guard let session = activeSession, case .loaded(let sections) = contentState else { return }
 
@@ -365,11 +341,7 @@ final class DailyPlanningManager: ObservableObject {
             )
         }
 
-        if animated {
-            withAnimation(.easeInOut(duration: 0.22), update)
-        } else {
-            update()
-        }
+        update()
     }
 
     private func setReminderTransitionPhase(
@@ -443,9 +415,8 @@ final class DailyPlanningManager: ObservableObject {
             calendar: .current
         )
 
-        if let pendingSession {
-            guard dueKind != pendingSession.kind else { return }
-            self.pendingSession = nil
+        if pendingSession != nil {
+            return
         }
 
         if let kind = dueKind {

@@ -14,8 +14,6 @@ protocol CalendarServiceProviding {
     func requestAccess(to type: EKEntityType) async throws -> Bool
     func calendars() async -> [CalendarModel]
     func events(from start: Date, to end: Date, calendars: [String]) async -> [EventModel]
-    func reminders(from start: Date, to end: Date) async -> [EventModel]
-    func setReminderCompleted(reminderID: String, completed: Bool) async
 }
 
 class CalendarService: CalendarServiceProviding {
@@ -81,13 +79,6 @@ class CalendarService: CalendarServiceProviding {
         }
         
         return events.sorted { $0.start < $1.start }
-    }
-
-    func reminders(from start: Date, to end: Date) async -> [EventModel] {
-        guard hasAccess(to: .reminder) else { return [] }
-        let reminderCalendars = store.calendars(for: .reminder)
-        return await fetchReminders(from: start, to: end, calendars: reminderCalendars)
-            .sorted { $0.start < $1.start }
     }
     
     private func fetchReminders(from start: Date, to end: Date, calendars: [EKCalendar]) async -> [EventModel] {

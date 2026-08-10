@@ -367,22 +367,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         })
 
-        observers.append(NotificationCenter.default.addObserver(
-            forName: .dailyWorkflowNeedsPresentation, object: nil, queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.presentDailyWorkflow()
-            }
-        })
-
-        observers.append(NotificationCenter.default.addObserver(
-            forName: .dailyWorkflowDidFinish, object: nil, queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.dismissDailyWorkflow()
-            }
-        })
-
         // Use closure-based observers for DistributedNotificationCenter and keep tokens for removal
         screenLockedObserver = DistributedNotificationCenter.default().addObserver(
             forName: NSNotification.Name(rawValue: "com.apple.screenIsLocked"),
@@ -482,8 +466,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupDragDetectors()
 
-        Task { @MainActor in
-            DailyPlanningManager.shared.start()
+        Task { @MainActor [weak self] in
+            let manager = DailyPlanningManager.shared
+            manager.onNeedsPresentation = { [weak self] in
+                self?.presentDailyWorkflow()
+            }
+            manager.onDidFinish = { [weak self] in
+                self?.dismissDailyWorkflow()
+            }
+            manager.start()
         }
 
         if coordinator.firstLaunch {

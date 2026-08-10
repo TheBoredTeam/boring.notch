@@ -10,6 +10,7 @@
 		DA1100012F60000000000001 /* DailyPlanningCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1100022F60000000000002 /* DailyPlanningCore.swift */; };
 		DA1100032F60000000000003 /* DailyPlanningManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1100042F60000000000004 /* DailyPlanningManager.swift */; };
 		DA1100052F60000000000005 /* DailyPlanningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1100062F60000000000006 /* DailyPlanningView.swift */; };
+		DA1100092F60000000000009 /* DailyReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA11000A2F6000000000000A /* DailyReminderService.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -202,6 +203,7 @@
 		DA1100022F60000000000002 /* DailyPlanningCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPlanningCore.swift; sourceTree = "<group>"; };
 		DA1100042F60000000000004 /* DailyPlanningManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPlanningManager.swift; sourceTree = "<group>"; };
 		DA1100062F60000000000006 /* DailyPlanningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPlanningView.swift; sourceTree = "<group>"; };
+		DA11000A2F6000000000000A /* DailyReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReminderService.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -397,6 +399,7 @@
 			isa = PBXGroup;
 			children = (
 				DA1100082F60000000000008 /* Core */,
+				DA11000A2F6000000000000A /* DailyReminderService.swift */,
 				DA1100042F60000000000004 /* DailyPlanningManager.swift */,
 				DA1100062F60000000000006 /* DailyPlanningView.swift */,
 			);
@@ -1016,6 +1019,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DA1100012F60000000000001 /* DailyPlanningCore.swift in Sources */,
+				DA1100092F60000000000009 /* DailyReminderService.swift in Sources */,
 				DA1100032F60000000000003 /* DailyPlanningManager.swift in Sources */,
 				DA1100052F60000000000005 /* DailyPlanningView.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,

@@ -209,7 +209,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
     func close() {
         // Do not close while a share picker or sharing service is active
-        if SharingStateManager.shared.preventNotchClose || DailyPlanningManager.shared.isPresenting {
+        if SharingStateManager.shared.preventNotchClose {
             return
         }
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
@@ -221,16 +221,12 @@ class BoringViewModel: NSObject, ObservableObject {
         }
         self.edgeAutoOpenActive = false
 
-        // Keep the daily workflow selected, but empty, until its close animation completes.
-        // Switching to the default tab here would show calendar or music content mid-animation.
-        if !DailyPlanningManager.shared.isFinishingSession {
-            // Set the current view to shelf if it contains files and the user enables openShelfByDefault
-            // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-            if Defaults[.boringShelf] && !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
-                coordinator.currentView = .shelf
-            } else if !coordinator.openLastTabByDefault {
-                coordinator.currentView = .home
-            }
+        // Set the current view to shelf if it contains files and the user enables openShelfByDefault
+        // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
+        if Defaults[.boringShelf] && !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+            coordinator.currentView = .shelf
+        } else if !coordinator.openLastTabByDefault {
+            coordinator.currentView = .home
         }
     }
 
