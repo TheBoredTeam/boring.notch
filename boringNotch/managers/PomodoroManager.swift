@@ -8,6 +8,20 @@ import Defaults
 import Foundation
 import AppKit
 import UserNotifications
+import IOKit.pwr_mgt
+
+// TEMP diagnostic: append the completion path to a file for verification.
+func pomoDebug(_ s: String) {
+    let line = "\(Date().timeIntervalSince1970) \(s)\n"
+    let url = URL(fileURLWithPath: "/tmp/pomodoro_debug.log")
+    if let h = try? FileHandle(forWritingTo: url) {
+        h.seekToEndOfFile()
+        if let d = line.data(using: .utf8) { h.write(d) }
+        try? h.close()
+    } else {
+        try? line.write(to: url, atomically: true, encoding: .utf8)
+    }
+}
 
 enum PomodoroPhase {
     case work
@@ -45,12 +59,24 @@ class PomodoroManager: ObservableObject {
     private var timer: Timer?
     private var endDate: Date?
     private var cancellables = Set<AnyCancellable>()
-    // Held so the chime isn't deallocated mid-playback (NSSound doesn't retain
-    // itself during async play()).
-    private var completionSound: NSSound?
+    // Held so chimes aren't deallocated mid-playback (NSSound doesn't retain
+    // itself during async play()). An array supports repeated chimes.
+    private var completionSounds: [NSSound] = []
+
+    // IOKit power assertion held while a session runs, so the Mac doesn't idle-
+    // sleep mid-session and the chime actually fires when time's up.
+    private var sleepAssertionID: IOPMAssertionID = 0
+    private var sleepAsserted = false
 
     private init() {
         loadTodayStats()
+
+        // Request permission upfront — at completion time the system may silently
+        // deny a first-time request, leaving users with no banner after 25 minutes.
+        Task {
+            try? await UNUserNotificationCenter.current()
+                .requestAuthorization(options: [.alert, .sound])
+        }
 
         // Keep the displayed time in sync when durations change while idle.
         let workChanges = Defaults.publisher(.pomodoroWorkDuration).map { _ in () }
@@ -97,6 +123,7 @@ class PomodoroManager: ObservableObject {
         guard !isRunning else { return }
         isRunning = true
         if phase == .work { setDND(true) }
+        setSleepPrevention(true)
         // Anchor to wall-clock time so the countdown stays accurate regardless
         // of how often (or how many times) the timer fires.
         endDate = Date().addingTimeInterval(timeRemaining)
@@ -122,6 +149,7 @@ class PomodoroManager: ObservableObject {
         isRunning = false
         stopTimer()
         setDND(false)
+        setSleepPrevention(false)
     }
 
     func reset() {
@@ -140,12 +168,17 @@ class PomodoroManager: ObservableObject {
         let remaining = endDate.timeIntervalSinceNow
         if remaining <= 0 {
             timeRemaining = 0
+            pomoDebug("tick reached zero, phase=\(phase)")
             // Capture the phase that just elapsed BEFORE advancing, so the
             // chime and notification describe what actually finished.
             let finishedPhase = phase
             advance(credit: true)
             playCompletionChime()
             notify(finishedPhase: finishedPhase)
+            // Optionally roll straight into the next session right after the chime.
+            if Defaults[.pomodoroAutoStartNext] {
+                start()
+            }
         } else {
             timeRemaining = remaining
         }
@@ -172,6 +205,30 @@ class PomodoroManager: ObservableObject {
         isRunning = false
         stopTimer()
         setDND(false)
+        setSleepPrevention(false)
+    }
+
+    // MARK: - Keep-awake (so the chime fires even if you walk away)
+
+    /// Holds an IOKit assertion that prevents *idle system sleep* during a
+    /// session, so the timer keeps running and the chime plays even when the
+    /// display has slept. Note: this cannot defeat a physically closed lid
+    /// (clamshell sleep) without an external display + power.
+    private func setSleepPrevention(_ on: Bool) {
+        if on {
+            guard Defaults[.pomodoroPreventSleep], !sleepAsserted else { return }
+            let ok = IOPMAssertionCreateWithName(
+                kIOPMAssertPreventUserIdleSystemSleep as CFString,
+                IOPMAssertionLevel(kIOPMAssertionLevelOn),
+                "BoringNotch focus session" as CFString,
+                &sleepAssertionID
+            )
+            sleepAsserted = (ok == kIOReturnSuccess)
+        } else if sleepAsserted {
+            IOPMAssertionRelease(sleepAssertionID)
+            sleepAssertionID = 0
+            sleepAsserted = false
+        }
     }
 
     // MARK: - Statistics
@@ -243,19 +300,46 @@ class PomodoroManager: ObservableObject {
 
     // MARK: - Completion sound
 
-    /// Plays a clear system chime the moment a phase ends. Independent of the
+    /// Built-in chime choices (names of files in /System/Library/Sounds), plus
+    /// the sentinel "Custom" which uses the user-picked audio file.
+    static let chimeOptions = ["Glass", "Hero", "Ping", "Submarine", "Funk",
+                               "Bottle", "Blow", "Tink", "Sosumi", "Custom"]
+
+    /// Loads the user's selected chime — a stock system sound, or a custom audio
+    /// file (their own "ringtone"). Falls back through stock sounds if missing.
+    private func loadChimeSound() -> NSSound? {
+        let name = Defaults[.pomodoroChimeSound]
+        if name == "Custom" {
+            let path = Defaults[.pomodoroCustomChimePath]
+            if !path.isEmpty, FileManager.default.fileExists(atPath: path),
+               let s = NSSound(contentsOfFile: path, byReference: true) {
+                return s
+            }
+        } else if let s = NSSound(named: name) {
+            return s
+        }
+        return NSSound(named: "Glass") ?? NSSound(named: "Hero") ?? NSSound(named: "Ping")
+    }
+
+    /// Plays the selected chime the moment a phase ends. Independent of the
     /// notification banner, so you hear it even if notifications are denied.
     private func playCompletionChime() {
         guard Defaults[.pomodoroCompletionSound] else { return }
-        // Retain the sound — a fire-and-forget `NSSound(named:)?.play()` can be
-        // deallocated before it's audible. Fall back through a few stock sounds.
-        let sound = NSSound(named: "Glass")
-            ?? NSSound(named: "Hero")
-            ?? NSSound(named: "Funk")
-            ?? NSSound(named: "Ping")
-        sound?.volume = 1.0
-        completionSound = sound
-        sound?.play()
+        playChime(times: max(1, min(3, Defaults[.pomodoroChimeCount])))
+    }
+
+    /// Plays the configured chime `times` times in sequence. Public so Settings
+    /// can preview it. Each sound is retained until the sequence finishes.
+    func playChime(times: Int = 1) {
+        completionSounds.removeAll()
+        for i in 0..<max(1, times) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 1.15) { [weak self] in
+                guard let self, let s = self.loadChimeSound() else { return }
+                s.volume = 1.0
+                self.completionSounds.append(s)
+                s.play()
+            }
+        }
     }
 
     // MARK: - Notifications
@@ -264,8 +348,13 @@ class PomodoroManager: ObservableObject {
         let finishedWork = finishedPhase == .work
         Task.detached {
             let center = UNUserNotificationCenter.current()
+            let settings = await center.notificationSettings()
+            pomoDebug("notify: authStatus=\(settings.authorizationStatus.rawValue)")
             let granted = await withCheckedContinuation { cont in
-                center.requestAuthorization(options: [.alert, .sound]) { ok, _ in cont.resume(returning: ok) }
+                center.requestAuthorization(options: [.alert, .sound]) { ok, err in
+                    pomoDebug("notify: requestAuthorization granted=\(ok) err=\(String(describing: err))")
+                    cont.resume(returning: ok)
+                }
             }
             guard granted else { return }
             let content = UNMutableNotificationContent()

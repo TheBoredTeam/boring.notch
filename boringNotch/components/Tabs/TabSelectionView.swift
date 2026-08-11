@@ -28,7 +28,6 @@ let tabs = [
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.tabsMulticolor) private var multicolor
-    @Namespace var animation
 
     var body: some View {
         HStack(spacing: 0) {
@@ -42,10 +41,15 @@ struct TabSelectionView: View {
                 .frame(height: 26)
                 .foregroundStyle(iconColor(for: tab.view, selected: selected))
                 .background {
+                    // Each tab owns its own capsule, shown only when that tab is
+                    // selected. Binding opacity directly to `selected` means the
+                    // highlight can never desync from the active tab — unlike a
+                    // shared matchedGeometryEffect id, which pinned every capsule's
+                    // frame to the first tab (Home).
                     Capsule()
                         .fill(capsuleFill)
-                        .matchedGeometryEffect(id: "capsule", in: animation)
                         .opacity(selected ? 1 : 0)
+                        .animation(.smooth(duration: 0.25), value: selected)
                 }
             }
         }

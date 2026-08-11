@@ -161,7 +161,31 @@ struct PortsView: View {
                                 }
                                 
                                 Spacer()
-                                
+
+                                // Per-process resource usage: energy (%CPU) + memory.
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "bolt.fill")
+                                            .font(.system(size: 8, weight: .bold))
+                                            .foregroundColor(cpuColor(entry.cpu))
+                                        Text("\(cpuString(entry.cpu))")
+                                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                            .monospacedDigit()
+                                            .foregroundColor(.white.opacity(0.85))
+                                    }
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "memorychip")
+                                            .font(.system(size: 8, weight: .semibold))
+                                            .foregroundColor(.white.opacity(0.4))
+                                        Text(memString(entry.memBytes))
+                                            .font(.system(size: 9, weight: .medium, design: .rounded))
+                                            .monospacedDigit()
+                                            .foregroundColor(.white.opacity(0.55))
+                                    }
+                                }
+                                .frame(width: 56, alignment: .trailing)
+                                .help("Energy (CPU): \(cpuString(entry.cpu)) · Memory: \(memString(entry.memBytes))")
+
                                 // Stop Button
                                 Button(action: {
                                     initiateStop(entry)
@@ -245,6 +269,25 @@ struct PortsView: View {
         }
     }
     
+    private func cpuString(_ cpu: Double) -> String {
+        cpu >= 10 ? "\(Int(cpu.rounded()))%" : String(format: "%.1f%%", cpu)
+    }
+
+    private func cpuColor(_ cpu: Double) -> Color {
+        switch cpu {
+        case ..<15:  return .green
+        case ..<60:  return .yellow
+        default:     return .red
+        }
+    }
+
+    private func memString(_ bytes: UInt64) -> String {
+        let mb = Double(bytes) / 1_048_576
+        if mb >= 1024 { return String(format: "%.1f GB", mb / 1024) }
+        if mb >= 10   { return "\(Int(mb.rounded())) MB" }
+        return String(format: "%.1f MB", mb)
+    }
+
     private func openPort(_ entry: PortEntry) {
         // Only TCP listeners are meaningfully browsable.
         guard entry.proto == "TCP", let url = URL(string: "http://localhost:\(entry.port)") else { return }

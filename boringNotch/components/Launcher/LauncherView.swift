@@ -27,7 +27,6 @@ struct LauncherView: View {
                         ForEach(items) { item in
                             tile(item)
                         }
-                        addTile
                     }
                     .padding(.bottom, 2)
                 }

@@ -20,9 +20,9 @@ struct PomodoroView: View {
     // Mac instead of relying on hard-coded numbers.
     private var ringSize: CGFloat {
         let header = max(24, vm.effectiveClosedNotchHeight)
-        // Reserve room for the ambient-sound strip (24) + VStack spacing (6) too.
-        let available = openNotchSize.height - header - 12 - 10 - 16 - 30
-        return max(80, min(100, available))
+        // Reserve room for the ambient-sound strip (28) + VStack spacing (6) too.
+        let available = openNotchSize.height - header - 12 - 10 - 16 - 34
+        return max(78, min(100, available))
     }
 
     var body: some View {
@@ -32,7 +32,7 @@ struct PomodoroView: View {
                 rightPanel
             }
             AmbientSoundBar(accent: phaseColor)
-                .frame(height: 24)
+                .frame(height: 28)
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)
@@ -45,7 +45,10 @@ struct PomodoroView: View {
 
     private var ringTimer: some View {
         let lineWidth: CGFloat = 9
-        let tipRadius = ringSize / 2 - lineWidth / 2
+        // Matches the progress arc's own stroke-center radius (it isn't inset,
+        // so its path radius is the full ringSize/2) — otherwise the dot sits
+        // inside the ring instead of riding its edge.
+        let tipRadius = ringSize / 2
         let tipAngle = Double(-90 + pomodoro.progress * 360) * .pi / 180
 
         return ZStack {
@@ -110,7 +113,7 @@ struct PomodoroView: View {
             }
         }
         .frame(width: ringSize, height: ringSize)
-        .scaleEffect(pomodoro.phase == .work ? 1.0 : 1.02)
+        .scaleEffect(pomodoro.phase == .work ? 1.02 : 1.0)
     }
 
     // MARK: - Right panel

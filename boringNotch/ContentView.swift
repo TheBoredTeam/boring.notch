@@ -24,6 +24,7 @@ struct ContentView: View {
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var pomodoroManager = PomodoroManager.shared
+    @ObservedObject var reelsManager = ReelsManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -303,9 +304,12 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
-                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
+                      } else if coordinator.sneakPeek.show && Defaults[.hudStyle] == .inline && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
+                      } else if reelsManager.isOnReels && vm.notchState == .closed && !vm.hideOnClosed {
+                          ReelsLiveActivity()
+                              .frame(alignment: .center)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -323,11 +327,12 @@ struct ContentView: View {
                        }
 
                       if coordinator.sneakPeek.show {
-                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
-                              SystemEventIndicatorModifier(
-                                  eventType: $coordinator.sneakPeek.type,
+                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && Defaults[.hudStyle].rendersBelowNotch && vm.notchState == .closed {
+                              BelowNotchHUD(
+                                  type: coordinator.sneakPeek.type,
                                   value: $coordinator.sneakPeek.value,
-                                  icon: $coordinator.sneakPeek.icon,
+                                  icon: coordinator.sneakPeek.icon,
+                                  style: Defaults[.hudStyle],
                                   sendEventBack: { newVal in
                                       switch coordinator.sneakPeek.type {
                                       case .volume:
@@ -610,8 +615,17 @@ struct ContentView: View {
         }
     }
 
+    // Tabs whose content scrolls vertically — a scroll there is the user reading
+    // a list, not a dismiss gesture, so the up-to-close gesture must stand down.
+    private var currentTabScrollsVertically: Bool {
+        switch coordinator.currentView {
+        case .system, .projects, .note, .launcher: return true
+        default: return false
+        }
+    }
+
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard vm.notchState == .open && !vm.isHoveringCalendar && !currentTabScrollsVertically else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20

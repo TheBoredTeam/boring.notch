@@ -6,28 +6,36 @@ struct MemoryView: View {
     private var phaseColor: Color { memory.pressureLevel.color }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Top row: big number + pressure pill
-            HStack(alignment: .firstTextBaseline) {
-                Text(usedTotalLabel)
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                Spacer()
-                pressurePill
+        // Mirrors PortsView's known-working approach exactly: a ScrollView with
+        // small FIXED element heights, no GeometryReader-driven flexible/infinite
+        // sizing and no computed height budget. A ScrollView always clips its own
+        // content to whatever space it's given — it cannot push into anything
+        // above it, which is what was letting this view's content interfere with
+        // the tab bar above. If the card is shorter than the available area it
+        // just sits at the top with empty space below, exactly like Ports does
+        // when its list is short.
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Top row: big number + pressure pill
+                HStack(alignment: .firstTextBaseline) {
+                    Text(usedTotalLabel)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    Spacer()
+                    pressurePill
+                }
+
+                sparkline
+                    .frame(height: 30)
+
+                stackedBar
+                    .frame(height: 10)
+
+                legend
             }
-
-            // Sparkline
-            sparkline
-                .frame(height: 44)
-
-            // Stacked bar
-            stackedBar
-                .frame(height: 8)
-
-            // Legend
-            legend
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     // MARK: - Used / Total label

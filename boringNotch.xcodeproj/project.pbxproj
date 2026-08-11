@@ -107,7 +107,9 @@
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		24BFD4D6B72D2493DADDE161 /* QuickNoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC7ACE6AC895EE1313AD764C /* QuickNoteView.swift */; };
+		2A8B5EF87E923D5F8E11346A /* ReelsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6B9CB362F30D95164B4A45 /* ReelsManager.swift */; };
 		2FB4B31162507C68195D6731 /* PomodoroManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */; };
+		3337FF2E5C7C2DA5B95588EF /* HUDStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3FC3787D2DED808E8681789 /* HUDStyles.swift */; };
 		37DF863212CF67FDB805E757 /* QuickNoteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A41644C1C5B3ED1E6BE09E /* QuickNoteManager.swift */; };
 		48EDDF82BC09FACAEC7441A6 /* ProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29F3F99672137267B53DD7B9 /* ProjectsView.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
@@ -157,6 +159,7 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		C82F93D6F356AD86BBC7C262 /* ReelsLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F363DF1F59AA313A2794E7 /* ReelsLiveActivity.swift */; };
 		CA6DC1B51E2D887074C951EA /* ProjectsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F21D0137306D5CAA68009B0 /* ProjectsSettings.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 		F3A353606F41904A5195B058 /* LauncherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221842D2476053817483FA51 /* LauncherManager.swift */; };
@@ -200,6 +203,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0D6B9CB362F30D95164B4A45 /* ReelsManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReelsManager.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -302,6 +306,7 @@
 		29F3F99672137267B53DD7B9 /* ProjectsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsView.swift; sourceTree = "<group>"; };
 		43A41644C1C5B3ED1E6BE09E /* QuickNoteManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuickNoteManager.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
+		57F363DF1F59AA313A2794E7 /* ReelsLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReelsLiveActivity.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
@@ -345,6 +350,7 @@
 		DACB1BBBCA3E6F878AAFF79C /* ProjectsManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProjectsManager.swift; sourceTree = "<group>"; };
 		DCACB07F929AA59722446183 /* SystemSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemSettingsView.swift; sourceTree = "<group>"; };
 		DF227FC6A5A58257AA3367C8 /* PomodoroManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroManager.swift; sourceTree = "<group>"; };
+		E3FC3787D2DED808E8681789 /* HUDStyles.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HUDStyles.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 		FC7ACE6AC895EE1313AD764C /* QuickNoteView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuickNoteView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -589,6 +595,7 @@
 				5D0BEBC5658B984D19C6039D /* AmbientSoundManager.swift */,
 				43A41644C1C5B3ED1E6BE09E /* QuickNoteManager.swift */,
 				221842D2476053817483FA51 /* LauncherManager.swift */,
+				0D6B9CB362F30D95164B4A45 /* ReelsManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -839,6 +846,8 @@
 				B1D365CF2C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift */,
 				14E9FEA92C70BF610062E83F /* DownloadView.swift */,
 				B172AABF2C95DA0B001623F1 /* InlineHUD.swift */,
+				E3FC3787D2DED808E8681789 /* HUDStyles.swift */,
+				57F363DF1F59AA313A2794E7 /* ReelsLiveActivity.swift */,
 			);
 			path = "Live activities";
 			sourceTree = "<group>";
@@ -1160,6 +1169,9 @@
 				24BFD4D6B72D2493DADDE161 /* QuickNoteView.swift in Sources */,
 				F3A353606F41904A5195B058 /* LauncherManager.swift in Sources */,
 				79D0CE63D2EEF76EE0A4C32F /* LauncherView.swift in Sources */,
+				3337FF2E5C7C2DA5B95588EF /* HUDStyles.swift in Sources */,
+				2A8B5EF87E923D5F8E11346A /* ReelsManager.swift in Sources */,
+				C82F93D6F356AD86BBC7C262 /* ReelsLiveActivity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

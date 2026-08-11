@@ -84,7 +84,7 @@ struct QuickNoteView: View {
 
             HStack(spacing: 8) {
                 Text(manager.destinationLabel)
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .foregroundColor(.white.opacity(0.35))
                     .lineLimit(1)
                     .truncationMode(.head)

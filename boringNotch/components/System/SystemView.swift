@@ -9,29 +9,27 @@ struct SystemView: View {
     ]
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Left sidebar: animated segment picker.
-            VStack(spacing: 6) {
+        // Same envelope as the other tabs (Projects/Launcher/Note): header row +
+        // content within a shared 14 / 10 / 8 padding, top-aligned, no divider —
+        // so the System tab occupies the exact same content rectangle.
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
                 ForEach(segments, id: \.name) { seg in
                     segButton(seg.name, icon: seg.icon)
                 }
                 Spacer()
             }
-            .frame(width: 78)
-            .padding(.vertical, 10)
 
-            Divider().frame(maxHeight: .infinity).opacity(0.12)
-
-            // Main content
             Group {
                 if segment == "Memory" { MemoryView() }
                 else if segment == "Ports" { PortsView() }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 14)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func segButton(_ name: String, icon: String) -> some View {
@@ -44,11 +42,12 @@ struct SystemView: View {
                     .font(.system(size: 10, weight: .semibold))
                 Text(name)
                     .font(.system(size: 10, weight: .semibold))
-                Spacer(minLength: 0)
+                    .lineLimit(1)
+                    .fixedSize()
             }
             .foregroundColor(active ? .black : .white.opacity(0.6))
-            .padding(.horizontal, 10)
-            .frame(width: 70, height: 26)
+            .padding(.horizontal, 12)
+            .frame(height: 26)
             .background(
                 ZStack {
                     if active {

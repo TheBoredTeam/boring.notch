@@ -17,6 +17,7 @@ struct ProjectsView: View {
     @Default(.projectsAutoOpenPort) private var autoOpenPort
     @ObservedObject private var manager = ProjectsManager.shared
     @State private var logProjectID: UUID?
+    @State private var showStopAllConfirm = false
 
     private let green = Color(red: 0.4, green: 0.85, blue: 0.6)
     private let red = Color(red: 1, green: 0.42, blue: 0.42)
@@ -86,7 +87,7 @@ struct ProjectsView: View {
             .help("Open a project's port in the browser as soon as it starts listening")
 
             if !manager.runningIDs.isEmpty {
-                Button(action: { manager.stopAll() }) {
+                Button(action: { showStopAllConfirm = true }) {
                     HStack(spacing: 4) {
                         Image(systemName: "stop.fill").font(.system(size: 8, weight: .bold))
                         Text("Stop All").font(.system(size: 10, weight: .semibold))
@@ -97,6 +98,13 @@ struct ProjectsView: View {
                     .background(Capsule().fill(red))
                 }
                 .buttonStyle(.plain)
+                .confirmationDialog(
+                    "Stop \(manager.runningIDs.count) running project\(manager.runningIDs.count == 1 ? "" : "s")?",
+                    isPresented: $showStopAllConfirm,
+                    titleVisibility: .visible
+                ) {
+                    Button("Stop All", role: .destructive) { manager.stopAll() }
+                }
             }
 
             Spacer()
@@ -203,8 +211,8 @@ struct ProjectsView: View {
         VStack(spacing: 6) {
             HStack(spacing: 8) {
                 Button(action: { logProjectID = nil }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 11, weight: .bold))
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundColor(.white.opacity(0.7))
                 }
                 .buttonStyle(.plain)

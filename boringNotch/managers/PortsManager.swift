@@ -9,6 +9,8 @@ struct PortEntry: Identifiable, Equatable {
     let user: String
     let proto: String
     var uptime: String = "" // how long the owning process has been running, e.g. "2h 14m"
+    var cpu: Double = 0      // %CPU of the owning process (energy-impact proxy)
+    var memBytes: UInt64 = 0 // resident memory of the owning process
 }
 
 @MainActor
@@ -42,11 +44,15 @@ class PortsManager: ObservableObject {
                 if let output = String(data: data, encoding: .utf8) {
                     let parsedEntries = Self.parseLsofOutput(output)
 
-                    // Enrich with process uptime (etime) in one ps call.
-                    let uptimes = Self.uptimes(forPIDs: Array(Set(parsedEntries.map { $0.pid })))
+                    // Enrich with uptime + %CPU + resident memory in one ps call.
+                    let metrics = Self.metrics(forPIDs: Array(Set(parsedEntries.map { $0.pid })))
                     let enrichedEntries = parsedEntries.map { entry -> PortEntry in
                         var e = entry
-                        e.uptime = uptimes[entry.pid] ?? ""
+                        if let m = metrics[entry.pid] {
+                            e.uptime = m.uptime
+                            e.cpu = m.cpu
+                            e.memBytes = m.rss
+                        }
                         return e
                     }
 
@@ -97,13 +103,14 @@ class PortsManager: ObservableObject {
         return parsed.sorted { $0.port < $1.port }
     }
 
-    /// Maps PID → human-readable process uptime via `ps -o pid=,etime=`.
-    private nonisolated static func uptimes(forPIDs pids: [Int32]) -> [Int32: String] {
+    /// Maps PID → (uptime, %CPU, resident memory) via a single `ps` call.
+    private nonisolated static func metrics(forPIDs pids: [Int32]) -> [Int32: (uptime: String, cpu: Double, rss: UInt64)] {
         guard !pids.isEmpty else { return [:] }
         let process = Process()
         let pipe = Pipe()
         process.executableURL = URL(fileURLWithPath: "/bin/ps")
-        process.arguments = ["-o", "pid=,etime=", "-p", pids.map(String.init).joined(separator: ",")]
+        // Order: pid, etime, %cpu, rss(KB). Each is a single whitespace-free token.
+        process.arguments = ["-o", "pid=,etime=,%cpu=,rss=", "-p", pids.map(String.init).joined(separator: ",")]
         process.standardOutput = pipe
         process.standardError = Pipe()
         do {
@@ -115,11 +122,14 @@ class PortsManager: ObservableObject {
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         guard let out = String(data: data, encoding: .utf8) else { return [:] }
 
-        var result: [Int32: String] = [:]
+        var result: [Int32: (String, Double, UInt64)] = [:]
         for line in out.components(separatedBy: .newlines) {
             let cols = line.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-            guard cols.count >= 2, let pid = Int32(cols[0]) else { continue }
-            result[pid] = humanizeEtime(cols[1])
+            guard cols.count >= 4, let pid = Int32(cols[0]) else { continue }
+            let uptime = humanizeEtime(cols[1])
+            let cpu = Double(cols[2]) ?? 0
+            let rss = (UInt64(cols[3]) ?? 0) * 1024 // KB → bytes
+            result[pid] = (uptime, cpu, rss)
         }
         return result
     }

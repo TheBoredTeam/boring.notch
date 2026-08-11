@@ -33,6 +33,11 @@ final class NoiseGenerator {
     private var oceanPhase: Double = 0
     private var leftPhase: Double = 0
     private var rightPhase: Double = 0
+    private var whiteSmooth: Float = 0
+    private var rainLP: Float = 0
+    private var rainLP2: Float = 0
+    private var rainDropEnv: Float = 0
+    private var rainDropLP: Float = 0
 
     @inline(__always) private func white() -> Float { Float.random(in: -1...1) }
 
@@ -54,7 +59,12 @@ final class NoiseGenerator {
             return (l, r)
 
         case .white:
-            let s = white() * 0.4 * gain
+            // Raw uniform noise is fatiguing — equal energy at the harshest high
+            // frequencies. A gentle one-pole low-pass tames that without turning
+            // it into pink/brown.
+            let w = white()
+            whiteSmooth = 0.55 * whiteSmooth + 0.45 * w
+            let s = whiteSmooth * 0.5 * gain
             return (s, s)
 
         case .pink:
@@ -77,12 +87,22 @@ final class NoiseGenerator {
             return (s, s)
 
         case .rain:
-            // Brown bed for the "wash", plus sparse bright droplets on top.
+            // The old version high-passed the noise, which is exactly what makes
+            // "static": bright, harsh, all-treble hiss. Real rain is dominated by
+            // low/mid energy. So here the bed is cascaded LOW-pass noise (soft,
+            // dark "shhh") over a brown wash — no bright top end.
             let w = white()
             brown = (brown + 0.02 * w) / 1.02
-            let bed = brown * 2.2
-            let drop = abs(w) > 0.992 ? w * 1.6 : 0
-            let s = (bed + drop) * 0.5 * gain
+            rainLP = rainLP * 0.45 + w * 0.55           // 1st low-pass stage
+            rainLP2 = rainLP2 * 0.80 + rainLP * 0.20    // 2nd stage, softer still
+            let bed = brown * 1.5 + rainLP2 * 1.1
+            // Droplets: more frequent and varied, each a short decaying tick that
+            // is itself low-passed so it "plops" rather than "clicks".
+            if Float.random(in: 0...1) < 0.0018 { rainDropEnv = Float.random(in: 0.4...1.0) }
+            rainDropEnv *= 0.93
+            rainDropLP = rainDropLP * 0.5 + (rainDropEnv * w) * 0.5
+            let drop = rainDropLP * 1.3
+            let s = (bed + drop) * 0.42 * gain
             return (s, s)
 
         case .ocean:

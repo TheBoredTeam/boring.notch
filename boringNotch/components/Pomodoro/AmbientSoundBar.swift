@@ -39,11 +39,9 @@ struct AmbientSoundBar: View {
             HStack(spacing: 4) {
                 Image(systemName: item.icon)
                     .font(.system(size: 9, weight: .semibold))
-                if active {
-                    Text(item.label)
-                        .font(.system(size: 9, weight: .bold))
-                        .fixedSize()
-                }
+                Text(item.label)
+                    .font(.system(size: 9, weight: active ? .bold : .medium))
+                    .fixedSize()
             }
             .foregroundColor(active ? .black : .white.opacity(0.6))
             .frame(height: 22)
@@ -62,18 +60,74 @@ struct AmbientSoundBar: View {
     }
 
     private var volumeControl: some View {
-        HStack(spacing: 4) {
-            Image(systemName: sound.volume < 0.01 ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                .font(.system(size: 8, weight: .semibold))
-                .foregroundColor(.white.opacity(0.5))
-                .frame(width: 12)
-            Slider(value: $sound.volume, in: 0...1)
-                .controlSize(.mini)
-                .tint(accent)
-                .frame(width: 52)
+        HStack(spacing: 5) {
+            Button {
+                // One-tap mute / restore.
+                sound.volume = sound.volume < 0.01 ? 0.6 : 0
+            } label: {
+                Image(systemName: sound.volume < 0.01 ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.6))
+                    .frame(width: 12)
+            }
+            .buttonStyle(.plain)
+
+            // Narrower than before (was 130pt) — it was eating enough width to
+            // crowd the chip strip, leaving fewer sound chips visible without
+            // scrolling. A precise drag-anywhere track still works fine narrow.
+            VolumeSlider(value: $sound.volume, accent: accent)
+                .frame(width: 46, height: 18)
+
+            Text("\(Int((sound.volume * 100).rounded()))%")
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .foregroundColor(.white.opacity(0.6))
+                .frame(width: 26, alignment: .trailing)
+                .contentTransition(.numericText())
         }
-        .padding(.horizontal, 8)
-        .frame(height: 24)
-        .background(Capsule().fill(Color.white.opacity(0.06)))
+        .padding(.horizontal, 7)
+        .frame(height: 28)
+        .background(Capsule().fill(Color.white.opacity(0.07)))
+    }
+}
+
+/// A precise volume track: a tall hit area, visible fill + thumb, and
+/// drag-anywhere control so small movements map to small changes even at a
+/// narrow width.
+private struct VolumeSlider: View {
+    @Binding var value: Double
+    var accent: Color
+    @State private var dragging = false
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let trackH: CGFloat = 5
+            let thumb: CGFloat = dragging ? 14 : 11
+            let clamped = max(0, min(1, value))
+            let fillW = CGFloat(clamped) * w
+
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.white.opacity(0.15))
+                    .frame(height: trackH)
+                Capsule().fill(accent)
+                    .frame(width: max(trackH, fillW), height: trackH)
+                Circle()
+                    .fill(.white)
+                    .frame(width: thumb, height: thumb)
+                    .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                    .offset(x: min(max(fillW - thumb / 2, 0), w - thumb))
+            }
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { g in
+                        dragging = true
+                        value = Double(max(0, min(1, g.location.x / w)))
+                    }
+                    .onEnded { _ in dragging = false }
+            )
+            .animation(.snappy(duration: 0.12), value: dragging)
+        }
     }
 }
