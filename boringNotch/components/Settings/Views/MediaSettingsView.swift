@@ -21,6 +21,7 @@ struct Media: View {
     @Default(.showMediaProgressBar) private var showMediaProgressBar
     @Default(.mediaProgressBarThickness) private var mediaProgressBarThickness
     @Default(.mediaProgressBarColor) private var mediaProgressBarColor
+    @Default(.mediaProgressBarUpdateInterval) private var mediaProgressBarUpdateInterval
 
     var body: some View {
         Form {
@@ -80,6 +81,11 @@ struct Media: View {
                         ForEach(SliderColorEnum.allCases, id: \.self) { option in
                             Text(option.localizedString)
                         }
+                    }
+                    Picker("Progress bar smoothness", selection: $mediaProgressBarUpdateInterval) {
+                        Text("Power saver").tag(0.5)
+                        Text("Balanced").tag(0.2)
+                        Text("Smooth").tag(0.1)
                     }
                 }
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)

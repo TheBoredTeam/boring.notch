@@ -36,6 +36,10 @@ struct MediaProgressBar: View {
     /// Where the bar's color comes from. Controlled by a picker in Settings → Media.
     @Default(.mediaProgressBarColor) private var colorSource
 
+    /// How often the bar re-samples the playback position, in seconds. Smaller
+    /// looks smoother (smaller steps); larger is cheaper. Set in Settings → Media.
+    @Default(.mediaProgressBarUpdateInterval) private var updateInterval
+
     private var tint: Color {
         switch colorSource {
         case .albumArt:
@@ -53,7 +57,7 @@ struct MediaProgressBar: View {
         // (no per-frame interpolation) looks identical while avoiding a full
         // geometry rebuild on every display frame.
         if isVisible {
-            TimelineView(.periodic(from: .now, by: 0.5)) { context in
+            TimelineView(.periodic(from: .now, by: updateInterval)) { context in
                 ribbon(at: context.date)
             }
         } else {
