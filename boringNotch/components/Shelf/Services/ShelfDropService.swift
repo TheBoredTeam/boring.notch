@@ -9,6 +9,7 @@ import AppKit
 import Foundation
 import UniformTypeIdentifiers
 
+@MainActor
 struct ShelfDropService {
     static func items(from providers: [NSItemProvider]) async -> [ShelfItem] {
         // Process providers concurrently for better performance with large drops
