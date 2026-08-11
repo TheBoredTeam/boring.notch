@@ -24,6 +24,11 @@ struct MediaProgressBar: View {
 
     let topCornerRadius: CGFloat
     let bottomCornerRadius: CGFloat
+    /// Whether the bar is currently shown. When false, the periodic timeline is
+    /// torn down so it stops waking twice a second while hidden (open notch /
+    /// paused); a single static frame is rendered instead so the fade-out still
+    /// shows the bar at its last position.
+    var isVisible: Bool = true
 
     /// Thickness of the line, in points. Controlled by a slider in Settings → Media.
     @Default(.mediaProgressBarThickness) private var thickness
@@ -43,20 +48,32 @@ struct MediaProgressBar: View {
     }
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 0.5)) { context in
-            let duration = musicManager.songDuration
-            let position = musicManager.estimatedPlaybackPosition(at: context.date)
-            let fraction = duration > 0 ? min(max(position / duration, 0), 1) : 0
-
-            TaperedNotchProgress(
-                topCornerRadius: topCornerRadius,
-                bottomCornerRadius: bottomCornerRadius,
-                thickness: CGFloat(thickness),
-                fraction: CGFloat(fraction)
-            )
-            .fill(tint)
-            .animation(.linear(duration: 0.5), value: fraction)
+        // Only drive the periodic timeline while visible. The bar advances well
+        // under a pixel per 0.5s step, so stepping straight to each new value
+        // (no per-frame interpolation) looks identical while avoiding a full
+        // geometry rebuild on every display frame.
+        if isVisible {
+            TimelineView(.periodic(from: .now, by: 0.5)) { context in
+                ribbon(at: context.date)
+            }
+        } else {
+            ribbon(at: .now)
         }
+    }
+
+    @ViewBuilder
+    private func ribbon(at date: Date) -> some View {
+        let duration = musicManager.songDuration
+        let position = musicManager.estimatedPlaybackPosition(at: date)
+        let fraction = duration > 0 ? min(max(position / duration, 0), 1) : 0
+
+        TaperedNotchProgress(
+            topCornerRadius: topCornerRadius,
+            bottomCornerRadius: bottomCornerRadius,
+            thickness: CGFloat(thickness),
+            fraction: CGFloat(fraction)
+        )
+        .fill(tint)
     }
 }
 
@@ -70,12 +87,6 @@ struct TaperedNotchProgress: Shape {
     var bottomCornerRadius: CGFloat
     var thickness: CGFloat
     var fraction: CGFloat
-
-    /// Animate the fill by interpolating `fraction`, so it grows smoothly.
-    var animatableData: CGFloat {
-        get { fraction }
-        set { fraction = newValue }
-    }
 
     func path(in rect: CGRect) -> Path {
         let f = min(max(fraction, 0), 1)
@@ -110,9 +121,11 @@ struct TaperedNotchProgress: Shape {
                 pts.append(CGPoint(x: p0.x + (p1.x - p0.x) * t, y: p0.y + (p1.y - p0.y) * t))
             }
         }
-        quad(start, blCtl, blEnd, steps: 48, includeFirst: true)
-        line(blEnd, brStart, steps: 64)
-        quad(brStart, brCtl, end, steps: 48, includeFirst: false)
+        // A ~1-5pt ribbon needs far fewer samples than the geometry can produce;
+        // the coarse outline deviates from the fine one by ~0.1pt worst case.
+        quad(start, blCtl, blEnd, steps: 12, includeFirst: true)
+        line(blEnd, brStart, steps: 16)
+        quad(brStart, brCtl, end, steps: 12, includeFirst: false)
 
         // 2. Cumulative arc length, and the target length for the current fraction.
         var cum: [CGFloat] = [0]

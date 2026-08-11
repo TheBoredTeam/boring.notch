@@ -155,7 +155,8 @@ struct ContentView: View {
                         if Defaults[.showMediaProgressBar] {
                             MediaProgressBar(
                                 topCornerRadius: topCornerRadius,
-                                bottomCornerRadius: currentBottomCornerRadius
+                                bottomCornerRadius: currentBottomCornerRadius,
+                                isVisible: isProgressBarVisible
                             )
                             .allowsHitTesting(false)
                             .opacity(isProgressBarVisible ? 1 : 0)
