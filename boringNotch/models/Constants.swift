@@ -24,6 +24,13 @@ enum CalendarSelectionState: Codable, Defaults.Serializable {
     case selected(Set<String>)
 }
 
+struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
+    let UUID: UUID
+    var name: String
+    var url: URL
+    var speed: CGFloat = 1.0
+}
+
 enum HideNotchOption: String, Defaults.Serializable {
     case always
     case nowPlayingOnly
@@ -204,6 +211,22 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     }
 }
 
+// Visual style for the system HUD (volume / brightness / etc.) shown at the notch.
+enum HUDStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case standard = "Default"      // icon + bar below the notch
+    case inline = "Inline"         // icon/label + bar flanking the notch
+    case arc = "Notch Arc"         // progress arc hugging the notch's underside
+    case pips = "Segmented"        // discrete tick segments
+    case liquid = "Liquid"         // a pill that fills with sloshing liquid
+    case waveform = "Waveform"     // reactive bars that ripple from the level
+
+    var id: String { self.rawValue }
+
+    // The four new styles all render in the same slot below the closed notch as
+    // `.standard`; only `.inline` replaces the closed-notch content itself.
+    var rendersBelowNotch: Bool { self != .inline }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
@@ -253,6 +276,9 @@ extension Defaults.Keys {
         default: SliderColorEnum.white
     )
     static let playerColorTinting = Key<Bool>("playerColorTinting", default: true)
+    static let useMusicVisualizer = Key<Bool>("useMusicVisualizer", default: true)
+    static let customVisualizers = Key<[CustomVisualizer]>("customVisualizers", default: [])
+    static let selectedVisualizer = Key<CustomVisualizer?>("selectedVisualizer", default: nil)
     
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
@@ -292,6 +318,11 @@ extension Defaults.Keys {
     // MARK: OSD
     static let osdReplacement = Key<Bool>("osdReplacement", default: false)
     static let inlineOSD = Key<Bool>("inlineOSD", default: false)
+    
+    // MARK: HUD
+    static let hudReplacement = Key<Bool>("hudReplacement", default: false)
+    static let inlineHUD = Key<Bool>("inlineHUD", default: false) // legacy; superseded by hudStyle
+    static let hudStyle = Key<HUDStyle>("hudStyle", default: HUDStyle.standard)
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
@@ -320,6 +351,49 @@ extension Defaults.Keys {
     static let showFullEventTitles = Key<Bool>("showFullEventTitles", default: false)
     static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: true)
     
+    // MARK: Pomodoro
+    static let pomodoroWorkDuration = Key<Double>("pomodoroWorkDuration", default: 25)
+    static let pomodoroShortBreakDuration = Key<Double>("pomodoroShortBreakDuration", default: 5)
+    static let pomodoroLongBreakDuration = Key<Double>("pomodoroLongBreakDuration", default: 15)
+    static let pomodoroCyclesBeforeLongBreak = Key<Int>("pomodoroCyclesBeforeLongBreak", default: 4)
+    static let pomodoroAutoDND = Key<Bool>("pomodoroAutoDND", default: false)
+    static let pomodoroAutoStartNext = Key<Bool>("pomodoroAutoStartNext", default: false)
+    static let pomodoroChimeSound = Key<String>("pomodoroChimeSound", default: "Glass")
+    static let pomodoroChimeCount = Key<Int>("pomodoroChimeCount", default: 1)
+    static let pomodoroCustomChimePath = Key<String>("pomodoroCustomChimePath", default: "")
+    static let pomodoroPreventSleep = Key<Bool>("pomodoroPreventSleep", default: true)
+
+    // MARK: Reels blocker
+    static let reelsBlockerEnabled = Key<Bool>("reelsBlockerEnabled", default: false)
+    static let reelsDailyLimitMinutes = Key<Int>("reelsDailyLimitMinutes", default: 15)
+    static let reelsAutoRedirect = Key<Bool>("reelsAutoRedirect", default: true)
+    static let reelsTrackInstagram = Key<Bool>("reelsTrackInstagram", default: true)
+    static let reelsTrackYouTube = Key<Bool>("reelsTrackYouTube", default: true)
+    static let reelsStats = Key<[String: ReelsDayStat]>("reelsStats", default: [:])
+    // What the closed-notch indicator shows: "count", "time", or "both".
+    static let reelsNotchMetric = Key<String>("reelsNotchMetric", default: "count")
+    static let pomodoroStats = Key<[String: PomodoroDayStat]>("pomodoroStats", default: [:])
+    static let pomodoroCompletionSound = Key<Bool>("pomodoroCompletionSound", default: true)
+    static let pomodoroAmbientVolume = Key<Double>("pomodoroAmbientVolume", default: 0.6)
+    static let pomodoroAmbientSound = Key<String>("pomodoroAmbientSound", default: "")
+
+    // MARK: Projects
+    static let projectRunConfigs = Key<[ProjectRunConfig]>("projectRunConfigs", default: [])
+    static let projectsAutoOpenPort = Key<Bool>("projectsAutoOpenPort", default: false)
+
+    // MARK: Quick Launcher
+    static let launcherItems = Key<[LauncherItem]>("launcherItems", default: [])
+
+    // MARK: Quick Note → Obsidian
+    // Folder that quick-capture daily files are written to. Defaults to the
+    // vault's raw/inbox entry point so captures flow into the existing
+    // "Ingest: raw/inbox/…" workflow.
+    static let quickNoteFolder = Key<String>(
+        "quickNoteFolder",
+        default: "\(NSHomeDirectory())/Documents/BoringNotchNotes"
+    )
+    static let quickNoteFilePrefix = Key<String>("quickNoteFilePrefix", default: "capture")
+
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
     
@@ -329,6 +403,9 @@ extension Defaults.Keys {
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
+    // Notch theming
+    static let tabsMulticolor = Key<Bool>("tabsMulticolor", default: false)
+    static let notchTintedBackground = Key<Bool>("notchTintedBackground", default: false)
     // Show or hide the title bar
     static let hideTitleBar = Key<Bool>("hideTitleBar", default: true)
     static let hideNonNotchedFromMissionControl = Key<Bool>("hideNonNotchedFromMissionControl", default: true)

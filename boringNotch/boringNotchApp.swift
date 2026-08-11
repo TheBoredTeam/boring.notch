@@ -313,6 +313,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
 
+        // Kick off the reels counter/blocker so it monitors from launch (it only
+        // actually polls when the feature is enabled in Settings).
+        _ = ReelsManager.shared
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(screenConfigurationDidChange),

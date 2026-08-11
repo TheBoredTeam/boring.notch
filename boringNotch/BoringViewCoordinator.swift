@@ -52,7 +52,15 @@ struct ExpandedItem {
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
-    @Published var currentView: NotchViews = .home
+    @Published var currentView: NotchViews = .home {
+        didSet {
+            // Persist the active tab so "Remember last tab" survives both notch
+            // close/open and full app restarts.
+            if openLastTabByDefault {
+                UserDefaults.standard.set(currentView.rawValue, forKey: "lastSelectedTab")
+            }
+        }
+    }
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
@@ -77,6 +85,9 @@ class BoringViewCoordinator: ObservableObject {
         didSet {
             if openLastTabByDefault {
                 alwaysShowTabs = true
+                // Seed the stored tab with the current one so it's remembered even
+                // if the user enables this and quits before switching tabs.
+                UserDefaults.standard.set(currentView.rawValue, forKey: "lastSelectedTab")
             }
         }
     }
@@ -172,6 +183,13 @@ class BoringViewCoordinator: ObservableObject {
                     }
                 }
             }
+
+        // Restore the last-used tab on launch when the user opted in.
+        if openLastTabByDefault,
+           let raw = UserDefaults.standard.string(forKey: "lastSelectedTab"),
+           let restored = NotchViews(rawValue: raw) {
+            currentView = restored
+        }
 
         Task { @MainActor in
             helloAnimationRunning = firstLaunch

@@ -23,6 +23,8 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var pomodoroManager = PomodoroManager.shared
+    @ObservedObject var reelsManager = ReelsManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -36,6 +38,7 @@ struct ContentView: View {
 
     @Namespace var albumArtNamespace
 
+    @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.showNotHumanFace) var showNotHumanFace
 
     // Use standardized animations from StandardAnimations enum
@@ -97,6 +100,8 @@ struct ContentView: View {
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
+        } else if pomodoroManager.isRunning && vm.notchState == .closed && !vm.hideOnClosed {
+            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 40)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
@@ -130,7 +135,23 @@ struct ContentView: View {
                         vm.notchState == .open ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                    .background(.black)
+                    .background {
+                        ZStack {
+                            Color.black
+                            // Optional accent-tinted background for the open notch.
+                            if Defaults[.notchTintedBackground] && vm.notchState == .open {
+                                LinearGradient(
+                                    colors: [
+                                        Color.effectiveAccent.opacity(0.28),
+                                        Color.effectiveAccent.opacity(0.06)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                                .transition(.opacity)
+                            }
+                        }
+                    }
                     .clipShape(currentNotchShape)
                           .overlay(alignment: .top) {
                               displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
@@ -281,8 +302,8 @@ struct ContentView: View {
 
     @ViewBuilder
     func NotchLayout() -> some View {
-        VStack(alignment: .leading) {
-            VStack(alignment: .leading) {
+        VStack(alignment: .center) {
+            VStack(alignment: .center) {
                 if coordinator.helloAnimationRunning {
                     Spacer()
                     HelloAnimation(onFinish: {
@@ -331,8 +352,14 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
+                      } else if reelsManager.isOnReels && vm.notchState == .closed && !vm.hideOnClosed {
+                          ReelsLiveActivity()
+                              .frame(alignment: .center)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
+                              .frame(alignment: .center)
+                      } else if pomodoroManager.isRunning && vm.notchState == .closed && !vm.hideOnClosed {
+                          PomodoroLiveActivity()
                               .frame(alignment: .center)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
@@ -349,11 +376,12 @@ struct ContentView: View {
                        }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
-                              SystemEventIndicatorModifier(
-                                  eventType: coordinator.binding(for: vm.screenUUID).type,
+                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && Defaults[.hudStyle].rendersBelowNotch && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                              BelowNotchHUD(
+                                  type: coordinator.sneakPeekState(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,
-                                  icon: coordinator.binding(for: vm.screenUUID).icon,
+                                  icon: coordinator.sneakPeekState(for: vm.screenUUID).icon,
+                                  style: Defaults[.hudStyle],
                                   accent: coordinator.binding(for: vm.screenUUID).accent,
                                   sendEventBack: { newVal in
                                       switch coordinator.sneakPeekState(for: vm.screenUUID).type {
@@ -402,6 +430,16 @@ struct ContentView: View {
                         )
                     case .shelf:
                         ShelfView()
+                    case .pomodoro:
+                        PomodoroView()
+                    case .system:
+                        SystemView()
+                    case .projects:
+                        ProjectsView()
+                    case .note:
+                        QuickNoteView()
+                    case .launcher:
+                        LauncherView()
                     }
                 }
                 .transition(
@@ -511,13 +549,19 @@ struct ContentView: View {
                 )
 
             HStack {
-                AudioSpectrumView(
-                    isPlaying: musicManager.isPlaying,
-                    tintColor: Defaults[.coloredSpectrogram]
-                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
-                    : Color.gray
-                )
-                .frame(width: 18, height: 12)
+                if useMusicVisualizer {
+                    CustomMusicVisualizer(
+                        isPlaying: musicManager.isPlaying,
+                        color: Defaults[.coloredSpectrogram]
+                            ? Color(nsColor: musicManager.avgColor)
+                            : Color.gray
+                    )
+                    .frame(width: 22, height: 13, alignment: .center)
+                    .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
+                } else {
+                    LottieAnimationContainer()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
             .frame(
                 width: max(
@@ -637,8 +681,17 @@ struct ContentView: View {
         }
     }
 
+    // Tabs whose content scrolls vertically — a scroll there is the user reading
+    // a list, not a dismiss gesture, so the up-to-close gesture must stand down.
+    private var currentTabScrollsVertically: Bool {
+        switch coordinator.currentView {
+        case .system, .projects, .note, .launcher: return true
+        default: return false
+        }
+    }
+
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard vm.notchState == .open && !vm.isHoveringCalendar && !currentTabScrollsVertically else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
