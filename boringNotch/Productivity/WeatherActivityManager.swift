@@ -4,7 +4,7 @@ import Foundation
 import Security
 import WeatherKit
 
-enum WeatherActivityIssue: Equatable {
+nonisolated enum WeatherActivityIssue: Equatable {
     case locationAccess
     case locationUnavailable
     case weatherKitConfiguration
@@ -48,7 +48,7 @@ enum WeatherActivityIssue: Equatable {
     }
 }
 
-enum WeatherKitBuildConfiguration {
+nonisolated enum WeatherKitBuildConfiguration {
     static var hasEntitlement: Bool {
         guard let task = SecTaskCreateFromSelf(nil),
               let value = SecTaskCopyValueForEntitlement(

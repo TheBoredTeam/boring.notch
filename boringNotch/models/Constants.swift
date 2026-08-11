@@ -19,18 +19,18 @@ let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as
 let temporaryDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
 let spacing: CGFloat = 16
 
-enum CalendarSelectionState: Codable, Defaults.Serializable {
+nonisolated enum CalendarSelectionState: Codable, Defaults.Serializable {
     case all
     case selected(Set<String>)
 }
 
-enum HideNotchOption: String, Defaults.Serializable {
+nonisolated enum HideNotchOption: String, Defaults.Serializable {
     case always
     case nowPlayingOnly
     case never
 }
 
-struct AppLanguage: RawRepresentable, Hashable, Identifiable, Defaults.Serializable {
+nonisolated struct AppLanguage: RawRepresentable, Hashable, Identifiable, Defaults.Serializable {
     static let system = AppLanguage(rawValue: "system")
 
     var id: String { rawValue }

@@ -74,4 +74,26 @@ final class BoringNotchUITests: XCTestCase, @unchecked Sendable {
         glancesNavigation.click()
         XCTAssertTrue(app.staticTexts["Glances layout"].waitForExistence(timeout: 3))
     }
+
+    func testWeatherKitConfigurationErrorIsActionable() {
+        app.terminate()
+        app.launchArguments = ["--uitesting", "--uitesting-weather-configuration"]
+        app.launch()
+
+        let dashboard = app.scrollViews["productivity-dashboard"]
+        XCTAssertTrue(dashboard.waitForExistence(timeout: 10))
+
+        let weatherCard = app.descendants(matching: .any)["widget-weather"]
+        var attempts = 0
+        while !weatherCard.exists && attempts < 6 {
+            dashboard.swipeLeft()
+            attempts += 1
+        }
+
+        XCTAssertTrue(weatherCard.exists)
+        XCTAssertTrue(app.staticTexts["WeatherKit setup required"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Retry"].exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'WeatherDaemon'"))
+            .firstMatch.exists)
+    }
 }

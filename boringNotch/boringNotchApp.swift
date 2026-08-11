@@ -324,7 +324,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // but no permission dialogs, network calls, or hardware polling can race it.
             Defaults[.enableDownloadListener] = false
             Defaults[.bluetoothLiveActivityEnabled] = false
-            Defaults[.weatherEnabled] = false
+            Defaults[.weatherEnabled] = ProcessInfo.processInfo.arguments.contains(
+                "--uitesting-weather-configuration"
+            )
+            Defaults[.weatherUseCurrentLocation] = false
             Defaults[.clipboardHistoryEnabled] = false
             Defaults[.meetingCardEnabled] = false
             NSApp.setActivationPolicy(.regular)
