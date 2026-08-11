@@ -451,7 +451,7 @@ private struct DailyReminderRow: View {
     @ObservedObject var manager: DailyPlanningManager
 
     var body: some View {
-        HStack(spacing: 7) {
+        HStack(alignment: .top, spacing: 7) {
             Button(action: toggleCompletion) {
                 DailyReminderCompletionMark(isCompleted: displayedCompletion)
             }
@@ -468,14 +468,17 @@ private struct DailyReminderRow: View {
                 title: item.title.isEmpty ? "Untitled reminder" : item.title,
                 isCompleted: displayedCompletion
             )
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .layoutPriority(1)
 
-            Spacer(minLength: 4)
-
-            Text(item.listTitle)
-                .font(.caption2)
-                .foregroundStyle(displayedCompletion ? .quaternary : .tertiary)
-                .lineLimit(1)
-                .animation(.easeInOut(duration: 0.28), value: displayedCompletion)
+            if !item.listTitle.isEmpty {
+                Text(item.listTitle)
+                    .font(.caption2)
+                    .foregroundStyle(displayedCompletion ? .quaternary : .tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.trailing)
+                    .animation(.easeInOut(duration: 0.28), value: displayedCompletion)
+            }
         }
         .padding(.vertical, 3)
         .opacity(isVisible ? 1 : 0)
@@ -575,10 +578,14 @@ private struct AnimatedReminderTitle: View {
     var body: some View {
         Text(title)
             .font(.caption)
-            .lineLimit(1)
+            .fixedSize(horizontal: false, vertical: true)
+            .multilineTextAlignment(.leading)
             .foregroundStyle(isCompleted ? .secondary : .primary)
             .overlay {
-                AnimatedStrikeThroughShape(progress: isCompleted ? 1 : 0)
+                AnimatedStrikeThroughShape(
+                    progress: isCompleted ? 1 : 0,
+                    lineHeight: NSFont.preferredFont(forTextStyle: .caption1).boundingRectForFont.height
+                )
                     .stroke(
                         Color.secondary.opacity(0.8),
                         style: StrokeStyle(lineWidth: 1, lineCap: .round)
@@ -597,6 +604,7 @@ private struct AnimatedReminderTitle: View {
 
 private struct AnimatedStrikeThroughShape: Shape {
     var progress: CGFloat
+    let lineHeight: CGFloat
 
     var animatableData: CGFloat {
         get { progress }
@@ -605,8 +613,15 @@ private struct AnimatedStrikeThroughShape: Shape {
 
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.midY))
-        path.addLine(to: CGPoint(x: rect.minX + rect.width * progress, y: rect.midY))
+        let lineCount = max(1, Int((rect.height / lineHeight).rounded()))
+        let renderedTextHeight = CGFloat(lineCount) * lineHeight
+        let topInset = max(0, (rect.height - renderedTextHeight) / 2)
+
+        for lineIndex in 0..<lineCount {
+            let y = rect.minY + topInset + lineHeight * (CGFloat(lineIndex) + 0.52)
+            path.move(to: CGPoint(x: rect.minX, y: y))
+            path.addLine(to: CGPoint(x: rect.minX + rect.width * progress, y: y))
+        }
         return path
     }
 }
