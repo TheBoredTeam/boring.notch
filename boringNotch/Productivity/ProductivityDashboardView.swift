@@ -150,15 +150,31 @@ private struct WeatherWidgetView: View {
             } else if manager.isLoading {
                 ProgressView("Loading…")
                     .controlSize(.small)
-            } else {
+            } else if let issue = manager.issue {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Weather unavailable")
+                    Text(issue.title)
                         .font(.subheadline.weight(.medium))
-                    Text(manager.errorMessage ?? "Check Weather and location permissions.")
+                    Text(issue.message)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-                        .lineLimit(3)
+                        .lineLimit(2)
+                    HStack(spacing: 10) {
+                        if issue.offersSettings {
+                            Button("Settings") {
+                                SettingsWindowController.shared.showWindow()
+                            }
+                        }
+                        Button("Retry") {
+                            manager.refresh()
+                        }
+                    }
+                    .buttonStyle(.link)
+                    .controlSize(.small)
                 }
+            } else {
+                Text("Weather is ready to refresh.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
         }
         .accessibilityIdentifier("widget-weather")

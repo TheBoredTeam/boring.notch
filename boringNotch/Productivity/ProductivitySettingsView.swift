@@ -126,7 +126,7 @@ struct ProductivitySettingsView: View {
 
     private var weatherSection: some View {
         Section {
-            Toggle("Show WeatherKit weather", isOn: $weatherEnabled)
+            Toggle("Show weather", isOn: $weatherEnabled)
             Toggle("Use current location", isOn: $useCurrentLocation)
                 .disabled(!weatherEnabled)
             if !useCurrentLocation {
@@ -144,6 +144,8 @@ struct ProductivitySettingsView: View {
                 .disabled(!weatherEnabled)
         } header: {
             Label("Weather", systemImage: "cloud.sun")
+        } footer: {
+            Text("WeatherKit requires a signed build whose App ID has the WeatherKit capability enabled.")
         }
         .onChange(of: weatherEnabled) { WeatherActivityManager.shared.refresh() }
         .onChange(of: useCurrentLocation) { WeatherActivityManager.shared.refresh() }

@@ -48,4 +48,28 @@ final class ProductivityLogicTests: XCTestCase {
         XCTAssertNil(MeetingLinkDetector.find(in: ["http://zoom.us/j/123456"]))
         XCTAssertNil(MeetingLinkDetector.find(in: ["https://zoom.us.attacker.example/j/123456"]))
     }
+
+    func testWeatherErrorsDoNotExposeWeatherDaemonDiagnostics() {
+        let authenticationError = NSError(
+            domain: "WeatherDaemon.WDSJWTAuthService",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: "JWT authentication failed"]
+        )
+
+        let issue = WeatherActivityIssue.weatherService(error: authenticationError)
+
+        XCTAssertEqual(issue, .weatherKitConfiguration)
+        XCTAssertEqual(issue.title, "WeatherKit setup required")
+        XCTAssertFalse(issue.message.localizedCaseInsensitiveContains("JWT"))
+        XCTAssertFalse(issue.message.localizedCaseInsensitiveContains("WeatherDaemon"))
+    }
+
+    func testUnknownWeatherErrorsUseStableUserFacingMessage() {
+        let issue = WeatherActivityIssue.weatherService(
+            error: NSError(domain: "ExampleInternalDomain", code: 42)
+        )
+
+        XCTAssertEqual(issue, .serviceUnavailable)
+        XCTAssertEqual(issue.message, "The weather service could not be reached.")
+    }
 }
