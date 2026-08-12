@@ -164,17 +164,16 @@ final class SystemNotificationManager: ObservableObject {
 
     /// Holds the system banner open for as long as the notch is showing the
     /// notification, so its reply field stays usable — an untouched banner
-    /// dies in seconds, taking the only means of replying with it.
+    /// dies in seconds, taking the only means of replying with it — and
+    /// parks it off-screen for the duration.
     ///
-    /// For apps set to "hide system banner", the banner is also moved
-    /// off-screen, which is what makes hiding and replying possible at the
-    /// same time. The previous implementation closed the banner outright,
-    /// which hid it but destroyed the reply field along with it.
+    /// Hiding isn't optional here: holding works by re-triggering the
+    /// banner's details toggle, which leaves it expanded with its own reply
+    /// field visible and focused. Two text fields fighting over the same
+    /// keystrokes is worse than no keep-alive, so the notch is the only
+    /// surface on screen while it's held.
     private func holdSystemBanner(_ notification: SystemNotification) {
-        let hidden = notification.bundleID.map {
-            Defaults[.notificationSuppressedApps].contains($0)
-        } ?? false
-        XPCHelperClient.shared.holdNotification(token: notification.id, offScreen: hidden)
+        XPCHelperClient.shared.holdNotification(token: notification.id)
     }
 
     /// The notch mirrors banners rather than replacing them, so an unfiltered

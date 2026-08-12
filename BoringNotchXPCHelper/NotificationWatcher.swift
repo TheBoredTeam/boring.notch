@@ -150,19 +150,25 @@ final class NotificationWatcher {
         }
     }
 
-    /// Holds a banner open so its reply field stays usable, optionally
-    /// moving it off-screen first so the user never sees it.
+    /// Holds a banner open so its reply field stays usable, moving it
+    /// off-screen first.
     ///
-    /// The off-screen move is safe to leave behind: when no banners are
-    /// showing, notificationcenterui has zero windows — the banner window is
-    /// created per session and destroyed after — so a moved window can't
-    /// permanently hide notifications. A fresh one spawns at its normal
-    /// position.
-    func hold(token: String, offScreen: Bool) {
+    /// The move is not optional. Holding a banner works by re-performing
+    /// its details toggle, which leaves it expanded — showing its own reply
+    /// field, on top of everything, taking focus. Two live text fields
+    /// competing for the same keystrokes is worse than no keep-alive at
+    /// all, so the banner is parked off-screen for the whole hold and the
+    /// notch is the only visible surface.
+    ///
+    /// Safe to leave behind: with no banners showing, notificationcenterui
+    /// has zero windows — the window is created per session and destroyed
+    /// after — so a moved window can't permanently hide notifications. A
+    /// fresh one always spawns at its normal position.
+    func hold(token: String) {
         guard let banner = live[token] else { return }
         held.insert(token)
 
-        guard offScreen, !heldOffScreen.contains(token) else { return }
+        guard !heldOffScreen.contains(token) else { return }
         heldOffScreen.insert(token)
         guard let windowValue = banner[kAXWindowAttribute] else { return }
         let window = windowValue as! AXUIElement
