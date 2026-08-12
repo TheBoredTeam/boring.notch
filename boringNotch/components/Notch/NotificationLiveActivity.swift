@@ -116,6 +116,7 @@ struct NotificationExpandedView: View {
     @State private var hostWindow: BoringNotchSkyLightWindow?
     @State private var suggestions: [String] = []
     @State private var isComposing = false
+    @State private var endComposeTask: Task<Void, Never>?
 
     private var kind: NotificationKind { .init(notification) }
 
@@ -157,22 +158,26 @@ struct NotificationExpandedView: View {
         }
         .onDisappear {
             manager.resumeDismiss()
+            // Tear down immediately here, and cancel any deferred teardown:
+            // the view is going away, so there's no in-flight click left to
+            // protect, and letting that task outlive the view would leak a
+            // refcounted hold that pins the notch open for good.
+            endComposeTask?.cancel()
+            endComposeTask = nil
             // Always hand key status back — if this fired without the
-            // focus-lost branch below running first (the whole view can
-            // disappear while still focused, e.g. the notch closing), a
-            // stuck `true` here would leave the window able to steal focus
-            // on some later, unrelated click.
+            // focus-lost branch running first (the view can disappear while
+            // still focused, e.g. the notch closing), a stuck `true` would
+            // leave the window able to steal focus on some later click.
             hostWindow?.wantsKeyForTextInput = false
-            // Same reasoning for the compose hold: a leaked one would pin
-            // the notch open permanently, since every close path checks it.
             endComposing()
         }
         .onChange(of: replyFocused) { _, focused in
-            // The window can only accept keystrokes while it's key, and it
-            // must not stay key a moment longer than the field is actually
-            // focused — see BoringNotchSkyLightWindow.wantsKeyForTextInput.
-            hostWindow?.wantsKeyForTextInput = focused
             if focused {
+                // The window can only accept keystrokes while it's key —
+                // see BoringNotchSkyLightWindow.wantsKeyForTextInput.
+                endComposeTask?.cancel()
+                endComposeTask = nil
+                hostWindow?.wantsKeyForTextInput = true
                 manager.holdWhileTyping()
                 // Clicking into the field changes window key status, which
                 // rebuilds tracking areas and fires a spurious hover-exit —
@@ -182,8 +187,20 @@ struct NotificationExpandedView: View {
                 // session rather than trying to filter the bogus hover.
                 beginComposing()
             } else {
-                manager.holdActive()
-                endComposing()
+                // Deliberately deferred. Clicking Send blurs the field on
+                // mouse-down; releasing the hold and key status right then
+                // can close the notch out from under the click before
+                // mouse-up lands, so the press never completes. Give an
+                // in-flight click time to finish, and cancel if focus comes
+                // straight back.
+                endComposeTask?.cancel()
+                endComposeTask = Task {
+                    try? await Task.sleep(for: .milliseconds(350))
+                    guard !Task.isCancelled else { return }
+                    hostWindow?.wantsKeyForTextInput = false
+                    manager.holdActive()
+                    endComposing()
+                }
             }
         }
         .onChange(of: replyText) { _, _ in
@@ -392,38 +409,47 @@ struct NotificationExpandedView: View {
     }
 
     @ViewBuilder
+    /// A real Button, not a shape with .onTapGesture. In a non-activating
+    /// panel a bare tap gesture needs a clean mouse-down/up pair in a window
+    /// whose key status isn't changing — but clicking here blurs the text
+    /// field, which flips key status mid-click and ate the tap. Enter
+    /// (onSubmit) worked the whole time, and the suggestion chips (already
+    /// Buttons) worked, which is what pointed at the gesture rather than at
+    /// send() itself. Buttons track the press properly across that change.
     private var sendButton: some View {
-        ZStack {
-            Circle()
-                .fill(fillStyle)
-                .frame(width: 26, height: 26)
+        Button(action: send) {
+            ZStack {
+                Circle()
+                    .fill(fillStyle)
+                    .frame(width: 26, height: 26)
 
-            if isSending {
-                ProgressView()
-                    .controlSize(.small)
-                    .tint(.white)
-            } else if didSend {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white)
-            } else if didHandOff {
-                // Clipboard, not a checkmark: the message wasn't delivered,
-                // it was copied for the user to paste into the app.
-                Image(systemName: "doc.on.clipboard")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(.white)
-            } else {
-                Image(systemName: "arrow.up")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(canSend ? .white : .secondary)
+                if isSending {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(.white)
+                } else if didSend {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                } else if didHandOff {
+                    // Clipboard, not a checkmark: the message wasn't
+                    // delivered, it was copied for the user to paste.
+                    Image(systemName: "doc.on.clipboard")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                } else {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(canSend ? .white : .secondary)
+                }
             }
+            .contentShape(Circle())
         }
+        .buttonStyle(ScaleDownButtonStyle())
+        .disabled(!canSend)
         .animation(.smooth(duration: 0.25), value: isSending)
         .animation(.smooth(duration: 0.25), value: didSend)
         .animation(.smooth(duration: 0.25), value: didHandOff)
-        .contentShape(Circle())
-        .onTapGesture(perform: send)
-        .disabled(!canSend)
         .sensoryFeedback(.success, trigger: didSend)
     }
 
