@@ -114,6 +114,7 @@ struct NotificationExpandedView: View {
     @State private var didHandOff = false
     @FocusState private var replyFocused: Bool
     @State private var hostWindow: BoringNotchWindow?
+    @State private var suggestions: [String] = []
 
     private var kind: NotificationKind { .init(notification) }
 
@@ -314,6 +315,44 @@ struct NotificationExpandedView: View {
     // MARK: - Reply
 
     private var replyRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if !suggestions.isEmpty {
+                suggestionChips
+            }
+            replyField
+        }
+        .task(id: notification.id) {
+            guard Defaults[.smartRepliesEnabled], let body = notification.body else { return }
+            suggestions = await SmartReplyManager.suggestReplies(sender: notification.sender, body: body)
+        }
+    }
+
+    /// Tapping a chip fills the field rather than sending immediately — an
+    /// AI-drafted reply should get a glance before it goes out under your
+    /// name, not fire on a single tap.
+    private var suggestionChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(suggestions, id: \.self) { suggestion in
+                    Button {
+                        replyText = suggestion
+                        replyFocused = true
+                    } label: {
+                        Text(suggestion)
+                            .font(.system(size: 12))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(.white.opacity(0.1), in: Capsule())
+                    }
+                    .buttonStyle(ScaleDownButtonStyle())
+                }
+            }
+        }
+    }
+
+    private var replyField: some View {
         HStack(spacing: 8) {
             HStack(spacing: 6) {
                 TextField("Reply", text: $replyText, axis: .horizontal)
