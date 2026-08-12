@@ -101,6 +101,7 @@ class BoringViewCoordinator: ObservableObject {
     private var osdReplacementCancellable: AnyCancellable?
     private var boringShelfCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
+    private var notificationLiveActivityCancellable: AnyCancellable?
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -173,11 +174,30 @@ class BoringViewCoordinator: ObservableObject {
                 }
             }
 
+        // Observe changes to the notification live activity
+        notificationLiveActivityCancellable = Defaults.publisher(.notificationLiveActivity)
+            .sink { change in
+                Task { @MainActor in
+                    if change.newValue {
+                        await SystemNotificationManager.shared.start()
+                        if !SystemNotificationManager.shared.isWatching {
+                            Defaults[.notificationLiveActivity] = false
+                        }
+                    } else {
+                        SystemNotificationManager.shared.stop()
+                    }
+                }
+            }
+
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
 
             if Defaults[.osdReplacement] {
                 await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+            }
+
+            if Defaults[.notificationLiveActivity] {
+                await SystemNotificationManager.shared.start()
             }
             self.applyOSDSources()
         }

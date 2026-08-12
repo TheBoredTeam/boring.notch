@@ -17,7 +17,7 @@ class ServiceDelegate: NSObject, NSXPCListenerDelegate {
         newConnection.exportedInterface = NSXPCInterface(with: (any BoringNotchXPCHelperProtocol).self)
 
         // Configure the interface for callbacks from the helper to the app.
-        let listenerInterface = NSXPCInterface(with: (any BoringNotchXPCHelperLunarListener).self)
+        let listenerInterface = NSXPCInterface(with: (any BoringNotchXPCAppDelegate).self)
         listenerInterface.setClasses(
             NSSet(array: [BNLunarBrightnessEvent.self]) as! Set<AnyHashable>,
             for: #selector(BoringNotchXPCHelperLunarListener.lunarEventDidUpdate(_:)),
