@@ -26,6 +26,22 @@ final class AudioOutputRouteResolver {
     private let stateQueue = DispatchQueue(label: "AudioOutputRouteResolver.state")
     private var cachedRouteKind: AudioOutputRouteKind = .unknown
 
+    /// Symbol for the current output route, independent of volume level —
+    /// for the media-output button, which shows *where* audio is going
+    /// rather than how loud it is. Built-in output reads as the machine
+    /// itself (a laptop), matching how macOS's own output picker shows it.
+    func outputRouteSymbol() -> String {
+        let routeKind = stateQueue.sync { cachedRouteKind }
+        switch routeKind {
+        case .airPods: return "airpods"
+        case .airPodsPro: return "airpodspro"
+        case .airPodsMax: return "airpodsmax"
+        case .wiredHeadphones, .bluetoothHeadphones: return "headphones"
+        case .externalSpeaker: return "hifispeaker"
+        case .builtInSpeaker, .unknown: return "laptopcomputer"
+        }
+    }
+
     func volumeSymbol(for value: CGFloat) -> String {
         let clampedValue = max(0, min(1, value))
         let routeKind = stateQueue.sync { cachedRouteKind }
