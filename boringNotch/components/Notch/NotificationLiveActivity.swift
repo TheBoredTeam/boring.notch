@@ -115,6 +115,7 @@ struct NotificationExpandedView: View {
     @FocusState private var replyFocused: Bool
     @State private var hostWindow: BoringNotchSkyLightWindow?
     @State private var suggestions: [String] = []
+    @State private var isComposing = false
 
     private var kind: NotificationKind { .init(notification) }
 
@@ -162,6 +163,9 @@ struct NotificationExpandedView: View {
             // stuck `true` here would leave the window able to steal focus
             // on some later, unrelated click.
             hostWindow?.wantsKeyForTextInput = false
+            // Same reasoning for the compose hold: a leaked one would pin
+            // the notch open permanently, since every close path checks it.
+            endComposing()
         }
         .onChange(of: replyFocused) { _, focused in
             // The window can only accept keystrokes while it's key, and it
@@ -170,8 +174,16 @@ struct NotificationExpandedView: View {
             hostWindow?.wantsKeyForTextInput = focused
             if focused {
                 manager.holdWhileTyping()
+                // Clicking into the field changes window key status, which
+                // rebuilds tracking areas and fires a spurious hover-exit —
+                // that's what was closing the notch the instant you tapped
+                // the input. Every close path already honours
+                // preventNotchClose, so hold it for the whole compose
+                // session rather than trying to filter the bogus hover.
+                beginComposing()
             } else {
                 manager.holdActive()
+                endComposing()
             }
         }
         .onChange(of: replyText) { _, _ in
@@ -424,6 +436,23 @@ struct NotificationExpandedView: View {
     private var canSend: Bool {
         !replyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !isSending && !didSend && !didHandOff
+    }
+
+    /// SharingStateManager refcounts its sessions, so these must stay
+    /// balanced — a leaked begin pins the notch open for good, since every
+    /// close path honours preventNotchClose. The local flag guarantees at
+    /// most one outstanding session per view regardless of how many times
+    /// focus flips.
+    private func beginComposing() {
+        guard !isComposing else { return }
+        isComposing = true
+        SharingStateManager.shared.beginInteraction()
+    }
+
+    private func endComposing() {
+        guard isComposing else { return }
+        isComposing = false
+        SharingStateManager.shared.endInteraction()
     }
 
     private func send() {

@@ -51,18 +51,12 @@ struct LiveActivityStackView<Content: View>: View {
 
     var body: some View {
         ZStack {
-            // The card behind the front one, nudged down and dimmed. Purely a
-            // depth cue that there's more here — the closed notch has no room
-            // for a page-dot row.
-            if items.count > 1 {
-                Capsule()
-                    .fill(.white.opacity(0.12))
-                    .frame(height: 3)
-                    .padding(.horizontal, 40)
-                    .offset(y: 9)
-                    .transition(.opacity)
-            }
-
+            // No "card behind the card" depth cue here. A full-width shape
+            // drawn behind the content is bisected by the black rectangle
+            // that masks the physical notch cutout, so it renders as two
+            // disembodied lines flanking the notch rather than as a stack.
+            // The closed pill has no room for a page-dot row either, so the
+            // stack stays discoverable by swiping rather than by ornament.
             if let item = items[safe: clampedIndex] {
                 content(item)
                     .id(item.id)
