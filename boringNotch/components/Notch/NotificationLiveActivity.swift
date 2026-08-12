@@ -116,20 +116,34 @@ struct NotificationExpandedView: View {
     private var kind: NotificationKind { .init(notification) }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .center, spacing: 16) {
             headerAvatar
-                .padding(.top, 2)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 header
                 textBlock
                 actionArea
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, 4)
+        // Fill the opened notch rather than clustering in its top-left
+        // corner — this sits in the same slot NotchHomeView occupies, which
+        // is sized to the full open notch.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(.horizontal, 8)
+        // Rebuild cleanly when one notification replaces another, instead of
+        // reusing the previous one's view state.
+        .id(notification.id)
         .onAppear {
-            manager.holdActive()
             if kind == .reply { replyFocused = true }
+        }
+        // Hold the notification open only while the user is actually typing
+        // a reply. Holding it for the whole time the notch is open pinned
+        // stale notifications indefinitely and blocked the normal notch
+        // content — opening the notch minutes later still showed the old
+        // message.
+        .onChange(of: replyFocused) { _, focused in
+            if focused { manager.holdActive() } else { manager.resumeDismiss() }
         }
         .onDisappear { manager.resumeDismiss() }
     }
@@ -158,17 +172,17 @@ struct NotificationExpandedView: View {
            let bundleID = notification.bundleID,
            Self.personAvatarBundleIDs.contains(bundleID) {
             ZStack(alignment: .bottomTrailing) {
-                PersonAvatarView(name: sender, size: 44)
+                PersonAvatarView(name: sender, size: 64)
                 AppIcon(for: bundleID)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 18, height: 18)
-                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                    .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(.black, lineWidth: 1.5))
-                    .offset(x: 3, y: 3)
+                    .frame(width: 24, height: 24)
+                    .clipShape(RoundedRectangle(cornerRadius: 7))
+                    .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(.black, lineWidth: 2))
+                    .offset(x: 4, y: 4)
             }
         } else {
-            NotificationAppIcon(bundleID: notification.bundleID, size: 44)
+            NotificationAppIcon(bundleID: notification.bundleID, size: 64)
         }
     }
 
@@ -177,12 +191,12 @@ struct NotificationExpandedView: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text(notification.sender ?? notification.appName ?? "Notification")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
 
             Text(notification.receivedAt, style: .relative)
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .foregroundStyle(.tertiary)
                 .fixedSize()
 
@@ -200,18 +214,18 @@ struct NotificationExpandedView: View {
     private var textBlock: some View {
         if let subtitle = notification.subtitle, subtitle != notification.sender {
             Text(subtitle)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
 
         if let body = notification.body {
             Text(body)
-                .font(.system(size: 13))
+                .font(.system(size: 15))
                 .foregroundStyle(.secondary.opacity(0.9))
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
-                .lineSpacing(1)
+                .lineSpacing(2)
         }
     }
 
