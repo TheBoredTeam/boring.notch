@@ -5986,6 +5986,9 @@
         }
       }
     },
+    "Compact mode" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "cs" : {
@@ -11065,9 +11068,6 @@
         }
       }
     },
-    "Hide system banner, show in notch only" : {
-
-    },
     "Hide title bar" : {
       "localizations" : {
         "de" : {
@@ -16008,6 +16008,9 @@
           }
         }
       }
+    },
+    "Nothing playing" : {
+
     },
     "Notification Debug" : {
 
@@ -22489,6 +22492,9 @@
           }
         }
       }
+    },
+    "Shows a smaller opened notch with just the music player — no tabs, calendar or mirror." : {
+
     },
     "Slider color" : {
       "localizations" : {
