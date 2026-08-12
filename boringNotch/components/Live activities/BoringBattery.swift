@@ -39,6 +39,25 @@ struct BatteryView: View {
         }
     }
 
+    /// The outline is an SF Symbol scaled by width, so everything drawn
+    /// inside it has to scale by width too.
+    ///
+    /// These were previously absolute: the fill height was
+    /// `(batteryWidth - 2.75) - 18`, which only lands correctly at the
+    /// default 30pt — at compact mode's 24pt it collapses to ~3pt, a sliver
+    /// floating inside the outline. Expressing them relative to a reference
+    /// width keeps the 30pt case numerically identical to before while
+    /// making every other size correct.
+    private static let referenceWidth: CGFloat = 30
+    private var sizeScale: CGFloat { batteryWidth / Self.referenceWidth }
+
+    /// 9.25pt at the 30pt reference — the interior cavity height of the
+    /// battery symbol.
+    private var fillHeight: CGFloat { 9.25 * sizeScale }
+    /// Combined width of the outline stroke and terminal nub.
+    private var fillInset: CGFloat { 6 * sizeScale }
+    private var fillLeadingInset: CGFloat { 2 * sizeScale }
+
     var body: some View {
         ZStack(alignment: .leading) {
 
@@ -51,13 +70,13 @@ struct BatteryView: View {
                     width: batteryWidth + 1
                 )
 
-            RoundedRectangle(cornerRadius: 2.5)
+            RoundedRectangle(cornerRadius: 2.5 * sizeScale)
                 .fill(batteryColor)
                 .frame(
-                    width: CGFloat(((CGFloat(CFloat(levelBattery)) / 100) * (batteryWidth - 6))),
-                    height: (batteryWidth - 2.75) - 18
+                    width: (CGFloat(levelBattery) / 100) * (batteryWidth - fillInset),
+                    height: fillHeight
                 )
-                .padding(.leading, 2)
+                .padding(.leading, fillLeadingInset)
 
             if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
                 ZStack {
@@ -66,8 +85,8 @@ struct BatteryView: View {
                         .aspectRatio(contentMode: .fit)
                         .foregroundColor(.white)
                         .frame(
-                            width: 17,
-                            height: 17
+                            width: 17 * sizeScale,
+                            height: 17 * sizeScale
                         )
                 }
                 .frame(width: batteryWidth, height: batteryWidth)
