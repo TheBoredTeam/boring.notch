@@ -56,11 +56,11 @@ struct CompactHomeView: View {
                     .padding(.top, 6)
 
                 transport
-                    .padding(.top, 4)
+                    .padding(.top, 2)
             }
             .padding(.horizontal, 12)
-            .padding(.top, 6)
-            .padding(.bottom, 10)
+            .padding(.top, 15)
+            .padding(.bottom, 3)
             .frame(maxWidth: .infinity)
             .buttonStyle(PlainButtonStyle())
         }
@@ -145,6 +145,29 @@ struct CompactHomeView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
+        .frame(height: playPauseSize)
+    }
+
+    /// Atoll's control dimensions: 36pt secondary buttons with 18pt glyphs,
+    /// a 54pt play/pause with a 26pt glyph. HoverButton's 30/40 is what made
+    /// this row read undersized against the rest of the panel.
+    private let controlSize: CGFloat = 36
+    private let playPauseSize: CGFloat = 54
+
+    private func compactControl(
+        icon: String,
+        size: CGFloat,
+        glyph: CGFloat,
+        tint: Color = .white,
+        action: @escaping () -> Void
+    ) -> some View {
+        CompactControlButton(
+            icon: icon,
+            frameSize: size,
+            glyphSize: glyph,
+            tint: tint,
+            action: action
+        )
     }
 
     /// Fixed five, deliberately not the musicControlSlots preference. That
@@ -159,23 +182,28 @@ struct CompactHomeView: View {
     private func slotView(for slot: MusicControlButton) -> some View {
         switch slot {
         case .shuffle:
-            HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .primary, scale: .medium) {
-                MusicManager.shared.toggleShuffle()
-            }
+            compactControl(
+                icon: "shuffle",
+                size: controlSize,
+                glyph: 18,
+                tint: musicManager.isShuffled ? .red : .white
+            ) { MusicManager.shared.toggleShuffle() }
         case .previous:
-            HoverButton(icon: "backward.fill", scale: .medium) {
+            compactControl(icon: "backward.fill", size: controlSize, glyph: 18) {
                 MusicManager.shared.previousTrack()
             }
         case .playPause:
-            HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
-                MusicManager.shared.togglePlay()
-            }
+            compactControl(
+                icon: musicManager.isPlaying ? "pause.fill" : "play.fill",
+                size: playPauseSize,
+                glyph: 26
+            ) { MusicManager.shared.togglePlay() }
         case .next:
-            HoverButton(icon: "forward.fill", scale: .medium) {
+            compactControl(icon: "forward.fill", size: controlSize, glyph: 18) {
                 MusicManager.shared.nextTrack()
             }
         case .repeatMode:
-            HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
+            compactControl(icon: repeatIcon, size: controlSize, glyph: 18, tint: repeatIconColor) {
                 MusicManager.shared.toggleRepeat()
             }
         case .none:
@@ -190,7 +218,7 @@ struct CompactHomeView: View {
     /// Shows where audio is going and switches it, via a popover device
     /// picker.
     private var mediaOutputButton: some View {
-        HoverButton(icon: routeSymbol, scale: .medium) {
+        compactControl(icon: routeSymbol, size: controlSize, glyph: 18) {
             // Enumerate on open rather than polling: devices come and go
             // (AirPods connecting, a display waking) and a list built at
             // launch would be stale by the time anyone opened it.
@@ -304,5 +332,40 @@ struct AudioOutputPicker: View {
             }
         }
         .frame(minWidth: 220)
+    }
+}
+
+/// Transport button matching Atoll's MinimalisticSquircircleButton: a
+/// squircle that fills faintly on hover, sized independently of its glyph
+/// so a 54pt play/pause and a 36pt skip share the same visual language.
+///
+/// Not HoverButton — that's fixed at 30/40pt with a capsule fill, which
+/// reads undersized against this layout's 50pt artwork.
+private struct CompactControlButton: View {
+    let icon: String
+    let frameSize: CGFloat
+    let glyphSize: CGFloat
+    let tint: Color
+    let action: () -> Void
+
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            RoundedRectangle(cornerRadius: frameSize * 0.4, style: .continuous)
+                .fill(isHovering ? Color.white.opacity(0.12) : .clear)
+                .frame(width: frameSize, height: frameSize)
+                .overlay {
+                    Image(systemName: icon)
+                        .font(.system(size: glyphSize, weight: .medium))
+                        .foregroundStyle(tint)
+                        .contentTransition(.symbolEffect(.replace))
+                }
+                .contentShape(RoundedRectangle(cornerRadius: frameSize * 0.4, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.18)) { isHovering = hovering }
+        }
     }
 }

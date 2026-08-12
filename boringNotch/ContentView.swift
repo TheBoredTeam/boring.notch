@@ -114,7 +114,11 @@ struct ContentView: View {
     /// just surrounds two lines of text with empty black.
     private var openNotchHeight: CGFloat {
         if notificationManager.activeNotification != nil { return 132 }
-        return Defaults[.compactMode] ? 180 : vm.notchSize.height
+        // 134pt is Atoll's own content height for this layout (50 header +
+        // 10 progress + 56 controls + 15/3 padding). The 420x180 constant is
+        // its window allowance, not the panel — using it left the content
+        // floating in empty space.
+        return Defaults[.compactMode] ? 134 : vm.notchSize.height
     }
 
     /// Compact mode drops the tab bar along with the tabs it switches
