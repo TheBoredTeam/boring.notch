@@ -456,6 +456,11 @@ private struct DailyReminderRow: View {
                 DailyReminderCompletionMark(isCompleted: displayedCompletion)
             }
             .buttonStyle(.plain)
+            .alignmentGuide(.top) { dimensions in
+                dimensions[.top]
+                    + (dimensions.height
+                        - NSFont.preferredFont(forTextStyle: .caption1).boundingRectForFont.height) / 2
+            }
             .disabled(
                 manager.isFinishingSession
                     || manager.updatingReminderIDs.contains(item.id)
@@ -475,8 +480,7 @@ private struct DailyReminderRow: View {
                 Text(item.listTitle)
                     .font(.caption2)
                     .foregroundStyle(displayedCompletion ? .quaternary : .tertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .multilineTextAlignment(.trailing)
+                    .lineLimit(1)
                     .animation(.easeInOut(duration: 0.28), value: displayedCompletion)
             }
         }
