@@ -72,6 +72,11 @@ final class SystemNotificationManager: ObservableObject {
 
     /// How long the notch keeps showing a notification after it arrives.
     private let activeDuration: TimeInterval = 8
+
+    /// Ceiling on how long a notification can occupy the notch even while
+    /// held open. Past this it's stale — the source banner is long gone, so
+    /// replying is impossible anyway.
+    private let maxLifetime: TimeInterval = 30
     private var dismissTask: Task<Void, Never>?
 
     /// Expired banners are kept around briefly so the notch can still show the
@@ -207,16 +212,41 @@ final class SystemNotificationManager: ObservableObject {
         withAnimation(.smooth) { activeNotification = nil }
     }
 
-    /// Keeps the notification up while the user is interacting with it.
+    /// Keeps the notification up while the user is engaging with it — the
+    /// notch is open, or they're typing a reply. Without this the countdown
+    /// keeps running and the notification vanishes mid-read.
+    ///
+    /// Bounded by `maxLifetime` rather than cancelled outright: an
+    /// indefinite hold meant an opened notch pinned its notification
+    /// forever, so hovering the notch much later still showed a long-dead
+    /// message instead of the normal content.
     func holdActive() {
         dismissTask?.cancel()
         dismissTask = nil
+
+        guard let active = activeNotification else { return }
+        let remaining = maxLifetime - Date().timeIntervalSince(active.receivedAt)
+        guard remaining > 0 else {
+            dismissActive(token: active.id)
+            return
+        }
+        dismissTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(remaining))
+            guard !Task.isCancelled else { return }
+            await MainActor.run { self?.dismissActive(token: active.id) }
+        }
     }
 
     /// Restarts the dismiss countdown once the user stops interacting —
     /// without this a held notification would stay in the notch forever.
+    ///
+    /// Replaces whatever task is pending rather than bailing when one
+    /// exists: holdActive always leaves its maxLifetime cap scheduled, so a
+    /// bail-if-busy check here would leave the notification sitting for the
+    /// full cap after the notch closed instead of the short countdown.
     func resumeDismiss(after delay: TimeInterval = 3) {
-        guard let active = activeNotification, dismissTask == nil else { return }
+        guard let active = activeNotification else { return }
+        dismissTask?.cancel()
         dismissTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(delay))
             guard !Task.isCancelled else { return }
