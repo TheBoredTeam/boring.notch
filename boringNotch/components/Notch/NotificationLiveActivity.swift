@@ -130,11 +130,15 @@ struct NotificationExpandedView: View {
                 actionArea
             }
             .frame(maxWidth: 300, alignment: .leading)
-
-            dismissButton
-                .padding(.leading, 4)
         }
         .padding(.horizontal, 4)
+        .padding(.trailing, 20)
+        // Pinned to the card's actual top-right corner rather than sitting
+        // inline at the avatar's vertical center, matching where a close
+        // control belongs on a notification.
+        .overlay(alignment: .topTrailing) {
+            dismissButton
+        }
         // Rebuild cleanly when one notification replaces another, instead of
         // reusing the previous one's view state.
         .id(notification.id)
@@ -275,15 +279,18 @@ struct NotificationExpandedView: View {
                     .focused($replyFocused)
                     .onSubmit(send)
                     .disabled(isSending || didSend || didHandOff)
-                    // A bare TextField takes every point offered, which
-                    // would stretch the notch back out.
-                    .frame(width: 200)
+                    // Safe to let this fill available width now: the
+                    // containing column is already capped at 300pt, so this
+                    // only fills up to that cap rather than stretching the
+                    // notch itself the way an unbounded TextField would.
+                    .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
             .background(.white.opacity(0.08), in: Capsule())
             .overlay(Capsule().strokeBorder(.white.opacity(replyFocused ? 0.18 : 0)))
             .animation(.easeOut(duration: 0.15), value: replyFocused)
+            .frame(maxWidth: .infinity)
 
             sendButton
         }
