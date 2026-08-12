@@ -12285,6 +12285,9 @@
         }
       }
     },
+    "Looking for devices…" : {
+
+    },
     "Low" : {
       "localizations" : {
         "cs" : {
@@ -17140,6 +17143,9 @@
           }
         }
       }
+    },
+    "Output" : {
+
     },
     "Pick a Color" : {
       "localizations" : {
