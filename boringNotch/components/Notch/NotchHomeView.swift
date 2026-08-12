@@ -276,6 +276,8 @@ struct MusicControlsView: View {
             HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
                 MusicManager.shared.toggleRepeat()
             }
+        case .mediaOutput:
+            MediaOutputSlotButton()
         case .volume:
             VolumeControlView()
         case .favorite:
