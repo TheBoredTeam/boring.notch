@@ -170,6 +170,12 @@ struct ContentView: View {
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
             case .music:
                 chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
+                // The inline song-change peek widens the pill itself, so the
+                // chin has to grow with it — otherwise the hover region is
+                // narrower than what's on screen.
+                if showingInlineMusicPeek {
+                    chinWidth += 2 * inlineMusicPeekLabelWidth
+                }
             }
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
@@ -561,6 +567,32 @@ struct ContentView: View {
         )
     }
 
+    /// True while the song-change peek is expanding the closed pill inline.
+    private var showingInlineMusicPeek: Bool {
+        coordinator.expandingView.show
+            && coordinator.expandingView.type == .music
+            && Defaults[.sneakPeekStyles] == .inline
+    }
+
+    /// Width of the black centre section of the closed music pill.
+    ///
+    /// Derived from the real notch width rather than the previous hard-coded
+    /// 380. That constant assumed a particular notch size: the title sits
+    /// left of the cutout and the artist right of it, separated by a spacer
+    /// as wide as the notch itself, so on a wider notch there was no room
+    /// left for the artist and the labels collided. Sizing from
+    /// closedNotchSize keeps a fixed label budget either side whatever the
+    /// hardware is, and keeps liveActivityEdgeMargin in play so content
+    /// clears the bezel — the inline path had dropped it entirely.
+    private var musicActivityCenterWidth: CGFloat {
+        let margin = vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
+        guard showingInlineMusicPeek else { return margin }
+        return margin + (2 * inlineMusicPeekLabelWidth)
+    }
+
+    /// Space reserved for the title (left of the cutout) and artist (right).
+    private let inlineMusicPeekLabelWidth: CGFloat = 110
+
     @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack(spacing: 0) {
@@ -597,7 +629,10 @@ struct ContentView: View {
             Rectangle()
                 .fill(.black)
                 .overlay(
-                    HStack(alignment: .top) {
+                    // .center, not .top: the album art beside this is
+                    // vertically centered, so top-aligned labels sat visibly
+                    // high against it.
+                    HStack(alignment: .center) {
                         if coordinator.expandingView.show
                             && coordinator.expandingView.type == .music
                         {
@@ -606,7 +641,7 @@ struct ContentView: View {
                                 color: Defaults[.coloredSpectrogram]
                                     ? Color(nsColor: musicManager.avgColor) : Color.gray,
                                 delayDuration: 0.4,
-                                frameWidth: 100
+                                frameWidth: inlineMusicPeekLabelWidth
                             )
                             .opacity(
                                 (coordinator.expandingView.show
@@ -618,6 +653,7 @@ struct ContentView: View {
                             Text(musicManager.artistName)
                                 .lineLimit(1)
                                 .truncationMode(.tail)
+                                .frame(width: inlineMusicPeekLabelWidth, alignment: .trailing)
                                 .foregroundStyle(
                                     Defaults[.coloredSpectrogram]
                                         ? Color(nsColor: musicManager.avgColor)
@@ -631,14 +667,9 @@ struct ContentView: View {
                                 )
                         }
                     }
+                    .padding(.horizontal, 8)
                 )
-                .frame(
-                    width: (coordinator.expandingView.show
-                        && coordinator.expandingView.type == .music
-                        && Defaults[.sneakPeekStyles] == .inline)
-                        ? 380
-                        : vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
-                )
+                .frame(width: musicActivityCenterWidth)
 
             HStack {
                 AudioSpectrumView(
