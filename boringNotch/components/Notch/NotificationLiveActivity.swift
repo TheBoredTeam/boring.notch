@@ -116,7 +116,6 @@ struct NotificationExpandedView: View {
     @State private var hostWindow: BoringNotchSkyLightWindow?
     @State private var suggestions: [String] = []
     @State private var isComposing = false
-    @State private var endComposeTask: Task<Void, Never>?
 
     private var kind: NotificationKind { .init(notification) }
 
@@ -156,52 +155,47 @@ struct NotificationExpandedView: View {
             manager.holdActive()
             if kind == .reply { replyFocused = true }
         }
+        // The single teardown point for both the key-window grant and the
+        // compose hold. Focus changes are too noisy to release on (see
+        // onChange above), so everything is unwound here — and it must be
+        // unconditional: a stuck grant would let the notch steal focus on
+        // some later unrelated click, and a leaked compose hold would pin
+        // the notch open permanently, since every close path checks it.
         .onDisappear {
             manager.resumeDismiss()
-            // Tear down immediately here, and cancel any deferred teardown:
-            // the view is going away, so there's no in-flight click left to
-            // protect, and letting that task outlive the view would leak a
-            // refcounted hold that pins the notch open for good.
-            endComposeTask?.cancel()
-            endComposeTask = nil
-            // Always hand key status back — if this fired without the
-            // focus-lost branch running first (the view can disappear while
-            // still focused, e.g. the notch closing), a stuck `true` would
-            // leave the window able to steal focus on some later click.
             hostWindow?.wantsKeyForTextInput = false
             endComposing()
         }
+        // Apply a pending key request once the window resolves —
+        // WindowAccessor reports asynchronously, so onAppear's auto-focus
+        // can run while hostWindow is still nil.
+        .onChange(of: hostWindow) { _, window in
+            if replyFocused { window?.wantsKeyForTextInput = true }
+        }
         .onChange(of: replyFocused) { _, focused in
-            if focused {
-                // The window can only accept keystrokes while it's key —
-                // see BoringNotchSkyLightWindow.wantsKeyForTextInput.
-                endComposeTask?.cancel()
-                endComposeTask = nil
-                hostWindow?.wantsKeyForTextInput = true
-                manager.holdWhileTyping()
-                // Clicking into the field changes window key status, which
-                // rebuilds tracking areas and fires a spurious hover-exit —
-                // that's what was closing the notch the instant you tapped
-                // the input. Every close path already honours
-                // preventNotchClose, so hold it for the whole compose
-                // session rather than trying to filter the bogus hover.
-                beginComposing()
-            } else {
-                // Deliberately deferred. Clicking Send blurs the field on
-                // mouse-down; releasing the hold and key status right then
-                // can close the notch out from under the click before
-                // mouse-up lands, so the press never completes. Give an
-                // in-flight click time to finish, and cancel if focus comes
-                // straight back.
-                endComposeTask?.cancel()
-                endComposeTask = Task {
-                    try? await Task.sleep(for: .milliseconds(350))
-                    guard !Task.isCancelled else { return }
-                    hostWindow?.wantsKeyForTextInput = false
-                    manager.holdActive()
-                    endComposing()
-                }
+            guard focused else {
+                // Deliberately does NOT release key status or the compose
+                // hold. Focus flips constantly for reasons that have
+                // nothing to do with the user being done: the suggestion
+                // chips arriving restructure the view above the field and
+                // drop focus, and clicking Send blurs on mouse-down.
+                // Releasing on each of those resigned key status
+                // mid-typing and closed the notch out from under clicks.
+                // Both are released in onDisappear instead, which is the
+                // only unambiguous "done" signal.
+                manager.holdActive()
+                return
             }
+            // The window can only accept keystrokes while it's key — see
+            // BoringNotchSkyLightWindow.wantsKeyForTextInput.
+            hostWindow?.wantsKeyForTextInput = true
+            manager.holdWhileTyping()
+            // Clicking into the field changes window key status, which
+            // rebuilds tracking areas and fires a spurious hover-exit —
+            // that's what closed the notch the instant you tapped the
+            // input. Every close path already honours preventNotchClose,
+            // so hold it for the whole compose session.
+            beginComposing()
         }
         .onChange(of: replyText) { _, _ in
             // Stop the timer's clock is exactly what typing should do — a
