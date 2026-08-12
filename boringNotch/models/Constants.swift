@@ -322,7 +322,8 @@ extension Defaults.Keys {
             "net.whatsapp.WhatsApp",
             "ru.keepcoder.Telegram",     // Telegram Desktop (App Store build)
             "com.tdesktop.Telegram",
-            "com.hnc.Discord"
+            "com.hnc.Discord",
+            "com.anthropic.claudefordesktop"
         ]
     )
     /// Apps whose system banner gets closed immediately after boring.notch

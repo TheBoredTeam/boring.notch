@@ -141,20 +141,31 @@ struct NotificationExpandedView: View {
     /// mirrors iMessage's own Communication Notifications treatment, but
     /// works for any app since it's a plain name lookup rather than an
     /// intent donation.
+    ///
+    /// Only attempted for messaging/calling apps. Other apps' "title" field
+    /// is often not a person at all — Claude's is a session name, for
+    /// instance — and treating it as one would both look wrong and fire a
+    /// pointless Contacts search.
+    private static let personAvatarBundleIDs: Set<String> = [
+        "com.apple.MobileSMS", "com.apple.FaceTime", "com.apple.mail", "com.microsoft.Outlook",
+        "net.whatsapp.WhatsApp", "ru.keepcoder.Telegram", "com.tdesktop.Telegram",
+        "com.hnc.Discord"
+    ]
+
     @ViewBuilder
     private var headerAvatar: some View {
-        if let sender = notification.sender {
+        if let sender = notification.sender,
+           let bundleID = notification.bundleID,
+           Self.personAvatarBundleIDs.contains(bundleID) {
             ZStack(alignment: .bottomTrailing) {
                 PersonAvatarView(name: sender, size: 44)
-                if let bundleID = notification.bundleID {
-                    AppIcon(for: bundleID)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
-                        .clipShape(RoundedRectangle(cornerRadius: 5))
-                        .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(.black, lineWidth: 1.5))
-                        .offset(x: 3, y: 3)
-                }
+                AppIcon(for: bundleID)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 18, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                    .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(.black, lineWidth: 1.5))
+                    .offset(x: 3, y: 3)
             }
         } else {
             NotificationAppIcon(bundleID: notification.bundleID, size: 44)

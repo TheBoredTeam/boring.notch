@@ -24,7 +24,8 @@ private let knownNotificationApps: [KnownNotificationApp] = [
     .init(bundleID: "net.whatsapp.WhatsApp", name: "WhatsApp"),
     .init(bundleID: "ru.keepcoder.Telegram", name: "Telegram"),
     .init(bundleID: "com.tdesktop.Telegram", name: "Telegram Desktop"),
-    .init(bundleID: "com.hnc.Discord", name: "Discord")
+    .init(bundleID: "com.hnc.Discord", name: "Discord"),
+    .init(bundleID: "com.anthropic.claudefordesktop", name: "Claude")
 ]
 
 struct NotificationSettingsView: View {
