@@ -67,9 +67,36 @@ struct NotificationSettingsView: View {
                 }
             }
             .disabled(!notificationLiveActivity)
+
+            Section {
+                Defaults.Toggle(key: .smartRepliesEnabled) {
+                    Text("Suggest replies with Apple Intelligence")
+                }
+                .disabled(!notificationLiveActivity || !smartRepliesAvailable)
+            } footer: {
+                Text(smartReplyFooter)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
         .navigationTitle("Notifications")
+    }
+
+    private var smartRepliesAvailable: Bool {
+        if case .available = SmartReplyManager.availability { return true }
+        return false
+    }
+
+    private var smartReplyFooter: String {
+        // Drafts run entirely on-device via Apple's on-device model — no
+        // network calls, nothing leaves the Mac.
+        switch SmartReplyManager.availability {
+        case .available:
+            return "Drafts a few short reply options for messages, entirely on-device. Nothing is sent over the network."
+        case .unavailable(let reason):
+            return reason
+        }
     }
 
     @ViewBuilder

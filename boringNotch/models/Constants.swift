@@ -320,6 +320,10 @@ extension Defaults.Keys {
         "notificationSuppressedApps",
         default: []
     )
+    /// Off by default: a new capability, even though it runs entirely
+    /// on-device with no network calls. Only takes effect on macOS 26+ with
+    /// Apple Intelligence enabled — see SmartReplyManager.
+    static let smartRepliesEnabled = Key<Bool>("smartRepliesEnabled", default: false)
 
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
