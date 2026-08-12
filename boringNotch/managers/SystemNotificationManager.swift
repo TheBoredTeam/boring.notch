@@ -167,8 +167,21 @@ final class SystemNotificationManager: ObservableObject {
     /// apps people actually reply to.
     private func isAllowed(_ notification: SystemNotification) -> Bool {
         if Defaults[.notificationsFromAllApps] { return true }
-        guard let bundleID = notification.bundleID else { return false }
-        return Defaults[.notificationAllowedApps].contains(bundleID)
+
+        if let bundleID = notification.bundleID {
+            return Defaults[.notificationAllowedApps].contains(bundleID)
+        }
+
+        // Bundle ID resolution goes through the app's *running* name, which
+        // can miss (renamed app, helper process owning the notification, an
+        // app that quit between posting and capture). Rather than silently
+        // dropping the notification, fall back to matching the app name
+        // against the tail of an allowed bundle ID — "WhatsApp" against
+        // net.whatsapp.WhatsApp.
+        guard let appName = notification.appName?.lowercased(), !appName.isEmpty else { return false }
+        return Defaults[.notificationAllowedApps].contains { bundleID in
+            bundleID.split(separator: ".").last.map { appName == $0.lowercased() } ?? false
+        }
     }
 
     private func show(_ notification: SystemNotification) {

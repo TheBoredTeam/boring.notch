@@ -218,11 +218,37 @@ final class NotificationWatcher {
         return found
     }
 
+    /// Matches on a normalized name because both sides can carry invisible
+    /// bidi marks: WhatsApp's `localizedName` is literally "\u{200E}WhatsApp"
+    /// (LEFT-TO-RIGHT MARK), and the banner's own description is wrapped in
+    /// isolates. Comparing raw strings silently failed to resolve WhatsApp's
+    /// bundle ID, which dropped every one of its notifications at the
+    /// allow-list check.
     private func bundleID(forAppNamed name: String) -> String? {
-        NSWorkspace.shared.runningApplications.first {
-            $0.localizedName == name
+        let target = Self.normalizedAppName(name)
+        guard !target.isEmpty else { return nil }
+        return NSWorkspace.shared.runningApplications.first {
+            guard let localizedName = $0.localizedName else { return false }
+            return Self.normalizedAppName(localizedName) == target
         }?.bundleIdentifier
     }
+
+    private static func normalizedAppName(_ name: String) -> String {
+        name.filter { !$0.unicodeScalars.allSatisfy(bidiControlCharacters.contains) }
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+    }
+
+    /// Directional formatting characters Notification Center and app names
+    /// both sprinkle in: LRM/RLM, the isolate family, and the embedding /
+    /// override set.
+    private static let bidiControlCharacters: CharacterSet = {
+        var set = CharacterSet()
+        set.insert(charactersIn: "\u{200E}\u{200F}")           // LRM, RLM
+        set.insert(charactersIn: "\u{2066}"..."\u{2069}")      // isolates + PDI
+        set.insert(charactersIn: "\u{202A}"..."\u{202E}")      // embeddings/overrides
+        return set
+    }()
 
     // MARK: - Acting on a banner
 
