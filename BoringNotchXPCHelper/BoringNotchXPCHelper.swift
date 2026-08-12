@@ -106,7 +106,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         DispatchQueue.main.async {
             let watcher = Self.watcher
             watcher.onBanner = { notification in
-                NSLog("[boringNotch] captured banner: app=\(notification.appName ?? "-") bundle=\(notification.bundleID ?? "-") title=\(notification.title ?? "-")")
+                NSLog("[boringNotch] captured banner: app=\(notification.appName ?? "-") bundle=\(notification.bundleID ?? "-") title=\(notification.title ?? "-") delegate=\(delegate == nil ? "nil" : "ok")")
                 delegate?.notificationDidAppear([
                     "token": notification.token,
                     "appName": notification.appName ?? "",
