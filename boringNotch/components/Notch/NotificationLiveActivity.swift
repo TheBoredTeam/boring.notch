@@ -113,7 +113,7 @@ struct NotificationExpandedView: View {
     @State private var didSend = false
     @State private var didHandOff = false
     @FocusState private var replyFocused: Bool
-    @State private var hostWindow: BoringNotchWindow?
+    @State private var hostWindow: BoringNotchSkyLightWindow?
     @State private var suggestions: [String] = []
 
     private var kind: NotificationKind { .init(notification) }
@@ -144,7 +144,7 @@ struct NotificationExpandedView: View {
         // Rebuild cleanly when one notification replaces another, instead of
         // reusing the previous one's view state.
         .id(notification.id)
-        .background(WindowAccessor { self.hostWindow = $0 as? BoringNotchWindow })
+        .background(WindowAccessor { self.hostWindow = $0 as? BoringNotchSkyLightWindow })
         // This view exists only while the notch is open, so appear/disappear
         // is the open/close signal: pause the countdown while the user is
         // looking at it, resume when they close. holdActive caps itself at
@@ -166,7 +166,7 @@ struct NotificationExpandedView: View {
         .onChange(of: replyFocused) { _, focused in
             // The window can only accept keystrokes while it's key, and it
             // must not stay key a moment longer than the field is actually
-            // focused — see BoringNotchWindow.wantsKeyForTextInput.
+            // focused — see BoringNotchSkyLightWindow.wantsKeyForTextInput.
             hostWindow?.wantsKeyForTextInput = focused
             if focused {
                 manager.holdWhileTyping()
@@ -616,7 +616,7 @@ private struct CodeCopyButton: View {
 }
 
 /// Reads the NSWindow hosting this SwiftUI view. Needed because
-/// BoringNotchWindow can't become key by default (a click on the notch must
+/// BoringNotchSkyLightWindow can't become key by default (a click on the notch must
 /// never steal focus from the frontmost app) — the reply field has to reach
 /// through to that window to ask for key status only for the moment it's
 /// actually being typed into.
