@@ -111,6 +111,7 @@ struct NotificationExpandedView: View {
     @State private var replyText = ""
     @State private var isSending = false
     @State private var didSend = false
+    @State private var didHandOff = false
     @FocusState private var replyFocused: Bool
 
     private var kind: NotificationKind { .init(notification) }
@@ -119,17 +120,20 @@ struct NotificationExpandedView: View {
         HStack(alignment: .center, spacing: 12) {
             headerAvatar
 
+            // maxWidth (not .infinity) lets this shrink to whatever the
+            // message actually needs while still wrapping long ones, so the
+            // notch hugs the content instead of always spanning its full
+            // width.
             VStack(alignment: .leading, spacing: 5) {
                 header
                 textBlock
                 actionArea
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: 300, alignment: .leading)
+
+            dismissButton
+                .padding(.leading, 4)
         }
-        // Sized to its content, not to the notch. The opened notch is built
-        // for the home/shelf tabs; a notification is a glance, so filling
-        // that area just wraps two lines of text in empty black.
-        .frame(maxWidth: 460, alignment: .leading)
         .padding(.horizontal, 4)
         // Rebuild cleanly when one notification replaces another, instead of
         // reusing the previous one's view state.
@@ -193,16 +197,18 @@ struct NotificationExpandedView: View {
                 .foregroundStyle(.primary)
                 .lineLimit(1)
 
+            // No Spacer here — it would expand to fill and drag the notch
+            // out to full width regardless of how short the message is.
             Text(notification.receivedAt, style: .relative)
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
                 .fixedSize()
+        }
+    }
 
-            Spacer(minLength: 8)
-
-            HoverButton(icon: "xmark", iconColor: .secondary, scale: .medium) {
-                manager.dismissActive(token: notification.id)
-            }
+    private var dismissButton: some View {
+        HoverButton(icon: "xmark", iconColor: .secondary, scale: .medium) {
+            manager.dismissActive(token: notification.id)
         }
     }
 
@@ -253,8 +259,6 @@ struct NotificationExpandedView: View {
                 .foregroundStyle(.white)
                 .lineLimit(1)
 
-            Spacer(minLength: 8)
-
             CodeCopyButton(code: code, diameter: 26, showsLabel: true)
         }
         .padding(.top, 4)
@@ -270,7 +274,10 @@ struct NotificationExpandedView: View {
                     .font(.system(size: 13))
                     .focused($replyFocused)
                     .onSubmit(send)
-                    .disabled(isSending || didSend)
+                    .disabled(isSending || didSend || didHandOff)
+                    // A bare TextField takes every point offered, which
+                    // would stretch the notch back out.
+                    .frame(width: 200)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
@@ -287,7 +294,7 @@ struct NotificationExpandedView: View {
     private var sendButton: some View {
         ZStack {
             Circle()
-                .fill(didSend ? Color.green : (canSend ? Color.effectiveAccent : Color.white.opacity(0.1)))
+                .fill(fillStyle)
                 .frame(width: 26, height: 26)
 
             if isSending {
@@ -298,6 +305,12 @@ struct NotificationExpandedView: View {
                 Image(systemName: "checkmark")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(.white)
+            } else if didHandOff {
+                // Clipboard, not a checkmark: the message wasn't delivered,
+                // it was copied for the user to paste into the app.
+                Image(systemName: "doc.on.clipboard")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.white)
             } else {
                 Image(systemName: "arrow.up")
                     .font(.system(size: 12, weight: .semibold))
@@ -306,14 +319,22 @@ struct NotificationExpandedView: View {
         }
         .animation(.smooth(duration: 0.25), value: isSending)
         .animation(.smooth(duration: 0.25), value: didSend)
+        .animation(.smooth(duration: 0.25), value: didHandOff)
         .contentShape(Circle())
         .onTapGesture(perform: send)
         .disabled(!canSend)
         .sensoryFeedback(.success, trigger: didSend)
     }
 
+    private var fillStyle: Color {
+        if didSend { return .green }
+        if didHandOff { return .orange }
+        return canSend ? .effectiveAccent : .white.opacity(0.1)
+    }
+
     private var canSend: Bool {
-        !replyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending && !didSend
+        !replyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !isSending && !didSend && !didHandOff
     }
 
     private func send() {
@@ -321,14 +342,16 @@ struct NotificationExpandedView: View {
         let text = replyText
         isSending = true
         Task {
-            let sent = await manager.reply(to: notification, text: text)
+            let outcome = await manager.reply(to: notification, text: text)
             isSending = false
-            if sent {
-                didSend = true
-                replyText = ""
-                try? await Task.sleep(for: .milliseconds(900))
-                manager.dismissActive(token: notification.id)
-            }
+            replyText = ""
+            // A hand-off is not a delivery — showing the same checkmark for
+            // both would tell the user their message went out when it's
+            // actually sitting on the clipboard.
+            didSend = outcome == .sent
+            didHandOff = outcome == .handedOffToApp
+            try? await Task.sleep(for: .milliseconds(1200))
+            manager.dismissActive(token: notification.id)
         }
     }
 
@@ -338,7 +361,6 @@ struct NotificationExpandedView: View {
     /// rather than generic rectangular buttons.
     private var callActionRow: some View {
         HStack(spacing: 14) {
-            Spacer()
             if let decline = notification.actions.first(where: {
                 $0.localizedCaseInsensitiveContains("decline")
             }) {

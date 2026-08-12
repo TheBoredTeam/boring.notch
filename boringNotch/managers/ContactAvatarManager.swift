@@ -63,10 +63,12 @@ final class ContactAvatarManager: ObservableObject {
               let data = contacts[0].thumbnailImageData ?? contacts[0].imageData,
               let image = NSImage(data: data)
         else {
+            NSLog("[boringNotch] avatar for \(name.debugDescription): no contact photo, using monogram")
             cache[name] = .some(nil)
             return nil
         }
 
+        NSLog("[boringNotch] avatar for \(name.debugDescription): using contact photo")
         cache[name] = image
         return image
     }
