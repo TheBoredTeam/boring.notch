@@ -217,6 +217,19 @@ final class SystemNotificationManager: ObservableObject {
         withAnimation(.smooth) { activeNotification = nil }
     }
 
+    /// Keeps the notification up for as long as the reply field is actually
+    /// being typed into — no cap. A keystroke is the clearest possible
+    /// signal that this isn't an abandoned notch, so `maxLifetime` (which
+    /// exists to protect against exactly that) doesn't apply here. Reverting
+    /// to the capped `holdActive` happens the moment the field loses focus,
+    /// and the notch closing at all (hover-out) tears the view down
+    /// regardless, so this can't strand a notification the way an
+    /// unconditional hold on notch-open did.
+    func holdWhileTyping() {
+        dismissTask?.cancel()
+        dismissTask = nil
+    }
+
     /// Keeps the notification up while the user is engaging with it — the
     /// notch is open, or they're typing a reply. Without this the countdown
     /// keeps running and the notification vanishes mid-read.
