@@ -113,7 +113,18 @@ struct ContentView: View {
     /// height the home/shelf tabs are sized for, and stretching to fill it
     /// just surrounds two lines of text with empty black.
     private var openNotchHeight: CGFloat {
-        notificationManager.activeNotification != nil ? 132 : vm.notchSize.height
+        if notificationManager.activeNotification != nil { return 132 }
+        return Defaults[.compactMode] ? 150 : vm.notchSize.height
+    }
+
+    /// Compact mode drops the tab bar along with the tabs it switches
+    /// between — there's only the player to show, so a switcher would have
+    /// nothing to switch to. Also what keeps the panel narrow, since the
+    /// header spans the full notch width.
+    private var showsHeader: Bool {
+        vm.notchState == .open
+            && notificationManager.activeNotification == nil
+            && !Defaults[.compactMode]
     }
 
     /// The activity currently on top of the stack — what the chin has to be
@@ -412,7 +423,7 @@ struct ContentView: View {
                           }
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
-                       } else if vm.notchState == .open && notificationManager.activeNotification == nil {
+                       } else if showsHeader {
                            // No tab bar over a notification: it's a glance,
                            // not a place to switch between home and shelf —
                            // and the header spans the full notch width,
@@ -478,6 +489,12 @@ struct ContentView: View {
                     // reply UI — the usual tabs can wait until it's dismissed.
                     if let notification = notificationManager.activeNotification {
                         NotificationExpandedView(notification: notification)
+                    } else if Defaults[.compactMode] {
+                        // Player only — no tab switching, so currentView is
+                        // ignored here rather than offering a shelf the
+                        // compact layout has no room (or tab bar) for.
+                        CompactHomeView(albumArtNamespace: albumArtNamespace)
+                            .frame(maxWidth: 380)
                     } else {
                         switch coordinator.currentView {
                         case .home:
