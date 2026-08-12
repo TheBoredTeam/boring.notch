@@ -75,6 +75,26 @@ final class SystemNotificationManager: ObservableObject {
     /// The notification the notch is currently showing, if any.
     @Published var activeNotification: SystemNotification?
 
+    /// Notifications that arrived while the user was mid-reply, held back
+    /// rather than shown. Promoted one at a time once they're done.
+    @Published private(set) var queued: [SystemNotification] = []
+
+    /// Set by the reply UI while its field has focus. Newer notifications
+    /// queue instead of replacing the active one during this — yanking a
+    /// message out from under someone mid-sentence loses what they typed.
+    var isComposingReply = false {
+        didSet {
+            guard oldValue, !isComposingReply else { return }
+            // Finished composing and the notification is already gone (sent
+            // or dismissed) — nothing will promote the queue, so do it here.
+            if activeNotification == nil { promoteNextQueued() }
+        }
+    }
+
+    /// Queued banners are all held alive off-screen, so this can't grow
+    /// without bound — past a handful, the oldest are dropped and released.
+    private let queueLimit = 5
+
     /// How long the closed notch shows a notification before handing the
     /// pill back to whatever was there before (usually music). Only applies
     /// while the notch is closed and unhovered — hovering or opening it
@@ -125,6 +145,17 @@ final class SystemNotificationManager: ObservableObject {
     func stop() {
         XPCHelperClient.shared.stopNotificationWatching()
         isWatching = false
+        releaseQueued()
+    }
+
+    /// Frees every queued notification's held banner. Anything still queued
+    /// is holding a parked, off-screen window, so dropping the queue without
+    /// this would strand them.
+    private func releaseQueued() {
+        for notification in queued {
+            XPCHelperClient.shared.releaseNotification(token: notification.id)
+        }
+        queued.removeAll()
     }
 
     // MARK: - Incoming banners
@@ -157,9 +188,38 @@ final class SystemNotificationManager: ObservableObject {
             NSLog("[boringNotch] filtered out: \(notification.appName ?? "-") bundle=\(notification.bundleID ?? "nil")")
             return
         }
-        NSLog("[boringNotch] showing in notch: \(notification.appName ?? "-")")
-        show(notification)
+
+        // Hold the banner either way: a queued notification still needs its
+        // reply field alive for when it's promoted, and holding is what
+        // keeps that possible past the banner's few seconds on screen.
         holdSystemBanner(notification)
+
+        if isComposingReply, activeNotification != nil {
+            enqueue(notification)
+            return
+        }
+
+        show(notification)
+    }
+
+    private func enqueue(_ notification: SystemNotification) {
+        queued.removeAll { $0.id == notification.id }
+        queued.append(notification)
+
+        // Oldest out first. Their held banners are released on the way, or
+        // they'd stay parked off-screen with nothing left to free them.
+        while queued.count > queueLimit {
+            let dropped = queued.removeFirst()
+            XPCHelperClient.shared.releaseNotification(token: dropped.id)
+        }
+    }
+
+    /// Shows the oldest queued notification, if any. Oldest first so a burst
+    /// is read in the order it arrived.
+    private func promoteNextQueued() {
+        guard !queued.isEmpty else { return }
+        let next = queued.removeFirst()
+        show(next)
     }
 
     /// Holds the system banner open for as long as the notch is showing the
@@ -234,6 +294,12 @@ final class SystemNotificationManager: ObservableObject {
             XPCHelperClient.shared.releaseNotification(token: id)
         }
         withAnimation(.smooth) { activeNotification = nil }
+
+        // Anything that queued up behind a reply gets its turn now. Skipped
+        // while still composing — the reply field can be focused for a beat
+        // after a send, and promoting there would replace the "sent"
+        // confirmation before it's been seen.
+        if !isComposingReply { promoteNextQueued() }
     }
 
     /// Keeps the notification up for as long as the reply field is being
@@ -288,6 +354,7 @@ final class SystemNotificationManager: ObservableObject {
 
     func clear() {
         notifications.removeAll()
+        releaseQueued()
         dismissActive()
     }
 
