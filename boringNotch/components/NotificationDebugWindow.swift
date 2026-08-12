@@ -84,8 +84,12 @@ struct NotificationDebugView: View {
         let text = replyText
         replyText = ""
         Task {
-            let sent = await manager.reply(to: notification, text: text)
-            lastResult = sent ? "replied" : "no reply field — opened the app instead"
+            switch await manager.reply(to: notification, text: text) {
+            case .sent:
+                lastResult = "replied via the live banner"
+            case .handedOffToApp:
+                lastResult = "banner gone — copied to clipboard and opened the app"
+            }
         }
     }
 }
