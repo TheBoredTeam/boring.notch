@@ -43,6 +43,16 @@ final class NotificationWatcher {
     private var pollTimer: DispatchSourceTimer?
     private var live: [String: AXUIElement] = [:]
 
+    /// Banners being deliberately kept alive so their reply field stays
+    /// usable, and of those, the ones moved off-screen.
+    private var held: Set<String> = []
+    private var heldOffScreen: Set<String> = []
+    private var lastRefresh = Date.distantPast
+
+    /// Comfortably inside the ~5s dismissal window the toggle resets, so a
+    /// missed tick can't let a held banner slip away.
+    private let refreshInterval: TimeInterval = 2.5
+
     /// Banners live ~5s, so this catches every one with room to spare while
     /// staying cheap — each tick is a shallow AX tree walk.
     private let pollInterval: TimeInterval = 0.35
@@ -111,7 +121,64 @@ final class NotificationWatcher {
 
         for token in live.keys where !seen.contains(token) {
             live[token] = nil
+            heldOffScreen.remove(token)
             onBannerGone?(token)
+        }
+
+        refreshHeldBanners()
+    }
+
+    /// Keeps held banners from timing out.
+    ///
+    /// Measured: an untouched banner dies in ~1.25s and its AX element is
+    /// destroyed with it, which is what made replying impossible after the
+    /// fact. Performing the details toggle resets that dismissal timer —
+    /// re-performing it on an interval held a banner alive for a full 30s
+    /// test with its reply field intact. That's what lets the notch offer a
+    /// working reply box for as long as the notification is showing.
+    private func refreshHeldBanners() {
+        guard !held.isEmpty else { return }
+        let now = Date()
+        guard now.timeIntervalSince(lastRefresh) >= refreshInterval else { return }
+        lastRefresh = now
+
+        for token in held {
+            guard let banner = live[token] else { continue }
+            if let toggle = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("details") }) {
+                AXUIElementPerformAction(banner, toggle as CFString)
+            }
+        }
+    }
+
+    /// Holds a banner open so its reply field stays usable, optionally
+    /// moving it off-screen first so the user never sees it.
+    ///
+    /// The off-screen move is safe to leave behind: when no banners are
+    /// showing, notificationcenterui has zero windows — the banner window is
+    /// created per session and destroyed after — so a moved window can't
+    /// permanently hide notifications. A fresh one spawns at its normal
+    /// position.
+    func hold(token: String, offScreen: Bool) {
+        guard let banner = live[token] else { return }
+        held.insert(token)
+
+        guard offScreen, !heldOffScreen.contains(token) else { return }
+        heldOffScreen.insert(token)
+        guard let windowValue = banner[kAXWindowAttribute] else { return }
+        let window = windowValue as! AXUIElement
+        var target = CGPoint(x: -5000, y: -5000)
+        if let position = AXValueCreate(.cgPoint, &target) {
+            AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, position)
+        }
+    }
+
+    /// Stops holding a banner and lets it dismiss naturally.
+    func release(token: String) {
+        held.remove(token)
+        heldOffScreen.remove(token)
+        guard let banner = live[token] else { return }
+        if let close = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("close") }) {
+            AXUIElementPerformAction(banner, close as CFString)
         }
     }
 

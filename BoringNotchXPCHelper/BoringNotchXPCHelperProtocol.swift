@@ -67,6 +67,8 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func performNotificationAction(_ token: String, name: String, with reply: @escaping (Bool) -> Void)
     func openNotification(_ token: String, with reply: @escaping (Bool) -> Void)
     func dismissNotification(_ token: String, with reply: @escaping (Bool) -> Void)
+    func holdNotification(_ token: String, offScreen: Bool)
+    func releaseNotification(_ token: String)
     func notificationDebugDump(with reply: @escaping (String) -> Void)
 }
 
