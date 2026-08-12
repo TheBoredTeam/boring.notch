@@ -24,16 +24,22 @@ final class XPCHelperClient: NSObject {
     
     @MainActor
     private func ensureRemoteService(needsListener: Bool = false) -> RemoteXPCService<BoringNotchXPCHelperProtocol> {
-        if let existing = remoteService, (!needsListener || hasLunarListener) {
+        // Always reuse a live connection — never tear one down to attach a
+        // listener. The exported object below serves *both* callback
+        // protocols from the moment the connection is created, so there's
+        // nothing to re-negotiate.
+        //
+        // This previously invalidated and rebuilt the connection whenever
+        // Lunar/OSD asked for a listener. The helper captures its callback
+        // proxy once, when notification watching starts; invalidating that
+        // connection left it holding a dead proxy, so banners kept being
+        // captured in the helper and silently never arrived in the app.
+        if let existing = remoteService {
+            notificationDelegate.lunarListener = lunarListener
+            hasLunarListener = hasLunarListener || (needsListener && lunarListener != nil)
             return existing
         }
 
-        if let connection {
-            connection.invalidate()
-            self.connection = nil
-            self.remoteService = nil
-        }
-        
         let conn = NSXPCConnection(serviceName: serviceName)
 
         // One exported object serves both callback protocols.
@@ -41,7 +47,7 @@ final class XPCHelperClient: NSObject {
         conn.exportedInterface = makeAppDelegateInterface()
         conn.exportedObject = notificationDelegate
         hasLunarListener = needsListener && lunarListener != nil
-        
+
         conn.interruptionHandler = { [weak self] in
             Task { @MainActor in
                 self?.connection = nil
@@ -321,6 +327,10 @@ final class XPCHelperClient: NSObject {
     nonisolated func startLunarEventStream(listener: BoringNotchXPCHelperLunarListener) async -> Bool {
         await MainActor.run {
             lunarListener = listener
+            // Register on the shared exported object too: the connection may
+            // already exist (it isn't rebuilt for listeners any more), in
+            // which case this is the only path that hooks Lunar events up.
+            notificationDelegate.lunarListener = listener
         }
         do {
             let service = await MainActor.run {

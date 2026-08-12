@@ -24,6 +24,8 @@ struct ContentView: View {
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var notificationManager = SystemNotificationManager.shared
+    /// Which entry of the closed-notch activity stack is on top.
+    @State private var activityIndex: Int = 0
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -86,6 +88,35 @@ struct ContentView: View {
         )
     }
 
+    /// Closed-notch activities, newest first. A notification sits in front of
+    /// music, so an incoming message takes over the display; when it expires
+    /// it drops out of this list on its own and music comes back — no
+    /// explicit "restore previous activity" bookkeeping needed.
+    private var liveActivities: [LiveActivityItem] {
+        var items: [LiveActivityItem] = []
+
+        if let notification = notificationManager.activeNotification {
+            items.append(.notification(notification))
+        }
+
+        let musicIsShowing = (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && coordinator.musicLiveActivityEnabled
+        if musicIsShowing {
+            items.append(.music)
+        }
+
+        return items
+    }
+
+    /// The activity currently on top of the stack — what the chin has to be
+    /// sized for.
+    private var selectedActivity: LiveActivityItem? {
+        let items = liveActivities
+        guard !items.isEmpty else { return nil }
+        return items[min(max(activityIndex, 0), items.count - 1)]
+    }
+
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
@@ -93,21 +124,21 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
-        } else if notificationManager.activeNotification?.detectedCode != nil && vm.notchState == .closed
-            && !vm.hideOnClosed
-        {
-            // Wide enough for the code itself plus a copy affordance, without
-            // going as far as the battery pill's 640.
-            chinWidth = 420
-        } else if notificationManager.activeNotification != nil && vm.notchState == .closed
-            && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
-        } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-            && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
+        } else if vm.notchState == .closed, !vm.hideOnClosed, let activity = selectedActivity {
+            // Sized for whichever activity is actually on top, not for
+            // whichever happens to exist — otherwise swiping to music while a
+            // notification is still in the stack leaves the chin at the
+            // notification's width.
+            switch activity {
+            case .notification(let notification) where notification.detectedCode != nil:
+                // Wide enough for the code itself plus a copy affordance,
+                // without going as far as the battery pill's 640.
+                chinWidth = 420
+            case .notification:
+                chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            case .music:
+                chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
+            }
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
@@ -216,6 +247,18 @@ struct ContentView: View {
                                 isHovering = false
                             }
                         }
+                    }
+                    // A new notification always takes the front of the stack,
+                    // even if the user had swiped away to music.
+                    .onChange(of: notificationManager.activeNotification?.id) { _, newID in
+                        if newID != nil { activityIndex = 0 }
+                    }
+                    // Activities disappear on their own (a notification
+                    // expires, music stops). Keep the selection in range so
+                    // the stack falls back to whatever is left instead of
+                    // pointing past the end.
+                    .onChange(of: liveActivities.count) { _, count in
+                        if activityIndex >= count { activityIndex = max(count - 1, 0) }
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
@@ -339,9 +382,6 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
-                      } else if let notification = notificationManager.activeNotification, vm.notchState == .closed, !vm.hideOnClosed {
-                          NotificationLiveActivity(notification: notification)
-                              .transition(.opacity)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
@@ -352,9 +392,16 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          MusicLiveActivity()
-                              .frame(alignment: .center)
+                      } else if !liveActivities.isEmpty && vm.notchState == .closed && !vm.hideOnClosed {
+                          LiveActivityStackView(items: liveActivities, index: $activityIndex) { item in
+                              switch item {
+                              case .notification(let notification):
+                                  NotificationLiveActivity(notification: notification)
+                              case .music:
+                                  MusicLiveActivity()
+                                      .frame(alignment: .center)
+                              }
+                          }
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
