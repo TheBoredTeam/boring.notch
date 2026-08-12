@@ -32,7 +32,6 @@ struct NotificationSettingsView: View {
     @Default(.notificationLiveActivity) var notificationLiveActivity
     @Default(.notificationsFromAllApps) var notificationsFromAllApps
     @Default(.notificationAllowedApps) var allowedApps
-    @Default(.notificationSuppressedApps) var suppressedApps
 
     var body: some View {
         Form {
@@ -101,35 +100,19 @@ struct NotificationSettingsView: View {
 
     @ViewBuilder
     private func appRow(_ app: KnownNotificationApp) -> some View {
-        let isAllowed = allowedApps.contains(app.bundleID)
+        HStack {
+            AppIcon(for: app.bundleID)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 20, height: 20)
+                .clipShape(RoundedRectangle(cornerRadius: 5))
 
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                AppIcon(for: app.bundleID)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 20, height: 20)
-                    .clipShape(RoundedRectangle(cornerRadius: 5))
-
-                Toggle(app.name, isOn: Binding(
-                    get: { allowedApps.contains(app.bundleID) },
-                    set: { on in
-                        if on { allowedApps.insert(app.bundleID) } else { allowedApps.remove(app.bundleID) }
-                    }
-                ))
-            }
-
-            if isAllowed {
-                Toggle("Hide system banner, show in notch only", isOn: Binding(
-                    get: { suppressedApps.contains(app.bundleID) },
-                    set: { on in
-                        if on { suppressedApps.insert(app.bundleID) } else { suppressedApps.remove(app.bundleID) }
-                    }
-                ))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.leading, 28)
-            }
+            Toggle(app.name, isOn: Binding(
+                get: { allowedApps.contains(app.bundleID) },
+                set: { on in
+                    if on { allowedApps.insert(app.bundleID) } else { allowedApps.remove(app.bundleID) }
+                }
+            ))
         }
         .disabled(!notificationLiveActivity)
     }
