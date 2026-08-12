@@ -31,6 +31,8 @@ struct CompactHomeView: View {
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
+    @State private var showingOutputPicker = false
+    @ObservedObject private var routeManager = AudioRouteManager.shared
 
     @Default(.coloredSpectrogram) private var coloredSpectrogram
     @Default(.playerColorTinting) private var playerColorTinting
@@ -185,18 +187,21 @@ struct CompactHomeView: View {
         }
     }
 
-    /// Shows where audio is currently going and opens Sound settings.
-    ///
-    /// Atoll's equivalent opens a popover that switches device inline, but
-    /// that needs its AudioRouteManager (enumeration + switching), which
-    /// this project doesn't have — AudioOutputRouteResolver only classifies
-    /// the current route. Handing off to Sound settings is honest about
-    /// that rather than faking a picker that can't switch anything.
+    /// Shows where audio is going and switches it, via a popover device
+    /// picker.
     private var mediaOutputButton: some View {
         HoverButton(icon: routeSymbol, scale: .medium) {
-            if let url = URL(string: "x-apple.systempreferences:com.apple.Sound-Settings.extension") {
-                NSWorkspace.shared.open(url)
-            }
+            // Enumerate on open rather than polling: devices come and go
+            // (AirPods connecting, a display waking) and a list built at
+            // launch would be stale by the time anyone opened it.
+            routeManager.refreshDevices()
+            showingOutputPicker.toggle()
+        }
+        .popover(isPresented: $showingOutputPicker, arrowEdge: .bottom) {
+            AudioOutputPicker(
+                routeManager: routeManager,
+                onSelect: { showingOutputPicker = false }
+            )
         }
     }
 
@@ -222,8 +227,10 @@ struct CompactHomeView: View {
         .frame(width: albumArtWidth, height: albumArtWidth)
     }
 
+    /// Prefer the live device's own icon; fall back to the resolver's
+    /// classification before the first enumeration has run.
     private var routeSymbol: String {
-        AudioOutputRouteResolver.shared.outputRouteSymbol()
+        routeManager.activeDevice?.iconName ?? AudioOutputRouteResolver.shared.outputRouteSymbol()
     }
 
     private var repeatIcon: String {
@@ -244,5 +251,58 @@ struct CompactHomeView: View {
                 .foregroundStyle(.gray)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// Output device list for the compact player's media-output button.
+struct AudioOutputPicker: View {
+    @ObservedObject var routeManager: AudioRouteManager
+    let onSelect: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Output")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 12)
+                .padding(.top, 10)
+                .padding(.bottom, 6)
+
+            if routeManager.devices.isEmpty {
+                // Enumeration is async, so an empty list on first open is
+                // normal rather than an error worth alarming anyone about.
+                Text("Looking for devices…")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 10)
+            } else {
+                ForEach(routeManager.devices) { device in
+                    Button {
+                        routeManager.select(device)
+                        onSelect()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: device.iconName)
+                                .frame(width: 18)
+                            Text(device.name)
+                                .font(.system(size: 12))
+                                .lineLimit(1)
+                            Spacer(minLength: 12)
+                            if device.id == routeManager.activeDeviceID {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 10, weight: .bold))
+                            }
+                        }
+                        .contentShape(Rectangle())
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.bottom, 6)
+            }
+        }
+        .frame(minWidth: 220)
     }
 }

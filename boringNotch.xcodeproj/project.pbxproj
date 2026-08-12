@@ -288,6 +288,8 @@
 		1443E7F42C609E650027C1FC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		147163972C5D35B70068B555 /* MusicVisualizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicVisualizer.swift; sourceTree = "<group>"; };
 		147163992C5D35FF0068B555 /* MusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicManager.swift; sourceTree = "<group>"; };
+		AA07ARM22E7A0001 /* AudioRouteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRouteManager.swift; sourceTree = "<group>"; };
+		AA07ARM12E7A0001 /* AudioRouteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07ARM22E7A0001 /* AudioRouteManager.swift */; };
 		1471A8582C6281BD0058408D /* BoringNotchWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringNotchWindow.swift; sourceTree = "<group>"; };
 		149E0B962C737D00006418B1 /* WebcamManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamManager.swift; sourceTree = "<group>"; };
 		149E0B992C737D40006418B1 /* WebcamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamView.swift; sourceTree = "<group>"; };
@@ -634,6 +636,7 @@
 				AA01SNM22E7A0001 /* SystemNotificationManager.swift */,
 				AA02CAM22E7A0001 /* ContactAvatarManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
+				AA07ARM22E7A0001 /* AudioRouteManager.swift */,
 				AA05SRM22E7A0001 /* SmartReplyManager.swift */,
 				F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
@@ -1072,6 +1075,7 @@
 				AA02CAM12E7A0001 /* ContactAvatarManager.swift in Sources */,
 				AA03OTP12E7A0001 /* OTPDetector.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
+				AA07ARM12E7A0001 /* AudioRouteManager.swift in Sources */,
 				AA05SRM12E7A0001 /* SmartReplyManager.swift in Sources */,
 				F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */,
 				B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */,
