@@ -544,7 +544,10 @@ struct NotificationExpandedView: View {
             // both would tell the user their message went out when it's
             // actually sitting on the clipboard.
             didSend = outcome == .sent
-            didHandOff = outcome == .handedOffToApp
+            // A drafted reply isn't sent either — same honest treatment as
+            // the clipboard hand-off, since the user still has to press
+            // send in WhatsApp.
+            didHandOff = outcome == .handedOffToApp || outcome == .draftedInApp
             manager.clearDraft(for: notification.id)
             try? await Task.sleep(for: .milliseconds(1200))
             manager.dismissActive(token: notification.id)
