@@ -5,10 +5,18 @@
 //  A smaller open-notch layout: just the now-playing essentials — art,
 //  title, scrubber, transport — with no tab bar, calendar or mirror.
 //
-//  Deliberately built on the same pieces the full layout uses
-//  (MusicSliderView, HoverButton, MarqueeText, the musicControlSlots
-//  preference) rather than a parallel implementation, so a fix to seeking
-//  or the control slots applies to both layouts instead of drifting.
+//  Layout and proportions follow Atoll's MinimalisticMusicPlayerView
+//  (https://github.com/Ebullioscopic/Atoll, GPL-3.0, itself a boring.notch
+//  fork): 50pt album art, 12/10pt title and artist, a fixed-width
+//  visualizer block on the right sized to match the trailing time label so
+//  the bars centre over it, an inline progress row with a counting-down
+//  remaining time, and a 10pt-spaced transport row.
+//
+//  Built on this project's own MusicSliderView / HoverButton /
+//  MarqueeText and the musicControlSlots preference rather than porting
+//  Atoll's ~1500-line view wholesale, so seeking and the configured
+//  transport buttons stay identical between the two layouts instead of
+//  drifting apart.
 //
 
 import Defaults
@@ -28,98 +36,128 @@ struct CompactHomeView: View {
     @Default(.coloredSpectrogram) private var coloredSpectrogram
     @Default(.playerColorTinting) private var playerColorTinting
 
-    private let artSize: CGFloat = 56
+    private let albumArtWidth: CGFloat = 50
+    private let headerSpacing: CGFloat = 10
+    /// Matches the trailing time label's width in the row below, so the
+    /// visualizer's bars sit centred over "-0:00" rather than drifting.
+    private let vizBlockWidth: CGFloat = 42
+    private let vizBarWidth: CGFloat = 24
 
     var body: some View {
-        if musicManager.isPlayerIdle && !musicManager.isPlaying {
+        if !musicManager.isPlaying && musicManager.isPlayerIdle {
             idleState
         } else {
-            VStack(spacing: 8) {
+            VStack(spacing: 0) {
                 header
-                MusicSliderView(
-                    sliderValue: $sliderValue,
-                    duration: $musicManager.songDuration,
-                    lastDragged: $lastDragged,
-                    color: musicManager.avgColor,
-                    dragging: $dragging,
-                    currentDate: Date(),
-                    timestampDate: musicManager.timestampDate,
-                    elapsedTime: musicManager.elapsedTime,
-                    playbackRate: musicManager.playbackRate,
-                    isPlaying: musicManager.isPlaying
-                ) { newValue in
-                    MusicManager.shared.seek(to: newValue)
-                }
-                .frame(height: 24)
+                    .frame(height: albumArtWidth)
+
+                progressRow
+                    .padding(.top, 6)
+
                 transport
+                    .padding(.top, 4)
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.top, 6)
+            .padding(.bottom, 10)
+            .frame(maxWidth: .infinity)
             .buttonStyle(PlainButtonStyle())
         }
     }
 
-    private var header: some View {
-        HStack(spacing: 10) {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
-                .frame(width: artSize, height: artSize)
+    // MARK: - Header
 
-            GeometryReader { geo in
+    private var header: some View {
+        GeometryReader { geo in
+            let textWidth = max(
+                0,
+                geo.size.width - albumArtWidth - headerSpacing - (vizBlockWidth + headerSpacing)
+            )
+
+            HStack(alignment: .center, spacing: headerSpacing) {
+                AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
+                    .frame(width: albumArtWidth, height: albumArtWidth)
+
                 VStack(alignment: .leading, spacing: 1) {
-                    Spacer(minLength: 0)
                     MarqueeText(
                         musicManager.songTitle,
-                        font: .system(size: 13, weight: .semibold),
+                        font: .system(size: 12, weight: .semibold),
                         color: .white,
-                        frameWidth: geo.size.width
+                        frameWidth: textWidth
                     )
-                    MarqueeText(
-                        musicManager.artistName,
-                        font: .system(size: 11),
-                        color: playerColorTinting
-                            ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
-                            : .gray,
-                        frameWidth: geo.size.width
-                    )
-                    Spacer(minLength: 0)
-                }
-            }
-            .frame(height: artSize)
 
-            // AudioSpectrumView tints itself, so no outer gradient/mask —
-            // that would just fight the colour it already applies.
-            if !musicManager.isPlayerIdle {
-                AudioSpectrumView(
-                    isPlaying: musicManager.isPlaying,
-                    tintColor: coloredSpectrogram
-                        ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
-                        : .gray
-                )
-                .frame(width: 18, height: 14)
-                .frame(height: artSize)
+                    Text(musicManager.artistName)
+                        .font(.system(size: 10))
+                        .foregroundStyle(
+                            playerColorTinting
+                                ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
+                                : .gray
+                        )
+                        .lineLimit(1)
+                }
+                .frame(width: textWidth, alignment: .leading)
+
+                ZStack {
+                    AudioSpectrumView(
+                        isPlaying: musicManager.isPlaying,
+                        tintColor: coloredSpectrogram
+                            ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
+                            : .gray
+                    )
+                    .frame(width: vizBarWidth, height: 16)
+                }
+                .frame(width: vizBlockWidth)
             }
         }
     }
 
-    /// Same slot preference as the full layout, so the buttons a user
-    /// configured there are the ones they get here.
+    // MARK: - Progress
+
+    private var progressRow: some View {
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+            MusicSliderView(
+                sliderValue: $sliderValue,
+                duration: $musicManager.songDuration,
+                lastDragged: $lastDragged,
+                color: musicManager.avgColor,
+                dragging: $dragging,
+                currentDate: timeline.date,
+                timestampDate: musicManager.timestampDate,
+                elapsedTime: musicManager.elapsedTime,
+                playbackRate: musicManager.playbackRate,
+                isPlaying: musicManager.isPlaying,
+                onValueChange: { MusicManager.shared.seek(to: $0) },
+                labelLayout: .inline,
+                trailingLabel: .remaining,
+                restingTrackHeight: 7,
+                draggingTrackHeight: 11
+            )
+        }
+        .onAppear { sliderValue = musicManager.elapsedTime }
+    }
+
+    // MARK: - Transport
+
+    /// Uses the same slot preference as the full layout, so the buttons
+    /// configured there are the ones that appear here.
     private var transport: some View {
-        // Pad/trim to the configured slot count locally — NotchHomeView's
-        // `padded` helper is fileprivate to that file, and widening its
-        // access just for this would be a worse trade than four lines here.
+        HStack(spacing: 10) {
+            ForEach(Array(displayedSlots.enumerated()), id: \.offset) { _, slot in
+                slotView(for: slot)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private var displayedSlots: [MusicControlButton] {
+        // Padding is done here rather than via NotchHomeView's `padded`
+        // helper, which is fileprivate to that file.
         let count = min(max(slotLimit, MusicControlButton.minSlotCount), MusicControlButton.maxSlotCount)
         var slots = slotConfig
         if slots.count < count {
             slots += Array(repeating: .none, count: count - slots.count)
         }
-        slots = Array(slots.prefix(count))
-
-        return HStack(spacing: 4) {
-            ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
-                slotView(for: slot)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .center)
+        return Array(slots.prefix(count))
     }
 
     @ViewBuilder
@@ -148,18 +186,14 @@ struct CompactHomeView: View {
         case .none:
             EmptyView()
         default:
-            // Slots that only make sense in the full layout (mirror,
-            // calendar, and anything added later) are skipped rather than
-            // rendered half-working in a player-only view.
+            // Slots that only make sense in the full layout are skipped
+            // rather than rendered half-working in a player-only view.
             EmptyView()
         }
     }
 
     private var repeatIcon: String {
-        switch musicManager.repeatMode {
-        case .one: "repeat.1"
-        default: "repeat"
-        }
+        musicManager.repeatMode == .one ? "repeat.1" : "repeat"
     }
 
     private var repeatIconColor: Color {
@@ -167,11 +201,11 @@ struct CompactHomeView: View {
     }
 
     private var idleState: some View {
-        VStack(spacing: 6) {
-            Image(systemName: "music.note")
-                .font(.system(size: 20, weight: .light))
+        VStack(spacing: 8) {
+            Image(systemName: "music.note.slash")
+                .font(.system(size: 24, weight: .light))
                 .foregroundStyle(.gray)
-            Text("Nothing playing")
+            Text("Nothing Playing")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.gray)
         }

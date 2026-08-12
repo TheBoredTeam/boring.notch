@@ -114,7 +114,7 @@ struct ContentView: View {
     /// just surrounds two lines of text with empty black.
     private var openNotchHeight: CGFloat {
         if notificationManager.activeNotification != nil { return 132 }
-        return Defaults[.compactMode] ? 150 : vm.notchSize.height
+        return Defaults[.compactMode] ? 180 : vm.notchSize.height
     }
 
     /// Compact mode drops the tab bar along with the tabs it switches
@@ -499,8 +499,10 @@ struct ContentView: View {
                         // Player only — no tab switching, so currentView is
                         // ignored here rather than offering a shelf the
                         // compact layout has no room (or tab bar) for.
+                        // 420pt wide matches Atoll's minimalistic base size,
+                        // which these proportions were designed against.
                         CompactHomeView(albumArtNamespace: albumArtNamespace)
-                            .frame(maxWidth: 380)
+                            .frame(maxWidth: 420)
                     } else {
                         switch coordinator.currentView {
                         case .home:
