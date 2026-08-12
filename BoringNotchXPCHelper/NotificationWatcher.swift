@@ -115,6 +115,16 @@ final class NotificationWatcher {
         }
     }
 
+    /// Measured, not assumed: once a banner leaves the screen its
+    /// AXUIElement is destroyed outright — reading AXRole from a retained
+    /// reference returns nil and AXUIElementCopyActionNames returns empty.
+    /// Holding onto elements past their banner therefore buys nothing, so
+    /// this is just `live`. Replying is only possible while the banner is
+    /// on screen; there is no API to send on an app's behalf afterwards.
+    private func element(for token: String) -> AXUIElement? {
+        live[token]
+    }
+
     /// Match on subrole rather than a fixed containment path — the wrapping
     /// groups change between macOS releases, the subrole has not.
     private func banners(in element: AXUIElement, depth: Int = 0) -> [AXUIElement] {
@@ -263,7 +273,7 @@ final class NotificationWatcher {
     /// field, which is untested and unreliable across text-area
     /// implementations.
     func reply(token: String, text: String) -> Bool {
-        guard let banner = live[token] else { return false }
+        guard let banner = element(for: token) else { return false }
 
         if replyField(in: banner) == nil {
             if let action = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("reply") })
@@ -298,7 +308,7 @@ final class NotificationWatcher {
     /// Performs a named AX action on the banner, or presses the button with
     /// that title (Accept / Decline on call notifications).
     func performAction(token: String, name: String) -> Bool {
-        guard let banner = live[token] else { return false }
+        guard let banner = element(for: token) else { return false }
         if let raw = rawAction(on: banner, matching: { $0 == name }) {
             return AXUIElementPerformAction(banner, raw as CFString) == .success
         }
@@ -310,14 +320,14 @@ final class NotificationWatcher {
 
     /// Opens the notification in its source app (the banner's default action).
     func open(token: String) -> Bool {
-        guard let banner = live[token] else { return false }
+        guard let banner = element(for: token) else { return false }
         return AXUIElementPerformAction(banner, kAXPressAction as CFString) == .success
     }
 
     /// Clears the banner from screen. Notification Center exposes this as a
     /// "Close" action rather than the AXRemove one might expect.
     func dismiss(token: String) -> Bool {
-        guard let banner = live[token],
+        guard let banner = element(for: token),
               let raw = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("close") })
         else { return false }
         return AXUIElementPerformAction(banner, raw as CFString) == .success
