@@ -45,31 +45,29 @@ struct CompactHomeView: View {
     private let vizBlockWidth: CGFloat = 42
     private let vizBarWidth: CGFloat = 24
 
+    // No idle branch, deliberately. The standard layout has none either —
+    // it renders whatever MusicManager last cached, so a paused or stopped
+    // track keeps its art, title and scrub position. A "Nothing Playing"
+    // placeholder here made compact mode lose state the full layout keeps.
     var body: some View {
-        if !musicManager.isPlaying && musicManager.isPlayerIdle {
-            idleState
-        } else {
-            VStack(spacing: 0) {
-                header
-                    .frame(height: albumArtWidth)
+        VStack(spacing: 0) {
+            header
+                .frame(height: albumArtWidth)
 
-                progressRow
-                    .padding(.top, 4)
+            progressRow
+                .padding(.top, 4)
 
-                transport
-                    .padding(.top, 1)
-            }
-            .padding(.horizontal, 12)
-            // Atoll's formula is 15/3, but that assumes the player is the
-            // whole panel. Here a 38pt notch-clearance spacer sits above it,
-            // so keeping 15/3 pushed the total to 189. Trimmed by 9 to land
-            // the panel on Atoll's 180 overall, which is the number that
-            // actually shows.
-            .padding(.top, 4)
-            .padding(.bottom, 1)
-            .frame(maxWidth: .infinity)
-            .buttonStyle(PlainButtonStyle())
+            transport
+                .padding(.top, 1)
         }
+        .padding(.horizontal, 12)
+        // Atoll's 15/3 formula assumes the player is the whole panel; here
+        // a notch-clearance spacer sits above it, so these are trimmed to
+        // land the panel at the intended overall height.
+        .padding(.top, 4)
+        .padding(.bottom, 1)
+        .frame(maxWidth: .infinity)
+        .buttonStyle(PlainButtonStyle())
     }
 
     // MARK: - Header
@@ -296,17 +294,6 @@ struct CompactHomeView: View {
         musicManager.repeatMode == .off ? .primary : .red
     }
 
-    private var idleState: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "music.note.slash")
-                .font(.system(size: 24, weight: .light))
-                .foregroundStyle(.gray)
-            Text("Nothing Playing")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.gray)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
 }
 
 /// Output device list for the compact player's media-output button.
