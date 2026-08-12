@@ -362,7 +362,11 @@ struct NotificationExpandedView: View {
     private var suggestionChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                ForEach(suggestions, id: \.self) { suggestion in
+                // Keyed by position, not by the string itself: two identical
+                // suggestions would collide as ForEach ids and render
+                // undefined. SmartReplyManager already dedupes, but the
+                // view shouldn't depend on model output being distinct.
+                ForEach(Array(suggestions.enumerated()), id: \.offset) { _, suggestion in
                     Button {
                         replyText = suggestion
                         replyFocused = true
