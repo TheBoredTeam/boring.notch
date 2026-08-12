@@ -59,8 +59,13 @@ struct CompactHomeView: View {
                     .padding(.top, 2)
             }
             .padding(.horizontal, 12)
-            .padding(.top, 15)
-            .padding(.bottom, 3)
+            // Atoll's formula is 15/3, but that assumes the player is the
+            // whole panel. Here a 38pt notch-clearance spacer sits above it,
+            // so keeping 15/3 pushed the total to 189. Trimmed by 9 to land
+            // the panel on Atoll's 180 overall, which is the number that
+            // actually shows.
+            .padding(.top, 8)
+            .padding(.bottom, 1)
             .frame(maxWidth: .infinity)
             .buttonStyle(PlainButtonStyle())
         }
