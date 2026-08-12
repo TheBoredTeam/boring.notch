@@ -17,6 +17,13 @@ let openNotchSize: CGSize = .init(width: 640, height: 190)
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
+/// Compact mode uses a much rounder opened shape than the standard layout
+/// — matching Atoll's minimalisticCornerRadiusInsets (35/35 against the
+/// standard 19/24). At compact's smaller size the standard radius reads
+/// square; the rounder corners are what make it look like a pill rather
+/// than a shrunken panel.
+let compactCornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 35, bottom: 35), closed: cornerRadiusInsets.closed)
+
 // Horizontal gap between closed-state live-activity content (album art / waveform)
 // and the physical notch edge. Without this margin the hardware bezel clips the
 // adjacent content since the spacer rect used to be narrower than the physical notch.

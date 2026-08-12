@@ -26,6 +26,7 @@ import SwiftUI
 struct CompactHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     let albumArtNamespace: Namespace.ID
 
     @State private var sliderValue: Double = 0
@@ -37,7 +38,7 @@ struct CompactHomeView: View {
     @Default(.coloredSpectrogram) private var coloredSpectrogram
     @Default(.playerColorTinting) private var playerColorTinting
 
-    private let albumArtWidth: CGFloat = 50
+    private let albumArtWidth: CGFloat = 45
     private let headerSpacing: CGFloat = 10
     /// Matches the trailing time label's width in the row below, so the
     /// visualizer's bars sit centred over "-0:00" rather than drifting.
@@ -53,10 +54,10 @@ struct CompactHomeView: View {
                     .frame(height: albumArtWidth)
 
                 progressRow
-                    .padding(.top, 6)
+                    .padding(.top, 4)
 
                 transport
-                    .padding(.top, 2)
+                    .padding(.top, 1)
             }
             .padding(.horizontal, 12)
             // Atoll's formula is 15/3, but that assumes the player is the
@@ -64,7 +65,7 @@ struct CompactHomeView: View {
             // so keeping 15/3 pushed the total to 189. Trimmed by 9 to land
             // the panel on Atoll's 180 overall, which is the number that
             // actually shows.
-            .padding(.top, 8)
+            .padding(.top, 4)
             .padding(.bottom, 1)
             .frame(maxWidth: .infinity)
             .buttonStyle(PlainButtonStyle())
@@ -114,6 +115,26 @@ struct CompactHomeView: View {
                 .frame(width: vizBlockWidth)
             }
         }
+        .overlay(alignment: .topTrailing) {
+            // Compact mode hides BoringHeader (it spans the full notch
+            // width), which took the battery with it. Overlaid rather than
+            // placed in the HStack so it doesn't steal width from the title.
+            if Defaults[.showBatteryIndicator] {
+                BoringBatteryView(
+                    batteryWidth: 24,
+                    isCharging: batteryModel.isCharging,
+                    isInLowPowerMode: batteryModel.isInLowPowerMode,
+                    isPluggedIn: batteryModel.isPluggedIn,
+                    levelBattery: batteryModel.levelBattery,
+                    maxCapacity: batteryModel.maxCapacity,
+                    timeToFullCharge: batteryModel.timeToFullCharge,
+                    timeToDischarge: batteryModel.timeToDischarge,
+                    maxAdapterWatts: batteryModel.maxAdapterWatts,
+                    isForNotification: false
+                )
+                .offset(y: -14)
+            }
+        }
     }
 
     // MARK: - Progress
@@ -156,8 +177,8 @@ struct CompactHomeView: View {
     /// Atoll's control dimensions: 36pt secondary buttons with 18pt glyphs,
     /// a 54pt play/pause with a 26pt glyph. HoverButton's 30/40 is what made
     /// this row read undersized against the rest of the panel.
-    private let controlSize: CGFloat = 36
-    private let playPauseSize: CGFloat = 54
+    private let controlSize: CGFloat = 32
+    private let playPauseSize: CGFloat = 48
 
     private func compactControl(
         icon: String,
@@ -175,12 +196,11 @@ struct CompactHomeView: View {
         )
     }
 
-    /// Fixed five, deliberately not the musicControlSlots preference. That
-    /// preference defaults to [.none, .previous, .playPause, .next, .none],
-    /// which is why this row was rendering only three buttons — compact
-    /// mode is meant to show shuffle and media output too.
+    /// Fixed five rather than the musicControlSlots preference, so compact
+    /// mode always shows the full transport regardless of how the standard
+    /// layout is configured.
     private var displayedSlots: [MusicControlButton] {
-        [.shuffle, .previous, .playPause, .next, .none]
+        [.shuffle, .previous, .playPause, .next, .mediaOutput]
     }
 
     @ViewBuilder
@@ -190,29 +210,31 @@ struct CompactHomeView: View {
             compactControl(
                 icon: "shuffle",
                 size: controlSize,
-                glyph: 18,
+                glyph: 16,
                 tint: musicManager.isShuffled ? .red : .white
             ) { MusicManager.shared.toggleShuffle() }
         case .previous:
-            compactControl(icon: "backward.fill", size: controlSize, glyph: 18) {
+            compactControl(icon: "backward.fill", size: controlSize, glyph: 16) {
                 MusicManager.shared.previousTrack()
             }
         case .playPause:
             compactControl(
                 icon: musicManager.isPlaying ? "pause.fill" : "play.fill",
                 size: playPauseSize,
-                glyph: 26
+                glyph: 23
             ) { MusicManager.shared.togglePlay() }
         case .next:
-            compactControl(icon: "forward.fill", size: controlSize, glyph: 18) {
+            compactControl(icon: "forward.fill", size: controlSize, glyph: 16) {
                 MusicManager.shared.nextTrack()
             }
         case .repeatMode:
-            compactControl(icon: repeatIcon, size: controlSize, glyph: 18, tint: repeatIconColor) {
+            compactControl(icon: repeatIcon, size: controlSize, glyph: 16, tint: repeatIconColor) {
                 MusicManager.shared.toggleRepeat()
             }
-        case .none:
+        case .mediaOutput:
             mediaOutputButton
+        case .none:
+            EmptyView()
         default:
             // Slots that only make sense in the full layout are skipped
             // rather than rendered half-working in a player-only view.
@@ -223,7 +245,7 @@ struct CompactHomeView: View {
     /// Shows where audio is going and switches it, via a popover device
     /// picker.
     private var mediaOutputButton: some View {
-        compactControl(icon: routeSymbol, size: controlSize, glyph: 18) {
+        compactControl(icon: routeSymbol, size: controlSize, glyph: 16) {
             // Enumerate on open rather than polling: devices come and go
             // (AirPods connecting, a display waking) and a list built at
             // launch would be stale by the time anyone opened it.
@@ -372,5 +394,30 @@ private struct CompactControlButton: View {
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.18)) { isHovering = hovering }
         }
+    }
+}
+
+/// Audio-output slot for the standard layout's control row.
+///
+/// Separate from CompactHomeView's inline version only because that one
+/// uses the compact button sizing; the picker and behaviour are shared.
+struct MediaOutputSlotButton: View {
+    @ObservedObject private var routeManager = AudioRouteManager.shared
+    @State private var showingPicker = false
+
+    var body: some View {
+        HoverButton(icon: routeSymbol, scale: .medium) {
+            routeManager.refreshDevices()
+            showingPicker.toggle()
+        }
+        .popover(isPresented: $showingPicker, arrowEdge: .bottom) {
+            AudioOutputPicker(routeManager: routeManager) {
+                showingPicker = false
+            }
+        }
+    }
+
+    private var routeSymbol: String {
+        routeManager.activeDevice?.iconName ?? AudioOutputRouteResolver.shared.outputRouteSymbol()
     }
 }
