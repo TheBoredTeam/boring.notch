@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var notificationManager = SystemNotificationManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -92,6 +93,16 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if notificationManager.activeNotification?.detectedCode != nil && vm.notchState == .closed
+            && !vm.hideOnClosed
+        {
+            // Wide enough for the code itself plus a copy affordance, without
+            // going as far as the battery pill's 640.
+            chinWidth = 420
+        } else if notificationManager.activeNotification != nil && vm.notchState == .closed
+            && !vm.hideOnClosed
+        {
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -328,6 +339,9 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
+                      } else if let notification = notificationManager.activeNotification, vm.notchState == .closed, !vm.hideOnClosed {
+                          NotificationLiveActivity(notification: notification)
+                              .transition(.opacity)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
@@ -400,18 +414,24 @@ struct ContentView: View {
               .zIndex(1)
             if vm.notchState == .open {
                 VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(
-                            albumArtNamespace: albumArtNamespace,
-                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                            isHoveringMusicArea: $isHoveringMusicArea
-                        )
-                    case .shelf:
-                        ShelfView(
-                            dropInteraction: vm.dropInteraction,
-                            animation: vm.animation
-                        )
+                    // An open notch with a live notification is showing the
+                    // reply UI — the usual tabs can wait until it's dismissed.
+                    if let notification = notificationManager.activeNotification {
+                        NotificationExpandedView(notification: notification)
+                    } else {
+                        switch coordinator.currentView {
+                        case .home:
+                            NotchHomeView(
+                                albumArtNamespace: albumArtNamespace,
+                                horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                                isHoveringMusicArea: $isHoveringMusicArea
+                            )
+                        case .shelf:
+                            ShelfView(
+                                dropInteraction: vm.dropInteraction,
+                                animation: vm.animation
+                            )
+                        }
                     }
                 }
                 .transition(
