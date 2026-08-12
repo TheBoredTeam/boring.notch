@@ -109,6 +109,13 @@ struct ContentView: View {
         return items
     }
 
+    /// A notification is a glance, not a workspace — it doesn't need the full
+    /// height the home/shelf tabs are sized for, and stretching to fill it
+    /// just surrounds two lines of text with empty black.
+    private var openNotchHeight: CGFloat {
+        notificationManager.activeNotification != nil ? 132 : vm.notchSize.height
+    }
+
     /// The activity currently on top of the stack — what the chin has to be
     /// sized for.
     private var selectedActivity: LiveActivityItem? {
@@ -191,7 +198,7 @@ struct ContentView: View {
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .frame(height: vm.notchState == .open ? openNotchHeight : nil)
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
