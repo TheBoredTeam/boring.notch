@@ -55,10 +55,16 @@ struct ContentView: View {
         return effectiveHeight / 38.0
     }
     
+    /// Compact mode gets a rounder opened shape (35 vs 19) — at its smaller
+    /// size the standard radius reads square rather than pill-like.
+    private var openedInsets: (top: CGFloat, bottom: CGFloat) {
+        Defaults[.compactMode] ? compactCornerRadiusInsets.opened : cornerRadiusInsets.opened
+    }
+
     private var topCornerRadius: CGFloat {
         // If the notch is open, return the opened radius.
         if vm.notchState == .open {
-            return cornerRadiusInsets.opened.top
+            return openedInsets.top
         }
 
         // For the closed notch, scale if enabled
@@ -75,7 +81,7 @@ struct ContentView: View {
         let bottomCorner: CGFloat
 
         if vm.notchState == .open {
-            bottomCorner = cornerRadiusInsets.opened.bottom
+            bottomCorner = openedInsets.bottom
         } else if let scaleFactor = cornerRadiusScaleFactor {
             bottomCorner = max(0, baseClosedBottom * scaleFactor)
         } else {
@@ -112,13 +118,17 @@ struct ContentView: View {
     /// A notification is a glance, not a workspace — it doesn't need the full
     /// height the home/shelf tabs are sized for, and stretching to fill it
     /// just surrounds two lines of text with empty black.
-    private var openNotchHeight: CGFloat {
+    /// nil means "size to content".
+    ///
+    /// Compact mode must use nil: this frame bounds hit-testing as well as
+    /// layout, so any value shorter than the content leaves the transport
+    /// row outside the hover region — moving toward the buttons registered
+    /// as a hover-exit and closed the notch. The compact panel's height is
+    /// controlled by its own internal padding instead, which is the honest
+    /// lever anyway.
+    private var openNotchHeight: CGFloat? {
         if notificationManager.activeNotification != nil { return 132 }
-        // 134pt is Atoll's own content height for this layout (50 header +
-        // 10 progress + 56 controls + 15/3 padding). The 420x180 constant is
-        // its window allowance, not the panel — using it left the content
-        // floating in empty space.
-        return Defaults[.compactMode] ? 134 : vm.notchSize.height
+        return Defaults[.compactMode] ? nil : vm.notchSize.height
     }
 
     /// Compact mode drops the tab bar along with the tabs it switches
@@ -191,7 +201,7 @@ struct ContentView: View {
                     .frame(alignment: .top)
                     .padding(
                         .horizontal,
-                        vm.notchState == .open ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
+                        vm.notchState == .open ? openedInsets.top : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                     .background(.black)
