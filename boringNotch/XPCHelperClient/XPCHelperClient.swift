@@ -428,6 +428,19 @@ extension XPCHelperClient {
         }
     }
 
+    nonisolated func sendIMessage(_ text: String, toChatNamed name: String) async -> Bool {
+        do {
+            let service = await MainActor.run { ensureRemoteService() }
+            return try await service.withContinuation { service, continuation in
+                service.sendIMessage(text, toChatNamed: name) { sent in
+                    continuation.resume(returning: sent)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
     nonisolated func dismissNotification(token: String) async -> Bool {
         do {
             let service = await MainActor.run { ensureRemoteService() }
