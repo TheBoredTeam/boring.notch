@@ -282,23 +282,43 @@ final class SystemNotificationManager: ObservableObject {
 
     /// Sends an inline reply.
     ///
-    /// Replying works by typing into the system banner's own reply field, so
-    /// it's only possible while that banner is on screen — roughly five
-    /// seconds. There is no API to send on an app's behalf after that.
-    /// Rather than dropping a typed message on the floor, hand it off: put
-    /// the draft on the clipboard and open the app so it's one paste away.
+    /// Replying types into the notification's own reply field via
+    /// Accessibility, so it depends on that element still being reachable.
+    /// The helper retains elements after their banner fades (the
+    /// notification lives on in Notification Center), which is what makes
+    /// replying work beyond the ~5s banner. If it genuinely can't be
+    /// reached, hand off rather than dropping a typed message: the draft
+    /// goes to the clipboard and the app opens so it's one paste away.
     @discardableResult
     func reply(to notification: SystemNotification, text: String) async -> ReplyOutcome {
         if await XPCHelperClient.shared.replyToNotification(token: notification.id, text: text) {
+            NSLog("[boringNotch] reply sent via AX for \(notification.appName ?? "-")")
+            playSentSound()
             dismissActive(token: notification.id)
             return .sent
         }
 
+        NSLog("[boringNotch] reply could not be delivered (banner gone) — handing off to \(notification.appName ?? "app")")
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
+        playHandOffSound()
         await open(notification)
         dismissActive(token: notification.id)
         return .handedOffToApp
+    }
+
+    /// Only on a real send. A "sent" sound when nothing was sent is a lie
+    /// the user can't see through — they'd find out when the reply never
+    /// arrived.
+    private func playSentSound() {
+        NSSound(named: "Tink")?.play()
+    }
+
+    /// Distinct from the sent sound on purpose: there's still feedback that
+    /// the click registered, but it must not read as a delivery. The orange
+    /// clipboard glyph on the button carries the actual meaning.
+    private func playHandOffSound() {
+        NSSound(named: "Pop")?.play()
     }
 
     func perform(_ action: String, on notification: SystemNotification) async -> Bool {
