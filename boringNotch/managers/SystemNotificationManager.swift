@@ -199,6 +199,19 @@ final class SystemNotificationManager: ObservableObject {
     }
 
     private func show(_ notification: SystemNotification) {
+        // A newer notification replaces the active one directly here rather
+        // than going through dismissActive, so its hold was never being
+        // released: dismissActive only releases whatever activeNotification
+        // happens to be *when it runs*, and by the time a superseded
+        // notification would be dismissed it's already been overwritten.
+        // The result was a parked, off-screen banner window that never came
+        // back — and since the same window can get reused by
+        // notificationcenterui for its own real Notification Center panel,
+        // that panel could end up opening off-screen too, which is why the
+        // system clock stopped visibly doing anything.
+        if let previous = activeNotification, previous.id != notification.id {
+            XPCHelperClient.shared.releaseNotification(token: previous.id)
+        }
         withAnimation(.smooth) { activeNotification = notification }
         dismissTask?.cancel()
         dismissTask = Task { [weak self] in
