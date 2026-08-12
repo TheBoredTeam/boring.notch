@@ -298,6 +298,20 @@ final class SystemNotificationManager: ObservableObject {
             return .sent
         }
 
+        // The banner is gone, so AX can't deliver. Messages is the one
+        // supported app that can still be sent to properly — it has a real
+        // scripting dictionary, so the reply goes out for real instead of
+        // becoming a clipboard hand-off. Nothing equivalent exists for
+        // WhatsApp/Telegram/Discord.
+        if notification.bundleID == "com.apple.MobileSMS",
+           let chatName = notification.sender,
+           await XPCHelperClient.shared.sendIMessage(text, toChatNamed: chatName) {
+            NSLog("[boringNotch] reply sent via Messages scripting for \(chatName)")
+            playSentSound()
+            dismissActive(token: notification.id)
+            return .sent
+        }
+
         NSLog("[boringNotch] reply could not be delivered (banner gone) — handing off to \(notification.appName ?? "app")")
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)

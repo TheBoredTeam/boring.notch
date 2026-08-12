@@ -132,6 +132,15 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         DispatchQueue.main.async { reply(Self.watcher.reply(token: token, text: text)) }
     }
 
+    /// Sends an iMessage directly through the Messages scripting
+    /// dictionary, bypassing the notification entirely. The app falls back
+    /// to this when the AX reply above fails because the banner has faded —
+    /// for Messages that recovers a real send instead of a clipboard
+    /// hand-off. No other supported app offers an equivalent.
+    @objc func sendIMessage(_ text: String, toChatNamed name: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(MessagesSender.send(text, toChatNamed: name)) }
+    }
+
     @objc func performNotificationAction(_ token: String, name: String, with reply: @escaping (Bool) -> Void) {
         DispatchQueue.main.async { reply(Self.watcher.performAction(token: token, name: name)) }
     }
