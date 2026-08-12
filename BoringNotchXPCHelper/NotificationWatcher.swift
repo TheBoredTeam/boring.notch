@@ -39,10 +39,13 @@ final class NotificationWatcher {
     var onBanner: ((CapturedNotification) -> Void)?
     var onBannerGone: ((String) -> Void)?
 
-    private var observer: AXObserver?
     private var appElement: AXUIElement?
-    private var pollTimer: Timer?
+    private var pollTimer: DispatchSourceTimer?
     private var live: [String: AXUIElement] = [:]
+
+    /// Banners live ~5s, so this catches every one with room to spare while
+    /// staying cheap — each tick is a shallow AX tree walk.
+    private let pollInterval: TimeInterval = 0.35
 
     var isRunning: Bool { appElement != nil }
 
@@ -59,26 +62,23 @@ final class NotificationWatcher {
         let app = AXUIElementCreateApplication(notificationCenter.processIdentifier)
         appElement = app
 
-        var created: AXObserver?
-        let callback: AXObserverCallback = { _, _, _, context in
-            guard let context else { return }
-            Unmanaged<NotificationWatcher>.fromOpaque(context).takeUnretainedValue().scan()
-        }
-        if AXObserverCreate(notificationCenter.processIdentifier, callback, &created) == .success,
-           let created {
-            let context = Unmanaged.passUnretained(self).toOpaque()
-            for name in [kAXWindowCreatedNotification, kAXCreatedNotification, kAXUIElementDestroyedNotification] {
-                AXObserverAddNotification(created, app, name as CFString, context)
-            }
-            CFRunLoopAddSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(created), .defaultMode)
-            observer = created
-        }
-
-        // ponytail: the AX notifications above fire inconsistently for the
-        // banner window, so a light poll backstops them. Remove the timer if a
-        // single notification name ever proves reliable across releases.
-        let timer = Timer(timeInterval: 0.35, repeats: true) { [weak self] _ in self?.scan() }
-        RunLoop.current.add(timer, forMode: .common)
+        // Polling only, deliberately — no AXObserver and no Timer.
+        //
+        // This runs inside an XPC service, whose main thread is driven by
+        // dispatch_main(). That services DispatchQueue.main blocks but does
+        // NOT run a CFRunLoop, so anything depending on one is dead code
+        // here: Timer/RunLoop.add never fires, and an AXObserver's
+        // CFRunLoopSource never delivers. An earlier version used both and
+        // silently captured nothing after the single scan() below — the
+        // watcher reported "started" and then went quiet forever.
+        //
+        // A DispatchSourceTimer needs no run loop, so it works. All watcher
+        // state stays on the main queue, which is also where the helper
+        // dispatches reply/action calls, so there's no locking to get wrong.
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now() + pollInterval, repeating: pollInterval)
+        timer.setEventHandler { [weak self] in self?.scan() }
+        timer.resume()
         pollTimer = timer
 
         scan()
@@ -86,12 +86,8 @@ final class NotificationWatcher {
     }
 
     func stop() {
-        pollTimer?.invalidate()
+        pollTimer?.cancel()
         pollTimer = nil
-        if let observer {
-            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .defaultMode)
-        }
-        observer = nil
         appElement = nil
         live.removeAll()
     }
@@ -278,7 +274,10 @@ final class NotificationWatcher {
             }) {
                 AXUIElementPerformAction(button, kAXPressAction as CFString)
             }
-            RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+            // Thread.sleep, not RunLoop.run: there's no CFRunLoop to advance
+            // in an XPC service, so RunLoop.run(until:) returns immediately
+            // and the reply field wouldn't have appeared yet.
+            Thread.sleep(forTimeInterval: 0.4)
         }
 
         guard let field = replyField(in: banner) else { return false }
