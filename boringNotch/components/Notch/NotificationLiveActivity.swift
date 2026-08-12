@@ -164,6 +164,7 @@ struct NotificationExpandedView: View {
         .onDisappear {
             manager.resumeDismiss()
             hostWindow?.wantsKeyForTextInput = false
+            manager.isComposingReply = false
             endComposing()
         }
         // Apply a pending key request once the window resolves —
@@ -184,12 +185,16 @@ struct NotificationExpandedView: View {
                 // Both are released in onDisappear instead, which is the
                 // only unambiguous "done" signal.
                 manager.holdActive()
+                manager.isComposingReply = false
                 return
             }
             // The window can only accept keystrokes while it's key — see
             // BoringNotchSkyLightWindow.wantsKeyForTextInput.
             hostWindow?.wantsKeyForTextInput = true
             manager.holdWhileTyping()
+            // Newer notifications queue instead of replacing this one while
+            // the field has focus.
+            manager.isComposingReply = true
             // Clicking into the field changes window key status, which
             // rebuilds tracking areas and fires a spurious hover-exit —
             // that's what closed the notch the instant you tapped the
@@ -258,6 +263,8 @@ struct NotificationExpandedView: View {
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
                 .fixedSize()
+
+            queuedBadge
         }
         // Clears the close button, which overlays the card rather than
         // taking a layout slot — reserved here, on the one row it can
@@ -270,6 +277,41 @@ struct NotificationExpandedView: View {
     /// Deliberately not HoverButton's default 30pt sizing — that reads as a
     /// full toolbar control; a notification's close button wants to be
     /// closer to iOS's compact circular dismiss.
+    /// What's waiting behind this notification. Shows the app's icon when
+    /// everything queued is from one app, so a burst from one conversation
+    /// reads as "2 more from WhatsApp" rather than an anonymous count.
+    @ViewBuilder
+    private var queuedBadge: some View {
+        let queued = manager.queued
+        if !queued.isEmpty {
+            HStack(spacing: 3) {
+                if let bundleID = singleQueuedAppBundleID {
+                    AppIcon(for: bundleID)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 11, height: 11)
+                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                }
+                Text("+\(queued.count)")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(.white.opacity(0.14), in: Capsule())
+            .transition(.scale.combined(with: .opacity))
+            .animation(.smooth(duration: 0.2), value: queued.count)
+            .help("\(queued.count) more waiting")
+        }
+    }
+
+    /// The shared bundle ID when every queued notification came from the
+    /// same app, else nil.
+    private var singleQueuedAppBundleID: String? {
+        let ids = Set(manager.queued.compactMap(\.bundleID))
+        return ids.count == 1 ? ids.first : nil
+    }
+
     private var dismissButton: some View {
         Button {
             manager.dismissActive(token: notification.id)
