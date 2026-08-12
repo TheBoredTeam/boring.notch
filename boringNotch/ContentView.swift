@@ -433,7 +433,12 @@ struct ContentView: View {
                           }
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
-                       } else if vm.notchState == .open {
+                       } else if vm.notchState == .open && notificationManager.activeNotification == nil {
+                           // No tab bar over a notification: it's a glance,
+                           // not a place to switch between home and shelf —
+                           // and the header spans the full notch width,
+                           // which is what was stretching the whole panel
+                           // out around a short message.
                            BoringHeader()
                                .frame(height: max(24, displayClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)

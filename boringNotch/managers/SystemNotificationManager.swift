@@ -33,8 +33,13 @@ struct SystemNotification: Identifiable, Equatable {
     /// Any of the three is a decent hint; `SystemNotificationManager.reply`
     /// is the actual source of truth and falls back to opening the app if no
     /// field materializes.
+    /// Whether to offer a reply box at all — based on the app supporting
+    /// replies, not on whether the banner is still alive. The compose box
+    /// stays for as long as the notification is in the notch; if the banner
+    /// has since died, `reply` degrades instead of the UI disappearing out
+    /// from under a half-typed message.
     var canReply: Bool {
-        isLive && actions.contains {
+        actions.contains {
             $0.localizedCaseInsensitiveContains("reply")
                 || $0.localizedCaseInsensitiveContains("send")
                 || $0.localizedCaseInsensitiveContains("details")
@@ -270,14 +275,33 @@ final class SystemNotificationManager: ObservableObject {
 
     // MARK: - Acting
 
-    /// Sends an inline reply. Returns false when the banner is gone or the app
-    /// has no reply action — callers should fall back to `open`.
+    enum ReplyOutcome {
+        /// Delivered through the live banner's reply field.
+        case sent
+        /// The banner was gone, so the draft went to the clipboard and the
+        /// app was opened for the user to paste.
+        case handedOffToApp
+    }
+
+    /// Sends an inline reply.
+    ///
+    /// Replying works by typing into the system banner's own reply field, so
+    /// it's only possible while that banner is on screen — roughly five
+    /// seconds. There is no API to send on an app's behalf after that.
+    /// Rather than dropping a typed message on the floor, hand it off: put
+    /// the draft on the clipboard and open the app so it's one paste away.
     @discardableResult
-    func reply(to notification: SystemNotification, text: String) async -> Bool {
-        let sent = await XPCHelperClient.shared.replyToNotification(token: notification.id, text: text)
-        if !sent { await open(notification) }
+    func reply(to notification: SystemNotification, text: String) async -> ReplyOutcome {
+        if await XPCHelperClient.shared.replyToNotification(token: notification.id, text: text) {
+            dismissActive(token: notification.id)
+            return .sent
+        }
+
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        await open(notification)
         dismissActive(token: notification.id)
-        return sent
+        return .handedOffToApp
     }
 
     func perform(_ action: String, on notification: SystemNotification) async -> Bool {
