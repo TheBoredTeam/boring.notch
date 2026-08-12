@@ -116,21 +116,21 @@ struct NotificationExpandedView: View {
     private var kind: NotificationKind { .init(notification) }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center, spacing: 12) {
             headerAvatar
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 5) {
                 header
                 textBlock
                 actionArea
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        // Fill the opened notch rather than clustering in its top-left
-        // corner — this sits in the same slot NotchHomeView occupies, which
-        // is sized to the full open notch.
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .padding(.horizontal, 8)
+        // Sized to its content, not to the notch. The opened notch is built
+        // for the home/shelf tabs; a notification is a glance, so filling
+        // that area just wraps two lines of text in empty black.
+        .frame(maxWidth: 460, alignment: .leading)
+        .padding(.horizontal, 4)
         // Rebuild cleanly when one notification replaces another, instead of
         // reusing the previous one's view state.
         .id(notification.id)
@@ -170,17 +170,17 @@ struct NotificationExpandedView: View {
            let bundleID = notification.bundleID,
            Self.personAvatarBundleIDs.contains(bundleID) {
             ZStack(alignment: .bottomTrailing) {
-                PersonAvatarView(name: sender, size: 64)
+                PersonAvatarView(name: sender, size: 46)
                 AppIcon(for: bundleID)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24)
-                    .clipShape(RoundedRectangle(cornerRadius: 7))
-                    .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(.black, lineWidth: 2))
-                    .offset(x: 4, y: 4)
+                    .frame(width: 20, height: 20)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(.black, lineWidth: 1.5))
+                    .offset(x: 3, y: 3)
             }
         } else {
-            NotificationAppIcon(bundleID: notification.bundleID, size: 64)
+            NotificationAppIcon(bundleID: notification.bundleID, size: 46)
         }
     }
 
@@ -189,12 +189,12 @@ struct NotificationExpandedView: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text(notification.sender ?? notification.appName ?? "Notification")
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
 
             Text(notification.receivedAt, style: .relative)
-                .font(.system(size: 12))
+                .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
                 .fixedSize()
 
@@ -212,18 +212,18 @@ struct NotificationExpandedView: View {
     private var textBlock: some View {
         if let subtitle = notification.subtitle, subtitle != notification.sender {
             Text(subtitle)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
 
         if let body = notification.body {
             Text(body)
-                .font(.system(size: 15))
+                .font(.system(size: 13))
                 .foregroundStyle(.secondary.opacity(0.9))
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
-                .lineSpacing(2)
+                .lineSpacing(1)
         }
     }
 
