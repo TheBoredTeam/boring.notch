@@ -87,12 +87,26 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     @objc func startNotificationWatching(with reply: @escaping (Bool) -> Void) {
         // Capture the delegate for this connection before hopping queues —
         // NSXPCConnection.current() is only valid inside the incoming call.
-        let delegate = NSXPCConnection.current()?.remoteObjectProxy as? BoringNotchXPCHelperDelegate
+        //
+        // Cast to BoringNotchXPCAppDelegate, not its parent protocol: the
+        // proxy's conformance is built from the exact interface the
+        // connection was configured with, so casting to the parent can
+        // return nil and silently swallow every callback.
+        let connection = NSXPCConnection.current()
+        let proxy = connection?.remoteObjectProxyWithErrorHandler { error in
+            NSLog("[boringNotch] notification callback failed: \(error.localizedDescription)")
+        }
+        let delegate = proxy as? BoringNotchXPCAppDelegate
+
+        if delegate == nil {
+            NSLog("[boringNotch] could not obtain notification delegate proxy — banners will not reach the app")
+        }
 
         // The AX observer needs a live run loop; the helper's is on main.
         DispatchQueue.main.async {
             let watcher = Self.watcher
             watcher.onBanner = { notification in
+                NSLog("[boringNotch] captured banner: app=\(notification.appName ?? "-") bundle=\(notification.bundleID ?? "-") title=\(notification.title ?? "-")")
                 delegate?.notificationDidAppear([
                     "token": notification.token,
                     "appName": notification.appName ?? "",
@@ -104,7 +118,9 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 ])
             }
             watcher.onBannerGone = { delegate?.notificationDidDisappear($0) }
-            reply(watcher.start())
+            let started = watcher.start()
+            NSLog("[boringNotch] notification watcher start -> \(started), AX trusted: \(AXIsProcessTrusted())")
+            reply(started)
         }
     }
 

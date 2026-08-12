@@ -145,7 +145,11 @@ final class SystemNotificationManager: ObservableObject {
             notifications.removeLast(notifications.count - historyLimit)
         }
 
-        guard isAllowed(notification) else { return }
+        guard isAllowed(notification) else {
+            NSLog("[boringNotch] filtered out: \(notification.appName ?? "-") bundle=\(notification.bundleID ?? "nil")")
+            return
+        }
+        NSLog("[boringNotch] showing in notch: \(notification.appName ?? "-")")
         show(notification)
         suppressSystemBannerIfNeeded(notification)
     }

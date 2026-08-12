@@ -345,6 +345,7 @@ final class NotificationXPCDelegate: NSObject, BoringNotchXPCAppDelegate {
     }
 
     func notificationDidAppear(_ payload: [String: String]) {
+        NSLog("[boringNotch] app received banner: \(payload["appName"] ?? "-") / \(payload["title"] ?? "-")")
         NotificationCenter.default.post(
             name: .systemNotificationDidAppear, object: nil, userInfo: payload
         )
