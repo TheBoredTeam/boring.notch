@@ -430,10 +430,10 @@ extension XPCHelperClient {
 
     /// Keeps a banner alive so its reply field stays usable, optionally
     /// moving it off-screen so the user never sees it.
-    nonisolated func holdNotification(token: String, offScreen: Bool) {
+    nonisolated func holdNotification(token: String) {
         Task {
             let service = await MainActor.run { ensureRemoteService() }
-            try? await service.withService { $0.holdNotification(token, offScreen: offScreen) }
+            try? await service.withService { $0.holdNotification(token) }
         }
     }
 
