@@ -88,6 +88,15 @@ enum MusicPlayerImageSizes {
 @MainActor func syncNotchHeightIfNeeded() {
     var didChangeHeight = false
 
+    // "Match real notch height" isn't a valid choice for a non-notch display
+    // — there's no real notch to match — so it's not offered in that
+    // Picker. A value here can only be leftover from an older build that
+    // allowed it; fall back to the sensible default rather than leaving a
+    // persisted value with no matching Picker tag.
+    if Defaults[.nonNotchHeightMode] == .matchRealNotchSize {
+        Defaults[.nonNotchHeightMode] = .matchMenuBar
+    }
+
     switch Defaults[.notchHeightMode] {
     case .matchRealNotchSize:
         let realHeight = getRealNotchHeight()
