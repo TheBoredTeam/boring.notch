@@ -294,6 +294,12 @@ extension Defaults.Keys {
     static let osdReplacement = Key<Bool>("osdReplacement", default: false)
     static let inlineOSD = Key<Bool>("inlineOSD", default: false)
 
+    // MARK: Layout
+    /// Swaps the opened notch for a smaller, player-only layout: no tab
+    /// bar, calendar or mirror. Off by default so existing users keep the
+    /// layout they already have.
+    static let compactMode = Key<Bool>("compactMode", default: false)
+
     // MARK: Notifications
     /// Off by default: mirroring banners needs Accessibility access.
     static let notificationLiveActivity = Key<Bool>("notificationLiveActivity", default: false)
