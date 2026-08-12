@@ -652,7 +652,16 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 isHovering = true
             }
-            
+
+            // Freeze the dismiss countdown the moment the pointer arrives,
+            // not when the notch finishes opening. Opening waits out
+            // minimumHoverDuration plus an animation, and a notification
+            // near the end of its life would expire during that — so it
+            // vanished exactly as the notch opened around it.
+            if notificationManager.activeNotification != nil {
+                notificationManager.holdActive()
+            }
+
             if vm.notchState == .closed && Defaults[.enableHaptics] {
                 haptics.toggle()
             }
@@ -682,7 +691,10 @@ struct ContentView: View {
                     withAnimation(animationSpring) {
                         self.isHovering = false
                     }
-                    
+
+                    // Pointer left — let the notification age out again.
+                    self.notificationManager.resumeDismiss()
+
                     if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }

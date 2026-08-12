@@ -134,16 +134,14 @@ struct NotificationExpandedView: View {
         // Rebuild cleanly when one notification replaces another, instead of
         // reusing the previous one's view state.
         .id(notification.id)
+        // This view exists only while the notch is open, so appear/disappear
+        // is the open/close signal: pause the countdown while the user is
+        // looking at it, resume when they close. holdActive caps itself at
+        // maxLifetime, so an abandoned open notch still lets the
+        // notification go rather than pinning it forever.
         .onAppear {
+            manager.holdActive()
             if kind == .reply { replyFocused = true }
-        }
-        // Hold the notification open only while the user is actually typing
-        // a reply. Holding it for the whole time the notch is open pinned
-        // stale notifications indefinitely and blocked the normal notch
-        // content — opening the notch minutes later still showed the old
-        // message.
-        .onChange(of: replyFocused) { _, focused in
-            if focused { manager.holdActive() } else { manager.resumeDismiss() }
         }
         .onDisappear { manager.resumeDismiss() }
     }
