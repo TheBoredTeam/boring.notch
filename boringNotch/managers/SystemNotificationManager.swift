@@ -159,19 +159,22 @@ final class SystemNotificationManager: ObservableObject {
         }
         NSLog("[boringNotch] showing in notch: \(notification.appName ?? "-")")
         show(notification)
-        suppressSystemBannerIfNeeded(notification)
+        holdSystemBanner(notification)
     }
 
-    /// Closes the OS banner right after capture for apps the user has opted
-    /// to mute at the system level — the notch's own live activity is meant
-    /// to be the only thing they see for these. This can only run after the
-    /// banner has already rendered and been read; nothing can stop it from
-    /// appearing at all.
-    private func suppressSystemBannerIfNeeded(_ notification: SystemNotification) {
-        guard let bundleID = notification.bundleID,
-              Defaults[.notificationSuppressedApps].contains(bundleID)
-        else { return }
-        Task { await XPCHelperClient.shared.dismissNotification(token: notification.id) }
+    /// Holds the system banner open for as long as the notch is showing the
+    /// notification, so its reply field stays usable — an untouched banner
+    /// dies in seconds, taking the only means of replying with it.
+    ///
+    /// For apps set to "hide system banner", the banner is also moved
+    /// off-screen, which is what makes hiding and replying possible at the
+    /// same time. The previous implementation closed the banner outright,
+    /// which hid it but destroyed the reply field along with it.
+    private func holdSystemBanner(_ notification: SystemNotification) {
+        let hidden = notification.bundleID.map {
+            Defaults[.notificationSuppressedApps].contains($0)
+        } ?? false
+        XPCHelperClient.shared.holdNotification(token: notification.id, offScreen: hidden)
     }
 
     /// The notch mirrors banners rather than replacing them, so an unfiltered
@@ -212,6 +215,12 @@ final class SystemNotificationManager: ObservableObject {
         if let token, activeNotification?.id != token { return }
         dismissTask?.cancel()
         dismissTask = nil
+        // Stop holding the system banner open — otherwise the keep-alive
+        // would pin it (visibly, for non-hidden apps) long after the notch
+        // has moved on.
+        if let id = activeNotification?.id {
+            XPCHelperClient.shared.releaseNotification(token: id)
+        }
         withAnimation(.smooth) { activeNotification = nil }
     }
 

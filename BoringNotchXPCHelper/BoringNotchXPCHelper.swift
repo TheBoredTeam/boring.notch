@@ -157,6 +157,14 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         DispatchQueue.main.async { reply(Self.watcher.dismiss(token: token)) }
     }
 
+    @objc func holdNotification(_ token: String, offScreen: Bool) {
+        DispatchQueue.main.async { Self.watcher.hold(token: token, offScreen: offScreen) }
+    }
+
+    @objc func releaseNotification(_ token: String) {
+        DispatchQueue.main.async { Self.watcher.release(token: token) }
+    }
+
     private class KeyboardBrightnessClient {
         private static let keyboardID: UInt64 = 1
         private var clientInstance: NSObject?
