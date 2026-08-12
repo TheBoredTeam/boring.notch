@@ -326,14 +326,6 @@ extension Defaults.Keys {
             "com.anthropic.claudefordesktop"
         ]
     )
-    /// Apps whose system banner gets closed immediately after boring.notch
-    /// captures it, so the notch becomes the only lasting surface. Can't
-    /// prevent the banner from rendering at all — there's no macOS API for
-    /// that — this just makes it live on screen for well under a second.
-    static let notificationSuppressedApps = Key<Set<String>>(
-        "notificationSuppressedApps",
-        default: []
-    )
     /// Off by default: a new capability, even though it runs entirely
     /// on-device with no network calls. Only takes effect on macOS 26+ with
     /// Apple Intelligence enabled — see SmartReplyManager.
