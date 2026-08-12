@@ -78,6 +78,60 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
     }
     
+    // MARK: - Notification Center banners
+
+    /// One watcher for the whole helper: `BoringNotchXPCHelper` is created per
+    /// connection, the AX observer must not be.
+    private static let watcher = NotificationWatcher()
+
+    @objc func startNotificationWatching(with reply: @escaping (Bool) -> Void) {
+        // Capture the delegate for this connection before hopping queues —
+        // NSXPCConnection.current() is only valid inside the incoming call.
+        let delegate = NSXPCConnection.current()?.remoteObjectProxy as? BoringNotchXPCHelperDelegate
+
+        // The AX observer needs a live run loop; the helper's is on main.
+        DispatchQueue.main.async {
+            let watcher = Self.watcher
+            watcher.onBanner = { notification in
+                delegate?.notificationDidAppear([
+                    "token": notification.token,
+                    "appName": notification.appName ?? "",
+                    "bundleID": notification.bundleID ?? "",
+                    "title": notification.title ?? "",
+                    "subtitle": notification.subtitle ?? "",
+                    "body": notification.body ?? "",
+                    "actions": notification.actions.joined(separator: "\n")
+                ])
+            }
+            watcher.onBannerGone = { delegate?.notificationDidDisappear($0) }
+            reply(watcher.start())
+        }
+    }
+
+    @objc func stopNotificationWatching() {
+        DispatchQueue.main.async { Self.watcher.stop() }
+    }
+
+    @objc func replyToNotification(_ token: String, text: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.reply(token: token, text: text)) }
+    }
+
+    @objc func performNotificationAction(_ token: String, name: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.performAction(token: token, name: name)) }
+    }
+
+    @objc func openNotification(_ token: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.open(token: token)) }
+    }
+
+    @objc func notificationDebugDump(with reply: @escaping (String) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.debugDump()) }
+    }
+
+    @objc func dismissNotification(_ token: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.dismiss(token: token)) }
+    }
+
     private class KeyboardBrightnessClient {
         private static let keyboardID: UInt64 = 1
         private var clientInstance: NSObject?
