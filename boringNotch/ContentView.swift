@@ -525,10 +525,11 @@ struct ContentView: View {
                         // Player only — no tab switching, so currentView is
                         // ignored here rather than offering a shelf the
                         // compact layout has no room (or tab bar) for.
-                        // 420pt wide matches Atoll's minimalistic base size,
-                        // which these proportions were designed against.
+                        // Fixed 420 rather than maxWidth: the content sizes
+                        // itself to ~350 otherwise, which left the panel
+                        // narrower than Atoll's. This pins it to their width.
                         CompactHomeView(albumArtNamespace: albumArtNamespace)
-                            .frame(maxWidth: 420)
+                            .frame(width: 420)
                     } else {
                         switch coordinator.currentView {
                         case .home:
