@@ -196,7 +196,14 @@ struct ContentView: View {
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? openNotchHeight : nil)
+                    // alignment: .top matters here — without it this frame
+                    // defaults to centering, and shrinking the height for a
+                    // notification (openNotchHeight < vm.notchSize.height)
+                    // then pulls the visible top edge down by half the
+                    // difference instead of staying flush with the window's
+                    // top-anchored origin. That's what read as "the notch
+                    // sits a bit off the top of the screen."
+                    .frame(height: vm.notchState == .open ? openNotchHeight : nil, alignment: .top)
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)

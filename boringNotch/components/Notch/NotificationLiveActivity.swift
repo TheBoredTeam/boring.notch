@@ -132,12 +132,12 @@ struct NotificationExpandedView: View {
             .frame(maxWidth: 300, alignment: .leading)
         }
         .padding(.horizontal, 4)
-        .padding(.trailing, 20)
         // Pinned to the card's actual top-right corner rather than sitting
         // inline at the avatar's vertical center, matching where a close
         // control belongs on a notification.
         .overlay(alignment: .topTrailing) {
             dismissButton
+                .padding(.top, -2)
         }
         // Rebuild cleanly when one notification replaces another, instead of
         // reusing the previous one's view state.
@@ -208,12 +208,28 @@ struct NotificationExpandedView: View {
                 .foregroundStyle(.tertiary)
                 .fixedSize()
         }
+        // Clears the close button, which overlays the card rather than
+        // taking a layout slot — reserved here, on the one row it can
+        // actually collide with, instead of on the whole card (which pushed
+        // the reply row's right edge in by 20pt of dead space for no
+        // reason, since nothing else in the card runs that wide).
+        .padding(.trailing, 22)
     }
 
+    /// Deliberately not HoverButton's default 30pt sizing — that reads as a
+    /// full toolbar control; a notification's close button wants to be
+    /// closer to iOS's compact circular dismiss.
     private var dismissButton: some View {
-        HoverButton(icon: "xmark", iconColor: .secondary, scale: .medium) {
+        Button {
             manager.dismissActive(token: notification.id)
+        } label: {
+            Image(systemName: "xmark")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 18, height: 18)
+                .background(.white.opacity(0.1), in: Circle())
         }
+        .buttonStyle(ScaleDownButtonStyle())
     }
 
     // MARK: - Body text
