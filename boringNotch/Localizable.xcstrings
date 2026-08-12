@@ -421,6 +421,9 @@
         }
       }
     },
+    "%lld more waiting" : {
+
+    },
     "%lld%%" : {
       "localizations" : {
         "en" : {
@@ -436,6 +439,9 @@
           }
         }
       }
+    },
+    "+%lld" : {
+
     },
     "About" : {
       "localizations" : {
