@@ -21,6 +21,9 @@ struct DynamicNotchApp: App {
     let updaterController: SPUStandardUpdaterController
 
     init() {
+        #if DEBUG
+        OTPDetector.runSelfCheck()
+        #endif
         let sparkleUpdaterDelegate = BoringSparkleUpdaterDelegate()
         self.sparkleUpdaterDelegate = sparkleUpdaterDelegate
         updaterController = SPUStandardUpdaterController(
@@ -40,6 +43,10 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)
+            Button("Notification Debug") {
+                openWindow(id: "notification-debug")
+                NSApp.activate(ignoringOtherApps: true)
+            }
             Divider()
             Button("Restart Boring Notch") {
                 ApplicationRelauncher.restart()
@@ -48,6 +55,10 @@ struct DynamicNotchApp: App {
                 NSApplication.shared.terminate(self)
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
+        }
+
+        Window("Notification Debug", id: "notification-debug") {
+            NotificationDebugView()
         }
     }
 }

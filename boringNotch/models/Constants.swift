@@ -307,6 +307,33 @@ extension Defaults.Keys {
     // MARK: OSD
     static let osdReplacement = Key<Bool>("osdReplacement", default: false)
     static let inlineOSD = Key<Bool>("inlineOSD", default: false)
+
+    // MARK: Notifications
+    /// Off by default: mirroring banners needs Accessibility access.
+    static let notificationLiveActivity = Key<Bool>("notificationLiveActivity", default: false)
+    static let notificationsFromAllApps = Key<Bool>("notificationsFromAllApps", default: false)
+    static let notificationAllowedApps = Key<Set<String>>(
+        "notificationAllowedApps",
+        default: [
+            "com.apple.MobileSMS",       // Messages
+            "com.apple.FaceTime",
+            "com.apple.mail",
+            "com.microsoft.Outlook",
+            "net.whatsapp.WhatsApp",
+            "ru.keepcoder.Telegram",     // Telegram Desktop (App Store build)
+            "com.tdesktop.Telegram",
+            "com.hnc.Discord"
+        ]
+    )
+    /// Apps whose system banner gets closed immediately after boring.notch
+    /// captures it, so the notch becomes the only lasting surface. Can't
+    /// prevent the banner from rendering at all — there's no macOS API for
+    /// that — this just makes it live on screen for well under a second.
+    static let notificationSuppressedApps = Key<Set<String>>(
+        "notificationSuppressedApps",
+        default: []
+    )
+
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
