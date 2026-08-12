@@ -100,6 +100,14 @@ final class NotificationWatcher {
         pollTimer = nil
         appElement = nil
         live.removeAll()
+        // Correctness hygiene rather than the fix for a live leak: once
+        // pollTimer stops, refreshHeldBanners never runs again either, so
+        // anything still in `held` stops being artificially kept alive and
+        // dies on its own within a couple of seconds regardless. But
+        // leaving stale tokens around after a stop/restart cycle is still
+        // wrong, so clear them explicitly.
+        held.removeAll()
+        heldOffScreen.removeAll()
     }
 
     // MARK: - Scanning
