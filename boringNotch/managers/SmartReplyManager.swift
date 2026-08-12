@@ -80,7 +80,16 @@ enum SmartReplyManager {
                 """)
             let prompt = "From: \(sender ?? "someone")\nMessage: \(body)\n\nSuggest 3 short possible replies."
             let result = try await session.respond(to: prompt, generating: ReplySuggestionSet.self)
-            return Array(result.content.replies.prefix(3))
+
+            // The model repeats itself sometimes ("Got it!" twice), which is
+            // both useless as a second chip and a duplicate SwiftUI ForEach
+            // id. Dedupe case-insensitively, keeping first-seen order.
+            var seen = Set<String>()
+            return result.content.replies
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty && seen.insert($0.lowercased()).inserted }
+                .prefix(3)
+                .map { $0 }
         } catch {
             return []
         }
