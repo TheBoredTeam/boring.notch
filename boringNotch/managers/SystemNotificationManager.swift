@@ -154,6 +154,7 @@ final class SystemNotificationManager: ObservableObject {
     private func releaseQueued() {
         for notification in queued {
             XPCHelperClient.shared.releaseNotification(token: notification.id)
+            clearDraft(for: notification.id)
         }
         queued.removeAll()
     }
@@ -211,7 +212,43 @@ final class SystemNotificationManager: ObservableObject {
         while queued.count > queueLimit {
             let dropped = queued.removeFirst()
             XPCHelperClient.shared.releaseNotification(token: dropped.id)
+            clearDraft(for: dropped.id)
         }
+    }
+
+    /// Rotates the stack: shows the next queued notification and sends the
+    /// current one to the back, so repeated taps cycle through everything
+    /// and always come back around rather than discarding as they go.
+    func cycleToNextQueued() {
+        guard let next = queued.first else { return }
+        queued.removeFirst()
+        if let current = activeNotification {
+            queued.append(current)
+        }
+        show(next, releasingPrevious: false)
+    }
+
+    // MARK: - Reply drafts
+
+    /// Half-typed replies, keyed by notification. Cycling the stack tears
+    /// the compose view down and rebuilds it for a different notification,
+    /// so without this a draft would vanish the moment you looked at
+    /// something else — the same lost-typing problem the queue exists to
+    /// prevent.
+    private var replyDrafts: [String: String] = [:]
+
+    func draft(for id: String) -> String { replyDrafts[id] ?? "" }
+
+    func setDraft(_ text: String, for id: String) {
+        if text.isEmpty {
+            replyDrafts.removeValue(forKey: id)
+        } else {
+            replyDrafts[id] = text
+        }
+    }
+
+    func clearDraft(for id: String) {
+        replyDrafts.removeValue(forKey: id)
     }
 
     /// Shows the oldest queued notification, if any. Oldest first so a burst
@@ -258,7 +295,11 @@ final class SystemNotificationManager: ObservableObject {
         }
     }
 
-    private func show(_ notification: SystemNotification) {
+    /// `releasingPrevious: false` when rotating through the stack — the
+    /// outgoing notification goes back into the queue rather than away, and
+    /// it needs to keep its held banner or it won't be replyable when it
+    /// comes back around.
+    private func show(_ notification: SystemNotification, releasingPrevious: Bool = true) {
         // A newer notification replaces the active one directly here rather
         // than going through dismissActive, so its hold was never being
         // released: dismissActive only releases whatever activeNotification
@@ -269,7 +310,7 @@ final class SystemNotificationManager: ObservableObject {
         // notificationcenterui for its own real Notification Center panel,
         // that panel could end up opening off-screen too, which is why the
         // system clock stopped visibly doing anything.
-        if let previous = activeNotification, previous.id != notification.id {
+        if releasingPrevious, let previous = activeNotification, previous.id != notification.id {
             XPCHelperClient.shared.releaseNotification(token: previous.id)
         }
         withAnimation(.smooth) { activeNotification = notification }
@@ -292,6 +333,7 @@ final class SystemNotificationManager: ObservableObject {
         // has moved on.
         if let id = activeNotification?.id {
             XPCHelperClient.shared.releaseNotification(token: id)
+            clearDraft(for: id)
         }
         withAnimation(.smooth) { activeNotification = nil }
 

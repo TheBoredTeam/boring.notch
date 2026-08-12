@@ -180,6 +180,28 @@
         }
       }
     },
+    "%lld more waiting" : {
+
+    },
+    "%lld%%" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%%"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%%"
+          }
+        }
+      }
+    },
+    "+%lld" : {
+
+    },
     "About" : {
       "localizations" : {
         "cs" : {

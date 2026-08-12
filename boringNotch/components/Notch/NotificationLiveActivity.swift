@@ -153,6 +153,10 @@ struct NotificationExpandedView: View {
         // notification go rather than pinning it forever.
         .onAppear {
             manager.holdActive()
+            // Cycling the stack rebuilds this view for a different
+            // notification (.id below), so a half-typed reply only survives
+            // if it's restored from the manager rather than kept in @State.
+            replyText = manager.draft(for: notification.id)
             if kind == .reply { replyFocused = true }
         }
         // The single teardown point for both the key-window grant and the
@@ -202,10 +206,11 @@ struct NotificationExpandedView: View {
             // so hold it for the whole compose session.
             beginComposing()
         }
-        .onChange(of: replyText) { _, _ in
-            // Stop the timer's clock is exactly what typing should do — a
-            // keystroke is the clearest possible "still here" signal, so it
-            // gets an uncapped hold rather than the notch-open cap.
+        .onChange(of: replyText) { _, text in
+            manager.setDraft(text, for: notification.id)
+            // Stopping the timer's clock is exactly what typing should do —
+            // a keystroke is the clearest possible "still here" signal, so
+            // it gets an uncapped hold rather than the notch-open cap.
             if replyFocused { manager.holdWhileTyping() }
         }
     }
@@ -284,24 +289,30 @@ struct NotificationExpandedView: View {
     private var queuedBadge: some View {
         let queued = manager.queued
         if !queued.isEmpty {
-            HStack(spacing: 3) {
-                if let bundleID = singleQueuedAppBundleID {
-                    AppIcon(for: bundleID)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 11, height: 11)
-                        .clipShape(RoundedRectangle(cornerRadius: 3))
+            Button {
+                manager.cycleToNextQueued()
+            } label: {
+                HStack(spacing: 3) {
+                    if let bundleID = singleQueuedAppBundleID {
+                        AppIcon(for: bundleID)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 11, height: 11)
+                            .clipShape(RoundedRectangle(cornerRadius: 3))
+                    }
+                    Text("+\(queued.count)")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
                 }
-                Text("+\(queued.count)")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.9))
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+                .background(.white.opacity(0.14), in: Capsule())
+                .contentShape(Capsule())
             }
-            .padding(.horizontal, 5)
-            .padding(.vertical, 2)
-            .background(.white.opacity(0.14), in: Capsule())
+            .buttonStyle(ScaleDownButtonStyle())
             .transition(.scale.combined(with: .opacity))
             .animation(.smooth(duration: 0.2), value: queued.count)
-            .help("\(queued.count) more waiting")
+            .help("Tap to see the next of \(queued.count) waiting")
         }
     }
 
@@ -534,6 +545,7 @@ struct NotificationExpandedView: View {
             // actually sitting on the clipboard.
             didSend = outcome == .sent
             didHandOff = outcome == .handedOffToApp
+            manager.clearDraft(for: notification.id)
             try? await Task.sleep(for: .milliseconds(1200))
             manager.dismissActive(token: notification.id)
         }
