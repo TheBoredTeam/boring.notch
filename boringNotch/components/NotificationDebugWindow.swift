@@ -89,6 +89,8 @@ struct NotificationDebugView: View {
                 lastResult = "replied via the live banner"
             case .handedOffToApp:
                 lastResult = "banner gone — copied to clipboard and opened the app"
+            case .draftedInApp:
+                lastResult = "banner gone — opened the conversation with the text pre-filled"
             }
         }
     }
