@@ -230,17 +230,22 @@ final class NotificationWatcher {
     /// the banner is on screen and the source app offers a reply field; the
     /// caller falls back to opening the app otherwise.
     ///
-    /// Verified against a live WhatsApp banner (2026-08-12): Notification
-    /// Center does not expose a "Reply" action. The field is revealed by
-    /// "Show Details" (collapsed) / "Hide Details" (already expanded), and
-    /// submitted with a "Send" action on the banner itself — not
-    /// kAXConfirmAction on the field, which is untested and unreliable across
-    /// text-area implementations.
+    /// Verified against a live WhatsApp banner (2026-08-12): a collapsed
+    /// banner's actions are ["AXPress", "Show Details", "Reply", "Close"] —
+    /// a real "Reply" action does exist (an earlier check only ever caught
+    /// the banner post-expansion, where it's already gone, which led to a
+    /// wrong assumption here). "Reply" is preferred since it's the more
+    /// direct, purpose-built action; "Show Details" is the fallback for
+    /// banners/apps that don't expose it. Either way the field is submitted
+    /// via the "Send" action on the banner — not kAXConfirmAction on the
+    /// field, which is untested and unreliable across text-area
+    /// implementations.
     func reply(token: String, text: String) -> Bool {
         guard let banner = live[token] else { return false }
 
         if replyField(in: banner) == nil {
-            if let action = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("details") }) {
+            if let action = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("reply") })
+                ?? rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("details") }) {
                 AXUIElementPerformAction(banner, action as CFString)
             } else if let button = descendants(of: banner, matching: [kAXButtonRole]).first(where: {
                 ($0[kAXTitleAttribute] as? String)?.lowercased().contains("reply") == true

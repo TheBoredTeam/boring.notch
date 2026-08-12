@@ -27,15 +27,17 @@ struct SystemNotification: Identifiable, Equatable {
     /// True while the banner still exists, i.e. while replying can work.
     var isLive: Bool = true
 
-    /// Best-effort signal for showing the reply row. Notification Center
-    /// doesn't label reply-capable banners consistently — WhatsApp exposes
-    /// "Show Details" (reveals the field) and "Send" (submits), never the
-    /// word "reply" (verified against a live banner). Either is a decent
-    /// hint; `SystemNotificationManager.reply` is the actual source of truth
-    /// and falls back to opening the app if no field materializes.
+    /// Best-effort signal for showing the reply row. A collapsed WhatsApp
+    /// banner exposes "Reply" directly; once expanded that's replaced by
+    /// "Show Details"/"Send" (verified against live banners in both states).
+    /// Any of the three is a decent hint; `SystemNotificationManager.reply`
+    /// is the actual source of truth and falls back to opening the app if no
+    /// field materializes.
     var canReply: Bool {
         isLive && actions.contains {
-            $0.localizedCaseInsensitiveContains("send") || $0.localizedCaseInsensitiveContains("details")
+            $0.localizedCaseInsensitiveContains("reply")
+                || $0.localizedCaseInsensitiveContains("send")
+                || $0.localizedCaseInsensitiveContains("details")
         }
     }
 
