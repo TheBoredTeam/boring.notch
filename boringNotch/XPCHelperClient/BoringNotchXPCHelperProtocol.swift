@@ -63,6 +63,7 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func startNotificationWatching(with reply: @escaping (Bool) -> Void)
     func stopNotificationWatching()
     func replyToNotification(_ token: String, text: String, with reply: @escaping (Bool) -> Void)
+    func sendIMessage(_ text: String, toChatNamed name: String, with reply: @escaping (Bool) -> Void)
     func performNotificationAction(_ token: String, name: String, with reply: @escaping (Bool) -> Void)
     func openNotification(_ token: String, with reply: @escaping (Bool) -> Void)
     func dismissNotification(_ token: String, with reply: @escaping (Bool) -> Void)
