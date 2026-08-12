@@ -13,10 +13,11 @@
 //  remaining time, and a 10pt-spaced transport row.
 //
 //  Built on this project's own MusicSliderView / HoverButton /
-//  MarqueeText and the musicControlSlots preference rather than porting
-//  Atoll's ~1500-line view wholesale, so seeking and the configured
-//  transport buttons stay identical between the two layouts instead of
-//  drifting apart.
+//  MarqueeText rather than porting Atoll's ~1500-line view wholesale, so
+//  seeking behaves identically in both layouts instead of drifting apart.
+//  The transport row is a fixed five here rather than the musicControlSlots
+//  preference — that preference exists to configure the full layout, and
+//  its default would leave compact mode without shuffle or media output.
 //
 
 import Defaults
@@ -31,8 +32,6 @@ struct CompactHomeView: View {
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
 
-    @Default(.musicControlSlots) private var slotConfig
-    @Default(.musicControlSlotLimit) private var slotLimit
     @Default(.coloredSpectrogram) private var coloredSpectrogram
     @Default(.playerColorTinting) private var playerColorTinting
 
@@ -75,8 +74,7 @@ struct CompactHomeView: View {
             )
 
             HStack(alignment: .center, spacing: headerSpacing) {
-                AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
-                    .frame(width: albumArtWidth, height: albumArtWidth)
+                compactAlbumArt
 
                 VStack(alignment: .leading, spacing: 1) {
                     MarqueeText(
@@ -138,8 +136,6 @@ struct CompactHomeView: View {
 
     // MARK: - Transport
 
-    /// Uses the same slot preference as the full layout, so the buttons
-    /// configured there are the ones that appear here.
     private var transport: some View {
         HStack(spacing: 10) {
             ForEach(Array(displayedSlots.enumerated()), id: \.offset) { _, slot in
@@ -149,15 +145,12 @@ struct CompactHomeView: View {
         .frame(maxWidth: .infinity, alignment: .center)
     }
 
+    /// Fixed five, deliberately not the musicControlSlots preference. That
+    /// preference defaults to [.none, .previous, .playPause, .next, .none],
+    /// which is why this row was rendering only three buttons — compact
+    /// mode is meant to show shuffle and media output too.
     private var displayedSlots: [MusicControlButton] {
-        // Padding is done here rather than via NotchHomeView's `padded`
-        // helper, which is fileprivate to that file.
-        let count = min(max(slotLimit, MusicControlButton.minSlotCount), MusicControlButton.maxSlotCount)
-        var slots = slotConfig
-        if slots.count < count {
-            slots += Array(repeating: .none, count: count - slots.count)
-        }
-        return Array(slots.prefix(count))
+        [.shuffle, .previous, .playPause, .next, .none]
     }
 
     @ViewBuilder
@@ -184,12 +177,53 @@ struct CompactHomeView: View {
                 MusicManager.shared.toggleRepeat()
             }
         case .none:
-            EmptyView()
+            mediaOutputButton
         default:
             // Slots that only make sense in the full layout are skipped
             // rather than rendered half-working in a player-only view.
             EmptyView()
         }
+    }
+
+    /// Shows where audio is currently going and opens Sound settings.
+    ///
+    /// Atoll's equivalent opens a popover that switches device inline, but
+    /// that needs its AudioRouteManager (enumeration + switching), which
+    /// this project doesn't have — AudioOutputRouteResolver only classifies
+    /// the current route. Handing off to Sound settings is honest about
+    /// that rather than faking a picker that can't switch anything.
+    private var mediaOutputButton: some View {
+        HoverButton(icon: routeSymbol, scale: .medium) {
+            if let url = URL(string: "x-apple.systempreferences:com.apple.Sound-Settings.extension") {
+                NSWorkspace.shared.open(url)
+            }
+        }
+    }
+
+    private var compactAlbumArt: some View {
+        ZStack(alignment: .bottomTrailing) {
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: albumArtWidth, height: albumArtWidth)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+            // Badge scaled to this art. AlbumArtView's is a fixed 30pt with
+            // a +10/+10 offset, sized for the 120pt art in the full layout —
+            // on 50pt art it spills outside the corner.
+            if !musicManager.usingAppIconForArtwork {
+                AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 18, height: 18)
+                    .offset(x: 5, y: 5)
+            }
+        }
+        .frame(width: albumArtWidth, height: albumArtWidth)
+    }
+
+    private var routeSymbol: String {
+        AudioOutputRouteResolver.shared.outputRouteSymbol()
     }
 
     private var repeatIcon: String {
