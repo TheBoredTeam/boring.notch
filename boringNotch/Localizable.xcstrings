@@ -604,6 +604,9 @@
         }
       }
     },
+    "actions: %@" : {
+
+    },
     "Add" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1861,6 +1864,9 @@
         }
       },
       "shouldTranslate" : false
+    },
+    "Apps" : {
+
     },
     "Auto-scroll to next event" : {
       "localizations" : {
@@ -5133,6 +5139,9 @@
         }
       }
     },
+    "Clear" : {
+
+    },
     "Clear slot" : {
       "localizations" : {
         "de" : {
@@ -6133,6 +6142,12 @@
           }
         }
       }
+    },
+    "Copied" : {
+
+    },
+    "Copy" : {
+
     },
     "Copy Meeting Link" : {
 
@@ -7919,6 +7934,9 @@
         }
       }
     },
+    "Dump AX tree" : {
+
+    },
     "Edit layout" : {
       "localizations" : {
         "cs" : {
@@ -9134,6 +9152,9 @@
         }
       }
     },
+    "expired" : {
+
+    },
     "Extend hover area" : {
       "localizations" : {
         "de" : {
@@ -9594,6 +9615,8 @@
     },
     "Frame shape" : {
       "comment" : "A label for the shape of the mirror frame."
+    },
+    "From all apps" : {
     },
     "Full charge" : {
       "localizations" : {
@@ -11125,6 +11148,9 @@
           }
         }
       }
+    },
+    "Hide system banner, show in notch only" : {
+
     },
     "Hide title bar" : {
       "localizations" : {
@@ -15654,6 +15680,9 @@
         }
       }
     },
+    "Not watching" : {
+
+    },
     "Notch animation" : {
       "localizations" : {
         "cs" : {
@@ -16184,6 +16213,12 @@
         }
       }
     },
+    "Notification Debug" : {
+
+    },
+    "Notifications" : {
+
+    },
     "Now Playing" : {
       "localizations" : {
         "cs" : {
@@ -16281,6 +16316,12 @@
           }
         }
       }
+    },
+    "Only these apps show a live activity in the notch. Turn on \"From all apps\" to mirror everything instead." : {
+
+    },
+    "Open" : {
+
     },
     "Open Calendar Settings" : {
       "localizations" : {
@@ -16399,6 +16440,9 @@
           }
         }
       }
+    },
+    "Open in %@" : {
+
     },
     "Open Notch" : {
       "extractionState" : "stale",
@@ -19124,6 +19168,12 @@
         }
       }
     },
+    "Reply" : {
+
+    },
+    "reply…" : {
+
+    },
     "Request Accessibility" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -19247,6 +19297,9 @@
           }
         }
       }
+    },
+    "Requires Accessibility access. Only banners are mirrored — notifications delivered silently to Notification Center aren't visible to the app." : {
+
     },
     "Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform." : {
       "localizations" : {
@@ -20266,6 +20319,9 @@
           }
         }
       }
+    },
+    "Send" : {
+
     },
     "Settings" : {
       "localizations" : {
@@ -22417,6 +22473,9 @@
         }
       }
     },
+    "Show notifications in the notch" : {
+
+    },
     "Show on all displays" : {
       "localizations" : {
         "cs" : {
@@ -24415,6 +24474,12 @@
           }
         }
       }
+    },
+    "Start" : {
+
+    },
+    "Stop" : {
+
     },
     "Stopped" : {
       "extractionState" : "stale",
@@ -27033,6 +27098,9 @@
           }
         }
       }
+    },
+    "Watching" : {
+
     },
     "Week starts on" : {
       "comment" : "Calendar setting: which weekday the week strip starts on",
