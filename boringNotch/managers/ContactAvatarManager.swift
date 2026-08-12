@@ -73,6 +73,44 @@ final class ContactAvatarManager: ObservableObject {
         return image
     }
 
+    /// Phone number for a contact, digits only and international, suitable
+    /// for a whatsapp:// deep link — or nil when it can't be resolved
+    /// *confidently*.
+    ///
+    /// The bar is deliberately high, because the cost of being wrong is
+    /// dropping someone's private reply into a stranger's chat:
+    ///
+    ///  - exactly one matching contact, else the name is ambiguous
+    ///  - the stored number must already carry a country code (leading "+").
+    ///    A local-format number can't be made international without guessing
+    ///    the country, and a wrong guess is a wrong person.
+    ///
+    /// Group chats resolve to nothing here, which is correct — a group name
+    /// isn't a contact and has no single number to send to.
+    func phoneNumber(forContactNamed name: String) -> String? {
+        guard isAuthorized else { return nil }
+
+        let keys = [CNContactPhoneNumbersKey as CNKeyDescriptor]
+        guard let contacts = try? store.unifiedContacts(
+            matching: CNContact.predicateForContacts(matchingName: name),
+            keysToFetch: keys
+        ), contacts.count == 1 else { return nil }
+
+        // Prefer an explicitly mobile number; a landline won't reach
+        // WhatsApp at all.
+        let numbers = contacts[0].phoneNumbers
+        let preferred = numbers.first {
+            $0.label == CNLabelPhoneNumberMobile || $0.label == CNLabelPhoneNumberiPhone
+        } ?? numbers.first
+
+        guard let raw = preferred?.value.stringValue else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespaces)
+        guard trimmed.hasPrefix("+") else { return nil }
+
+        let digits = trimmed.filter(\.isNumber)
+        return digits.isEmpty ? nil : digits
+    }
+
     /// Call once, e.g. when notification live activity starts, so the first
     /// banner isn't blocked on a permission prompt mid-render.
     func requestAccessIfNeeded() async {

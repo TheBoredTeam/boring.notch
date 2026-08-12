@@ -408,6 +408,10 @@ final class SystemNotificationManager: ObservableObject {
         /// The banner was gone, so the draft went to the clipboard and the
         /// app was opened for the user to paste.
         case handedOffToApp
+        /// Opened the conversation with the text already in its compose
+        /// box. Better than the clipboard, but still not sent — the user
+        /// presses send themselves.
+        case draftedInApp
     }
 
     /// Sends an inline reply.
@@ -440,6 +444,26 @@ final class SystemNotificationManager: ObservableObject {
             playSentSound()
             dismissActive(token: notification.id)
             return .sent
+        }
+
+        // WhatsApp exposes no scripting interface, but its URL scheme can
+        // open a specific conversation with text pre-filled — far better
+        // than the clipboard, which leaves the user to find the chat and
+        // paste. Needs a phone number, which only comes from Contacts and
+        // only when it resolves unambiguously (see phoneNumber(for:)).
+        if notification.bundleID == "net.whatsapp.WhatsApp",
+           let sender = notification.sender,
+           let phone = ContactAvatarManager.shared.phoneNumber(forContactNamed: sender),
+           let encoded = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           // whatsapp:// rather than wa.me — the scheme is registered to
+           // WhatsApp.app directly, so it opens the app instead of bouncing
+           // the message text through a browser.
+           let url = URL(string: "whatsapp://send?phone=\(phone)&text=\(encoded)") {
+            NSLog("[boringNotch] reply drafted in WhatsApp conversation for \(sender)")
+            NSWorkspace.shared.open(url)
+            playHandOffSound()
+            dismissActive(token: notification.id)
+            return .draftedInApp
         }
 
         NSLog("[boringNotch] reply could not be delivered (banner gone) — handing off to \(notification.appName ?? "app")")
