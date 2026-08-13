@@ -101,6 +101,182 @@
         }
       }
     },
+    "Battery levels appear in the Quick Launch Home card. This choice is kept when the card is hidden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Battery levels appear in the Quick Launch Home card. This choice is kept when the card is hidden."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙设备电量显示在主页面的“快捷启动”卡片中；隐藏该卡片时仍会保留此选择。"
+          }
+        }
+      }
+    },
+    "Bluetooth Devices" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth Devices"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙设备"
+          }
+        }
+      }
+    },
+    "Choose up to six apps for the Quick Launch Home card. Connected-device batteries are configured in Bluetooth Devices." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose up to six apps for the Quick Launch Home card. Connected-device batteries are configured in Bluetooth Devices."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最多为主页面的“快捷启动”卡片选择 6 个 App。已连接设备的电量请在“蓝牙设备”中设置。"
+          }
+        }
+      }
+    },
+    "Devices to Display" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devices to Display"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示设备"
+          }
+        }
+      }
+    },
+    "Home Display" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home Display"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主页面显示"
+          }
+        }
+      }
+    },
+    "No connected device with battery data has been detected yet." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No connected device with battery data has been detected yet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂未检测到可提供电量信息的已连接设备。"
+          }
+        }
+      }
+    },
+    "Only devices connected to this Mac with a system-reported battery level are listed. Names and visibility choices stay on this Mac; Bluetooth addresses and serial numbers are not stored." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only devices connected to this Mac with a system-reported battery level are listed. Names and visibility choices stay on this Mac; Bluetooth addresses and serial numbers are not stored."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅列出已连接到这台 Mac 且系统可读取电量的设备。设备名称和显示选择只保存在本机；不会存储蓝牙地址或序列号。"
+          }
+        }
+      }
+    },
+    "Previously Detected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previously Detected"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "之前检测到"
+          }
+        }
+      }
+    },
+    "Refresh Devices" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh Devices"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新设备"
+          }
+        }
+      }
+    },
+    "Show All" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show All"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部显示"
+          }
+        }
+      }
+    },
+    "Show connected-device batteries" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show connected-device batteries"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示已连接设备电量"
+          }
+        }
+      }
+    },
     " – %lld" : {
       "localizations" : {
         "ar" : {
@@ -11909,6 +12085,38 @@
         }
       }
     },
+    "Keep screen media bar on top" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep screen media bar on top"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "屏幕媒体条始终置顶"
+          }
+        }
+      }
+    },
+    "Keep settings and Agent windows on top" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep settings and Agent windows on top"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置与智能体窗口始终置顶"
+          }
+        }
+      }
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -17710,6 +17918,22 @@
         }
       }
     },
+    "Reset screen media bar position" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset screen media bar position"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置屏幕媒体条位置"
+          }
+        }
+      }
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -20008,6 +20232,38 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "显示电源状态通知"
+          }
+        }
+      }
+    },
+    "Show lyrics in screen media bar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show lyrics in screen media bar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在屏幕媒体条中显示歌词"
+          }
+        }
+      }
+    },
+    "Show screen media bar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show screen media bar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示屏幕媒体条"
           }
         }
       }

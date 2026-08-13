@@ -19,6 +19,7 @@ struct TabSelectionView: View {
     @Default(.boringShelf) private var boringShelf
     @Default(.aiChatEnabled) private var aiChatEnabled
 
+    @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject private var shelfState = ShelfStateViewModel.shared
     @Namespace var animation
@@ -44,7 +45,7 @@ struct TabSelectionView: View {
             ForEach(visibleTabs) { tab in
                 TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                     withAnimation(tabSwitchAnimation) {
-                        coordinator.currentView = tab.view
+                        vm.selectOpenView(tab.view)
                     }
                 }
                 .frame(height: 26)
@@ -80,7 +81,7 @@ struct TabSelectionView: View {
 
     private func normalizeSelection() {
         if !visibleTabs.contains(where: { $0.view == coordinator.currentView }) {
-            coordinator.currentView = .home
+            vm.selectOpenView(.home)
         }
     }
 }

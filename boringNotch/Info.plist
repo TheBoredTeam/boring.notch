@@ -2,15 +2,23 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleName</key>
+	<string>蛋神</string>
+	<key>LSMultipleInstancesProhibited</key>
+	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
 	<key>NSLocationUsageDescription</key>
-	<string>Boring Notch需要使用你的位置来显示本地天气。</string>
+	<string>蛋神需要使用你的位置来显示本地天气。</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Boring Notch需要使用你的位置来显示本地天气。</string>
+	<string>蛋神需要使用你的位置来显示本地天气。</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>蛋神需要读取和创建日程，以回答安排问题并执行你明确要求的日历操作。</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>蛋神需要读取提醒事项，以在日程视图和智能体回答中显示待办。</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>

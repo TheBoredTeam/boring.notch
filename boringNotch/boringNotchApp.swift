@@ -7,6 +7,7 @@
 
 import AVFoundation
 import Combine
+import Darwin
 import Defaults
 import KeyboardShortcuts
 import SwiftUI
@@ -18,7 +19,7 @@ struct DynamicNotchApp: App {
     @Environment(\.openWindow) var openWindow
 
     var body: some Scene {
-        MenuBarExtra("Boring Notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("蛋神", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             Button("设置") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
@@ -27,7 +28,7 @@ struct DynamicNotchApp: App {
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView()
             Divider()
-            Button("重启Boring Notch") {
+            Button("重启蛋神") {
                 ApplicationRelauncher.restart()
             }
             Button("退出", role: .destructive) {
@@ -57,6 +58,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
     private var pendingFrameRefreshTask: Task<Void, Never>?
+    private var singleInstanceLockDescriptor: Int32 = -1
+    private var isSecondaryInstance = false
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        guard acquireSingleInstanceLock() else {
+            isSecondaryInstance = true
+            activateExistingInstance()
+            DispatchQueue.main.async {
+                NSApplication.shared.terminate(nil)
+            }
+            return
+        }
+    }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -73,9 +87,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        ScreenMediaBarController.shared.stop()
         cleanupDragDetectors()
         cleanupWindows()
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
+        releaseSingleInstanceLock()
+    }
+
+    private func acquireSingleInstanceLock() -> Bool {
+        let bundleIdentifier = Bundle.main.bundleIdentifier ?? "theboringteam.boringnotch"
+        let lockURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(bundleIdentifier).instance.lock")
+        let descriptor = lockURL.path.withCString {
+            Darwin.open($0, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
+        }
+        guard descriptor >= 0 else { return true }
+
+        guard Darwin.lockf(descriptor, F_TLOCK, 0) == 0 else {
+            Darwin.close(descriptor)
+            return false
+        }
+
+        singleInstanceLockDescriptor = descriptor
+        return true
+    }
+
+    private func releaseSingleInstanceLock() {
+        guard singleInstanceLockDescriptor >= 0 else { return }
+        Darwin.lockf(singleInstanceLockDescriptor, F_ULOCK, 0)
+        Darwin.close(singleInstanceLockDescriptor)
+        singleInstanceLockDescriptor = -1
+    }
+
+    private func activateExistingInstance() {
+        guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
+        let currentPID = ProcessInfo.processInfo.processIdentifier
+        NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier)
+            .first(where: { $0.processIdentifier != currentPID && !$0.isTerminated })?
+            .activate(options: [])
     }
 
     @MainActor
@@ -315,19 +364,69 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let isResizingAssistantPanel = vm.isResizingAssistantPanel || viewModels.values.contains { $0.isResizingAssistantPanel }
         guard isResizingAssistantPanel else {
             pendingFrameRefreshTask?.cancel()
+            pendingFrameRefreshTask = nil
             refreshWindowFrames()
             return
         }
 
-        pendingFrameRefreshTask?.cancel()
+        guard pendingFrameRefreshTask == nil else { return }
         pendingFrameRefreshTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(24))
-            guard !Task.isCancelled else { return }
+            try? await Task.sleep(for: .milliseconds(16))
+            guard !Task.isCancelled else {
+                pendingFrameRefreshTask = nil
+                return
+            }
             refreshWindowFrames()
+            pendingFrameRefreshTask = nil
         }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        guard !isSecondaryInstance else { return }
+        _ = AIProviderCredentialStore.apiKey
+
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--bluetooth-battery-self-test") {
+            Task { @MainActor in
+                let payload = await XPCHelperClient.shared.bluetoothAccessoryBatteryData()
+                let devices = payload.flatMap {
+                    try? JSONDecoder().decode([BluetoothAccessoryBatteryDevice].self, from: $0)
+                }
+                let parts = devices?.flatMap(\.parts) ?? []
+                let result: [String: Any] = [
+                    "payloadReceived": payload != nil,
+                    "deviceCount": devices?.count ?? 0,
+                    "partCount": parts.count,
+                    "percentagesValid": parts.allSatisfy { (0 ... 100).contains($0.percentage) },
+                ]
+                if let data = try? JSONSerialization.data(
+                    withJSONObject: result,
+                    options: [.sortedKeys]
+                ) {
+                    FileHandle.standardOutput.write(data)
+                    FileHandle.standardOutput.write(Data([0x0A]))
+                }
+                NSApplication.shared.terminate(nil)
+            }
+            return
+        }
+
+        if ProcessInfo.processInfo.arguments.contains("--calendar-self-test") {
+            Task { @MainActor in
+                let result = await CalendarManager.shared.runCalendarRuntimeSelfTest()
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = [.sortedKeys]
+                if let data = try? encoder.encode(result) {
+                    FileHandle.standardOutput.write(data)
+                    FileHandle.standardOutput.write(Data([0x0A]))
+                }
+                NSApplication.shared.terminate(nil)
+            }
+            return
+        }
+        #endif
+
+        _ = ScreenMediaBarController.shared
 
         NotificationCenter.default.addObserver(
             self,
@@ -355,9 +454,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         NotificationCenter.default.addObserver(
-            forName: Notification.Name.notchPanelSizeChanged, object: nil, queue: nil
+            forName: Notification.Name.notchPanelSizeChanged, object: nil, queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in
+            MainActor.assumeIsolated {
                 self?.scheduleWindowFrameRefresh()
             }
         }

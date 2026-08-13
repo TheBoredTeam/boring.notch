@@ -10,6 +10,7 @@
 import Foundation
 @preconcurrency import EventKit
 
+@MainActor
 protocol CalendarServiceProviding {
     func requestAccess(to type: EKEntityType) async throws -> Bool
     func calendars() async -> [CalendarModel]
@@ -17,10 +18,11 @@ protocol CalendarServiceProviding {
     func createEvents(_ drafts: [CalendarEventDraft], preferredCalendarIDs: [String]) async throws -> [CreatedCalendarEvent]
 }
 
-class CalendarService: CalendarServiceProviding {
+@MainActor
+final class CalendarService: CalendarServiceProviding {
+    private let agentCalendarTitle = "蛋神"
     private let store = EKEventStore()
     
-    @MainActor
     func requestAccess(to type: EKEntityType) async throws -> Bool {
         if #available(macOS 14.0, *) {
             switch type {
@@ -46,6 +48,7 @@ class CalendarService: CalendarServiceProviding {
     }
     
     func calendars() async -> [CalendarModel] {
+        store.refreshSourcesIfNecessary()
         var calendars: [EKCalendar] = []
         
         for type in [EKEntityType.event, .reminder] where hasAccess(to: type) {
@@ -56,18 +59,12 @@ class CalendarService: CalendarServiceProviding {
     }
     
     func events(from start: Date, to end: Date, calendars ids: [String]) async -> [EventModel] {
-        let allCalendars = await self.calendars()
-        let filteredCalendars = allCalendars.filter { ids.isEmpty || ids.contains($0.id) }
-        let ekCalendars = filteredCalendars.compactMap { calendarModel in
-            store.calendars(for: .event).first { $0.calendarIdentifier == calendarModel.id } ??
-            store.calendars(for: .reminder).first { $0.calendarIdentifier == calendarModel.id }
-        }
-        
+        store.refreshSourcesIfNecessary()
         var events: [EventModel] = []
         
         // Fetch regular events
         if hasAccess(to: .event) {
-            let eventCalendars = ekCalendars.filter { store.calendars(for: .event).contains($0) }
+            let eventCalendars = resolvedCalendars(for: .event, ids: ids)
             let predicate = store.predicateForEvents(withStart: start, end: end, calendars: eventCalendars)
             let ekEvents = store.events(matching: predicate)
             events.append(contentsOf: ekEvents.compactMap { EventModel(from: $0) })
@@ -75,14 +72,22 @@ class CalendarService: CalendarServiceProviding {
         
         // Fetch reminders
         if hasAccess(to: .reminder) {
-            let reminderCalendars = ekCalendars.filter { store.calendars(for: .reminder).contains($0) }
+            let reminderCalendars = resolvedCalendars(for: .reminder, ids: ids)
             events.append(contentsOf: await fetchReminders(from: start, to: end, calendars: reminderCalendars))
         }
         
         return events.sorted { $0.start < $1.start }
     }
     
-    private func fetchReminders(from start: Date, to end: Date, calendars: [EKCalendar]) async -> [EventModel] {
+    private func resolvedCalendars(for type: EKEntityType, ids: [String]) -> [EKCalendar]? {
+        guard !ids.isEmpty else {
+            return nil
+        }
+
+        return store.calendars(for: type).filter { ids.contains($0.calendarIdentifier) }
+    }
+
+    private func fetchReminders(from start: Date, to end: Date, calendars: [EKCalendar]?) async -> [EventModel] {
         return await withCheckedContinuation { continuation in
             // Create predicate for reminders with due dates in the specified range
             let predicate = store.predicateForReminders(in: calendars)
@@ -119,51 +124,158 @@ class CalendarService: CalendarServiceProviding {
     }
 
     func createEvents(_ drafts: [CalendarEventDraft], preferredCalendarIDs: [String]) async throws -> [CreatedCalendarEvent] {
+        guard !drafts.isEmpty else {
+            return []
+        }
+
         guard hasAccess(to: .event) else {
             throw CalendarWriteError.accessDenied
         }
 
-        guard let targetCalendar = writableCalendar(preferredCalendarIDs: preferredCalendarIDs) else {
+        guard let targetCalendar = try writableCalendar(preferredCalendarIDs: preferredCalendarIDs) else {
             throw CalendarWriteError.noWritableCalendar
         }
 
-        var createdEvents: [CreatedCalendarEvent] = []
-        for draft in drafts {
-            let event = EKEvent(eventStore: store)
-            event.calendar = targetCalendar
-            event.title = draft.title
-            event.startDate = draft.start
-            event.endDate = max(draft.end, draft.start.addingTimeInterval(60 * 30))
-            event.notes = draft.notes
-            event.location = draft.location
+        var eventIdentifiers: [String] = []
 
-            try store.save(event, span: .thisEvent, commit: false)
-            createdEvents.append(
-                CreatedCalendarEvent(
+        do {
+            for draft in drafts {
+                let normalizedEnd = max(draft.end, draft.start.addingTimeInterval(60 * 5))
+                if let existing = matchingEvent(
                     title: draft.title,
-                    start: event.startDate,
-                    end: event.endDate,
-                    calendarTitle: targetCalendar.title
-                )
+                    start: draft.start,
+                    end: normalizedEnd,
+                    calendar: targetCalendar
+                ) {
+                    eventIdentifiers.append(existing.eventIdentifier)
+                    continue
+                }
+
+                let event = EKEvent(eventStore: store)
+                event.calendar = targetCalendar
+                event.title = draft.title
+                event.startDate = draft.start
+                event.endDate = normalizedEnd
+                event.notes = draft.notes
+                event.location = draft.location
+                if let alarmOffsetMinutes = draft.alarmOffsetMinutes {
+                    event.addAlarm(EKAlarm(relativeOffset: TimeInterval(alarmOffsetMinutes * 60)))
+                }
+
+                try store.save(event, span: .thisEvent, commit: false)
+                guard let identifier = event.eventIdentifier, !identifier.isEmpty else {
+                    throw CalendarWriteError.verificationFailed
+                }
+                eventIdentifiers.append(identifier)
+            }
+
+            try store.commit()
+        } catch {
+            store.reset()
+            throw error
+        }
+
+        store.refreshSourcesIfNecessary()
+        return try eventIdentifiers.map { identifier in
+            guard let persistedEvent = store.event(withIdentifier: identifier),
+                  persistedEvent.calendar.title == agentCalendarTitle
+            else {
+                throw CalendarWriteError.verificationFailed
+            }
+
+            return CreatedCalendarEvent(
+                identifier: persistedEvent.calendarItemIdentifier,
+                title: persistedEvent.title ?? "AI 日程",
+                start: persistedEvent.startDate,
+                end: persistedEvent.endDate,
+                calendarTitle: persistedEvent.calendar.title
             )
         }
-
-        try store.commit()
-        return createdEvents
     }
 
-    private func writableCalendar(preferredCalendarIDs: [String]) -> EKCalendar? {
+    #if DEBUG
+    func removeEventsForRuntimeTest(calendarItemIdentifiers: [String]) throws -> Int {
+        var removedCount = 0
+
+        for identifier in calendarItemIdentifiers {
+            guard let event = store.calendarItem(withIdentifier: identifier) as? EKEvent else {
+                continue
+            }
+            try store.remove(event, span: .thisEvent, commit: false)
+            removedCount += 1
+        }
+
+        if removedCount > 0 {
+            try store.commit()
+            store.refreshSourcesIfNecessary()
+        }
+        return removedCount
+    }
+    #endif
+
+    private func matchingEvent(
+        title: String,
+        start: Date,
+        end: Date,
+        calendar: EKCalendar
+    ) -> EKEvent? {
+        let tolerance: TimeInterval = 1
+        let predicate = store.predicateForEvents(
+            withStart: start.addingTimeInterval(-60),
+            end: end.addingTimeInterval(60),
+            calendars: [calendar]
+        )
+
+        return store.events(matching: predicate).first { event in
+            event.title == title
+                && abs(event.startDate.timeIntervalSince(start)) <= tolerance
+                && abs(event.endDate.timeIntervalSince(end)) <= tolerance
+        }
+    }
+
+    private func writableCalendar(preferredCalendarIDs: [String]) throws -> EKCalendar? {
+        _ = preferredCalendarIDs
         let eventCalendars = store.calendars(for: .event).filter(\.allowsContentModifications)
 
-        if let selected = eventCalendars.first(where: { preferredCalendarIDs.contains($0.calendarIdentifier) }) {
-            return selected
+        if let agentCalendar = eventCalendars.first(where: { $0.title == agentCalendarTitle }) {
+            return agentCalendar
         }
 
-        if let defaultCalendar = store.defaultCalendarForNewEvents, defaultCalendar.allowsContentModifications {
-            return defaultCalendar
+        return try createAgentCalendarIfPossible()
+    }
+
+    private func createAgentCalendarIfPossible() throws -> EKCalendar? {
+        for source in calendarCreationSources() {
+            let calendar = EKCalendar(for: .event, eventStore: store)
+            calendar.title = agentCalendarTitle
+            calendar.source = source
+
+            do {
+                try store.saveCalendar(calendar, commit: true)
+                return calendar
+            } catch {
+                continue
+            }
         }
 
-        return eventCalendars.first
+        return nil
+    }
+
+    private func calendarCreationSources() -> [EKSource] {
+        var candidates: [EKSource] = []
+
+        if let defaultSource = store.defaultCalendarForNewEvents?.source {
+            candidates.append(defaultSource)
+        }
+
+        candidates.append(contentsOf: store.sources.filter { $0.sourceType == .local })
+        candidates.append(contentsOf: store.sources.filter { $0.sourceType == .calDAV || $0.sourceType == .exchange })
+
+        var unique: [EKSource] = []
+        for source in candidates where !unique.contains(where: { $0.sourceIdentifier == source.sourceIdentifier }) {
+            unique.append(source)
+        }
+        return unique
     }
 }
 
@@ -173,9 +285,11 @@ struct CalendarEventDraft: Equatable {
     let end: Date
     let notes: String?
     let location: String?
+    let alarmOffsetMinutes: Int?
 }
 
 struct CreatedCalendarEvent: Equatable {
+    let identifier: String
     let title: String
     let start: Date
     let end: Date
@@ -185,13 +299,16 @@ struct CreatedCalendarEvent: Equatable {
 enum CalendarWriteError: LocalizedError {
     case accessDenied
     case noWritableCalendar
+    case verificationFailed
 
     var errorDescription: String? {
         switch self {
         case .accessDenied:
             return "Calendar access is not available. Enable it in Settings > Calendar."
         case .noWritableCalendar:
-            return "No writable calendar is available for new events."
+            return "无法创建或找到可写入的“蛋神”日历。"
+        case .verificationFailed:
+            return "日程写入后未能从系统日历回读验证，请稍后重试。"
         }
     }
 }

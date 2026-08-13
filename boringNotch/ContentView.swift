@@ -229,7 +229,7 @@ struct ContentView: View {
 
             if isTargeted {
                 if vm.notchState == .closed {
-                    coordinator.currentView = .shelf
+                    vm.selectOpenView(.shelf)
                     doOpen()
                 }
                 return
@@ -251,21 +251,15 @@ struct ContentView: View {
             }
         }
         .onChange(of: coordinator.currentView) { _, _ in
-            withAnimation(animationSpring) {
-                vm.updateOpenSizeForCurrentView()
-            }
+            vm.updateOpenSizeForCurrentView()
         }
         .onChange(of: aiChatPanelWidth) { _, _ in
             guard !vm.isResizingAssistantPanel else { return }
-            withAnimation(animationSpring) {
-                vm.updateOpenSizeForCurrentView()
-            }
+            vm.updateOpenSizeForCurrentView()
         }
         .onChange(of: aiChatPanelHeight) { _, _ in
             guard !vm.isResizingAssistantPanel else { return }
-            withAnimation(animationSpring) {
-                vm.updateOpenSizeForCurrentView()
-            }
+            vm.updateOpenSizeForCurrentView()
         }
     }
 
@@ -386,9 +380,9 @@ struct ContentView: View {
                         }
                     }
                     .id(coordinator.currentView)
+                    .transition(.identity)
                 }
                 .transition(NotchPanelAnimation.contentTransition)
-                .animation(animationSpring, value: coordinator.currentView)
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)

@@ -27,16 +27,18 @@ class CalendarManager: ObservableObject {
     private let calendarService = CalendarService()
 
     private var eventStoreChangedObserver: NSObjectProtocol?
+    private var eventStoreRefreshTask: Task<Void, Never>?
 
     private init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
         setupEventStoreChangedObserver()
         Task {
-            await reloadCalendarAndReminderLists()
+            await refreshVisibleCalendar(for: Date())
         }
     }
 
     deinit {
+        eventStoreRefreshTask?.cancel()
         if let observer = eventStoreChangedObserver {
             NotificationCenter.default.removeObserver(observer)
         }
@@ -48,8 +50,14 @@ class CalendarManager: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task {
-                await self?.reloadCalendarAndReminderLists()
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.eventStoreRefreshTask?.cancel()
+                self.eventStoreRefreshTask = Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .milliseconds(150))
+                    guard !Task.isCancelled, let self else { return }
+                    await self.refreshCalendarData(updateVisibleEvents: true)
+                }
             }
         }
     }
@@ -65,9 +73,7 @@ class CalendarManager: ObservableObject {
 
     func checkCalendarAuthorization() async {
         let status = EKEventStore.authorizationStatus(for: .event)
-        DispatchQueue.main.async {
-            self.calendarAuthorizationStatus = status
-        }
+        calendarAuthorizationStatus = status
 
         switch status {
         case .notDetermined:
@@ -75,22 +81,15 @@ class CalendarManager: ObservableObject {
                 self.calendarAuthorizationStatus = .notDetermined
                 return
             }
-            self.calendarAuthorizationStatus = granted ? .fullAccess : .denied
-            if granted {
-                await reloadCalendarAndReminderLists()
-                events = await calendarService.events(
-                    from: currentWeekStartDate,
-                    to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!,
-                    calendars: selectedCalendars.map { $0.id })
+            let refreshedStatus = EKEventStore.authorizationStatus(for: .event)
+            calendarAuthorizationStatus = refreshedStatus
+            if granted, refreshedStatus == .fullAccess {
+                await refreshCalendarData(updateVisibleEvents: true)
             }
         case .restricted, .denied:
             break
         case .fullAccess:
-            await reloadCalendarAndReminderLists()
-            events = await calendarService.events(
-                from: currentWeekStartDate,
-                to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!,
-                calendars: selectedCalendars.map { $0.id })
+            await refreshCalendarData(updateVisibleEvents: true)
         case .writeOnly:
             break
         @unknown default:
@@ -100,9 +99,7 @@ class CalendarManager: ObservableObject {
     
     func checkReminderAuthorization() async {
         let status = EKEventStore.authorizationStatus(for: .reminder)
-        DispatchQueue.main.async {
-            self.reminderAuthorizationStatus = status
-        }
+        reminderAuthorizationStatus = status
 
         switch status {
         case .notDetermined:
@@ -110,8 +107,9 @@ class CalendarManager: ObservableObject {
                 self.reminderAuthorizationStatus = .notDetermined
                 return
             }
-            self.reminderAuthorizationStatus = granted ? .fullAccess : .denied
-            if granted {
+            let refreshedStatus = EKEventStore.authorizationStatus(for: .reminder)
+            reminderAuthorizationStatus = refreshedStatus
+            if granted, refreshedStatus == .fullAccess {
                 await reloadCalendarAndReminderLists()
             }
         case .restricted, .denied:
@@ -179,6 +177,11 @@ class CalendarManager: ObservableObject {
         await updateEvents()
     }
 
+    func refreshVisibleCalendar(for date: Date) async {
+        currentWeekStartDate = Calendar.current.startOfDay(for: date)
+        await refreshCalendarData(updateVisibleEvents: true)
+    }
+
     private func updateEvents() async {
         let calendarIDs = selectedCalendars.map { $0.id }
         let eventsResult = await calendarService.events(
@@ -187,6 +190,31 @@ class CalendarManager: ObservableObject {
             calendars: calendarIDs
         )
         self.events = eventsResult
+    }
+
+    private func refreshCalendarData(updateVisibleEvents: Bool) async {
+        calendarAuthorizationStatus = EKEventStore.authorizationStatus(for: .event)
+        reminderAuthorizationStatus = EKEventStore.authorizationStatus(for: .reminder)
+        await reloadCalendarAndReminderLists()
+        if updateVisibleEvents, calendarAuthorizationStatus == .fullAccess {
+            await updateEvents()
+        }
+    }
+
+    private func includeAgentCalendarAfterWrite() {
+        guard let agentCalendar = eventCalendars.first(where: { $0.title == "蛋神" }) else {
+            return
+        }
+
+        guard case .selected(var identifiers) = Defaults[.calendarSelectionState],
+              !identifiers.contains(agentCalendar.id)
+        else {
+            return
+        }
+
+        identifiers.insert(agentCalendar.id)
+        Defaults[.calendarSelectionState] = .selected(identifiers)
+        updateSelectedCalendars()
     }
     
     func setReminderCompleted(reminderID: String, completed: Bool) async {
@@ -199,15 +227,15 @@ class CalendarManager: ObservableObject {
     }
 
     func ensureCalendarAccessIfNeeded() async -> Bool {
-        let status = EKEventStore.authorizationStatus(for: .event)
-        calendarAuthorizationStatus = status
+        calendarAuthorizationStatus = EKEventStore.authorizationStatus(for: .event)
 
-        if status == .notDetermined {
+        if calendarAuthorizationStatus == .notDetermined {
             await checkCalendarAuthorization()
-        } else if status == .fullAccess {
-            await reloadCalendarAndReminderLists()
+        } else if calendarAuthorizationStatus == .fullAccess {
+            await refreshCalendarData(updateVisibleEvents: false)
         }
 
+        calendarAuthorizationStatus = EKEventStore.authorizationStatus(for: .event)
         return calendarAuthorizationStatus == .fullAccess
     }
 
@@ -218,10 +246,12 @@ class CalendarManager: ObservableObject {
         await reloadCalendarAndReminderLists()
         updateSelectedCalendars()
 
-        let start = Date()
-        let end = Calendar.current.date(byAdding: .day, value: daysAhead, to: start) ?? start
-        let calendarIDs = selectedCalendars.map { $0.id }
-        let fetchedEvents = await calendarService.events(from: start, to: end, calendars: calendarIDs)
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: Date())
+        let end = calendar.date(byAdding: .day, value: daysAhead, to: start) ?? start
+        let fetchedEvents = await calendarService.events(from: start, to: end, calendars: [])
+        let readableEventCalendarCount = eventCalendars.count
+        let readableReminderListCount = reminderLists.count
 
         let relevantEvents = fetchedEvents
             .filter { event in
@@ -262,11 +292,18 @@ class CalendarManager: ObservableObject {
         }
 
         if lines.isEmpty {
-            return "No scheduled calendar events were found in the next \(daysAhead) days."
+            return """
+            Calendar read succeeded.
+            Range: \(formatter.string(from: start)) - \(formatter.string(from: end)).
+            Scope: all accessible EventKit calendars (\(readableEventCalendarCount) event calendars, \(readableReminderListCount) reminder lists).
+            Result: 0 events or dated reminders found in this range.
+            """
         }
 
         return """
-        Calendar events in the next \(daysAhead) days:
+        Calendar events from today through the next \(daysAhead) days:
+        Current local time: \(formatter.string(from: Date()))
+        Scope: all accessible EventKit calendars (\(readableEventCalendarCount) event calendars, \(readableReminderListCount) reminder lists).
         \(lines.joined(separator: "\n"))
         """
     }
@@ -288,7 +325,108 @@ class CalendarManager: ObservableObject {
             .map(\.id)
 
         let created = try await calendarService.createEvents(drafts, preferredCalendarIDs: preferredEventCalendarIDs)
+        await reloadCalendarAndReminderLists()
+        includeAgentCalendarAfterWrite()
         await updateEvents()
+
+        let verificationStart = drafts.map(\.start).min()?.addingTimeInterval(-60) ?? Date()
+        let verificationEnd = drafts.map(\.end).max()?.addingTimeInterval(60) ?? Date().addingTimeInterval(60)
+        let persistedEvents = await calendarService.events(
+            from: verificationStart,
+            to: verificationEnd,
+            calendars: []
+        )
+        let persistedIDs = Set(persistedEvents.map(\.id))
+        guard created.allSatisfy({ $0.calendarTitle == "蛋神" && persistedIDs.contains($0.identifier) }) else {
+            throw CalendarWriteError.verificationFailed
+        }
         return created
     }
+
+    #if DEBUG
+    func runCalendarRuntimeSelfTest() async -> CalendarRuntimeSelfTestResult {
+        guard await ensureCalendarAccessIfNeeded() else {
+            return .init(
+                authorizationStatus: calendarAuthorizationStatus.rawValue,
+                readSucceeded: false,
+                writeSucceeded: false,
+                readAfterWriteSucceeded: false,
+                cleanupSucceeded: false,
+                message: "Calendar full access is unavailable."
+            )
+        }
+
+        let token = UUID().uuidString.prefix(8)
+        let title = "蛋神日历自检-\(token)"
+        let start = Date().addingTimeInterval(5 * 60)
+        let end = start.addingTimeInterval(10 * 60)
+        let initialContext = await aiScheduleContext(daysAhead: 1, limit: 100)
+        var created: [CreatedCalendarEvent] = []
+
+        do {
+            created = try await createAIPlannedEvents([
+                .init(
+                    title: title,
+                    start: start,
+                    end: end,
+                    notes: "蛋神 Debug 日历读写回归；完成后自动清理。",
+                    location: nil,
+                    alarmOffsetMinutes: nil
+                )
+            ])
+
+            let contextAfterWrite = await aiScheduleContext(daysAhead: 1, limit: 100)
+            let writeSucceeded = created.count == 1 && created[0].calendarTitle == "蛋神"
+            let readAfterWriteSucceeded = contextAfterWrite?.contains(title) == true
+            let removedCount = try calendarService.removeEventsForRuntimeTest(
+                calendarItemIdentifiers: created.map(\.identifier)
+            )
+            let eventsAfterCleanup = await calendarService.events(
+                from: start.addingTimeInterval(-60),
+                to: end.addingTimeInterval(60),
+                calendars: []
+            )
+            let cleanupSucceeded = removedCount == created.count
+                && !eventsAfterCleanup.contains(where: { $0.title == title })
+            await refreshCalendarData(updateVisibleEvents: true)
+
+            return .init(
+                authorizationStatus: calendarAuthorizationStatus.rawValue,
+                readSucceeded: initialContext != nil,
+                writeSucceeded: writeSucceeded,
+                readAfterWriteSucceeded: readAfterWriteSucceeded,
+                cleanupSucceeded: cleanupSucceeded,
+                message: writeSucceeded && readAfterWriteSucceeded && cleanupSucceeded
+                    ? "Calendar runtime self-test passed."
+                    : "Calendar runtime self-test returned an incomplete result."
+            )
+        } catch {
+            if !created.isEmpty {
+                _ = try? calendarService.removeEventsForRuntimeTest(
+                    calendarItemIdentifiers: created.map(\.identifier)
+                )
+            }
+            await refreshCalendarData(updateVisibleEvents: true)
+            return .init(
+                authorizationStatus: calendarAuthorizationStatus.rawValue,
+                readSucceeded: initialContext != nil,
+                writeSucceeded: !created.isEmpty,
+                readAfterWriteSucceeded: false,
+                cleanupSucceeded: created.isEmpty,
+                message: error.localizedDescription
+            )
+        }
+    }
+    #endif
 }
+
+#if DEBUG
+struct CalendarRuntimeSelfTestResult: Codable {
+    let authorizationStatus: Int
+    let readSucceeded: Bool
+    let writeSucceeded: Bool
+    let readAfterWriteSucceeded: Bool
+    let cleanupSucceeded: Bool
+    let message: String
+}
+#endif

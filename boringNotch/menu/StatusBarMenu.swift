@@ -11,7 +11,7 @@ class BoringStatusMenu: NSMenu {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "Boring Notch")
+            button.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "蛋神")
             button.action = #selector(showMenu)
         }
         

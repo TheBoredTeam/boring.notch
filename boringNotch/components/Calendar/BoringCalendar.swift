@@ -229,13 +229,13 @@ struct CalendarView: View {
         }
         .onChange(of: vm.notchState) { _, _ in
             Task {
-                await calendarManager.updateCurrentDate(Date.now)
+                await calendarManager.refreshVisibleCalendar(for: Date.now)
                 selectedDate = Date.now
             }
         }
         .onAppear {
             Task {
-                await calendarManager.updateCurrentDate(Date.now)
+                await calendarManager.refreshVisibleCalendar(for: Date.now)
                 selectedDate = Date.now
             }
         }

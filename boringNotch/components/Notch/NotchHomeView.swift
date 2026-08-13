@@ -628,6 +628,14 @@ private struct HomeWeatherCard: View {
                         }
                     }
 
+                    if let precipitationSummary = snapshot.upcomingPrecipitationSummary {
+                        Label(precipitationSummary, systemImage: "cloud.rain.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                    }
+
                     HStack(spacing: 8) {
                         compactMetric("体感", "\(Int(snapshot.current.feelsLike.rounded()))\(snapshot.current.unitSymbol)")
                         compactMetric("湿度", "\(snapshot.current.humidity)%")
@@ -730,11 +738,20 @@ private struct HomeWeatherHour: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
             HomeWeatherIcon(symbolName: entry.symbolName, size: 24, cornerRadius: 6)
-            Text("\(Int(entry.temperature.rounded()))\(entry.unitSymbol)")
-                .font(.caption2.weight(.semibold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .monospacedDigit()
+            HStack(spacing: 4) {
+                Text("\(Int(entry.temperature.rounded()))\(entry.unitSymbol)")
+                    .font(.caption2.weight(.semibold))
+
+                if let probability = entry.precipitationProbability {
+                    Label("\(probability)%", systemImage: "drop.fill")
+                        .labelStyle(.titleAndIcon)
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .monospacedDigit()
         }
         .frame(maxWidth: .infinity, minHeight: 54)
         .padding(.horizontal, 7)
@@ -852,18 +869,21 @@ private struct HomePomodoroCard: View {
 
 private struct QuickLaunchHomeCard: View {
     @ObservedObject private var manager = QuickLaunchManager.shared
+    @ObservedObject private var batteryManager = BluetoothAccessoryBatteryManager.shared
+    @Default(.showBluetoothAccessoryBatteries) private var showBluetoothAccessoryBatteries
+    @Default(.hiddenBluetoothAccessoryIDs) private var hiddenBluetoothAccessoryIDs
 
     let apps: [QuickLaunchAppItem]
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
 
     var body: some View {
         HomeWidgetCard(
             title: "Quick launch",
             subtitle: "Apps"
         ) {
-            if apps.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
+                if apps.isEmpty {
                     Text("Add apps in Settings > General.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -871,26 +891,24 @@ private struct QuickLaunchHomeCard: View {
                     actionButton("Open settings", systemImage: "slider.horizontal.3") {
                         SettingsWindowController.shared.showWindow()
                     }
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 10) {
-                    LazyVGrid(columns: columns, spacing: 8) {
+                } else {
+                    LazyVGrid(columns: columns, spacing: 6) {
                         ForEach(Array(apps.prefix(6))) { item in
                             Button {
                                 manager.open(item)
                             } label: {
-                                VStack(spacing: 6) {
+                                VStack(spacing: 4) {
                                     AppIcon(for: item)
                                         .resizable()
-                                        .frame(width: 30, height: 30)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                        .frame(width: 28, height: 28)
+                                        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                                     Text(item.displayName)
                                         .font(.caption2)
                                         .lineLimit(1)
                                         .frame(maxWidth: .infinity)
                                 }
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 6)
                                 .frame(maxWidth: .infinity)
                                 .background(Color.white.opacity(0.05))
                                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -898,16 +916,162 @@ private struct QuickLaunchHomeCard: View {
                             .buttonStyle(.plain)
                         }
                     }
+                }
 
-                    if let lastError = manager.lastError, !lastError.isEmpty {
-                        Text(lastError)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                    }
+                if showBluetoothAccessoryBatteries {
+                    BluetoothAccessoryBatteryStrip(
+                        manager: batteryManager,
+                        hiddenDeviceIDs: Set(hiddenBluetoothAccessoryIDs)
+                    )
+                }
+
+                if let lastError = manager.lastError, !lastError.isEmpty {
+                    Text(lastError)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
             }
         }
+        .onAppear {
+            if showBluetoothAccessoryBatteries {
+                batteryManager.startMonitoring()
+            }
+        }
+        .onDisappear {
+            batteryManager.stopMonitoring()
+        }
+        .onChange(of: showBluetoothAccessoryBatteries) { _, isEnabled in
+            if isEnabled {
+                batteryManager.startMonitoring()
+            } else {
+                batteryManager.stopMonitoring()
+            }
+        }
+    }
+}
+
+private struct BluetoothAccessoryBatteryStrip: View {
+    @ObservedObject var manager: BluetoothAccessoryBatteryManager
+    let hiddenDeviceIDs: Set<String>
+
+    private var visibleDevices: [BluetoothAccessoryBatteryDevice] {
+        manager.devices.filter { !hiddenDeviceIDs.contains($0.id) }
+    }
+
+    var body: some View {
+        VStack(spacing: 5) {
+            Divider()
+                .overlay(Color.white.opacity(0.08))
+
+            HStack(spacing: 6) {
+                if visibleDevices.isEmpty {
+                    Image(systemName: "dot.radiowaves.left.and.right")
+                        .foregroundStyle(.secondary)
+                    Text(emptyStateText)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                } else {
+                    ScrollView(.horizontal) {
+                        HStack(spacing: 6) {
+                            ForEach(visibleDevices) { device in
+                                BluetoothAccessoryBatteryChip(device: device)
+                            }
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                }
+
+                Spacer(minLength: 0)
+
+                Button {
+                    Task {
+                        await manager.refresh(force: true)
+                    }
+                } label: {
+                    if manager.isRefreshing {
+                        ProgressView()
+                            .controlSize(.mini)
+                            .frame(width: 18, height: 18)
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 10, weight: .semibold))
+                            .frame(width: 18, height: 18)
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("刷新蓝牙设备电量")
+            }
+            .frame(height: 34)
+        }
+    }
+
+    private var emptyStateText: String {
+        if let lastError = manager.lastError { return lastError }
+        if manager.isRefreshing { return "正在读取设备电量..." }
+        if !manager.devices.isEmpty { return "设备电量已在设置中隐藏" }
+        return "未检测到已连接设备电量"
+    }
+}
+
+private struct BluetoothAccessoryBatteryChip: View {
+    let device: BluetoothAccessoryBatteryDevice
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: device.systemImage)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Color.effectiveAccent)
+                .frame(width: 20)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(device.name)
+                    .font(.caption2.weight(.medium))
+                    .lineLimit(1)
+
+                HStack(spacing: 5) {
+                    ForEach(device.parts) { part in
+                        HStack(spacing: 2) {
+                            if !part.kind.shortLabel.isEmpty {
+                                Text(part.kind.shortLabel)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Image(systemName: batterySymbol(for: part.percentage, isCharging: part.isCharging))
+                            Text("\(part.percentage)%")
+                                .monospacedDigit()
+                        }
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(batteryColor(for: part.percentage, isCharging: part.isCharging))
+                    }
+                }
+                .lineLimit(1)
+            }
+        }
+        .padding(.horizontal, 7)
+        .frame(height: 32)
+        .background(Color.white.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    private func batterySymbol(for percentage: Int, isCharging: Bool) -> String {
+        if isCharging { return "battery.100.bolt" }
+        switch percentage {
+        case 76 ... 100: return "battery.100"
+        case 51 ... 75: return "battery.75"
+        case 26 ... 50: return "battery.50"
+        case 1 ... 25: return "battery.25"
+        default: return "battery.0"
+        }
+    }
+
+    private func batteryColor(for percentage: Int, isCharging: Bool) -> Color {
+        if isCharging { return .green }
+        if percentage <= 10 { return .red }
+        if percentage <= 25 { return .orange }
+        return .primary
     }
 }
 
@@ -976,10 +1140,27 @@ private struct HomeMediaCard: View {
                 .frame(maxWidth: .infinity, alignment: .center)
 
                 if Defaults[.enableLyrics], musicManager.isPlaying {
-                    Text(currentLyricLine)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                    TimelineView(.periodic(from: .now, by: 0.35)) { timeline in
+                        let snapshot = musicManager.lyricDisplaySnapshot(
+                            at: musicManager.estimatedElapsedTime(at: timeline.date)
+                        )
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(snapshot.current)
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(snapshot.isPlaceholder ? .tertiary : .secondary)
+                                .lineLimit(2)
+                                .help(snapshot.current)
+
+                            if let next = snapshot.next, !next.isEmpty {
+                                Text(next)
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                                    .lineLimit(1)
+                                    .help(next)
+                            }
+                        }
+                        .animation(.easeInOut(duration: 0.18), value: snapshot.current)
+                    }
                 }
             }
         }
@@ -1012,11 +1193,6 @@ private struct HomeMediaCard: View {
 
     private var activeSourceLabel: String {
         Defaults[.mediaController].rawValue
-    }
-
-    private var currentLyricLine: String {
-        let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Lyrics enabled" : trimmed.replacingOccurrences(of: "\n", with: " ")
     }
 
     private func mediaButton(

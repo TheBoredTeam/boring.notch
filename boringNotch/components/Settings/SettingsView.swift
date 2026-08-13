@@ -48,6 +48,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "Bluetooth Devices") {
+                    Label("Bluetooth Devices", systemImage: "dot.radiowaves.left.and.right")
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -92,6 +95,8 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "Bluetooth Devices":
+                    BluetoothDevicesSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -161,6 +166,9 @@ struct GeneralSettings: View {
                 }
                 .tint(.effectiveAccent)
                 LaunchAtLogin.Toggle("Launch at login")
+                Defaults.Toggle(key: .auxiliaryWindowsAlwaysOnTop) {
+                    Text(String(localized: "Keep settings and Agent windows on top"))
+                }
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
                 }
@@ -384,6 +392,118 @@ struct Charge: View {
     }
 }
 
+struct BluetoothDevicesSettings: View {
+    @ObservedObject private var accessoryBatteryManager = BluetoothAccessoryBatteryManager.shared
+    @Default(.showBluetoothAccessoryBatteries) private var showBluetoothAccessoryBatteries
+    @Default(.hiddenBluetoothAccessoryIDs) private var hiddenBluetoothAccessoryIDs
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .showBluetoothAccessoryBatteries) {
+                    Text("Show connected-device batteries")
+                }
+            } header: {
+                Text("Home Display")
+            } footer: {
+                Text("Battery levels appear in the Quick Launch Home card. This choice is kept when the card is hidden.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                if accessoryBatteryManager.knownDevices.isEmpty {
+                    HStack(spacing: 8) {
+                        if accessoryBatteryManager.isRefreshing {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "dot.radiowaves.left.and.right")
+                                .foregroundStyle(.secondary)
+                        }
+                        Text("No connected device with battery data has been detected yet.")
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    ForEach(accessoryBatteryManager.knownDevices) { device in
+                        Toggle(isOn: accessoryVisibilityBinding(for: device.id)) {
+                            HStack(spacing: 9) {
+                                Image(systemName: device.systemImage)
+                                    .foregroundStyle(Color.effectiveAccent)
+                                    .frame(width: 20)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(device.name)
+                                        .lineLimit(1)
+                                    Text(accessoryStatusText(for: device.id))
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                HStack {
+                    Button {
+                        Task {
+                            await accessoryBatteryManager.refresh(force: true)
+                        }
+                    } label: {
+                        Label("Refresh Devices", systemImage: "arrow.clockwise")
+                    }
+                    .disabled(accessoryBatteryManager.isRefreshing)
+
+                    if !hiddenBluetoothAccessoryIDs.isEmpty {
+                        Button("Show All") {
+                            hiddenBluetoothAccessoryIDs = []
+                        }
+                    }
+                }
+            } header: {
+                Text("Devices to Display")
+            } footer: {
+                Text("Only devices connected to this Mac with a system-reported battery level are listed. Names and visibility choices stay on this Mac; Bluetooth addresses and serial numbers are not stored.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+        }
+        .task {
+            await accessoryBatteryManager.refresh(force: false)
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Bluetooth Devices")
+    }
+
+    private func accessoryVisibilityBinding(for deviceID: String) -> Binding<Bool> {
+        Binding(
+            get: { !hiddenBluetoothAccessoryIDs.contains(deviceID) },
+            set: { isVisible in
+                var hidden = Set(hiddenBluetoothAccessoryIDs)
+                if isVisible {
+                    hidden.remove(deviceID)
+                } else {
+                    hidden.insert(deviceID)
+                }
+                hiddenBluetoothAccessoryIDs = hidden.sorted()
+            }
+        )
+    }
+
+    private func accessoryStatusText(for deviceID: String) -> String {
+        guard let device = accessoryBatteryManager.devices.first(where: { $0.id == deviceID }) else {
+            return String(localized: "Previously Detected")
+        }
+        return device.parts.map { part in
+            let label = part.kind.shortLabel.isEmpty ? "" : "\(part.kind.shortLabel) "
+            return "\(label)\(part.percentage)%"
+        }
+        .joined(separator: "  ")
+    }
+}
+
 //struct Downloads: View {
 //    @Default(.selectedDownloadIndicatorStyle) var selectedDownloadIndicatorStyle
 //    @Default(.selectedDownloadIconStyle) var selectedDownloadIconStyle
@@ -471,7 +591,11 @@ struct HUD: View {
     @Default(.optionKeyAction) var optionKeyAction
     @Default(.hudReplacement) var hudReplacement
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @State private var accessibilityAuthorized = false
+    @State private var permissionStatus = HUDPermissionStatus(
+        accessibilityAuthorized: false,
+        inputMonitoringAuthorized: false
+    )
+    @State private var interceptorFailureReason: String?
     
     var body: some View {
         Form {
@@ -490,10 +614,10 @@ struct HUD: View {
                     .labelsHidden()
                     .toggleStyle(.switch)
                     .controlSize(.large)
-                    .disabled(!accessibilityAuthorized)
+                    .disabled(!permissionStatus.isAuthorized)
                 }
                 
-                if !accessibilityAuthorized {
+                if !permissionStatus.isAuthorized {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Accessibility access is required to replace the system HUD.")
                             .font(.subheadline)
@@ -507,6 +631,15 @@ struct HUD: View {
                         }
                     }
                     .padding(.top, 6)
+                }
+
+                if permissionStatus.isAuthorized, let interceptorFailureReason {
+                    Label(
+                        "Permissions are enabled, but the media-key listener could not start (\(interceptorFailureReason)). Restart the app and try again.",
+                        systemImage: "exclamationmark.triangle"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.orange)
                 }
             }
             
@@ -577,18 +710,17 @@ struct HUD: View {
         .accentColor(.effectiveAccent)
         .navigationTitle("HUDs")
         .task {
-            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            permissionStatus = await XPCHelperClient.shared.hudPermissionStatus()
         }
-        .onAppear {
-            XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
+        .onReceive(NotificationCenter.default.publisher(for: .hudPermissionStatusChanged)) { notification in
+            permissionStatus = HUDPermissionStatus(
+                accessibilityAuthorized: notification.userInfo?["accessibilityAuthorized"] as? Bool ?? false,
+                inputMonitoringAuthorized: notification.userInfo?["inputMonitoringAuthorized"] as? Bool ?? false
+            )
         }
-        .onDisappear {
-            XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
-            if let granted = notification.userInfo?["granted"] as? Bool {
-                accessibilityAuthorized = granted
-            }
+        .onReceive(NotificationCenter.default.publisher(for: .mediaKeyInterceptorStateChanged)) { notification in
+            let running = notification.userInfo?["running"] as? Bool ?? false
+            interceptorFailureReason = running ? nil : notification.userInfo?["reason"] as? String
         }
     }
 }
@@ -602,6 +734,9 @@ struct Media: View {
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
     @Default(.enableLyrics) var enableLyrics
+    @Default(.screenMediaBarEnabled) private var screenMediaBarEnabled
+    @Default(.screenMediaBarShowsLyrics) private var screenMediaBarShowsLyrics
+    @Default(.screenMediaBarAlwaysOnTop) private var screenMediaBarAlwaysOnTop
 
     var body: some View {
         Form {
@@ -687,6 +822,16 @@ struct Media: View {
                         customBadge(text: "Beta")
                     }
                 }
+                Toggle(String(localized: "Show screen media bar"), isOn: $screenMediaBarEnabled)
+                Toggle(String(localized: "Keep screen media bar on top"), isOn: $screenMediaBarAlwaysOnTop)
+                    .disabled(!screenMediaBarEnabled)
+                Toggle(String(localized: "Show lyrics in screen media bar"), isOn: $screenMediaBarShowsLyrics)
+                    .disabled(!screenMediaBarEnabled || !enableLyrics)
+
+                Button(String(localized: "Reset screen media bar position")) {
+                    ScreenMediaBarController.shared.resetPosition()
+                }
+                .disabled(!screenMediaBarEnabled)
             } header: {
                 Text("Media controls")
             }  footer: {
@@ -1532,7 +1677,7 @@ struct Appearance: View {
         } header: {
             Text("Quick launch")
         } footer: {
-            Text("These app icons are shown on the Home page. Use Home layout above to choose where this widget appears.")
+            Text("Choose up to six apps for the Quick Launch Home card. Connected-device batteries are configured in Bluetooth Devices.")
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(.secondary)
                 .font(.caption)
@@ -1580,6 +1725,9 @@ struct Appearance: View {
 struct AISettings: View {
     @ObservedObject private var aiManager = AIChatManager.shared
     @State private var knowledgeImportError: String?
+    @State private var aiServiceAPIKey = ""
+    @State private var aiCredentialError: String?
+    @State private var hasLoadedAICredential = false
     @State private var showPluginRegistry = false
     @State private var showSkillRegistry = false
     private let knowledgeButtonColumns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
@@ -1589,7 +1737,6 @@ struct AISettings: View {
     @Default(.aiCalendarWriteEnabled) var aiCalendarWriteEnabled
     @Default(.aiServiceBaseURL) var aiServiceBaseURL
     @Default(.aiServiceModel) var aiServiceModel
-    @Default(.aiServiceAPIKey) var aiServiceAPIKey
     @Default(.aiSystemPrompt) var aiSystemPrompt
     @Default(.aiTemperature) var aiTemperature
     @Default(.aiChatPanelWidth) var aiChatPanelWidth
@@ -1612,6 +1759,11 @@ struct AISettings: View {
                     .textFieldStyle(.roundedBorder)
                 SecureField("API Key", text: $aiServiceAPIKey)
                     .textFieldStyle(.roundedBorder)
+                if let aiCredentialError {
+                    Text(aiCredentialError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
             } header: {
                 Text("OpenAI 兼容接口")
             } footer: {
@@ -1802,8 +1954,14 @@ struct AISettings: View {
                             .foregroundStyle(.orange)
                     }
 
+                    if let persistenceError = aiManager.persistenceError {
+                        Label(persistenceError, systemImage: "externaldrive.badge.exclamationmark")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+
                     if aiManager.knowledgeDocuments.isEmpty {
-                        Text("还没有资料。可以导入 Markdown、文本、JSON、CSV、可抽取文本的 PDF 或带文字的图片。")
+                        Text("还没有资料。可以导入 Markdown、文本、JSON、CSV、PDF（含扫描件 OCR）或带文字的图片。")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
@@ -1865,7 +2023,24 @@ struct AISettings: View {
         .accentColor(.effectiveAccent)
         .navigationTitle("AI")
         .onAppear {
-            aiManager.refreshKnowledgeDocuments()
+            if !hasLoadedAICredential {
+                aiServiceAPIKey = AIProviderCredentialStore.apiKey
+                hasLoadedAICredential = true
+            }
+            aiManager.refreshPersistentState()
+        }
+        .onChange(of: aiServiceAPIKey) { _, newValue in
+            guard hasLoadedAICredential else { return }
+            do {
+                try AIProviderCredentialStore.saveAPIKey(newValue)
+                aiCredentialError = nil
+                aiManager.refreshCredentialState()
+            } catch {
+                aiCredentialError = error.localizedDescription
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            aiManager.refreshPersistentState()
         }
     }
 
@@ -1877,12 +2052,23 @@ struct AISettings: View {
         panel.canChooseFiles = true
         panel.allowedContentTypes = agentAllowedImportTypes()
 
-        guard panel.runModal() == .OK else { return }
+        runAgentOpenPanel(panel) { urls in
+            Task { @MainActor in
+                await importKnowledgeFiles(urls)
+            }
+        }
+    }
+
+    @MainActor
+    private func importKnowledgeFiles(_ urls: [URL]) async {
+        guard !urls.isEmpty else { return }
 
         var imported: [String] = []
-        for url in panel.urls.prefix(8) {
+        for url in urls.prefix(8) {
             do {
-                let file = try readAgentImportableFile(at: url)
+                let file = try await Task.detached(priority: .userInitiated) {
+                    try readAgentImportableFile(at: url)
+                }.value
                 if let document = aiManager.addKnowledgeDocument(
                     name: url.lastPathComponent,
                     path: url.path,

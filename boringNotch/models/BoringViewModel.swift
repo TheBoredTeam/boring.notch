@@ -211,8 +211,24 @@ class BoringViewModel: NSObject, ObservableObject {
 
     func updateOpenSizeForCurrentView() {
         guard notchState == .open else { return }
-        self.notchSize = openNotchSize(for: coordinator.currentView, screenUUID: screenUUID)
+        let targetSize = openNotchSize(for: coordinator.currentView, screenUUID: screenUUID)
+        guard abs(notchSize.width - targetSize.width) >= 1
+                || abs(notchSize.height - targetSize.height) >= 1
+        else { return }
+
+        self.notchSize = targetSize
         notifyPanelSizeChanged()
+    }
+
+    func selectOpenView(_ view: NotchViews) {
+        guard coordinator.currentView != view else { return }
+
+        if notchState == .open {
+            self.notchSize = openNotchSize(for: view, screenUUID: screenUUID)
+            notifyPanelSizeChanged()
+        }
+
+        coordinator.currentView = view
     }
 
     func suppressHoverAutoOpen(for interval: TimeInterval = 1.0) {
@@ -239,7 +255,7 @@ class BoringViewModel: NSObject, ObservableObject {
             height: requestedSize.height,
             screenUUID: screenUUID
         )
-        let changeThreshold: CGFloat = isResizingAssistantPanel ? 8 : 4
+        let changeThreshold: CGFloat = isResizingAssistantPanel ? 2 : 4
         let widthChanged = abs(nextSize.width - notchSize.width) >= changeThreshold
         let heightChanged = abs(nextSize.height - notchSize.height) >= changeThreshold
 

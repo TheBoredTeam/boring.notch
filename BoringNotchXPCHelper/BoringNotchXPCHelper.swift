@@ -11,6 +11,25 @@ import IOKit
 import CoreGraphics
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
+
+    private struct BluetoothBatteryPartPayload: Codable {
+        let kind: String
+        let percentage: Int
+        let isCharging: Bool
+    }
+
+    private struct BluetoothBatteryDevicePayload: Codable {
+        let name: String
+        let category: String
+        let parts: [BluetoothBatteryPartPayload]
+    }
+
+    private struct RawAccessoryBattery {
+        let name: String
+        let groupKey: String
+        let category: String
+        let part: BluetoothBatteryPartPayload
+    }
     
     @objc func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void) {
         reply(AXIsProcessTrusted())
@@ -137,6 +156,200 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             return
         }
         reply(false)
+    }
+
+    @objc func bluetoothAccessoryBatteryData(with reply: @escaping (NSData?) -> Void) {
+        DispatchQueue.global(qos: .utility).async {
+            let pmsetEntries = self.readAccessoryPowerSources()
+            let hidEntries = self.readBluetoothHIDBatteries()
+            let devices = self.groupBluetoothBatteries(pmsetEntries + hidEntries)
+            guard let data = try? JSONEncoder().encode(devices) else {
+                reply(nil)
+                return
+            }
+            reply(data as NSData)
+        }
+    }
+
+    private func readAccessoryPowerSources() -> [RawAccessoryBattery] {
+        let process = Process()
+        let outputPipe = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/pmset")
+        process.arguments = ["-g", "accps", "-xml"]
+        process.standardOutput = outputPipe
+        process.standardError = Pipe()
+
+        do {
+            try process.run()
+            let data = outputPipe.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            guard process.terminationStatus == 0,
+                  let output = String(data: data, encoding: .utf8)
+            else {
+                return []
+            }
+            return parseAccessoryPowerSourcePlists(output)
+        } catch {
+            return []
+        }
+    }
+
+    private func parseAccessoryPowerSourcePlists(_ output: String) -> [RawAccessoryBattery] {
+        let marker = "<?xml"
+        return output.components(separatedBy: marker).compactMap { chunk in
+            let trimmed = chunk.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty,
+                  let data = (marker + chunk).data(using: .utf8),
+                  let dictionary = try? PropertyListSerialization.propertyList(
+                    from: data,
+                    options: [],
+                    format: nil
+                  ) as? [String: Any],
+                  dictionary["Type"] as? String == "Accessory Source",
+                  dictionary["Is Present"] as? Bool != false,
+                  let name = dictionary["Name"] as? String,
+                  !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  let percentage = normalizedPercentage(dictionary["Current Capacity"])
+            else {
+                return nil
+            }
+
+            let transport = (dictionary["Transport Type"] as? String ?? "").lowercased()
+            guard transport.contains("bluetooth") else { return nil }
+
+            let partName = dictionary["Part Identifier"] as? String ?? "Main"
+            let groupIdentifier = dictionary["Group Identifier"] as? String
+            let groupKey = groupIdentifier?.isEmpty == false
+                ? "accessory:\(groupIdentifier!)"
+                : "name:\(normalizedDeviceName(name).lowercased())"
+            let category = inferredDeviceCategory(
+                name: name,
+                reportedCategory: dictionary["Accessory Category"] as? String
+            )
+
+            return RawAccessoryBattery(
+                name: normalizedDeviceName(name),
+                groupKey: groupKey,
+                category: category,
+                part: .init(
+                    kind: normalizedPartKind(partName),
+                    percentage: percentage,
+                    isCharging: dictionary["Is Charging"] as? Bool ?? false
+                )
+            )
+        }
+    }
+
+    private func readBluetoothHIDBatteries() -> [RawAccessoryBattery] {
+        guard let matching = IOServiceMatching("AppleDeviceManagementHIDEventService") else {
+            return []
+        }
+
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator) == kIOReturnSuccess else {
+            return []
+        }
+        defer { IOObjectRelease(iterator) }
+
+        var results: [RawAccessoryBattery] = []
+        while case let service = IOIteratorNext(iterator), service != 0 {
+            defer { IOObjectRelease(service) }
+            var properties: Unmanaged<CFMutableDictionary>?
+            guard IORegistryEntryCreateCFProperties(service, &properties, kCFAllocatorDefault, 0) == kIOReturnSuccess,
+                  let dictionary = properties?.takeRetainedValue() as? [String: Any],
+                  dictionary["BluetoothDevice"] as? Bool == true,
+                  let name = dictionary["Product"] as? String,
+                  let percentage = normalizedPercentage(dictionary["BatteryPercent"])
+            else {
+                continue
+            }
+
+            let normalizedName = normalizedDeviceName(name)
+            results.append(
+                .init(
+                    name: normalizedName,
+                    groupKey: "hid:\(normalizedName.lowercased())",
+                    category: inferredDeviceCategory(name: normalizedName, reportedCategory: nil),
+                    part: .init(kind: "main", percentage: percentage, isCharging: false)
+                )
+            )
+        }
+        return results
+    }
+
+    private func groupBluetoothBatteries(_ entries: [RawAccessoryBattery]) -> [BluetoothBatteryDevicePayload] {
+        let grouped = Dictionary(grouping: entries, by: \.groupKey)
+        return grouped.values.compactMap { entries in
+            guard let first = entries.first else { return nil }
+            let preferredName = entries.first(where: { $0.part.kind != "case" })?.name ?? first.name
+            let preferredCategory = entries.first(where: { $0.category != "other" })?.category ?? first.category
+
+            var partsByKind: [String: BluetoothBatteryPartPayload] = [:]
+            for entry in entries {
+                partsByKind[entry.part.kind] = entry.part
+            }
+            if partsByKind["left"] != nil || partsByKind["right"] != nil {
+                partsByKind.removeValue(forKey: "combined")
+                partsByKind.removeValue(forKey: "main")
+            }
+
+            let order = ["left", "right", "case", "main", "combined"]
+            let parts = partsByKind.values.sorted { lhs, rhs in
+                (order.firstIndex(of: lhs.kind) ?? order.count)
+                    < (order.firstIndex(of: rhs.kind) ?? order.count)
+            }
+            guard !parts.isEmpty else { return nil }
+            return .init(name: preferredName, category: preferredCategory, parts: parts)
+        }
+        .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    private func normalizedPercentage(_ value: Any?) -> Int? {
+        let percentage: Int
+        switch value {
+        case let value as Int:
+            percentage = value
+        case let value as NSNumber:
+            percentage = value.intValue
+        case let value as Double:
+            percentage = value <= 1 ? Int((value * 100).rounded()) : Int(value.rounded())
+        case let value as String:
+            percentage = Int(value.replacingOccurrences(of: "%", with: "")) ?? -1
+        default:
+            return nil
+        }
+        guard (0 ... 100).contains(percentage) else { return nil }
+        return percentage
+    }
+
+    private func normalizedPartKind(_ rawValue: String) -> String {
+        let value = rawValue.lowercased()
+        if value.contains("left") || value == "l" { return "left" }
+        if value.contains("right") || value == "r" { return "right" }
+        if value.contains("case") || value.contains("盒") { return "case" }
+        if value.contains("combined") { return "combined" }
+        return "main"
+    }
+
+    private func normalizedDeviceName(_ rawValue: String) -> String {
+        var value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        for suffix in ["充电盒", " Charging Case", " charging case"] where value.hasSuffix(suffix) {
+            value.removeLast(suffix.count)
+        }
+        return value.isEmpty ? "Bluetooth device" : value
+    }
+
+    private func inferredDeviceCategory(name: String, reportedCategory: String?) -> String {
+        let value = "\(name) \(reportedCategory ?? "")".lowercased()
+        if value.contains("airpods") || value.contains("headphone") || value.contains("headset")
+            || value.contains("earbud") || value.contains("audio") || value.contains("耳机")
+        {
+            return "headphones"
+        }
+        if value.contains("keyboard") || value.contains("键盘") { return "keyboard" }
+        if value.contains("trackpad") || value.contains("触控板") { return "trackpad" }
+        if value.contains("mouse") || value.contains("鼠标") { return "mouse" }
+        return "other"
     }
 
     // MARK: - Private helpers for DisplayServices / IOKit access

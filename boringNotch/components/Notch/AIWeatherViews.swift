@@ -25,6 +25,162 @@ private enum AgentInspectorMode: String, Identifiable {
     case knowledge
 
     var id: String { rawValue }
+
+    var windowTitle: String {
+        switch self {
+        case .plugins: return "蛋神 · 插件总览"
+        case .skills: return "蛋神 · Skills 总览"
+        case .memory: return "蛋神 · 记忆系统"
+        case .knowledge: return "蛋神 · 本地知识库"
+        }
+    }
+
+    var savedPanelSize: CGSize {
+        switch self {
+        case .plugins:
+            return .init(width: Defaults[.aiPluginPanelWidth], height: Defaults[.aiPluginPanelHeight])
+        case .skills:
+            return .init(width: Defaults[.aiSkillsPanelWidth], height: Defaults[.aiSkillsPanelHeight])
+        case .memory:
+            return .init(width: Defaults[.aiMemoryPanelWidth], height: Defaults[.aiMemoryPanelHeight])
+        case .knowledge:
+            return .init(width: Defaults[.aiKnowledgePanelWidth], height: Defaults[.aiKnowledgePanelHeight])
+        }
+    }
+
+    func savePanelSize(_ size: CGSize) {
+        switch self {
+        case .plugins:
+            Defaults[.aiPluginPanelWidth] = size.width
+            Defaults[.aiPluginPanelHeight] = size.height
+        case .skills:
+            Defaults[.aiSkillsPanelWidth] = size.width
+            Defaults[.aiSkillsPanelHeight] = size.height
+        case .memory:
+            Defaults[.aiMemoryPanelWidth] = size.width
+            Defaults[.aiMemoryPanelHeight] = size.height
+        case .knowledge:
+            Defaults[.aiKnowledgePanelWidth] = size.width
+            Defaults[.aiKnowledgePanelHeight] = size.height
+        }
+    }
+}
+
+@MainActor
+private final class AgentInspectorWindowController: NSObject, NSWindowDelegate {
+    static let shared = AgentInspectorWindowController()
+
+    private var inspectorWindow: NSWindow?
+    private var currentMode: AgentInspectorMode?
+
+    var isVisible: Bool {
+        inspectorWindow?.isVisible == true
+    }
+
+    func show(mode: AgentInspectorMode) {
+        if currentMode != mode {
+            persistCurrentSize()
+        }
+        currentMode = mode
+
+        let isNewWindow = inspectorWindow == nil
+        let targetSize = resolvedContentSize(mode.savedPanelSize)
+        let window = inspectorWindow ?? makeWindow()
+
+        window.title = mode.windowTitle
+        window.contentView = NSHostingView(
+            rootView: AgentInventoryPanel(mode: mode)
+                .id(mode)
+                .onExitCommand { [weak self] in
+                    self?.close()
+                }
+        )
+        window.setContentSize(targetSize)
+
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        AppWindowPresentationCoordinator.shared.present(window)
+
+        if isNewWindow {
+            window.center()
+        }
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    func close() {
+        persistCurrentSize()
+        inspectorWindow?.close()
+    }
+
+    private func makeWindow() -> NSWindow {
+        let window = NSWindow(
+            contentRect: NSRect(origin: .zero, size: CGSize(width: 760, height: 460)),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.identifier = NSUserInterfaceItemIdentifier("DanShenAgentInspectorWindow")
+        window.contentMinSize = NSSize(width: 520, height: 340)
+        window.collectionBehavior = [.managed, .participatesInCycle, .fullScreenAuxiliary]
+        window.hidesOnDeactivate = false
+        window.isExcludedFromWindowsMenu = false
+        window.isReleasedWhenClosed = false
+        window.tabbingMode = .disallowed
+        window.animationBehavior = .documentWindow
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.backgroundColor = .windowBackgroundColor
+        window.level = .normal
+        window.delegate = self
+        inspectorWindow = window
+        return window
+    }
+
+    private func resolvedContentSize(_ requested: CGSize) -> CGSize {
+        let visibleSize = (NSScreen.main ?? NSScreen.screens.first)?.visibleFrame.size
+            ?? CGSize(width: 1440, height: 900)
+        let maximum = CGSize(
+            width: max(520, visibleSize.width - 80),
+            height: max(340, visibleSize.height - 80)
+        )
+        return CGSize(
+            width: min(max(requested.width, 520), maximum.width),
+            height: min(max(requested.height, 340), maximum.height)
+        )
+    }
+
+    private func persistCurrentSize() {
+        guard let currentMode, let inspectorWindow else { return }
+        currentMode.savePanelSize(inspectorWindow.contentLayoutRect.size)
+    }
+
+    func windowDidResize(_ notification: Notification) {
+        persistCurrentSize()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        persistCurrentSize()
+        if let inspectorWindow {
+            AppWindowPresentationCoordinator.shared.dismiss(inspectorWindow)
+        }
+        AppWindowPresentationCoordinator.shared.relinquishApplicationFocusIfPossible()
+    }
+
+    func windowDidBecomeKey(_ notification: Notification) {
+        NSApp.setActivationPolicy(.regular)
+        if let inspectorWindow {
+            AppWindowPresentationCoordinator.shared.present(inspectorWindow)
+        }
+    }
+
+    func windowDidMiniaturize(_ notification: Notification) {
+        AppWindowPresentationCoordinator.shared.refresh()
+    }
+
+    func windowDidDeminiaturize(_ notification: Notification) {
+        if let inspectorWindow {
+            AppWindowPresentationCoordinator.shared.present(inspectorWindow)
+        }
+    }
 }
 
 private enum AgentFileImportMode {
@@ -38,22 +194,18 @@ private enum AgentResizeAxis: Equatable {
     case both
 }
 
-private let agentResizeHorizontalSensitivity: CGFloat = 0.68
-private let agentResizeVerticalSensitivity: CGFloat = 0.72
-private let agentOpenPanelLevel = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 6)
+private let agentResizeHorizontalSensitivity: CGFloat = 0.52
+private let agentResizeVerticalSensitivity: CGFloat = 0.56
 private let agentPanelAnimation = NotchPanelAnimation.spring
 
+@MainActor
 private func prepareAgentOpenPanel(_ panel: NSOpenPanel) {
     NSApp.setActivationPolicy(.regular)
     NSApp.activate(ignoringOtherApps: true)
     panel.hidesOnDeactivate = false
-    panel.isFloatingPanel = true
-    panel.level = agentOpenPanelLevel
-    panel.collectionBehavior = [
-        .canJoinAllSpaces,
-        .fullScreenAuxiliary,
-        .transient,
-    ]
+    panel.isFloatingPanel = false
+    panel.level = .normal
+    panel.collectionBehavior = [.managed, .participatesInCycle, .fullScreenAuxiliary]
 }
 
 private func agentPanelHostWindow() -> NSWindow? {
@@ -67,42 +219,38 @@ private func agentPanelHostWindow() -> NSWindow? {
 }
 
 private func isAgentPanelHostWindow(_ window: NSWindow) -> Bool {
-    window is BoringNotchWindow || window is BoringNotchSkyLightWindow
+    window is BoringNotchWindow
+        || window is BoringNotchSkyLightWindow
+        || window.identifier?.rawValue == "DanShenAgentInspectorWindow"
 }
 
-private func runAgentOpenPanel(_ panel: NSOpenPanel, completion: @escaping ([URL]) -> Void) {
+@MainActor
+func runAgentOpenPanel(_ panel: NSOpenPanel, completion: @escaping ([URL]) -> Void) {
     prepareAgentOpenPanel(panel)
+    AppWindowPresentationCoordinator.shared.present(panel)
 
     let finish: (NSApplication.ModalResponse) -> Void = { response in
         DispatchQueue.main.async {
+            AppWindowPresentationCoordinator.shared.dismiss(panel)
+            AppWindowPresentationCoordinator.shared.relinquishApplicationFocusIfPossible()
             completion(response == .OK ? panel.urls : [])
         }
     }
 
-    if let hostWindow = agentPanelHostWindow() {
-        panel.level = NSWindow.Level(
-            rawValue: max(agentOpenPanelLevel.rawValue, hostWindow.level.rawValue + 4)
-        )
+    if let hostWindow = agentPanelHostWindow(),
+       !(hostWindow is BoringNotchWindow),
+       !(hostWindow is BoringNotchSkyLightWindow) {
         hostWindow.makeKeyAndOrderFront(nil)
-        hostWindow.orderFrontRegardless()
 
         panel.beginSheetModal(for: hostWindow) { response in
             finish(response)
         }
-
-        DispatchQueue.main.async {
-            panel.level = NSWindow.Level(
-                rawValue: max(agentOpenPanelLevel.rawValue, hostWindow.level.rawValue + 4)
-            )
-            panel.orderFrontRegardless()
-            panel.makeKey()
-        }
         return
     }
 
-    panel.orderFrontRegardless()
-    panel.makeKeyAndOrderFront(nil)
-    finish(panel.runModal())
+    panel.begin { response in
+        finish(response)
+    }
 }
 
 private struct AgentSlashCommand: Identifiable {
@@ -120,7 +268,6 @@ struct AIChatView: View {
     @ObservedObject private var manager = AIChatManager.shared
     @State private var draft: String = ""
     @State private var showsTrace: Bool = false
-    @State private var inspectorMode: AgentInspectorMode?
     @State private var attachedFiles: [AgentAttachedFile] = []
     @State private var fileError: String?
     @State private var resizeStartSize: CGSize?
@@ -133,11 +280,11 @@ struct AIChatView: View {
         .init(id: "/plugins", title: "插件", subtitle: "查看可用工具、权限和风险等级", symbolName: "puzzlepiece.extension"),
         .init(id: "/skills", title: "Skills", subtitle: "查看任务技能手册", symbolName: "sparkles"),
         .init(id: "/memory", title: "记忆", subtitle: "查看工作记忆和长期记忆", symbolName: "brain.head.profile"),
-        .init(id: "/knowledge", title: "知识库", subtitle: "查看资料；add 导入文件；seed 导入 GitHub 示例", symbolName: "books.vertical"),
-        .init(id: "/kb", title: "知识库", subtitle: "同 /knowledge，可输入 add 或 seed", symbolName: "books.vertical"),
+        .init(id: "/knowledge", title: "知识库", subtitle: "显示资料数量；add 导入文件；seed 导入 GitHub 示例", symbolName: "books.vertical"),
+        .init(id: "/kb", title: "知识库", subtitle: "同 /knowledge，可输入 add、seed 或 clear", symbolName: "books.vertical"),
         .init(id: "/remember", title: "记住", subtitle: "把一句稳定偏好写入长期记忆", symbolName: "plus.circle"),
         .init(id: "/forget", title: "遗忘", subtitle: "按关键词删除长期记忆，留空则清空", symbolName: "minus.circle"),
-        .init(id: "/file", title: "上传文件", subtitle: "支持文本、PDF 文本抽取和图片 OCR", symbolName: "paperclip"),
+        .init(id: "/file", title: "上传文件", subtitle: "支持文本、PDF（含扫描件 OCR）和图片 OCR", symbolName: "paperclip"),
         .init(id: "/web", title: "联网检索", subtitle: "搜索公开网页或 GitHub 仓库", symbolName: "globe"),
         .init(id: "/clear", title: "清空", subtitle: "清除当前会话消息和轨迹", symbolName: "trash"),
         .init(id: "/help", title: "帮助", subtitle: "生成命令、插件和 Skills 说明", symbolName: "questionmark.circle"),
@@ -152,7 +299,7 @@ struct AIChatView: View {
                     title: "AI 已关闭",
                     subtitle: "请在 设置 > AI 中启用智能体。"
                 )
-            } else if Defaults[.aiServiceAPIKey].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            } else if !manager.hasConfiguredAPIKey {
                 featureDisabledState(
                     title: "缺少 API Key",
                     subtitle: "请在 设置 > AI 中填写 Base URL、模型和 API Key。"
@@ -160,12 +307,6 @@ struct AIChatView: View {
             } else {
                 conversationTabs
                 messagesPanel
-                if let inspectorMode {
-                    AgentInventoryPanel(mode: inspectorMode) {
-                        self.inspectorMode = nil
-                        isComposerFocused = true
-                    }
-                }
                 if aiShowAgentTrace, let trace = manager.lastAgentTrace {
                     AgentTracePanel(trace: trace, isExpanded: $showsTrace)
                         .layoutPriority(0)
@@ -178,16 +319,11 @@ struct AIChatView: View {
         .padding(.bottom, 4)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(resizeHandles)
-        .onExitCommand {
-            if inspectorMode != nil {
-                inspectorMode = nil
-                isComposerFocused = true
-            }
-        }
         .onAppear {
             vm.preventAutoClose = true
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
+            manager.refreshPersistentState()
 
             Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(150))
@@ -198,7 +334,8 @@ struct AIChatView: View {
             vm.preventAutoClose = false
             isComposerFocused = false
 
-            if SettingsWindowController.shared.window?.isVisible != true {
+            if SettingsWindowController.shared.window?.isVisible != true,
+               !AgentInspectorWindowController.shared.isVisible {
                 NSApp.setActivationPolicy(.accessory)
             }
         }
@@ -209,6 +346,9 @@ struct AIChatView: View {
         }
         .onChange(of: manager.lastAgentTrace?.id) { _, _ in
             showsTrace = false
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            manager.refreshPersistentState()
         }
     }
 
@@ -302,7 +442,7 @@ struct AIChatView: View {
     private var header: some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Boring Notch Agent")
+                Text("蛋神 Agent")
                     .font(.headline)
                 Text(manager.displayedModelName)
                     .font(.caption)
@@ -344,7 +484,6 @@ struct AIChatView: View {
 
     private func collapseAssistantPanel() {
         showsTrace = false
-        inspectorMode = nil
         isComposerFocused = false
         vm.suppressHoverAutoOpen()
 
@@ -356,6 +495,8 @@ struct AIChatView: View {
     private var conversationTabs: some View {
         HStack(spacing: 6) {
             Button {
+                attachedFiles.removeAll()
+                fileError = nil
                 manager.startNewConversation()
                 isComposerFocused = true
             } label: {
@@ -375,6 +516,8 @@ struct AIChatView: View {
                             isActive: manager.activeConversationID == conversation.id,
                             canDelete: manager.conversations.count > 1,
                             onSelect: {
+                                attachedFiles.removeAll()
+                                fileError = nil
                                 manager.selectConversation(conversation.id)
                                 isComposerFocused = true
                             },
@@ -387,14 +530,14 @@ struct AIChatView: View {
             }
 
             Button {
-                inspectorMode = inspectorMode == .knowledge ? nil : .knowledge
+                AgentInspectorWindowController.shared.show(mode: .knowledge)
             } label: {
                 Image(systemName: "books.vertical")
                     .font(.system(size: 13, weight: .semibold))
                     .frame(width: 24, height: 24)
             }
             .buttonStyle(.plain)
-            .foregroundStyle(inspectorMode == .knowledge ? Color.effectiveAccent : .secondary)
+            .foregroundStyle(.secondary)
             .help("知识库")
         }
         .frame(height: 30)
@@ -417,6 +560,13 @@ struct AIChatView: View {
                         Label(lastError, systemImage: "exclamationmark.triangle.fill")
                             .font(.caption)
                             .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    if let persistenceError = manager.persistenceError {
+                        Label(persistenceError, systemImage: "externaldrive.badge.exclamationmark")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
@@ -450,13 +600,6 @@ struct AIChatView: View {
 
     private var composer: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if shouldShowSlashMenu {
-                SlashCommandMenu(
-                    commands: filteredSlashCommands,
-                    onSelect: runSlashCommand
-                )
-            }
-
             if !attachedFiles.isEmpty || fileError != nil {
                 attachmentStrip
             }
@@ -492,6 +635,24 @@ struct AIChatView: View {
             }
             .padding(.trailing, 24)
         }
+        .overlay(alignment: .top) {
+            if shouldShowSlashMenu {
+                SlashCommandMenu(
+                    commands: filteredSlashCommands,
+                    onSelect: { command in
+                        runSlashCommand(command, rawValue: draft)
+                    }
+                )
+                .padding(.trailing, 24)
+                .offset(
+                    y: -SlashCommandMenu.preferredHeight(
+                        for: filteredSlashCommands.count
+                    ) - 8
+                )
+                .transition(.opacity)
+            }
+        }
+        .zIndex(30)
     }
 
     private var shouldShowSlashMenu: Bool {
@@ -499,8 +660,12 @@ struct AIChatView: View {
     }
 
     private var filteredSlashCommands: [AgentSlashCommand] {
-        let query = draft.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard query.count > 1 else { return slashCommands }
+        let rawQuery = draft.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard rawQuery.count > 1 else { return slashCommands }
+        let query = rawQuery.split(whereSeparator: { $0.isWhitespace }).first.map(String.init) ?? rawQuery
+        if let exactCommand = slashCommands.first(where: { $0.id == query }) {
+            return [exactCommand]
+        }
         return slashCommands.filter { command in
             command.id.lowercased().contains(query)
                 || command.title.lowercased().contains(query)
@@ -579,7 +744,8 @@ struct AIChatView: View {
     private func runSlashCommand(matching rawValue: String) {
         let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
         let lowered = trimmed.lowercased()
-        let command = slashCommands.first { lowered.hasPrefix($0.id) } ?? filteredSlashCommands.first
+        let commandToken = lowered.split(whereSeparator: { $0.isWhitespace }).first.map(String.init)
+        let command = slashCommands.first { $0.id == commandToken } ?? filteredSlashCommands.first
         if let command {
             runSlashCommand(command, rawValue: trimmed)
         }
@@ -593,10 +759,10 @@ struct AIChatView: View {
         let argument = slashArgument(from: rawValue, commandID: command.id)
         switch command.id {
         case "/plugins":
-            inspectorMode = inspectorMode == .plugins ? nil : .plugins
+            AgentInspectorWindowController.shared.show(mode: .plugins)
             draft = ""
         case "/skills":
-            inspectorMode = inspectorMode == .skills ? nil : .skills
+            AgentInspectorWindowController.shared.show(mode: .skills)
             draft = ""
         case "/memory":
             if argument == "clear" {
@@ -606,7 +772,7 @@ struct AIChatView: View {
                 manager.revealLongTermMemoryFile()
                 manager.appendLocalAssistantMessage("已在 Finder 中定位长期记忆文件。")
             } else {
-                inspectorMode = inspectorMode == .memory ? nil : .memory
+                AgentInspectorWindowController.shared.show(mode: .memory)
             }
             draft = ""
         case "/remember":
@@ -614,13 +780,13 @@ struct AIChatView: View {
                 draft = "/remember "
                 isComposerFocused = true
             } else if let record = manager.rememberMemory(argument) {
-                inspectorMode = .memory
+                AgentInspectorWindowController.shared.show(mode: .memory)
                 draft = ""
                 manager.appendLocalAssistantMessage("已写入长期记忆：[\(record.kind.displayName)] \(record.content)")
             }
         case "/forget":
             let removedCount = manager.forgetMemory(matching: argument)
-            inspectorMode = .memory
+            AgentInspectorWindowController.shared.show(mode: .memory)
             draft = ""
             if argument.isEmpty {
                 manager.appendLocalAssistantMessage("已清空长期记忆，共删除 \(removedCount) 条。")
@@ -639,32 +805,30 @@ struct AIChatView: View {
                 openFilePicker(mode: .knowledge)
             } else if ["seed", "demo", "github", "示例", "样例"].contains(argument.lowercased()) {
                 let count = manager.installStarterKnowledgeBase()
-                inspectorMode = .knowledge
+                AgentInspectorWindowController.shared.show(mode: .knowledge)
                 draft = ""
                 manager.appendLocalAssistantMessage("已导入 \(count) 份 GitHub/官方文档启发的示例知识库。")
             } else if ["clear", "清空"].contains(argument.lowercased()) {
                 manager.clearKnowledgeBase()
-                inspectorMode = .knowledge
+                AgentInspectorWindowController.shared.show(mode: .knowledge)
                 draft = ""
                 manager.appendLocalAssistantMessage("已清空本地知识库。")
             } else {
-                inspectorMode = inspectorMode == .knowledge ? nil : .knowledge
+                AgentInspectorWindowController.shared.show(mode: .knowledge)
                 draft = ""
+                manager.refreshKnowledgeDocuments()
             }
         case "/new":
             draft = ""
             attachedFiles.removeAll()
-            inspectorMode = nil
             manager.startNewConversation()
         case "/chats":
             draft = ""
             attachedFiles.removeAll()
-            inspectorMode = nil
             isComposerFocused = true
         case "/clear":
             draft = ""
             attachedFiles.removeAll()
-            inspectorMode = nil
             manager.clearConversation()
         case "/help":
             draft = "请用中文说明你支持的 / 命令、插件和 Skills，并举 3 个示例任务。"
@@ -690,11 +854,14 @@ struct AIChatView: View {
         panel.allowedContentTypes = agentAllowedImportTypes()
 
         runAgentOpenPanel(panel) { urls in
-            importSelectedFiles(urls, mode: mode)
+            Task { @MainActor in
+                await importSelectedFiles(urls, mode: mode)
+            }
         }
     }
 
-    private func importSelectedFiles(_ urls: [URL], mode: AgentFileImportMode) {
+    @MainActor
+    private func importSelectedFiles(_ urls: [URL], mode: AgentFileImportMode) async {
         guard !urls.isEmpty else { return }
 
         var importedKnowledgeTitles: [String] = []
@@ -702,7 +869,9 @@ struct AIChatView: View {
 
         for url in urls.prefix(maxFiles) {
             do {
-                let file = try readAgentImportableFile(at: url)
+                let file = try await Task.detached(priority: .userInitiated) {
+                    try readAgentImportableFile(at: url)
+                }.value
 
                 switch mode {
                 case .attach:
@@ -730,11 +899,20 @@ struct AIChatView: View {
         }
 
         if mode == .knowledge {
-            inspectorMode = .knowledge
+            AgentInspectorWindowController.shared.show(mode: .knowledge)
             if !importedKnowledgeTitles.isEmpty {
                 manager.appendLocalAssistantMessage("已导入知识库：\(importedKnowledgeTitles.joined(separator: "、"))")
             }
         }
+    }
+
+    private func appendKnowledgeStatusMessage() {
+        manager.refreshKnowledgeDocuments()
+        let enabledText = Defaults[.aiKnowledgeRetrievalEnabled] ? "已开启" : "已关闭"
+        let limit = Defaults[.aiKnowledgeRetrievalLimit]
+        manager.appendLocalAssistantMessage(
+            "本地知识库当前有 \(manager.knowledgeDocuments.count) 份资料，自动检索\(enabledText)，每次最多注入 Top-\(limit)。使用 /knowledge add 导入资料，/knowledge seed 导入示例，/knowledge clear 清空。"
+        )
     }
 
     private func promptWithAttachedFiles(_ prompt: String) -> String {
@@ -788,36 +966,66 @@ private struct SlashCommandMenu: View {
     let commands: [AgentSlashCommand]
     let onSelect: (AgentSlashCommand) -> Void
 
+    private static let rowHeight: CGFloat = 42
+    private static let verticalPadding: CGFloat = 10
+    private static let maximumHeight: CGFloat = 262
+
+    static func preferredHeight(for commandCount: Int) -> CGFloat {
+        let visibleRows = max(commandCount, 1)
+        return min(
+            CGFloat(visibleRows) * rowHeight + verticalPadding,
+            maximumHeight
+        )
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            ForEach(commands) { command in
-                Button {
-                    onSelect(command)
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: command.symbolName)
-                            .font(.system(size: 13, weight: .semibold))
-                            .frame(width: 18)
-                            .foregroundStyle(Color.effectiveAccent)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("\(command.id)  \(command.title)")
-                                .font(.caption.weight(.semibold))
-                            Text(command.subtitle)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
+        ScrollView(.vertical) {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                if commands.isEmpty {
+                    Label("没有匹配的命令", systemImage: "magnifyingglass")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, minHeight: Self.rowHeight, alignment: .leading)
+                        .padding(.horizontal, 10)
+                } else {
+                    ForEach(commands) { command in
+                        Button {
+                            onSelect(command)
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: command.symbolName)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .frame(width: 18)
+                                    .foregroundStyle(Color.effectiveAccent)
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text("\(command.id)  \(command.title)")
+                                        .font(.caption.weight(.semibold))
+                                    Text(command.subtitle)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                }
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.horizontal, 10)
+                            .frame(height: Self.rowHeight)
+                            .contentShape(Rectangle())
                         }
-                        Spacer()
+                        .buttonStyle(.plain)
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
             }
         }
-        .padding(6)
-        .background(Color.white.opacity(0.06))
+        .scrollIndicators(.visible)
+        .padding(.vertical, Self.verticalPadding / 2)
+        .frame(height: Self.preferredHeight(for: commands.count))
+        .background(Color(nsColor: .windowBackgroundColor).opacity(0.98))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.45), radius: 12, y: 5)
     }
 }
 
@@ -864,12 +1072,18 @@ private struct ConversationTabButton: View {
 
 private struct AgentInventoryPanel: View {
     let mode: AgentInspectorMode
-    let onClose: () -> Void
     @ObservedObject private var manager = AIChatManager.shared
     @Default(.aiKnowledgeRetrievalEnabled) private var aiKnowledgeRetrievalEnabled
     @Default(.aiKnowledgeRetrievalLimit) private var aiKnowledgeRetrievalLimit
     @State private var selectedSkillCategory: String = "全部"
     @State private var knowledgeImportError: String?
+    @State private var selectedMemoryKind: String = "all"
+    @State private var memorySearchText: String = ""
+    @State private var editingMemoryID: UUID?
+    @State private var memoryDraft: String = ""
+    @State private var memoryDraftKind: AgentMemoryRecord.Kind = .fact
+    @State private var memoryFeedback: String?
+    @State private var showsClearMemoryConfirmation = false
     private let columns = [GridItem(.adaptive(minimum: 250, maximum: 360), spacing: 6)]
 
     var body: some View {
@@ -881,14 +1095,6 @@ private struct AgentInventoryPanel: View {
                 Text(panelCount)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                Button(action: onClose) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(.cancelAction)
-                .help("关闭面板")
             }
 
             ScrollView(showsIndicators: true) {
@@ -914,15 +1120,13 @@ private struct AgentInventoryPanel: View {
                     knowledgePanel
                 }
             }
-            .frame(maxHeight: 360)
+            .frame(maxHeight: .infinity)
         }
-        .padding(10)
-        .background(Color.white.opacity(0.045))
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
-            if mode == .knowledge {
-                manager.refreshKnowledgeDocuments()
-            }
+            manager.refreshPersistentState()
         }
     }
 
@@ -1024,8 +1228,53 @@ private struct AgentInventoryPanel: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
 
-            if manager.longTermMemories.isEmpty {
-                Text("还没有长期记忆。只有当用户明确说“记住/以后/我的偏好”等稳定信息时才会写入。")
+            HStack(spacing: 8) {
+                HStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    TextField("搜索记忆内容或关键词", text: $memorySearchText)
+                        .textFieldStyle(.plain)
+                }
+                .padding(.horizontal, 8)
+                .frame(height: 28)
+                .background(Color.white.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+                Button {
+                    beginCreatingMemory()
+                } label: {
+                    Label("新增", systemImage: "plus")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+
+            Picker("记忆类型", selection: $selectedMemoryKind) {
+                Text("全部").tag("all")
+                ForEach(AgentMemoryRecord.Kind.allCases, id: \.rawValue) { kind in
+                    Text(kind.displayName).tag(kind.rawValue)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+
+            if editingMemoryID != nil {
+                memoryEditor
+            }
+
+            HStack {
+                Text("长期记忆")
+                    .font(.caption.weight(.semibold))
+                Spacer()
+                Text("显示 \(filteredMemories.count) / \(manager.longTermMemories.count) 条")
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(.secondary)
+            }
+
+            if filteredMemories.isEmpty {
+                Text(manager.longTermMemories.isEmpty
+                     ? "还没有长期记忆。点击“新增”，或用 /remember 写入稳定信息。"
+                     : "没有符合当前搜索和类型筛选的记忆。")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .padding(8)
@@ -1033,9 +1282,28 @@ private struct AgentInventoryPanel: View {
                     .background(Color.white.opacity(0.04))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             } else {
-                ForEach(manager.longTermMemories.prefix(5)) { memory in
-                    MemoryInventoryCard(memory: memory)
+                LazyVStack(spacing: 6) {
+                    ForEach(filteredMemories) { memory in
+                        MemoryInventoryCard(
+                            memory: memory,
+                            onEdit: { beginEditingMemory(memory) },
+                            onDelete: {
+                                if manager.deleteMemory(id: memory.id) {
+                                    if editingMemoryID == memory.id {
+                                        cancelMemoryEditing()
+                                    }
+                                    memoryFeedback = "已删除这条长期记忆。"
+                                }
+                            }
+                        )
+                    }
                 }
+            }
+
+            if let memoryFeedback {
+                Text(memoryFeedback)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
 
             HStack(spacing: 10) {
@@ -1046,13 +1314,118 @@ private struct AgentInventoryPanel: View {
                 .controlSize(.small)
 
                 Button("清空长期记忆") {
-                    manager.clearLongTermMemory()
-                    manager.appendLocalAssistantMessage("已清空长期记忆。")
+                    showsClearMemoryConfirmation = true
                 }
                 .buttonStyle(.borderless)
                 .controlSize(.small)
                 .foregroundStyle(.red)
             }
+        }
+        .alert("清空全部长期记忆？", isPresented: $showsClearMemoryConfirmation) {
+            Button("取消", role: .cancel) {}
+            Button("清空", role: .destructive) {
+                manager.clearLongTermMemory()
+                cancelMemoryEditing()
+                memoryFeedback = "已清空全部长期记忆。"
+            }
+        } message: {
+            Text("此操作会删除本地保存的全部长期记忆，无法撤销。")
+        }
+    }
+
+    private var filteredMemories: [AgentMemoryRecord] {
+        let query = memorySearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return manager.longTermMemories.filter { memory in
+            let kindMatches = selectedMemoryKind == "all" || memory.kind.rawValue == selectedMemoryKind
+            let queryMatches = query.isEmpty
+                || memory.content.localizedCaseInsensitiveContains(query)
+                || memory.keywords.contains(where: { $0.localizedCaseInsensitiveContains(query) })
+            return kindMatches && queryMatches
+        }
+    }
+
+    private var memoryEditor: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label(editingMemoryID == AgentMemoryEditor.newRecordID ? "新增长期记忆" : "编辑长期记忆",
+                      systemImage: "square.and.pencil")
+                    .font(.caption.weight(.semibold))
+                Spacer()
+                Button(action: cancelMemoryEditing) {
+                    Image(systemName: "xmark")
+                }
+                .buttonStyle(.plain)
+                .help("取消编辑")
+            }
+
+            Picker("类型", selection: $memoryDraftKind) {
+                ForEach(AgentMemoryRecord.Kind.allCases, id: \.rawValue) { kind in
+                    Text(kind.displayName).tag(kind)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+
+            TextEditor(text: $memoryDraft)
+                .font(.caption)
+                .scrollContentBackground(.hidden)
+                .padding(6)
+                .frame(minHeight: 72, maxHeight: 110)
+                .background(Color.white.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+            HStack {
+                Text("保存后将参与跨会话检索。")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("取消", action: cancelMemoryEditing)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                Button("保存", action: saveMemoryDraft)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .disabled(memoryDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .padding(9)
+        .background(Color.effectiveAccent.opacity(0.10))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private func beginCreatingMemory() {
+        editingMemoryID = AgentMemoryEditor.newRecordID
+        memoryDraft = ""
+        memoryDraftKind = .fact
+        memoryFeedback = nil
+    }
+
+    private func beginEditingMemory(_ memory: AgentMemoryRecord) {
+        editingMemoryID = memory.id
+        memoryDraft = memory.content
+        memoryDraftKind = memory.kind
+        memoryFeedback = nil
+    }
+
+    private func cancelMemoryEditing() {
+        editingMemoryID = nil
+        memoryDraft = ""
+        memoryDraftKind = .fact
+    }
+
+    private func saveMemoryDraft() {
+        let content = memoryDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !content.isEmpty, let editingMemoryID else { return }
+
+        let saved: Bool
+        if editingMemoryID == AgentMemoryEditor.newRecordID {
+            saved = manager.createMemory(content, kind: memoryDraftKind) != nil
+        } else {
+            saved = manager.updateMemory(id: editingMemoryID, content: content, kind: memoryDraftKind)
+        }
+        memoryFeedback = saved ? "长期记忆已保存。" : "保存失败，请检查本地存储权限。"
+        if saved {
+            cancelMemoryEditing()
         }
     }
 
@@ -1080,7 +1453,7 @@ private struct AgentInventoryPanel: View {
             }
 
             if manager.knowledgeDocuments.isEmpty {
-                Text("还没有导入资料。使用 /knowledge add，或点击下面的“导入资料”按钮导入文本、Markdown、JSON、CSV、可抽取文本的 PDF 或带文字的图片。")
+                Text("还没有导入资料。使用 /knowledge add，或点击下面的“导入资料”按钮导入文本、Markdown、JSON、CSV、PDF（含扫描件 OCR）或带文字的图片。")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .padding(8)
@@ -1088,7 +1461,7 @@ private struct AgentInventoryPanel: View {
                     .background(Color.white.opacity(0.04))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             } else {
-                ForEach(manager.knowledgeDocuments.prefix(8)) { document in
+                ForEach(manager.knowledgeDocuments) { document in
                     KnowledgeInventoryCard(document: document) {
                         manager.removeKnowledgeDocument(id: document.id)
                     }
@@ -1135,6 +1508,12 @@ private struct AgentInventoryPanel: View {
                     .font(.caption2)
                     .foregroundStyle(.orange)
             }
+
+            if let persistenceError = manager.persistenceError {
+                Label(persistenceError, systemImage: "externaldrive.badge.exclamationmark")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+            }
         }
     }
 
@@ -1147,17 +1526,22 @@ private struct AgentInventoryPanel: View {
         panel.allowedContentTypes = agentAllowedImportTypes()
 
         runAgentOpenPanel(panel) { urls in
-            importKnowledgeFiles(urls)
+            Task { @MainActor in
+                await importKnowledgeFiles(urls)
+            }
         }
     }
 
-    private func importKnowledgeFiles(_ urls: [URL]) {
+    @MainActor
+    private func importKnowledgeFiles(_ urls: [URL]) async {
         guard !urls.isEmpty else { return }
 
         var imported: [String] = []
         for url in urls.prefix(8) {
             do {
-                let file = try readAgentImportableFile(at: url)
+                let file = try await Task.detached(priority: .userInitiated) {
+                    try readAgentImportableFile(at: url)
+                }.value
                 if let document = manager.addKnowledgeDocument(
                     name: url.lastPathComponent,
                     path: url.path,
@@ -1208,8 +1592,15 @@ private struct MemoryLayerCard: View {
     }
 }
 
+private enum AgentMemoryEditor {
+    static let newRecordID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+}
+
 private struct MemoryInventoryCard: View {
     let memory: AgentMemoryRecord
+    let onEdit: () -> Void
+    let onDelete: () -> Void
+    @State private var showsDeleteConfirmation = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -1221,6 +1612,22 @@ private struct MemoryInventoryCard: View {
                 Text(memory.updatedAt, style: .relative)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                Button(action: onEdit) {
+                    Image(systemName: "pencil")
+                        .font(.caption2.weight(.semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("编辑记忆")
+                Button {
+                    showsDeleteConfirmation = true
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.caption2.weight(.semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
+                .help("删除记忆")
             }
             Text(memory.content)
                 .font(.caption2)
@@ -1252,6 +1659,12 @@ private struct MemoryInventoryCard: View {
         .padding(8)
         .background(Color.white.opacity(0.04))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .alert("删除这条长期记忆？", isPresented: $showsDeleteConfirmation) {
+            Button("取消", role: .cancel) {}
+            Button("删除", role: .destructive, action: onDelete)
+        } message: {
+            Text(memory.content)
+        }
     }
 }
 
@@ -1696,7 +2109,10 @@ private struct ChatBubble: View {
                     : Color.white.opacity(0.06)
             )
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .frame(maxWidth: 360, alignment: message.role == .user ? .trailing : .leading)
+            .frame(
+                maxWidth: message.role == .user ? 420 : 640,
+                alignment: message.role == .user ? .trailing : .leading
+            )
 
             if message.role == .assistant { Spacer(minLength: 36) }
         }
@@ -1709,10 +2125,187 @@ private struct MarkdownMessageText: View {
     let content: String
 
     var body: some View {
-        Text(attributedContent)
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
+                blockView(block)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var attributedContent: AttributedString {
-        (try? AttributedString(markdown: content)) ?? AttributedString(content)
+    @ViewBuilder
+    private func blockView(_ block: MarkdownBlock) -> some View {
+        switch block {
+        case .heading(let level, let text):
+            Text(inlineMarkdown(text))
+                .font(level <= 2 ? .subheadline.weight(.semibold) : .caption.weight(.semibold))
+        case .paragraph(let text):
+            Text(inlineMarkdown(text))
+        case .bullet(let text):
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("•")
+                    .foregroundStyle(Color.effectiveAccent)
+                Text(inlineMarkdown(text))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        case .numbered(let marker, let text):
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(marker)
+                    .font(.caption.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(Color.effectiveAccent)
+                    .frame(minWidth: 18, alignment: .trailing)
+                Text(inlineMarkdown(text))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        case .quote(let text):
+            HStack(alignment: .top, spacing: 7) {
+                Rectangle()
+                    .fill(Color.effectiveAccent.opacity(0.65))
+                    .frame(width: 2)
+                Text(inlineMarkdown(text))
+                    .foregroundStyle(.secondary)
+            }
+        case .code(let text):
+            ScrollView(.horizontal, showsIndicators: false) {
+                Text(text)
+                    .font(.caption2.monospaced())
+                    .textSelection(.enabled)
+                    .padding(7)
+            }
+            .background(Color.black.opacity(0.24))
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        }
+    }
+
+    private var blocks: [MarkdownBlock] {
+        MarkdownBlock.parse(content)
+    }
+
+    private func inlineMarkdown(_ text: String) -> AttributedString {
+        let options = AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace,
+            failurePolicy: .returnPartiallyParsedIfPossible
+        )
+        return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
+    }
+}
+
+private enum MarkdownBlock {
+    case heading(level: Int, text: String)
+    case paragraph(String)
+    case bullet(String)
+    case numbered(marker: String, text: String)
+    case quote(String)
+    case code(String)
+
+    static func parse(_ source: String) -> [MarkdownBlock] {
+        let lines = source
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .components(separatedBy: "\n")
+        var result: [MarkdownBlock] = []
+        var paragraphLines: [String] = []
+        var codeLines: [String] = []
+        var isInCodeFence = false
+
+        func flushParagraph() {
+            let text = paragraphLines.joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty {
+                result.append(.paragraph(text))
+            }
+            paragraphLines.removeAll(keepingCapacity: true)
+        }
+
+        func flushCode() {
+            let text = codeLines.joined(separator: "\n")
+                .trimmingCharacters(in: .newlines)
+            if !text.isEmpty {
+                result.append(.code(text))
+            }
+            codeLines.removeAll(keepingCapacity: true)
+        }
+
+        for rawLine in lines {
+            let line = rawLine.trimmingCharacters(in: .whitespaces)
+
+            if line.hasPrefix("```") {
+                flushParagraph()
+                if isInCodeFence {
+                    flushCode()
+                }
+                isInCodeFence.toggle()
+                continue
+            }
+
+            if isInCodeFence {
+                codeLines.append(rawLine)
+                continue
+            }
+
+            guard !line.isEmpty else {
+                flushParagraph()
+                continue
+            }
+
+            let headingLevel = line.prefix { $0 == "#" }.count
+            if headingLevel > 0,
+               headingLevel <= 6,
+               line.dropFirst(headingLevel).first == " "
+            {
+                flushParagraph()
+                result.append(.heading(
+                    level: headingLevel,
+                    text: String(line.dropFirst(headingLevel)).trimmingCharacters(in: .whitespaces)
+                ))
+                continue
+            }
+
+            if line.hasPrefix("- ") || line.hasPrefix("* ") {
+                flushParagraph()
+                result.append(.bullet(String(line.dropFirst(2))))
+                continue
+            }
+
+            if let markerRange = line.range(of: #"^\d+[\.)]\s+"#, options: .regularExpression) {
+                flushParagraph()
+                let marker = String(line[..<markerRange.upperBound]).trimmingCharacters(in: .whitespaces)
+                result.append(.numbered(
+                    marker: marker,
+                    text: String(line[markerRange.upperBound...])
+                ))
+                continue
+            }
+
+            if line.hasPrefix("> ") {
+                flushParagraph()
+                result.append(.quote(String(line.dropFirst(2))))
+                continue
+            }
+
+            if line.contains("|") && line.filter({ $0 == "|" }).count >= 2 {
+                let cells = line
+                    .split(separator: "|", omittingEmptySubsequences: true)
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                let isSeparator = !cells.isEmpty && cells.allSatisfy { cell in
+                    cell.replacingOccurrences(of: "-", with: "")
+                        .replacingOccurrences(of: ":", with: "")
+                        .isEmpty
+                }
+                if !isSeparator {
+                    flushParagraph()
+                    result.append(.bullet(cells.joined(separator: " · ")))
+                }
+                continue
+            }
+
+            paragraphLines.append(rawLine)
+        }
+
+        if isInCodeFence {
+            flushCode()
+        } else {
+            flushParagraph()
+        }
+        return result.isEmpty ? [.paragraph(source)] : result
     }
 }

@@ -8,9 +8,11 @@
 import AppKit
 import Combine
 import CoreLocation
+import Darwin
 import Defaults
 import Foundation
 import PDFKit
+import Security
 import UniformTypeIdentifiers
 import Vision
 
@@ -19,6 +21,170 @@ struct AgentFileReadError: LocalizedError {
 
     init(_ message: String) {
         self.errorDescription = message
+    }
+}
+
+enum AIProviderCredentialStore {
+    private static let service = "\(Bundle.main.bundleIdentifier ?? "theboringteam.boringnotch").ai-provider"
+    private static let account = "chat-completions-api-key"
+
+    static var apiKey: String {
+        if let value = try? readKeychainValue(), !value.isEmpty {
+            return value
+        }
+
+        let legacyValue = Defaults[.aiServiceAPIKey]
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !legacyValue.isEmpty else { return "" }
+
+        if (try? saveAPIKey(legacyValue)) != nil {
+            Defaults[.aiServiceAPIKey] = ""
+        }
+        return legacyValue
+    }
+
+    static var hasAPIKey: Bool {
+        !apiKey.isEmpty
+    }
+
+    static func saveAPIKey(_ rawValue: String) throws {
+        let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let query = baseQuery
+
+        if value.isEmpty {
+            let status = SecItemDelete(query as CFDictionary)
+            guard status == errSecSuccess || status == errSecItemNotFound else {
+                throw credentialError(status)
+            }
+            Defaults[.aiServiceAPIKey] = ""
+            return
+        }
+
+        let attributes: [CFString: Any] = [
+            kSecValueData: Data(value.utf8),
+            kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+        ]
+        var status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        if status == errSecItemNotFound {
+            var item = query
+            for (key, value) in attributes {
+                item[key] = value
+            }
+            status = SecItemAdd(item as CFDictionary, nil)
+        }
+
+        guard status == errSecSuccess else {
+            throw credentialError(status)
+        }
+        Defaults[.aiServiceAPIKey] = ""
+    }
+
+    private static var baseQuery: [CFString: Any] {
+        [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: account,
+        ]
+    }
+
+    private static func readKeychainValue() throws -> String {
+        var query = baseQuery
+        query[kSecReturnData] = true
+        query[kSecMatchLimit] = kSecMatchLimitOne
+
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecItemNotFound {
+            return ""
+        }
+        guard status == errSecSuccess else {
+            throw credentialError(status)
+        }
+        guard let data = result as? Data,
+              let value = String(data: data, encoding: .utf8)
+        else {
+            throw credentialError(errSecDecode)
+        }
+        return value.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func credentialError(_ status: OSStatus) -> AgentFileReadError {
+        let message = SecCopyErrorMessageString(status, nil) as String?
+        return AgentFileReadError("无法访问 macOS Keychain：\(message ?? "错误码 \(status)")")
+    }
+}
+
+private func isAgentPublicHTTPURL(_ url: URL) -> Bool {
+    guard let scheme = url.scheme?.lowercased(),
+          ["http", "https"].contains(scheme),
+          url.user == nil,
+          url.password == nil,
+          let rawHost = url.host?.lowercased(),
+          !rawHost.isEmpty
+    else {
+        return false
+    }
+
+    if let port = url.port, ![80, 443].contains(port) {
+        return false
+    }
+
+    let host = rawHost.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
+    let blockedNames = ["localhost", "localhost.localdomain"]
+    if blockedNames.contains(host)
+        || host.hasSuffix(".localhost")
+        || host.hasSuffix(".local")
+        || host.hasSuffix(".internal")
+        || host.hasSuffix(".lan")
+        || host.hasSuffix(".home")
+    {
+        return false
+    }
+
+    let ipv4Parts = host.split(separator: ".").compactMap { Int($0) }
+    if ipv4Parts.count == 4, ipv4Parts.allSatisfy({ (0...255).contains($0) }) {
+        let first = ipv4Parts[0]
+        let second = ipv4Parts[1]
+        if first == 0
+            || first == 10
+            || first == 127
+            || (first == 169 && second == 254)
+            || (first == 172 && (16...31).contains(second))
+            || (first == 192 && second == 168)
+            || first >= 224
+        {
+            return false
+        }
+    } else if host.allSatisfy({ $0.isNumber || $0 == "." }) {
+        return false
+    }
+
+    if host.contains(":") {
+        if host == "::" || host == "::1" || host.hasPrefix("fc") || host.hasPrefix("fd") {
+            return false
+        }
+        let firstGroup = host.split(separator: ":", omittingEmptySubsequences: true).first.map(String.init) ?? ""
+        if ["fe8", "fe9", "fea", "feb"].contains(where: firstGroup.hasPrefix) {
+            return false
+        }
+    }
+
+    return true
+}
+
+private final class AgentPublicURLSessionDelegate: NSObject, URLSessionTaskDelegate {
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping (URLRequest?) -> Void
+    ) {
+        guard let url = request.url, isAgentPublicHTTPURL(url) else {
+            completionHandler(nil)
+            return
+        }
+        completionHandler(request)
     }
 }
 
@@ -32,14 +198,12 @@ func readAgentImportableFile(at url: URL) throws -> (content: String, byteCount:
         guard let document = PDFDocument(url: url) else {
             throw AgentFileReadError("无法打开 PDF。")
         }
-        let pageTexts = (0..<document.pageCount).compactMap { index in
-            document.page(at: index)?.string?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let extraction = try extractAgentPDFText(from: document)
+        guard !extraction.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw AgentFileReadError("PDF 没有可抽取或识别的文字。")
         }
-        let text = pageTexts.joined(separator: "\n\n")
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw AgentFileReadError("PDF 没有可抽取文本，当前不做 OCR。")
-        }
-        return ("[PDF text extracted]\n\(String(text.prefix(24_000)))", byteCount)
+        let method = extraction.usedOCR ? "PDF OCR" : "PDF text extracted"
+        return ("[\(method)]\n\(String(extraction.text.prefix(24_000)))", byteCount)
     }
 
     if agentFileIsImage(url) {
@@ -90,12 +254,64 @@ private func agentFileIsImage(_ url: URL) -> Bool {
     return type.conforms(to: .image)
 }
 
+private func extractAgentPDFText(from document: PDFDocument) throws -> (text: String, usedOCR: Bool) {
+    let readablePageLimit = min(document.pageCount, 120)
+    var extractedPages: [String] = []
+    var extractedCharacterCount = 0
+
+    for index in 0..<readablePageLimit {
+        guard let text = document.page(at: index)?.string?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !text.isEmpty
+        else { continue }
+
+        extractedPages.append(text)
+        extractedCharacterCount += text.count
+        if extractedCharacterCount >= 24_000 {
+            break
+        }
+    }
+
+    if !extractedPages.isEmpty {
+        return (extractedPages.joined(separator: "\n\n"), false)
+    }
+
+    let ocrPageLimit = min(document.pageCount, 12)
+    var recognizedPages: [String] = []
+    for index in 0..<ocrPageLimit {
+        guard let page = document.page(at: index) else { continue }
+        let thumbnail = page.thumbnail(of: CGSize(width: 1_600, height: 2_200), for: .mediaBox)
+        var proposedRect = NSRect(origin: .zero, size: thumbnail.size)
+        guard let image = thumbnail.cgImage(forProposedRect: &proposedRect, context: nil, hints: nil) else {
+            continue
+        }
+        let text = try recognizeAgentText(in: image)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if !text.isEmpty {
+            recognizedPages.append(text)
+        }
+    }
+
+    return (recognizedPages.joined(separator: "\n\n"), true)
+}
+
 private func extractAgentImageText(at url: URL) throws -> String {
+    guard let imageSource = NSImage(contentsOf: url) else {
+        throw AgentFileReadError("无法打开图片。")
+    }
+    var proposedRect = NSRect(origin: .zero, size: imageSource.size)
+    guard let image = imageSource.cgImage(forProposedRect: &proposedRect, context: nil, hints: nil) else {
+        throw AgentFileReadError("无法解析图片像素。")
+    }
+    return try recognizeAgentText(in: image)
+}
+
+private func recognizeAgentText(in image: CGImage) throws -> String {
     let request = VNRecognizeTextRequest()
     request.recognitionLevel = .fast
     request.usesLanguageCorrection = true
 
-    let handler = VNImageRequestHandler(url: url, options: [:])
+    let handler = VNImageRequestHandler(cgImage: image, options: [:])
     try handler.perform([request])
 
     return (request.results ?? [])
@@ -299,7 +515,7 @@ struct AgentWorkingMemory: Equatable {
 }
 
 struct AgentMemoryRecord: Identifiable, Codable, Equatable {
-    enum Kind: String, Codable {
+    enum Kind: String, Codable, CaseIterable {
         case fact
         case episodic
         case procedural
@@ -485,6 +701,7 @@ private final class AgentMemoryStore {
     static let shared = AgentMemoryStore()
 
     private(set) var records: [AgentMemoryRecord] = []
+    private(set) var lastPersistenceError: String?
     private let fileURL: URL
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
@@ -507,13 +724,21 @@ private final class AgentMemoryStore {
             .appendingPathComponent("DanShenAgent", isDirectory: true)
         fileURL = directory.appendingPathComponent("memories.json")
 
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        } catch {
+            lastPersistenceError = "无法创建记忆存储目录：\(error.localizedDescription)"
+        }
         migrateLegacyMemoryIfNeeded(from: baseDirectory)
-        load()
+        reloadFromDisk()
     }
 
     var recentRecords: [AgentMemoryRecord] {
-        Array(records.sorted { $0.updatedAt > $1.updatedAt }.prefix(20))
+        Array(records.filter(isEligibleForRetrieval).sorted { $0.updatedAt > $1.updatedAt }.prefix(20))
+    }
+
+    var allRecords: [AgentMemoryRecord] {
+        records.sorted { $0.updatedAt > $1.updatedAt }
     }
 
     var storageURL: URL {
@@ -549,6 +774,7 @@ private final class AgentMemoryStore {
         let now = Date()
         let matches = records
             .enumerated()
+            .filter { isEligibleForRetrieval($0.element) }
             .map { index, record -> (index: Int, score: Double, reason: String) in
                 let recordKeywords = Set(record.keywords)
                 let matchedKeywords = Array(queryKeywords.intersection(recordKeywords)).sorted()
@@ -586,7 +812,7 @@ private final class AgentMemoryStore {
             records[match.index].accessCount += 1
             records[match.index].lastAccessedAt = now
         }
-        save()
+        _ = save()
 
         return matches.map { match in
             var record = records[match.index]
@@ -603,8 +829,53 @@ private final class AgentMemoryStore {
         return store(content: content, routeKind: route.kind.rawValue, source: "explicit-user-message")
     }
 
-    func storeManual(_ content: String) -> AgentMemoryRecord? {
-        store(content: content, routeKind: "manual_memory", source: "slash-remember")
+    func storeManual(
+        _ content: String,
+        kind: AgentMemoryRecord.Kind? = nil
+    ) -> AgentMemoryRecord? {
+        store(
+            content: content,
+            routeKind: "manual_memory",
+            source: "slash-remember",
+            kindOverride: kind
+        )
+    }
+
+    func update(
+        id: UUID,
+        content rawContent: String,
+        kind: AgentMemoryRecord.Kind
+    ) -> AgentMemoryRecord? {
+        let content = rawContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !content.isEmpty, let index = records.firstIndex(where: { $0.id == id }) else {
+            return nil
+        }
+
+        let previousRecords = records
+        records[index].content = String(content.prefix(320))
+        records[index].kind = kind
+        records[index].keywords = Array(keywords(for: content + " " + kind.rawValue)).sorted()
+        records[index].updatedAt = Date()
+        records[index].source = "manual-edit"
+        records[index].retrievalScore = nil
+        records[index].retrievalReason = nil
+        guard save() else {
+            records = previousRecords
+            return nil
+        }
+        return records[index]
+    }
+
+    @discardableResult
+    func remove(id: UUID) -> Bool {
+        let previousRecords = records
+        records.removeAll { $0.id == id }
+        guard records.count != previousRecords.count else { return false }
+        guard save() else {
+            records = previousRecords
+            return false
+        }
+        return true
     }
 
     func forget(matching query: String) -> Int {
@@ -617,22 +888,29 @@ private final class AgentMemoryStore {
 
         let queryKeywords = keywords(for: normalizedQuery)
         let beforeCount = records.count
+        let previousRecords = records
         records.removeAll { record in
             record.content.localizedCaseInsensitiveContains(normalizedQuery)
                 || Set(record.keywords).intersection(queryKeywords).count >= 2
         }
         let removedCount = beforeCount - records.count
-        if removedCount > 0 {
-            save()
+        if removedCount > 0, !save() {
+            records = previousRecords
+            return 0
         }
         return removedCount
     }
 
-    private func store(content rawContent: String, routeKind: String, source: String) -> AgentMemoryRecord? {
+    private func store(
+        content rawContent: String,
+        routeKind: String,
+        source: String,
+        kindOverride: AgentMemoryRecord.Kind? = nil
+    ) -> AgentMemoryRecord? {
         let content = rawContent.trimmingCharacters(in: .whitespacesAndNewlines)
         let record = AgentMemoryRecord(
             id: UUID(),
-            kind: memoryKind(for: content, routeKind: routeKind),
+            kind: kindOverride ?? memoryKind(for: content, routeKind: routeKind),
             content: String(content.prefix(320)),
             keywords: Array(keywords(for: content + " " + routeKind)).sorted(),
             createdAt: Date(),
@@ -647,6 +925,7 @@ private final class AgentMemoryStore {
             Set(existing.keywords).intersection(record.keywords).count >= 2
                 && existing.content.localizedCaseInsensitiveContains(String(record.content.prefix(24)))
         }) {
+            let previousRecords = records
             records[existingIndex].content = record.content
             records[existingIndex].keywords = record.keywords
             records[existingIndex].kind = record.kind
@@ -654,19 +933,29 @@ private final class AgentMemoryStore {
             records[existingIndex].importance = max(records[existingIndex].importance, record.importance)
             records[existingIndex].confidence = max(records[existingIndex].confidence, record.confidence)
             records[existingIndex].updatedAt = Date()
-            save()
+            guard save() else {
+                records = previousRecords
+                return nil
+            }
             return records[existingIndex]
         }
 
+        let previousRecords = records
         records.append(record)
         records = Array(records.sorted { $0.updatedAt > $1.updatedAt }.prefix(100))
-        save()
+        guard save() else {
+            records = previousRecords
+            return nil
+        }
         return record
     }
 
     func clear() {
+        let previousRecords = records
         records.removeAll()
-        save()
+        if !save() {
+            records = previousRecords
+        }
     }
 
     func keywords(for text: String) -> Set<String> {
@@ -685,23 +974,55 @@ private final class AgentMemoryStore {
         return result
     }
 
-    private func load() {
-        guard let data = try? Data(contentsOf: fileURL) else { return }
-        records = (try? decoder.decode([AgentMemoryRecord].self, from: data)) ?? []
+    @discardableResult
+    func reloadFromDisk() -> Bool {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            records = []
+            lastPersistenceError = nil
+            return true
+        }
+
+        do {
+            let data = try Data(contentsOf: fileURL)
+            records = try decoder.decode([AgentMemoryRecord].self, from: data)
+            lastPersistenceError = nil
+            return true
+        } catch {
+            lastPersistenceError = "长期记忆文件读取失败：\(error.localizedDescription)"
+            return false
+        }
     }
 
-    private func save() {
-        guard let data = try? encoder.encode(records) else { return }
-        try? data.write(to: fileURL, options: .atomic)
+    @discardableResult
+    private func save() -> Bool {
+        do {
+            let data = try encoder.encode(records)
+            try data.write(to: fileURL, options: .atomic)
+            lastPersistenceError = nil
+            return true
+        } catch {
+            lastPersistenceError = "长期记忆保存失败：\(error.localizedDescription)"
+            return false
+        }
     }
 
     private func shouldPersist(_ prompt: String) -> Bool {
         let lowered = prompt.lowercased()
-        let explicitSignals = [
-            "记住", "记一下", "请记", "以后", "我的偏好", "我的习惯", "我喜欢", "我不喜欢",
-            "默认", "remember", "my preference", "i prefer", "always", "never"
+        let explicitCommands = [
+            "记住", "记一下", "请记", "帮我记", "remember this", "please remember"
         ]
-        return explicitSignals.contains(where: lowered.contains)
+        if explicitCommands.contains(where: lowered.contains) {
+            return true
+        }
+
+        guard !isQuestionLike(prompt) else { return false }
+
+        let stablePreferenceSignals = [
+            "我的偏好", "我的习惯", "我喜欢", "我不喜欢", "我通常", "我一般",
+            "以后请", "以后都", "默认请", "my preference", "i prefer", "i usually",
+            "always use", "never use"
+        ]
+        return stablePreferenceSignals.contains(where: lowered.contains)
     }
 
     private func normalizedMemoryContent(from prompt: String) -> String {
@@ -710,8 +1031,34 @@ private final class AgentMemoryStore {
             .first ?? prompt
         return withoutFiles
             .replacingOccurrences(of: "请记住", with: "")
+            .replacingOccurrences(of: "帮我记住", with: "")
+            .replacingOccurrences(of: "记一下", with: "")
             .replacingOccurrences(of: "记住", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func isEligibleForRetrieval(_ record: AgentMemoryRecord) -> Bool {
+        if record.source == "slash-remember" {
+            return !record.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
+        let normalized = record.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard normalized.count >= 6, !isQuestionLike(normalized) else { return false }
+        let lowInformationFragments = ["用默认的", "默认就好", "随便", "都可以"]
+        return !lowInformationFragments.contains(normalized.lowercased())
+    }
+
+    private func isQuestionLike(_ text: String) -> Bool {
+        let lowered = text.lowercased()
+        if lowered.contains("?") || lowered.contains("？") {
+            return true
+        }
+        let questionSignals = [
+            "什么", "多少", "怎么", "为什么", "哪一个", "哪个", "是否", "有没有",
+            "可以吗", "行吗", "好吗", "who", "what", "when", "where", "why", "how",
+            "do i", "can i", "should i"
+        ]
+        return questionSignals.contains(where: lowered.contains)
     }
 
     private func memoryKind(for content: String, routeKind: String) -> AgentMemoryRecord.Kind {
@@ -772,6 +1119,7 @@ private final class AgentKnowledgeStore {
     static let shared = AgentKnowledgeStore()
 
     private(set) var documents: [AgentKnowledgeDocument] = []
+    private(set) var lastPersistenceError: String?
     private let fileURL: URL
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
@@ -788,8 +1136,12 @@ private final class AgentKnowledgeStore {
 
         let directory = Self.storageDirectory()
         fileURL = directory.appendingPathComponent("knowledge.json")
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        load()
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        } catch {
+            lastPersistenceError = "无法创建知识库存储目录：\(error.localizedDescription)"
+        }
+        reloadFromDisk()
     }
 
     var storageURL: URL {
@@ -814,13 +1166,17 @@ private final class AgentKnowledgeStore {
         let keywords = Array(keywords(for: "\(title) \(summary) \(content.prefix(2400))")).sorted()
 
         if let index = documents.firstIndex(where: { $0.sourcePath == sourcePath }) {
+            let previousDocuments = documents
             documents[index].title = title
             documents[index].summary = summary
             documents[index].content = String(content.prefix(32_000))
             documents[index].keywords = keywords
             documents[index].byteCount = byteCount
             documents[index].updatedAt = now
-            save()
+            guard save() else {
+                documents = previousDocuments
+                return nil
+            }
             return documents[index]
         }
 
@@ -835,9 +1191,13 @@ private final class AgentKnowledgeStore {
             createdAt: now,
             updatedAt: now
         )
+        let previousDocuments = documents
         documents.insert(document, at: 0)
         documents = Array(documents.sorted { $0.updatedAt > $1.updatedAt }.prefix(80))
-        save()
+        guard save() else {
+            documents = previousDocuments
+            return nil
+        }
         return document
     }
 
@@ -875,14 +1235,26 @@ private final class AgentKnowledgeStore {
         !retrieve(query: query, limit: 1).isEmpty
     }
 
-    func removeDocument(id: UUID) {
+    @discardableResult
+    func removeDocument(id: UUID) -> Bool {
+        let previousDocuments = documents
         documents.removeAll { $0.id == id }
-        save()
+        guard save() else {
+            documents = previousDocuments
+            return false
+        }
+        return true
     }
 
-    func clear() {
+    @discardableResult
+    func clear() -> Bool {
+        let previousDocuments = documents
         documents.removeAll()
-        save()
+        guard save() else {
+            documents = previousDocuments
+            return false
+        }
+        return true
     }
 
     private static func storageDirectory() -> URL {
@@ -914,14 +1286,36 @@ private final class AgentKnowledgeStore {
         return result
     }
 
-    private func load() {
-        guard let data = try? Data(contentsOf: fileURL) else { return }
-        documents = (try? decoder.decode([AgentKnowledgeDocument].self, from: data)) ?? []
+    @discardableResult
+    func reloadFromDisk() -> Bool {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            documents = []
+            lastPersistenceError = nil
+            return true
+        }
+
+        do {
+            let data = try Data(contentsOf: fileURL)
+            documents = try decoder.decode([AgentKnowledgeDocument].self, from: data)
+            lastPersistenceError = nil
+            return true
+        } catch {
+            lastPersistenceError = "知识库文件读取失败：\(error.localizedDescription)"
+            return false
+        }
     }
 
-    private func save() {
-        guard let data = try? encoder.encode(documents) else { return }
-        try? data.write(to: fileURL, options: .atomic)
+    @discardableResult
+    private func save() -> Bool {
+        do {
+            let data = try encoder.encode(documents)
+            try data.write(to: fileURL, options: .atomic)
+            lastPersistenceError = nil
+            return true
+        } catch {
+            lastPersistenceError = "知识库保存失败：\(error.localizedDescription)"
+            return false
+        }
     }
 }
 
@@ -1332,14 +1726,15 @@ private final class AgentOrchestrator {
     private init() {}
 
     func prepare(prompt: String, recentMessages: [AIChatMessage] = []) async -> AgentPreparedRun {
-        let route = routePrompt(prompt)
-        let discoveredPlugins = discoverPlugins(for: route, prompt: prompt)
+        let routingPrompt = routingPrompt(for: prompt, recentMessages: recentMessages)
+        let route = routePrompt(routingPrompt)
+        let discoveredPlugins = discoverPlugins(for: route, prompt: routingPrompt)
         let selectedPlugins = discoveredPlugins
             .filter(\.selected)
             .compactMap { match in plugins.first(where: { $0.id == match.id }) }
-        let selectedSkills = skillsForRoute(route, prompt: prompt)
+        let selectedSkills = skillsForRoute(route, prompt: routingPrompt)
         let taskUnderstanding = buildTaskUnderstanding(
-            prompt: prompt,
+            prompt: routingPrompt,
             route: route,
             selectedPlugins: selectedPlugins,
             selectedSkills: selectedSkills
@@ -1388,7 +1783,7 @@ private final class AgentOrchestrator {
                 selectedSkills: selectedSkills
             )
             storedMemory = memoryStore.storeIfUseful(prompt: prompt, route: route)
-            retrievedMemories = memoryStore.retrieve(prompt: prompt, route: route)
+            retrievedMemories = memoryStore.retrieve(prompt: routingPrompt, route: route)
 
             contextBlocks.append("[memory.short_term]\n\(shortTermContext)")
             if let workingMemory {
@@ -1415,7 +1810,7 @@ private final class AgentOrchestrator {
 
         if selectedIDs.contains("knowledge"), Defaults[.aiKnowledgeRetrievalEnabled] {
             let retrievalLimit = min(max(Defaults[.aiKnowledgeRetrievalLimit], 1), 8)
-            let hits = AgentKnowledgeStore.shared.retrieve(query: prompt, limit: retrievalLimit)
+            let hits = AgentKnowledgeStore.shared.retrieve(query: routingPrompt, limit: retrievalLimit)
             let knowledgeContext: String
             if hits.isEmpty {
                 knowledgeContext = "知识库没有命中相关资料。"
@@ -1441,7 +1836,7 @@ private final class AgentOrchestrator {
 
         if selectedIDs.contains("web") {
             if Defaults[.aiWebSearchEnabled] {
-                let webContext = await webSearchSummary(for: prompt)
+                let webContext = await webSearchSummary(for: routingPrompt)
                 contextBlocks.append("[web.search]\n\(webContext)")
                 steps.append(
                     .init(
@@ -1479,7 +1874,7 @@ private final class AgentOrchestrator {
         }
 
         if selectedIDs.contains("assignment") {
-            let hasProvidedFile = prompt.contains("[file:") || prompt.contains("本地文件上下文")
+            let hasProvidedFile = routingPrompt.contains("[file:") || routingPrompt.contains("本地文件上下文")
             let assignmentContext = hasProvidedFile
                 ? "已检测到用户上传的作业/文本上下文；后续回复需要提取交付物、评分点和缺失信息。"
                 : "未检测到上传的作业要求文件；如任务依赖评分标准，需要请用户上传或粘贴要求。"
@@ -1494,7 +1889,7 @@ private final class AgentOrchestrator {
         }
 
         if selectedIDs.contains("shelf") {
-            let hasProvidedFile = prompt.contains("[file:") || prompt.contains("本地文件上下文")
+            let hasProvidedFile = routingPrompt.contains("[file:") || routingPrompt.contains("本地文件上下文")
             let shelfContext = hasProvidedFile
                 ? "已读取本轮显式上传文件，可用于摘要、归类和待办提取。"
                 : "文件架上下文仅在用户上传或拖入文件时启用。"
@@ -1744,12 +2139,48 @@ private final class AgentOrchestrator {
         return strategies
     }
 
+    private func routingPrompt(for prompt: String, recentMessages: [AIChatMessage]) -> String {
+        let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        let isShortFollowUp = trimmed.count <= 8 || ["?", "？", "继续", "看一下", "你看", "能看到吗"].contains(trimmed)
+
+        guard isShortFollowUp else {
+            return prompt
+        }
+
+        // A short prompt can still be a complete request. Do not let an earlier
+        // write command turn a later read-only calendar question into an action.
+        guard routePrompt(trimmed).kind == .generalChat else {
+            return prompt
+        }
+
+        let previousUserMessages = recentMessages
+            .filter { $0.role == .user }
+            .map(\.content)
+            .filter { $0.trimmingCharacters(in: .whitespacesAndNewlines) != trimmed }
+            .suffix(3)
+
+        guard !previousUserMessages.isEmpty else {
+            return prompt
+        }
+
+        return (Array(previousUserMessages) + [prompt]).joined(separator: "\n")
+    }
+
     private func routePrompt(_ prompt: String) -> AgentRoute {
         let lowered = prompt.lowercased()
         let calendarWrite = [
             "add to calendar", "put on my calendar", "create calendar event",
-            "write to calendar", "schedule it", "写进日历", "写到日历",
-            "加到日历", "添加到日历", "放到日历", "创建日程", "写入日历"
+            "write to calendar", "schedule it", "create reminder", "set reminder",
+            "remind me", "写进日历", "写到日历",
+            "加到日历", "添加到日历", "放到日历", "创建日程", "创建日历",
+            "写入日历", "写入日程", "写到日程", "加到日程", "加入日程",
+            "添加日程", "添加到日程", "放到日程", "安排到日历", "安排进日历",
+            "安排到日程", "安排进日程", "把计划写", "把安排写",
+            "加一个日程", "加个日程", "加一条日程", "新增日程", "新建日程",
+            "新增一个日程", "新建一个日程", "帮我加日程", "给我加日程",
+            "给我今晚加", "给我明天加", "今晚加一个", "明天加一个",
+            "加一个提醒", "加个提醒", "新增提醒", "新建提醒",
+            "提醒我", "设置提醒", "设个提醒", "设一个提醒"
         ]
         if calendarWrite.contains(where: lowered.contains) {
             return .init(kind: .calendarWrite, confidence: 0.93)
@@ -2057,6 +2488,8 @@ private final class AgentOrchestrator {
 
     private func githubCandidates(from tree: [GitHubTreeResponse.Item], terms: [String]) -> [GitHubTreeResponse.Item] {
         let usefulExtensions = ["swift", "md", "markdown", "json", "yml", "yaml", "plist", "xcstrings", "txt"]
+        let pathTerms = expandedRepositoryTerms(terms)
+        let asksAboutHUD = terms.contains("hud")
 
         let scored = tree.compactMap { item -> (GitHubTreeResponse.Item, Int)? in
             guard item.type == "blob" else { return nil }
@@ -2066,8 +2499,10 @@ private final class AgentOrchestrator {
             let pathExtension = URL(fileURLWithPath: lowerPath).pathExtension
             guard usefulExtensions.contains(pathExtension) else { return nil }
 
-            var score = terms.filter { lowerPath.contains($0) }.count * 3
-            if lowerPath.contains("hud") { score += 3 }
+            var score = pathTerms.filter { lowerPath.contains($0) }.count * 3
+            if lowerPath.contains("hud") { score += 5 }
+            if asksAboutHUD && lowerPath.contains("/osd/") { score += 6 }
+            if asksAboutHUD && lowerPath.contains("osdsettings") { score += 3 }
             if lowerPath.contains("notch") { score += 1 }
             if lowerPath.contains("readme") { score += 1 }
             return score > 0 ? (item, score) : nil
@@ -2166,14 +2601,35 @@ private final class AgentOrchestrator {
     }
 
     private func fetchPublicData(from url: URL) async throws -> Data {
+        guard isAgentPublicHTTPURL(url) else {
+            throw FeatureError("出于隐私和安全考虑，联网工具只读取公开的 HTTP/HTTPS 地址。")
+        }
+
         var request = URLRequest(url: url)
         request.timeoutInterval = 12
-        request.setValue("BoringNotchAgent/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("DanShenAgent/1.0", forHTTPHeaderField: "User-Agent")
         request.setValue("application/vnd.github+json, text/html, text/plain;q=0.9, */*;q=0.8", forHTTPHeaderField: "Accept")
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.httpShouldSetCookies = false
+        configuration.urlCache = nil
+        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+        let session = URLSession(
+            configuration: configuration,
+            delegate: AgentPublicURLSessionDelegate(),
+            delegateQueue: nil
+        )
+        defer { session.finishTasksAndInvalidate() }
+
+        let (data, response) = try await session.data(for: request)
+        guard let finalURL = response.url, isAgentPublicHTTPURL(finalURL) else {
+            throw FeatureError("联网请求被重定向到了非公开地址，已停止读取。")
+        }
         if let httpResponse = response as? HTTPURLResponse, !(200 ... 299).contains(httpResponse.statusCode) {
             throw FeatureError("Network request failed with status \(httpResponse.statusCode).")
+        }
+        guard data.count <= 8_000_000 else {
+            throw FeatureError("联网结果超过 8 MB，已停止读取。")
         }
         return data
     }
@@ -2230,7 +2686,7 @@ private final class AgentOrchestrator {
 
     private func sourceSnippet(from text: String, terms: [String]) -> String {
         let lines = text.components(separatedBy: .newlines)
-        let loweredTerms = terms.map { $0.lowercased() }
+        let loweredTerms = expandedRepositoryTerms(terms)
         let hitIndex = lines.firstIndex { line in
             let lowerLine = line.lowercased()
             return loweredTerms.contains(where: lowerLine.contains)
@@ -2241,6 +2697,15 @@ private final class AgentOrchestrator {
             .joined(separator: "\n")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return String((snippet.isEmpty ? text : snippet).prefix(1_800))
+    }
+
+    private func expandedRepositoryTerms(_ terms: [String]) -> [String] {
+        var expanded = terms.map { $0.lowercased() }
+        if expanded.contains("hud") {
+            expanded.append(contentsOf: ["osd", "overlay", "indicator", "heads-up"])
+        }
+        var seen = Set<String>()
+        return expanded.filter { !$0.isEmpty && seen.insert($0).inserted }
     }
 
     private func webPageTitle(from html: String) -> String? {
@@ -2494,7 +2959,7 @@ private final class AgentOrchestrator {
         }.joined(separator: "\n")
 
         return """
-        Boring Notch Agent 编排上下文：
+        蛋神 Agent 编排上下文：
         路由：\(route.kind.displayName)，置信度 \(String(format: "%.2f", route.confidence))。
 
         任务理解：
@@ -2572,10 +3037,13 @@ final class AIChatManager: ObservableObject {
     @Published private(set) var lastResolvedModelName: String?
     @Published private(set) var lastAgentTrace: AgentRunTrace?
     @Published private(set) var knowledgeDocuments: [AgentKnowledgeDocument] = []
+    @Published private(set) var persistenceError: String?
+    @Published private(set) var hasConfiguredAPIKey = AIProviderCredentialStore.hasAPIKey
 
     private let conversationStoreURL: URL
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+    private var conversationPersistenceError: String?
 
     private init() {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -2584,9 +3052,13 @@ final class AIChatManager: ObservableObject {
 
         let directory = Self.storageDirectory()
         conversationStoreURL = directory.appendingPathComponent("conversations.json")
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        } catch {
+            conversationPersistenceError = "无法创建智能体存储目录：\(error.localizedDescription)"
+        }
         loadConversations()
-        refreshKnowledgeDocuments()
+        refreshPersistentState()
     }
 
     var activeConversation: AgentChatConversation? {
@@ -2660,7 +3132,7 @@ final class AIChatManager: ObservableObject {
     }
 
     var longTermMemories: [AgentMemoryRecord] {
-        AgentMemoryStore.shared.recentRecords
+        AgentMemoryStore.shared.allRecords
     }
 
     var longTermMemoryLocation: URL {
@@ -2672,7 +3144,24 @@ final class AIChatManager: ObservableObject {
     }
 
     func refreshKnowledgeDocuments() {
-        knowledgeDocuments = AgentKnowledgeStore.shared.documents
+        let store = AgentKnowledgeStore.shared
+        _ = store.reloadFromDisk()
+        knowledgeDocuments = store.documents
+        updatePersistenceError()
+    }
+
+    func refreshPersistentState() {
+        let knowledgeStore = AgentKnowledgeStore.shared
+        let memoryStore = AgentMemoryStore.shared
+        _ = knowledgeStore.reloadFromDisk()
+        _ = memoryStore.reloadFromDisk()
+        knowledgeDocuments = knowledgeStore.documents
+        refreshCredentialState()
+        updatePersistenceError()
+    }
+
+    func refreshCredentialState() {
+        hasConfiguredAPIKey = AIProviderCredentialStore.hasAPIKey
     }
 
     @discardableResult
@@ -2690,18 +3179,24 @@ final class AIChatManager: ObservableObject {
         )
         if document != nil {
             refreshKnowledgeDocuments()
+        } else {
+            updatePersistenceError()
         }
         return document
     }
 
     func removeKnowledgeDocument(id: UUID) {
-        AgentKnowledgeStore.shared.removeDocument(id: id)
-        refreshKnowledgeDocuments()
+        let store = AgentKnowledgeStore.shared
+        _ = store.removeDocument(id: id)
+        knowledgeDocuments = store.documents
+        updatePersistenceError()
     }
 
     func clearKnowledgeBase() {
-        AgentKnowledgeStore.shared.clear()
-        refreshKnowledgeDocuments()
+        let store = AgentKnowledgeStore.shared
+        _ = store.clear()
+        knowledgeDocuments = store.documents
+        updatePersistenceError()
     }
 
     @discardableResult
@@ -2738,7 +3233,45 @@ final class AIChatManager: ObservableObject {
         if record != nil {
             objectWillChange.send()
         }
+        updatePersistenceError()
         return record
+    }
+
+    @discardableResult
+    func createMemory(
+        _ content: String,
+        kind: AgentMemoryRecord.Kind
+    ) -> AgentMemoryRecord? {
+        let record = AgentMemoryStore.shared.storeManual(content, kind: kind)
+        if record != nil {
+            objectWillChange.send()
+        }
+        updatePersistenceError()
+        return record
+    }
+
+    @discardableResult
+    func updateMemory(
+        id: UUID,
+        content: String,
+        kind: AgentMemoryRecord.Kind
+    ) -> Bool {
+        let updated = AgentMemoryStore.shared.update(id: id, content: content, kind: kind)
+        if updated != nil {
+            objectWillChange.send()
+        }
+        updatePersistenceError()
+        return updated != nil
+    }
+
+    @discardableResult
+    func deleteMemory(id: UUID) -> Bool {
+        let removed = AgentMemoryStore.shared.remove(id: id)
+        if removed {
+            objectWillChange.send()
+        }
+        updatePersistenceError()
+        return removed
     }
 
     @discardableResult
@@ -2747,12 +3280,14 @@ final class AIChatManager: ObservableObject {
         if removedCount > 0 {
             objectWillChange.send()
         }
+        updatePersistenceError()
         return removedCount
     }
 
     func clearLongTermMemory() {
         AgentMemoryStore.shared.clear()
         objectWillChange.send()
+        updatePersistenceError()
     }
 
     func revealLongTermMemoryFile() {
@@ -2770,6 +3305,7 @@ final class AIChatManager: ObservableObject {
 
         do {
             var agentRun = await AgentOrchestrator.shared.prepare(prompt: trimmedPrompt, recentMessages: messages)
+            updatePersistenceError()
             lastAgentTrace = agentRun.trace
             let reply: AIReply
 
@@ -2818,24 +3354,55 @@ final class AIChatManager: ObservableObject {
     }
 
     private func loadConversations() {
-        if let data = try? Data(contentsOf: conversationStoreURL),
-           let decoded = try? decoder.decode([AgentChatConversation].self, from: data),
-           !decoded.isEmpty
-        {
-            conversations = decoded.sorted { $0.updatedAt > $1.updatedAt }
-            activeConversationID = conversations.first?.id
+        guard FileManager.default.fileExists(atPath: conversationStoreURL.path) else {
+            installStarterConversation(persist: true)
             return
         }
 
+        do {
+            let data = try Data(contentsOf: conversationStoreURL)
+            let decoded = try decoder.decode([AgentChatConversation].self, from: data)
+            guard !decoded.isEmpty else {
+                installStarterConversation(persist: true)
+                return
+            }
+            conversations = decoded.sorted { $0.updatedAt > $1.updatedAt }
+            activeConversationID = conversations.first?.id
+            conversationPersistenceError = nil
+        } catch {
+            conversationPersistenceError = "会话记录读取失败，原文件已保留：\(error.localizedDescription)"
+            installStarterConversation(persist: false)
+        }
+    }
+
+    private func installStarterConversation(persist: Bool) {
         let starter = AgentChatConversation(title: "新对话")
         conversations = [starter]
         activeConversationID = starter.id
-        persistConversations()
+        if persist {
+            persistConversations()
+        }
     }
 
-    private func persistConversations() {
-        guard let data = try? encoder.encode(conversations) else { return }
-        try? data.write(to: conversationStoreURL, options: .atomic)
+    @discardableResult
+    private func persistConversations() -> Bool {
+        do {
+            let data = try encoder.encode(conversations)
+            try data.write(to: conversationStoreURL, options: .atomic)
+            conversationPersistenceError = nil
+            updatePersistenceError()
+            return true
+        } catch {
+            conversationPersistenceError = "会话记录保存失败：\(error.localizedDescription)"
+            updatePersistenceError()
+            return false
+        }
+    }
+
+    private func updatePersistenceError() {
+        persistenceError = conversationPersistenceError
+            ?? AgentKnowledgeStore.shared.lastPersistenceError
+            ?? AgentMemoryStore.shared.lastPersistenceError
     }
 
     private func appendMessage(_ message: AIChatMessage) {
@@ -2888,7 +3455,7 @@ final class AIChatManager: ObservableObject {
             """
             # GitHub 案例：Agent Skills 渐进式加载
 
-            适合Boring Notch Agent 的结论：Skills 不是普通 prompt 集合，而是“按需加载的任务流程包”。一个 Skill 通常由 SKILL.md 作为入口，使用 YAML frontmatter 描述名称、触发描述、权限或工具边界，再用 Markdown 写执行步骤。复杂 Skill 可以把长参考资料、模板、脚本放在同目录，只有任务需要时才读取，避免每轮对话塞满上下文。
+            适合蛋神 Agent 的结论：Skills 不是普通 prompt 集合，而是“按需加载的任务流程包”。一个 Skill 通常由 SKILL.md 作为入口，使用 YAML frontmatter 描述名称、触发描述、权限或工具边界，再用 Markdown 写执行步骤。复杂 Skill 可以把长参考资料、模板、脚本放在同目录，只有任务需要时才读取，避免每轮对话塞满上下文。
 
             对我们的实现启发：
             1. 插件负责“能拿到什么上下文/能做什么动作”，Skill 负责“这类任务应该按什么流程做”。
@@ -2896,7 +3463,7 @@ final class AIChatManager: ObservableObject {
             3. 支持文件可以被延迟读取，适合课程资料、评分标准模板、论文写作模板。
             4. 有副作用的技能不要自动运行，例如写日历、发消息、删除文件，应该用确认门控。
 
-            Boring Notch可落地设计：
+            蛋神可落地设计：
             - skills/study-plan/SKILL.md：复习计划流程。
             - skills/assignment-breakdown/SKILL.md：作业拆解流程。
             - skills/weather-decision/SKILL.md：天气 + 日程的出行建议流程。
@@ -2919,7 +3486,7 @@ final class AIChatManager: ObservableObject {
             """
             # GitHub 案例：Cline/Roo 的插件与 MCP 思路
 
-            适合Boring Notch Agent 的结论：现代 agent host 一般不把所有能力写死在 prompt 里，而是把能力拆成插件、工具、资源和提示模板。Cline 支持通过 SDK 注册工具和生命周期 hooks，也能通过 MCP server 扩展外部数据源和动作；Roo Code 把 MCP 配置分成全局和项目级，并强调工具需要明确配置和审批。
+            适合蛋神 Agent 的结论：现代 agent host 一般不把所有能力写死在 prompt 里，而是把能力拆成插件、工具、资源和提示模板。Cline 支持通过 SDK 注册工具和生命周期 hooks，也能通过 MCP server 扩展外部数据源和动作；Roo Code 把 MCP 配置分成全局和项目级，并强调工具需要明确配置和审批。
 
             对我们的实现启发：
             1. Plugin Registry：每个插件有 id、类型、工具名、权限和风险等级。
@@ -2928,7 +3495,7 @@ final class AIChatManager: ObservableObject {
             4. Permission Gate：读操作可以自动，写操作必须设置允许并由用户明确请求。
             5. Trace Logger：记录本轮路由、命中插件、上下文准备和安全检查，方便课程展示“智能体不是黑箱”。
 
-            Boring Notch可以对齐的 MCP 分层：
+            蛋神可以对齐的 MCP 分层：
             - Tools：weather.current、calendar.create_event、memory.save_preference。
             - Resources：本地知识库文档、课程资料、拖入文件、日历上下文。
             - Prompts：/skills、/knowledge、作业拆解模板、天气决策模板。
@@ -2950,7 +3517,7 @@ final class AIChatManager: ObservableObject {
             """
             # GitHub 案例：知识库与记忆的边界
 
-            适合Boring Notch Agent 的结论：知识库不等于长期记忆。知识库存的是用户显式导入的资料，例如课程文档、作业要求、论文笔记、项目说明；长期记忆存的是跨会话稳定偏好和事实，例如“我喜欢晚上学习”“默认 45 分钟专注”。两者都可以检索，但写入策略不同。
+            适合蛋神 Agent 的结论：知识库不等于长期记忆。知识库存的是用户显式导入的资料，例如课程文档、作业要求、论文笔记、项目说明；长期记忆存的是跨会话稳定偏好和事实，例如“我喜欢晚上学习”“默认 45 分钟专注”。两者都可以检索，但写入策略不同。
 
             三层记忆：
             - 短期记忆：当前会话最近消息，只影响当前聊天页。
@@ -2983,7 +3550,7 @@ final class AIChatManager: ObservableObject {
             """
             # GitHub 案例：安全护栏与插件权限
 
-            适合Boring Notch Agent 的结论：插件系统的难点不是“能调用多少工具”，而是“什么时候不该调用”。Cline、Roo、MCP 文档都把外部工具视为可扩展能力，但同时需要配置、确认、权限和错误处理。对 macOS 桌面应用来说，安全模型尤其重要，因为工具可能影响日历、本地文件、App 启动或用户隐私。
+            适合蛋神 Agent 的结论：插件系统的难点不是“能调用多少工具”，而是“什么时候不该调用”。Cline、Roo、MCP 文档都把外部工具视为可扩展能力，但同时需要配置、确认、权限和错误处理。对 macOS 桌面应用来说，安全模型尤其重要，因为工具可能影响日历、本地文件、App 启动或用户隐私。
 
             插件权限建议：
             - read:auto：天气、只读日历、知识库检索、长期记忆检索。
@@ -3014,12 +3581,12 @@ final class AIChatManager: ObservableObject {
             """
         ),
         (
-            "GitHub 案例：Boring Notch Agent 课堂 demo 脚本",
+            "GitHub 案例：蛋神 Agent 课堂 demo 脚本",
             "seed://danshen-agent-course-demo-script",
             """
-            # GitHub 案例：Boring Notch Agent 课堂 demo 脚本
+            # GitHub 案例：蛋神 Agent 课堂 demo 脚本
 
-            目标：展示Boring Notch不是普通聊天框，而是一个 macOS 桌面 Agent Host。
+            目标：展示蛋神不是普通聊天框，而是一个 macOS 桌面 Agent Host。
 
             Demo 1：多会话短期记忆
             1. 新建会话 A，问“帮我记住这轮我们在做天气插件演示”。
@@ -3047,7 +3614,7 @@ final class AIChatManager: ObservableObject {
             3. 说明 Skill 是任务流程，Plugin 是工具能力，Knowledge 是资料来源，Memory 是用户状态。
 
             可以放进报告的一句话：
-            Boring Notch Agent 将 macOS notch utility 升级为桌面 Agent Host：通过插件注册表、渐进式工具发现、Skill 工作流、本地知识库、三层记忆和权限护栏，把聊天界面变成可解释、可扩展、可控的智能体系统。
+            蛋神 Agent 将 macOS notch utility 升级为桌面 Agent Host：通过插件注册表、渐进式工具发现、Skill 工作流、本地知识库、三层记忆和权限护栏，把聊天界面变成可解释、可扩展、可控的智能体系统。
             """
         ),
     ]
@@ -3094,8 +3661,25 @@ final class AIChatManager: ObservableObject {
             throw FeatureError("AI calendar writing is disabled in Settings > AI.")
         }
 
+        guard wantsCalendarWrite(for: prompt) else {
+            throw FeatureError("当前问题只是查询，没有检测到明确的日历写入指令，因此未创建任何日程。")
+        }
+
         guard agentRun.calendarContext != nil else {
             throw FeatureError("Calendar access is unavailable. Enable it in Settings > Calendar before asking AI to write plans.")
+        }
+
+        if let localDraft = deterministicCalendarDraft(for: prompt) {
+            let createdEvents = try await CalendarManager.shared.createAIPlannedEvents([localDraft])
+            let configuredModel = Defaults[.aiServiceModel].trimmingCharacters(in: .whitespacesAndNewlines)
+            return AIReply(
+                content: mergedCalendarWriteReply(
+                    baseReply: "已按你的明确要求创建日程，并设置开始时提醒。",
+                    createdEvents: createdEvents
+                ),
+                requestedModelName: configuredModel.isEmpty ? "蛋神本地日历工具" : configuredModel,
+                resolvedModelName: nil
+            )
         }
 
         let config = try resolveServiceConfig()
@@ -3112,18 +3696,27 @@ final class AIChatManager: ObservableObject {
 
         let resolvedModelName = normalizedModelName(decoded.model) ?? config.requestedModel
         let rawContent = decoded.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let action = try decodeCalendarAction(from: rawContent)
+        let content: String
 
-        let drafts = try action.events.compactMap { try makeCalendarDraft(from: $0) }
-        let createdEvents: [CreatedCalendarEvent]
+        do {
+            let action = try decodeCalendarAction(from: rawContent)
+            var drafts = try action.events.compactMap { try makeCalendarDraft(from: $0) }
 
-        if action.createEvents && !drafts.isEmpty {
-            createdEvents = try await CalendarManager.shared.createAIPlannedEvents(drafts)
-        } else {
-            createdEvents = []
+            if drafts.isEmpty {
+                drafts = fallbackCalendarDrafts(for: prompt)
+            }
+
+            let createdEvents = try await CalendarManager.shared.createAIPlannedEvents(drafts)
+            content = mergedCalendarWriteReply(baseReply: action.reply, createdEvents: createdEvents)
+        } catch {
+            let drafts = fallbackCalendarDrafts(for: prompt)
+            let createdEvents = try await CalendarManager.shared.createAIPlannedEvents(drafts)
+            content = mergedCalendarWriteReply(
+                baseReply: "没有拿到稳定的结构化日历计划，我先按你的请求创建了一个可编辑的默认日程。",
+                createdEvents: createdEvents
+            )
         }
 
-        let content = mergedCalendarWriteReply(baseReply: action.reply, createdEvents: createdEvents)
         return AIReply(
             content: content,
             requestedModelName: config.requestedModel,
@@ -3219,7 +3812,7 @@ final class AIChatManager: ObservableObject {
 
     private func resolveServiceConfig() throws -> AIServiceConfig {
         let baseURL = Defaults[.aiServiceBaseURL].trimmingCharacters(in: .whitespacesAndNewlines)
-        let apiKey = Defaults[.aiServiceAPIKey].trimmingCharacters(in: .whitespacesAndNewlines)
+        let apiKey = AIProviderCredentialStore.apiKey
         let requestedModel = Defaults[.aiServiceModel].trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard Defaults[.aiChatEnabled] else {
@@ -3253,7 +3846,10 @@ final class AIChatManager: ObservableObject {
         - If calendar context is missing, disabled, permission-denied, or empty, say that you cannot confirm local schedule from the calendar; do not fabricate events.
         - If a retrieved memory or knowledge-base excerpt is absent, state that no relevant local record was found.
         - Do not claim you browsed the web unless [web.search] context is present. If web context is unavailable, say the local web tool did not retrieve usable results.
+        - Separate source-backed facts from inference. If repository excerpts do not explicitly define the user's term, say so and report the closest source-code naming instead of inventing a definition.
+        - Put source URLs in a short bullet list with one URL per line.
         - Keep answers concise unless the user asks for a detailed plan.
+        - Format for a narrow macOS chat panel: use short paragraphs and bullet/numbered lists. Do not use Markdown tables.
         """
     }
 
@@ -3317,6 +3913,12 @@ final class AIChatManager: ObservableObject {
             "要做什么",
             "今天要做",
             "今日要做",
+            "今日安排",
+            "今天安排",
+            "日程安排",
+            "我的安排",
+            "今天有什么",
+            "今日有什么",
             "today's schedule",
             "what do i have today",
             "什么时候有空",
@@ -3336,6 +3938,9 @@ final class AIChatManager: ObservableObject {
             "create calendar event",
             "write to calendar",
             "schedule it",
+            "create reminder",
+            "set reminder",
+            "remind me",
             "写进日历",
             "写到日历",
             "加到日历",
@@ -3343,7 +3948,41 @@ final class AIChatManager: ObservableObject {
             "放到日历",
             "创建日程",
             "创建日历",
-            "写入日历"
+            "写入日历",
+            "写入日程",
+            "写到日程",
+            "加到日程",
+            "加入日程",
+            "添加日程",
+            "添加到日程",
+            "放到日程",
+            "安排到日历",
+            "安排进日历",
+            "安排到日程",
+            "安排进日程",
+            "把计划写",
+            "把安排写",
+            "加一个日程",
+            "加个日程",
+            "加一条日程",
+            "新增日程",
+            "新建日程",
+            "新增一个日程",
+            "新建一个日程",
+            "帮我加日程",
+            "给我加日程",
+            "给我今晚加",
+            "给我明天加",
+            "今晚加一个",
+            "明天加一个",
+            "加一个提醒",
+            "加个提醒",
+            "新增提醒",
+            "新建提醒",
+            "提醒我",
+            "设置提醒",
+            "设个提醒",
+            "设一个提醒"
         ]
         return keywords.contains(where: lowered.contains)
     }
@@ -3351,9 +3990,12 @@ final class AIChatManager: ObservableObject {
     private func calendarWriteInstruction() -> String {
         """
         You are creating calendar events for the user.
+        The app only enters this mode after the user has explicitly asked to add/create/schedule/write a calendar item or reminder, and calendar writing is enabled in settings.
+        Do not ask for another confirmation. Produce the event JSON so the app can create it now.
+        The app will write created events into the dedicated local calendar named "蛋神"; do not tell the user it will be written to any other calendar.
         Return only a JSON object with this exact schema:
         {
-          "reply": "short natural-language confirmation in the user's language",
+          "reply": "short natural-language confirmation in the user's language, written as if the event will be created now",
           "create_events": true,
           "events": [
             {
@@ -3370,6 +4012,9 @@ final class AIChatManager: ObservableObject {
         - Use the user's existing calendar schedule to avoid conflicts.
         - Use absolute timestamps, never relative phrases.
         - Keep event titles short and practical.
+        - If the user explicitly asked to write/create/add/schedule a calendar item, set "create_events" to true and include at least one event.
+        - If the user says "提醒我", "设置提醒", "remind me", or similar, create a short calendar event at the requested time with the reminder target as the title.
+        - Do not say "需要我帮你创建吗", "确认后我就写入", "should I create it", or similar confirmation-seeking text.
         - If the user asked for a study/work plan, split it into sensible time blocks.
         - If required timing is unclear, make a reasonable plan based on free time in the calendar.
         - Return JSON only. No markdown fences.
@@ -3400,8 +4045,9 @@ final class AIChatManager: ObservableObject {
     }
 
     private func makeCalendarDraft(from payload: AICalendarEventPayload) throws -> CalendarEventDraft? {
-        let title = payload.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !title.isEmpty else { return nil }
+        let rawTitle = payload.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !rawTitle.isEmpty else { return nil }
+        let title = fallbackCalendarTitle(from: rawTitle)
 
         guard let start = parseCalendarDate(payload.start),
               let end = parseCalendarDate(payload.end)
@@ -3414,7 +4060,8 @@ final class AIChatManager: ObservableObject {
             start: start,
             end: end,
             notes: normalizedOptionalText(payload.notes),
-            location: normalizedOptionalText(payload.location)
+            location: normalizedOptionalText(payload.location),
+            alarmOffsetMinutes: 0
         )
     }
 
@@ -3454,6 +4101,187 @@ final class AIChatManager: ObservableObject {
         return trimmed.isEmpty ? nil : trimmed
     }
 
+    private func fallbackCalendarDrafts(for prompt: String) -> [CalendarEventDraft] {
+        let start = fallbackCalendarStart(for: prompt)
+        return [
+            CalendarEventDraft(
+                title: fallbackCalendarTitle(from: prompt),
+                start: start,
+                end: start.addingTimeInterval(60 * 60),
+                notes: "由蛋神 Agent 在结构化日历计划解析失败时创建。原始请求：\(prompt)",
+                location: nil,
+                alarmOffsetMinutes: 0
+            )
+        ]
+    }
+
+    private func deterministicCalendarDraft(for prompt: String) -> CalendarEventDraft? {
+        guard requestedClockTime(in: prompt) != nil else { return nil }
+
+        let lowered = prompt.lowercased()
+        let complexSignals = [
+            "一周", "整周", "每天", "多个", "几个", "拆成", "时间块", "复习计划", "学习计划",
+            "from ", " to ", "every day", "weekly", "multiple"
+        ]
+        guard !complexSignals.contains(where: lowered.contains) else { return nil }
+
+        let start = fallbackCalendarStart(for: prompt)
+        let isReminder = ["提醒我", "提醒", "remind me", "reminder"].contains(where: lowered.contains)
+        let duration: TimeInterval = isReminder ? 5 * 60 : 30 * 60
+
+        return CalendarEventDraft(
+            title: fallbackCalendarTitle(from: prompt),
+            start: start,
+            end: start.addingTimeInterval(duration),
+            notes: "由蛋神 Agent 根据用户的明确请求创建。",
+            location: nil,
+            alarmOffsetMinutes: 0
+        )
+    }
+
+    private func fallbackCalendarTitle(from prompt: String) -> String {
+        var title = prompt
+        [
+            "帮我", "给我", "请", "可以", "能不能", "麻烦", "把", "这个",
+            "写进日历", "写到日历", "写入日历", "加到日历", "添加到日历", "放到日历",
+            "写进日程", "写到日程", "写入日程", "加到日程", "加入日程", "添加到日程",
+            "加一个日程", "加个日程", "加一条日程", "新增日程", "新建日程",
+            "新增一个日程", "新建一个日程", "加一个提醒", "加个提醒", "新增提醒", "新建提醒",
+            "安排到日历", "安排进日历", "安排到日程", "安排进日程",
+            "提醒我", "设置提醒", "设个提醒", "设一个提醒",
+            "今天", "今日", "今晚", "今夜", "明天", "后天", "上午", "早上", "中午", "下午", "晚上",
+            "add to calendar", "put on my calendar", "create calendar event", "write to calendar"
+        ].forEach { phrase in
+            title = title.replacingOccurrences(of: phrase, with: "", options: [.caseInsensitive])
+        }
+
+        [
+            #"(\d{1,2})[:：](\d{2})"#,
+            #"(上午|早上|中午|下午|晚上)?\s*\d{1,2}\s*点\s*(半|\d{1,2}\s*分?)?"#
+        ].forEach { pattern in
+            title = title.replacingOccurrences(of: pattern, with: "", options: [.regularExpression])
+        }
+
+        title = title
+            .replacingOccurrences(of: "\n", with: " ")
+            .replacingOccurrences(of: "，", with: " ")
+            .replacingOccurrences(of: "。", with: " ")
+            .replacingOccurrences(of: ",", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !title.isEmpty else { return "AI 日程" }
+        return String(title.prefix(28))
+    }
+
+    private func fallbackCalendarStart(for prompt: String, now: Date = Date()) -> Date {
+        let calendar = Calendar.current
+        let dayOffset = requestedDayOffset(in: prompt) ?? 0
+        let baseDay = calendar.date(
+            byAdding: .day,
+            value: dayOffset,
+            to: calendar.startOfDay(for: now)
+        ) ?? calendar.startOfDay(for: now)
+
+        let start: Date
+        if let clock = requestedClockTime(in: prompt) {
+            var components = calendar.dateComponents([.year, .month, .day], from: baseDay)
+            components.hour = clock.hour
+            components.minute = clock.minute
+            start = calendar.date(from: components) ?? nextReasonableCalendarStart(from: now)
+        } else if dayOffset > 0 {
+            var components = calendar.dateComponents([.year, .month, .day], from: baseDay)
+            components.hour = 9
+            components.minute = 0
+            start = calendar.date(from: components) ?? nextReasonableCalendarStart(from: now)
+        } else {
+            start = nextReasonableCalendarStart(from: now)
+        }
+
+        if start <= now {
+            return calendar.date(byAdding: .day, value: 1, to: start) ?? now.addingTimeInterval(10 * 60)
+        }
+        return start
+    }
+
+    private func nextReasonableCalendarStart(from now: Date) -> Date {
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: now)
+
+        if hour < 8 {
+            return calendar.date(bySettingHour: 9, minute: 0, second: 0, of: now) ?? now.addingTimeInterval(60 * 60)
+        }
+
+        if hour >= 21 {
+            let tomorrow = calendar.date(byAdding: .day, value: 1, to: now) ?? now.addingTimeInterval(24 * 60 * 60)
+            return calendar.date(bySettingHour: 9, minute: 0, second: 0, of: tomorrow) ?? tomorrow
+        }
+
+        let nextHour = calendar.dateInterval(of: .hour, for: now)?.end ?? now.addingTimeInterval(60 * 60)
+        return calendar.date(bySetting: .minute, value: 0, of: nextHour) ?? nextHour
+    }
+
+    private func requestedDayOffset(in prompt: String) -> Int? {
+        let lowered = prompt.lowercased()
+        if lowered.contains("后天") {
+            return 2
+        }
+        if lowered.contains("明天") || lowered.contains("tomorrow") {
+            return 1
+        }
+        if lowered.contains("今天") || lowered.contains("今日") || lowered.contains("today") {
+            return 0
+        }
+        return nil
+    }
+
+    private func requestedClockTime(in prompt: String) -> (hour: Int, minute: Int)? {
+        if let groups = firstRegexGroups(in: prompt, pattern: #"(\d{1,2})[:：](\d{2})"#),
+           let hour = Int(groups[safe: 0] ?? ""),
+           let minute = Int(groups[safe: 1] ?? ""),
+           (0...23).contains(hour),
+           (0...59).contains(minute)
+        {
+            return (hour, minute)
+        }
+
+        if let groups = firstRegexGroups(in: prompt, pattern: #"(今晚|今夜|上午|早上|中午|下午|晚上)?\s*(\d{1,2})\s*点\s*(半|(\d{1,2})\s*分?)?"#),
+           var hour = Int(groups[safe: 1] ?? "")
+        {
+            let marker = groups[safe: 0] ?? ""
+            let minute: Int
+            if groups[safe: 2] == "半" {
+                minute = 30
+            } else {
+                minute = Int(groups[safe: 3] ?? "") ?? 0
+            }
+
+            if ["下午", "晚上", "今晚", "今夜"].contains(marker), hour < 12 {
+                hour += 12
+            } else if marker == "中午", hour < 11 {
+                hour += 12
+            }
+
+            if (0...23).contains(hour), (0...59).contains(minute) {
+                return (hour, minute)
+            }
+        }
+
+        return nil
+    }
+
+    private func firstRegexGroups(in text: String, pattern: String) -> [String]? {
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
+        let nsText = text as NSString
+        let range = NSRange(location: 0, length: nsText.length)
+        guard let match = regex.firstMatch(in: text, options: [], range: range) else { return nil }
+
+        return (1..<match.numberOfRanges).map { index in
+            let groupRange = match.range(at: index)
+            guard groupRange.location != NSNotFound else { return "" }
+            return nsText.substring(with: groupRange)
+        }
+    }
+
     private func mergedCalendarWriteReply(
         baseReply: String,
         createdEvents: [CreatedCalendarEvent]
@@ -3469,7 +4297,7 @@ final class AIChatManager: ObservableObject {
         formatter.dateFormat = "MM-dd HH:mm"
 
         let lines = createdEvents.map {
-            "- \($0.title) (\(formatter.string(from: $0.start)) - \(formatter.string(from: $0.end)))"
+            "- \($0.title) (\(formatter.string(from: $0.start)) - \(formatter.string(from: $0.end)))，日历：\($0.calendarTitle)"
         }
         let creationSummary = "已写入日历：\n" + lines.joined(separator: "\n")
 
@@ -3517,7 +4345,8 @@ private struct WeatherLookupLocation {
     let longitude: Double
 }
 
-private final class WeatherLocationProvider: NSObject, CLLocationManagerDelegate {
+@MainActor
+private final class WeatherLocationProvider: NSObject, @preconcurrency CLLocationManagerDelegate {
     var authorizationDidChange: ((CLAuthorizationStatus) -> Void)?
 
     private let manager = CLLocationManager()
@@ -3561,7 +4390,7 @@ private final class WeatherLocationProvider: NSObject, CLLocationManagerDelegate
 
         if resolvedStatus != .notDetermined {
             await MainActor.run {
-                NSApp.setActivationPolicy(.accessory)
+                _ = NSApp.setActivationPolicy(.accessory)
             }
         }
 
@@ -3579,7 +4408,7 @@ private final class WeatherLocationProvider: NSObject, CLLocationManagerDelegate
             }
             break
         case .denied:
-            throw FeatureError("Location access is denied. Allow Boring Notch in Privacy & Security > Location Services.")
+            throw FeatureError("Location access is denied. Allow 蛋神 in Privacy & Security > Location Services.")
         case .restricted:
             throw FeatureError("Location access is restricted on this Mac.")
         case .notDetermined:
@@ -3722,7 +4551,7 @@ final class WeatherManager: ObservableObject {
 
         if status != .notDetermined {
             await MainActor.run {
-                NSApp.setActivationPolicy(.accessory)
+                _ = NSApp.setActivationPolicy(.accessory)
             }
         }
     }
@@ -3826,7 +4655,7 @@ final class WeatherManager: ObservableObject {
             ),
             URLQueryItem(name: "hourly", value: "temperature_2m,weather_code,precipitation_probability,is_day"),
             URLQueryItem(name: "daily", value: "temperature_2m_max,temperature_2m_min"),
-            URLQueryItem(name: "forecast_days", value: "1"),
+            URLQueryItem(name: "forecast_days", value: "2"),
             URLQueryItem(name: "timezone", value: "auto"),
             URLQueryItem(name: "temperature_unit", value: unit.apiValue),
             URLQueryItem(name: "wind_speed_unit", value: unit.windSpeedAPIValue),
@@ -3872,8 +4701,9 @@ final class WeatherManager: ObservableObject {
     ) -> [WeatherSnapshot.HourlyEntry] {
         guard !hourly.time.isEmpty else { return [] }
 
-        let startIndex = hourly.time.firstIndex(of: currentTime) ?? 0
-        let endIndex = min(startIndex + 5, hourly.time.count)
+        let startIndex = hourly.time.firstIndex(where: { $0 >= currentTime })
+            ?? max(0, hourly.time.count - 1)
+        let endIndex = min(startIndex + 12, hourly.time.count)
 
         return (startIndex ..< endIndex).compactMap { index in
             guard index < hourly.temperature.count, index < hourly.weatherCode.count else { return nil }
@@ -4208,6 +5038,17 @@ struct WeatherSnapshot {
     let updatedAt: Date
     let current: CurrentConditions
     let hourly: [HourlyEntry]
+
+    var upcomingPrecipitationSummary: String? {
+        let riskyHours = hourly.filter { ($0.precipitationProbability ?? 0) >= 50 }
+        guard let first = riskyHours.first,
+              let peakProbability = riskyHours.compactMap(\.precipitationProbability).max()
+        else {
+            return nil
+        }
+
+        return "预计 \(first.timeLabel) 后降水概率升高，最高 \(peakProbability)%"
+    }
 }
 
 enum WeatherDescriptor {
@@ -4394,6 +5235,12 @@ private extension String {
                 return false
             }
         }
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 

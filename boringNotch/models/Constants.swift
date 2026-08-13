@@ -283,6 +283,10 @@ extension Defaults.Keys {
     //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
+    static let auxiliaryWindowsAlwaysOnTop = Key<Bool>(
+        "auxiliaryWindowsAlwaysOnTop",
+        default: false
+    )
     
     // MARK: Appearance
     static let showEmojis = Key<Bool>("showEmojis", default: false)
@@ -309,6 +313,7 @@ extension Defaults.Keys {
     static let aiChatEnabled = Key<Bool>("aiChatEnabled", default: true)
     static let aiServiceBaseURL = Key<String>("aiServiceBaseURL", default: "https://api.openai.com")
     static let aiServiceModel = Key<String>("aiServiceModel", default: "gpt-4o-mini")
+    // Legacy migration source only. New credentials are stored in macOS Keychain.
     static let aiServiceAPIKey = Key<String>("aiServiceAPIKey", default: "")
     static let aiSystemPrompt = Key<String>(
         "aiSystemPrompt",
@@ -319,6 +324,14 @@ extension Defaults.Keys {
     static let aiCalendarWriteEnabled = Key<Bool>("aiCalendarWriteEnabled", default: true)
     static let aiChatPanelWidth = Key<CGFloat>("aiChatPanelWidth", default: aiChatPanelDefaultSize.width)
     static let aiChatPanelHeight = Key<CGFloat>("aiChatPanelHeight", default: aiChatPanelDefaultSize.height)
+    static let aiPluginPanelWidth = Key<CGFloat>("aiPluginPanelWidth", default: 760)
+    static let aiPluginPanelHeight = Key<CGFloat>("aiPluginPanelHeight", default: 460)
+    static let aiSkillsPanelWidth = Key<CGFloat>("aiSkillsPanelWidth", default: 760)
+    static let aiSkillsPanelHeight = Key<CGFloat>("aiSkillsPanelHeight", default: 460)
+    static let aiMemoryPanelWidth = Key<CGFloat>("aiMemoryPanelWidth", default: 820)
+    static let aiMemoryPanelHeight = Key<CGFloat>("aiMemoryPanelHeight", default: 500)
+    static let aiKnowledgePanelWidth = Key<CGFloat>("aiKnowledgePanelWidth", default: 820)
+    static let aiKnowledgePanelHeight = Key<CGFloat>("aiKnowledgePanelHeight", default: 500)
     static let aiKnowledgeRetrievalEnabled = Key<Bool>("aiKnowledgeRetrievalEnabled", default: true)
     static let aiKnowledgeRetrievalLimit = Key<Int>("aiKnowledgeRetrievalLimit", default: 3)
     static let aiShowAgentTrace = Key<Bool>("aiShowAgentTrace", default: false)
@@ -340,6 +353,18 @@ extension Defaults.Keys {
     static let pomodoroLongBreakInterval = Key<Int>("pomodoroLongBreakInterval", default: 4)
     static let pomodoroAutoStartNextPhase = Key<Bool>("pomodoroAutoStartNextPhase", default: false)
     static let quickLaunchEnabled = Key<Bool>("quickLaunchEnabled", default: true)
+    static let showBluetoothAccessoryBatteries = Key<Bool>(
+        "showBluetoothAccessoryBatteries",
+        default: true
+    )
+    static let hiddenBluetoothAccessoryIDs = Key<[String]>(
+        "hiddenBluetoothAccessoryIDs",
+        default: []
+    )
+    static let knownBluetoothAccessories = Key<[KnownBluetoothAccessory]>(
+        "knownBluetoothAccessories",
+        default: []
+    )
     static let quickLaunchApps = Key<[QuickLaunchAppItem]>(
         "quickLaunchApps",
         default: defaultQuickLaunchApps()
@@ -361,6 +386,11 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    static let screenMediaBarEnabled = Key<Bool>("screenMediaBarEnabled", default: true)
+    static let screenMediaBarShowsLyrics = Key<Bool>("screenMediaBarShowsLyrics", default: true)
+    static let screenMediaBarAlwaysOnTop = Key<Bool>("screenMediaBarAlwaysOnTop", default: false)
+    static let screenMediaBarOriginX = Key<Double>("screenMediaBarOriginX", default: -100_000)
+    static let screenMediaBarOriginY = Key<Double>("screenMediaBarOriginY", default: -100_000)
     static let musicControlSlots = Key<[MusicControlButton]>(
         "musicControlSlots",
         default: MusicControlButton.defaultLayout

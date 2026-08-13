@@ -122,18 +122,21 @@ class BoringViewCoordinator: ObservableObject {
         }
         
         selectedScreenUUID = preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
-        // Observe changes to accessibility authorization and react accordingly
+        // Start the interceptor as soon as both required system permissions are available.
         accessibilityObserver = NotificationCenter.default.addObserver(
-            forName: Notification.Name.accessibilityAuthorizationChanged,
+            forName: Notification.Name.hudPermissionStatusChanged,
             object: nil,
             queue: .main
-        ) { _ in
+        ) { notification in
             Task { @MainActor in
-                if Defaults[.hudReplacement] {
+                let authorized = notification.userInfo?["authorized"] as? Bool ?? false
+                if authorized, Defaults[.hudReplacement] {
                     await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                 }
             }
         }
+
+        XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
 
         // Observe changes to hudReplacement
         hudReplacementCancellable = Defaults.publisher(.hudReplacement)
@@ -146,14 +149,7 @@ class BoringViewCoordinator: ObservableObject {
 
                     if change.newValue {
                         self.hudEnableTask = Task { @MainActor in
-                            let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-                            if Task.isCancelled { return }
-
-                            if granted {
-                                await MediaKeyInterceptor.shared.start()
-                            } else {
-                                Defaults[.hudReplacement] = false
-                            }
+                            await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                         }
                     } else {
                         MediaKeyInterceptor.shared.stop()
@@ -165,12 +161,7 @@ class BoringViewCoordinator: ObservableObject {
             helloAnimationRunning = firstLaunch
 
             if Defaults[.hudReplacement] {
-                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                if !authorized {
-                    Defaults[.hudReplacement] = false
-                } else {
-                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
-                }
+                await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
             }
         }
     }
