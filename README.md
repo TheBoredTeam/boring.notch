@@ -63,26 +63,29 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 ---
 
-#### Allow It in System Settings
+#### Recommended: Terminal (Always Works)
+
+After moving Boring Notch to Applications, open Terminal, paste this command, and press **Return**:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/boringNotch.app
+```
+
+Then open Boring Notch from Applications.
+
+---
+
+#### Alternative: System Settings
+
+> [!NOTE]
+> This method does not work for everyone. If **Open Anyway** is unavailable or does not work, use the Terminal method above.
 
 1. Try to open Boring Notch from **Applications**, then dismiss the security warning.
 2. Open **System Settings** > **Privacy & Security**.
 3. Scroll to **Security** and click **Open Anyway** next to the Boring Notch warning.
 4. Confirm by clicking **Open**.
 
-If **Open Anyway** is unavailable or does not work, use the Terminal fallback below.
-
----
-
-#### Terminal Fallback
-
-After moving Boring Notch to Applications, open Terminal and run:
-
-```bash
-xattr -dr com.apple.quarantine /Applications/boringNotch.app
-```
-
-Then open Boring Notch from Applications. During setup, choose **Start at Login** if you want Boring Notch to be ready automatically after restarting your Mac. You can change this later in **Settings** > **General**.
+During setup, choose **Start at Login** if you want Boring Notch to be ready automatically after restarting your Mac. You can change this later in **Settings** > **General**.
 
 ---
 
