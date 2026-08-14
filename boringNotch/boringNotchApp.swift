@@ -84,12 +84,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
     private var observers: [Any] = []
+    private var didCompleteLaunch = false
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        // The installer-location guard exits before app services start. Avoid lazily
+        // initializing those services just to tear them down during that early exit.
+        guard didCompleteLaunch else { return }
+
         // Flush debounced shelf persistence to avoid losing recent changes
         ShelfStateViewModel.shared.flushSync()
 
@@ -313,6 +318,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard installationLocationAllowsLaunch() else { return }
+        didCompleteLaunch = true
 
         NotificationCenter.default.addObserver(
             self,
