@@ -511,16 +511,6 @@ struct ContentView: View {
                                }
                            }
                        }
-
-                       // Notification peek: its own lane below every other
-                       // peek/live-activity row so it can coexist with OSD,
-                       // music marquee, or the closed music pill.
-                       if vm.notchState == .closed {
-                           let peek = coordinator.notificationPeekState(for: vm.screenUUID)
-                           if peek.show, let payload = peek.payload {
-                               NotificationSneakPeekView(payload: payload)
-                           }
-                       }
                   }
               }
               .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
@@ -567,6 +557,20 @@ struct ContentView: View {
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+            }
+        }
+        // Notification peek floats BELOW the chin as window-space decoration.
+        // It never lives inside the clipped notch shape, so it can neither
+        // stretch the panel vertically nor be pushed around by open/
+        // greeting/inline states — it mirrors, then fades away.
+        .overlay(alignment: .top) {
+            if vm.notchState == .closed {
+                let peek = coordinator.notificationPeekState(for: vm.screenUUID)
+                if peek.show, let payload = peek.payload {
+                    NotificationSneakPeekView(payload: payload)
+                        .padding(.top, displayClosedNotchHeight + 24)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
