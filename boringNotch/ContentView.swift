@@ -475,13 +475,8 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
 
-                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                           if coordinator.sneakPeekState(for: vm.screenUUID).type == .notification && vm.notchState == .closed {
-                               if let payload = coordinator.sneakPeekState(for: vm.screenUUID).notification {
-                                   NotificationSneakPeekView(payload: payload)
-                               }
-                           }
-                           else if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                        if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
+                           if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,
@@ -502,20 +497,30 @@ struct ContentView: View {
                               .padding(.leading, 4)
                               .padding(.trailing, 8)
                           }
-                          // Old sneak peek music
-                          else if coordinator.sneakPeekState(for: vm.screenUUID).type == .music {
-                              if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
-                                  HStack(alignment: .center) {
-                                      Image(systemName: "music.note")
-                                      GeometryReader { geo in
-                                          MarqueeText(musicManager.songTitle + " - " + musicManager.artistName,  color: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, delayDuration: 1.0, frameWidth: geo.size.width)
-                                      }
-                                  }
-                                  .foregroundStyle(.gray)
-                                  .padding(.bottom, 10)
-                              }
-                          }
-                      }
+                           // Old sneak peek music
+                           else if coordinator.sneakPeekState(for: vm.screenUUID).type == .music {
+                               if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
+                                   HStack(alignment: .center) {
+                                       Image(systemName: "music.note")
+                                       GeometryReader { geo in
+                                           MarqueeText(musicManager.songTitle + " - " + musicManager.artistName,  color: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, delayDuration: 1.0, frameWidth: geo.size.width)
+                                       }
+                                   }
+                                   .foregroundStyle(.gray)
+                                   .padding(.bottom, 10)
+                               }
+                           }
+                       }
+
+                       // Notification peek: its own lane below every other
+                       // peek/live-activity row so it can coexist with OSD,
+                       // music marquee, or the closed music pill.
+                       if vm.notchState == .closed {
+                           let peek = coordinator.notificationPeekState(for: vm.screenUUID)
+                           if peek.show, let payload = peek.payload {
+                               NotificationSneakPeekView(payload: payload)
+                           }
+                       }
                   }
               }
               .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in

@@ -29,8 +29,6 @@ struct SneakPeekState {
     var icon: String = ""
     var accent: Color? = nil
     var targetScreenUUID: String? = nil
-    /// Content for `.notification` peeks; nil for every other type.
-    var notification: NotificationPeekPayload? = nil
 }
 
 enum BrowserType {
@@ -234,18 +232,94 @@ final class BoringViewCoordinator: ObservableObject {
 
     // Dictionary to hold sneak peek state for each screen UUID
     @Published var sneakPeekStates: [String: SneakPeekState] = [:]
-    
+
     // Dictionary to hold hide tasks for each screen UUID
     private var sneakPeekTasks: [String: Task<Void, Never>] = [:]
+
+    // MARK: - Notification peek lane
+
+    /// Notification peek state per screen. Independent from `sneakPeekStates`
+    /// on purpose: OSD peeks (volume/brightness) and music peeks are
+    /// type-exclusive, while a notification peek must be able to show AT THE
+    /// SAME TIME as any of them (arriving while the user is adjusting volume,
+    /// while a song-change marquee is up, etc.).
+    struct NotificationPeekState {
+        var show: Bool = false
+        var payload: NotificationPeekPayload? = nil
+        var targetScreenUUID: String? = nil
+    }
+
+    @Published var notificationPeekStates: [String: NotificationPeekState] = [:]
+    private var notificationPeekTasks: [String: Task<Void, Never>] = [:]
+    private let notificationPeekDuration: TimeInterval = 5.0
+
+    @MainActor
+    private func showNotificationPeek(for uuid: String, payload: NotificationPeekPayload, duration: TimeInterval) {
+        var state = notificationPeekStates[uuid] ?? NotificationPeekState(targetScreenUUID: uuid)
+        state.show = true
+        state.payload = payload
+        state.targetScreenUUID = uuid
+        notificationPeekStates[uuid] = state
+
+        notificationPeekTasks[uuid]?.cancel()
+        notificationPeekTasks[uuid] = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(duration))
+            guard !Task.isCancelled, let self else { return }
+            withAnimation(.smooth) {
+                guard var s = self.notificationPeekStates[uuid] else { return }
+                s.show = false
+                self.notificationPeekStates[uuid] = s
+            }
+        }
+    }
+
+    private func toggleNotificationPeek(
+        status: Bool, duration: TimeInterval, payload: NotificationPeekPayload?, targetScreenUUID: String?
+    ) {
+        guard status, let payload else {
+            // Dismiss request
+            Task { @MainActor in
+                if let uuid = targetScreenUUID {
+                    notificationPeekTasks[uuid]?.cancel()
+                    withAnimation(.smooth) {
+                        notificationPeekStates[uuid]?.show = false
+                    }
+                }
+            }
+            return
+        }
+        Task { @MainActor in
+            if let targetUUID = targetScreenUUID {
+                showNotificationPeek(for: targetUUID, payload: payload, duration: max(duration, notificationPeekDuration))
+            } else {
+                for uuid in NSScreen.screens.compactMap({ $0.displayUUID }) {
+                    showNotificationPeek(for: uuid, payload: payload, duration: max(duration, notificationPeekDuration))
+                }
+            }
+        }
+    }
+
+    /// Peek state accessors for views (notification lane).
+    func notificationPeekState(for screenUUID: String?) -> NotificationPeekState {
+        guard let uuid = screenUUID else { return NotificationPeekState() }
+        return notificationPeekStates[uuid] ?? NotificationPeekState(targetScreenUUID: uuid)
+    }
 
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
         icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil,
         payload: NotificationPeekPayload? = nil
     ) {
-        // Mirrored notification peeks ride their own setting and are not
-        // part of the OSD replacement feature, so they're exempt from its gate.
-        if type != .music && type != .notification {
+        // Notification peeks live in their own lane — they may coexist with
+        // any OSD/music peek instead of replacing (or being replaced by) it.
+        if type == .notification {
+            toggleNotificationPeek(
+                status: status, duration: duration, payload: payload,
+                targetScreenUUID: targetScreenUUID)
+            return
+        }
+
+        if type != .music {
             // close()
             if !Defaults[.osdReplacement] {
                 return
@@ -266,7 +340,6 @@ final class BoringViewCoordinator: ObservableObject {
                     state.icon = icon
                     state.accent = accent
                     state.targetScreenUUID = uuid // Ensure UUID is set
-                    state.notification = type == .notification ? payload : nil
                     self.sneakPeekStates[uuid] = state
                 }
                 
