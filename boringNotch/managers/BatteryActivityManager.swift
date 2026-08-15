@@ -8,14 +8,6 @@ class BatteryActivityManager {
 
     static let shared = BatteryActivityManager()
 
-    var onBatteryLevelChange: ((Float) -> Void)?
-    var onMaxCapacityChange: ((Float?) -> Void)?
-    var onPowerModeChange: ((Bool) -> Void)?
-    var onPowerSourceChange: ((Bool) -> Void)?
-    var onChargingChange: ((Bool) -> Void)?
-    var onTimeToFullChargeChange: ((Int) -> Void)?
-    var onTimeToDischargeChange: ((Int) -> Void)?
-
     private var batterySource: CFRunLoopSource?
     private var observers: [(BatteryEvent) -> Void] = []
     private var previousBatteryInfo: BatteryInfo?
@@ -196,18 +188,6 @@ class BatteryActivityManager {
 
         // Update previous battery info
         previousBatteryInfo = batteryInfo
-
-        // Trigger optional callbacks
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.onBatteryLevelChange?(batteryInfo.currentCapacity)
-            self.onPowerSourceChange?(batteryInfo.isPluggedIn)
-            self.onChargingChange?(batteryInfo.isCharging)
-            self.onPowerModeChange?(batteryInfo.isInLowPowerMode)
-            self.onTimeToFullChargeChange?(batteryInfo.timeToFullCharge)
-            self.onTimeToDischargeChange?(batteryInfo.timeToDischarge)
-            self.onMaxCapacityChange?(batteryInfo.maxCapacity)
-        }
     }
 
     /// Enqueues a notification to be processed using the concurrency-based queue actor.

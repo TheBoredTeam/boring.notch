@@ -29,13 +29,6 @@ struct sneakPeek {
     var targetScreenUUID: String? = nil
 }
 
-struct SharedSneakPeek: Codable {
-    var show: Bool
-    var type: String
-    var value: String
-    var icon: String
-}
-
 enum BrowserType {
     case chromium
     case safari
@@ -54,8 +47,6 @@ class BoringViewCoordinator: ObservableObject {
 
     @Published var currentView: NotchViews = .home
     @Published var helloAnimationRunning: Bool = false
-    private var sneakPeekDispatch: DispatchWorkItem?
-    private var expandingViewDispatch: DispatchWorkItem?
     private var osdEnableTask: Task<Void, Never>?
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
@@ -203,36 +194,6 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
     
-    @objc func sneakPeekEvent(_ notification: Notification) {
-        let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(
-            SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data)
-        {
-            let contentType =
-                decodedData.type == "brightness"
-                ? SneakContentType.brightness
-                : decodedData.type == "volume"
-                    ? SneakContentType.volume
-                    : decodedData.type == "backlight"
-                        ? SneakContentType.backlight
-                        : decodedData.type == "mic"
-                            ? SneakContentType.mic : SneakContentType.brightness
-
-            let formatter = NumberFormatter()
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            formatter.numberStyle = .decimal
-            let value = CGFloat((formatter.number(from: decodedData.value) ?? 0.0).floatValue)
-            let icon = decodedData.icon
-
-            print("Decoded: \(decodedData), Parsed value: \(value)")
-
-            toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
-
-        } else {
-            print("Failed to decode JSON data")
-        }
-    }
-
     // MARK: - Per-Screen Sneak Peek Management
 
     // Dictionary to hold sneak peek state for each screen UUID
@@ -240,9 +201,6 @@ class BoringViewCoordinator: ObservableObject {
     
     // Dictionary to hold hide tasks for each screen UUID
     private var sneakPeekTasks: [String: Task<Void, Never>] = [:]
-    
-    // Default duration
-    private var defaultSneakPeekDuration: TimeInterval = 1.5
 
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,

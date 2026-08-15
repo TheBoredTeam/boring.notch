@@ -178,7 +178,8 @@ final class NotificationWatcher {
 
         guard !heldOffScreen.contains(token) else { return }
         heldOffScreen.insert(token)
-        guard let windowValue = banner[kAXWindowAttribute] else { return }
+        guard let windowValue = banner[kAXWindowAttribute],
+              CFGetTypeID(windowValue as CFTypeRef) == AXUIElementGetTypeID() else { return }
         let window = windowValue as! AXUIElement
         var target = CGPoint(x: -5000, y: -5000)
         if let position = AXValueCreate(.cgPoint, &target) {
