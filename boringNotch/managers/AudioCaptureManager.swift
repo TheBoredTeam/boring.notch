@@ -154,28 +154,32 @@ final class AudioCaptureManager: ObservableObject {
     // MARK: - State observation
 
     private func observeState() {
-        let music = MusicManager.shared
-        let enabledPublisher = Defaults.publisher(.realtimeAudioWaveform)
-            .map(\.newValue)
-            .prepend(Defaults[.realtimeAudioWaveform])
-            .removeDuplicates()
+        // MusicManager is @MainActor — wire the publishers on the main
+        // actor; delivery then continues via receive(on:) as before.
+        Task { @MainActor in
+            let music = MusicManager.shared
+            let enabledPublisher = Defaults.publisher(.realtimeAudioWaveform)
+                .map(\.newValue)
+                .prepend(Defaults[.realtimeAudioWaveform])
+                .removeDuplicates()
 
-        Publishers.CombineLatest4(
-            music.$isPlaying.removeDuplicates(),
-            music.$bundleIdentifier.removeDuplicates(),
-            music.$audioCaptureBundleIdentifiers.removeDuplicates(),
-            enabledPublisher
-        )
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isPlaying, bundleID, captureBundleIDs, enabled in
-                self?.evaluate(
-                    isPlaying: isPlaying,
-                    displayBundleID: bundleID,
-                    captureBundleIDs: captureBundleIDs,
-                    enabled: enabled
-                )
-            }
-            .store(in: &cancellables)
+            Publishers.CombineLatest4(
+                music.$isPlaying.removeDuplicates(),
+                music.$bundleIdentifier.removeDuplicates(),
+                music.$audioCaptureBundleIdentifiers.removeDuplicates(),
+                enabledPublisher
+            )
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] isPlaying, bundleID, captureBundleIDs, enabled in
+                    self?.evaluate(
+                        isPlaying: isPlaying,
+                        displayBundleID: bundleID,
+                        captureBundleIDs: captureBundleIDs,
+                        enabled: enabled
+                    )
+                }
+                .store(in: &cancellables)
+        }
     }
 
     private func evaluate(

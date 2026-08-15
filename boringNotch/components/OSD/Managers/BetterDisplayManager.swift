@@ -150,23 +150,22 @@ final class BetterDisplayManager {
             await MainActor.run {
                 brightnessValue = Float(rawValue)
                 lastChangeAt = Date()
-                BoringViewCoordinator.shared.toggleSneakPeek(
-                    status: true,
+                NotchUIEventBus.events.send(.sneakPeek(
                     type: .brightness,
                     value: CGFloat(rawValue / maxVal),
                     targetScreenUUID: targetScreenUUID
-                )
+                ))
             }
 
         case .volume:
             let normalized = maxVal > 0 ? Float(rawValue / maxVal) : Float(rawValue)
             await MainActor.run {
-                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(normalized))
+                NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: CGFloat(normalized)))
             }
 
         case .mute:
             await MainActor.run {
-                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(rawValue))
+                NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: CGFloat(rawValue)))
             }
 
         case .other:

@@ -2,10 +2,29 @@ import Foundation
 import Cocoa
 import AsyncXPCConnection
 
-final class XPCHelperClient: NSObject {
+/// Why a helper call failed. Most methods still degrade to false/nil for
+/// backward compatibility, but the cause is recorded in `lastError` and
+/// rolled into `helperAvailable` for Settings to surface.
+enum XPCHelperError: Error {
+    /// The XPC service could not be reached (crashed or restarting).
+    case unavailable
+    /// The helper refused the request (e.g. accessibility not granted).
+    case declined
+    /// Connection dropped mid-call.
+    case transport(underlying: Error)
+}
+
+final class XPCHelperClient: NSObject, ObservableObject {
     nonisolated static let shared = XPCHelperClient()
-    
+
     private let serviceName = "theboringteam.boringnotch.BoringNotchXPCHelper"
+
+    /// Coarse, UI-friendly view of helper connectivity. Flips to false from
+    /// the connection's interruption/invalidation handlers so a crashed
+    /// helper is visible in Settings instead of features silently degrading;
+    /// flips back to true when a live connection is (re)established.
+    @MainActor @Published private(set) var helperAvailable = true
+    @MainActor private(set) var lastError: XPCHelperError?
     
     private var remoteService: RemoteXPCService<BoringNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?
@@ -37,6 +56,7 @@ final class XPCHelperClient: NSObject {
         if let existing = remoteService {
             notificationDelegate.lunarListener = lunarListener
             hasLunarListener = hasLunarListener || (needsListener && lunarListener != nil)
+            helperAvailable = true
             return existing
         }
 
@@ -53,14 +73,18 @@ final class XPCHelperClient: NSObject {
                 self?.connection = nil
                 self?.remoteService = nil
                 self?.hasLunarListener = false
+                self?.helperAvailable = false
+                self?.lastError = .unavailable
             }
         }
-        
+
         conn.invalidationHandler = { [weak self] in
             Task { @MainActor in
                 self?.connection = nil
                 self?.remoteService = nil
                 self?.hasLunarListener = false
+                self?.helperAvailable = false
+                self?.lastError = .unavailable
             }
         }
         
@@ -73,6 +97,8 @@ final class XPCHelperClient: NSObject {
         
         connection = conn
         remoteService = service
+        helperAvailable = true
+        lastError = nil
         return service
     }
     

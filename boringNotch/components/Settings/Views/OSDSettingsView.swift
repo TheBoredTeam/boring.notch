@@ -18,6 +18,7 @@ struct OSDSettings: View {
     @Default(.osdVolumeSource) private var osdVolumeSourceDefault
     @State private var isAccessibilityAuthorized = true
     @State private var menuBarBrightnessSupported = true
+    @ObservedObject private var xpcClient = XPCHelperClient.shared
 
     var body: some View {
         Form {
@@ -75,6 +76,23 @@ struct OSDSettings: View {
                         Text(OSDControlSource.builtin.localizedString)
                     }
                     HelpText("Keyboard brightness currently supports the built-in source only.")
+                    if !xpcClient.helperAvailable {
+                        HStack(alignment: .center, spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.title)
+                                .foregroundStyle(.yellow)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(String(localized: "Helper Service Unavailable"))
+                                    .font(.headline)
+                                Text(String(localized: "The background helper crashed or was closed by macOS. It restarts automatically on the next OSD event."))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .padding(.vertical, 4)
+                    }
                     if !isAccessibilityAuthorized {
                         HStack(alignment: .center, spacing: 12) {
                             Image(systemName: "accessibility")

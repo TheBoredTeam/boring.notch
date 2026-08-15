@@ -368,9 +368,12 @@ extension Defaults.Keys {
     // Normalize scroll/gesture direction so when macOS "Natural scrolling" is disabled, it doesn't invert gestures
     static let normalizeGestureDirection = Key<Bool>("normalizeGestureDirection", default: true)
     
-    // Helper to determine the default media controller based on NowPlaying deprecation status
+    // Helper to determine the default media controller based on NowPlaying deprecation status.
+    // Reads ONLY persisted probe data — never a singleton. Defaults key defaults are
+    // evaluated once, potentially before managers exist; the probe result is owned
+    // and refreshed by MediaEnvironment (see helpers/MediaEnvironment.swift).
     static var defaultMediaController: MediaControllerType {
-        if MusicManager.shared.isNowPlayingDeprecated {
+        if UserDefaults.standard.bool(forKey: MediaEnvironment.persistenceKey) {
             return .appleMusic
         } else {
             return .nowPlaying

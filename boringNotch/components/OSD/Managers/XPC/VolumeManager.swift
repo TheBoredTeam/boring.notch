@@ -102,7 +102,7 @@ final class VolumeManager: NSObject, ObservableObject {
             }
             // Hardware mute preserves the underlying volume level.
             publish(volume: deviceSupportsMute ? rawVolume : 0, muted: true, touchDate: true)
-            BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: 0)
+            NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: 0))
         } else {
             if deviceSupportsMute {
                 enqueueHardwareMute(false)
@@ -111,8 +111,7 @@ final class VolumeManager: NSObject, ObservableObject {
                 requestVolumeWrite(previousVolumeBeforeMute)
             }
             publish(volume: deviceSupportsMute ? rawVolume : resultingVolume, muted: false, touchDate: true)
-            BoringViewCoordinator.shared.toggleSneakPeek(
-                status: true, type: .volume, value: CGFloat(resultingVolume))
+            NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: CGFloat(resultingVolume)))
         }
     }
 
@@ -142,7 +141,7 @@ final class VolumeManager: NSObject, ObservableObject {
             publish(volume: target, muted: true, touchDate: true)
         }
         requestVolumeWrite(target)
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(target))
+        NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: CGFloat(target)))
     }
 
     // MARK: - Hardware I/O (audioQueue)

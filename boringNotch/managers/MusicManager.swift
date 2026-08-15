@@ -14,6 +14,7 @@ let defaultImage: NSImage = .init(
     accessibilityDescription: "Album Art"
 )!
 
+@MainActor
 class MusicManager: ObservableObject {
     // MARK: - Properties
     static let shared = MusicManager()
@@ -21,9 +22,9 @@ class MusicManager: ObservableObject {
     private var controllerCancellables = Set<AnyCancellable>()
     private var debounceIdleTask: Task<Void, Never>?
 
-    // Helper to check if macOS has removed support for NowPlayingController
+    // Whether macOS has removed support for NowPlayingController.
+    // Mirrored from MediaEnvironment, which owns the probe.
     public private(set) var isNowPlayingDeprecated: Bool = false
-    private let mediaChecker = MediaChecker()
 
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
@@ -47,7 +48,6 @@ class MusicManager: ObservableObject {
     @Published var repeatMode: RepeatMode = .off
     @Published var volume: Double = 0.5
     @Published var volumeControlSupported: Bool = true
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     @Published var canFavoriteTrack: Bool = false
     
@@ -77,29 +77,30 @@ class MusicManager: ObservableObject {
         // Listen for changes to the default controller preference
         NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
             .sink { [weak self] _ in
-                self?.setActiveControllerBasedOnPreference()
+                Task { @MainActor in
+                    self?.setActiveControllerBasedOnPreference()
+                }
             }
             .store(in: &cancellables)
 
-        // Initialize deprecation check asynchronously
-        Task { @MainActor in
-            do {
-                self.isNowPlayingDeprecated = try await self.mediaChecker.checkDeprecationStatus()
-                print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
-            } catch {
-                print("Failed to check deprecation status: \(error). Defaulting to false.")
-                self.isNowPlayingDeprecated = false
+        // The NowPlaying availability probe is owned by MediaEnvironment
+        // (resolved eagerly at launch); mirror it so existing consumers of
+        // MusicManager.shared.isNowPlayingDeprecated keep working.
+        isNowPlayingDeprecated = MediaEnvironment.shared.isNowPlayingDeprecated
+        MediaEnvironment.shared.$isNowPlayingDeprecated
+            .sink { [weak self] resolved in
+                Task { @MainActor in
+                    self?.isNowPlayingDeprecated = resolved
+                    self?.setActiveControllerBasedOnPreference()
+                }
             }
-            
-            // Initialize the active controller after deprecation check
-            self.setActiveControllerBasedOnPreference()
-        }
+            .store(in: &cancellables)
+
+        setActiveControllerBasedOnPreference()
     }
 
-    deinit {
-        destroy()
-    }
-    
+    // Singleton: no deinit-based teardown. App teardown calls destroy()
+    // explicitly from applicationWillTerminate.
     public func destroy() {
         debounceIdleTask?.cancel()
         cancellables.removeAll()
@@ -144,7 +145,9 @@ class MusicManager: ObservableObject {
                 .sink { [weak self] state in
                     guard let self = self,
                           self.activeController === controller else { return }
-                    self.updateFromPlaybackState(state)
+                    Task { @MainActor in
+                        self.updateFromPlaybackState(state)
+                    }
                 }
                 .store(in: &controllerCancellables)
         }
@@ -451,12 +454,11 @@ class MusicManager: ObservableObject {
     }
 
     private func updateSneakPeek() {
-        if isPlaying && Defaults[.enableSneakPeek] {
-            if Defaults[.sneakPeekStyles] == .standard {
-                coordinator.toggleSneakPeek(status: true, type: .music)
-            } else {
-                coordinator.toggleExpandingView(status: true, type: .music)
-            }
+        guard isPlaying && Defaults[.enableSneakPeek] else { return }
+        if Defaults[.sneakPeekStyles] == .standard {
+            NotchUIEventBus.events.send(.sneakPeek(type: .music, value: 0))
+        } else {
+            NotchUIEventBus.events.send(.expandingView(type: .music))
         }
     }
 
