@@ -1,0 +1,85 @@
+# SwiftLint configuration for boring.notch
+# Run with: swiftlint --config .swiftlint.yml
+# CI wiring is tracked as a follow-up (needs a lint-capable runner).
+
+# Paths to check
+included:
+  - boringNotch
+  - BoringNotchXPCHelper
+  - Shared
+
+# Paths to ignore
+excluded:
+  - boringNotch/Assets.xcassets
+  - mediaremote-adapter
+  - updater
+  - .build
+
+# Crash-vector rules found in the audit — hard errors in new code.
+# The few audited, allow-listed legacy sites are excluded per rule below;
+# do not add new exclusions.
+force_unwrapping:
+  severity: error
+  excluded:
+    # CGEventType(rawValue: 14)! == kCGEventSystemDefined by construction
+    - boringNotch/observers/MediaKeyInterceptor.swift
+    # compile-time-known regexes
+    - boringNotch/helpers/OTPDetector.swift
+    # hard-bundled placeholder artwork/resource URLs
+    - boringNotch/managers/MusicManager.swift
+    - boringNotch/components/Music/LottieAnimationView.swift
+    - boringNotch/components/Settings/Views/MediaSettingsView.swift
+
+force_cast:
+  severity: error
+  excluded:
+    # XPC secure-coding bridging (NSSet -> Set<AnyHashable> is a guaranteed bridge)
+    - boringNotch/XPCHelperClient/XPCHelperClient.swift
+    - BoringNotchXPCHelper/main.swift
+
+force_try:
+  severity: error
+
+# Opt-in rules matching the house style established during remediation
+opt_in_rules:
+  - empty_count
+  - empty_string
+  - first_where
+  - contains_over_first_is_nil
+  - flatmap_over_parameter_reduce
+  - implicitly_unwrapped_optional
+  - lower_acl_than_parent
+  - modifier_order
+  - preferred_final_class
+  - redundant_nil_coalescing
+  - unused_enumerated
+  - vertical_whitespace_closing_braces
+  - vertical_whitespace_opening_braces
+
+type_body_length:
+  warning: 400
+  error: 800
+
+file_length:
+  warning: 500
+  error: 1000
+
+function_body_length:
+  warning: 60
+  error: 120
+
+line_length:
+  warning: 160
+  error: 220
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  max_length:
+    warning: 40
+    error: 60
+  excluded:
+    - id
+    - vm
+    - s

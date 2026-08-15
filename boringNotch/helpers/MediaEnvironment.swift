@@ -2,6 +2,8 @@
 //  MediaEnvironment.swift
 //  boringNotch
 //
+//  SPDX-License-Identifier: GPL-3.0-only
+//
 //  Created as part of the architecture remediation.
 //
 

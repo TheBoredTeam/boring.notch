@@ -5,18 +5,20 @@
 
 version: 2
 updates:
-  - package-ecosystem: "github-actions" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "weekly"
+    target-branch: "dev"
 
   - package-ecosystem: "pip"
     directory: "/Configuration/dmg"
     schedule:
       interval: "weekly"
-
-  - package-ecosystem: "swift"
-    directory: "/"
-    schedule:
-      interval: "weekly"
     target-branch: "dev"
+
+  # NOTE: no "swift" section. SPM packages live in the xcodeproj-embedded
+  # manifest (boringNotch.xcodeproj/.../swiftpm/Package.resolved), which
+  # Dependabot's swift ecosystem cannot read (it requires a root-level
+  # Package.swift). Swift dependencies are bumped manually; see Package.resolved.
+

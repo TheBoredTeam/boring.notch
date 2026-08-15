@@ -1,6 +1,8 @@
 //
 //  JSONLinesPipeHandler.swift
-//  boringNotch / BoringNotchXPCHelper
+//  boringNotch
+//
+//  SPDX-License-Identifier: GPL-3.0-only
 //
 //  Shared source compiled into BOTH targets (via the Shared synchronized
 //  group). There is intentionally one copy — edit once, both sides build it.
