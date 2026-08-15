@@ -9,7 +9,7 @@ import Defaults
 import Sparkle
 import SwiftUI
 
-struct About: View {
+struct AboutView: View {
     @State private var showBuildNumber: Bool = false
     let updaterController: SPUStandardUpdaterController
     @Environment(\.openWindow) var openWindow

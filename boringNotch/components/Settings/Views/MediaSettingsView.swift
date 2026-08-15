@@ -8,7 +8,7 @@
 import Defaults
 import SwiftUI
 
-struct Media: View {
+struct MediaSettingsView: View {
     @Default(.waitInterval) var waitInterval
     @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared

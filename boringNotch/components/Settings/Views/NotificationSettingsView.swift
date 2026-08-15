@@ -101,7 +101,7 @@ struct NotificationSettingsView: View {
     @ViewBuilder
     private func appRow(_ app: KnownNotificationApp) -> some View {
         HStack {
-            AppIcon(for: app.bundleID)
+            appIcon(for: app.bundleID)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 20, height: 20)

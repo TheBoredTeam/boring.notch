@@ -25,8 +25,10 @@ final class ContactAvatarManager: ObservableObject {
     private let store = CNContactStore()
     private var isAuthorized = false
     /// Exact-name lookups are cheap to repeat but the store fetch isn't;
-    /// cache misses too so a name that doesn't resolve isn't retried forever.
-    private var cache: [String: NSImage?] = [:]
+    /// misses are remembered too so a name that doesn't resolve isn't
+    /// retried forever. NSCache lets the system evict hits under pressure.
+    private let cache = NSCache<NSString, NSImage>()
+    private var knownMisses: Set<String> = []
 
     private init() {
         isAuthorized = CNContactStore.authorizationStatus(for: .contacts) == .authorized
@@ -50,7 +52,8 @@ final class ContactAvatarManager: ObservableObject {
     /// immediately (no permission prompt) unless the caller has already
     /// established access via `requestAccessIfNeeded`.
     func photo(forSenderNamed name: String) -> NSImage? {
-        if let cached = cache[name] { return cached }
+        if let cached = cache.object(forKey: name as NSString) { return cached }
+        if knownMisses.contains(name) { return nil }
         guard isAuthorized else { return nil }
 
         let keys = [CNContactImageDataKey, CNContactThumbnailImageDataKey] as [CNKeyDescriptor]
@@ -64,12 +67,12 @@ final class ContactAvatarManager: ObservableObject {
               let image = NSImage(data: data)
         else {
             NSLog("[boringNotch] avatar for \(name.debugDescription): no contact photo, using monogram")
-            cache[name] = .some(nil)
+            knownMisses.insert(name)
             return nil
         }
 
         NSLog("[boringNotch] avatar for \(name.debugDescription): using contact photo")
-        cache[name] = image
+        cache.setObject(image, forKey: name as NSString)
         return image
     }
 

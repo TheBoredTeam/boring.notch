@@ -15,7 +15,7 @@ let defaultImage: NSImage = .init(
 )!
 
 @MainActor
-class MusicManager: ObservableObject {
+final class MusicManager: ObservableObject {
     // MARK: - Properties
     static let shared = MusicManager()
     private var cancellables = Set<AnyCancellable>()
@@ -24,7 +24,7 @@ class MusicManager: ObservableObject {
 
     // Whether macOS has removed support for NowPlayingController.
     // Mirrored from MediaEnvironment, which owns the probe.
-    public private(set) var isNowPlayingDeprecated: Bool = false
+    private(set) var isNowPlayingDeprecated: Bool = false
 
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
@@ -101,7 +101,7 @@ class MusicManager: ObservableObject {
 
     // Singleton: no deinit-based teardown. App teardown calls destroy()
     // explicitly from applicationWillTerminate.
-    public func destroy() {
+    func destroy() {
         debounceIdleTask?.cancel()
         cancellables.removeAll()
         controllerCancellables.removeAll()
@@ -157,7 +157,7 @@ class MusicManager: ObservableObject {
 
     private func setActiveControllerBasedOnPreference() {
         let preferredType = Defaults[.mediaController]
-        print("Preferred Media Controller: \(preferredType)")
+        Log.music.debug("Preferred Media Controller: \(String(describing: preferredType))")
 
         // If NowPlaying is deprecated but that's the preference, use Apple Music instead
         let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
@@ -220,7 +220,7 @@ class MusicManager: ObservableObject {
                 self.updateArtwork(artwork)
             } else if state.artwork == nil {
                 // Try to use app icon if no artwork but track changed
-                if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
+                if let appIconImage = appIconAsNSImage(for: state.bundleIdentifier) {
                     self.usingAppIconForArtwork = true
                     self.updateAlbumArt(newAlbumArt: appIconImage)
                 } else {
@@ -322,7 +322,7 @@ class MusicManager: ObservableObject {
 
     @MainActor
     private func toggleAppleMusicFavorite() async {
-        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: MediaAppBundleID.appleMusic)
         guard !runningApps.isEmpty else { return }
 
         let script = """
@@ -435,7 +435,7 @@ class MusicManager: ObservableObject {
     }
 
     // MARK: - Playback Position Estimation
-    public func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
+    func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
         guard isPlaying else { return min(elapsedTime, songDuration) }
 
         let timeDifference = date.timeIntervalSince(timestampDate)
@@ -530,7 +530,7 @@ class MusicManager: ObservableObject {
     }
     func openMusicApp() {
         guard let bundleID = bundleIdentifier else {
-            print("Error: appBundleIdentifier is nil")
+            Log.music.error("Error: appBundleIdentifier is nil")
             return
         }
 
@@ -539,13 +539,13 @@ class MusicManager: ObservableObject {
             let configuration = NSWorkspace.OpenConfiguration()
             workspace.openApplication(at: appURL, configuration: configuration) { (app, error) in
                 if let error = error {
-                    print("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
+                    Log.music.error("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
                 } else {
-                    print("Launched app with bundle ID: \(bundleID)")
+                    Log.music.debug("Launched app with bundle ID: \(bundleID)")
                 }
             }
         } else {
-            print("Failed to find app with bundle ID: \(bundleID)")
+            Log.music.error("Failed to find app with bundle ID: \(bundleID)")
         }
     }
 
@@ -569,7 +569,7 @@ class MusicManager: ObservableObject {
               NSWorkspace.shared.runningApplications.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
         
         var script: String?
-        if bundleID == "com.apple.Music" {
+        if bundleID == MediaAppBundleID.appleMusic {
             script = """
             tell application "Music"
                 if it is running then
@@ -579,7 +579,7 @@ class MusicManager: ObservableObject {
                 end if
             end tell
             """
-        } else if bundleID == "com.spotify.client" {
+        } else if bundleID == MediaAppBundleID.spotify {
             script = """
             tell application "Spotify"
                 if it is running then

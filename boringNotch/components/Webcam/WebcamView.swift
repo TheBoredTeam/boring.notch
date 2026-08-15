@@ -9,7 +9,7 @@ import AVFoundation
 import Defaults
 import SwiftUI
 
-struct CameraPreviewView: View {
+struct WebcamPreview: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager: WebcamManager
     
@@ -21,7 +21,7 @@ struct CameraPreviewView: View {
         GeometryReader { geometry in
             ZStack {
                 if let previewLayer = webcamManager.previewLayer {
-                    CameraPreviewLayerView(previewLayer: previewLayer)
+                    WebcamPreviewLayer(previewLayer: previewLayer)
                         .scaleEffect(x: isMirrored ? -1 : 1, y: 1)
                         .clipShape(RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? MusicPlayerImageSizes.cornerRadiusInset.opened : 100))
                         .frame(width: geometry.size.width, height: geometry.size.width)
@@ -94,7 +94,7 @@ struct CameraPreviewView: View {
     }
 }
 
-struct CameraPreviewLayerView: NSViewRepresentable {
+struct WebcamPreviewLayer: NSViewRepresentable {
     let previewLayer: AVCaptureVideoPreviewLayer
 
     func makeNSView(context: Context) -> NSView {
@@ -115,5 +115,5 @@ struct CameraPreviewLayerView: NSViewRepresentable {
 }
 
 #Preview {
-    CameraPreviewView(webcamManager: .shared)
+    WebcamPreview(webcamManager: .shared)
 }

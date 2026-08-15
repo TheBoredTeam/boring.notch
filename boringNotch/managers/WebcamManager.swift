@@ -8,7 +8,7 @@ import AVFoundation
 import Defaults
 import SwiftUI
 
-class WebcamManager: NSObject, ObservableObject {
+final class WebcamManager: NSObject, ObservableObject {
     static let shared = WebcamManager()
     
     @Published var previewLayer: AVCaptureVideoPreviewLayer?

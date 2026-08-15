@@ -16,7 +16,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
 
     // MARK: - Properties
     @Published private(set) var playbackState: PlaybackState = .init(
-        bundleIdentifier: "com.apple.Music"
+        bundleIdentifier: MediaAppBundleID.appleMusic
     )
 
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
@@ -25,19 +25,19 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
 
     var supportsVolumeControl: Bool {
         let bundleID = playbackState.bundleIdentifier
-        return bundleID == "com.apple.Music" || bundleID == "com.spotify.client"
+        return bundleID == MediaAppBundleID.appleMusic || bundleID == MediaAppBundleID.spotify
     }
 
     var supportsFavorite: Bool {
         let bundleID = playbackState.bundleIdentifier
-        return bundleID == "com.apple.Music"
+        return bundleID == MediaAppBundleID.appleMusic
     }
 
     func setFavorite(_ favorite: Bool) async {
         let bundleID = playbackState.bundleIdentifier
         
-        if bundleID == "com.apple.Music" {
-            let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+        if bundleID == MediaAppBundleID.appleMusic {
+            let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: MediaAppBundleID.appleMusic)
             if !runningApps.isEmpty {
                 let script = """
                 tell application "Music"
@@ -168,14 +168,14 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         
         let bundleID = playbackState.bundleIdentifier
         if !bundleID.isEmpty {
-            if bundleID == "com.apple.Music" {
-                let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+            if bundleID == MediaAppBundleID.appleMusic {
+                let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: MediaAppBundleID.appleMusic)
                 if !runningApps.isEmpty {
                     let script = "tell application \"Music\" to set sound volume to \(volumePercentage)"
                     try? await AppleScriptHelper.executeVoid(script)
                 }
-            } else if bundleID == "com.spotify.client" {
-                let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.spotify.client")
+            } else if bundleID == MediaAppBundleID.spotify {
+                let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: MediaAppBundleID.spotify)
                 if !runningApps.isEmpty {
                     let script = "tell application \"Spotify\" to set sound volume to \(volumePercentage)"
                     try? await AppleScriptHelper.executeVoid(script)
@@ -319,8 +319,8 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
      private func fetchFavoriteStateIfSupported() async {
          let bundleID = playbackState.bundleIdentifier
         
-         if bundleID == "com.apple.Music" {
-             let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+         if bundleID == MediaAppBundleID.appleMusic {
+             let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: MediaAppBundleID.appleMusic)
              guard !runningApps.isEmpty else { return }
              
              let script = """

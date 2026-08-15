@@ -39,7 +39,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             try? await Task.sleep(for: .milliseconds(150))
             await updatePlaybackInfo()
         } catch {
-            print("[YouTubeMusicController] Failed to set favorite: \(error)")
+            Log.music.error("[YouTubeMusicController] Failed to set favorite: \(error)")
         }
     }
 
@@ -146,7 +146,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
         } catch YouTubeMusicError.authenticationRequired {
             await authManager.invalidateToken()
         } catch {
-            print("[YouTubeMusicController] Failed to update playback info: \(error)")
+            Log.music.error("[YouTubeMusicController] Failed to update playback info: \(error)")
         }
     }
     
@@ -222,14 +222,14 @@ final class YouTubeMusicController: MediaControllerProtocol {
             await startPeriodicUpdates()
             await updatePlaybackInfo()
         } catch {
-            print("[YouTubeMusicController] Failed to initialize: \(error)")
+            Log.music.error("[YouTubeMusicController] Failed to initialize: \(error)")
             scheduleReconnect()
         }
     }
     
     private func setupWebSocketIfPossible(token: String) async {
         guard let wsURL = WebSocketURLBuilder.buildURL(from: configuration.baseURL) else {
-            print("[YouTubeMusicController] Failed to build WebSocket URL")
+            Log.music.error("[YouTubeMusicController] Failed to build WebSocket URL")
             return
         }
         
@@ -246,7 +246,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             try await client.connect(to: wsURL, with: token)
             activateWebSocket(client)
         } catch {
-            print("[YouTubeMusicController] WebSocket connection failed: \(error)")
+            Log.music.error("[YouTubeMusicController] WebSocket connection failed: \(error)")
             scheduleReconnect()
         }
     }
@@ -450,7 +450,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
         } catch YouTubeMusicError.authenticationRequired {
             await authManager.invalidateToken()
         } catch {
-            print("[YouTubeMusicController] Command failed: \(error)")
+            Log.music.error("[YouTubeMusicController] Command failed: \(error)")
         }
     }
     

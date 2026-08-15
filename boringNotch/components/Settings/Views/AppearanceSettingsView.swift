@@ -8,7 +8,7 @@
 import Defaults
 import SwiftUI
 
-struct Appearance: View {
+struct AppearanceSettingsView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.sliderColor) var sliderColor
 

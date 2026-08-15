@@ -32,7 +32,7 @@ actor JSONLinesPipeHandler {
         do {
             try await processLines(as: type, onLine: onLine)
         } catch {
-            print("JSONLinesPipeHandler stream error: \(error)")
+            NSLog("JSONLinesPipeHandler stream error: \(error.localizedDescription)")
         }
     }
 

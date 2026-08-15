@@ -39,6 +39,8 @@
 		1153BD8F2D986B1F00979FB0 /* MediaControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD8D2D986B1F00979FB0 /* MediaControllerProtocol.swift */; };
 		1153BD912D986DB300979FB0 /* PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD902D986DB300979FB0 /* PlaybackState.swift */; };
 		1153BD932D986E4300979FB0 /* AppleMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD922D986E4300979FB0 /* AppleMusicController.swift */; };
+		62A83B43C1AD411097E93D17 /* MediaAppBundleID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F20E44C65E4DA1945BFF5C /* MediaAppBundleID.swift */; };
+		80EA0C01BBCF4069AC5D133D /* AppleScriptControllerSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C26F24108F414781F79D4F /* AppleScriptControllerSupport.swift */; };
 		1153BD982D9881F900979FB0 /* AppleScriptHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */; };
 		1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD992D98824300979FB0 /* SpotifyController.swift */; };
 		1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */; };
@@ -66,6 +68,7 @@
 		11985BEF2F37E48900F81585 /* OSDIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BEE2F37E48900F81585 /* OSDIconView.swift */; };
 		11985BF42F38520A00F81585 /* DraggableProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BF32F38520A00F81585 /* DraggableProgressBar.swift */; };
 		11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A45C782E34E63100CEB175 /* MediaChecker.swift */; };
+		7EF93DF9889B42E9BCD4634F /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033B8885979E4EA1A78E8ADC /* Log.swift */; };
 		F80A422BE2974CF6808C84CA /* MediaEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D24CBD49614ECE88F062B5 /* MediaEnvironment.swift */; };
 		11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3112DFE85970065821E /* SettingsWindowController.swift */; };
 		11C5E3162DFE88510065821E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3152DFE88510065821E /* SettingsView.swift */; };
@@ -241,6 +244,8 @@
 		1153BD8D2D986B1F00979FB0 /* MediaControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaControllerProtocol.swift; sourceTree = "<group>"; };
 		1153BD902D986DB300979FB0 /* PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackState.swift; sourceTree = "<group>"; };
 		1153BD922D986E4300979FB0 /* AppleMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicController.swift; sourceTree = "<group>"; };
+		61F20E44C65E4DA1945BFF5C /* MediaAppBundleID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAppBundleID.swift; sourceTree = "<group>"; };
+		B0C26F24108F414781F79D4F /* AppleScriptControllerSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptControllerSupport.swift; sourceTree = "<group>"; };
 		1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptHelper.swift; sourceTree = "<group>"; };
 		1153BD992D98824300979FB0 /* SpotifyController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyController.swift; sourceTree = "<group>"; };
 		1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingController.swift; sourceTree = "<group>"; };
@@ -266,6 +271,7 @@
 		11985BEE2F37E48900F81585 /* OSDIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSDIconView.swift; sourceTree = "<group>"; };
 		11985BF32F38520A00F81585 /* DraggableProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraggableProgressBar.swift; sourceTree = "<group>"; };
 		11A45C782E34E63100CEB175 /* MediaChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaChecker.swift; sourceTree = "<group>"; };
+		033B8885979E4EA1A78E8ADC /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		54D24CBD49614ECE88F062B5 /* MediaEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaEnvironment.swift; sourceTree = "<group>"; };
 		11C5E3112DFE85970065821E /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		11C5E3152DFE88510065821E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -487,7 +493,7 @@
 			path = "mediaremote-adapter";
 			sourceTree = "<group>";
 		};
-		1132E5232E78D6DA0068732D /* YouTube Music Controller */ = {
+		1132E5232E78D6DA0068732D /* YouTubeMusicController */ = {
 			isa = PBXGroup;
 			children = (
 				1132E5152E777C140068732D /* YouTubeMusicAuthentication.swift */,
@@ -495,15 +501,17 @@
 				1132E5102E777B6E0068732D /* YouTubeMusicModels.swift */,
 				1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */,
 			);
-			path = "YouTube Music Controller";
+			path = "YouTubeMusicController";
 			sourceTree = "<group>";
 		};
 		1153BD8E2D986B1F00979FB0 /* MediaControllers */ = {
 			isa = PBXGroup;
 			children = (
-				1132E5232E78D6DA0068732D /* YouTube Music Controller */,
+				1132E5232E78D6DA0068732D /* YouTubeMusicController */,
 				1153BD8D2D986B1F00979FB0 /* MediaControllerProtocol.swift */,
 				1153BD922D986E4300979FB0 /* AppleMusicController.swift */,
+				61F20E44C65E4DA1945BFF5C /* MediaAppBundleID.swift */,
+				B0C26F24108F414781F79D4F /* AppleScriptControllerSupport.swift */,
 				1153BD992D98824300979FB0 /* SpotifyController.swift */,
 				1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */,
 			);
@@ -601,6 +609,7 @@
 			children = (
 				118EBE242E92DCCB00D54B5A /* AssociatedObject.swift */,
 				11A45C782E34E63100CEB175 /* MediaChecker.swift */,
+				033B8885979E4EA1A78E8ADC /* Log.swift */,
 				54D24CBD49614ECE88F062B5 /* MediaEnvironment.swift */,
 				1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */,
 				14288DD62C6E015000B9F80C /* AudioPlayer.swift */,
@@ -639,7 +648,7 @@
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
 				9A987A042C73CA66005CA465 /* Shelf */,
 				149E0B982C737D26006418B1 /* Webcam */,
-				B18654312C6F45AE000B926A /* Live activities */,
+				B18654312C6F45AE000B926A /* LiveActivities */,
 				B18654302C6F4590000B926A /* Settings */,
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
@@ -882,14 +891,14 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		B18654312C6F45AE000B926A /* Live activities */ = {
+		B18654312C6F45AE000B926A /* LiveActivities */ = {
 			isa = PBXGroup;
 			children = (
 				14D570CC2C5F4BB70011E668 /* BoringBattery.swift */,
 				B1C974332C642B6D0000E707 /* MarqueeTextView.swift */,
 				B1D365CD2C6A979C0047BDBC /* LiveActivityModifier.swift */,
 			);
-			path = "Live activities";
+			path = "LiveActivities";
 			sourceTree = "<group>";
 		};
 		B186543A2C6F49A4000B926A /* Shortcuts */ = {
@@ -1091,6 +1100,7 @@
 				11CC44A22CEE614100C7244B /* BoringViewCoordinator.swift in Sources */,
 				B186543C2C6F49AE000B926A /* ShortcutConstants.swift in Sources */,
 				11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */,
+				7EF93DF9889B42E9BCD4634F /* Log.swift in Sources */,
 				F80A422BE2974CF6808C84CA /* MediaEnvironment.swift in Sources */,
 				B1D365CE2C6A979C0047BDBC /* LiveActivityModifier.swift in Sources */,
 				1113ABD02E80E6BB00EC13B2 /* ThumbnailService.swift in Sources */,
@@ -1180,6 +1190,8 @@
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
 				11C5E3162DFE88510065821E /* SettingsView.swift in Sources */,
 				1153BD932D986E4300979FB0 /* AppleMusicController.swift in Sources */,
+				62A83B43C1AD411097E93D17 /* MediaAppBundleID.swift in Sources */,
+				80EA0C01BBCF4069AC5D133D /* AppleScriptControllerSupport.swift in Sources */,
 				11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */,
 				110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */,
 				11CFC6652E09C7B300748C80 /* OnboardingFinishView.swift in Sources */,

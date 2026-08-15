@@ -39,7 +39,7 @@ enum LiveActivityItem: Identifiable, Equatable {
 /// activity draws — `MusicLiveActivity` depends on ContentView's namespace
 /// and gesture state, and dragging it out here would be a much larger,
 /// riskier change than this feature needs.
-struct LiveActivityStackView<Content: View>: View {
+struct LiveActivityStack<Content: View>: View {
     let items: [LiveActivityItem]
     @Binding var index: Int
     @ViewBuilder let content: (LiveActivityItem) -> Content

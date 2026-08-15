@@ -59,7 +59,7 @@ func normalizeBundleIdentifier(_ bundleID: String) -> String {
     return bundleID
 }
 
-func AppIcon(for bundleID: String) -> Image {
+func appIcon(for bundleID: String) -> Image {
     let workspace = NSWorkspace.shared
     let normalizedID = normalizeBundleIdentifier(bundleID)
     
@@ -72,7 +72,7 @@ func AppIcon(for bundleID: String) -> Image {
 }
 
 
-func AppIconAsNSImage(for bundleID: String) -> NSImage? {
+func appIconAsNSImage(for bundleID: String) -> NSImage? {
     let workspace = NSWorkspace.shared
     let normalizedID = normalizeBundleIdentifier(bundleID)
     

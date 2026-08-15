@@ -344,7 +344,7 @@ private final class MenuActionTarget: NSObject {
                             try await NSWorkspace.shared.open(allSelectedURLs, withApplicationAt: appURL, configuration: config)
                         }
                     } catch {
-                        print("❌ Failed to open with application: \(error.localizedDescription)")
+                        Log.shelf.error("❌ Failed to open with application: \(error.localizedDescription)")
                     }
             }
             return
@@ -616,10 +616,10 @@ private final class MenuActionTarget: NSObject {
                         if alwaysCheckbox.state == .on, let bundleID = Bundle(url: appURL)?.bundleIdentifier {
                             if let contentType = (try? fileURL.resourceValues(forKeys: [.contentTypeKey]))?.contentType {
                                 let status = LSSetDefaultRoleHandlerForContentType(contentType.identifier as CFString, LSRolesMask.all, bundleID as CFString)
-                                if status != noErr { print("⚠️ Failed to set default handler for \(contentType.identifier): \(status)") }
+                                if status != noErr { Log.shelf.error("Failed to set default handler for \(contentType.identifier): \(status)") }
                             } else if let scheme = fileURL.scheme {
                                 let status = LSSetDefaultHandlerForURLScheme(scheme as CFString, bundleID as CFString)
-                                if status != noErr { print("⚠️ Failed to set default handler for scheme \(scheme): \(status)") }
+                                if status != noErr { Log.shelf.error("Failed to set default handler for scheme \(scheme): \(status)") }
                             }
                         }
 
@@ -631,7 +631,7 @@ private final class MenuActionTarget: NSObject {
                             try await NSWorkspace.shared.open([fileURL], withApplicationAt: appURL, configuration: config)
                         }
                     } catch {
-                        print("❌ Failed to open with application: \(error.localizedDescription)")
+                        Log.shelf.error("❌ Failed to open with application: \(error.localizedDescription)")
                     }
                 }
             }
@@ -667,7 +667,7 @@ private final class MenuActionTarget: NSObject {
                                     ShelfStateViewModel.shared.updateBookmark(for: item, bookmark: newBookmark.data)
                                 }
                             } catch {
-                                print("❌ Failed to rename file: \(error.localizedDescription)")
+                                Log.shelf.error("❌ Failed to rename file: \(error.localizedDescription)")
                             }
                             if didStart { fileURL.stopAccessingSecurityScopedResource() }
                         }
@@ -703,7 +703,7 @@ private final class MenuActionTarget: NSObject {
                     }
                 }
             } catch {
-                print("❌ Failed to remove background: \(error.localizedDescription)")
+                Log.shelf.error("❌ Failed to remove background: \(error.localizedDescription)")
                 showErrorAlert(title: String(localized: "Background Removal Failed"), message: error.localizedDescription)
             }
         }
@@ -733,7 +733,7 @@ private final class MenuActionTarget: NSObject {
                     }
                 }
             } catch {
-                print("❌ Failed to create PDF: \(error.localizedDescription)")
+                Log.shelf.error("❌ Failed to create PDF: \(error.localizedDescription)")
                 showErrorAlert(title: String(localized: "PDF Creation Failed"), message: error.localizedDescription)
             }
         }
@@ -941,7 +941,7 @@ private final class MenuActionTarget: NSObject {
                         }
                     }
                 } catch {
-                    print("❌ Failed to convert image: \(error.localizedDescription)")
+                    Log.shelf.error("❌ Failed to convert image: \(error.localizedDescription)")
                     showErrorAlert(title: String(localized: "Image Conversion Failed"), message: error.localizedDescription)
                 }
             }
